@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,13 +19,10 @@ class CamelCaseTypes extends LintRule {
     : super(name: LintNames.camel_case_types, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.camel_case_types;
+  DiagnosticCode get diagnosticCode => LinterLintCode.camel_case_types;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addGenericTypeAlias(this, visitor);
     registry.addClassDeclaration(this, visitor);
@@ -43,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void check(Token name) {
     var lexeme = name.lexeme;
     if (!isCamelCase(lexeme)) {
-      rule.reportLintForToken(name, arguments: [lexeme]);
+      rule.reportAtToken(name, arguments: [lexeme]);
     }
   }
 

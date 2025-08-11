@@ -25,23 +25,25 @@ void f(bool x) {
   }
 
   test_bool_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case (true)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4)],
+    );
   }
 
   test_bool_ListOfBool() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(List<bool> x) {
   if (x case (true)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 4),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 4)],
+    );
   }
 
   test_bool_typeParameter_bound_bool() async {
@@ -61,23 +63,25 @@ void f<T extends bool>(List<T> x) {
   }
 
   test_bool_typeParameter_bound_num() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T x) {
   if (x case (true)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 4),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 4)],
+    );
   }
 
   test_bool_typeParameter_bound_num_nested() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(List<T> x) {
   if (x case [true]) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 49, 4),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 49, 4)],
+    );
   }
 
   test_bool_typeParameter_promoted_bool() async {
@@ -91,15 +95,16 @@ void f<T>(T x) {
   }
 
   test_bool_typeParameter_promoted_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T>(T x) {
   if (x is int) {
     if (x case (true)) {}
   }
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 51, 4),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 51, 4)],
+    );
   }
 
   test_custom_notPrimitiveEquality_constantIsSubtypeOfValue() async {
@@ -165,7 +170,8 @@ class B extends A {
   }
 
   test_custom_primitiveEquality_constantIsSupertypeOfValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(B x) {
   if (x case const A()) {}
 }
@@ -177,9 +183,9 @@ class A {
 class B extends A {
   const B();
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9)],
+    );
   }
 
   test_custom_primitiveEquality_generic_differentElement_constantIsSubtypeOfValue() async {
@@ -199,7 +205,8 @@ class B extends A<int> {
   }
 
   test_custom_primitiveEquality_generic_differentElement_constantIsSupertypeOfValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(B x) {
   if (x case const A<int>()) {}
 }
@@ -211,9 +218,9 @@ class A<T> {
 class B extends A<int> {
   const B();
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 14),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 14)],
+    );
   }
 
   test_custom_primitiveEquality_generic_sameElement_constantIsSameTypeAsValue() async {
@@ -241,7 +248,8 @@ class A<T> {
   }
 
   test_custom_primitiveEquality_generic_sameElement_constantIsSupertypeOfValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(A<int> x) {
   if (x case const A<num>()) {}
 }
@@ -249,9 +257,9 @@ void f(A<int> x) {
 class A<T> {
   const A();
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 14),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 14)],
+    );
   }
 
   test_custom_primitiveEquality_generic_sameElement_typeParameter() async {
@@ -279,13 +287,14 @@ class A<T> {
   }
 
   test_int_bool() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(bool x) {
   if (x case (0)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 31, 1),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 31, 1)],
+    );
   }
 
   test_int_double() async {
@@ -299,15 +308,16 @@ const zero = 0;
   }
 
   test_int_extensionTypeBool() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(bool it) {}
 
 void f(E x) {
   if (x case (0)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 58, 1),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 58, 1)],
+    );
   }
 
   test_int_extensionTypeInt() async {
@@ -321,15 +331,16 @@ void f(E x) {
   }
 
   test_int_functionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void Function() x) {
   if (x case (0)) {}
 }
 
 class A {}
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 1),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 1)],
+    );
   }
 
   test_int_int() async {
@@ -357,35 +368,41 @@ void f(num x) {
   }
 
   test_int_otherClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(A x) {
   if (x case (0)) {}
 }
 
 class A {}
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 28, 1),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 28, 1)],
+    );
   }
 
   test_int_String() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(String x) {
   if (x case (0)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 1),
-    ]);
+''',
+      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 1)],
+    );
   }
 
   test_Null_functionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void Function() x) {
   if (x case (null)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
-    ]);
+''',
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
+        error(WarningCode.DEAD_CODE, 49, 2),
+      ],
+    );
   }
 
   test_Null_functionTypeQuestion() async {
@@ -397,13 +414,17 @@ void f(void Function()? x) {
   }
 
   test_Null_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case (null)) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
-    ]);
+''',
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
+        error(WarningCode.DEAD_CODE, 37, 2),
+      ],
+    );
   }
 
   test_Null_intQuestion() async {
@@ -415,13 +436,17 @@ void f(int? x) {
   }
 
   test_Null_typeParameterType_notNullableBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Object>(T x) {
   if (x case null) {}
 }
-''', [
-      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4),
-    ]);
+''',
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4),
+        error(WarningCode.DEAD_CODE, 51, 2),
+      ],
+    );
   }
 
   test_Null_typeParameterType_notNullableBound_question() async {

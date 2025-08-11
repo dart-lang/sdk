@@ -9,7 +9,9 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^7.2.0
+  # See the release policy for managing this dependency at
+  # pkg/analyzer/doc/implementation/releasing.md.
+  analyzer: ^8.0.0-0
   collection: ^1.15.0
   dart_style: '>=2.3.7 <4.0.0'
   pub_semver: ^2.1.0
@@ -21,6 +23,7 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
+  analyzer_testing: any
   analyzer_utilities: any
   lints: any
   linter: any

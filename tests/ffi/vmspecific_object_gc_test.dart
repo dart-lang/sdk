@@ -18,7 +18,7 @@ final triggerGc = ffiTestFunctions
     .lookupFunction<Void Function(), void Function()>("TriggerGC");
 
 void main() async {
-  testGC();
+  await testGC();
 }
 
 dynamic bar;

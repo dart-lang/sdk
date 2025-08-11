@@ -2,35 +2,39 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:14:7: Error: The field 'B2.bar' has type 'num', which does not match the corresponding type, 'num?', in the overridden setter, 'B1.bar'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:17:7: Error: The field 'B2.bar' has type 'num', which does not match the corresponding type, 'num?', in the overridden setter, 'B1.bar'.
 //   num bar = 3.14; // Error in strong mode and Warning in weak mode.
 //       ^
-// pkg/front_end/testcases/nnbd/override_checks.dart:8:12: Context: This is the overridden method ('bar').
+// pkg/front_end/testcases/nnbd/override_checks.dart:11:12: Context: This is the overridden method ('bar').
 //   void set bar(num? value) {}
 //            ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:15:12: Error: The return type of the method 'B2.baz' is 'num?', which does not match the return type, 'num', of the overridden method, 'B1.baz'.
-// Change to a subtype of 'num'.
-//   num? get baz => null; // Error in strong mode and Warning in weak mode.
-//            ^
-// pkg/front_end/testcases/nnbd/override_checks.dart:9:11: Context: This is the overridden method ('baz').
-//   num get baz => 42;
+// pkg/front_end/testcases/nnbd/override_checks.dart:18:13: Error: The return type of the method 'B2.baz' is 'Super', which does not match the return type, 'Sub', of the overridden method, 'B1.baz'.
+//  - 'Super' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+//  - 'Sub' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+// Change to a subtype of 'Sub'.
+//   Super get baz => throw ''; // Error in strong mode and Warning in weak mode.
+//             ^
+// pkg/front_end/testcases/nnbd/override_checks.dart:12:11: Context: This is the overridden method ('baz').
+//   Sub get baz => throw '';
 //           ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:16:17: Error: The parameter 'value' of the method 'B2.hest' has type 'num', which does not match the corresponding type, 'num?', in the overridden method, 'B1.hest'.
-// Change to a supertype of 'num?', or, for a covariant parameter, a subtype.
-//   void hest(num value) {} // Error in strong mode and Warning in weak mode.
+// pkg/front_end/testcases/nnbd/override_checks.dart:19:17: Error: The parameter 'value' of the method 'B2.hest' has type 'Sub', which does not match the corresponding type, 'Super', in the overridden method, 'B1.hest'.
+//  - 'Sub' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+//  - 'Super' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+// Change to a supertype of 'Super', or, for a covariant parameter, a subtype.
+//   void hest(Sub value) {} // Error in strong mode and Warning in weak mode.
 //                 ^
-// pkg/front_end/testcases/nnbd/override_checks.dart:10:8: Context: This is the overridden method ('hest').
-//   void hest(num? value) {}
+// pkg/front_end/testcases/nnbd/override_checks.dart:13:8: Context: This is the overridden method ('hest').
+//   void hest(Super value) {}
 //        ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:23:18: Error: The type 'int?' doesn't extend 'int'.
 // Try using a different type as argument.
 //   factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:30:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
 //  - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
 //   factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
 //                           ^
@@ -38,6 +42,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    : super self::Super::•()
+    ;
+}
 class A<X extends core::num> extends core::Object {
   synthetic constructor •() → self::A<self::A::X>
     : super core::Object::•()
@@ -48,22 +62,22 @@ class B1 extends core::Object {
     : super core::Object::•()
     ;
   set bar(core::num? value) → void {}
-  get baz() → core::num
-    return 42;
-  method hest(core::num? value) → void {}
+  get baz() → self::Sub
+    return throw "";
+  method hest(self::Super value) → void {}
 }
 class B2 extends self::B1 {
-  field core::num bar = 3.14;
+  erroneous field core::num bar = 3.14;
   synthetic constructor •() → self::B2
     : super self::B1::•()
     ;
-  get baz() → core::num?
-    return null;
-  method hest(core::num value) → void {}
+  erroneous get baz() → self::Super
+    return throw "";
+  erroneous method hest(self::Sub value) → void {}
 }
 class C1 extends core::Object {
   static factory •() → self::C1
-    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:23:18: Error: The type 'int?' doesn't extend 'int'.
 Try using a different type as argument.
   factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
                  ^";
@@ -78,7 +92,7 @@ class D extends core::Object {
     : super core::Object::•()
     ;
   static factory bar(core::num? x) → self::D
-    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:30:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
  - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
   factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
                           ^";

@@ -7,13 +7,7 @@ import 'dart:math' as math;
 import 'package:analyzer/src/utilities/completion_matcher.dart';
 
 /// Character role in a candidate string.
-enum CharRole {
-  NONE,
-  SEPARATOR,
-  TAIL,
-  UC_TAIL,
-  HEAD,
-}
+enum CharRole { NONE, SEPARATOR, TAIL, UC_TAIL, HEAD }
 
 /// A fuzzy matcher that takes a pattern at construction time, and then can
 /// evaluate how well various strings match this pattern. Together with a score,
@@ -246,9 +240,9 @@ class FuzzyMatcher extends CompletionMatcher {
           // min(3, pattern.length) characters.
           if (patternShort !=
               candidateLower.substring(
-                  i - 1,
-                  math.min(
-                      candidateLower.length, i - 1 + patternShort.length))) {
+                i - 1,
+                math.min(candidateLower.length, i - 1 + patternShort.length),
+              )) {
             continue;
           }
           charScore -= 4;
@@ -293,8 +287,11 @@ class FuzzyMatcher extends CompletionMatcher {
       }
     }
 
-    return scoreAt(candidate.length, pattern.length,
-        bestLayerIndexAt(candidate.length, pattern.length));
+    return scoreAt(
+      candidate.length,
+      pattern.length,
+      bestLayerIndexAt(candidate.length, pattern.length),
+    );
   }
 
   /// Identify the role of each character in the given [string] for fuzzy
@@ -304,14 +301,16 @@ class FuzzyMatcher extends CompletionMatcher {
     var prev = _CharType.NONE;
     for (var i = 0; i < string.length; i++) {
       var ch = string.codeUnitAt(i);
-      var type = ch < 128
-          ? _CharType.values[TYPES.codeUnitAt(ch) - 48]
-          : _CharType.LOWER;
+      var type =
+          ch < 128
+              ? _CharType.values[TYPES.codeUnitAt(ch) - 48]
+              : _CharType.LOWER;
       var role = CharRole.NONE;
       if (type == _CharType.LOWER) {
-        role = (prev.index <= _CharType.PUNCT.index)
-            ? CharRole.HEAD
-            : CharRole.TAIL;
+        role =
+            (prev.index <= _CharType.PUNCT.index)
+                ? CharRole.HEAD
+                : CharRole.TAIL;
       } else if (type == _CharType.UPPER) {
         role = CharRole.HEAD;
         // Note: this treats RPCTest as two words.
@@ -331,9 +330,11 @@ class FuzzyMatcher extends CompletionMatcher {
       roles[i] = role;
       prev = type;
     }
-    for (var i = string.length - 1;
-        i >= 0 && roles[i] == CharRole.SEPARATOR;
-        i--) {
+    for (
+      var i = string.length - 1;
+      i >= 0 && roles[i] == CharRole.SEPARATOR;
+      i--
+    ) {
       roles[i] = CharRole.NONE;
     }
   }
@@ -428,7 +429,9 @@ class FuzzyMatcher extends CompletionMatcher {
         // We are not in the last segment, check that we have at least one
         // character match in the last segment of the candidate.
         return candidateLower.contains(
-            patternLower.substring(patternLower.length - 1), sep);
+          patternLower.substring(patternLower.length - 1),
+          sep,
+        );
       }
     }
     return true;

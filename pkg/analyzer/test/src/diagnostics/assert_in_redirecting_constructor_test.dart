@@ -16,12 +16,15 @@ main() {
 @reflectiveTest
 class AssertInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_class_assertBeforeRedirection() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int x) : assert(x > 0), this.name();
   A.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 23, 13)]);
+''',
+      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 23, 13)],
+    );
   }
 
   test_class_justAssert() async {
@@ -43,22 +46,28 @@ class A {
   }
 
   test_class_redirectionBeforeAssert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int x) : this.name(), assert(x > 0);
   A.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 36, 13)]);
+''',
+      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 36, 13)],
+    );
   }
 
   test_enum_assertBeforeRedirection() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(42);
   const E(int x) : assert(x > 0), this.name();
   const E.name();
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 37, 13)]);
+''',
+      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 37, 13)],
+    );
   }
 
   test_enum_justAssert() async {
@@ -81,12 +90,15 @@ enum E {
   }
 
   test_enum_redirectionBeforeAssert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(42);
   const E(int x) : this.name(), assert(x > 0);
   const E.name();
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 50, 13)]);
+''',
+      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 50, 13)],
+    );
   }
 }

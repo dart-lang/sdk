@@ -98,8 +98,9 @@ class AnalyticsManager {
   }
 
   /// Record information about the number of files and the number of lines of
-  /// code in those files, for both immediate files, transitive files, and the
-  /// number of unique transitive files.
+  /// code in those files, for both immediate files, transitive files, the
+  /// number of unique transitive files, and the number and sizes of library
+  /// cycles.
   void analysisComplete({
     required int numberOfContexts,
     required int immediateFileCount,
@@ -108,6 +109,8 @@ class AnalyticsManager {
     required int transitiveFileLineCount,
     required int transitiveFileUniqueCount,
     required int transitiveFileUniqueLineCount,
+    required List<int> libraryCycleLibraryCounts,
+    required List<int> libraryCycleLineCounts,
   }) {
     // This is currently keeping the first report of completed analysis, but we
     // might want to consider alternatives, such as keeping the "largest"
@@ -120,6 +123,8 @@ class AnalyticsManager {
       transitiveFileLineCount: transitiveFileLineCount,
       transitiveFileUniqueCount: transitiveFileUniqueCount,
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+      libraryCycleLibraryCounts: libraryCycleLibraryCounts,
+      libraryCycleLineCounts: libraryCycleLineCounts,
     );
   }
 
@@ -461,6 +466,12 @@ class AnalyticsManager {
       li(
         'transitiveFileUniqueLineCount: ${json.encode(analysisData.transitiveFileUniqueLineCount)}',
       );
+      li(
+        'libraryCycleLibraryCounts: ${analysisData.libraryCycleLibraryCounts.toAnalyticsString()}',
+      );
+      li(
+        'libraryCycleLineCounts: ${analysisData.libraryCycleLineCounts.toAnalyticsString()}',
+      );
       buffer.writeln('</ul>');
     }
 
@@ -498,11 +509,6 @@ class AnalyticsManager {
       analytics.send(
         Event.contextStructure(
           numberOfContexts: contextStructure.numberOfContexts,
-          // TODO(pq): remove context creation data if we can safely change report shape (https://github.com/dart-lang/sdk/issues/60411)
-          contextsWithoutFiles: 0,
-          contextsFromPackagesFiles: 0,
-          contextsFromOptionsFiles: 0,
-          contextsFromBothFiles: 0,
           immediateFileCount: contextStructure.immediateFileCount,
           immediateFileLineCount: contextStructure.immediateFileLineCount,
           transitiveFileCount: contextStructure.transitiveFileCount,
@@ -510,6 +516,10 @@ class AnalyticsManager {
           transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
           transitiveFileUniqueLineCount:
               contextStructure.transitiveFileUniqueLineCount,
+          libraryCycleLibraryCounts:
+              contextStructure.libraryCycleLibraryCounts.toAnalyticsString(),
+          libraryCycleLineCounts:
+              contextStructure.libraryCycleLineCounts.toAnalyticsString(),
         ),
       );
     }

@@ -57,16 +57,17 @@ GuardedPattern
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::A::@getter::a#element
+        element: <testLibrary>::@class::A::@getter::a
         staticType: int
-      element: <testLibraryFragment>::@class::A::@getter::a#element
+      element: <testLibrary>::@class::A::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
   }
 
   test_class_field_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static final a = 0;
 }
@@ -74,10 +75,15 @@ class A {
 void f(x) {
   if (x case A.a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          60, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          60,
+          3,
+        ),
+      ],
+    );
   }
 
   test_doubleLiteral() async {
@@ -133,7 +139,7 @@ GuardedPattern
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
+        element: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -175,7 +181,7 @@ GuardedPattern
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
+        element: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -197,14 +203,14 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
           element2: <testLibrary>::@class::A
           type: A
-        element: <testLibraryFragment>::@class::A::@constructor::new#element
+        element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -242,7 +248,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -267,7 +273,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -282,15 +288,21 @@ GuardedPattern
   }
 
   test_listLiteral_element_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const [a]) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          47, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          47,
+          1,
+        ),
+      ],
+    );
   }
 
   test_localVariable_const() async {
@@ -314,15 +326,21 @@ GuardedPattern
   }
 
   test_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   var a = 0;
   if (x case a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          38, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          38,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mapLiteral_entries_intLiteral_intLiteral() async {
@@ -336,7 +354,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -367,7 +385,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -388,15 +406,21 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_key_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const {a: 1}) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          47, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          47,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mapLiteral_entries_value_localVariable_const() async {
@@ -411,7 +435,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -432,15 +456,21 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_value_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const {0: a}) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 
   test_setLiteral_element_intLiteral() async {
@@ -454,7 +484,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -480,7 +510,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -496,17 +526,23 @@ GuardedPattern
   }
 
   test_switch_constPattern_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(var e, int a) {
   switch (e) {
     case const (3 + a):
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          58, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          58,
+          1,
+        ),
+      ],
+    );
   }
 
   test_topLevelVariable_const() async {
@@ -524,23 +560,29 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
   }
 
   test_topLevelVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final a = 0;
 
 void f(x) {
   if (x case a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          39,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
@@ -548,20 +590,21 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
   }
 
   test_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case foo) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3)],
+    );
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''

@@ -36,32 +36,42 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   late String argsTarget;
 
   FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
-    argParser.addFlag('dry-run',
-        abbr: 'n',
+    argParser
+      ..addFlag('dry-run',
+          abbr: 'n',
+          defaultsTo: false,
+          negatable: false,
+          help: 'Preview the proposed changes but make no changes.')
+      ..addFlag(
+        'apply',
         defaultsTo: false,
         negatable: false,
-        help: 'Preview the proposed changes but make no changes.');
-    argParser.addFlag(
-      'apply',
-      defaultsTo: false,
-      negatable: false,
-      help: 'Apply the proposed changes.',
-    );
-    argParser.addMultiOption(
-      'code',
-      help: 'Apply fixes for one (or more) diagnostic codes.',
-      valueHelp: 'code1,code2,...',
-    );
-    argParser.addFlag(
-      'compare-to-golden',
-      defaultsTo: false,
-      negatable: false,
-      help:
-          'Compare the result of applying fixes to a golden file for testing.',
-      hide: !verbose,
-    );
-    argParser.addExperimentalFlags(verbose: verbose);
+        help: 'Apply the proposed changes.',
+      )
+      ..addMultiOption(
+        'code',
+        help: 'Apply fixes for one (or more) diagnostic codes.',
+        valueHelp: 'code1,code2,...',
+      )
+      ..addFlag(
+        'compare-to-golden',
+        defaultsTo: false,
+        negatable: false,
+        help:
+            'Compare the result of applying fixes to a golden file for testing.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        useAotSnapshotFlag,
+        help: 'Use the AOT analysis server snapshot',
+        defaultsTo: true,
+        hide: true,
+      )
+      ..addExperimentalFlags(verbose: verbose);
   }
+
+  @override
+  CommandCategory get commandCategory => CommandCategory.sourceCode;
 
   @override
   String get description {
@@ -120,6 +130,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       argResults: argResults,
       suppressAnalytics: suppressAnalytics,
       enabledExperiments: args.enabledExperiments,
+      useAotSnapshot: args.flag(useAotSnapshotFlag),
     );
 
     await server.start(setAnalysisRoots: false);

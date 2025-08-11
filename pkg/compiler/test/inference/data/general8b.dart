@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: foo:[exact=JSBool|powerset=0]*/
-foo(/*[exact=JSUInt31|powerset=0]*/ x) {
-  if (x /*invoke: [exact=JSUInt31|powerset=0]*/ > 3) return true;
+/*member: foo:[exact=JSBool|powerset={I}{O}{N}]*/
+foo(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ x) {
+  if (x /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ > 3) return true;
   return false;
 }
 
-/*member: bar:[null|powerset=1]*/
-bar(/*[exact=JSBool|powerset=0]*/ x) {
+/*member: bar:[null|powerset={null}]*/
+bar(/*[exact=JSBool|powerset={I}{O}{N}]*/ x) {
   if (x) {
     print("aaa");
   } else {
@@ -17,7 +17,7 @@ bar(/*[exact=JSBool|powerset=0]*/ x) {
   }
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   bar(foo(5));
   bar(foo(6));

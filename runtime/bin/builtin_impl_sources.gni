@@ -64,6 +64,7 @@ builtin_impl_tests = [
   "eventhandler_test.cc",
   "file_test.cc",
   "hashmap_test.cc",
+  "list_queue_test.cc",
   "priority_heap_test.cc",
   "snapshot_utils_test.cc",
   "test_utils.cc",

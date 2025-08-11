@@ -36,7 +36,7 @@ class RequestData {
 
   /// Record the occurrence of the enum constant with the given [enumName] for
   /// the field with the given [name].
-  void addEnumValue<E>(String name, String enumName) {
+  void addEnumValue(String name, String enumName) {
     var counts = additionalEnumCounts.putIfAbsent(name, () => {});
     counts[enumName] = (counts[enumName] ?? 0) + 1;
   }

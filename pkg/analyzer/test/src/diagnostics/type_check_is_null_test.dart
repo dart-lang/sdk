@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class TypeCheckIsNullTest extends PubPackageResolutionTest {
   test_is_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool m(i) {
   return i is Null;
 }
-''', [
-      error(WarningCode.TYPE_CHECK_IS_NULL, 21, 9),
-    ]);
+''',
+      [error(WarningCode.TYPE_CHECK_IS_NULL, 21, 9)],
+    );
   }
 }

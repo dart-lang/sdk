@@ -60,9 +60,7 @@ abstract class Page {
 
   Future<String> generate(Map<String, String> params) async {
     buf.clear();
-    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
-    // return type of [generatePage] to `Future<void>`.
-    await (generatePage(params) as dynamic);
+    await generatePage(params);
     return buf.toString();
   }
 

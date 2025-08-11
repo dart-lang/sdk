@@ -9,9 +9,9 @@ class Class {
 
   method() {
     getter++;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-// [cfe] Setter not found: 'getter'.
+    // [error column 5, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] Setter not found: 'getter'.
   }
 
   noSuchMethod(i) => 42;

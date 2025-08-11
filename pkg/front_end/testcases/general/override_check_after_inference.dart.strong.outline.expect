@@ -44,7 +44,7 @@ class E extends self::D {
 class F extends self::D {
   synthetic constructor •() → self::F
     ;
-  method f(self::B x) → void
+  erroneous method f(self::B x) → void
     ;
 }
 static method main() → dynamic

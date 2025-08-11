@@ -66,9 +66,7 @@ vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
-vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
-vm_service/test/get_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
-vm_service/test/get_perfetto_cpu_samples_rpc_test: Slow, Pass # Does some computation to ensure CPU samples are collected.
+vm_service/*: Slow, Pass
 vm_service/test/valid_source_locations_test: ExtraSlow, Pass # Iterates through all libraries and checks for valid source locations.
 vm_snapshot_analysis/test/instruction_sizes_test: Pass, Slow # https://github.com/dart-lang/sdk/issues/60067
 wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
@@ -91,10 +89,10 @@ dart_service_protocol_shared/test/*: SkipByDesign # Only meant to run on vm
 dartdev/test/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm
+hooks_runner/test/*: SkipByDesign # Only meant to run on vm
 modular_test/test/memory_pipeline_test: Slow, Pass
 modular_test/test/validate_pipeline_test: Slow, Pass
 modular_test/test/validate_suite_test: Slow, Pass
-native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
@@ -134,6 +132,7 @@ vm_service/test/deferred_import_reload_test: SkipByDesign # Hot reload is disabl
 vm_service/test/developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/developer_service_get_object_id_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/dot_shorthands_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/enhanced_enum_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -145,6 +144,7 @@ vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled 
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_queued_microtasks_rpc_test: SkipByDesign # In AOT mode, the debugger is disabled, and there's no other way to pause the testee at a point when the microtask queue is non-empty.
 vm_service/test/get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -239,6 +239,7 @@ analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
+test_runner/test/update_error_cmdline_test: Slow, Pass
 
 [ $runtime != vm ]
 dart2js_info/test/*: SkipByDesign # Only meant to run on vm
@@ -254,7 +255,6 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
-_macros/test/executor/executor_test: Skip # dartbug.com/56002
 front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
@@ -348,7 +348,6 @@ front_end/tool/perf_test: Slow, Pass
 dartdev/test/commands/info_windows_test: SkipByDesign
 
 [ $runtime == vm && $checked ]
-analysis_server/test/integration/edit/sort_members_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 
 [ $arch != x64 || $mode != release || $runtime != vm || $system != windows ]

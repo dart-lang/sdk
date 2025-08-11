@@ -41,20 +41,22 @@ class A {
   }
 
   test_class_unrelated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x;
   A() : x = '';
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2)],
+    );
   }
 }
 
 @reflectiveTest
 class FieldInitializerNotAssignableWithStrictCastsTest
-    extends PubPackageResolutionTest with WithStrictCastsMixin {
+    extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
   test_constructorInitializer() async {
     await assertErrorsWithStrictCasts(
       '''
@@ -63,9 +65,7 @@ class A {
   A(dynamic a) : i = a;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 40, 1),
-      ],
+      [error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 40, 1)],
     );
   }
 }

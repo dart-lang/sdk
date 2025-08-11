@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
@@ -11,8 +12,8 @@ import 'package:analyzer/src/generated/source.dart'
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/workspace/workspace.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Abstract superclass of classes that provide information about the workspace
@@ -43,14 +44,16 @@ abstract class Workspace {
   /// Create the source factory that should be used to resolve Uris to
   /// [Source]s. The [sdk] may be `null`. The [summaryData] can also be `null`.
   SourceFactory createSourceFactory(
-      DartSdk? sdk, SummaryDataStore? summaryData);
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  );
 
   /// Find the [WorkspacePackage] where the library at [filePath] is defined.
   ///
   /// Separate from [Packages] or package maps, this method is designed to find
   /// the package, by its root, in which a library at an arbitrary path is
   /// defined.
-  WorkspacePackage? findPackageFor(String filePath);
+  WorkspacePackageImpl? findPackageFor(String filePath);
 }
 
 /// Abstract superclass of classes that provide information about a package
@@ -59,9 +62,8 @@ abstract class Workspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a Workspace.
-abstract class WorkspacePackage {
-  /// Whether this package can have public APIs, that is, the package has marker
-  /// files like 'pubspec.yaml' or 'BUILD'.
+abstract class WorkspacePackageImpl implements WorkspacePackage {
+  @override
   bool get canHavePublicApi => true;
 
   /// Return the experiments enabled for all files in the package.
@@ -78,8 +80,6 @@ abstract class WorkspacePackage {
   /// Return `null` if this package does not have a language version override.
   Version? get languageVersion => null;
 
-  String get root;
-
   Workspace get workspace;
 
   /// Whether this compilation unit [source] is not within the `lib` or `bin`
@@ -87,12 +87,10 @@ abstract class WorkspacePackage {
   /// listed in the 'dev_dependencies' section of the 'pubspec.yaml' file.
   bool canBeDevDependency(Source source) {
     var cuPath = source.fullName;
-    var libDir = path.join(root, 'lib');
-    var binDir = path.join(root, 'bin');
-    return !(path.isWithin(libDir, cuPath) || path.isWithin(binDir, cuPath));
+    var libDir = root.getChildAssumingFolder('lib');
+    var binDir = root.getChildAssumingFolder('bin');
+    return !(libDir.contains(cuPath) || binDir.contains(cuPath));
   }
-
-  bool contains(Source source);
 
   /// Return a file path for the location of [source].
   ///
@@ -107,7 +105,7 @@ abstract class WorkspacePackage {
     }
   }
 
-  /// Whether [file] is in a "test" directory of this package.
+  @override
   bool isInTestDirectory(File file) {
     return false;
   }
@@ -124,6 +122,7 @@ abstract class WorkspacePackage {
 /// An interface for a workspace that contains a default analysis options file.
 /// Classes that provide information of such a workspace should implement this
 /// interface.
+@AnalyzerPublicApi(message: 'public exported')
 class WorkspaceWithDefaultAnalysisOptions {
   /// The URI for the default analysis options file.
   static const String uri = 'package:dart.analysis_options/default.yaml';

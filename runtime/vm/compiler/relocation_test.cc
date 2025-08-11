@@ -60,7 +60,7 @@ struct RelocatorTestHelper {
 
   CodePtr AllocationInstruction(uintptr_t size) {
     const auto& instructions = Instructions::Handle(Instructions::New(
-        size, /*has_monomorphic=*/false, /*should_be_aligned=*/false));
+        size, /*has_monomorphic_entry=*/false, /*should_be_aligned=*/false));
 
     uword addr = instructions.PayloadStart();
     for (uintptr_t i = 0; i < (size / 4); ++i) {
@@ -223,7 +223,7 @@ struct RelocatorTestHelper {
     }
 
     auto& instructions = Instructions::Handle(Instructions::New(
-        size, /*has_monomorphic=*/false, /*should_be_aligned=*/false));
+        size, /*has_monomorphic_entry=*/false, /*should_be_aligned=*/false));
     {
       uword addr = instructions.PayloadStart();
       for (intptr_t i = 0; i < commands->length(); ++i) {
@@ -260,10 +260,10 @@ struct RelocatorTestHelper {
       }
 
       if (FLAG_write_protect_code) {
+        ASSERT(!VirtualMemory::ShouldDualMapExecutablePages());
         const uword address = UntaggedObject::ToAddr(instructions.ptr());
         const auto size = instructions.ptr()->untag()->HeapSize();
-        VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                               VirtualMemory::kReadExecute);
+        VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address), size);
       }
       CPU::FlushICache(instructions.PayloadStart(), instructions.Size());
     }

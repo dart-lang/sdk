@@ -9,7 +9,9 @@ import "package:expect/expect.dart";
 void test(port) {
   Expect.equals('', const String.fromEnvironment('NOT_FOUND'));
   Expect.equals(
-      'x', const String.fromEnvironment('NOT_FOUND', defaultValue: 'x'));
+    'x',
+    const String.fromEnvironment('NOT_FOUND', defaultValue: 'x'),
+  );
   if (port != null) port.send(null);
 }
 

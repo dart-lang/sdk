@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/resolver/exit_detector.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -56,7 +56,7 @@ class AsyncStateTracker {
   ///
   /// [reference] must be a direct child of `this`, or a sibling of `this`
   /// in a List of [AstNode]s.
-  AsyncState? asyncStateFor(AstNode reference, Element2 mountedElement) {
+  AsyncState? asyncStateFor(AstNode reference, Element mountedElement) {
     _asyncStateVisitor.setReference(reference, mountedElement);
     var parent = reference.parent;
     if (parent == null) return null;
@@ -126,7 +126,7 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   ///
   /// Generally speaking, this is `State.mounted` when [_reference] refers to
   /// `State.context`, and this is `BuildContext.mounted` otherwise.
-  late Element2 _mountedElement;
+  late Element _mountedElement;
 
   final Map<AstNode, AsyncState?> _stateCache = {};
 
@@ -149,7 +149,7 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   /// Sets [_reference] and [_mountedElement], readying the visitor to accept
   /// nodes.
-  void setReference(AstNode reference, Element2 mountedElement) {
+  void setReference(AstNode reference, Element mountedElement) {
     _reference = reference;
     _mountedElement = mountedElement;
   }
@@ -918,27 +918,23 @@ class ProtectedFunction {
   });
 }
 
-class UseBuildContextSynchronously extends LintRule {
+class UseBuildContextSynchronously extends MultiAnalysisRule {
   UseBuildContextSynchronously()
     : super(
         name: LintNames.use_build_context_synchronously,
         description: _desc,
-        state: State.stable(since: Version(3, 2, 0)),
+        state: RuleState.stable(since: Version(3, 2, 0)),
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_build_context_synchronously_async_use,
     LinterLintCode.use_build_context_synchronously_wrong_mounted,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var unit = context.definingUnit.unit;
-    if (!unit.inTestDir) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    if (!context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
@@ -1100,11 +1096,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
   ];
 
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
-  void check(Expression node, Element2 mountedElement) {
+  void check(Expression node, Element mountedElement) {
     // Checks each of the statements before `child` for a `mounted` check, and
     // returns whether it did not find one (and the caller should keep looking).
 
@@ -1124,7 +1120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             asyncStateTracker.hasUnrelatedMountedCheck
                 ? LinterLintCode.use_build_context_synchronously_wrong_mounted
                 : LinterLintCode.use_build_context_synchronously_async_use;
-        rule.reportLint(node, errorCode: errorCode);
+        rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
 
@@ -1210,11 +1206,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var target = invocation.realTarget;
     var targetElement = target is Identifier ? target.element : null;
-    if (targetElement is ClassElement2) {
+    if (targetElement is ClassElement) {
       // Static function called; `target` is the class.
       for (var method in protectedStaticMethods) {
         if (invocation.methodName.name == method.name &&
-            targetElement.name3 == method.type) {
+            targetElement.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1234,7 +1230,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (staticType == null) return;
       for (var method in protectedInstanceMethods) {
         if (invocation.methodName.name == method.name &&
-            staticType.element3?.name3 == method.type) {
+            staticType.element?.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1266,9 +1262,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (argument == null) continue;
       if (callback == argument.expression) {
-        rule.reportLint(
+        rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }
@@ -1285,9 +1282,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var position in positions) {
       if (positionalArguments.length > position &&
           callback == positionalArguments[position]) {
-        rule.reportLint(
+        rule.reportAtNode(
           errorNode,
-          errorCode: LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode:
+              LinterLintCode.use_build_context_synchronously_async_use,
         );
       }
     }
@@ -1388,7 +1386,7 @@ extension on BinaryExpression {
 
 extension on Expression {
   /// The element of this expression, if it is typed as a BuildContext.
-  Element2? get buildContextTypedElement {
+  Element? get buildContextTypedElement {
     var self = this;
     if (self is NamedExpression) {
       self = self.expression;
@@ -1406,12 +1404,12 @@ extension on Expression {
       var declaration = element.baseElement;
       // Get the declaration to ensure checks from un-migrated libraries work.
       var argType = switch (declaration) {
-        ExecutableElement2() => declaration.returnType,
-        VariableElement2() => declaration.type,
+        ExecutableElement() => declaration.returnType,
+        VariableElement() => declaration.type,
         _ => null,
       };
 
-      var isGetter = element is PropertyAccessorElement2;
+      var isGetter = element is PropertyAccessorElement;
       if (isBuildContext(argType, skipNullable: isGetter)) {
         return declaration;
       }
@@ -1446,39 +1444,39 @@ extension on Statement {
 }
 
 extension on Expression {
-  bool? get constantBoolValue => computeConstantValue().value?.toBoolValue();
+  bool? get constantBoolValue => computeConstantValue()?.value?.toBoolValue();
 }
 
 @visibleForTesting
-extension ElementExtension on Element2 {
+extension ElementExtension on Element {
   /// The `mounted` getter which is associated with `this`, if this static
   /// element is `BuildContext` from Flutter.
-  Element2? get associatedMountedGetter {
+  Element? get associatedMountedGetter {
     var self = this;
 
-    if (self is PropertyAccessorElement2) {
-      var enclosingElement = self.enclosingElement2;
-      if (enclosingElement is InterfaceElement2 && isState(enclosingElement)) {
+    if (self is PropertyAccessorElement) {
+      var enclosingElement = self.enclosingElement;
+      if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
-        return enclosingElement.lookUpGetter2(
+        return enclosingElement.lookUpGetter(
           name: 'mounted',
-          library: enclosingElement.library2,
+          library: enclosingElement.library,
         );
       }
     }
 
     var buildContextElement =
         switch (self) {
-          ExecutableElement2() => self.returnType,
-          VariableElement2() => self.type,
+          ExecutableElement() => self.returnType,
+          VariableElement() => self.type,
           _ => null,
-        }?.element3;
-    if (buildContextElement is InterfaceElement2) {
-      return buildContextElement.lookUpGetter2(
+        }?.element;
+    if (buildContextElement is InterfaceElement) {
+      return buildContextElement.lookUpGetter(
         name: 'mounted',
-        library: buildContextElement.library2,
+        library: buildContextElement.library,
       );
     }
 

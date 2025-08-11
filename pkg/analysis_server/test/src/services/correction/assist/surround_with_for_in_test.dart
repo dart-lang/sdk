@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithForInTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_FOR_IN;
+  AssistKind get kind => DartAssistKind.surroundWithForIn;
 
   Future<void> test_twoStatements() async {
     await resolveTestCode('''

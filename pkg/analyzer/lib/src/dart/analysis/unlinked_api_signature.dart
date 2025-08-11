@@ -64,8 +64,9 @@ class _UnitApiSignatureComputer {
   void _addClass(ClassDeclaration node) {
     _addTokens(node.beginToken, node.leftBracket);
 
-    bool hasConstConstructor = node.members
-        .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
+    bool hasConstConstructor = node.members.any(
+      (m) => m is ConstructorDeclaration && m.constKeyword != null,
+    );
 
     _addClassMembers(node.members, hasConstConstructor);
   }
@@ -122,7 +123,8 @@ class _UnitApiSignatureComputer {
     _addNodeList(node.metadata);
 
     var variableList = node.fields;
-    var includeInitializers = variableList.type == null ||
+    var includeInitializers =
+        variableList.type == null ||
         variableList.isConst ||
         hasConstConstructor && !node.isStatic && variableList.isFinal;
     _variableList(variableList, includeInitializers);
@@ -138,10 +140,7 @@ class _UnitApiSignatureComputer {
 
   void _addMethodDeclaration(MethodDeclaration node) {
     signature.addInt(_kindMethodDeclaration);
-    _addTokens(
-      node.beginToken,
-      node.parameters?.endToken ?? node.name,
-    );
+    _addTokens(node.beginToken, node.parameters?.endToken ?? node.name);
     signature.addBool(node.body is EmptyFunctionBody);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);

@@ -10,10 +10,9 @@ library integer_arithmetic_test;
 
 import "package:expect/expect.dart";
 
-String toHexString(int value) =>
-    value >= 0
-        ? "0x${value.toRadixString(16)}"
-        : "-0x${value.toRadixString(16).substring(1)}";
+String toHexString(int value) => value >= 0
+    ? "0x${value.toRadixString(16)}"
+    : "-0x${value.toRadixString(16).substring(1)}";
 
 addSubParsed(String a, String b, String sum) {
   int int_a = int.parse(a);

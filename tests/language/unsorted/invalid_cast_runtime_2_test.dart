@@ -21,16 +21,7 @@ void topLevelFunction(int i) {}
 test() {
   void localFunction(int i) {}
 
-
-
-
-
   D f = new C.fact2() as D;
-
-
-
-
-
 }
 
 main() {}

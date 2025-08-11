@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -14,9 +15,17 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
 
-class AlwaysSpecifyTypes extends LintRule {
+class AlwaysSpecifyTypes extends MultiAnalysisRule {
   AlwaysSpecifyTypes()
     : super(name: LintNames.always_specify_types, description: _desc);
+
+  @override
+  List<DiagnosticCode> get diagnosticCodes => [
+    LinterLintCode.always_specify_types_add_type,
+    LinterLintCode.always_specify_types_replace_keyword,
+    LinterLintCode.always_specify_types_specify_type,
+    LinterLintCode.always_specify_types_split_to_types,
+  ];
 
   @override
   List<String> get incompatibleRules => const [
@@ -27,18 +36,7 @@ class AlwaysSpecifyTypes extends LintRule {
   ];
 
   @override
-  List<LintCode> get lintCodes => [
-    LinterLintCode.always_specify_types_add_type,
-    LinterLintCode.always_specify_types_replace_keyword,
-    LinterLintCode.always_specify_types_specify_type,
-    LinterLintCode.always_specify_types_split_to_types,
-  ];
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
@@ -51,15 +49,15 @@ class AlwaysSpecifyTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         literal.beginToken,
-        errorCode: LinterLintCode.always_specify_types_add_type,
+        diagnosticCode: LinterLintCode.always_specify_types_add_type,
       );
     }
   }
@@ -68,19 +66,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement2;
-      if (element is VariableElement2) {
+      var element = node.declaredElement;
+      if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
+            diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
             arguments: [keyword.lexeme, element!.type],
-            errorCode: LinterLintCode.always_specify_types_replace_keyword,
           );
         } else {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
+            diagnosticCode: LinterLintCode.always_specify_types_specify_type,
             arguments: [element!.type],
-            errorCode: LinterLintCode.always_specify_types_specify_type,
           );
         }
       }
@@ -94,16 +92,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       var keyword = node.keyword;
       var tokenToLint = keyword ?? node.name;
       if (keyword != null && keyword.keyword == Keyword.VAR) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           tokenToLint,
           arguments: [keyword.lexeme, type],
-          errorCode: LinterLintCode.always_specify_types_replace_keyword,
+          diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
         );
       } else {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           tokenToLint,
           arguments: [type],
-          errorCode: LinterLintCode.always_specify_types_specify_type,
+          diagnosticCode: LinterLintCode.always_specify_types_specify_type,
         );
       }
     }
@@ -118,15 +116,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.element2;
-      if (element is TypeParameterizedElement2 &&
-          element.typeParameters2.isNotEmpty &&
+      var element = namedType.element;
+      if (element is TypeParameterizedElement &&
+          element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
-          !element.metadata2.hasOptionalTypeArgs) {
-        rule.reportLint(
+          !element.metadata.hasOptionalTypeArgs) {
+        rule.reportAtNode(
           namedType,
-          errorCode: LinterLintCode.always_specify_types_add_type,
+          diagnosticCode: LinterLintCode.always_specify_types_add_type,
         );
       }
     }
@@ -147,28 +145,28 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.type == Keyword.VAR &&
             type != null &&
             type is! DynamicType) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
             arguments: [keyword.lexeme, type],
-            errorCode: LinterLintCode.always_specify_types_replace_keyword,
+            diagnosticCode: LinterLintCode.always_specify_types_replace_keyword,
           );
         } else {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
-            errorCode: LinterLintCode.always_specify_types_add_type,
+            diagnosticCode: LinterLintCode.always_specify_types_add_type,
           );
         }
       } else if (type != null) {
         if (type is DynamicType) {
-          rule.reportLint(
+          rule.reportAtNode(
             param,
-            errorCode: LinterLintCode.always_specify_types_add_type,
+            diagnosticCode: LinterLintCode.always_specify_types_add_type,
           );
         } else {
-          rule.reportLint(
+          rule.reportAtNode(
             param,
             arguments: [type],
-            errorCode: LinterLintCode.always_specify_types_specify_type,
+            diagnosticCode: LinterLintCode.always_specify_types_specify_type,
           );
         }
       }
@@ -196,31 +194,31 @@ class _Visitor extends SimpleAstVisitor<void> {
       var singleType = types.length == 1;
 
       List<Object> arguments;
-      ErrorCode errorCode;
+      DiagnosticCode lintCode;
       if (types.isEmpty) {
         arguments = [];
-        errorCode = LinterLintCode.always_specify_types_add_type;
+        lintCode = LinterLintCode.always_specify_types_add_type;
       } else if (keyword.type == Keyword.VAR) {
         if (singleType) {
           arguments = [keyword.lexeme, types.first];
-          errorCode = LinterLintCode.always_specify_types_replace_keyword;
+          lintCode = LinterLintCode.always_specify_types_replace_keyword;
         } else {
           arguments = [];
-          errorCode = LinterLintCode.always_specify_types_split_to_types;
+          lintCode = LinterLintCode.always_specify_types_split_to_types;
         }
       } else {
         if (singleType) {
           arguments = [types.first];
-          errorCode = LinterLintCode.always_specify_types_specify_type;
+          lintCode = LinterLintCode.always_specify_types_specify_type;
         } else {
           arguments = [];
-          errorCode = LinterLintCode.always_specify_types_add_type;
+          lintCode = LinterLintCode.always_specify_types_add_type;
         }
       }
-      rule.reportLintForToken(
+      rule.reportAtToken(
         keyword,
         arguments: arguments,
-        errorCode: errorCode,
+        diagnosticCode: lintCode,
       );
     }
   }
@@ -233,7 +231,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartType? type;
         if (initializer is Identifier) {
           var element = initializer.element;
-          if (element is LocalVariableElement2) {
+          if (element is LocalVariableElement) {
             type = element.type;
           }
         }

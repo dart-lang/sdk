@@ -84,8 +84,7 @@ class D<in T> extends C<T> {
   var a;
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
-  //  ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
   // [cfe] Field 'a' should be initialized because its type 'T' doesn't allow null.
 }

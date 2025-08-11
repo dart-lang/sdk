@@ -41,7 +41,7 @@ class A {
   void set field12(int _) {} //# 52: ok
   num field13 = 0; //# 53: compile-time error
   set field14(num _) {} //# 54: compile-time error
-  num field15 = 0; //# 55: compile-time error
+  num field15 = 0; //# 55: ok
 }
 
 class B extends A {

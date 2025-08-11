@@ -7,7 +7,8 @@ void condition_true() {
   for (; true;) {
     1;
   }
-  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/
+  2;
 }
 
 /*member: condition_true_implicit:doesNotComplete*/
@@ -15,7 +16,8 @@ void condition_true_implicit() {
   for (;;) {
     1;
   }
-  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/
+  2;
 }
 
 void forEach() {
@@ -29,11 +31,13 @@ void forEach() {
 /*member: collection_condition_true:doesNotComplete*/
 void collection_condition_true() {
   [for (; true;) 1];
-  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/
+  2;
 }
 
 /*member: collection_condition_true_implicit:doesNotComplete*/
 void collection_condition_true_implicit() {
   [for (;;) 1];
-  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/
+  2;
 }

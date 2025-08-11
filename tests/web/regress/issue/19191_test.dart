@@ -15,10 +15,17 @@ class A {
       return null;
     } else if (invocation.isMethod) {
       return Function.apply(
-          method, invocation.positionalArguments, invocation.namedArguments);
+        method,
+        invocation.positionalArguments,
+        invocation.namedArguments,
+      );
     } else {
-      throw new NoSuchMethodError(this, invocation.memberName,
-          invocation.positionalArguments, invocation.namedArguments);
+      throw new NoSuchMethodError(
+        this,
+        invocation.memberName,
+        invocation.positionalArguments,
+        invocation.namedArguments,
+      );
     }
   }
 }

@@ -11,27 +11,28 @@ import 'package:expect/static_type_helper.dart';
 main() {
   {
     List<int> notNullAware = [
-      ...(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>>>())
+      ...(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>>>()),
     ];
     List<int> nullAware = [
-      ...?(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>?>>())
+      ...?(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>?>>()),
     ];
   }
   {
     Set<int> notNullAware = {
-      ...(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>>>())
+      ...(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>>>()),
     };
     Set<int> nullAware = {
-      ...?(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>?>>())
+      ...?(contextType(<int>[])..expectStaticType<Exactly<Iterable<int>?>>()),
     };
   }
   {
     Map<int, int> notNullAware = {
-      ...(contextType(<int, int>{})..expectStaticType<Exactly<Map<int, int>>>())
+      ...(contextType(<int, int>{})
+        ..expectStaticType<Exactly<Map<int, int>>>()),
     };
     Map<int, int> nullAware = {
       ...?(contextType(<int, int>{})
-        ..expectStaticType<Exactly<Map<int, int>?>>())
+        ..expectStaticType<Exactly<Map<int, int>?>>()),
     };
   }
 }

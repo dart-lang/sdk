@@ -375,8 +375,8 @@ void testMalformedAuthenticateHeaderWithAuthHandler() {
     );
 
     // Request should throw an exception if the authenticate handler is set
-    client.authenticate =
-        (Uri url, String scheme, String? realm) async => false;
+    client.authenticate = (Uri url, String scheme, String? realm) async =>
+        false;
     await asyncExpectThrows<HttpException>(
       client.getUrl(uri).then((request) => request.close()),
     );

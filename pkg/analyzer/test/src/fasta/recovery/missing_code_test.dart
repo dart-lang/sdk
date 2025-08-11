@@ -21,35 +21,51 @@ main() {
 @reflectiveTest
 class ListLiteralTest extends AbstractRecoveryTest {
   void test_extraComma() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => [a, , b];
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f() => [a, _s_, b];
-''');
+''',
+    );
   }
 
   void test_missingComma() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => [a, b c];
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => [a, b, c];
-''');
+''',
+    );
   }
 
   void test_missingComma_afterIf() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => [a, if (x) b c];
-''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+''',
+      [ParserErrorCode.EXPECTED_ELSE_OR_COMMA],
+      '''
 f() => [a, if (x) b, c];
-''');
+''',
+    );
   }
 
   void test_missingComma_afterIfElse() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => [a, if (x) b else y c];
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => [a, if (x) b else y, c];
-''');
+''',
+    );
   }
 }
 
@@ -57,51 +73,75 @@ f() => [a, if (x) b else y, c];
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
   void test_missingComma() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {a: b, c: d e: f};
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => {a: b, c: d, e: f};
-''');
+''',
+    );
   }
 
   void test_missingComma_afterIf() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {a: b, if (x) c: d e: f};
-''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+''',
+      [ParserErrorCode.EXPECTED_ELSE_OR_COMMA],
+      '''
 f() => {a: b, if (x) c: d, e: f};
-''');
+''',
+    );
   }
 
   void test_missingComma_afterIfElse() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {a: b, if (x) c: d else y: z e: f};
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => {a: b, if (x) c: d else y: z, e: f};
-''');
+''',
+    );
   }
 
   void test_missingKey() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {: b};
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f() => {_s_: b};
-''');
+''',
+    );
   }
 
   void test_missingValue_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {a: };
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f() => {a: _s_};
-''');
+''',
+    );
   }
 
   void test_missingValue_notLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => {a: , b: c};
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f() => {a: _s_, b: c};
-''');
+''',
+    );
   }
 }
 
@@ -118,33 +158,45 @@ class MissingCodeTest extends AbstractRecoveryTest {
 
   @failingTest
   void test_asExpression_missingLeft() {
-    testRecovery('''
+    testRecovery(
+      '''
 convert(x) => as T;
-''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
+''',
+      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      '''
 convert(x) => _s_ as T;
-''');
+''',
+    );
   }
 
   void test_asExpression_missingRight() {
-    testRecovery('''
+    testRecovery(
+      '''
 convert(x) => x as ;
-''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
+''',
+      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      '''
 convert(x) => x as _s_;
-''');
+''',
+    );
   }
 
   void test_assignmentExpression() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() {
   var x;
   x =
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() {
   var x;
   x = _s_;
 }
-''');
+''',
+    );
   }
 
   void test_bar() {
@@ -156,57 +208,81 @@ f() {
   }
 
   void test_cascade_missingRight() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(x) {
   x..
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f(x) {
   x.. _s_;
 }
-''');
+''',
+    );
   }
 
   void test_classDeclaration_missingName() {
-    testRecovery('''
+    testRecovery(
+      '''
 class {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 class _s_ {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_combinatorsBeforePrefix() {
     //Expected 1 errors of type ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, found 0
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' deferred;
-''', [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT], '''
+''',
+      [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT],
+      '''
 import 'bar.dart' deferred as _s_;
-''');
+''',
+    );
   }
 
   void test_comma_missing() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(int a int b) { }
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f(int a, int b) { }
-''');
+''',
+    );
   }
 
   void test_conditionalExpression_else() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => x ? y :
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => x ? y : _s_;
-''');
+''',
+    );
   }
 
   void test_conditionalExpression_then() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => x ? : z
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => x ? _s_ : z;
-''');
+''',
+    );
   }
 
   void test_equalEqual() {
@@ -218,19 +294,27 @@ f() => x ? _s_ : z;
   }
 
   void test_expressionBody_missingGt() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(x) = x;
-''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+''',
+      [ParserErrorCode.MISSING_FUNCTION_BODY],
+      '''
 f(x) => x;
-''');
+''',
+    );
   }
 
   void test_expressionBody_return() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(x) return x;
-''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+''',
+      [ParserErrorCode.MISSING_FUNCTION_BODY],
+      '''
 f(x) => x;
-''');
+''',
+    );
   }
 
   void test_greaterThan() {
@@ -267,79 +351,99 @@ f(x) => x;
 
   void test_initializerList_missingComma_assert() {
     // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery('''
+    testRecovery(
+      '''
 class Test {
   Test()
     : assert(true)
       assert(true);
 }
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 class Test {
   Test()
     : assert(true),
       assert(true);
 }
-''');
+''',
+    );
   }
 
   void test_initializerList_missingComma_field() {
     // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery('''
+    testRecovery(
+      '''
 class Test {
   Test()
     : assert(true)
       x = 2;
 }
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 class Test {
   Test()
     : assert(true),
       x = 2;
 }
-''');
+''',
+    );
   }
 
   void test_initializerList_missingComma_thisField() {
     // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery('''
+    testRecovery(
+      '''
 class Test {
   Test()
     : assert(true)
       this.x = 2;
 }
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 class Test {
   Test()
     : assert(true),
       this.x = 2;
 }
-''');
+''',
+    );
   }
 
   void test_isExpression_missingLeft() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() {
   if (is String) {
   }
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f() {
   if (_s_ is String) {
   }
 }
-''');
+''',
+    );
   }
 
   void test_isExpression_missingRight() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(x) {
   if (x is ) {}
 }
-''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
+''',
+      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      '''
 f(x) {
   if (x is _s_) {}
 }
-''');
+''',
+    );
   }
 
   void test_lessThan() {
@@ -376,35 +480,47 @@ f(x) {
 
   @failingTest
   void test_missingGet() {
-    testRecovery('''
+    testRecovery(
+      '''
 class Bar {
   int foo => 0;
 }
-''', [ParserErrorCode.MISSING_GET], '''
+''',
+      [ParserErrorCode.MISSING_GET],
+      '''
 class Bar {
   int get foo => 0;
 }
-''');
+''',
+    );
   }
 
   @failingTest
   void test_parameterList_leftParen() {
     // https://github.com/dart-lang/sdk/issues/22938
-    testRecovery('''
+    testRecovery(
+      '''
 int f int x, int y) {}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 int f (int x, int y) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_parentheses_aroundThrow() {
     // https://github.com/dart-lang/sdk/issues/24892
-    testRecovery('''
+    testRecovery(
+      '''
 f(x) => x ?? throw 0;
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f(x) => x ?? (throw 0);
-''');
+''',
+    );
   }
 
   void test_percent() {
@@ -424,17 +540,21 @@ f(x) => x ?? (throw 0);
   }
 
   void test_prefixedIdentifier() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() {
   var v = 'String';
   v.
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() {
   var v = 'String';
   v._s_;
 }
-''');
+''',
+    );
   }
 
   void test_slash() {
@@ -462,22 +582,26 @@ f() {
     // TODO(danrubel): improve recovery so that the scanner/parser associates
     // `${` with a synthetic `}` inside the " " rather than the `}` at the end.
 
-    testRecovery(r'''
+    testRecovery(
+      r'''
 f() {
   print("${42");
 }
-''', [
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL
-    ], r'''
+''',
+      [
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ScannerErrorCode.EXPECTED_TOKEN,
+        ScannerErrorCode.EXPECTED_TOKEN,
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ],
+      r'''
 f() {
   print("${42}");
 }
-''');
+''',
+    );
   }
 
   void test_tildeSlash() {
@@ -489,23 +613,31 @@ f() {
   }
 
   void testBinaryExpression(String operator) {
-    testRecovery('''
+    testRecovery(
+      '''
 f() => x $operator
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f() => x $operator _s_;
-''');
+''',
+    );
   }
 
   void testUserDefinableOperatorWithSuper(String operator) {
-    testRecovery('''
+    testRecovery(
+      '''
 class C {
   int operator $operator(x) => super $operator
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 class C {
   int operator $operator(x) => super $operator _s_;
 }
-''');
+''',
+    );
   }
 }
 
@@ -515,260 +647,368 @@ class C {
 class ParameterListTest extends AbstractRecoveryTest {
   @failingTest
   void test_extraComma_named_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a, }) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f({a, _s_}) {}
-''');
+''',
+    );
   }
 
   void test_extraComma_named_noLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a, , b}) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f({a, _s_, b}) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_extraComma_positional_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a, ]) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f([a, _s_]) {}
-''');
+''',
+    );
   }
 
   void test_extraComma_positional_noLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a, , b]) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f([a, _s_, b]) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_extraComma_required_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a, ) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f(a, _s_) {}
-''');
+''',
+    );
   }
 
   void test_extraComma_required_noLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a, , b) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f(a, _s_, b) {}
-''');
+''',
+    );
   }
 
   void test_fieldFormalParameter_noPeriod_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C {
   int f;
   C(this);
 }
-''', [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD], '''
+''',
+      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      '''
 class C {
   int f;
   C(_k_);
 }
-''');
+''',
+    );
   }
 
   void test_fieldFormalParameter_noPeriod_notLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C {
   int f;
   C(this, p);
 }
-''', [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD], '''
+''',
+      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      '''
 class C {
   int f;
   C(_k_, p);
 }
-''');
+''',
+    );
   }
 
   void test_fieldFormalParameter_period_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C {
   int f;
   C(this.);
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 class C {
   int f;
   C(this._s_);
 }
-''');
+''',
+    );
   }
 
   void test_fieldFormalParameter_period_notLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C {
   int f;
   C(this., p);
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 class C {
   int f;
   C(this._s_, p);
 }
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_named_none() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a: 0) {}
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ScannerErrorCode.EXPECTED_TOKEN],
+      '''
 f({a: 0}) {}
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_named_positional() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a: 0]) {}
-''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f({a: 0}) {}
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_none_named() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a}) {}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f(a) {}
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_none_positional() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a]) {}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f(a) {}
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_positional_named() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = 0}) {}
-''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f([a = 0]) {}
-''');
+''',
+    );
   }
 
   void test_incorrectlyTerminatedGroup_positional_none() {
     // Maybe put in paired_tokens_test.dart.
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = 0) {}
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ScannerErrorCode.EXPECTED_TOKEN],
+      '''
 f([a = 0]) {}
-''');
+''',
+    );
   }
 
   void test_missingComma() {
     // https://github.com/dart-lang/sdk/issues/22074
-    testRecovery('''
+    testRecovery(
+      '''
 g(a, b, c) {}
 h(v1, v2, v) {
   g(v1 == v2 || v1 == v 3, true);
 }
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 g(a, b, c) {}
 h(v1, v2, v) {
   g(v1 == v2 || v1 == v, 3, true);
 }
-''');
+''',
+    );
   }
 
   void test_missingDefault_named_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a: }) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f({a: _s_}) {}
-''');
+''',
+    );
   }
 
   void test_missingDefault_named_notLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a: , b}) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f({a: _s_, b}) {}
-''');
+''',
+    );
   }
 
   void test_missingDefault_positional_last() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = ]) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f([a = _s_]) {}
-''');
+''',
+    );
   }
 
   void test_missingDefault_positional_notLast() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = , b]) {}
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 f([a = _s_, b]) {}
-''');
+''',
+    );
   }
 
   void test_multipleGroups_mixed() {
     // TODO(brianwilkerson): Figure out the best way to recover from this.
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = 0], {b: 1}) {}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.EXPECTED_TOKEN],
+      '''
 f([a = 0]) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_multipleGroups_mixedAndMultiple() {
     // TODO(brianwilkerson): Figure out the best way to recover from this.
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = 0], {b: 1}, [c = 2]) {}
-''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+''',
+      [ParserErrorCode.MIXED_PARAMETER_GROUPS],
+      '''
 f([a = 0, c = 2]) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_multipleGroups_named() {
-    testRecovery('''
+    testRecovery(
+      '''
 f({a: 0}, {b: 1}) {}
-''', [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS], '''
+''',
+      [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS],
+      '''
 f({a: 0, b: 1}) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_multipleGroups_positional() {
-    testRecovery('''
+    testRecovery(
+      '''
 f([a = 0], [b = 1]) {}
-''', [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS], '''
+''',
+      [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS],
+      '''
 f([a = 0, b = 1]) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_namedOutsideGroup() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a: 0) {}
-''', [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP], '''
+''',
+      [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP],
+      '''
 f({a: 0}) {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_positionalOutsideGroup() {
-    testRecovery('''
+    testRecovery(
+      '''
 f(a = 0) {}
-''', [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP], '''
+''',
+      [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP],
+      '''
 f([a = 0]) {}
-''');
+''',
+    );
   }
 }
 
@@ -777,10 +1017,14 @@ f([a = 0]) {}
 class TypedefTest extends AbstractRecoveryTest {
   @failingTest
   void test_missingFunction() {
-    testRecovery('''
+    testRecovery(
+      '''
 typedef Predicate = bool <E>(E element);
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''',
+      [ParserErrorCode.MISSING_IDENTIFIER],
+      '''
 typedef Predicate = bool Function<E>(E element);
-''');
+''',
+    );
   }
 }

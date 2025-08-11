@@ -76,8 +76,12 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     var outWrapperPath = p.join(data.outDir.path, 'wrapper.js');
-    var runResult = runD8AndStep(data.outDir.path, data.testFileName, data.code,
-        ['--module', outWrapperPath]);
+    var runResult = runD8AndStep(
+      data.outDir.path,
+      data.testFileName,
+      data.code,
+      ['--module', outWrapperPath],
+    );
     data.d8Output = (runResult.stdout as String).split('\n');
     return pass(data);
   }
@@ -103,7 +107,7 @@ File findInOutDir(String relative) {
   for (var outDir in const [
     'out/ReleaseX64',
     'xcodebuild/ReleaseX64',
-    'xcodebuild/ReleaseARM64'
+    'xcodebuild/ReleaseARM64',
   ]) {
     var tryPath = p.join(outerDir, outDir, relative);
     var file = File(tryPath);

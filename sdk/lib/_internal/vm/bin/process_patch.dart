@@ -119,7 +119,7 @@ class _SignalController {
       return;
     }
     _id = id;
-    var socket = _RawSocket(_NativeSocket.watchSignal(id));
+    var socket = _RawSocket(_NativeSocket._watchSignal(id));
     socket.listen((event) {
       if (event == RawSocketEvent.read) {
         var bytes = socket.read()!;
@@ -326,6 +326,9 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   static String _getShellCommand() {
     if (Platform.isWindows) {
       return 'cmd.exe';
+    }
+    if (Platform.isAndroid) {
+      return '/system/bin/sh';
     }
     return '/bin/sh';
   }

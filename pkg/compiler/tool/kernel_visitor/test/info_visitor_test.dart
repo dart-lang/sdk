@@ -20,10 +20,9 @@ void runTests(MetricsVisitor visitor) {
   test("Class B does call super", () {
     Expect.equals(visitor.classInfo["B"]!.invokesSuper, true);
 
-    var callingMethod =
-        visitor.classInfo["B"]!.methods
-            .where((m) => m.name == "testSuper")
-            .toList()[0];
+    var callingMethod = visitor.classInfo["B"]!.methods
+        .where((m) => m.name == "testSuper")
+        .toList()[0];
     Expect.equals(callingMethod.invokesSuper, true);
   });
 

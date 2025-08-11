@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the class 'C'.
+// pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   C c1 = .id1();
 //          ^
 //
-// pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the class 'C'.
+// pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   C c2 = .id2();
@@ -26,12 +26,12 @@ class C extends core::Object /*hasConstConstructor*/  {
     return #C1;
 }
 static method test() → void {
-  self::C c1 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the class 'C'.
+  self::C c1 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   C c1 = .id1();
          ^" in self::C::id1{<unresolved>}.call() as{TypeError,ForDynamic,Unchecked} self::C;
-  self::C c2 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the class 'C'.
+  self::C c2 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   C c2 = .id2();

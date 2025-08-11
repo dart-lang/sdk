@@ -16,121 +16,132 @@ main() {
 @reflectiveTest
 class TypeParameterReferencedByStaticTest extends PubPackageResolutionTest {
   test_class_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static T? foo;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+    );
   }
 
   test_class_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static T? get foo => null;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+    );
   }
 
   test_class_method_bodyReference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static foo() {
     // ignore:unused_local_variable
     T v;
   }
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 70, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 70, 1)],
+    );
   }
 
   test_class_method_closure() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static Object foo() {
     return (T a) {};
   }
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 49, 1)],
+    );
   }
 
   test_class_method_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static foo(T a) {}
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 26, 1)],
+    );
   }
 
   test_class_method_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static T foo() {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+    );
   }
 
   test_class_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static set foo(T _) {}
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1)],
+    );
   }
 
   test_expression_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static foo() {
     T;
   }
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1)],
+    );
   }
 
   test_extension_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E<T> on int {
   static T? foo;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1)],
+    );
   }
 
   test_extension_method_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E<T> on int {
   static T foo() => throw 0;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1)],
+    );
   }
 
   test_mixin_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A<T> {
   static T? foo;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+    );
   }
 }

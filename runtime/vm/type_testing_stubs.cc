@@ -222,7 +222,7 @@ static CodePtr RetryCompilationWithFarBranches(
     std::function<CodePtr(compiler::Assembler&)> fun) {
   volatile intptr_t far_branch_level = 0;
   while (true) {
-    LongJumpScope jump;
+    LongJumpScope jump(thread);
     if (DART_SETJMP(*jump.Set()) == 0) {
       // To use the already-defined __ Macro !
       compiler::Assembler assembler(nullptr, far_branch_level);
@@ -296,9 +296,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const AbstractType& type) {
             //
             SafepointWriteRwLocker ml(thread,
                                       thread->isolate_group()->program_lock());
-            thread->isolate_group()->RunWithStoppedMutators(
-                install_code_fun,
-                /*use_force_growth=*/true);
+            thread->isolate_group()->RunWithStoppedMutators(install_code_fun);
 
             Code::NotifyCodeObservers(name, code, /*optimized=*/false);
 
@@ -487,7 +485,7 @@ static CheckType SubtypeChecksForClass(Zone* zone,
     return CheckType::kCidCheckOnly;
   }
   if (to_check.FindInstantiationOf(zone, type_class,
-                                   /*only_super_classes=*/true)) {
+                                   /*consider_only_super_classes=*/true)) {
     // No need to check for type argument consistency, as [to_check] is the same
     // as or a subclass of [type_class].
     return to_check.is_finalized()
@@ -659,7 +657,7 @@ void TypeTestingStubGenerator::
     // c) Then we'll check each value of the type argument.
     compiler::Label pop_saved_registers_on_failure;
     const RegisterSet saved_registers(
-        TTSInternalRegs::kSavedTypeArgumentRegisters, /*fpu_registers=*/0);
+        TTSInternalRegs::kSavedTypeArgumentRegisters, /*fpu_register_mask=*/0);
     __ PushRegisters(saved_registers);
 
     AbstractType& type_arg = AbstractType::Handle();

@@ -8,19 +8,27 @@ import 'dart:async';
 
 main() {
   var controller;
-  controller = new StreamController(onListen: () {
-    controller.add(499);
-    controller.close();
-  });
+  controller = new StreamController(
+    onListen: () {
+      controller.add(499);
+      controller.close();
+    },
+  );
   asyncStart();
-  controller.stream.map((e) {
-    throw "error";
-  }).listen((_) {
-    throw "should never be reached";
-  }, onError: (e, st) {
-    Expect.equals("error", e);
-    Expect.isNotNull(st);
-  }, onDone: () {
-    asyncEnd();
-  });
+  controller.stream
+      .map((e) {
+        throw "error";
+      })
+      .listen(
+        (_) {
+          throw "should never be reached";
+        },
+        onError: (e, st) {
+          Expect.equals("error", e);
+          Expect.isNotNull(st);
+        },
+        onDone: () {
+          asyncEnd();
+        },
+      );
 }

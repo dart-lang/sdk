@@ -31,7 +31,7 @@ class C2 {
 userDefinableUnaryOp(C2 c) {
   if (c.bad == null) return;
   -c.bad;
-//^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 4] Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+  // [error column 3, length 1]
+  // [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 4] Operator 'unary-' cannot be called on 'int?' because it is potentially null.
 }

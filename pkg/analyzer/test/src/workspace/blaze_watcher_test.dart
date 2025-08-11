@@ -5,10 +5,11 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,9 +26,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
   late final BlazeWorkspace workspace;
 
   void test_blazeFileWatcher() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResource('/workspace/${file_paths.blazeWorkspaceMarker}');
     var candidates = [
       convertPath('/workspace/blaze-bin/my/module/test1.dart'),
       convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
@@ -35,14 +34,14 @@ class BlazeWatcherTest with ResourceProviderMixin {
     var watcher = BlazeFilePoller(resourceProvider, candidates);
 
     // First do some tests with the first candidate path.
-    _addResources([candidates[0]]);
+    var firstCandidate = _addResource(candidates[0]) as File;
 
     var event = watcher.poll()!;
 
     expect(event.type, ChangeType.ADD);
     expect(event.path, candidates[0]);
 
-    modifyFile(candidates[0], 'const foo = 42;');
+    modifyFile2(firstCandidate, 'const foo = 42;');
 
     event = watcher.poll()!;
 
@@ -58,7 +57,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
     // Now check that if we add the *second* candidate, we'll get the
     // notification for it.
-    _addResources([candidates[1]]);
+    _addResource(candidates[1]);
 
     event = watcher.poll()!;
 
@@ -70,9 +69,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
   }
 
   void test_blazeFileWatcherIsolate() async {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResource('/workspace/${file_paths.blazeWorkspaceMarker}');
     var candidates1 = [
       convertPath('/workspace/blaze-bin/my/module/test1.dart'),
       convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
@@ -88,24 +85,36 @@ class BlazeWatcherTest with ResourceProviderMixin {
     // interleavings of async functions.
     var dummyRecPort = ReceivePort();
     var watcher = BlazeFileWatcherIsolate(
-        dummyRecPort, recPort.sendPort, resourceProvider,
-        pollTriggerFactory: (_) => trigger)
-      ..start();
+      dummyRecPort,
+      recPort.sendPort,
+      resourceProvider,
+      pollTriggerFactory: (_) => trigger,
+    )..start();
     var queue = StreamQueue(recPort);
 
     await queue.next as BlazeWatcherIsolateStarted;
 
-    watcher.handleRequest(BlazeWatcherStartWatching(
+    watcher.handleRequest(
+      BlazeWatcherStartWatching(
         convertPath('/workspace'),
         BlazeSearchInfo(
-            convertPath('/workspace/my/module/test1.dart'), candidates1)));
-    watcher.handleRequest(BlazeWatcherStartWatching(
+          convertPath('/workspace/my/module/test1.dart'),
+          candidates1,
+        ),
+      ),
+    );
+    watcher.handleRequest(
+      BlazeWatcherStartWatching(
         convertPath('/workspace'),
         BlazeSearchInfo(
-            convertPath('/workspace/my/module/test2.dart'), candidates2)));
+          convertPath('/workspace/my/module/test2.dart'),
+          candidates2,
+        ),
+      ),
+    );
 
     // First do some tests with the first candidate path.
-    _addResources([candidates1[0]]);
+    _addResource(candidates1[0]);
 
     trigger.controller.add('');
     var events = (await queue.next as BlazeWatcherEvents).events;
@@ -115,7 +124,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
     expect(events[0].type, ChangeType.ADD);
 
     // Now let's take a look at the second file.
-    _addResources([candidates2[1]]);
+    _addResource(candidates2[1]);
 
     trigger.controller.add('');
     events = (await queue.next as BlazeWatcherEvents).events;
@@ -126,13 +135,21 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
     expect(watcher.numWatchedFiles(), 2);
 
-    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace'),
-        convertPath('/workspace/my/module/test1.dart')));
+    watcher.handleRequest(
+      BlazeWatcherStopWatching(
+        convertPath('/workspace'),
+        convertPath('/workspace/my/module/test1.dart'),
+      ),
+    );
 
     expect(watcher.numWatchedFiles(), 1);
 
-    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace'),
-        convertPath('/workspace/my/module/test2.dart')));
+    watcher.handleRequest(
+      BlazeWatcherStopWatching(
+        convertPath('/workspace'),
+        convertPath('/workspace/my/module/test2.dart'),
+      ),
+    );
 
     expect(watcher.numWatchedFiles(), 0);
 
@@ -146,10 +163,8 @@ class BlazeWatcherTest with ResourceProviderMixin {
   }
 
   void test_blazeFileWatcherIsolate_multipleWorkspaces() async {
-    _addResources([
-      '/workspace1/${file_paths.blazeWorkspaceMarker}',
-      '/workspace2/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResource('/workspace1/${file_paths.blazeWorkspaceMarker}');
+    _addResource('/workspace2/${file_paths.blazeWorkspaceMarker}');
     var candidates1 = [
       convertPath('/workspace1/blaze-bin/my/module/test1.dart'),
       convertPath('/workspace1/blaze-genfiles/my/module/test1.dart'),
@@ -178,24 +193,36 @@ class BlazeWatcherTest with ResourceProviderMixin {
     // interleavings of async functions.
     var dummyRecPort = ReceivePort();
     var watcher = BlazeFileWatcherIsolate(
-        dummyRecPort, recPort.sendPort, resourceProvider,
-        pollTriggerFactory: triggerFactory)
-      ..start();
+      dummyRecPort,
+      recPort.sendPort,
+      resourceProvider,
+      pollTriggerFactory: triggerFactory,
+    )..start();
     var queue = StreamQueue(recPort);
 
     await queue.next as BlazeWatcherIsolateStarted;
 
-    watcher.handleRequest(BlazeWatcherStartWatching(
+    watcher.handleRequest(
+      BlazeWatcherStartWatching(
         convertPath('/workspace1'),
         BlazeSearchInfo(
-            convertPath('/workspace1/my/module/test1.dart'), candidates1)));
-    watcher.handleRequest(BlazeWatcherStartWatching(
+          convertPath('/workspace1/my/module/test1.dart'),
+          candidates1,
+        ),
+      ),
+    );
+    watcher.handleRequest(
+      BlazeWatcherStartWatching(
         convertPath('/workspace2'),
         BlazeSearchInfo(
-            convertPath('/workspace2/my/module/test2.dart'), candidates2)));
+          convertPath('/workspace2/my/module/test2.dart'),
+          candidates2,
+        ),
+      ),
+    );
 
     // First do some tests with the first candidate path.
-    _addResources([candidates1[0]]);
+    _addResource(candidates1[0]);
 
     trigger1!.controller.add('');
     var events = (await queue.next as BlazeWatcherEvents).events;
@@ -205,7 +232,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
     expect(events[0].type, ChangeType.ADD);
 
     // Now let's take a look at the second file.
-    _addResources([candidates2[1]]);
+    _addResource(candidates2[1]);
 
     trigger2!.controller.add('');
     events = (await queue.next as BlazeWatcherEvents).events;
@@ -216,13 +243,21 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
     expect(watcher.numWatchedFiles(), 2);
 
-    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace1'),
-        convertPath('/workspace1/my/module/test1.dart')));
+    watcher.handleRequest(
+      BlazeWatcherStopWatching(
+        convertPath('/workspace1'),
+        convertPath('/workspace1/my/module/test1.dart'),
+      ),
+    );
 
     expect(watcher.numWatchedFiles(), 1);
 
-    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace2'),
-        convertPath('/workspace2/my/module/test2.dart')));
+    watcher.handleRequest(
+      BlazeWatcherStopWatching(
+        convertPath('/workspace2'),
+        convertPath('/workspace2/my/module/test2.dart'),
+      ),
+    );
 
     expect(watcher.numWatchedFiles(), 0);
 
@@ -236,13 +271,11 @@ class BlazeWatcherTest with ResourceProviderMixin {
   }
 
   void test_blazeFileWatcherWithFolder() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResource('/workspace/${file_paths.blazeWorkspaceMarker}');
 
     // The `_addResources`/`_deleteResources` functions recognize a folder by a
     // trailing `/`, but everywhere else we need to use normalized paths.
-    void addFolder(path) => _addResources(['$path/']);
+    void addFolder(path) => _addResource('$path/');
     void deleteFolder(path) => _deleteResources(['$path/']);
 
     var candidates = [
@@ -276,14 +309,12 @@ class BlazeWatcherTest with ResourceProviderMixin {
     expect(watcher.poll(), isNull);
   }
 
-  /// Create new files and directories from [paths].
-  void _addResources(List<String> paths) {
-    for (String path in paths) {
-      if (path.endsWith('/')) {
-        newFolder(path.substring(0, path.length - 1));
-      } else {
-        newFile(path, '');
-      }
+  /// Creates a new file or directory from [resourcePath].
+  Resource _addResource(String resourcePath) {
+    if (resourcePath.endsWith('/')) {
+      return newFolder(resourcePath.substring(0, resourcePath.length - 1));
+    } else {
+      return newFile(resourcePath, '');
     }
   }
 

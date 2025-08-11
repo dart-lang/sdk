@@ -16,7 +16,9 @@ void main() {
 @reflectiveTest
 class CombinatorsOrderingTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_IMPORT];
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [
+    WarningCode.UNUSED_IMPORT,
+  ];
 
   @override
   String get lintRule => LintNames.combinators_ordering;

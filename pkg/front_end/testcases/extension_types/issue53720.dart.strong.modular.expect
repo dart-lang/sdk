@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue53720.dart:14:9: Error: The setter 'm' isn't defined for the class 'E2'.
+// pkg/front_end/testcases/extension_types/issue53720.dart:14:9: Error: The setter 'm' isn't defined for the type 'E2'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'm'.
 //   E2(1).m = 10; /* Error */
 //         ^
@@ -27,20 +27,20 @@ static extension-type-member method E1|constructor#(core::int i) → self::E1% /
   lowered final self::E1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#(i);
 static extension-type-member method E1|set#m(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void {}
 static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */ {
   lowered final self::E2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
   return self::E2|constructor#(i);
 static extension-type-member method E2|m(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method E2|get#m(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::E2|m(#this);
 static method test() → void {
-  invalid-expression "pkg/front_end/testcases/extension_types/issue53720.dart:14:9: Error: The setter 'm' isn't defined for the class 'E2'.
+  invalid-expression "pkg/front_end/testcases/extension_types/issue53720.dart:14:9: Error: The setter 'm' isn't defined for the type 'E2'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'm'.
   E2(1).m = 10; /* Error */
         ^" in self::E2|constructor#(1).{<unresolved>}m = 10;

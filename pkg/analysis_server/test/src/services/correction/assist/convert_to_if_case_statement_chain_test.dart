@@ -17,12 +17,12 @@ void main() {
 @reflectiveTest
 class ConvertToIfCaseStatementChainTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
+  AssistKind get kind => DartAssistKind.convertToIfCaseStatementChain;
 
   Future<void> test_hasBreak() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  ^switch (x) {
     case int():
       0;
       break;
@@ -31,7 +31,7 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int()) {
     0;
@@ -45,17 +45,17 @@ void f(Object? x) {
   Future<void> test_noBody() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  ^switch (x) {
   }
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_noDefault() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  swi^tch (x) {
     case int():
       0;
     case double():
@@ -63,7 +63,7 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int()) {
     0;
@@ -77,7 +77,7 @@ void f(Object? x) {
   Future<void> test_noDefault_hasWhen() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  swi^tch (x) {
     case int() when x > 0:
       0;
     case double():
@@ -85,7 +85,7 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int() when x > 0) {
     0;
@@ -99,14 +99,14 @@ void f(Object? x) {
   Future<void> test_noStatements() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  swit^ch (x) {
     case int():
       0;
     case double():
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int()) {
     0;
@@ -119,14 +119,14 @@ void f(Object? x) {
   Future<void> test_sharedBody() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  ^switch (x) {
     case int():
     case double():
       0;
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int() || double()) {
     0;
@@ -138,20 +138,20 @@ void f(Object? x) {
   Future<void> test_sharedBody_hasWhen() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  sw^itch (x) {
     case int() when x > 0:
     case double():
       0;
   }
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_withDefault() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  ^switch (x) {
     case int():
       0;
     case double():
@@ -161,7 +161,7 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(Object? x) {
   if (x case int()) {
     0;
@@ -177,7 +177,7 @@ void f(Object? x) {
   Future<void> test_withDefault_shared() async {
     await resolveTestCode('''
 void f(Object? x) {
-  switch (x) {
+  swi^tch (x) {
     case int():
       0;
     case double():
@@ -186,6 +186,6 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 }

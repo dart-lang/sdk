@@ -58,59 +58,67 @@ void f<T extends List<int>?>(T a) {
   }
 
   test_notIterable_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = [...a];
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 23, 1)],
+    );
   }
 
   test_notIterable_forElement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = [for (var i in []) ...a];
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 41, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 41, 1),
+      ],
+    );
   }
 
   test_notIterable_ifElement_else() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 45, 1)],
+    );
   }
 
   test_notIterable_ifElement_then() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = [if (1 > 0) ...a];
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 34, 1)],
+    );
   }
 
   test_notIterable_typeParameter_bound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   var v = [...a];
   v;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 43, 1)],
+    );
   }
 
   test_spread_map_in_iterable_context() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 List<int> f() => [...{1: 2, 3: 4}];
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 21, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 21, 12)],
+    );
   }
 }
 
@@ -118,22 +126,24 @@ List<int> f() => [...{1: 2, 3: 4}];
 class NotIterableSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_list() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(dynamic a) {
   [...a];
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 26, 1)],
+    );
   }
 
   test_set() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(dynamic a) {
   <int>{...a};
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 31, 1)],
+    );
   }
 }

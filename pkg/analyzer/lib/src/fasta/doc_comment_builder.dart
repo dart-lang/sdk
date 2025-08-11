@@ -31,7 +31,7 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
   }
 
   // Check for a trailing `.`.
-  if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
+  if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */ ) {
     return index;
   }
   ++index;
@@ -66,18 +66,21 @@ bool _isEqualSign(int character) => character == 0x3D /* '=' */;
 /// [inline link]: https://spec.commonmark.org/0.31.2/#inline-link
 /// [link reference definition]: https://spec.commonmark.org/0.31.2/#link-reference-definitions
 /// [reference link]: https://spec.commonmark.org/0.31.2/#reference-link
-bool _isLinkText(String comment, int rightIndex,
-    {required bool canBeLinkReference}) {
+bool _isLinkText(
+  String comment,
+  int rightIndex, {
+  required bool canBeLinkReference,
+}) {
   var length = comment.length;
   var index = rightIndex + 1;
   if (index >= length) {
     return false;
   }
   var ch = comment.codeUnitAt(index);
-  if (ch == 0x28 /* `(` */) {
+  if (ch == 0x28 /* `(` */ ) {
     return true;
   }
-  if (canBeLinkReference && ch == 0x3A /* `:` */) {
+  if (canBeLinkReference && ch == 0x3A /* `:` */ ) {
     return true;
   }
   while (isWhitespace(ch)) {
@@ -110,7 +113,7 @@ int _readWhitespace(String content, [int index = 0]) {
 /// is ultimately built with [build].
 final class DocCommentBuilder {
   final Parser _parser;
-  final ErrorReporter? _errorReporter;
+  final DiagnosticReporter? _diagnosticReporter;
   final Uri _uri;
   final FeatureSet _featureSet;
   final LibraryLanguageVersion _languageVersion;
@@ -127,7 +130,7 @@ final class DocCommentBuilder {
 
   DocCommentBuilder(
     this._parser,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._uri,
     this._featureSet,
     this._languageVersion,
@@ -172,7 +175,9 @@ final class DocCommentBuilder {
   ///   opening tag above the matched opening tag, which are each missing a
   ///   closing tag, reporting each as such, and add each to [_docDirectives].
   void _endBlockDocDirectiveTag(
-      _DirectiveParser parser, DocDirectiveType type) {
+    _DirectiveParser parser,
+    DocDirectiveType type,
+  ) {
     var closingTag = parser.directive(type);
     for (var i = _blockDocDirectiveBuilderStack.length - 1; i >= 0; i--) {
       var builder = _blockDocDirectiveBuilderStack[i];
@@ -197,10 +202,10 @@ final class DocCommentBuilder {
           // `null`.
           var openingTag = builder.openingTag;
           if (openingTag != null) {
-            _errorReporter?.atOffset(
+            _diagnosticReporter?.atOffset(
               offset: openingTag.offset,
               length: openingTag.end - openingTag.offset,
-              errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+              diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
               arguments: [openingTag.type.opposingName!],
             );
           }
@@ -214,10 +219,10 @@ final class DocCommentBuilder {
     }
 
     // No matching opening tag was found.
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: closingTag.offset,
       length: closingTag.end - closingTag.offset,
-      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
       arguments: [closingTag.type.name],
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
@@ -244,7 +249,9 @@ final class DocCommentBuilder {
   }
 
   void _parseBlockDocDirectiveTag(
-      _DirectiveParser parser, DocDirectiveType type) {
+    _DirectiveParser parser,
+    DocDirectiveType type,
+  ) {
     var opening = parser.directive(type);
     _blockDocDirectiveBuilderStack.add(_BlockDocDirectiveBuilder(opening));
   }
@@ -294,10 +301,10 @@ final class DocCommentBuilder {
       // `null`.
       var openingTag = builder.openingTag;
       if (openingTag != null) {
-        _errorReporter?.atOffset(
+        _diagnosticReporter?.atOffset(
           offset: openingTag.offset,
           length: openingTag.end - openingTag.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
           arguments: [openingTag.type.opposingName!],
         );
       }
@@ -342,7 +349,7 @@ final class DocCommentBuilder {
       nameEnd: _characterSequence._offset + nameEnd,
       content: content,
       index: index,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
     );
 
     switch (name) {
@@ -351,7 +358,8 @@ final class DocCommentBuilder {
         return true;
       case 'canonicalFor':
         _pushDocDirective(
-            parser.simpleDirective(DocDirectiveType.canonicalFor));
+          parser.simpleDirective(DocDirectiveType.canonicalFor),
+        );
         return true;
       case 'category':
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.category));
@@ -384,10 +392,10 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: _characterSequence._offset + nameIndex,
       length: nameEnd - nameIndex,
-      errorCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
       arguments: [name],
     );
     return false;
@@ -413,7 +421,7 @@ final class DocCommentBuilder {
       (
         offsetInDocImport: 0,
         offsetInUnit: _characterSequence._offset + (index - importLength),
-      )
+      ),
     ];
 
     var scanner = DocImportStringScanner(
@@ -431,7 +439,7 @@ final class DocCommentBuilder {
 
     var token = result.tokens;
     var docImportListener = AstBuilder(
-      _errorReporter,
+      _diagnosticReporter,
       _uri,
       true /* isFullAst */,
       _featureSet,
@@ -461,16 +469,14 @@ final class DocCommentBuilder {
   ///
   /// When this method returns, [_characterSequence] is postioned at the closing
   /// delimiter line (`.next()` must be called to move to the next line).
-  bool _parseFencedCodeBlock({
-    required String content,
-  }) {
+  bool _parseFencedCodeBlock({required String content}) {
     var index = _fencedCodeBlockDelimiter(content);
     if (index == -1) {
       return false;
     }
     var tickCount = 0;
     var length = content.length;
-    while (content.codeUnitAt(index) == 0x60 /* '`' */) {
+    while (content.codeUnitAt(index) == 0x60 /* '`' */ ) {
       tickCount++;
       index++;
       if (index >= length) {
@@ -493,8 +499,10 @@ final class DocCommentBuilder {
       fencedCodeBlockLines.add(
         MdCodeBlockLine(offset: offset, length: content.length),
       );
-      var fencedCodeBlockIndex =
-          _fencedCodeBlockDelimiter(content, minimumTickCount: tickCount);
+      var fencedCodeBlockIndex = _fencedCodeBlockDelimiter(
+        content,
+        minimumTickCount: tickCount,
+      );
       if (fencedCodeBlockIndex > -1) {
         // End the fenced code block.
         break;
@@ -562,7 +570,7 @@ final class DocCommentBuilder {
       return false;
     }
     if (content.length == index + nodocLength ||
-        content.codeUnitAt(index + nodocLength) == 0x20 /* ' ' */) {
+        content.codeUnitAt(index + nodocLength) == 0x20 /* ' ' */ ) {
       _hasNodoc = true;
       return true;
     }
@@ -572,8 +580,11 @@ final class DocCommentBuilder {
   /// Parses the [source] text, found at [offset] in a single comment reference.
   ///
   /// Returns `null` if the text could not be parsed as a comment reference.
-  CommentReferenceImpl? _parseOneCommentReference(String source, int offset,
-      {required bool isSynthetic}) {
+  CommentReferenceImpl? _parseOneCommentReference(
+    String source,
+    int offset, {
+    required bool isSynthetic,
+  }) {
     var result = scanString(source);
     if (result.hasErrors) {
       return null;
@@ -602,16 +613,21 @@ final class DocCommentBuilder {
         // unnamed constructor. This support is separate from the
         // constructor-tearoffs feature.
         _parser.rewriter.replaceTokenFollowing(
-            secondPeriod,
-            StringToken(TokenType.IDENTIFIER, identifier.lexeme,
-                identifier.charOffset));
+          secondPeriod,
+          StringToken(
+            TokenType.IDENTIFIER,
+            identifier.lexeme,
+            identifier.charOffset,
+          ),
+        );
       }
       token = secondPeriod.next!;
     }
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion.
       token = _parser.rewriter.insertSyntheticIdentifier(
-          secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token));
+        secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token),
+      );
       isSynthetic = true;
       if (begin == token.next!) {
         begin = token;
@@ -707,12 +723,12 @@ final class DocCommentBuilder {
       token = token.next!;
     } while (!token.isEof);
 
-    var identifier = SimpleIdentifierImpl(identifierOrOperator);
+    var identifier = SimpleIdentifierImpl(token: identifierOrOperator);
     if (firstToken != null) {
       var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(firstToken),
+        prefix: SimpleIdentifierImpl(token: firstToken),
         period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(secondToken!),
+        identifier: SimpleIdentifierImpl(token: secondToken!),
       );
       var expression = PropertyAccessImpl(
         target: target,
@@ -726,7 +742,7 @@ final class DocCommentBuilder {
       );
     } else if (secondToken != null) {
       var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(secondToken),
+        prefix: SimpleIdentifierImpl(token: secondToken),
         period: secondPeriod!,
         identifier: identifier,
       );
@@ -751,10 +767,10 @@ final class DocCommentBuilder {
     var seenOnlyWhitespace = true;
     while (index < end) {
       var ch = content.codeUnitAt(index);
-      if (ch == 0x5B /* `[` */) {
+      if (ch == 0x5B /* `[` */ ) {
         //var canBeLinkReference = !seenNonWhitespace;
         ++index;
-        if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */) {
+        if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */ ) {
           // Skip old-style code block, e.g. `/// Text [:int:]`.
           index = content.indexOf(':]', index + 1) + 1;
           if (index == 0 || index > end) {
@@ -769,8 +785,11 @@ final class DocCommentBuilder {
             index = _findCommentReferenceEnd(content, referenceStart, end);
             isSynthetic = true;
           }
-          if (_isLinkText(content, index,
-              canBeLinkReference: seenOnlyWhitespace)) {
+          if (_isLinkText(
+            content,
+            index,
+            canBeLinkReference: seenOnlyWhitespace,
+          )) {
             // TODO(brianwilkerson): Handle the case where there's a library
             // URI in the link text.
           } else {
@@ -785,7 +804,7 @@ final class DocCommentBuilder {
           }
         }
         seenOnlyWhitespace = false;
-      } else if (ch == 0x60 /* '`' */) {
+      } else if (ch == 0x60 /* '`' */ ) {
         // Skip inline code block if there is both starting '`' and ending '`'.
         var endCodeBlock = content.indexOf('`', index + 1);
         if (endCodeBlock != -1 && endCodeBlock < end) {
@@ -800,7 +819,8 @@ final class DocCommentBuilder {
   }
 
   void _pushBlockDocDirectiveAndInnerDirectives(
-      _BlockDocDirectiveBuilder builder) {
+    _BlockDocDirectiveBuilder builder,
+  ) {
     _pushDocDirective(builder.build());
     for (var docDirective in builder.innerDocDirectives) {
       _pushDocDirective(docDirective);
@@ -847,7 +867,6 @@ class DocImportStringScanner extends StringScanner {
   }) : _sourceMap = sourceMap;
 
   @override
-
   /// The position of the start of the next token _in the unit_, not in
   /// the source.
   ///
@@ -901,7 +920,8 @@ final class _BlockDocDirectiveBuilder {
     var openingTag = this.openingTag;
     if (openingTag == null) {
       throw StateError(
-          'Attempting to build a block doc directive with no opening tag.');
+        'Attempting to build a block doc directive with no opening tag.',
+      );
     }
     return BlockDocDirective(openingTag, closingTag);
   }
@@ -992,7 +1012,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
     if (lexeme.startsWith('* ', _offset - tokenOffset)) {
       _offset += starSpaceLength;
     } else if (_end == _offset + 1 &&
-        lexeme.codeUnitAt(_offset - tokenOffset) == 0x2A /* '*' */) {
+        lexeme.codeUnitAt(_offset - tokenOffset) == 0x2A /* '*' */ ) {
       _offset += starLength;
     }
 
@@ -1059,7 +1079,7 @@ final class _DirectiveParser {
   /// The length of [content].
   final int _length;
 
-  final ErrorReporter? _errorReporter;
+  final DiagnosticReporter? _diagnosticReporter;
 
   /// The current position in [content].
   int index;
@@ -1077,11 +1097,11 @@ final class _DirectiveParser {
     required this.nameEnd,
     required this.content,
     required this.index,
-    required ErrorReporter? errorReporter,
-  })  : _contentOffset = contentOffset,
-        _offset = offset,
-        _length = content.length,
-        _errorReporter = errorReporter;
+    required DiagnosticReporter? diagnosticReporter,
+  }) : _contentOffset = contentOffset,
+       _offset = offset,
+       _length = content.length,
+       _diagnosticReporter = diagnosticReporter;
 
   /// Parses a non-block (single line) doc directive.
   DocDirectiveTag directive(DocDirectiveType type) {
@@ -1170,7 +1190,7 @@ final class _DirectiveParser {
   ///
   /// Reports a warning if EOL is reached before a closing curly brace is found.
   (List<DocDirectivePositionalArgument>, List<DocDirectiveNamedArgument>)
-      _parseArguments() {
+  _parseArguments() {
     if (_end != null) return (const [], const []);
     var positionalArguments = <DocDirectivePositionalArgument>[];
     var namedArguments = <DocDirectiveNamedArgument>[];
@@ -1192,10 +1212,10 @@ final class _DirectiveParser {
 
     // We've hit EOL without closing brace.
     _end = _offset + index;
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: _offset + index - 1,
       length: 1,
-      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
     );
     return (positionalArguments, namedArguments);
   }
@@ -1227,20 +1247,20 @@ final class _DirectiveParser {
       index++;
       if (index == _length) {
         // Found extra arguments and no closing brace.
-        _errorReporter?.atOffset(
+        _diagnosticReporter?.atOffset(
           offset: _offset + index - 1,
           length: 1,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
         );
         break;
       }
     }
 
     var errorLength = _offset + index - extraArgumentsOffset;
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: extraArgumentsOffset,
       length: errorLength,
-      errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+      diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
     );
     _end = _offset + index;
   }

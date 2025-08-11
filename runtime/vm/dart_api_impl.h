@@ -60,12 +60,10 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-// Checks that the current isolate is not nullptr and that it has an API scope.
+// Checks that the current thread has an API scope.
 #define CHECK_API_SCOPE(thread)                                                \
   do {                                                                         \
     Thread* tmpT = (thread);                                                   \
-    Isolate* tmpI = tmpT == nullptr ? nullptr : tmpT->isolate();               \
-    CHECK_ISOLATE(tmpI);                                                       \
     if (tmpT->api_top_scope() == nullptr) {                                    \
       FATAL(                                                                   \
           "%s expects to find a current scope. Did you forget to call "        \

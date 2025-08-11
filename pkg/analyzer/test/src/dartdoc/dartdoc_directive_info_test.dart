@@ -21,9 +21,10 @@ class DartdocDirectiveInfoTest {
 /// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
 ''');
     expect(
-        result.full,
-        '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
-        '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)');
+      result.full,
+      '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
+      '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)',
+    );
   }
 
   test_processDartdoc_macro_defined() {
@@ -93,11 +94,13 @@ Comment without a macro.''');
   }
 
   test_processDartdoc_summary_different() {
-    var result = info.processDartdoc('''
+    var result =
+        info.processDartdoc('''
 /// Comment without a macro.
 ///
 /// Has content after summary.
-''', includeSummary: true) as DocumentationWithSummary;
+''', includeSummary: true)
+            as DocumentationWithSummary;
     expect(result.full, '''
 Comment without a macro.
 
@@ -107,9 +110,11 @@ Comment without a macro.''');
   }
 
   test_processDartdoc_summary_same() {
-    var result = info.processDartdoc('''
+    var result =
+        info.processDartdoc('''
 /// Comment without a macro.
-''', includeSummary: true) as DocumentationWithSummary;
+''', includeSummary: true)
+            as DocumentationWithSummary;
     expect(result.full, '''
 Comment without a macro.''');
     expect(result.summary, '''
@@ -120,15 +125,20 @@ Comment without a macro.''');
     var result = info.processDartdoc('''
 /// {@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
 ''');
-    expect(result.full, '''
-[www.youtube.com/watch?v=2uaoEDOgk_I](https://www.youtube.com/watch?v=2uaoEDOgk_I)''');
+    expect(
+      result.full,
+      '''
+[www.youtube.com/watch?v=2uaoEDOgk_I](https://www.youtube.com/watch?v=2uaoEDOgk_I)''',
+    );
   }
 
   test_processDartdoc_youtube_malformed() {
     var result = info.processDartdoc('''
 /// {@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
 ''');
-    expect(result.full,
-        '{@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}');
+    expect(
+      result.full,
+      '{@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}',
+    );
   }
 }

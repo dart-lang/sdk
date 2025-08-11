@@ -5,13 +5,16 @@
 library logging_page;
 
 import 'dart:async';
-import 'dart:html';
+
 import 'package:logging/logging.dart';
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/logging_list.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -58,7 +61,7 @@ class LoggingPageElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   LoggingListElement? _logs;
@@ -66,8 +69,8 @@ class LoggingPageElement extends CustomElement implements Renderable {
   void render() {
     _logs = _logs ?? new LoggingListElement(_isolate, _events);
     _logs!.level = _level;
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -81,27 +84,27 @@ class LoggingPageElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Logging',
-          new SpanElement()..text = 'Show messages with severity ',
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Logging',
+          new HTMLSpanElement()..textContent = 'Show messages with severity ',
           _createLevelSelector(),
-          new HRElement(),
+          new HTMLHRElement(),
           _logs!.element
-        ]
+        ])
     ];
   }
 
-  Element _createLevelSelector() {
-    var s = new SelectElement()
+  HTMLElement _createLevelSelector() {
+    final s = HTMLSelectElement()
       ..value = _level.name
-      ..children = Level.LEVELS.map((level) {
-        return new OptionElement(value: level.name, selected: _level == level)
-          ..text = level.name;
-      }).toList(growable: false);
+      ..appendChildren(Level.LEVELS.map((level) => HTMLOptionElement()
+        ..value = level.name
+        ..selected = _level == level
+        ..text = level.name));
     s.onChange.listen((_) {
-      _level = Level.LEVELS[s.selectedIndex!];
+      _level = Level.LEVELS[s.selectedIndex];
       _r.dirty();
     });
     return s;

@@ -72,17 +72,21 @@ class FunctionType extends Type implements SharedFunctionType {
   /// A list of the named parameters, sorted by name.
   final List<NamedFunctionParameter> namedParameters;
 
-  FunctionType(this.returnType, this.positionalParameters,
-      {this.typeParametersShared = const [],
-      int? requiredPositionalParameterCount,
-      this.namedParameters = const [],
-      super.isQuestionType = false})
-      : requiredPositionalParameterCount =
-            requiredPositionalParameterCount ?? positionalParameters.length,
-        super._() {
+  FunctionType(
+    this.returnType,
+    this.positionalParameters, {
+    this.typeParametersShared = const [],
+    int? requiredPositionalParameterCount,
+    this.namedParameters = const [],
+    super.isQuestionType = false,
+  }) : requiredPositionalParameterCount =
+           requiredPositionalParameterCount ?? positionalParameters.length,
+       super._() {
     for (var i = 1; i < namedParameters.length; i++) {
-      assert(namedParameters[i - 1].name.compareTo(namedParameters[i].name) < 0,
-          'namedParameters not properly sorted');
+      assert(
+        namedParameters[i - 1].name.compareTo(namedParameters[i].name) < 0,
+        'namedParameters not properly sorted',
+      );
     }
   }
 
@@ -129,16 +133,17 @@ class FunctionType extends Type implements SharedFunctionType {
       var freshTypeParameterGenerator = FreshTypeParameterGenerator();
       var substitution = {
         for (var typeFormal in typeParametersShared)
-          typeFormal: TypeParameterType(freshTypeParameterGenerator.generate())
+          typeFormal: TypeParameterType(freshTypeParameterGenerator.generate()),
       };
       return substitute(substitution, dropTypeFormals: true).hashCode;
     } else {
       return Object.hash(
-          returnType,
-          const ListEquality().hash(positionalParameters),
-          requiredPositionalParameterCount,
-          const ListEquality().hash(namedParameters),
-          isQuestionType);
+        returnType,
+        const ListEquality().hash(positionalParameters),
+        requiredPositionalParameterCount,
+        const ListEquality().hash(namedParameters),
+        isQuestionType,
+      );
     }
   }
 
@@ -162,16 +167,18 @@ class FunctionType extends Type implements SharedFunctionType {
     }
     if (typeParametersShared.isNotEmpty) {
       // Check if types are equal under a consistent renaming of type formals
-      var freshTypeParameterGenerator = FreshTypeParameterGenerator()
-        ..excludeNamesUsedIn(this)
-        ..excludeNamesUsedIn(other);
+      var freshTypeParameterGenerator =
+          FreshTypeParameterGenerator()
+            ..excludeNamesUsedIn(this)
+            ..excludeNamesUsedIn(other);
       var thisSubstitution = <TypeParameter, Type>{};
       var otherSubstitution = <TypeParameter, Type>{};
       var thisTypeFormalBounds = <Type>[];
       var otherTypeFormalBounds = <Type>[];
       for (var i = 0; i < typeParametersShared.length; i++) {
-        var freshTypeParameterType =
-            TypeParameterType(freshTypeParameterGenerator.generate());
+        var freshTypeParameterType = TypeParameterType(
+          freshTypeParameterGenerator.generate(),
+        );
         thisSubstitution[typeParametersShared[i]] = freshTypeParameterType;
         otherSubstitution[other.typeParametersShared[i]] =
             freshTypeParameterType;
@@ -179,16 +186,19 @@ class FunctionType extends Type implements SharedFunctionType {
         otherTypeFormalBounds.add(other.typeParametersShared[i].bound);
       }
       return const ListEquality().equals(
-              thisTypeFormalBounds.substitute(thisSubstitution) ??
-                  thisTypeFormalBounds,
-              otherTypeFormalBounds.substitute(otherSubstitution) ??
-                  otherTypeFormalBounds) &&
+            thisTypeFormalBounds.substitute(thisSubstitution) ??
+                thisTypeFormalBounds,
+            otherTypeFormalBounds.substitute(otherSubstitution) ??
+                otherTypeFormalBounds,
+          ) &&
           substitute(thisSubstitution, dropTypeFormals: true) ==
               other.substitute(otherSubstitution, dropTypeFormals: true);
     } else {
       return returnType == other.returnType &&
-          const ListEquality()
-              .equals(positionalParameters, other.positionalParameters) &&
+          const ListEquality().equals(
+            positionalParameters,
+            other.positionalParameters,
+          ) &&
           requiredPositionalParameterCount ==
               other.requiredPositionalParameterCount &&
           const ListEquality().equals(namedParameters, other.namedParameters) &&
@@ -197,32 +207,37 @@ class FunctionType extends Type implements SharedFunctionType {
   }
 
   @override
-  Type asQuestionType(bool isQuestionType) =>
-      FunctionType(returnType, positionalParameters,
-          typeParametersShared: typeParametersShared,
-          requiredPositionalParameterCount: requiredPositionalParameterCount,
-          namedParameters: namedParameters,
-          isQuestionType: isQuestionType);
+  Type asQuestionType(bool isQuestionType) => FunctionType(
+    returnType,
+    positionalParameters,
+    typeParametersShared: typeParametersShared,
+    requiredPositionalParameterCount: requiredPositionalParameterCount,
+    namedParameters: namedParameters,
+    isQuestionType: isQuestionType,
+  );
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
-    Type? newReturnType =
-        returnType.closureWithRespectToUnknown(covariant: covariant);
-    List<Type>? newPositionalParameters =
-        positionalParameters.closureWithRespectToUnknown(covariant: !covariant);
-    List<NamedFunctionParameter>? newNamedParameters =
-        namedParameters.closureWithRespectToUnknown(covariant: !covariant);
+    Type? newReturnType = returnType.closureWithRespectToUnknown(
+      covariant: covariant,
+    );
+    List<Type>? newPositionalParameters = positionalParameters
+        .closureWithRespectToUnknown(covariant: !covariant);
+    List<NamedFunctionParameter>? newNamedParameters = namedParameters
+        .closureWithRespectToUnknown(covariant: !covariant);
     if (newReturnType == null &&
         newPositionalParameters == null &&
         newNamedParameters == null) {
       return null;
     }
-    return FunctionType(newReturnType ?? returnType,
-        newPositionalParameters ?? positionalParameters,
-        typeParametersShared: typeParametersShared,
-        requiredPositionalParameterCount: requiredPositionalParameterCount,
-        namedParameters: newNamedParameters ?? namedParameters,
-        isQuestionType: isQuestionType);
+    return FunctionType(
+      newReturnType ?? returnType,
+      newPositionalParameters ?? positionalParameters,
+      typeParametersShared: typeParametersShared,
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      namedParameters: newNamedParameters ?? namedParameters,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
@@ -248,26 +263,30 @@ class FunctionType extends Type implements SharedFunctionType {
   @override
   Type? recursivelyDemote({required bool covariant}) {
     Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
-    List<Type>? newPositionalParameters =
-        positionalParameters.recursivelyDemote(covariant: !covariant);
-    List<NamedFunctionParameter>? newNamedParameters =
-        namedParameters.recursivelyDemote(covariant: !covariant);
+    List<Type>? newPositionalParameters = positionalParameters
+        .recursivelyDemote(covariant: !covariant);
+    List<NamedFunctionParameter>? newNamedParameters = namedParameters
+        .recursivelyDemote(covariant: !covariant);
     if (newReturnType == null &&
         newPositionalParameters == null &&
         newNamedParameters == null) {
       return null;
     }
-    return FunctionType(newReturnType ?? returnType,
-        newPositionalParameters ?? positionalParameters,
-        typeParametersShared: typeParametersShared,
-        requiredPositionalParameterCount: requiredPositionalParameterCount,
-        namedParameters: newNamedParameters ?? namedParameters,
-        isQuestionType: isQuestionType);
+    return FunctionType(
+      newReturnType ?? returnType,
+      newPositionalParameters ?? positionalParameters,
+      typeParametersShared: typeParametersShared,
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      namedParameters: newNamedParameters ?? namedParameters,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
-  FunctionType? substitute(Map<TypeParameter, Type> substitution,
-      {bool dropTypeFormals = false}) {
+  FunctionType? substitute(
+    Map<TypeParameter, Type> substitution, {
+    bool dropTypeFormals = false,
+  }) {
     List<TypeParameter>? newTypeFormals;
     if (typeParametersShared.isNotEmpty) {
       if (dropTypeFormals) {
@@ -275,8 +294,10 @@ class FunctionType extends Type implements SharedFunctionType {
       } else {
         // Check if any of the type formal bounds will be changed by the
         // substitution.
-        if (typeParametersShared.any((typeFormal) =>
-            typeFormal.explicitBound?.substitute(substitution) != null)) {
+        if (typeParametersShared.any(
+          (typeFormal) =>
+              typeFormal.explicitBound?.substitute(substitution) != null,
+        )) {
           // Yes, at least one of the type formal bounds will be changed by the
           // substitution. So that type formal will have to be replaced by a
           // fresh one. Since type formal bounds can refer to other type
@@ -312,12 +333,14 @@ class FunctionType extends Type implements SharedFunctionType {
         newNamedParameters == null) {
       return null;
     } else {
-      return FunctionType(newReturnType ?? returnType,
-          newPositionalParameters ?? positionalParameters,
-          typeParametersShared: newTypeFormals ?? typeParametersShared,
-          requiredPositionalParameterCount: requiredPositionalParameterCount,
-          namedParameters: newNamedParameters ?? namedParameters,
-          isQuestionType: isQuestionType);
+      return FunctionType(
+        newReturnType ?? returnType,
+        newPositionalParameters ?? positionalParameters,
+        typeParametersShared: newTypeFormals ?? typeParametersShared,
+        requiredPositionalParameterCount: requiredPositionalParameterCount,
+        namedParameters: newNamedParameters ?? namedParameters,
+        isQuestionType: isQuestionType,
+      );
     }
   }
 
@@ -336,18 +359,21 @@ class FunctionType extends Type implements SharedFunctionType {
       formals = '<${formalStrings.join(', ')}>';
     }
     var parameters = <Object>[
-      ...positionalParameters.sublist(0, requiredPositionalParameterCount)
+      ...positionalParameters.sublist(0, requiredPositionalParameterCount),
     ];
     if (requiredPositionalParameterCount < positionalParameters.length) {
-      var optionalPositionalParameters =
-          positionalParameters.sublist(requiredPositionalParameterCount);
+      var optionalPositionalParameters = positionalParameters.sublist(
+        requiredPositionalParameterCount,
+      );
       parameters.add('[${optionalPositionalParameters.join(', ')}]');
     }
     if (namedParameters.isNotEmpty) {
       parameters.add('{${namedParameters.join(', ')}}');
     }
-    return _parenthesizeIf(parenthesizeIfComplex,
-        '$returnType Function$formals(${parameters.join(', ')})');
+    return _parenthesizeIf(
+      parenthesizeIfComplex,
+      '$returnType Function$formals(${parameters.join(', ')})',
+    );
   }
 }
 
@@ -355,7 +381,7 @@ class FunctionType extends Type implements SharedFunctionType {
 /// in the `_fe_analyzer_shared` package.
 class FutureOrType extends PrimaryType {
   FutureOrType(Type typeArgument, {super.isQuestionType = false})
-      : super._special(TypeRegistry.futureOr, args: [typeArgument]);
+    : super._special(TypeRegistry.futureOr, args: [typeArgument]);
 
   Type get typeArgument => args.single;
 
@@ -365,8 +391,9 @@ class FutureOrType extends PrimaryType {
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
-    Type? newArg =
-        typeArgument.closureWithRespectToUnknown(covariant: covariant);
+    Type? newArg = typeArgument.closureWithRespectToUnknown(
+      covariant: covariant,
+    );
     if (newArg == null) return null;
     return FutureOrType(newArg, isQuestionType: isQuestionType);
   }
@@ -414,8 +441,11 @@ class NamedFunctionParameter
   @override
   final bool isRequired;
 
-  NamedFunctionParameter(
-      {required this.isRequired, required this.name, required this.type});
+  NamedFunctionParameter({
+    required this.isRequired,
+    required this.name,
+    required this.type,
+  });
 
   @override
   int get hashCode => Object.hash(name, type, isRequired);
@@ -438,7 +468,10 @@ class NamedFunctionParameter
     var newType = type.substitute(substitution);
     if (newType == null) return null;
     return NamedFunctionParameter(
-        isRequired: isRequired, name: name, type: newType);
+      isRequired: isRequired,
+      name: name,
+      type: newType,
+    );
   }
 
   @override
@@ -517,26 +550,37 @@ class PrimaryType extends Type {
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  PrimaryType(InterfaceTypeName nameInfo,
-      {List<Type> args = const [], bool isQuestionType = false})
-      : this._(nameInfo, args: args, isQuestionType: isQuestionType);
+  PrimaryType(
+    InterfaceTypeName nameInfo, {
+    List<Type> args = const [],
+    bool isQuestionType = false,
+  }) : this._(nameInfo, args: args, isQuestionType: isQuestionType);
 
-  PrimaryType._(this.nameInfo,
-      {this.args = const [], super.isQuestionType = false})
-      : super._() {
+  PrimaryType._(
+    this.nameInfo, {
+    this.args = const [],
+    super.isQuestionType = false,
+  }) : super._() {
     assert(
-        runtimeType == nameInfo._expectedRuntimeType,
-        '${nameInfo.name} should use ${nameInfo._expectedRuntimeType}, but '
-        'constructed $runtimeType instead');
+      runtimeType == nameInfo._expectedRuntimeType,
+      '${nameInfo.name} should use ${nameInfo._expectedRuntimeType}, but '
+      'constructed $runtimeType instead',
+    );
   }
 
-  PrimaryType._special(SpecialTypeName nameInfo,
-      {List<Type> args = const [], bool isQuestionType = false})
-      : this._(nameInfo, args: args, isQuestionType: isQuestionType);
+  PrimaryType._special(
+    SpecialTypeName nameInfo, {
+    List<Type> args = const [],
+    bool isQuestionType = false,
+  }) : this._(nameInfo, args: args, isQuestionType: isQuestionType);
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, nameInfo, const ListEquality().hash(args), isQuestionType);
+    runtimeType,
+    nameInfo,
+    const ListEquality().hash(args),
+    isQuestionType,
+  );
 
   bool get isInterfaceType {
     return nameInfo is InterfaceTypeName;
@@ -558,11 +602,15 @@ class PrimaryType extends Type {
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
-    List<Type>? newArgs =
-        args.closureWithRespectToUnknown(covariant: covariant);
+    List<Type>? newArgs = args.closureWithRespectToUnknown(
+      covariant: covariant,
+    );
     if (newArgs == null) return null;
-    return PrimaryType._(nameInfo,
-        args: newArgs, isQuestionType: isQuestionType);
+    return PrimaryType._(
+      nameInfo,
+      args: newArgs,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
@@ -577,16 +625,22 @@ class PrimaryType extends Type {
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
     if (newArgs == null) return null;
-    return PrimaryType._(nameInfo,
-        args: newArgs, isQuestionType: isQuestionType);
+    return PrimaryType._(
+      nameInfo,
+      args: newArgs,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
   Type? substitute(Map<TypeParameter, Type> substitution) {
     var newArgs = args.substitute(substitution);
     if (newArgs == null) return null;
-    return PrimaryType._(nameInfo,
-        args: newArgs, isQuestionType: isQuestionType);
+    return PrimaryType._(
+      nameInfo,
+      args: newArgs,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
@@ -605,17 +659,20 @@ class RecordType extends Type implements SharedRecordType {
     super.isQuestionType = false,
   }) : super._() {
     for (var i = 1; i < namedTypes.length; i++) {
-      assert(namedTypes[i - 1].name.compareTo(namedTypes[i].name) < 0,
-          'namedTypes not properly sorted');
+      assert(
+        namedTypes[i - 1].name.compareTo(namedTypes[i].name) < 0,
+        'namedTypes not properly sorted',
+      );
     }
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      const ListEquality().hash(positionalTypes),
-      const ListEquality().hash(namedTypes),
-      isQuestionType);
+    runtimeType,
+    const ListEquality().hash(positionalTypes),
+    const ListEquality().hash(namedTypes),
+    isQuestionType,
+  );
 
   @override
   List<Type> get positionalTypesShared => positionalTypes;
@@ -634,24 +691,27 @@ class RecordType extends Type implements SharedRecordType {
 
   @override
   Type asQuestionType(bool isQuestionType) => RecordType(
-      positionalTypes: positionalTypes,
-      namedTypes: namedTypes,
-      isQuestionType: isQuestionType);
+    positionalTypes: positionalTypes,
+    namedTypes: namedTypes,
+    isQuestionType: isQuestionType,
+  );
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
     List<Type>? newPositional;
     for (var i = 0; i < positionalTypes.length; i++) {
-      var newType =
-          positionalTypes[i].closureWithRespectToUnknown(covariant: covariant);
+      var newType = positionalTypes[i].closureWithRespectToUnknown(
+        covariant: covariant,
+      );
       if (newType != null) {
         newPositional ??= positionalTypes.toList();
         newPositional[i] = newType;
       }
     }
 
-    List<NamedType>? newNamed =
-        _closureWithRespectToUnknownNamed(covariant: covariant);
+    List<NamedType>? newNamed = _closureWithRespectToUnknownNamed(
+      covariant: covariant,
+    );
 
     if (newPositional == null && newNamed == null) {
       return null;
@@ -707,21 +767,26 @@ class RecordType extends Type implements SharedRecordType {
     var newNamedTypes = namedTypes.substitute(substitution);
     if (newPositionalTypes == null && newNamedTypes == null) return null;
     return RecordType(
-        positionalTypes: newPositionalTypes ?? positionalTypes,
-        namedTypes: newNamedTypes ?? namedTypes,
-        isQuestionType: isQuestionType);
+      positionalTypes: newPositionalTypes ?? positionalTypes,
+      namedTypes: newNamedTypes ?? namedTypes,
+      isQuestionType: isQuestionType,
+    );
   }
 
-  List<NamedType>? _closureWithRespectToUnknownNamed(
-      {required bool covariant}) {
+  List<NamedType>? _closureWithRespectToUnknownNamed({
+    required bool covariant,
+  }) {
     List<NamedType>? newNamed;
     for (var i = 0; i < namedTypes.length; i++) {
       var namedType = namedTypes[i];
-      var newType =
-          namedType.type.closureWithRespectToUnknown(covariant: covariant);
+      var newType = namedType.type.closureWithRespectToUnknown(
+        covariant: covariant,
+      );
       if (newType != null) {
-        (newNamed ??= namedTypes.toList())[i] =
-            NamedType(name: namedType.name, type: newType);
+        (newNamed ??= namedTypes.toList())[i] = NamedType(
+          name: namedType.name,
+          type: newType,
+        );
       }
     }
     return newNamed;
@@ -733,8 +798,10 @@ class RecordType extends Type implements SharedRecordType {
       var namedType = namedTypes[i];
       var newType = namedType.type.recursivelyDemote(covariant: covariant);
       if (newType != null) {
-        (newNamed ??= namedTypes.toList())[i] =
-            NamedType(name: namedType.name, type: newType);
+        (newNamed ??= namedTypes.toList())[i] = NamedType(
+          name: namedType.name,
+          type: newType,
+        );
       }
     }
     return newNamed;
@@ -826,12 +893,16 @@ abstract class Type implements SharedType, _Substitutable<Type> {
   /// - A function type (e.g. `void Function()`)
   /// - A promoted type variable type (e.g. `T&int`)
   @override
-  String toString({bool parenthesizeIfComplex = false}) => isQuestionType
-      ? _parenthesizeIf(
-          parenthesizeIfComplex,
-          '${_toStringWithoutSuffix(parenthesizeIfComplex: true)}'
-          '?')
-      : _toStringWithoutSuffix(parenthesizeIfComplex: parenthesizeIfComplex);
+  String toString({bool parenthesizeIfComplex = false}) =>
+      isQuestionType
+          ? _parenthesizeIf(
+            parenthesizeIfComplex,
+            '${_toStringWithoutSuffix(parenthesizeIfComplex: true)}'
+            '?',
+          )
+          : _toStringWithoutSuffix(
+            parenthesizeIfComplex: parenthesizeIfComplex,
+          );
 
   /// Returns a string representation of the portion of this string that
   /// precedes the nullability suffix.
@@ -861,7 +932,7 @@ sealed class TypeNameInfo {
   final core.Type _expectedRuntimeType;
 
   TypeNameInfo(this.name, {required core.Type expectedRuntimeType})
-      : _expectedRuntimeType = expectedRuntimeType;
+    : _expectedRuntimeType = expectedRuntimeType;
 }
 
 /// A type name that represents a type variable.
@@ -910,9 +981,11 @@ class TypeParameterType extends Type {
   /// If non-null, the promoted type.
   final Type? promotion;
 
-  TypeParameterType(this.typeParameter,
-      {this.promotion, super.isQuestionType = false})
-      : super._();
+  TypeParameterType(
+    this.typeParameter, {
+    this.promotion,
+    super.isQuestionType = false,
+  }) : super._();
 
   /// The type parameter's bound.
   Type get bound => typeParameter.bound;
@@ -929,16 +1002,23 @@ class TypeParameterType extends Type {
       isQuestionType == other.isQuestionType;
 
   @override
-  Type asQuestionType(bool isQuestionType) => TypeParameterType(typeParameter,
-      promotion: promotion, isQuestionType: isQuestionType);
+  Type asQuestionType(bool isQuestionType) => TypeParameterType(
+    typeParameter,
+    promotion: promotion,
+    isQuestionType: isQuestionType,
+  );
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
-    var newPromotion =
-        promotion?.closureWithRespectToUnknown(covariant: covariant);
+    var newPromotion = promotion?.closureWithRespectToUnknown(
+      covariant: covariant,
+    );
     if (newPromotion == null) return null;
-    return TypeParameterType(typeParameter,
-        promotion: newPromotion, isQuestionType: isQuestionType);
+    return TypeParameterType(
+      typeParameter,
+      promotion: newPromotion,
+      isQuestionType: isQuestionType,
+    );
   }
 
   @override
@@ -966,9 +1046,10 @@ class TypeParameterType extends Type {
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
     if (promotion case var promotion?) {
       return _parenthesizeIf(
-          parenthesizeIfComplex,
-          '${typeParameter.name}&'
-          '${promotion.toString(parenthesizeIfComplex: true)}');
+        parenthesizeIfComplex,
+        '${typeParameter.name}&'
+        '${promotion.toString(parenthesizeIfComplex: true)}',
+      );
     } else {
       return typeParameter.name;
     }
@@ -992,19 +1073,25 @@ abstract final class TypeRegistry {
   static Map<String, TypeNameInfo>? _typeNameInfoMap;
 
   /// The [TypeNameInfo] object representing the special type `dynamic`.
-  static final dynamic_ =
-      SpecialTypeName._('dynamic', expectedRuntimeType: DynamicType);
+  static final dynamic_ = SpecialTypeName._(
+    'dynamic',
+    expectedRuntimeType: DynamicType,
+  );
 
   /// The [TypeNameInfo] object representing the special type `error`.
-  static final error_ =
-      SpecialTypeName._('error', expectedRuntimeType: InvalidType);
+  static final error_ = SpecialTypeName._(
+    'error',
+    expectedRuntimeType: InvalidType,
+  );
 
   /// The [TypeNameInfo] object representing the interface type `Future`.
   static final future = InterfaceTypeName._('Future');
 
   /// The [TypeNameInfo] object representing the special type `FutureOr`.
-  static final futureOr =
-      SpecialTypeName._('FutureOr', expectedRuntimeType: FutureOrType);
+  static final futureOr = SpecialTypeName._(
+    'FutureOr',
+    expectedRuntimeType: FutureOrType,
+  );
 
   /// The [TypeNameInfo] object representing the interface type `Iterable`.
   static final iterable = InterfaceTypeName._('Iterable');
@@ -1016,8 +1103,10 @@ abstract final class TypeRegistry {
   static final map = InterfaceTypeName._('Map');
 
   /// The [TypeNameInfo] object representing the special type `Never`.
-  static final never =
-      SpecialTypeName._('Never', expectedRuntimeType: NeverType);
+  static final never = SpecialTypeName._(
+    'Never',
+    expectedRuntimeType: NeverType,
+  );
 
   /// The [TypeNameInfo] object representing the special type `Null`.
   static final null_ = SpecialTypeName._('Null', expectedRuntimeType: NullType);
@@ -1033,8 +1122,9 @@ abstract final class TypeRegistry {
   static Map<String, TypeNameInfo> get _typeNameInfoMapOrThrow =>
       _typeNameInfoMap ??
       (throw StateError(
-          'TypeRegistry not initialized (call `TypeRegistry.init` from a test '
-          '`setUp` callback)'));
+        'TypeRegistry not initialized (call `TypeRegistry.init` from a test '
+        '`setUp` callback)',
+      ));
 
   factory TypeRegistry._() => throw StateError('Do not construct');
 
@@ -1057,12 +1147,15 @@ abstract final class TypeRegistry {
   /// This method must be called from a `setUp` callback before any unit test
   /// that makes use of mini types.
   static void init() {
-    assert(StackTrace.current.toString().contains('runSetUps'),
-        'Should be called from a test `setUp` method');
+    assert(
+      StackTrace.current.toString().contains('runSetUps'),
+      'Should be called from a test `setUp` method',
+    );
     if (_typeNameInfoMap != null) {
       throw StateError(
-          'init() already called. Did you forget to call uninit() from '
-          '`tearDown`?');
+        'init() already called. Did you forget to call uninit() from '
+        '`tearDown`?',
+      );
     }
     _typeNameInfoMap = {};
     // Set up some common built-in type names.
@@ -1082,6 +1175,7 @@ abstract final class TypeRegistry {
     addInterfaceTypeName('Object');
     _add(stream);
     addInterfaceTypeName('String');
+    addInterfaceTypeName('StackTrace');
     _add(void_);
   }
 
@@ -1089,7 +1183,8 @@ abstract final class TypeRegistry {
   static TypeNameInfo lookup(String name) =>
       _typeNameInfoMapOrThrow[name] ??
       (throw StateError(
-          'Unknown type name $name (use `TypeRegistry.add...` first)'));
+        'Unknown type name $name (use `TypeRegistry.add...` first)',
+      ));
 
   /// Un-does the operation of [init], rendering the "mini type" infrastructure
   /// unusable.
@@ -1116,17 +1211,21 @@ abstract final class TypeRegistry {
 
 class TypeSystem {
   static final Map<String, List<Type> Function(List<Type>)>
-      _coreSuperInterfaceTemplates = {
+  _coreSuperInterfaceTemplates = {
     'bool': (_) => [Type('Object')],
     'double': (_) => [Type('num'), Type('Object')],
     'Future': (_) => [Type('Object')],
     'int': (_) => [Type('num'), Type('Object')],
     'Iterable': (_) => [Type('Object')],
-    'List': (args) =>
-        [PrimaryType(TypeRegistry.iterable, args: args), Type('Object')],
+    'List':
+        (args) => [
+          PrimaryType(TypeRegistry.iterable, args: args),
+          Type('Object'),
+        ],
     'Map': (_) => [Type('Object')],
     'Object': (_) => [],
     'num': (_) => [Type('Object')],
+    'StackTrace': (_) => [Type('Object')],
     'String': (_) => [Type('Object')],
   };
 
@@ -1138,7 +1237,9 @@ class TypeSystem {
       Map.of(_coreSuperInterfaceTemplates);
 
   void addSuperInterfaces(
-      String className, List<Type> Function(List<Type>) template) {
+    String className,
+    List<Type> Function(List<Type>) template,
+  ) {
     _superInterfaceTemplates[className] = template;
   }
 
@@ -1186,20 +1287,20 @@ class TypeSystem {
     switch ((t0, t1)) {
       case (
             PrimaryType(nameInfo: var t0Info, isQuestionType: false, args: []),
-            PrimaryType(nameInfo: var t1Info, isQuestionType: false, args: [])
+            PrimaryType(nameInfo: var t1Info, isQuestionType: false, args: []),
           )
           when t0Info == t1Info:
       case (
             TypeParameterType(
               typeParameter: var x0,
               promotion: null,
-              isQuestionType: false
+              isQuestionType: false,
             ),
             TypeParameterType(
               typeParameter: var x1,
               promotion: null,
-              isQuestionType: false
-            )
+              isQuestionType: false,
+            ),
           )
           when x0 == x1:
         return true;
@@ -1231,12 +1332,11 @@ class TypeSystem {
         t1.name == 'Object') {
       // - if T0 is an unpromoted type variable with bound B then T0 <: T1 iff
       //   B <: Object
-      if (t0
-          case TypeParameterType(
-            bound: var b,
-            promotion: null,
-            isQuestionType: false
-          )) {
+      if (t0 case TypeParameterType(
+        bound: var b,
+        promotion: null,
+        isQuestionType: false,
+      )) {
         return isSubtype(b, _objectType);
       }
 
@@ -1305,41 +1405,38 @@ class TypeSystem {
 
     // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 then:
-    if ((t0, t1)
-        case (
-          TypeParameterType(typeParameter: var x0, isQuestionType: false),
-          TypeParameterType(
-            typeParameter: var x1,
-            promotion: null,
-            isQuestionType: false
-          )
-        ) when x0 == x1) {
+    if ((t0, t1) case (
+      TypeParameterType(typeParameter: var x0, isQuestionType: false),
+      TypeParameterType(
+        typeParameter: var x1,
+        promotion: null,
+        isQuestionType: false,
+      ),
+    ) when x0 == x1) {
       // - T0 <: T1
       return true;
     }
 
     // Type Variable Reflexivity 2: if T0 is a type variable X0 or a promoted
     // type variables X0 & S0 and T1 is X0 & S1 then:
-    if ((t0, t1)
-        case (
-          TypeParameterType(typeParameter: var x0, isQuestionType: false),
-          TypeParameterType(
-            typeParameter: var x1,
-            promotion: var s1?,
-            isQuestionType: false
-          )
-        ) when x0 == x1) {
+    if ((t0, t1) case (
+      TypeParameterType(typeParameter: var x0, isQuestionType: false),
+      TypeParameterType(
+        typeParameter: var x1,
+        promotion: var s1?,
+        isQuestionType: false,
+      ),
+    ) when x0 == x1) {
       // - T0 <: T1 iff T0 <: S1.
       return isSubtype(t0, s1);
     }
 
     // Right Promoted Variable: if T1 is a promoted type variable X1 & S1 then:
-    if (t1
-        case TypeParameterType(
-          typeParameter: var x1,
-          promotion: var s1?,
-          isQuestionType: false
-        )) {
+    if (t1 case TypeParameterType(
+      typeParameter: var x1,
+      promotion: var s1?,
+      isQuestionType: false,
+    )) {
       // - T0 <: T1 iff T0 <: X1 and T0 <: S1
       return isSubtype(t0, TypeParameterType(x1)) && isSubtype(t0, s1);
     }
@@ -1356,13 +1453,16 @@ class TypeSystem {
       //   - or T0 <: S1
       if (isSubtype(t0, s1)) return true;
       //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
-      if (t0 case TypeParameterType(bound: var s0, promotion: null)
-          when isSubtype(s0, t1)) {
+      if (t0 case TypeParameterType(
+        bound: var s0,
+        promotion: null,
+      ) when isSubtype(s0, t1)) {
         return true;
       }
       //   - or T0 is X0 & S0 and S0 <: T1
-      if (t0 case TypeParameterType(promotion: var s0?)
-          when isSubtype(s0, t1)) {
+      if (t0 case TypeParameterType(
+        promotion: var s0?,
+      ) when isSubtype(s0, t1)) {
         return true;
       }
       return false;
@@ -1378,13 +1478,16 @@ class TypeSystem {
       //   - or T0 <: Null
       if (isSubtype(t0, NullType.instance)) return true;
       //   - or T0 is X0 and X0 has bound S0 and S0 <: T1
-      if (t0 case TypeParameterType(bound: var s0, promotion: null)
-          when isSubtype(s0, t1)) {
+      if (t0 case TypeParameterType(
+        bound: var s0,
+        promotion: null,
+      ) when isSubtype(s0, t1)) {
         return true;
       }
       //   - or T0 is X0 & S0 and S0 <: T1
-      if (t0 case TypeParameterType(promotion: var s0?)
-          when isSubtype(s0, t1)) {
+      if (t0 case TypeParameterType(
+        promotion: var s0?,
+      ) when isSubtype(s0, t1)) {
         return true;
       }
       return false;
@@ -1482,7 +1585,9 @@ class TypeSystem {
       // - and Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk] for i in 0...q
       for (int i = 0; i < q; i++) {
         if (!isSubtype(
-            t1.positionalParameters[i], t0.positionalParameters[i])) {
+          t1.positionalParameters[i],
+          t0.positionalParameters[i],
+        )) {
           return false;
         }
       }
@@ -1519,12 +1624,15 @@ class TypeSystem {
 
       // - and {yn+1, ... , yq} subsetof {xn+1, ... , xm}
       var t1IndexToT0Index = <int>[];
-      for (var i = 0, j = 0;
-          i < t0.namedParameters.length || j < t1.namedParameters.length;) {
+      for (
+        var i = 0, j = 0;
+        i < t0.namedParameters.length || j < t1.namedParameters.length;
+      ) {
         if (i >= t0.namedParameters.length) break;
         if (j >= t1.namedParameters.length) return false;
-        switch (
-            t0.namedParameters[i].name.compareTo(t1.namedParameters[j].name)) {
+        switch (t0.namedParameters[i].name.compareTo(
+          t1.namedParameters[j].name,
+        )) {
           case < 0:
             i++;
           case > 0:
@@ -1542,7 +1650,9 @@ class TypeSystem {
       // - and Si[Z0/Y0, ..., Zk/Yk] <: Vi[Z0/X0, ..., Zk/Xk] for i in 0...n
       for (var i = 0; i < n; i++) {
         if (!isSubtype(
-            t1.positionalParameters[i], t0.positionalParameters[i])) {
+          t1.positionalParameters[i],
+          t0.positionalParameters[i],
+        )) {
           return false;
         }
       }
@@ -1552,7 +1662,9 @@ class TypeSystem {
       for (var j = 0; j < t1IndexToT0Index.length; j++) {
         var i = t1IndexToT0Index[j];
         if (!isSubtype(
-            t1.namedParameters[j].type, t0.namedParameters[i].type)) {
+          t1.namedParameters[j].type,
+          t0.namedParameters[i].type,
+        )) {
           return false;
         }
       }
@@ -1594,7 +1706,7 @@ class TypeSystem {
       }
       if (t0.namedTypes.length != t1.namedTypes.length) return false;
       var t1NamedMap = {
-        for (var NamedType(:name, :type) in t1.namedTypes) name: type
+        for (var NamedType(:name, :type) in t1.namedTypes) name: type,
       };
       for (var NamedType(:name, type: vi) in t0.namedTypes) {
         var si = t1NamedMap[name];
@@ -1672,12 +1784,13 @@ class _PreFunctionType extends _PreType {
   final int requiredPositionalParameterCount;
   final List<_PreNamedFunctionParameter> namedParameters;
 
-  _PreFunctionType(
-      {required this.returnType,
-      required this.typeFormals,
-      required this.positionalParameterTypes,
-      required this.requiredPositionalParameterCount,
-      required this.namedParameters});
+  _PreFunctionType({
+    required this.returnType,
+    required this.typeFormals,
+    required this.positionalParameterTypes,
+    required this.requiredPositionalParameterCount,
+    required this.namedParameters,
+  });
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
@@ -1692,30 +1805,33 @@ class _PreFunctionType extends _PreType {
       }
       for (var i = 0; i < typeFormals.length; i++) {
         if (typeFormals[i].bound case var bound?) {
-          materializedTypeFormals[i].explicitBound =
-              bound.materialize(typeFormalScope: typeFormalScope);
+          materializedTypeFormals[i].explicitBound = bound.materialize(
+            typeFormalScope: typeFormalScope,
+          );
         }
       }
     } else {
       materializedTypeFormals = const [];
     }
     return FunctionType(
-        returnType.materialize(typeFormalScope: typeFormalScope),
-        [
-          for (var positionalParameterType in positionalParameterTypes)
-            positionalParameterType.materialize(
-                typeFormalScope: typeFormalScope)
-        ],
-        typeParametersShared: materializedTypeFormals,
-        requiredPositionalParameterCount: requiredPositionalParameterCount,
-        namedParameters: [
-          for (var namedParameter in namedParameters)
-            NamedFunctionParameter(
-                isRequired: namedParameter.isRequired,
-                name: namedParameter.name,
-                type: namedParameter.type
-                    .materialize(typeFormalScope: typeFormalScope))
-        ]);
+      returnType.materialize(typeFormalScope: typeFormalScope),
+      [
+        for (var positionalParameterType in positionalParameterTypes)
+          positionalParameterType.materialize(typeFormalScope: typeFormalScope),
+      ],
+      typeParametersShared: materializedTypeFormals,
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      namedParameters: [
+        for (var namedParameter in namedParameters)
+          NamedFunctionParameter(
+            isRequired: namedParameter.isRequired,
+            name: namedParameter.name,
+            type: namedParameter.type.materialize(
+              typeFormalScope: typeFormalScope,
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -1725,8 +1841,11 @@ class _PreNamedFunctionParameter {
   final _PreType type;
   final bool isRequired;
 
-  _PreNamedFunctionParameter(
-      {required this.name, required this.type, required this.isRequired});
+  _PreNamedFunctionParameter({
+    required this.name,
+    required this.type,
+    required this.isRequired,
+  });
 }
 
 /// Representation of a named component of a [_PreRecordType].
@@ -1755,10 +1874,13 @@ class _PrePrimaryType extends _PreType {
         }
         return TypeParameterType(nameInfo);
       case InterfaceTypeName():
-        return PrimaryType(nameInfo, args: [
-          for (var typeArg in typeArgs)
-            typeArg.materialize(typeFormalScope: typeFormalScope)
-        ]);
+        return PrimaryType(
+          nameInfo,
+          args: [
+            for (var typeArg in typeArgs)
+              typeArg.materialize(typeFormalScope: typeFormalScope),
+          ],
+        );
       case SpecialTypeName():
         if (typeName == 'dynamic') {
           if (typeArgs.isNotEmpty) {
@@ -1775,7 +1897,8 @@ class _PrePrimaryType extends _PreType {
             throw ParseError('`FutureOr` requires exactly one type argument');
           }
           return FutureOrType(
-              typeArgs.single.materialize(typeFormalScope: typeFormalScope));
+            typeArgs.single.materialize(typeFormalScope: typeFormalScope),
+          );
         } else if (typeName == 'Never') {
           if (typeArgs.isNotEmpty) {
             throw ParseError('`Never` does not accept type arguments');
@@ -1810,11 +1933,14 @@ class _PrePromotedType extends _PreType {
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
     var type = inner.materialize(typeFormalScope: typeFormalScope);
     if (type case TypeParameterType(promotion: null)) {
-      return TypeParameterType(type.typeParameter,
-          promotion: promotion.materialize(typeFormalScope: typeFormalScope));
+      return TypeParameterType(
+        type.typeParameter,
+        promotion: promotion.materialize(typeFormalScope: typeFormalScope),
+      );
     } else {
       throw ParseError(
-          'The type to the left of & must be an unpromoted type parameter');
+        'The type to the left of & must be an unpromoted type parameter',
+      );
     }
   }
 }
@@ -1829,16 +1955,21 @@ class _PreRecordType extends _PreType {
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
-      RecordType(positionalTypes: [
-        for (var positionalType in positionalTypes)
-          positionalType.materialize(typeFormalScope: typeFormalScope)
-      ], namedTypes: [
-        for (var namedType in namedTypes)
-          NamedType(
+      RecordType(
+        positionalTypes: [
+          for (var positionalType in positionalTypes)
+            positionalType.materialize(typeFormalScope: typeFormalScope),
+        ],
+        namedTypes: [
+          for (var namedType in namedTypes)
+            NamedType(
               name: namedType.name,
-              type:
-                  namedType.type.materialize(typeFormalScope: typeFormalScope))
-      ]);
+              type: namedType.type.materialize(
+                typeFormalScope: typeFormalScope,
+              ),
+            ),
+        ],
+      );
 }
 
 /// Representation of a [Type] that has been parsed but hasn't had meaning
@@ -1892,7 +2023,7 @@ class _PreUnknownType extends _PreType {
 /// and [recursivelyDemote] methods.
 abstract class _SpecialSimpleType extends PrimaryType {
   _SpecialSimpleType._(super.nameInfo, {super.isQuestionType = false})
-      : super._special();
+    : super._special();
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) => null;
@@ -1918,8 +2049,9 @@ abstract class _Substitutable<T extends _Substitutable<T>> {
 }
 
 class _TypeParser {
-  static final _typeTokenizationRegexp =
-      RegExp(_identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]');
+  static final _typeTokenizationRegexp = RegExp(
+    _identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]',
+  );
 
   static const _identifierPattern = '[_a-zA-Z][_a-zA-Z0-9]*';
 
@@ -1941,7 +2073,8 @@ class _TypeParser {
 
   Never _parseFailure(String message) {
     throw ParseError(
-        'Error parsing type `$_typeStr` at token $_currentToken: $message');
+      'Error parsing type `$_typeStr` at token $_currentToken: $message',
+    );
   }
 
   List<_PreNamedFunctionParameter> _parseNamedFunctionParameters() {
@@ -1958,8 +2091,13 @@ class _TypeParser {
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedParameters.add(_PreNamedFunctionParameter(
-          name: name, type: type, isRequired: isRequired));
+      namedParameters.add(
+        _PreNamedFunctionParameter(
+          name: name,
+          type: type,
+          isRequired: isRequired,
+        ),
+      );
       _next();
       if (_currentToken == ',') {
         _next();
@@ -1976,7 +2114,8 @@ class _TypeParser {
   }
 
   void _parseOptionalFunctionParameters(
-      List<_PreType> positionalParameterTypes) {
+    List<_PreType> positionalParameterTypes,
+  ) {
     assert(_currentToken == '[');
     _next();
     while (true) {
@@ -2045,7 +2184,9 @@ class _TypeParser {
     }
     _next();
     return _PreRecordType(
-        positionalTypes: positionalTypes, namedTypes: namedTypes ?? const []);
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes ?? const [],
+    );
   }
 
   _PreType? _parseSuffix(_PreType type) {
@@ -2097,12 +2238,13 @@ class _TypeParser {
       }
       _next();
       return _PreFunctionType(
-          returnType: type,
-          positionalParameterTypes: positionalParameterTypes,
-          requiredPositionalParameterCount: requiredPositionalParameterCount ??
-              positionalParameterTypes.length,
-          namedParameters: namedFunctionParameters ?? const [],
-          typeFormals: typeFormals);
+        returnType: type,
+        positionalParameterTypes: positionalParameterTypes,
+        requiredPositionalParameterCount:
+            requiredPositionalParameterCount ?? positionalParameterTypes.length,
+        namedParameters: namedFunctionParameters ?? const [],
+        typeFormals: typeFormals,
+      );
     } else {
       return null;
     }
@@ -2224,8 +2366,10 @@ class _TypeParser {
     var parser = _TypeParser._(typeStr, _tokenizeTypeStr(typeStr));
     var result = parser._parseType();
     if (parser._currentToken != '<END>') {
-      throw ParseError('Extra tokens after parsing type `$typeStr`: '
-          '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}');
+      throw ParseError(
+        'Extra tokens after parsing type `$typeStr`: '
+        '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}',
+      );
     }
     return result.materialize(typeFormalScope: const {});
   }
@@ -2237,7 +2381,8 @@ class _TypeParser {
       var extraChars = typeStr.substring(lastMatchEnd, match.start).trim();
       if (extraChars.isNotEmpty) {
         throw ParseError(
-            'Unrecognized character(s) in type `$typeStr`: $extraChars');
+          'Unrecognized character(s) in type `$typeStr`: $extraChars',
+        );
       }
       result.add(typeStr.substring(match.start, match.end));
       lastMatchEnd = match.end;
@@ -2245,7 +2390,8 @@ class _TypeParser {
     var extraChars = typeStr.substring(lastMatchEnd).trim();
     if (extraChars.isNotEmpty) {
       throw ParseError(
-          'Unrecognized character(s) in type `$typeStr`: $extraChars');
+        'Unrecognized character(s) in type `$typeStr`: $extraChars',
+      );
     }
     result.add('<END>');
     return result;
@@ -2256,23 +2402,28 @@ extension on List<NamedFunctionParameter> {
   /// Calls [Type.closureWithRespectToUnknown] to translate every list member
   /// into a type that doesn't involve the unknown type (`_`).  If no type would
   /// be changed by this operation, returns `null`.
-  List<NamedFunctionParameter>? closureWithRespectToUnknown(
-      {required bool covariant}) {
+  List<NamedFunctionParameter>? closureWithRespectToUnknown({
+    required bool covariant,
+  }) {
     List<NamedFunctionParameter>? newList;
     for (int i = 0; i < length; i++) {
       NamedFunctionParameter namedFunctionParameter = this[i];
-      Type? newType = namedFunctionParameter.type
-          .closureWithRespectToUnknown(covariant: covariant);
+      Type? newType = namedFunctionParameter.type.closureWithRespectToUnknown(
+        covariant: covariant,
+      );
       if (newList == null) {
         if (newType == null) continue;
         newList = sublist(0, i);
       }
-      newList.add(newType == null
-          ? namedFunctionParameter
-          : NamedFunctionParameter(
+      newList.add(
+        newType == null
+            ? namedFunctionParameter
+            : NamedFunctionParameter(
               isRequired: namedFunctionParameter.isRequired,
               name: namedFunctionParameter.name,
-              type: newType));
+              type: newType,
+            ),
+      );
     }
     return newList;
   }
@@ -2284,18 +2435,22 @@ extension on List<NamedFunctionParameter> {
     List<NamedFunctionParameter>? newList;
     for (int i = 0; i < length; i++) {
       NamedFunctionParameter namedFunctionParameter = this[i];
-      Type? newType =
-          namedFunctionParameter.type.recursivelyDemote(covariant: covariant);
+      Type? newType = namedFunctionParameter.type.recursivelyDemote(
+        covariant: covariant,
+      );
       if (newList == null) {
         if (newType == null) continue;
         newList = sublist(0, i);
       }
-      newList.add(newType == null
-          ? namedFunctionParameter
-          : NamedFunctionParameter(
+      newList.add(
+        newType == null
+            ? namedFunctionParameter
+            : NamedFunctionParameter(
               isRequired: namedFunctionParameter.isRequired,
               name: namedFunctionParameter.name,
-              type: newType));
+              type: newType,
+            ),
+      );
     }
     return newList;
   }

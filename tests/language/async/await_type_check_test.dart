@@ -8,8 +8,6 @@
 //
 // Regression test for https://github.com/dart-lang/sdk/issues/49396.
 
-// Requirements=nnbd-strong
-
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:expect/static_type_helper.dart';

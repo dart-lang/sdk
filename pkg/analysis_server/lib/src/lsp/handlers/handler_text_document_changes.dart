@@ -59,7 +59,7 @@ class TextDocumentChangeHandler
       failureIsCritical: true,
     );
     return newContents.mapResultSync((result) {
-      server.documentVersions[path] = params.textDocument;
+      server.documentVersions[path] = params.textDocument.version;
       server.onOverlayUpdated(path, result.edits, newContent: result.content);
       return success(null);
     });
@@ -124,12 +124,7 @@ class TextDocumentOpenHandler
     var path = pathOfDocItem(doc);
     return path.mapResult((path) async {
       if (isEditableDocument(doc.uri)) {
-        // We don't get a OptionalVersionedTextDocumentIdentifier with a didOpen but we
-        // do get the necessary info to create one.
-        server.documentVersions[path] = VersionedTextDocumentIdentifier(
-          version: params.textDocument.version,
-          uri: params.textDocument.uri,
-        );
+        server.documentVersions[path] = params.textDocument.version;
         // It's critical overlays are processed synchronously because other
         // requests that sneak in when we `await` rely on them being
         // correct.

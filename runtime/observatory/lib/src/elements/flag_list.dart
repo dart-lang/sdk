@@ -4,13 +4,16 @@
 
 library flag_list_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -54,37 +57,40 @@ class FlagListElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    final content = <Element>[];
+    final content = <HTMLElement>[];
     if (_flags == null) {
-      content.add(new HeadingElement.h1()..text = 'Loading Flags...');
+      content
+          .add(new HTMLHeadingElement.h1()..textContent = 'Loading Flags...');
     } else {
       final modified = _flags!.where(_isModified);
       final unmodified = _flags!.where(_isUnmodified);
 
       if (modified.isNotEmpty) {
-        content.add(new HeadingElement.h1()..text = 'Modified Flags');
-        content.add(new BRElement());
+        content
+            .add(new HTMLHeadingElement.h1()..textContent = 'Modified Flags');
+        content.add(new HTMLBRElement());
         content.addAll(modified.expand(_renderFlag));
-        content.add(new HRElement());
+        content.add(new HTMLHRElement());
       }
 
-      content.add(new HeadingElement.h1()..text = 'Unmodified Flags');
-      content.add(new BRElement());
+      content
+          .add(new HTMLHeadingElement.h1()..textContent = 'Unmodified Flags');
+      content.add(new HTMLBRElement());
 
       if (unmodified.isEmpty) {
-        content.add(new HeadingElement.h2()..text = 'None');
+        content.add(new HTMLHeadingElement.h2()..textContent = 'None');
       } else {
         content.addAll(unmodified.expand(_renderFlag));
       }
     }
 
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm as M.VM, _events, queue: _r.queue).element,
         navMenu('flags', link: Uris.flags()),
@@ -100,10 +106,10 @@ class FlagListElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = content,
-    ];
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(content),
+    ]);
   }
 
   Future _refresh() {
@@ -116,24 +122,23 @@ class FlagListElement extends CustomElement implements Renderable {
   static bool _isModified(M.Flag flag) => flag.modified;
   static bool _isUnmodified(M.Flag flag) => !flag.modified;
 
-  static List<Element> _renderFlag(M.Flag flag) {
+  static List<HTMLElement> _renderFlag(M.Flag flag) {
     return [
-      new SpanElement()
-        ..classes = ['comment']
-        ..text = '// ${flag.comment}',
-      new DivElement()
-        ..classes =
-            flag.modified ? ['flag', 'modified'] : ['flag', 'unmodified']
-        ..children = <Element>[
-          new SpanElement()
-            ..classes = ['name']
-            ..text = flag.name,
-          new SpanElement()..text = '=',
-          new SpanElement()
-            ..classes = ['value']
-            ..text = flag.valueAsString
-        ],
-      new BRElement(),
+      new HTMLSpanElement()
+        ..className = 'comment'
+        ..textContent = '// ${flag.comment}',
+      new HTMLDivElement()
+        ..className = flag.modified ? 'flag modified' : 'flag unmodified'
+        ..appendChildren(<HTMLElement>[
+          new HTMLSpanElement()
+            ..className = 'name'
+            ..textContent = flag.name,
+          new HTMLSpanElement()..textContent = '=',
+          new HTMLSpanElement()
+            ..className = 'value'
+            ..textContent = flag.valueAsString ?? ''
+        ]),
+      new HTMLBRElement(),
     ];
   }
 }

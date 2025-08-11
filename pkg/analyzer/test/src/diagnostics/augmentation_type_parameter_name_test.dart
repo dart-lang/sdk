@@ -23,13 +23,14 @@ part 'test.dart';
 class A<T> {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A<U> {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1)],
+    );
   }
 
   test_enum() async {
@@ -39,13 +40,14 @@ part 'test.dart';
 enum A<T> {v}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment enum A<U> {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 34, 1)],
+    );
   }
 
   test_extension() async {
@@ -55,13 +57,14 @@ part 'test.dart';
 extension A<T> on int {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment extension A<U> {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 39, 1)],
+    );
   }
 
   test_extensionType() async {
@@ -71,13 +74,14 @@ part 'test.dart';
 extension type A<T>(int it) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment extension type A<U>(int it) {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 44, 1)],
+    );
   }
 
   test_mixin() async {
@@ -87,12 +91,13 @@ part 'test.dart';
 mixin A<T> {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment mixin A<U> {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME, 35, 1)],
+    );
   }
 }

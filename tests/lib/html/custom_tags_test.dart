@@ -23,8 +23,10 @@ main() {
 
   test('custom inner html', () {
     var element = new DivElement();
-    element.setInnerHtml("<x-basic2 id='basic2'></x-basic2>",
-        treeSanitizer: new NullTreeSanitizer());
+    element.setInnerHtml(
+      "<x-basic2 id='basic2'></x-basic2>",
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     document.body!.nodes.add(element);
 
     var queryById = querySelector('#basic2');
@@ -37,8 +39,10 @@ main() {
 
   test('type extension inner html', () {
     var element = new DivElement();
-    element.setInnerHtml("<div is='x-basic3' id='basic3'></div>",
-        treeSanitizer: new NullTreeSanitizer());
+    element.setInnerHtml(
+      "<div is='x-basic3' id='basic3'></div>",
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     document.body!.nodes.add(element);
 
     var queryById = querySelector('#basic3');

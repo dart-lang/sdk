@@ -39,7 +39,8 @@ main() {
   B2? b2 = null;
 
   i.f(b2, b); // Ok since B2 assignable to A
-  void Function(Object, B) g = d.f as dynamic; // Ok; D.f reified as (Object, B) -> void
+  void Function(Object, B) g =
+      d.f as dynamic; // Ok; D.f reified as (Object, B) -> void
   Expect.throwsTypeError(() {
     d.f(a as B, b);
   });

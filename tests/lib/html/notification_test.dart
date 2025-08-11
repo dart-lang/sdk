@@ -22,12 +22,14 @@ main() {
       var expectation = Notification.supported ? returnsNormally : throws;
       expect(() {
         var allDefaults = new Notification("Hello world");
-        var allSpecified = new Notification("Deluxe notification",
-            dir: "rtl",
-            body: 'All parameters set',
-            icon: 'icon.png',
-            tag: 'tag',
-            lang: 'en_US');
+        var allSpecified = new Notification(
+          "Deluxe notification",
+          dir: "rtl",
+          body: 'All parameters set',
+          icon: 'icon.png',
+          tag: 'tag',
+          lang: 'en_US',
+        );
         expect(allDefaults is Notification, isTrue);
         expect(allSpecified is Notification, isTrue);
         expect(allDefaults.title, "Hello world");

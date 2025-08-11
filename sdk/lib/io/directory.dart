@@ -179,11 +179,10 @@ abstract interface class Directory implements FileSystemEntity {
     overrides.setCurrentDirectory(switch (path) {
       String s => s,
       Directory d => d.path,
-      _ =>
-        throw ArgumentError(
-          '${Error.safeToString(path)} is not a String or'
-          ' Directory',
-        ),
+      _ => throw ArgumentError(
+        '${Error.safeToString(path)} is not a String or'
+        ' Directory',
+      ),
     });
   }
 

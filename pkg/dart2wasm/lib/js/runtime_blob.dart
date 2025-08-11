@@ -51,6 +51,13 @@ class CompiledApp {
   //   wasm file produced by the dart2wasm compiler and returns the bytes to
   //   load the module. These bytes can be in either a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`.
+  // `loadDynamicModule` is a JS function that takes two string names matching,
+  //   in order, a wasm file produced by the dart2wasm compiler during dynamic
+  //   module compilation and a corresponding js file produced by the same
+  //   compilation. It should return a JS Array containing 2 elements. The first
+  //   should be the bytes for the wasm module in a format supported by
+  //   `WebAssembly.compile` or `WebAssembly.compileStreaming`. The second
+  //   should be the result of using the JS 'import' API on the js file path.
   async instantiate(additionalImports, {loadDeferredWasm, loadDynamicModule} = {}) {
     let dartInstance;
 
@@ -69,7 +76,7 @@ class CompiledApp {
         return;
       }
 
-      throw "Unable to print message: " + js;
+      throw "Unable to print message: " + value;
     }
 
     // A special symbol attached to functions that wrap Dart functions.
@@ -158,7 +165,7 @@ const jsStringPolyfill = {
         return result;
       },
       "intoCharCodeArray": (s, a, start) => {
-        if (s == '') return 0;
+        if (s === '') return 0;
 
         const write = dartInstance.exports.$wasmI16ArraySet;
         for (var i = 0; i < s.length; ++i) {
@@ -166,22 +173,17 @@ const jsStringPolyfill = {
         }
         return s.length;
       },
+      "test": (s) => typeof s == "string",
     };
 ''';
 
 final moduleLoadingHelperTemplate = Template(r'''
-const loadModuleFromBytes = async (bytes) => {
-        const module = await WebAssembly.compile(bytes, this.builtins);
-        return await WebAssembly.instantiate(module, {
-          ...baseImports,
-          ...additionalImports,
-          <<JS_POLYFILL_IMPORT>>
-          "module0": dartInstance.exports,
-        });
-    }
-
-    const loadModule = async (loader, loaderArgument) => {
-        const source = await Promise.resolve(loader(loaderArgument));
+    const moduleLoadingHelper = {
+      "loadModule": async (moduleName) => {
+        if (!loadDeferredWasm) {
+          throw "No implementation of loadDeferredWasm provided.";
+        }
+        const source = await Promise.resolve(loadDeferredWasm(moduleName));
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
@@ -191,27 +193,35 @@ const loadModuleFromBytes = async (bytes) => {
           <<JS_POLYFILL_IMPORT>>
           "module0": dartInstance.exports,
         });
-    }
-
-    const moduleLoadingHelper = {
-      "loadModule": async (moduleName) => {
-        if (!loadDeferredWasm) {
-          throw "No implementation of loadDeferredWasm provided.";
-        }
-        return await loadModule(loadDeferredWasm, moduleName);
       },
-      "loadDynamicModuleFromUri": async (uri) => {
+      "loadDynamicModuleFromUri": async (wasmUri, jsUri) => {
         if (!loadDynamicModule) {
           throw "No implementation of loadDynamicModule provided.";
         }
-        const loadedModule = await loadModule(loadDynamicModule, uri);
-        return loadedModule.exports.$invokeEntryPoint;
-      },
-      "loadDynamicModuleFromBytes": async (bytes) => {
-        const loadedModule = await loadModuleFromBytes(loadDynamicModule, uri);
+        const [source, jsModule] = await loadDynamicModule(wasmUri, jsUri);
+        const module = await ((source instanceof Response)
+            ? WebAssembly.compileStreaming(source, this.builtins)
+            : WebAssembly.compile(source, this.builtins));
+        const loadedModule = await WebAssembly.instantiate(module, {
+          "module0": dartInstance.exports,
+          ...jsModule.imports(finalizeWrapper),
+        });
         return loadedModule.exports.$invokeEntryPoint;
       },
     };
+''');
+
+final dynamicSubmoduleJsImportTemplate = Template(r'''
+export function imports(finalizeWrapper) {
+  const dart2wasm = {
+    <<JS_METHODS>>
+  };
+
+  return {
+    dart2wasm: dart2wasm,
+    <<IMPORTED_JS_STRINGS_IN_MJS>>
+  };
+}
 ''');
 
 class Template {

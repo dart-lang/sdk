@@ -1,17 +1,8 @@
 {
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
-  "uris": [
-    "instance_class.dart"
-  ],
-  "ids": [
-    {
-      "uri": 0,
-      "name": "MyClass"
-    }
-  ],
   "constants": [
     {
       "type": "int",
@@ -24,26 +15,25 @@
       }
     }
   ],
-  "instances": [
+  "locations": [
+    {
+      "uri": "instance_class.dart"
+    }
+  ],
+  "recordings": [
     {
       "definition": {
-        "id": 0,
-        "@": {
-          "uri": 0,
-          "line": 15,
-          "column": 7
+        "identifier": {
+          "uri": "instance_class.dart",
+          "name": "MyClass"
         },
-        "loadingUnit": "1"
+        "loading_unit": "1"
       },
-      "references": [
+      "instances": [
         {
-          "instanceConstant": 1,
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 11,
-            "column": 2
-          }
+          "constant_index": 1,
+          "loading_unit": "1",
+          "@": 0
         }
       ]
     }

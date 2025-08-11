@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
@@ -22,6 +23,9 @@ runTestCase(Uri testCaseDir) async {
   final dynamicInterface = testCaseDir.resolve('dynamic_interface.yaml');
   final dynamicInterfaceYaml =
       File.fromUri(dynamicInterface).readAsStringSync();
+  final expectedDetailedDynamicInterface = testCaseDir.resolve(
+    'detailed_dynamic_interface.json',
+  );
 
   final target = VmTarget(TargetFlags());
   Component component = await compileTestCaseToKernelProgram(
@@ -29,12 +33,13 @@ runTestCase(Uri testCaseDir) async {
     target: target,
   );
   final coreTypes = CoreTypes(component);
+  final detailedDynamicInterfaceJson = <String, List<Map<String, String>>>{};
   annotateComponent(
     dynamicInterfaceYaml,
     dynamicInterface,
     component,
     coreTypes,
-    target,
+    detailedDynamicInterfaceJson: detailedDynamicInterfaceJson,
   );
 
   for (final lib in component.libraries) {
@@ -46,6 +51,21 @@ runTestCase(Uri testCaseDir) async {
       compareResultWithExpectationsFile(lib.fileUri, actual);
     }
   }
+
+  // Filter out core libraries.
+  for (final section in detailedDynamicInterfaceJson.entries) {
+    section.value.removeWhere((entry) => entry['library']!.startsWith('dart:'));
+  }
+
+  final actualDetailedDynamicInterface =
+      json
+          .encode(detailedDynamicInterfaceJson)
+          .replaceAll(pkgVmDir.toString(), 'file:pkg/vm/') +
+      "\n";
+  compareResultWithExpectationsFile(
+    expectedDetailedDynamicInterface,
+    actualDetailedDynamicInterface,
+  );
 }
 
 main() {

@@ -75,10 +75,11 @@ abstract class FfiCallbackBenchmark {
 final class Uint8x1 extends FfiCallbackBenchmark {
   Uint8x1() : super('FfiCallbackBenchmark.Uint8x1');
 
-  final function = ffiTestFunctions.lookupFunction<
-    Void Function(Pointer<NativeFunction<Void Function(Uint8)>>, Uint32),
-    void Function(Pointer<NativeFunction<Void Function(Uint8)>>, int)
-  >('CallFunction1Uint8');
+  final function = ffiTestFunctions
+      .lookupFunction<
+        Void Function(Pointer<NativeFunction<Void Function(Uint8)>>, Uint32),
+        void Function(Pointer<NativeFunction<Void Function(Uint8)>>, int)
+      >('CallFunction1Uint8');
 
   static int x = 0;
 
@@ -104,13 +105,8 @@ final class Uint8x1 extends FfiCallbackBenchmark {
   }
 }
 
-final argParser =
-    ArgParser()..addFlag(
-      'verbose',
-      abbr: 'v',
-      help: 'Verbose output',
-      defaultsTo: false,
-    );
+final argParser = ArgParser()
+  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false);
 
 void main(List<String> args) {
   final results = argParser.parse(args);

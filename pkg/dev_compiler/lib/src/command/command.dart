@@ -9,7 +9,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:kernel/binary/ast_from_binary.dart' as kernel
+import 'package:kernel/binary/ast_from_binary.dart'
+    as kernel
     show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -46,19 +47,24 @@ const _binaryName = 'dartdevc';
 ///
 /// The result may also contain a [previousResult], which can be passed back in
 /// for batch/worker executions to attempt to existing state.
-Future<CompilerResult> compile(ParsedArguments args,
-    {fe.InitializedCompilerState? compilerState,
-    Map<Uri, List<int>>? inputDigests}) {
+Future<CompilerResult> compile(
+  ParsedArguments args, {
+  fe.InitializedCompilerState? compilerState,
+  Map<Uri, List<int>>? inputDigests,
+}) {
   if (compilerState != null && !args.isBatchOrWorker) {
     throw ArgumentError(
-        'previousResult requires --batch or --bazel_worker mode/');
+      'previousResult requires --batch or --bazel_worker mode/',
+    );
   }
   try {
-    return _compile(args.rest,
-        compilerState: compilerState,
-        isWorker: args.isWorker,
-        useIncrementalCompiler: args.useIncrementalCompiler,
-        inputDigests: inputDigests);
+    return _compile(
+      args.rest,
+      compilerState: compilerState,
+      isWorker: args.isWorker,
+      useIncrementalCompiler: args.useIncrementalCompiler,
+      inputDigests: inputDigests,
+    );
   } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
@@ -83,39 +89,14 @@ String _usageMessage(ArgParser ddcArgParser) =>
     'Usage: $_binaryName [options...] <sources...>\n\n'
     '${ddcArgParser.usage}';
 
-Future<CompilerResult> _compile(List<String> args,
-    {fe.InitializedCompilerState? compilerState,
-    bool isWorker = false,
-    bool useIncrementalCompiler = false,
-    Map<Uri, List<int>>? inputDigests}) async {
-  // TODO(jmesserly): refactor options to share code with dartdevc CLI.
-  var argParser = ArgParser(allowTrailingOptions: true)
-    ..addFlag('help',
-        abbr: 'h', help: 'Display this message.', negatable: false)
-    ..addOption('packages', help: 'The package spec file to use.')
-    // TODO(jmesserly): is this still useful for us, or can we remove it now?
-    ..addFlag('summarize-text',
-        help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
-        defaultsTo: false,
-        hide: true)
-    ..addFlag('track-widget-creation',
-        help: 'Enable inspecting of Flutter widgets.',
-        defaultsTo: false,
-        hide: true)
-    // TODO(jmesserly): add verbose help to show hidden options
-    ..addOption('dart-sdk-summary',
-        help: 'The path to the Dart SDK summary file.', hide: true)
-    ..addMultiOption('multi-root',
-        help: 'The directories to search when encountering uris with the '
-            'specified multi-root scheme.',
-        defaultsTo: [Uri.base.path])
-    ..addFlag('compile-sdk',
-        help: 'Build an SDK module.', defaultsTo: false, hide: true)
-    ..addOption('libraries-file',
-        help: 'The path to the libraries.json file for the sdk.')
-    ..addOption('used-inputs-file',
-        help: 'If set, the file to record inputs used.', hide: true);
-  Options.addArguments(argParser);
+Future<CompilerResult> _compile(
+  List<String> args, {
+  fe.InitializedCompilerState? compilerState,
+  bool isWorker = false,
+  bool useIncrementalCompiler = false,
+  Map<Uri, List<int>>? inputDigests,
+}) async {
+  var argParser = Options.nonSdkArgParser();
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
   try {
@@ -127,10 +108,12 @@ Future<CompilerResult> _compile(List<String> args,
   }
   if (argResults.wasParsed('sound-null-safety')) {
     var soundNullSafety = argResults['sound-null-safety'] as bool;
-    print('Dart 3 only supports sound null safety, '
-        'see https://dart.dev/null-safety.\n'
-        'The `--sound-null-safety` flag is ignored '
-        'and will be removed in a future version.');
+    print(
+      'Dart 3 only supports sound null safety, '
+      'see https://dart.dev/null-safety.\n'
+      'The `--sound-null-safety` flag is ignored '
+      'and will be removed in a future version.',
+    );
     if (!soundNullSafety) {
       return CompilerResult(64);
     }
@@ -139,12 +122,16 @@ Future<CompilerResult> _compile(List<String> args,
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
   if (outPaths.isEmpty) {
-    print('Please specify the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js');
+    print(
+      'Please specify the output file location. For example:\n'
+      '    -o PATH/TO/OUTPUT_FILE.js',
+    );
     return CompilerResult(64);
   } else if (outPaths.length != moduleFormats.length) {
-    print('Number of output files (${outPaths.length}) must match '
-        'number of module formats (${moduleFormats.length}).');
+    print(
+      'Number of output files (${outPaths.length}) must match '
+      'number of module formats (${moduleFormats.length}).',
+    );
     return CompilerResult(64);
   }
 
@@ -154,8 +141,10 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var options = Options.fromArguments(argResults);
-  addGeneratedVariables(declaredVariables,
-      enableAsserts: options.enableAsserts);
+  addGeneratedVariables(
+    declaredVariables,
+    enableAsserts: options.enableAsserts,
+  );
 
   Uri toCustomUri(Uri uri) {
     if (!uri.hasScheme) {
@@ -190,8 +179,9 @@ Future<CompilerResult> _compile(List<String> args,
   if (multiRootOutputPath == null) {
     if (outPaths.length > 1) {
       print(
-          'If multiple output files (found ${outPaths.length}) are specified, '
-          'then --multi-root-output-path must be explicitly provided.');
+        'If multiple output files (found ${outPaths.length}) are specified, '
+        'then --multi-root-output-path must be explicitly provided.',
+      );
       return CompilerResult(64);
     }
     var jsOutputUri = sourcePathToUri(p.absolute(outPaths.first));
@@ -199,11 +189,15 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var fileSystem = MultiRootFileSystem(
-      options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
+    options.multiRootScheme,
+    multiRootPaths,
+    fe.StandardFileSystem.instance,
+  );
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
-      summaryPaths.map(sourcePathToUri).cast<Uri>(),
-      options.summaryModules.values);
+    summaryPaths.map(sourcePathToUri).cast<Uri>(),
+    options.summaryModules.values,
+  );
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String?;
   var librarySpecPath = argResults['libraries-file'] as String?;
   var compileSdk = argResults['compile-sdk'] == true;
@@ -215,7 +209,8 @@ Future<CompilerResult> _compile(List<String> args,
     // Compiling without manually passing or getting a default SDK summary is
     // only allowed when `compileSdk` is true.
   }
-  var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
+  var invalidSummary =
+      summaryPaths.any((s) => !s.endsWith('.dill')) ||
       (sdkSummaryPath != null && !sdkSummaryPath.endsWith('.dill'));
   if (invalidSummary) {
     throw StateError('Non-dill file detected in input: $summaryPaths');
@@ -232,11 +227,14 @@ Future<CompilerResult> _compile(List<String> args,
     //
     // Another option: we could make an in-memory file with the relevant info.
     librarySpecPath = p.join(
-        p.dirname(p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath)),
-        'libraries.json');
+      p.dirname(p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath)),
+      'libraries.json',
+    );
     if (!File(librarySpecPath).existsSync()) {
       librarySpecPath = p.join(
-          p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath), 'libraries.json');
+        p.dirname(sdkSummaryPath ?? defaultSdkSummaryPath),
+        'libraries.json',
+      );
     }
   }
 
@@ -264,8 +262,11 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
-  var explicitExperimentalFlags = fe.parseExperimentalFlags(options.experiments,
-      onError: stderr.writeln, onWarning: print);
+  var explicitExperimentalFlags = fe.parseExperimentalFlags(
+    options.experiments,
+    onError: stderr.writeln,
+    onWarning: print,
+  );
 
   var trackWidgetCreation = argResults['track-widget-creation'] as bool;
   var oldCompilerState = compilerState;
@@ -280,18 +281,18 @@ Future<CompilerResult> _compile(List<String> args,
   // SDK and summaries.
   if (!useIncrementalCompiler) {
     compilerState = fe.initializeCompiler(
-        oldCompilerState,
-        compileSdk,
-        sourcePathToUri(getSdkPath()),
-        compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
-        packageFile != null ? sourcePathToUri(packageFile) : null,
-        sourcePathToUri(librarySpecPath),
-        additionalDills,
-        DevCompilerTarget(
-            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
-        fileSystem: fileSystem,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        environmentDefines: declaredVariables);
+      oldCompilerState,
+      compileSdk,
+      sourcePathToUri(getSdkPath()),
+      compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
+      packageFile != null ? sourcePathToUri(packageFile) : null,
+      sourcePathToUri(librarySpecPath),
+      additionalDills,
+      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      fileSystem: fileSystem,
+      explicitExperimentalFlags: explicitExperimentalFlags,
+      environmentDefines: declaredVariables,
+    );
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
@@ -308,44 +309,48 @@ Future<CompilerResult> _compile(List<String> args,
         inputDigests[uri] = const [0];
       }
     }
-    var doneAdditionalDills =
-        List.filled(summaryModules.length, dummyComponent);
+    var doneAdditionalDills = List.filled(
+      summaryModules.length,
+      dummyComponent,
+    );
     compilerState = await fe.initializeIncrementalCompiler(
-        oldCompilerState,
-        {
-          'trackWidgetCreation=$trackWidgetCreation',
-          'multiRootScheme=${fileSystem.markerScheme}',
-          'multiRootRoots=${fileSystem.roots}',
-        },
-        doneAdditionalDills,
-        compileSdk,
-        sourcePathToUri(getSdkPath()),
-        compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
-        packageFile != null ? sourcePathToUri(packageFile) : null,
-        sourcePathToUri(librarySpecPath),
-        additionalDills,
-        inputDigests,
-        DevCompilerTarget(
-            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
-        fileSystem: fileSystem,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs);
+      oldCompilerState,
+      {
+        'trackWidgetCreation=$trackWidgetCreation',
+        'multiRootScheme=${fileSystem.markerScheme}',
+        'multiRootRoots=${fileSystem.roots}',
+      },
+      doneAdditionalDills,
+      compileSdk,
+      sourcePathToUri(getSdkPath()),
+      compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
+      packageFile != null ? sourcePathToUri(packageFile) : null,
+      sourcePathToUri(librarySpecPath),
+      additionalDills,
+      inputDigests,
+      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      fileSystem: fileSystem,
+      explicitExperimentalFlags: explicitExperimentalFlags,
+      environmentDefines: declaredVariables,
+      trackNeededDillLibraries: recordUsedInputs,
+    );
     var incrementalCompiler = compilerState.incrementalCompiler!;
     var cachedSdkInput = compileSdk
         ? null
         : compilerState.workerInputCache![sourcePathToUri(sdkSummaryPath!)];
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
     var incrementalCompilerResult = await incrementalCompiler.computeDelta(
-        entryPoints: inputs,
-        fullComponent: true,
-        trackNeededDillLibraries: recordUsedInputs);
+      entryPoints: inputs,
+      fullComponent: true,
+      trackNeededDillLibraries: recordUsedInputs,
+    );
     result = fe.DdcResult(
-        incrementalCompilerResult.component,
-        cachedSdkInput?.component,
-        doneAdditionalDills,
-        incrementalCompilerResult.classHierarchy,
-        incrementalCompilerResult.neededDillLibraries);
+      incrementalCompilerResult.component,
+      cachedSdkInput?.component,
+      doneAdditionalDills,
+      incrementalCompilerResult.classHierarchy,
+      incrementalCompilerResult.neededDillLibraries,
+    );
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -361,26 +366,37 @@ Future<CompilerResult> _compile(List<String> args,
   if (reloadDeltaKernel != null) {
     if (reloadLastAcceptedKernel != null) {
       final lastAcceptedComponent = Component();
-      kernel.BinaryBuilder((await File(reloadLastAcceptedKernel).readAsBytes()))
-          .readComponent(lastAcceptedComponent);
-      final deltaInspector = HotReloadDeltaInspector();
+      kernel.BinaryBuilder(
+        (await File(reloadLastAcceptedKernel).readAsBytes()),
+      ).readComponent(lastAcceptedComponent);
+      final deltaInspector = HotReloadDeltaInspector(
+        nonHotReloadablePackages: options.nonHotReloadablePackages,
+      );
       final rejectionReasons = deltaInspector.compareGenerations(
-          lastAcceptedComponent, compiledLibraries);
+        lastAcceptedComponent,
+        compiledLibraries,
+      );
       if (rejectionReasons.isNotEmpty) {
         throw StateError(
-            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
-            'Try performing a hot restart instead.');
+          'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
+          'Try performing a hot restart instead.',
+        );
       }
     }
     var sink = File(reloadDeltaKernel).openWrite();
-    kernel.BinaryPrinter(sink, includeSources: false, includeSourceBytes: false)
-        .writeComponentFile(compiledLibraries);
+    kernel.BinaryPrinter(
+      sink,
+      includeSources: false,
+      includeSourceBytes: false,
+    ).writeComponentFile(compiledLibraries);
     await sink.flush();
     await sink.close();
   } else {
     if (reloadLastAcceptedKernel != null) {
-      throw ArgumentError("Must provide 'new-reload-delta-kernel' if "
-          "'old-reload-delta-kernel' provided.");
+      throw ArgumentError(
+        "Must provide 'reload-delta-kernel' if "
+        "'reload-last-accepted-kernel' provided.",
+      );
     }
   }
 
@@ -389,8 +405,9 @@ Future<CompilerResult> _compile(List<String> args,
   if (argResults['summarize'] as bool) {
     if (outPaths.length > 1) {
       print(
-          'If multiple output files (found ${outPaths.length}) are specified, '
-          'the --summarize option is not supported.');
+        'If multiple output files (found ${outPaths.length}) are specified, '
+        'the --summarize option is not supported.',
+      );
       return CompilerResult(64);
     }
     // Note: CFE mutates the Kernel tree, so we can't save the dill
@@ -412,8 +429,9 @@ Future<CompilerResult> _compile(List<String> args,
   if (argResults['experimental-output-compiled-kernel'] as bool) {
     if (outPaths.length > 1) {
       print(
-          'If multiple output files (found ${outPaths.length}) are specified, '
-          'the --experimental-output-compiled-kernel option is not supported.');
+        'If multiple output files (found ${outPaths.length}) are specified, '
+        'the --experimental-output-compiled-kernel option is not supported.',
+      );
       return CompilerResult(64);
     }
     // Note: CFE mutates the Kernel tree, so we can't save the dill
@@ -433,15 +451,19 @@ Future<CompilerResult> _compile(List<String> args,
   if (argResults['summarize-text'] as bool) {
     if (outPaths.length > 1) {
       print(
-          'If multiple output files (found ${outPaths.length}) are specified, '
-          'the --summarize-text option is not supported.');
+        'If multiple output files (found ${outPaths.length}) are specified, '
+        'the --summarize-text option is not supported.',
+      );
       return CompilerResult(64);
     }
     var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File('${outPaths.first}.txt').writeAsString(sb.toString()));
-    outFiles.add(File('${outPaths.first.split('.')[0]}.ast.xml')
-        .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)));
+    outFiles.add(
+      File(
+        '${outPaths.first.split('.')[0]}.ast.xml',
+      ).writeAsString(DebugPrinter.prettyPrint(compiledLibraries)),
+    );
   }
 
   final importToSummary = Map<Library, Component>.identity();
@@ -469,10 +491,12 @@ Future<CompilerResult> _compile(List<String> args,
         continue;
       }
       final isDartLibrary = l.importUri.isScheme('dart');
-      final resolvedModuleName =
-          isDartLibrary ? js_ast.dartSdkModule : options.moduleName;
-      final resolvedComponent =
-          isDartLibrary ? result.sdkSummary! : result.component;
+      final resolvedModuleName = isDartLibrary
+          ? js_ast.dartSdkModule
+          : options.moduleName;
+      final resolvedComponent = isDartLibrary
+          ? result.sdkSummary!
+          : result.component;
 
       importToSummary[l] = resolvedComponent;
       summaryToModule.putIfAbsent(resolvedComponent, () => resolvedModuleName);
@@ -480,10 +504,20 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var compiler = options.emitLibraryBundle
-      ? LibraryBundleCompiler(component, result.classHierarchy, options,
-          importToSummary, summaryToModule)
-      : ProgramCompiler(component, result.classHierarchy, options,
-          importToSummary, summaryToModule);
+      ? LibraryBundleCompiler(
+          component,
+          result.classHierarchy,
+          options,
+          importToSummary,
+          summaryToModule,
+        )
+      : ProgramCompiler(
+          component,
+          result.classHierarchy,
+          options,
+          importToSummary,
+          summaryToModule,
+        );
 
   var jsModule = compiler.emitModule(compiledLibraries);
 
@@ -497,35 +531,37 @@ Future<CompilerResult> _compile(List<String> args,
     await file.parent.create(recursive: true);
     var mapUrl = p.toUri('$output.map').toString();
     var jsCode = jsProgramToCode(
-        jsModule,
-        options.emitLibraryBundle
-            ? ModuleFormat.ddcLibraryBundle
-            : moduleFormat,
-        buildSourceMap: options.sourceMap,
-        inlineSourceMap: options.inlineSourceMap,
-        emitDebugMetadata: options.emitDebugMetadata,
-        emitDebugSymbols: options.emitDebugSymbols,
-        jsUrl: p.toUri(output).toString(),
-        mapUrl: mapUrl,
-        fullDillUri: fullDillUri,
-        customScheme: options.multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
-        compiler: compiler,
-        component: compiledLibraries);
+      jsModule,
+      options.emitLibraryBundle ? ModuleFormat.ddcLibraryBundle : moduleFormat,
+      buildSourceMap: options.sourceMap,
+      inlineSourceMap: options.inlineSourceMap,
+      emitDebugMetadata: options.emitDebugMetadata,
+      emitDebugSymbols: options.emitDebugSymbols,
+      jsUrl: p.toUri(output).toString(),
+      mapUrl: mapUrl,
+      fullDillUri: fullDillUri,
+      customScheme: options.multiRootScheme,
+      multiRootOutputPath: multiRootOutputPath,
+      compiler: compiler,
+      component: compiledLibraries,
+    );
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+        File('$output.map').writeAsString(json.encode(jsCode.sourceMap)),
+      );
     }
     if (jsCode.metadata != null) {
       outFiles.add(
-          File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
+        File('$output.metadata').writeAsString(json.encode(jsCode.metadata)),
+      );
     }
 
     if (jsCode.symbols != null) {
       outFiles.add(
-          File('$output.symbols').writeAsString(json.encode(jsCode.symbols)));
+        File('$output.symbols').writeAsString(json.encode(jsCode.symbols)),
+      );
     }
   }
 
@@ -534,13 +570,17 @@ Future<CompilerResult> _compile(List<String> args,
     if (useIncrementalCompiler) {
       var neededDillLibraries = result.neededDillLibraries!;
       compilerState.incrementalCompiler!.updateNeededDillLibrariesWithHierarchy(
-          neededDillLibraries, result.classHierarchy);
+        neededDillLibraries,
+        result.classHierarchy,
+      );
       for (var lib in neededDillLibraries) {
         if (lib.importUri.isScheme('dart')) continue;
         var uri = compilerState.libraryToInputDill![lib.importUri];
         if (uri == null) {
-          throw StateError('Library ${lib.importUri} was recorded as used, '
-              'but was not in the list of known libraries.');
+          throw StateError(
+            'Library ${lib.importUri} was recorded as used, '
+            'but was not in the list of known libraries.',
+          );
         }
         usedOutlines.add(uri);
       }
@@ -577,8 +617,10 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
 
   var inputs = argResults.rest.toList();
   if (inputs.length != 1) {
-    print('Only a single input file is supported to compile the sdk from dill'
-        'but found: \n${inputs.join('\n')}');
+    print(
+      'Only a single input file is supported to compile the sdk from dill'
+      'but found: \n${inputs.join('\n')}',
+    );
     return CompilerResult(64);
   }
 
@@ -590,12 +632,16 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
   if (outPaths.isEmpty) {
-    print('Please specify the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js');
+    print(
+      'Please specify the output file location. For example:\n'
+      '    -o PATH/TO/OUTPUT_FILE.js',
+    );
     return CompilerResult(64);
   } else if (outPaths.length != moduleFormats.length) {
-    print('Number of output files (${outPaths.length}) must match '
-        'number of module formats (${moduleFormats.length}).');
+    print(
+      'Number of output files (${outPaths.length}) must match '
+      'number of module formats (${moduleFormats.length}).',
+    );
     return CompilerResult(64);
   }
 
@@ -608,8 +654,10 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   }
 
   if (invalidLibraries.isNotEmpty) {
-    print('Only the SDK libraries can be compiled from .dill but found:\n'
-        '${invalidLibraries.join('\n')}');
+    print(
+      'Only the SDK libraries can be compiled from .dill but found:\n'
+      '${invalidLibraries.join('\n')}',
+    );
     return CompilerResult(64);
   }
   var coreTypes = CoreTypes(component);
@@ -617,10 +665,22 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var options = Options.fromSdkRequiredArguments(argResults);
 
   var compiler = options.emitLibraryBundle
-      ? LibraryBundleCompiler(component, hierarchy, options, const {}, const {},
-          coreTypes: coreTypes)
-      : ProgramCompiler(component, hierarchy, options, const {}, const {},
-          coreTypes: coreTypes);
+      ? LibraryBundleCompiler(
+          component,
+          hierarchy,
+          options,
+          const {},
+          const {},
+          coreTypes: coreTypes,
+        )
+      : ProgramCompiler(
+          component,
+          hierarchy,
+          options,
+          const {},
+          const {},
+          coreTypes: coreTypes,
+        );
   var jsModule = compiler.emitModule(component);
   var outFiles = <Future>[];
 
@@ -633,22 +693,22 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     var file = File(output);
     await file.parent.create(recursive: true);
     var jsCode = jsProgramToCode(
-        jsModule,
-        options.emitLibraryBundle
-            ? ModuleFormat.ddcLibraryBundle
-            : moduleFormat,
-        buildSourceMap: options.sourceMap,
-        inlineSourceMap: options.inlineSourceMap,
-        jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri('$output.map').toString(),
-        customScheme: options.multiRootScheme,
-        multiRootOutputPath: options.multiRootOutputPath,
-        component: component);
+      jsModule,
+      options.emitLibraryBundle ? ModuleFormat.ddcLibraryBundle : moduleFormat,
+      buildSourceMap: options.sourceMap,
+      inlineSourceMap: options.inlineSourceMap,
+      jsUrl: p.toUri(output).toString(),
+      mapUrl: p.toUri('$output.map').toString(),
+      customScheme: options.multiRootScheme,
+      multiRootOutputPath: options.multiRootOutputPath,
+      component: component,
+    );
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+        File('$output.map').writeAsString(json.encode(jsCode.sourceMap)),
+      );
     }
   }
   await Future.wait(outFiles);
@@ -723,21 +783,26 @@ class JSCode {
 ///
 /// See [placeSourceMap] for a description of [sourceMapBase], [customScheme],
 /// and [multiRootOutputPath] arguments.
-JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
-    {bool buildSourceMap = false,
-    bool inlineSourceMap = false,
-    bool emitDebugMetadata = false,
-    bool emitDebugSymbols = false,
-    String? jsUrl,
-    String? mapUrl,
-    String? fullDillUri,
-    String? sourceMapBase,
-    String? customScheme,
-    String? multiRootOutputPath,
-    Compiler? compiler,
-    Component? component}) {
+JSCode jsProgramToCode(
+  js_ast.Program moduleTree,
+  ModuleFormat format, {
+  bool buildSourceMap = false,
+  bool inlineSourceMap = false,
+  bool emitDebugMetadata = false,
+  bool emitDebugSymbols = false,
+  String? jsUrl,
+  String? mapUrl,
+  String? fullDillUri,
+  String? sourceMapBase,
+  String? customScheme,
+  String? multiRootOutputPath,
+  Compiler? compiler,
+  Component? component,
+}) {
   var opts = js_ast.JavaScriptPrintingOptions(
-      allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
+    allowKeywordsInProperties: true,
+    allowSingleLineIfStatements: true,
+  );
   js_ast.SimpleJavaScriptPrintingContext printer;
   SourceMapBuilder? sourceMap;
   if (buildSourceMap) {
@@ -750,13 +815,23 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 
   var tree = transformModuleFormat(format, moduleTree);
   var nameListener = emitDebugSymbols ? js_ast.NameListener() : null;
-  tree.accept(js_ast.Printer(opts, printer,
-      localNamer: js_ast.ScopedNamer(tree, nameListener)));
+  tree.accept(
+    js_ast.Printer(
+      opts,
+      printer,
+      localNamer: js_ast.ScopedNamer(tree, nameListener),
+    ),
+  );
 
   Map<String, Object?>? builtMap;
   if (buildSourceMap && sourceMap != null) {
-    builtMap = placeSourceMap(sourceMap.build(jsUrl!), mapUrl!, customScheme,
-        multiRootOutputPath: multiRootOutputPath, sourceMapBase: sourceMapBase);
+    builtMap = placeSourceMap(
+      sourceMap.build(jsUrl!),
+      mapUrl!,
+      customScheme,
+      multiRootOutputPath: multiRootOutputPath,
+      sourceMapBase: sourceMapBase,
+    );
     var jsDir = p.dirname(p.fromUri(jsUrl));
     var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = p.toUri(relative).toString();
@@ -768,8 +843,9 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 
   var text = printer.getText();
   var encodedMap = json.encode(builtMap);
-  var rawSourceMap =
-      inlineSourceMap ? js.escapedString(encodedMap, "'").value : 'null';
+  var rawSourceMap = inlineSourceMap
+      ? js.escapedString(encodedMap, "'").value
+      : 'null';
   text = text.replaceFirst(ProgramCompiler.sourceMapLocationID, rawSourceMap);
 
   // This is intended to be used by our build/debug tools to gather metrics.
@@ -785,10 +861,12 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   // compilation server, not the browser.  We don't yet have the infra for that.
   var compileTimeStatistics = {
     'dartSize': _computeDartSize(component!),
-    'sourceMapSize': encodedMap.length
+    'sourceMapSize': encodedMap.length,
   };
   text = text.replaceFirst(
-      ProgramCompiler.metricsLocationID, '$compileTimeStatistics');
+    ProgramCompiler.metricsLocationID,
+    '$compileTimeStatistics',
+  );
 
   var debugMetadata = emitDebugMetadata
       ? _emitMetadata(moduleTree, component, mapUrl!, jsUrl!, fullDillUri)
@@ -796,7 +874,11 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 
   var debugSymbols = emitDebugSymbols
       ? _emitSymbols(
-          compiler!, moduleTree.name!, nameListener!.identifierNames, component)
+          compiler!,
+          moduleTree.name!,
+          nameListener!.identifierNames,
+          component,
+        )
       : null;
 
   return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
@@ -808,14 +890,20 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// Uses information from the [compiler] used to compile the JS module combined
 /// with [identifierNames] that maps JavaScript identifier nodes to their actual
 /// names used when outputting the JavaScript.
-ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
-    Map<js_ast.Identifier, String> identifierNames, Component component) {
+ModuleSymbols _emitSymbols(
+  Compiler compiler,
+  String moduleName,
+  Map<js_ast.Identifier, String> identifierNames,
+  Component component,
+) {
   /// Returns the name selected in the final JavaScript for [id].
   String lookupName(js_ast.Identifier id) {
     var name = identifierNames[id];
     if (name == null) {
-      throw Exception('No recorded naming decision found for Identifier with '
-          'name: ${id.name}');
+      throw Exception(
+        'No recorded naming decision found for Identifier with '
+        'name: ${id.name}',
+      );
     }
     return name;
   }
@@ -832,22 +920,39 @@ ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
       e.key: lookupName(e.value),
   };
 
-  return ModuleSymbolsCollector(moduleName, classJsNames, compiler.memberNames,
-          procedureJsNames, variableJsNames)
-      .collectSymbolInfo(component);
+  return ModuleSymbolsCollector(
+    moduleName,
+    classJsNames,
+    compiler.memberNames,
+    procedureJsNames,
+    variableJsNames,
+  ).collectSymbolInfo(component);
 }
 
-ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
-    String sourceMapUri, String moduleUri, String? fullDillUri) {
-  var metadata = ModuleMetadata(program.name!, loadFunctionName(program.name!),
-      sourceMapUri, moduleUri, fullDillUri);
+ModuleMetadata _emitMetadata(
+  js_ast.Program program,
+  Component component,
+  String sourceMapUri,
+  String moduleUri,
+  String? fullDillUri,
+) {
+  var metadata = ModuleMetadata(
+    program.name!,
+    loadFunctionName(program.name!),
+    sourceMapUri,
+    moduleUri,
+    fullDillUri,
+  );
 
   for (var lib in component.libraries) {
-    metadata.addLibrary(LibraryMetadata(
+    metadata.addLibrary(
+      LibraryMetadata(
         libraryUriToJsIdentifier(lib.importUri),
         lib.importUri.toString(),
         lib.fileUri.toString(),
-        [...lib.parts.map((p) => p.partUri)]));
+        [...lib.parts.map((p) => p.partUri)],
+      ),
+    );
   }
   return metadata;
 }
@@ -889,15 +994,21 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 }
 
 /// Adds all synthesized environment variables to [variables].
-Map<String, String> addGeneratedVariables(Map<String, String> variables,
-    {required bool enableAsserts}) {
+Map<String, String> addGeneratedVariables(
+  Map<String, String> variables, {
+  required bool enableAsserts,
+}) {
   variables['dart.web.assertions_enabled'] = '$enableAsserts';
   return variables;
 }
 
 /// The default path of the kernel summary for the Dart SDK.
-final defaultSdkSummaryPath =
-    p.join(getSdkPath(), 'lib', '_internal', 'ddc_outline.dill');
+final defaultSdkSummaryPath = p.join(
+  getSdkPath(),
+  'lib',
+  '_internal',
+  'ddc_outline.dill',
+);
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
@@ -905,8 +1016,9 @@ final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 String getSdkPath() {
   // Support explicit sdk location through an environment variable.
   var resolvedExecutable = Platform.environment['resolvedExecutable'];
-  return p
-      .dirname(p.dirname(resolvedExecutable ?? Platform.resolvedExecutable));
+  return p.dirname(
+    p.dirname(resolvedExecutable ?? Platform.resolvedExecutable),
+  );
 }
 
 /// Returns the absolute path to the default `package_config.json` file, or
@@ -1004,9 +1116,13 @@ Uri sourcePathToRelativeUri(String source, {bool? windows}) {
 // TODO(#40251): Remove this logic from dev_compiler itself, push it to the
 // invokers of dev_compiler which have more knowledge about how they want
 // source paths to look.
-Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
-    String sourceMapPath, String? multiRootScheme,
-    {String? multiRootOutputPath, String? sourceMapBase}) {
+Map<String, Object?> placeSourceMap(
+  Map<String, Object?> sourceMap,
+  String sourceMapPath,
+  String? multiRootScheme, {
+  String? multiRootOutputPath,
+  String? sourceMapBase,
+}) {
   var map = Map.of(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
@@ -1024,8 +1140,9 @@ Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
         // like dart2js.
         var shortPath = uri.path.replaceAll('/sdk/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
-        multiRootPath = p.url
-            .joinAll(p.split(p.relative(multiRootPath, from: sourceMapDir)));
+        multiRootPath = p.url.joinAll(
+          p.split(p.relative(multiRootPath, from: sourceMapDir)),
+        );
         return multiRootPath;
       }
       return sourcePath;
@@ -1047,7 +1164,8 @@ Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
     list[i] = makeRelative(list[i] as String);
   }
   map['sources'] = list;
-  map['file'] =
-      map['file'] != null ? makeRelative(map['file'] as String) : null;
+  map['file'] = map['file'] != null
+      ? makeRelative(map['file'] as String)
+      : null;
   return map;
 }

@@ -7,5 +7,5 @@ const set1 = {if (val % 2 == 1) 0, if (val % 2 == 0) 1};
 const set2 = {
   1,
   ...[2, 3],
-  4
+  4,
 };

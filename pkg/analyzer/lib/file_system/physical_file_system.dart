@@ -39,7 +39,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   final String? _stateLocation;
 
   PhysicalResourceProvider({String? stateLocation})
-      : _stateLocation = stateLocation ?? _getStandardStateLocation();
+    : _stateLocation = stateLocation ?? _getStandardStateLocation();
 
   @override
   Context get pathContext => context;
@@ -296,7 +296,8 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   Folder resolveSymbolicLinksSync() {
     try {
       return _PhysicalFolder(
-          io.Directory(_directory.resolveSymbolicLinksSync()));
+        io.Directory(_directory.resolveSymbolicLinksSync()),
+      );
     } on io.FileSystemException catch (exception) {
       throw _wrapException(exception);
     }
@@ -308,12 +309,17 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   ResourceWatcher watch() {
     var watcher = DirectoryWatcher(_entry.path);
-    var events = watcher.events.handleError((Object error) {},
-        test: (error) =>
-            error is io.FileSystemException &&
-            // Don't suppress "Directory watcher closed," so the outer
-            // listener can see the interruption & act on it.
-            !error.message.startsWith("Directory watcher closed unexpectedly"));
+    var events = watcher.events.handleError(
+      (Object error) {},
+      test:
+          (error) =>
+              error is io.FileSystemException &&
+              // Don't suppress "Directory watcher closed," so the outer
+              // listener can see the interruption & act on it.
+              !error.message.startsWith(
+                "Directory watcher closed unexpectedly",
+              ),
+    );
     return ResourceWatcher(
       events.transform(_exceptionTransformer),
       () => watcher.ready,
@@ -349,13 +355,13 @@ abstract class _PhysicalResource implements Resource {
   /// Wraps [FileSystemException]s in the stream through [_wrapException].
   late final _exceptionTransformer =
       StreamTransformer<WatchEvent, WatchEvent>.fromHandlers(
-    handleError: (error, stackTrace, sink) {
-      if (error is io.FileSystemException) {
-        error = _wrapException(error);
-      }
-      sink.addError(error);
-    },
-  );
+        handleError: (error, stackTrace, sink) {
+          if (error is io.FileSystemException) {
+            error = _wrapException(error);
+          }
+          sink.addError(error);
+        },
+      );
 
   _PhysicalResource(this._entry);
 
@@ -429,7 +435,9 @@ abstract class _PhysicalResource implements Resource {
           shortName == r'COM3' ||
           shortName == r'COM4') {
         throw FileSystemException(
-            path, 'Windows device drivers cannot be read.');
+          path,
+          'Windows device drivers cannot be read.',
+        );
       }
     }
   }

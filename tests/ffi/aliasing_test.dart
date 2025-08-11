@@ -22,8 +22,8 @@ void main() {
     testAliasCast2();
     testAliasOffsetBy();
     testAliasOffsetBy2();
-    testAliasElementAt();
-    testAliasElementAt2();
+    testAliasOperator();
+    testAliasOperator2();
     testAliasFromAddress();
     testAliasFromAddress2();
     testAliasFromAddressViaMemory();
@@ -90,9 +90,9 @@ void testAliasOffsetBy2() {
   calloc.free(source);
 }
 
-void testAliasElementAt() {
+void testAliasOperator() {
   final source = calloc<Int64>(2);
-  final alias = source.elementAt(1).elementAt(-1);
+  final alias = source + 1 - 1;
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
@@ -101,10 +101,10 @@ void testAliasElementAt() {
   calloc.free(source);
 }
 
-void testAliasElementAt2() {
+void testAliasOperator2() {
   final source = calloc<Int64>(3);
-  final alias = source.elementAt(2).elementAt(-2);
-  final alias2 = source.elementAt(1).elementAt(-1);
+  final alias = source + 2 - 2;
+  final alias2 = source + 1 - 1;
   alias.value = 42;
   final int a = alias.value;
   alias2.value = 1984;

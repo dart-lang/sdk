@@ -13,6 +13,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -21,7 +22,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -29,8 +29,8 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -38,14 +38,11 @@ import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin
-    implements
-        Comparable<SourceExtensionTypeDeclarationBuilder>,
-        ClassDeclarationBuilder {
+    with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin
+    implements Comparable<SourceExtensionTypeDeclarationBuilder> {
   @override
   final SourceLibraryBuilder parent;
 
@@ -67,6 +64,8 @@ class SourceExtensionTypeDeclarationBuilder
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
   late final DeclarationNameSpace _nameSpace;
+  late final List<SourceMemberBuilder> _constructorBuilders;
+  late final List<SourceMemberBuilder> _memberBuilders;
 
   @override
   final List<SourceNominalParameterBuilder>? typeParameters;
@@ -76,7 +75,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final ExtensionTypeFragment _introductory;
 
-  FieldFragment? _representationFieldFragment;
+  PrimaryConstructorFieldFragment? _representationFieldFragment;
 
   final IndexedContainer? indexedContainer;
 
@@ -92,7 +91,7 @@ class SourceExtensionTypeDeclarationBuilder
       required int endOffset,
       required ExtensionTypeFragment fragment,
       required this.indexedContainer,
-      required FieldFragment? representationFieldFragment})
+      required PrimaryConstructorFieldFragment? representationFieldFragment})
       : parent = enclosingLibraryBuilder,
         fileOffset = nameOffset,
         _modifiers = fragment.modifiers,
@@ -117,6 +116,26 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
+  Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
   int resolveConstructors(SourceLibraryBuilder library) {
     int count = 0;
     if (constructorReferences.isNotEmpty) {
@@ -126,17 +145,13 @@ class SourceExtensionTypeDeclarationBuilder
       count += constructorReferences.length;
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator =
-          nameSpace.filteredConstructorIterator(includeDuplicates: true);
+      Iterator<SourceFactoryBuilder> iterator =
+          filteredConstructorsIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder != this) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+        SourceFactoryBuilder factoryBuilder = iterator.current;
+        assert(factoryBuilder.declarationBuilder == this,
+            "Unexpected builder $factoryBuilder in $this.");
+        factoryBuilder.resolveRedirectingFactory();
       }
     }
     return count;
@@ -147,20 +162,15 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   SourcePropertyBuilder? get representationFieldBuilder =>
       _representationFieldFragment?.builder;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    _constructorBuilders = [];
+    _memberBuilders = [];
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -169,7 +179,10 @@ class SourceExtensionTypeDeclarationBuilder
         indexedLibrary: libraryBuilder.indexedLibrary,
         indexedContainer: indexedContainer,
         containerType: ContainerType.ExtensionType,
-        containerName: new ClassName(name));
+        containerName: new ClassName(name),
+        constructorBuilders: _constructorBuilders,
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override
@@ -394,11 +407,8 @@ class SourceExtensionTypeDeclarationBuilder
     if (typeBuilder != null) {
       typeBuilder.build(
           libraryBuilder, TypeUse.extensionTypeRepresentationType);
-      unaliased = typeBuilder.unalias(
-          usedTypeAliasBuilders: usedTypeAliasBuilders,
-          // We allow creating new type parameters during unaliasing. This type
-          // variables are short-lived and therefore don't need to be bound.
-          unboundTypeParameters: []);
+      unaliased =
+          typeBuilder.unalias(usedTypeAliasBuilders: usedTypeAliasBuilders);
     }
     switch (unaliased) {
       case NamedTypeBuilder(
@@ -565,8 +575,8 @@ class SourceExtensionTypeDeclarationBuilder
         DartType interface = typeBuilder.build(
             libraryBuilder, TypeUse.extensionTypeImplementsType);
         if (interface is InterfaceType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             libraryBuilder.addProblem(
                 templateInvalidExtensionTypeSuperInterface.withArguments(
                     interface, declaredRepresentationType, name),
@@ -575,16 +585,14 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         } else if (interface is ExtensionType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             DartType instantiatedImplementedRepresentationType =
                 Substitution.fromExtensionType(interface).substituteType(
                     interface
                         .extensionTypeDeclaration.declaredRepresentationType);
-            if (!hierarchyBuilder.types.isSubtypeOf(
-                declaredRepresentationType,
-                instantiatedImplementedRepresentationType,
-                SubtypeCheckMode.withNullabilities)) {
+            if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+                instantiatedImplementedRepresentationType)) {
               libraryBuilder.addProblem(
                   templateInvalidExtensionTypeSuperExtensionType.withArguments(
                       declaredRepresentationType,
@@ -621,11 +629,12 @@ class SourceExtensionTypeDeclarationBuilder
       if (duplicationProblems != null) {
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
-          addProblem(
+          libraryBuilder.addProblem(
               templateImplementsRepeated.withArguments(
                   typeDeclaration.name, count),
               offset,
-              noLength);
+              noLength,
+              fileUri);
         }
       }
     }
@@ -646,8 +655,7 @@ class SourceExtensionTypeDeclarationBuilder
       case TypeAliasBuilder():
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
-                declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypeParameters: [])!,
+                declaration.unalias(typeBuilder.typeArguments)!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():
@@ -701,8 +709,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceFactoryBuilder>(
-            includeDuplicates: true);
+        filteredConstructorsIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -710,30 +717,31 @@ class SourceExtensionTypeDeclarationBuilder
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        extensionTypeDeclaration,
-        _introductory.metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        _introductory.fileUri,
-        _introductory.enclosingScope);
+        annotatable: extensionTypeDeclaration,
+        annotatableFileUri: extensionTypeDeclaration.fileUri,
+        metadata: _introductory.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _introductory.enclosingScope);
 
     if (_introductory.typeParameters != null) {
       for (int i = 0; i < _introductory.typeParameters!.length; i++) {
         _introductory.typeParameters![i].builder.buildOutlineExpressions(
-            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+        filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
@@ -754,6 +762,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
       case BuiltMemberKind.ExtensionField:
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
       case BuiltMemberKind.ExtensionTypeConstructor:
       case BuiltMemberKind.ExtensionTypeFactory:
@@ -784,6 +793,7 @@ class SourceExtensionTypeDeclarationBuilder
       Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionTypeMemberKind kind;
+    bool isInternalImplementation = false;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -799,7 +809,11 @@ class SourceExtensionTypeDeclarationBuilder
         unhandled("$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
             "buildMembers", memberBuilder.fileOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
+        kind = ExtensionTypeMemberKind.Field;
+        break;
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
+        isInternalImplementation = true;
         kind = ExtensionTypeMemberKind.Field;
         break;
       case BuiltMemberKind.ExtensionTypeConstructor:
@@ -832,19 +846,20 @@ class SourceExtensionTypeDeclarationBuilder
             memberReference: memberReference,
             tearOffReference: tearOffReference,
             isStatic: memberBuilder.isStatic,
+            isInternalImplementation: isInternalImplementation,
             kind: kind));
   }
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilderImpl? lookupConstructor(Name name) {
+  SourceConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
       // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
     Builder? builder = nameSpace.lookupConstructor(name.text);
-    if (builder is SourceConstructorBuilderImpl) {
+    if (builder is SourceConstructorBuilder) {
       return builder;
     }
     return null;
@@ -853,23 +868,6 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   DartType get declaredRepresentationType =>
       _extensionTypeDeclaration.declaredRepresentationType;
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
-      nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   BodyBuilderContext createBodyBuilderContext() {
     return new ExtensionTypeBodyBuilderContext(this);

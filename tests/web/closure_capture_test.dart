@@ -28,9 +28,12 @@ applyFun(f) {
 
 closure2() {
   var x = 499;
-  Expect.equals(499, applyFun(() {
-    return x;
-  }));
+  Expect.equals(
+    499,
+    applyFun(() {
+      return x;
+    }),
+  );
 }
 
 closure3() {
@@ -47,9 +50,12 @@ applyFun2(f) {
 
 closure4() {
   var z = 9;
-  Expect.equals(499, applyFun2((x, y) {
-    return x + y + z;
-  }));
+  Expect.equals(
+    499,
+    applyFun2((x, y) {
+      return x + y + z;
+    }),
+  );
 }
 
 closure5() {
@@ -92,9 +98,12 @@ closure8() {
 
 closure9() {
   var z = 9;
-  Expect.equals(499, applyFun2((x, y) {
-    return x + y + z;
-  }));
+  Expect.equals(
+    499,
+    applyFun2((x, y) {
+      return x + y + z;
+    }),
+  );
 }
 
 main() {

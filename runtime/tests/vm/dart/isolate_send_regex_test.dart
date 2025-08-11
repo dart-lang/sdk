@@ -22,16 +22,20 @@ main() async {
     final rp = ReceivePort();
     final re = RegExp('abc');
     print(re.hasMatch('kukabcdef'));
-    await Isolate.spawn(f, <dynamic>[rp.sendPort, re],
-        onError: rpError.sendPort);
+    await Isolate.spawn(f, <dynamic>[
+      rp.sendPort,
+      re,
+    ], onError: rpError.sendPort);
     Expect.isTrue(await rp.first);
   }
   {
     // Test send of uninitialized RegExp(num_groups is null)
     final rp = ReceivePort();
     final re = RegExp('abc');
-    await Isolate.spawn(f, <dynamic>[rp.sendPort, re],
-        onError: rpError.sendPort);
+    await Isolate.spawn(f, <dynamic>[
+      rp.sendPort,
+      re,
+    ], onError: rpError.sendPort);
     Expect.isTrue(await rp.first);
   }
   rpError.close();

@@ -33,7 +33,8 @@ part of 'model_emitter.dart';
 // JavaScript variables (like `Array`) we are free to chose whatever variable
 // names we want. Furthermore, the pretty-printer minifies local variables, thus
 // reducing their size.
-const String _mainBoilerplate = '''
+const String _mainBoilerplate =
+    '''
 (function dartProgram() {
 
 if (#startupMetrics) {
@@ -170,7 +171,8 @@ function lazyFinal(holder, name, getterName, initializer) {
 // Given a list, marks it as constant.
 //
 // The runtime ensures that const-lists cannot be modified.
-function makeConstList(list) {
+function makeConstList(list, rti) {
+  if (rti != null) #setArrayType(list, rti);
   list.#arrayFlagsProperty = ${ArrayFlags.constant};
   return list;
 }
@@ -690,6 +692,9 @@ class FragmentEmitter {
       'throwLateFieldADI': _emitter.staticFunctionAccess(
         _closedWorld.commonElements.throwLateFieldADI,
       ),
+      'setArrayType': _emitter.staticFunctionAccess(
+        _closedWorld.commonElements.setArrayType,
+      ),
       'arrayFlagsProperty': js.string(_namer.fixedNames.arrayFlagsPropertyName),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': js.Block(
@@ -893,8 +898,9 @@ class FragmentEmitter {
             js.quoteName(key),
             value as js.Fun,
           );
-          final Entity holderKey =
-              method is StaticStubMethod ? method.library : method.element!;
+          final Entity holderKey = method is StaticStubMethod
+              ? method.library
+              : method.element!;
           assert(
             method is! StaticStubMethod ||
                 method.library == _commonElements.interceptorsLibrary,
@@ -1099,10 +1105,9 @@ class FragmentEmitter {
         js.Expression name,
         js.Expression code,
       ) {
-        js.Property property =
-            code is js.Fun
-                ? js.MethodDefinition(name, code)
-                : js.Property(name, code);
+        js.Property property = code is js.Fun
+            ? js.MethodDefinition(name, code)
+            : js.Property(name, code);
         registerEntityAst(method.element, property);
         properties.add(property);
       });
@@ -1185,10 +1190,9 @@ class FragmentEmitter {
 
         // Avoid adding the metadata if a superclass has the same metadata.
         if (!method.inheritsApplyMetadata) {
-          final applyName =
-              method.applyIndex == 0
-                  ? method.name!
-                  : method.parameterStubs[method.applyIndex - 1].name!;
+          final applyName = method.applyIndex == 0
+              ? method.name!
+              : method.parameterStubs[method.applyIndex - 1].name!;
           properties[js.string(_namer.fixedNames.callCatchAllName)] = js
               .quoteName(applyName);
           properties[js.string(_namer.fixedNames.requiredParameterField)] = js
@@ -1259,8 +1263,9 @@ class FragmentEmitter {
     }
 
     subclasses.forEach((superclass, list) {
-      js.Expression superclassReference =
-          (superclass == null) ? js.LiteralNull() : classReference(superclass);
+      js.Expression superclassReference = (superclass == null)
+          ? js.LiteralNull()
+          : classReference(superclass);
       if (list.length == 1) {
         Class cls = list.single;
         var statement = js.js.statement('#(#, #)', [
@@ -1621,8 +1626,9 @@ class FragmentEmitter {
         }
       }
       for (Class cls in library.classes) {
-        var methods =
-            cls.methods.where((m) => (m as DartMethod).needsTearOff).toList();
+        var methods = cls.methods
+            .where((m) => (m as DartMethod).needsTearOff)
+            .toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression? reference = container;
         if (methods.length > 1) {
@@ -1750,10 +1756,9 @@ class FragmentEmitter {
     List<js.Statement> statements = [];
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
-      String helper =
-          field.isFinal
-              ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
-              : locals.find('_lazy', 'hunkHelpers.lazy');
+      String helper = field.isFinal
+          ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
+          : locals.find('_lazy', 'hunkHelpers.lazy');
       js.Expression staticFieldCode = field.code;
       if (staticFieldCode is js.Fun) {
         // An arrow function `() => { ...; return e }` is smaller that
@@ -1968,6 +1973,7 @@ class FragmentEmitter {
       commonElements.listClass,
       commonElements.objectClass,
       commonElements.mapClass,
+      commonElements.jsObjectClass,
     ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
 
@@ -2147,14 +2153,13 @@ class FragmentEmitter {
         ruleset.addRedirection(element, legacyJsObjectClass);
       } else {
         Iterable<TypeCheck> checks = typeData.classChecks.checks;
-        Iterable<InterfaceType> supertypes =
-            isInterop
-                ? checks.map(
-                  (check) => _elementEnvironment.getJsInteropType(check.cls),
-                )
-                : checks.map(
-                  (check) => _dartTypes.asInstanceOf(targetType, check.cls)!,
-                );
+        Iterable<InterfaceType> supertypes = isInterop
+            ? checks.map(
+                (check) => _elementEnvironment.getJsInteropType(check.cls),
+              )
+            : checks.map(
+                (check) => _dartTypes.asInstanceOf(targetType, check.cls)!,
+              );
 
         Map<TypeVariableType, DartType> typeVariables = {};
         Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
@@ -2164,10 +2169,9 @@ class FragmentEmitter {
         for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
           TypeVariableEntity element = typeVariable.element;
           final typeDeclaration = element.typeDeclaration as ClassEntity;
-          final supertype =
-              isInterop
-                  ? _elementEnvironment.getJsInteropType(typeDeclaration)
-                  : _dartTypes.asInstanceOf(targetType, typeDeclaration)!;
+          final supertype = isInterop
+              ? _elementEnvironment.getJsInteropType(typeDeclaration)
+              : _dartTypes.asInstanceOf(targetType, typeDeclaration)!;
           List<DartType> supertypeArguments = supertype.typeArguments;
           typeVariables[typeVariable] = supertypeArguments[element.index];
         }

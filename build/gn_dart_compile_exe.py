@@ -78,23 +78,6 @@ def main(argv):
         print("Binary not found: " + dart_binary)
         return 1
 
-    dartaotruntime_binary = os.path.join(prebuilt_sdk, "bin", "dartaotruntime")
-    if not os.path.isfile(dartaotruntime_binary):
-        print("Binary not found: " + dartaotruntime_binary)
-        return 1
-
-    gen_kernel_snapshot = os.path.join(prebuilt_sdk, "bin", "snapshots",
-                                       "gen_kernel_aot.dart.snapshot")
-    if not os.path.isfile(gen_kernel_snapshot):
-        print("Binary not found: " + gen_kernel_snapshot)
-        return 1
-
-    platform_dill = os.path.join(prebuilt_sdk, "lib", "_internal",
-                                 "vm_platform_strong.dill")
-    if not os.path.isfile(platform_dill):
-        print("Binary not found: " + platform_dill)
-        return 1
-
     # Compile the executable.
     ok = run_command([
         dart_binary,
@@ -103,6 +86,8 @@ def main(argv):
         "--packages",
         args.packages,
         f"-Dsdk_hash={args.sdk_hash}",
+        "--depfile",
+        args.depfile,
         "-o",
         args.output,
         args.entry_point,
@@ -110,40 +95,16 @@ def main(argv):
     if not ok:
         return 1
 
-    # Collect dependencies by using gen_kernel.
-    with TemporaryDirectory() as tmpdir:
-        output_dill = os.path.join(tmpdir, "output.dill")
-        ok = run_command([
-            dartaotruntime_binary,
-            gen_kernel_snapshot,
-            "--platform",
-            platform_dill,
-            "--packages",
-            args.packages,
-            "--depfile",
-            args.depfile,
-            "-o",
-            output_dill,
-            args.entry_point,
-        ])
-        if not ok:
-            return 1
-
-        # Fix generated depfile to refer to the output file name instead
-        # of referring to the temporary dill file we have generated.
-        with open(args.depfile, "r") as f:
-            content = f.read()
-        (target_name, deps) = content.split(": ", 1)
-        if target_name != output_dill:
-            print(
-                "ERROR: Something is wrong with generated depfile: expected {output_dill} as target, but got {target_name}"
-            )
-            return 1
-        with open(args.depfile, "w") as f:
-            f.write(args.output)
-            f.write(": ")
-            f.write(deps)
-
+    # Fix generated depfile to refer to the relative output file name
+    # instead referring to it using absolute path. ninja does not support
+    # that.
+    with open(args.depfile, "r") as f:
+        content = f.read()
+    deps = content.split(": ", 1)[1]
+    with open(args.depfile, "w") as f:
+        f.write(args.output)
+        f.write(": ")
+        f.write(deps)
     return 0
 
 

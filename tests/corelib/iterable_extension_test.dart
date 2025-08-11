@@ -415,4 +415,5 @@ class CurrentThrowIterator<T> implements Iterator<T> {
 bool none(_) => false;
 bool all(_) => true;
 bool even(int n) => n.isEven;
-bool Function(int) only(int n1) => (int n2) => n1 == n2;
+bool Function(int) only(int n1) =>
+    (int n2) => n1 == n2;

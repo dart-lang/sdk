@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,12 +23,13 @@ class C {}
   }
 
   test_animation_missingWidth() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@animation}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 13),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 13)],
+    );
   }
 
   test_youtube_hasWidth() async {
@@ -39,20 +40,22 @@ class C {}
   }
 
   test_youtube_missingWidth() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 11),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 11)],
+    );
   }
 
   test_youtube_missingWidth_andCurlyBrace() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 10),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 10)],
+    );
   }
 }

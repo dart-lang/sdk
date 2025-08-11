@@ -32,7 +32,6 @@ class StringTest {
 
   static testNoSuchMethod() {
     String a = "Hello";
-
   }
 
   static testCharCodes() {

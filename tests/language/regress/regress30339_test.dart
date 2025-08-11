@@ -24,14 +24,20 @@ Future<int> foo() async {
 Future<int> bar() async => x;
 
 main() {
-  foo().then((_) {
-    Expect.isFalse(isCheckedMode());
-  }, onError: (e) {
-    Expect.isTrue(isCheckedMode() && (e is TypeError));
-  });
-  bar().then((_) {
-    Expect.isFalse(isCheckedMode());
-  }, onError: (e) {
-    Expect.isTrue(isCheckedMode() && (e is TypeError));
-  });
+  foo().then(
+    (_) {
+      Expect.isFalse(isCheckedMode());
+    },
+    onError: (e) {
+      Expect.isTrue(isCheckedMode() && (e is TypeError));
+    },
+  );
+  bar().then(
+    (_) {
+      Expect.isFalse(isCheckedMode());
+    },
+    onError: (e) {
+      Expect.isTrue(isCheckedMode() && (e is TypeError));
+    },
+  );
 }

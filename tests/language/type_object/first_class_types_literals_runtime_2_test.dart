@@ -53,15 +53,5 @@ main() {
 
   // Test that operator calls on class literals go to Type.
 
-
-
-
-
-
-
-
-
-
-
   Expect.equals((dynamic).toString(), 'dynamic');
 }

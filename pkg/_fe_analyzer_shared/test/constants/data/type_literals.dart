@@ -21,35 +21,41 @@ const null_ = /*cfe.TypeLiteral(Null)*/ Null;
 
 main() {
   print(
-      /*cfe.TypeLiteral(dynamic Function()!)*/
-      /*analyzer.TypeLiteral(dynamic Function())*/
-      /*dart2js.TypeLiteral(()->dynamic)*/
-      typedef);
+    /*cfe.TypeLiteral(dynamic Function()!)*/
+    /*analyzer.TypeLiteral(dynamic Function())*/
+    /*dart2js.TypeLiteral(()->dynamic)*/
+    typedef,
+  );
 
   print(
-      /*cfe.TypeLiteral(void Function(dynamic)!)*/
-      /*analyzer.TypeLiteral(void Function(dynamic))*/
-      /*dart2js.TypeLiteral((dynamic)->void)*/
-      genericTypedef);
+    /*cfe.TypeLiteral(void Function(dynamic)!)*/
+    /*analyzer.TypeLiteral(void Function(dynamic))*/
+    /*dart2js.TypeLiteral((dynamic)->void)*/
+    genericTypedef,
+  );
 
   print(
-      /*cfe.TypeLiteral(void Function<T>(T%)!)*/
-      /*analyzer.TypeLiteral(void Function<T>(T))*/
-      /*dart2js.TypeLiteral((0)->void)*/
-      genericFunctionTypedef);
+    /*cfe.TypeLiteral(void Function<T>(T%)!)*/
+    /*analyzer.TypeLiteral(void Function<T>(T))*/
+    /*dart2js.TypeLiteral((0)->void)*/
+    genericFunctionTypedef,
+  );
 
   print(
-      /*cfe.TypeLiteral(void Function<T>(FutureOr<T%>%)!)*/
-      /*analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
-      /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
-      typedefWithFutureOr);
+    /*cfe.TypeLiteral(void Function<T>(FutureOr<T%>%)!)*/
+    /*analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
+    /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
+    typedefWithFutureOr,
+  );
 
   print(
-      /*analyzer.TypeLiteral(FutureOr<dynamic>)*/
-      /*cfe|dart2js.TypeLiteral(dynamic)*/
-      futureOr);
+    /*analyzer.TypeLiteral(FutureOr<dynamic>)*/
+    /*cfe|dart2js.TypeLiteral(dynamic)*/
+    futureOr,
+  );
 
   print(
-      /*TypeLiteral(Null)*/
-      null_);
+    /*TypeLiteral(Null)*/
+    null_,
+  );
 }

@@ -26,15 +26,22 @@ class A<E> {
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<E> {
   void m() {
     const <E>{};
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET, 37, 1,
-          messageContains: ["'E'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
+          37,
+          1,
+          messageContains: ["'E'"],
+        ),
+      ],
+    );
   }
 }

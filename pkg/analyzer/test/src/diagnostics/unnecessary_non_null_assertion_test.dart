@@ -16,19 +16,21 @@ main() {
 @reflectiveTest
 class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest {
   test_nonNull_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void g() {}
 
 void f() {
   g!();
 }
-''', [
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 27, 1),
-    ]);
+''',
+      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 27, 1)],
+    );
   }
 
   test_nonNull_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static void foo() {}
 }
@@ -36,19 +38,20 @@ class A {
 void f() {
   A.foo!();
 }
-''', [
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 54, 1),
-    ]);
+''',
+      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 54, 1)],
+    );
   }
 
   test_nonNull_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   x!;
 }
-''', [
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 14, 1),
-    ]);
+''',
+      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 14, 1)],
+    );
   }
 
   test_nullable() async {

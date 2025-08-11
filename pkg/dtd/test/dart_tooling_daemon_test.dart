@@ -39,7 +39,7 @@ void main() {
       const messageEvent = 'message';
       const message1 = {'message': 'hello'};
 
-      test('streamListen', () async {
+      test(CoreDtdServiceConstants.streamListen, () async {
         await clientB.streamListen(notificationStream);
         final eventFuture = clientB.onEvent(notificationStream).first;
         await clientA.postEvent(notificationStream, messageEvent, message1);
@@ -47,7 +47,7 @@ void main() {
         expect(event.data, message1);
       });
 
-      test('streamCancel', () async {
+      test(CoreDtdServiceConstants.streamCancel, () async {
         await clientB.streamListen(notificationStream);
         final eventFuture = clientB.onEvent(notificationStream).first;
         await clientB.streamCancel(notificationStream);
@@ -98,25 +98,119 @@ void main() {
           {'type': 'test', 'data': data, 'params': params},
         );
       });
+
+      test(CoreDtdServiceConstants.getRegisteredServices, () async {
+        await clientA.registerService(
+          'TestService',
+          'foo',
+          (Parameters params) async {
+            return {
+              'type': 'test',
+              'data': data,
+              'params': params.asMap,
+            };
+          },
+        );
+        await clientA.registerService(
+          'TestService',
+          'bar',
+          (Parameters params) async {
+            return {
+              'type': 'test',
+              'data': data,
+              'params': params.asMap,
+            };
+          },
+          capabilities: {
+            'language': 'french',
+          },
+        );
+        await clientB.registerService(
+          'OtherService',
+          'foo',
+          (Parameters params) async {
+            return {
+              'type': 'other',
+              'data': data,
+              'params': params.asMap,
+            };
+          },
+          capabilities: {
+            'skills': 'baking',
+          },
+        );
+
+        final response = await clientA.getRegisteredServices();
+        expect(
+          response.toJson(),
+          {
+            'type': 'RegisteredServicesResponse',
+            'dtdServices': [
+              'streamListen',
+              'streamCancel',
+              'postEvent',
+              'registerService',
+              'getRegisteredServices',
+              'ConnectedApp.registerVmService',
+              'ConnectedApp.unregisterVmService',
+              'ConnectedApp.getVmServices',
+              'FileSystem.readFileAsString',
+              'FileSystem.writeFileAsString',
+              'FileSystem.listDirectoryContents',
+              'FileSystem.setIDEWorkspaceRoots',
+              'FileSystem.getIDEWorkspaceRoots',
+              'FileSystem.getProjectRoots',
+              'UnifiedAnalytics.getConsentMessage',
+              'UnifiedAnalytics.shouldShowMessage',
+              'UnifiedAnalytics.clientShowedMessage',
+              'UnifiedAnalytics.telemetryEnabled',
+              'UnifiedAnalytics.setTelemetry',
+              'UnifiedAnalytics.send',
+              'UnifiedAnalytics.listFakeAnalyticsSentEvents',
+            ],
+            'clientServices': [
+              {
+                'name': 'TestService',
+                'methods': [
+                  {
+                    'name': 'foo',
+                  },
+                  {
+                    'name': 'bar',
+                    'capabilities': <String, Object?>{
+                      'language': 'french',
+                    },
+                  }
+                ],
+              },
+              {
+                'name': 'OtherService',
+                'methods': [
+                  {
+                    'name': 'foo',
+                    'capabilities': <String, Object?>{
+                      'skills': 'baking',
+                    },
+                  }
+                ],
+              },
+            ],
+          },
+        );
+      });
     });
   });
 
   test('dtd can use streams directly', () async {
     const exampleEventToSend = {
       'jsonrpc': '2.0',
-      'method': 'streamNotify',
+      'method': CoreDtdServiceConstants.streamNotify,
       'params': {
-        'streamId': 'testStream',
-        'eventKind': 'x',
-        'eventData': <String, Object?>{'foo': 'bar'},
-        'timestamp': 1,
+        DtdParameters.streamId: 'testStream',
+        DtdParameters.eventKind: 'x',
+        DtdParameters.eventData: <String, Object?>{'foo': 'bar'},
+        DtdParameters.timestamp: 1,
       },
-    };
-    const exampleCallToReceive = {
-      'jsonrpc': '2.0',
-      'method': 'foo.bar',
-      'id': 0,
-      'params': <String, Object?>{},
     };
 
     final clientToServer = StreamController<String>();
@@ -129,12 +223,57 @@ void main() {
     final clientReceivedEvent = await client.onEvent('testStream').first;
     expect(clientReceivedEvent.data['foo'], 'bar');
 
-    // Send a request and ensure it comes on the stream.
-    // Discard "Connection closed with pending 'foo.bar'"" error because the
-    // test doesn't respond to it.
+    // Send requests and ensure they comes over the stream.
+    // Discard "Connection closed with pending 'foo.bar'" errors because the
+    // test doesn't respond to these.
+
+    // Call service with no parameters.
     unawaited(
       client.call('foo', 'bar').onError((_, __) => DTDResponse('', '', {})),
     );
-    expect(jsonDecode(await clientToServer.stream.first), exampleCallToReceive);
+    // Call service with parameters.
+    unawaited(
+      client.call('foo', 'bar', params: {'test': 'test'}).onError(
+        (_, __) => DTDResponse('', '', {}),
+      ),
+    );
+    // Call method with null service.
+    unawaited(
+      client.call(null, 'bar').onError((_, __) => DTDResponse('', '', {})),
+    );
+
+    const expectedRequests = 3;
+    final requestsReceived = <String>[];
+    final allRequestsReceived = Completer<void>();
+
+    StreamSubscription<String>? sub;
+    sub = clientToServer.stream.asBroadcastStream().listen((request) {
+      requestsReceived.add(request);
+      if (requestsReceived.length == expectedRequests) {
+        sub!.cancel();
+        allRequestsReceived.complete();
+      }
+    });
+    addTearDown(() => sub?.cancel());
+    await allRequestsReceived.future;
+
+    expect(
+      jsonDecode(requestsReceived[0]),
+      {'jsonrpc': '2.0', 'method': 'foo.bar', 'id': 0},
+    );
+    expect(
+      jsonDecode(requestsReceived[1]),
+      {
+        'jsonrpc': '2.0',
+        'method': 'foo.bar',
+        'id': 1,
+        'params': <String, Object?>{'test': 'test'},
+      },
+    );
+
+    expect(
+      jsonDecode(requestsReceived[2]),
+      {'jsonrpc': '2.0', 'method': 'bar', 'id': 2},
+    );
   });
 }

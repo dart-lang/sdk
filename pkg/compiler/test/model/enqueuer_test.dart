@@ -172,7 +172,8 @@ Iterable<List<Impact>> permutations(List<Impact> impacts) sync* {
 runTestPermutation(Test test, List<Impact> impacts) async {
   Compiler compiler = compilerFor(
     memorySourceFiles: {
-      'main.dart': '''
+      'main.dart':
+          '''
 ${test.code}
 main() {}
 ''',
@@ -199,20 +200,24 @@ main() {}
     ElementEnvironment elementEnvironment,
     String name,
   ) {
-    ClassEntity cls =
-        elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, name)!;
-    ConstructorEntity constructor =
-        elementEnvironment.lookupConstructor(cls, '')!;
+    ClassEntity cls = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      name,
+    )!;
+    ConstructorEntity constructor = elementEnvironment.lookupConstructor(
+      cls,
+      '',
+    )!;
     InterfaceType type = elementEnvironment.getRawType(cls);
-    WorldImpact impact =
-        WorldImpactBuilderImpl()..registerStaticUse(
-          new StaticUse.typedConstructorInvoke(
-            constructor,
-            constructor.parameterStructure.callStructure,
-            type,
-            null,
-          ),
-        );
+    WorldImpact impact = WorldImpactBuilderImpl()
+      ..registerStaticUse(
+        new StaticUse.typedConstructorInvoke(
+          constructor,
+          constructor.parameterStructure.callStructure,
+          type,
+          null,
+        ),
+      );
     enqueuer.applyImpact(impact);
   }
 
@@ -223,19 +228,18 @@ main() {}
     String methodName,
     Object Function(ClassEntity cls) createConstraint,
   ) {
-    ClassEntity cls =
-        elementEnvironment.lookupClass(
-          elementEnvironment.mainLibrary!,
-          className,
-        )!;
+    ClassEntity cls = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      className,
+    )!;
     Selector selector = Selector.call(
       Name(methodName, elementEnvironment.mainLibrary!.canonicalUri),
       CallStructure.noArgs,
     );
-    WorldImpact impact =
-        WorldImpactBuilderImpl()..registerDynamicUse(
-          DynamicUse(selector, createConstraint(cls), const <DartType>[]),
-        );
+    WorldImpact impact = WorldImpactBuilderImpl()
+      ..registerDynamicUse(
+        DynamicUse(selector, createConstraint(cls), const <DartType>[]),
+      );
     enqueuer.applyImpact(impact);
   }
 

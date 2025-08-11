@@ -4,11 +4,13 @@
 
 library source_inset_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 
 class SourceInsetElement extends CustomElement implements Renderable {
@@ -62,12 +64,12 @@ class SourceInsetElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
+    children = <HTMLElement>[
       new ScriptInsetElement(
               _isolate, _location.script!, _scripts, _objects, _events,
               startPos: _location.tokenPos,

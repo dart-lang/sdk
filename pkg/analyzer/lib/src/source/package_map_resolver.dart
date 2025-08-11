@@ -6,7 +6,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
-import 'package:analyzer/src/util/asserts.dart' as asserts;
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -28,13 +27,12 @@ class PackageMapUriResolver extends UriResolver {
   /// [packageMap] is a table mapping package names to the paths of the
   /// directories containing the package
   PackageMapUriResolver(this.resourceProvider, this.packageMap) {
-    asserts.notNull(resourceProvider);
-    asserts.notNull(packageMap);
     packageMap.forEach((name, folders) {
       if (folders.length != 1) {
         throw ArgumentError(
-            'Exactly one folder must be specified for a package.'
-            'Found $name = $folders');
+          'Exactly one folder must be specified for a package. '
+          'Found $name = $folders',
+        );
       }
     });
   }

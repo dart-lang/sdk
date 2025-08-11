@@ -70,12 +70,13 @@ RecordTypeAnnotation
   }
 
   test_language219_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(({int f1, String f2}) x) {}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1)],
+    );
 
     var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
@@ -87,19 +88,20 @@ FormalParameterList
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+    declaredElement: <testLibraryFragment> x@45
       type: InvalidType
   rightParenthesis: )
 ''');
   }
 
   test_language219_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f((int, String) x) {}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1)],
+    );
 
     var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
@@ -111,7 +113,7 @@ FormalParameterList
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+    declaredElement: <testLibraryFragment> x@37
       type: InvalidType
   rightParenthesis: )
 ''');

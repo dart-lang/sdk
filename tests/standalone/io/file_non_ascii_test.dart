@@ -15,30 +15,38 @@ main() {
   var precomposed = 'æøå';
   var decomposed = new String.fromCharCodes([47, 230, 248, 97, 778]);
 
-  Directory.systemTemp.createTemp('dart_file_non_ascii').then((tempDir) {
-    Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
-    nonAsciiDir.create().then((nonAsciiDir) {
-      nonAsciiDir.exists().then((result) {
-        Expect.isTrue(result);
-        File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
-        nonAsciiFile.writeAsString('æøå').then((_) {
-          nonAsciiFile.exists().then((result) {
+  Directory.systemTemp
+      .createTemp('dart_file_non_ascii')
+      .then((tempDir) {
+        Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
+        nonAsciiDir.create().then((nonAsciiDir) {
+          nonAsciiDir.exists().then((result) {
             Expect.isTrue(result);
-            nonAsciiFile.readAsString().then((contents) {
-              // The contents of the file is precomposed utf8.
-              Expect.equals(precomposed, contents);
-              nonAsciiFile.create().then((_) {
-                var d = nonAsciiFile.parent;
-                Expect.isTrue(d.path.endsWith(precomposed) ||
-                    d.path.endsWith(decomposed));
-                nonAsciiFile.length().then((length) {
-                  Expect.equals(6, length);
-                  nonAsciiFile.lastModified().then((_) {
-                    nonAsciiFile.resolveSymbolicLinks().then((path) {
-                      Expect.isTrue(path.endsWith('${precomposed}.txt') ||
-                          path.endsWith('${decomposed}.txt'));
-                      tempDir.delete(recursive: true).then((_) {
-                        asyncEnd();
+            File nonAsciiFile = new File('${nonAsciiDir.path}/æøå.txt');
+            nonAsciiFile.writeAsString('æøå').then((_) {
+              nonAsciiFile.exists().then((result) {
+                Expect.isTrue(result);
+                nonAsciiFile.readAsString().then((contents) {
+                  // The contents of the file is precomposed utf8.
+                  Expect.equals(precomposed, contents);
+                  nonAsciiFile.create().then((_) {
+                    var d = nonAsciiFile.parent;
+                    Expect.isTrue(
+                      d.path.endsWith(precomposed) ||
+                          d.path.endsWith(decomposed),
+                    );
+                    nonAsciiFile.length().then((length) {
+                      Expect.equals(6, length);
+                      nonAsciiFile.lastModified().then((_) {
+                        nonAsciiFile.resolveSymbolicLinks().then((path) {
+                          Expect.isTrue(
+                            path.endsWith('${precomposed}.txt') ||
+                                path.endsWith('${decomposed}.txt'),
+                          );
+                          tempDir.delete(recursive: true).then((_) {
+                            asyncEnd();
+                          });
+                        });
                       });
                     });
                   });
@@ -47,9 +55,8 @@ main() {
             });
           });
         });
+      })
+      .catchError((e) {
+        Expect.fail("File not found");
       });
-    });
-  }).catchError((e) {
-    Expect.fail("File not found");
-  });
 }

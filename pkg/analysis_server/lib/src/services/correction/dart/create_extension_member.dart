@@ -4,12 +4,14 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -42,25 +44,34 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     _getterName = nameNode.name;
 
     // prepare target
-    Expression? target;
+    DartType? targetType;
+    ExtensionElement? extensionElement;
     switch (nameNode.parent) {
       case PrefixedIdentifier prefixedIdentifier:
         if (prefixedIdentifier.identifier == nameNode) {
-          target = prefixedIdentifier.prefix;
+          targetType = prefixedIdentifier.prefix.staticType;
         }
       case PropertyAccess propertyAccess:
         if (propertyAccess.propertyName == nameNode) {
-          target = propertyAccess.realTarget;
+          targetType = propertyAccess.realTarget.staticType;
+          if (propertyAccess.realTarget case ExtensionOverride(
+            :var element,
+          ) when targetType == null) {
+            extensionElement = element;
+            targetType = extensionElement.thisType;
+          }
         }
-    }
-    if (target == null) {
-      return;
+      case ExpressionFunctionBody expressionFunctionBody:
+        if (expressionFunctionBody.expression == nameNode) {
+          targetType = node.enclosingInstanceElement?.thisType;
+        }
+      default:
+        targetType = nameNode.enclosingInstanceElement?.thisType;
     }
 
     // TODO(FMorschel): We should take into account if the target type contains
     // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
-    var targetType = target.staticType;
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
@@ -72,6 +83,9 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
 
     void writeGetter(DartEditBuilder builder) {
+      if (inStaticContext) {
+        builder.write('static ');
+      }
       if (fieldType != null) {
         builder.writeType(fieldType, methodBeingCopied: methodBeingCopied);
         builder.write(' ');
@@ -83,14 +97,27 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       builder.write(';');
     }
 
-    var updatedExisting = await _updateExistingExtension(builder, targetType, (
-      extension,
-      builder,
-    ) {
-      builder.insertGetter(extension, (builder) {
-        writeGetter(builder);
+    bool updatedExisting;
+    if (extensionElement != null) {
+      updatedExisting = await _updateExistingExtension2(
+        builder,
+        extensionElement,
+        (extension, builder) {
+          builder.insertGetter(extension, (builder) {
+            writeGetter(builder);
+          });
+        },
+      );
+    } else {
+      updatedExisting = await _updateExistingExtension(builder, targetType, (
+        extension,
+        builder,
+      ) {
+        builder.insertGetter(extension, (builder) {
+          writeGetter(builder);
+        });
       });
-    });
+    }
     if (updatedExisting) {
       return;
     }
@@ -118,27 +145,48 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var static = false;
     var nameNode = node;
     if (nameNode is! SimpleIdentifier) {
       return;
     }
 
-    var invocation = nameNode.parent;
-    if (invocation is! MethodInvocation) {
-      return;
-    }
-    if (invocation.methodName != nameNode) {
+    var parent = nameNode.parent;
+    var isInvocation = true;
+    MethodInvocation? invocation;
+    Expression? target;
+    if (parent is! MethodInvocation) {
+      isInvocation = false;
+      target = switch (parent) {
+        PropertyAccess(:var realTarget) => realTarget,
+        PrefixedIdentifier(:var prefix) => prefix,
+        _ => null,
+      };
+    } else if (parent.methodName == nameNode) {
+      invocation = parent;
+      target = invocation.realTarget;
+    } else {
       return;
     }
     _methodName = nameNode.name;
 
-    var target = invocation.realTarget;
-    if (target == null) {
-      return;
+    DartType? targetType;
+    ExtensionElement? extensionElement;
+    if (target is ExtensionOverride) {
+      targetType = target.extendedType;
+      extensionElement = target.element;
+    } else if (target == null) {
+      extensionElement = node.enclosingInstanceElement?.ifTypeOrNull();
+      targetType = extensionElement?.thisType;
+    } else {
+      // We need the type for the extension.
+      targetType = target.staticType;
     }
-
-    // We need the type for the extension.
-    var targetType = target.staticType;
+    if (targetType == null && target is SimpleIdentifier) {
+      extensionElement = target.element?.ifTypeOrNull();
+      targetType = extensionElement?.thisType;
+      static = true;
+    }
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
@@ -146,11 +194,33 @@ class CreateExtensionMethod extends _CreateExtensionMember {
     }
 
     // Try to find the return type.
-    var returnType = inferUndefinedExpressionType(invocation);
+    DartType? returnType;
+    if (invocation ?? parent case Expression exp) {
+      returnType = inferUndefinedExpressionType(exp);
+    }
+
+    if (returnType is InterfaceType && returnType.isDartCoreFunction) {
+      returnType = FunctionTypeImpl(
+        typeParameters: const [],
+        parameters: const [],
+        returnType: DynamicTypeImpl.instance,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
+    if (returnType is! FunctionType && !isInvocation) {
+      return;
+    }
+
+    var functionType = !isInvocation ? returnType as FunctionType : null;
 
     void writeMethod(DartEditBuilder builder) {
+      if (static) {
+        builder.write('static ');
+      }
+
       if (builder.writeType(
-        returnType,
+        isInvocation ? returnType : functionType?.returnType,
         groupName: 'RETURN_TYPE',
         methodBeingCopied: methodBeingCopied,
       )) {
@@ -162,30 +232,53 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       });
 
       builder.writeTypeParameters(
-        [
-              returnType,
-              ...invocation.argumentList.arguments.map((e) => e.staticType),
-            ].typeParameters
+        ([
+                isInvocation ? returnType : functionType?.returnType,
+                ...?functionType?.formalParameters.map((e) => e.type),
+                ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+              ].typeParameters
+              ..addAll([...?functionType?.typeParameters]))
             .whereNot([targetType].typeParameters.contains)
             .toList(),
       );
 
-      builder.write('(');
-      builder.writeParametersMatchingArguments(
-        invocation.argumentList,
-        methodBeingCopied: methodBeingCopied,
-      );
-      builder.write(') {}');
+      if (invocation?.argumentList case var arguments?) {
+        builder.write('(');
+        builder.writeParametersMatchingArguments(
+          arguments,
+          methodBeingCopied: methodBeingCopied,
+        );
+        builder.write(')');
+      } else if (functionType != null) {
+        builder.writeFormalParameters(
+          functionType.formalParameters,
+          methodBeingCopied: methodBeingCopied,
+        );
+      }
+      builder.write(' {}');
     }
 
-    var updatedExisting = await _updateExistingExtension(builder, targetType, (
-      extension,
-      builder,
-    ) {
-      builder.insertMethod(extension, (builder) {
-        writeMethod(builder);
+    bool updatedExisting;
+    if (extensionElement != null) {
+      updatedExisting = await _updateExistingExtension2(
+        builder,
+        extensionElement,
+        (extension, builder) {
+          builder.insertMethod(extension, (builder) {
+            writeMethod(builder);
+          });
+        },
+      );
+    } else {
+      updatedExisting = await _updateExistingExtension(builder, targetType, (
+        extension,
+        builder,
+      ) {
+        builder.insertMethod(extension, (builder) {
+          writeMethod(builder);
+        });
       });
-    });
+    }
     if (updatedExisting) {
       return;
     }
@@ -220,7 +313,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
 
     switch (node) {
       case IndexExpression(:var parent):
-        if (node.target?.staticType?.element3.declaresIndex ?? true) {
+        if (node.target?.staticType?.element.declaresIndex ?? true) {
           return;
         }
         target = node.target;
@@ -418,7 +511,7 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     return CorrectionApplicability.singleLocation;
   }
 
-  ExecutableElement2? get methodBeingCopied =>
+  ExecutableElement? get methodBeingCopied =>
       _enclosingFunction?.declaredFragment?.element;
 
   FunctionDeclaration? get _enclosingFunction => node.thisOrAncestorOfType();
@@ -472,18 +565,41 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
   }
 
   ExtensionDeclaration? _existingExtension(DartType targetType) {
-    for (var existingExtension in unitResult.unit.declarations) {
-      if (existingExtension is ExtensionDeclaration) {
-        var element = existingExtension.declaredFragment!.element;
-        var instantiated = [element].applicableTo(
-          targetLibrary: libraryElement2,
-          targetType: targetType as TypeImpl,
-          strictCasts: true,
-        );
-        if (instantiated.isNotEmpty) {
-          return existingExtension;
-        }
+    for (var existingExtension
+        in unitResult.unit.declarations.whereType<ExtensionDeclaration>()) {
+      var extendedType =
+          existingExtension.declaredFragment!.element.extendedType;
+      if (extendedType == targetType) {
+        return existingExtension;
       }
+    }
+    return null;
+  }
+
+  Future<(String, ExtensionDeclaration)?> _existingExtension2(
+    ExtensionElement extension,
+  ) async {
+    var library = extension.library;
+    if (library.isInSdk) {
+      return null;
+    }
+    var path = library.library.firstFragment.source.fullName;
+    var unit = await unitResult.session.getResolvedUnit(path);
+    if (unit is! ResolvedUnitResult) {
+      return null;
+    }
+    var existingExtension = unit.unit.declarations
+        .whereType<ExtensionDeclaration>()
+        .firstWhere(
+          (declaration) => declaration.declaredFragment!.element == extension,
+        );
+    var instantiated = [extension].applicableTo(
+      targetLibrary: libraryElement2,
+      targetType: extension.thisType as TypeImpl,
+      strictCasts: true,
+    );
+    if (instantiated.isNotEmpty) {
+      return (path, existingExtension);
     }
     return null;
   }
@@ -504,6 +620,24 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     });
     return true;
   }
+
+  Future<bool> _updateExistingExtension2(
+    ChangeBuilder builder,
+    ExtensionElement extensionElement,
+    void Function(ExtensionDeclaration existing, DartFileEditBuilder builder)
+    write,
+  ) async {
+    var record = await _existingExtension2(extensionElement);
+    if (record == null) {
+      return false;
+    }
+    var (file, extension) = record;
+
+    await builder.addDartFileEdit(file, (builder) {
+      write(extension, builder);
+    });
+    return true;
+  }
 }
 
 extension on List<DartType?> {
@@ -517,10 +651,10 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement2> get typeParameters =>
+  List<TypeParameterElement> get typeParameters =>
       {
         for (var type in whereType<TypeParameterType>()) ...[
-          type.element3,
+          type.element,
           ...[type.bound].typeParameters,
         ],
         for (var type in whereType<InterfaceType>())
@@ -528,27 +662,20 @@ extension on List<DartType?> {
       }.toList();
 }
 
-extension on Element2? {
+extension on Element? {
   bool get declaresIndex {
     var element = this;
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return false;
     }
-    var inheritanceManager3 = InheritanceManager3();
-    var interface = inheritanceManager3.getInterface2(element);
-    var bracesGetter =
-        interface.map2[Name.forLibrary(
-          element.library2,
-          TokenType.INDEX.lexeme,
-        )];
-    if (bracesGetter != null) {
-      return true;
-    }
-    var bracesSetter =
-        interface.map2[Name.forLibrary(
-          element.library2,
-          TokenType.INDEX_EQ.lexeme,
-        )];
-    return bracesSetter != null;
+    var indexName = Name.forLibrary(element.library, TokenType.INDEX.lexeme);
+    var indexEqName = Name.forLibrary(
+      element.library,
+      TokenType.INDEX_EQ.lexeme,
+    );
+    var member =
+        element.getInterfaceMember(indexName) ??
+        element.getInterfaceMember(indexEqName);
+    return member != null;
   }
 }

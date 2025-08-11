@@ -8,8 +8,7 @@ enum FormalParameterKind {
   requiredPositional,
   requiredNamed,
   optionalNamed,
-  optionalPositional,
-  ;
+  optionalPositional;
 
   bool get isRequiredPositional {
     return FormalParameterKind.requiredPositional == this;

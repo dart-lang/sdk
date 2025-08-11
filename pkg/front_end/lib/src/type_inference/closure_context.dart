@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../codes/cfe_codes.dart';
 import '../kernel/invalid_type.dart';
@@ -219,12 +218,7 @@ class _SyncClosureContext implements ClosureContext {
             _returnContext, expressionType, statement.expression!,
             fileOffset: statement.expression!.fileOffset,
             isVoidAllowed: true,
-            errorTemplate: templateInvalidReturn,
-            nullabilityErrorTemplate: templateInvalidReturnNullability,
-            nullabilityPartErrorTemplate: templateInvalidReturnPartNullability,
-            nullabilityNullErrorTemplate: templateInvalidReturnNullabilityNull,
-            nullabilityNullTypeErrorTemplate:
-                templateInvalidReturnNullabilityNullType);
+            errorTemplate: templateInvalidReturn);
         statement.expression = expression..parent = statement;
       }
     }
@@ -300,8 +294,8 @@ class _SyncClosureContext implements ClosureContext {
       // With null safety: if R is void, or the function literal is marked
       // async and R is FutureOr<void>, let S be void.
       inferredReturnType = const VoidType();
-    } else if (inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType!,
-        returnContext, SubtypeCheckMode.withNullabilities)) {
+    } else if (inferrer.typeSchemaEnvironment
+        .isSubtypeOf(actualReturnedType!, returnContext)) {
       // Otherwise, if T <: R then let S be T.
       inferredReturnType = actualReturnedType;
     } else {
@@ -478,9 +472,8 @@ class _AsyncClosureContext implements ClosureContext {
           ..parent = statement;
       } else if (flattenedExpressionType is! VoidType &&
           !inferrer.typeSchemaEnvironment
-              .performNullabilityAwareSubtypeCheck(
-                  flattenedExpressionType, emittedValueType!)
-              .isSubtypeWhenUsingNullabilities()) {
+              .performSubtypeCheck(flattenedExpressionType, emittedValueType!)
+              .isSuccess()) {
         // It is a compile-time error if s is `return e;`, flatten(S) is not
         // void, S is not assignable to T_v, and flatten(S) is not a subtype
         // of T_v.
@@ -491,14 +484,7 @@ class _AsyncClosureContext implements ClosureContext {
                 inferrer.computeGreatestClosure2(_returnContext),
             declaredContextType: returnType,
             isVoidAllowed: false,
-            errorTemplate: templateInvalidReturnAsync,
-            nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
-            nullabilityPartErrorTemplate:
-                templateInvalidReturnAsyncPartNullability,
-            nullabilityNullErrorTemplate:
-                templateInvalidReturnAsyncNullabilityNull,
-            nullabilityNullTypeErrorTemplate:
-                templateInvalidReturnAsyncNullabilityNullType)
+            errorTemplate: templateInvalidReturnAsync)
           ..parent = statement;
       }
     }
@@ -571,8 +557,8 @@ class _AsyncClosureContext implements ClosureContext {
         returnContext is FutureOrType &&
             returnContext.typeArgument is VoidType) {
       inferredType = const VoidType();
-    } else if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
-        inferredType!, returnContext, SubtypeCheckMode.withNullabilities)) {
+    } else if (!inferrer.typeSchemaEnvironment
+        .isSubtypeOf(inferredType!, returnContext)) {
       // If the inferred return type isn't a subtype of the context, we use
       // the context.
       inferredType = returnContext;
@@ -745,8 +731,8 @@ class _SyncStarClosureContext implements ClosureContext {
     DartType inferredType = inferrer.wrapType(inferredElementType!,
         inferrer.coreTypes.iterableClass, Nullability.nonNullable);
 
-    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
-        _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
+    if (!inferrer.typeSchemaEnvironment
+        .isSubtypeOf(inferredType, _yieldElementContext)) {
       // Coverage-ignore-block(suite): Not run.
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
@@ -883,8 +869,8 @@ class _AsyncStarClosureContext implements ClosureContext {
     DartType inferredType = inferrer.wrapType(inferredElementType!,
         inferrer.coreTypes.streamClass, Nullability.nonNullable);
 
-    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
-        _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
+    if (!inferrer.typeSchemaEnvironment
+        .isSubtypeOf(inferredType, _yieldElementContext)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);

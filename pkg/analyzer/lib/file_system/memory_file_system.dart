@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart' hide Watcher;
@@ -40,12 +39,14 @@ class MemoryResourceProvider implements ResourceProvider {
   MemoryResourceProvider({
     pathos.Context? context,
     this.delayWatcherInitialization,
-  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
-            // On Windows, ensure that the current drive matches
-            // the drive inserted by ResourceProvider.convertPath
-            // so that packages are mapped to the correct drive
-            ? pathos.Context(current: 'C:\\')
-            : pathos.context;
+  }) : _pathContext =
+           context ??=
+               pathos.style == pathos.Style.windows
+                   // On Windows, ensure that the current drive matches
+                   // the drive inserted by ResourceProvider.convertPath
+                   // so that packages are mapped to the correct drive
+                   ? pathos.Context(current: 'C:\\')
+                   : pathos.context;
 
   @override
   pathos.Context get pathContext => _pathContext;
@@ -55,8 +56,24 @@ class MemoryResourceProvider implements ResourceProvider {
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
-  String convertPath(String filePath) =>
-      ResourceProviderExtensions(this).convertPath(filePath);
+  @Deprecated("Use 'ResourceProviderExtensions.convertPath' directly")
+  String convertPath(String filePath) {
+    // This implementation is duplicate with that at
+    // 'package:analyzer_testing/utilities/extensions/resource_provider.dart'.
+    // But the analyzer package's lib code _cannot_ depend on the
+    // analyzer_testing package; hence this duplication until this test-only
+    // method is removed.
+    if (pathContext.style == pathos.windows.style) {
+      if (filePath.startsWith(pathos.posix.separator)) {
+        filePath = r'C:' + filePath;
+      }
+      filePath = filePath.replaceAll(
+        pathos.posix.separator,
+        pathos.windows.separator,
+      );
+    }
+    return filePath;
+  }
 
   /// Delete the file with the given path.
   void deleteFile(String path) {
@@ -133,6 +150,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) {
+    // ignore: deprecated_member_use_from_same_package
     var path = convertPath('/user/home/$pluginId');
     return newFolder(path);
   }
@@ -218,8 +236,10 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatchers.forEach((String watcherPath,
-        List<StreamController<WatchEvent>> streamControllers) {
+    _pathToWatchers.forEach((
+      String watcherPath,
+      List<StreamController<WatchEvent>> streamControllers,
+    ) {
       if (watcherPath == path || pathContext.isWithin(watcherPath, path)) {
         for (StreamController<WatchEvent> streamController
             in streamControllers) {
@@ -295,10 +315,7 @@ class MemoryResourceProvider implements ResourceProvider {
     _addToParentFolderData(parentData, path);
 
     var exists = _pathToData.containsKey(path);
-    _pathToData[path] = _FileData(
-      bytes: bytes,
-      timeStamp: nextStamp++,
-    );
+    _pathToData[path] = _FileData(bytes: bytes, timeStamp: nextStamp++);
     _notifyWatchers(path, exists ? ChangeType.MODIFY : ChangeType.ADD);
 
     return _MemoryFile(this, path);
@@ -309,10 +326,7 @@ class _FileData extends _ResourceData {
   final Uint8List bytes;
   final int timeStamp;
 
-  _FileData({
-    required this.bytes,
-    required this.timeStamp,
-  });
+  _FileData({required this.bytes, required this.timeStamp});
 }
 
 class _FolderData extends _ResourceData {
@@ -509,13 +523,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       if (provider.pathContext.dirname(resourcePath) == path) {
         var target = provider.getResource(targetPath);
         if (target is File) {
-          children.add(
-            _MemoryFile(provider, resourcePath),
-          );
+          children.add(_MemoryFile(provider, resourcePath));
         } else if (target is Folder) {
-          children.add(
-            _MemoryFolder(provider, resourcePath),
-          );
+          children.add(_MemoryFolder(provider, resourcePath));
         }
       }
     });
@@ -621,16 +631,22 @@ abstract class _MemoryResource implements Resource {
     void setupWatcher() {
       var watchers = provider._pathToWatchers[path] ??= [];
       watchers.add(streamController);
-      streamController.done.then((_) {
-        watchers.remove(streamController);
-        if (watchers.isEmpty) {
-          provider._pathToWatchers.remove(path);
-        }
-      });
+      unawaited(
+        streamController.done.then((_) {
+          watchers.remove(streamController);
+          if (watchers.isEmpty) {
+            provider._pathToWatchers.remove(path);
+          }
+        }),
+      );
       ready.complete();
       if (provider.emitPathNotFoundExceptionsForPaths.contains(path)) {
-        streamController.addError(PathNotFoundException(
-            path, 'Simulated PathNotFoundException from _MemoryResource'));
+        streamController.addError(
+          PathNotFoundException(
+            path,
+            'Simulated PathNotFoundException from _MemoryResource',
+          ),
+        );
       }
     }
 

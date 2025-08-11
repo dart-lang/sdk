@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
+import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
@@ -14,10 +15,10 @@ class SortPubDependencies extends LintRule {
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sort_pub_dependencies;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
@@ -26,21 +27,21 @@ class Visitor extends PubspecVisitor<void> {
   Visitor(this.rule);
 
   @override
-  void visitPackageDependencies(PSDependencyList dependencies) {
+  void visitPackageDependencies(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
+  void visitPackageDependencyOverrides(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDevDependencies(PSDependencyList dependencies) {
+  void visitPackageDevDependencies(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
-  void _visitDeps(PSDependencyList dependencies) {
+  void _visitDeps(PubspecDependencyList dependencies) {
     int compare(SourceLocation? lc1, SourceLocation? lc2) {
       if (lc1 == null || lc2 == null) {
         return 0;
@@ -58,7 +59,7 @@ class Visitor extends PubspecVisitor<void> {
         var text = name.text;
         if (text != null) {
           if (text.compareTo(previousName) < 0) {
-            rule.reportPubLint(name);
+            rule.reportAtPubNode(name);
             return;
           }
           previousName = text;

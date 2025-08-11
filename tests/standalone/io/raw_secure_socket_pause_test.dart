@@ -20,23 +20,29 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 Future<HttpServer> startServer() {
-  return HttpServer.bindSecure("localhost", 0, serverContext, backlog: 5)
-      .then((server) {
+  return HttpServer.bindSecure("localhost", 0, serverContext, backlog: 5).then((
+    server,
+  ) {
     server.listen((HttpRequest request) {
-      request.listen((_) {}, onDone: () {
-        request.response.contentLength = 100;
-        for (int i = 0; i < 10; i++) {
-          request.response.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        }
-        request.response.close();
-      });
+      request.listen(
+        (_) {},
+        onDone: () {
+          request.response.contentLength = 100;
+          for (int i = 0; i < 10; i++) {
+            request.response.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          }
+          request.response.close();
+        },
+      );
     });
     return server;
   });
@@ -47,8 +53,11 @@ main() async {
   int written = 0;
   List<int> body = <int>[];
   var server = await startServer();
-  var socket = await RawSecureSocket.connect("localhost", server.port,
-      context: clientContext);
+  var socket = await RawSecureSocket.connect(
+    "localhost",
+    server.port,
+    context: clientContext,
+  );
   late StreamSubscription subscription;
   bool paused = false;
   bool readEventsTested = false;
@@ -102,9 +111,12 @@ main() async {
     }
   }
 
-  subscription = socket.listen(handleRawEvent, onError: (e, trace) {
-    String msg = "onError handler of RawSecureSocket stream hit: $e";
-    if (trace != null) msg += "\nStackTrace: $trace";
-    Expect.fail(msg);
-  });
+  subscription = socket.listen(
+    handleRawEvent,
+    onError: (e, trace) {
+      String msg = "onError handler of RawSecureSocket stream hit: $e";
+      if (trace != null) msg += "\nStackTrace: $trace";
+      Expect.fail(msg);
+    },
+  );
 }

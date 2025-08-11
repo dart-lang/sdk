@@ -17,8 +17,9 @@ bool _checkForKernelRuntime() {
   // invalid kernel, an empty list, resulting in an `ArgumentError` if kernel
   // blobs are supported.
   try {
-    (Isolate.current as dynamic)
-        .createUriForKernelBlob(new Uint8List.fromList(const []));
+    (Isolate.current as dynamic).createUriForKernelBlob(
+      new Uint8List.fromList(const []),
+    );
     throw new StateError('Expected failure.');
   } on UnsupportedError {
     return false;

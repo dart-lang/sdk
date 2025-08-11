@@ -1441,6 +1441,6 @@ final currentExpectations = [
 #4    runTest (%test%)
 <asynchronous suspension>
 #5    main (%test%)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

@@ -16,22 +16,24 @@ main() {
 @reflectiveTest
 class AwaitInWrongContextTest extends PubPackageResolutionTest {
   test_sync() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(x) {
   return await x;
 }
-''', [
-      error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5)],
+    );
   }
 
   test_syncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(x) sync* {
   yield await x;
 }
-''', [
-      error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 21, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 21, 5)],
+    );
   }
 }

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -32,13 +34,10 @@ class AvoidSlowAsyncIo extends LintRule {
     : super(name: LintNames.avoid_slow_async_io, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_slow_async_io;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_slow_async_io;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
@@ -65,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('Directory', 'dart.io')) {
       if (_dirMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -73,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -82,9 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     if (target is Identifier) {
       var element = target.element;
-      if (element is ClassElement2 && element.name3 == 'FileSystemEntity') {
+      if (element is ClassElement && element.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }

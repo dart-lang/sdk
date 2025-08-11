@@ -2,7 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'record_use.dart';
-export 'src/internal/definition.dart' show Definition;
-export 'src/internal/usage.dart' show Usage;
-export 'src/internal/usage_record.dart' show UsageRecord;
+export 'src/constant.dart'
+    show
+        BoolConstant,
+        Constant,
+        InstanceConstant,
+        IntConstant,
+        ListConstant,
+        MapConstant,
+        NullConstant,
+        PrimitiveConstant,
+        StringConstant;
+export 'src/definition.dart' show Definition;
+export 'src/identifier.dart' show Identifier;
+export 'src/location.dart' show Location;
+export 'src/metadata.dart' show Metadata, MetadataExt;
+export 'src/record_use.dart' show RecordedUsages;
+export 'src/recordings.dart' show Recordings;
+export 'src/reference.dart'
+    show CallReference, CallTearOff, CallWithArguments, InstanceReference;
+export 'src/signature.dart' show Signature;

@@ -10,7 +10,10 @@ import "dart:mirrors";
 main() {
   var s = "string";
   var im = reflect(s);
-  Expect.throwsNoSuchMethodError(() =>
-      im.invoke(MirrorSystem.getSymbol(
-          "_setAt", im.type.owner as LibraryMirror), [0, 65]));
+  Expect.throwsNoSuchMethodError(
+    () => im.invoke(
+      MirrorSystem.getSymbol("_setAt", im.type.owner as LibraryMirror),
+      [0, 65],
+    ),
+  );
 }

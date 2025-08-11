@@ -98,8 +98,9 @@ mixin VariableCollectorMixin {
 
   void visitInVariableScope(ir.TreeNode root, void Function() f) {
     VariableScopeImpl? oldScope = currentVariableScope;
-    final newScope =
-        currentVariableScope = variableScopeModel.createScopeFor(root);
+    final newScope = currentVariableScope = variableScopeModel.createScopeFor(
+      root,
+    );
     oldScope?.addSubScope(newScope);
     f();
     currentVariableScope = oldScope;

@@ -184,6 +184,10 @@ class SideEffects {
     _flags = other._flags;
   }
 
+  void restrictTo(SideEffects other) {
+    _flags = _flags.intersection(other._flags);
+  }
+
   @override
   String toString() {
     StringBuffer buffer = StringBuffer();

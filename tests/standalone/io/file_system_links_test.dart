@@ -22,10 +22,14 @@ testFileExistsCreate() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.link,
-        FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.notFound,
-        FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(
+      FileSystemEntityType.link,
+      FileSystemEntity.typeSync(y, followLinks: false),
+    );
+    Expect.equals(
+      FileSystemEntityType.notFound,
+      FileSystemEntity.typeSync(x, followLinks: false),
+    );
     Expect.equals(x, new Link(y).targetSync());
 
     new File(y).createSync();
@@ -37,10 +41,14 @@ testFileExistsCreate() {
     Expect.isTrue(FileSystemEntity.isFileSync(x));
     Expect.equals(FileSystemEntityType.file, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.file, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.link,
-        FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.file,
-        FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(
+      FileSystemEntityType.link,
+      FileSystemEntity.typeSync(y, followLinks: false),
+    );
+    Expect.equals(
+      FileSystemEntityType.file,
+      FileSystemEntity.typeSync(x, followLinks: false),
+    );
     Expect.equals(x, new Link(y).targetSync());
 
     new File(x).deleteSync();
@@ -51,10 +59,14 @@ testFileExistsCreate() {
     Expect.isTrue(FileSystemEntity.isDirectorySync(x));
     Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.link,
-        FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.directory,
-        FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(
+      FileSystemEntityType.link,
+      FileSystemEntity.typeSync(y, followLinks: false),
+    );
+    Expect.equals(
+      FileSystemEntityType.directory,
+      FileSystemEntity.typeSync(x, followLinks: false),
+    );
     Expect.equals(x, new Link(y).targetSync());
 
     new Link(y).deleteSync();
@@ -171,22 +183,27 @@ testDirectoryListing() {
 
     files = [];
     dirs = [];
-    var lister = temp.list(recursive: true).listen((entity) {
-      if (entity is File) {
-        files.add(entity.path);
-      } else {
-        Expect.isTrue(entity is Directory);
-        dirs.add(entity.path);
-      }
-    }, onDone: () {
-      Expect.equals(1, files.length);
-      Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
-      Expect.equals(1, dirs.length);
-      Expect.isTrue(dirs[0].endsWith(y));
-      temp.deleteSync(recursive: true);
-      temp2.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    var lister = temp
+        .list(recursive: true)
+        .listen(
+          (entity) {
+            if (entity is File) {
+              files.add(entity.path);
+            } else {
+              Expect.isTrue(entity is Directory);
+              dirs.add(entity.path);
+            }
+          },
+          onDone: () {
+            Expect.equals(1, files.length);
+            Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
+            Expect.equals(1, dirs.length);
+            Expect.isTrue(dirs[0].endsWith(y));
+            temp.deleteSync(recursive: true);
+            temp2.deleteSync(recursive: true);
+            asyncEnd();
+          },
+        );
   });
 }
 
@@ -203,28 +220,31 @@ testDirectoryListingBrokenLink() {
     var dirs = [];
     var links = [];
     var errors = [];
-    temp.list(recursive: true).listen(
-        (entity) {
-          if (entity is File) {
-            files.add(entity.path);
-          } else if (entity is Link) {
-            links.add(entity.path);
-          } else {
-            Expect.isTrue(entity is Directory);
-            dirs.add(entity.path);
-          }
-        },
-        onError: (e) => errors.add(e),
-        onDone: () {
-          Expect.equals(1, files.length);
-          Expect.isTrue(files[0].endsWith(x));
-          Expect.equals(1, links.length);
-          Expect.isTrue(links[0].endsWith(link));
-          Expect.equals(0, dirs.length);
-          Expect.equals(0, errors.length);
-          temp.deleteSync(recursive: true);
-          asyncEnd();
-        });
+    temp
+        .list(recursive: true)
+        .listen(
+          (entity) {
+            if (entity is File) {
+              files.add(entity.path);
+            } else if (entity is Link) {
+              links.add(entity.path);
+            } else {
+              Expect.isTrue(entity is Directory);
+              dirs.add(entity.path);
+            }
+          },
+          onError: (e) => errors.add(e),
+          onDone: () {
+            Expect.equals(1, files.length);
+            Expect.isTrue(files[0].endsWith(x));
+            Expect.equals(1, links.length);
+            Expect.isTrue(links[0].endsWith(link));
+            Expect.equals(0, dirs.length);
+            Expect.equals(0, errors.length);
+            temp.deleteSync(recursive: true);
+            asyncEnd();
+          },
+        );
   });
 }
 

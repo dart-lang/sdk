@@ -17,31 +17,40 @@ import '../../../generated/test_support.dart';
 /// syntactic errors.
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
-      String invalidCode, List<ErrorCode>? errorCodes, String validCode,
-      {CompilationUnitImpl Function(CompilationUnitImpl unit)?
-          adjustValidUnitBeforeComparison,
-      List<ErrorCode>? expectedErrorsInValidCode,
-      FeatureSet? featureSet}) {
+    String invalidCode,
+    List<DiagnosticCode>? diagnosticCodes,
+    String validCode, {
+    CompilationUnitImpl Function(CompilationUnitImpl unit)?
+    adjustValidUnitBeforeComparison,
+    List<DiagnosticCode>? expectedDiagnosticsInValidCode,
+    FeatureSet? featureSet,
+  }) {
     CompilationUnitImpl validUnit;
 
     // Assert that the valid code is indeed valid.
     try {
-      validUnit = parseCompilationUnit(validCode,
-          codes: expectedErrorsInValidCode, featureSet: featureSet);
+      validUnit = parseCompilationUnit(
+        validCode,
+        codes: expectedDiagnosticsInValidCode,
+        featureSet: featureSet,
+      );
       validateTokenStream(validUnit.beginToken);
     } catch (e) {
-//      print('');
-//      print('  Errors in valid code.');
-//      print('    Error: $e');
-//      print('    Code: $validCode');
-//      print('');
+      //      print('');
+      //      print('  Errors in valid code.');
+      //      print('    Error: $e');
+      //      print('    Code: $validCode');
+      //      print('');
       rethrow;
     }
 
     // Compare the structures before asserting valid errors.
-    GatheringErrorListener listener = GatheringErrorListener();
-    var invalidUnit =
-        parseCompilationUnit2(invalidCode, listener, featureSet: featureSet);
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
+    var invalidUnit = parseCompilationUnit2(
+      invalidCode,
+      listener,
+      featureSet: featureSet,
+    );
     validateTokenStream(invalidUnit.beginToken);
     if (adjustValidUnitBeforeComparison != null) {
       validUnit = adjustValidUnitBeforeComparison(validUnit);
@@ -49,8 +58,8 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     ResultComparator.compare(invalidUnit, validUnit);
 
     // Assert valid errors.
-    if (errorCodes != null) {
-      listener.assertErrorsWithCodes(errorCodes);
+    if (diagnosticCodes != null) {
+      listener.assertErrorsWithCodes(diagnosticCodes);
     } else {
       listener.assertNoErrors();
     }
@@ -78,8 +87,10 @@ class ResultComparator {
   ///
   /// The two lists being compared might be lists of AST nodes or lists of
   /// tokens.
-  _Mismatch? _compareLists(
-      {required List<Object?> actual, required List<Object?> expected}) {
+  _Mismatch? _compareLists({
+    required List<Object?> actual,
+    required List<Object?> expected,
+  }) {
     int length = actual.length;
     if (expected.length != length) {
       return _failDifferentLength(actual: actual, expected: expected);
@@ -103,13 +114,19 @@ class ResultComparator {
   /// the names of syntactic getters, and whose values typically match the
   /// values returned by those getters. These maps are then compared using
   /// [_compareTreeParts].
-  _Mismatch? _compareNodesWithMatchingTypes(
-      {required AstNodeImpl actual, required AstNodeImpl expected}) {
+  _Mismatch? _compareNodesWithMatchingTypes({
+    required AstNodeImpl actual,
+    required AstNodeImpl expected,
+  }) {
     var allKeys = <String>{};
-    var actualChildEntities =
-        _computeChildEntitiesMap(actual, keyAccumulator: allKeys);
-    var expectedChildEntities =
-        _computeChildEntitiesMap(expected, keyAccumulator: allKeys);
+    var actualChildEntities = _computeChildEntitiesMap(
+      actual,
+      keyAccumulator: allKeys,
+    );
+    var expectedChildEntities = _computeChildEntitiesMap(
+      expected,
+      keyAccumulator: allKeys,
+    );
     for (var key in allKeys) {
       var actualChild = actualChildEntities[key];
       var expectedChild = expectedChildEntities[key];
@@ -153,8 +170,10 @@ class ResultComparator {
             // An actual synthetic token matches an expected non-synthetic token
             // if the lexemes match. The lengths do not need to match because
             // the length of a synthetic token is zero.
-            assert(actual.length == 0,
-                'Length is expected to be zero because token is synthetic');
+            assert(
+              actual.length == 0,
+              'Length is expected to be zero because token is synthetic',
+            );
             if (actual.lexeme == expected.lexeme) return null;
             // Also, an actual synthetic empty string matches an expected empty
             // string, even if the strings are quotated differently.
@@ -185,8 +204,10 @@ class ResultComparator {
   ///
   /// The two parts being compared might be AST nodes, AST node lists, tokens,
   /// or token lists.
-  _Mismatch? _compareTreeParts(
-      {required Object? actual, required Object? expected}) {
+  _Mismatch? _compareTreeParts({
+    required Object? actual,
+    required Object? expected,
+  }) {
     if (identical(actual, expected)) {
       return null;
     }
@@ -206,7 +227,9 @@ class ResultComparator {
       return _failBecauseUnexpectedType(actual: actual, expected: expected);
     }
     if (_compareNodesWithMatchingTypes(
-            actual: actual as AstNodeImpl, expected: expected as AstNodeImpl)
+          actual: actual as AstNodeImpl,
+          expected: expected as AstNodeImpl,
+        )
         case var mismatch?) {
       var typeName = actual.runtimeType.toString();
       if (typeName.endsWith('Impl')) {
@@ -224,8 +247,10 @@ class ResultComparator {
   ///
   /// This information is derived from the [ChildEntity] objects returned by
   /// [AstNodeImpl.namedChildEntities].
-  Map<String, Object> _computeChildEntitiesMap(AstNodeImpl node,
-      {required Set<String> keyAccumulator}) {
+  Map<String, Object> _computeChildEntitiesMap(
+    AstNodeImpl node, {
+    required Set<String> keyAccumulator,
+  }) {
     var result = <String, Object>{};
     for (var ChildEntity(:name, :value) in node.namedChildEntities) {
       if (node is FormalParameterListImpl && name == 'parameter') {
@@ -236,11 +261,14 @@ class ResultComparator {
         // compensate for this, we need to reassemble the individual `parameter`
         // entities back into a single list.
         keyAccumulator.add('parameters');
-        ((result['parameters'] ??= <AstNode>[]) as List<AstNode>)
-            .add(value as AstNode);
+        ((result['parameters'] ??= <AstNode>[]) as List<AstNode>).add(
+          value as AstNode,
+        );
       } else {
-        assert(!result.containsKey(name),
-            'Unexpected duplicate name in $runtimeType.childEntities: $name');
+        assert(
+          !result.containsKey(name),
+          'Unexpected duplicate name in $runtimeType.childEntities: $name',
+        );
         keyAccumulator.add(name);
         result[name] = value;
       }
@@ -270,8 +298,10 @@ class ResultComparator {
 
   /// Creates a [_Mismatch] representing a piece of syntax that has the wrong
   /// runtime type.
-  _Mismatch _failBecauseUnexpectedType(
-      {required Object actual, required Object expected}) {
+  _Mismatch _failBecauseUnexpectedType({
+    required Object actual,
+    required Object expected,
+  }) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Expected a ');
     buffer.write(expected.runtimeType);
@@ -282,8 +312,10 @@ class ResultComparator {
 
   /// Creates a [_Mismatch] representing a piece of syntax that is a list with
   /// an unexpected length.
-  _Mismatch _failDifferentLength(
-      {required List<Object?> actual, required List<Object?> expected}) {
+  _Mismatch _failDifferentLength({
+    required List<Object?> actual,
+    required List<Object?> expected,
+  }) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('Expected a list of length ${expected.length}');
     buffer.writeln('  $expected');
@@ -309,15 +341,15 @@ class ResultComparator {
   }
 
   bool _isEmptyStringToken(Token token) => const [
-        '""',
-        "''",
-        '""""""',
-        "''''''",
-        'r""',
-        "r''",
-        'r""""""',
-        "r''''''"
-      ].contains(token.lexeme);
+    '""',
+    "''",
+    '""""""',
+    "''''''",
+    'r""',
+    "r''",
+    'r""""""',
+    "r''''''",
+  ].contains(token.lexeme);
 
   /// Compares the [actual] and [expected] nodes, failing the test if they are
   /// different.
@@ -326,8 +358,10 @@ class ResultComparator {
     if (comparator._compareTreeParts(actual: actual, expected: expected)
         case _Mismatch(:var message, :var reversePath)) {
       if (reversePath.isNotEmpty) {
-        var path =
-            reversePath.reversed.fold('root', (p, seg) => seg.combinePath(p));
+        var path = reversePath.reversed.fold(
+          'root',
+          (p, seg) => seg.combinePath(p),
+        );
         fail('$message  path: $path\n');
       } else {
         fail(message);

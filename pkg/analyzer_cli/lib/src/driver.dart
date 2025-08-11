@@ -6,6 +6,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -111,7 +112,7 @@ class Driver implements CommandLineStarter {
     } else {
       var severity = await _analyzeAll(options);
       // Propagate issues to the exit code.
-      if (_shouldBeFatal(severity, options)) {
+      if (_shouldBeFatal(severity)) {
         io.exitCode = severity.ordinal;
       }
     }
@@ -154,7 +155,7 @@ class Driver implements CommandLineStarter {
   }
 
   /// Perform analysis according to the given [options].
-  Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
+  Future<DiagnosticSeverity> _analyzeAll(CommandLineOptions options) async {
     if (!options.jsonFormat && !options.machineFormat) {
       var fileNames =
           options.sourceFiles.map((String file) {
@@ -180,11 +181,11 @@ class Driver implements CommandLineStarter {
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor;
-    defaultSeverityProcessor = (AnalysisError error) {
-      var filePath = error.source.fullName;
+    defaultSeverityProcessor = (Diagnostic diagnostic) {
+      var filePath = diagnostic.source.fullName;
       var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
-        error,
+        diagnostic,
         options,
         analysisDriver!.getAnalysisOptionsForFile(file),
       );
@@ -222,13 +223,13 @@ class Driver implements CommandLineStarter {
       );
     }
 
-    var allResult = ErrorSeverity.NONE;
+    var allResult = DiagnosticSeverity.NONE;
 
     void reportPartError(String partPath) {
       errorSink.writeln('$partPath is a part and cannot be analyzed.');
       errorSink.writeln('Please pass in a library that contains this part.');
-      io.exitCode = ErrorSeverity.ERROR.ordinal;
-      allResult = allResult.max(ErrorSeverity.ERROR);
+      io.exitCode = DiagnosticSeverity.ERROR.ordinal;
+      allResult = allResult.max(DiagnosticSeverity.ERROR);
     }
 
     var pathList = options.sourceFiles.map(normalizePath).toList();
@@ -253,8 +254,8 @@ class Driver implements CommandLineStarter {
       var files = _collectFiles(sourcePath);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
-        io.exitCode = ErrorSeverity.ERROR.ordinal;
-        return ErrorSeverity.ERROR;
+        io.exitCode = DiagnosticSeverity.ERROR.ordinal;
+        return DiagnosticSeverity.ERROR;
       }
 
       for (var file in files) {
@@ -292,7 +293,7 @@ class Driver implements CommandLineStarter {
               lineInfo: lineInfo,
               isLibrary: true,
               isPart: false,
-              errors: errors,
+              diagnostics: errors,
               analysisOptions: analysisOptions,
             ),
           ]);
@@ -307,7 +308,7 @@ class Driver implements CommandLineStarter {
             }
           }
         } else if (file_paths.isPubspecYaml(pathContext, path)) {
-          var errors = <AnalysisError>[];
+          var diagnostics = <Diagnostic>[];
           try {
             var file = resourceProvider.getFile(path);
             var analysisOptions = analysisDriver.currentSession.analysisContext
@@ -316,7 +317,7 @@ class Driver implements CommandLineStarter {
             var node = loadYamlNode(content, sourceUrl: file.toUri());
 
             if (node is YamlMap) {
-              errors.addAll(
+              diagnostics.addAll(
                 validatePubspec(
                   contents: node,
                   source: FileSource(file),
@@ -325,8 +326,8 @@ class Driver implements CommandLineStarter {
                 ),
               );
             }
-            if (errors.isNotEmpty) {
-              for (var error in errors) {
+            if (diagnostics.isNotEmpty) {
+              for (var error in diagnostics) {
                 var severity =
                     determineProcessedSeverity(
                       error,
@@ -345,7 +346,7 @@ class Driver implements CommandLineStarter {
                   lineInfo: lineInfo,
                   isLibrary: true,
                   isPart: false,
-                  errors: errors,
+                  diagnostics: diagnostics,
                   analysisOptions: analysisOptions,
                 ),
               ]);
@@ -376,7 +377,7 @@ class Driver implements CommandLineStarter {
                 lineInfo: lineInfo,
                 isLibrary: true,
                 isPart: false,
-                errors: errors,
+                diagnostics: errors,
                 analysisOptions: analysisOptions,
               ),
             ]);
@@ -461,7 +462,7 @@ class Driver implements CommandLineStarter {
       path.split(relative).any((part) => part.startsWith('.'));
 
   /// Analyze a single source.
-  Future<ErrorSeverity> _runAnalyzer(
+  Future<DiagnosticSeverity> _runAnalyzer(
     FileState file,
     CommandLineOptions options,
     ErrorFormatter formatter,
@@ -482,8 +483,8 @@ class Driver implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) =>
-      severity == ErrorSeverity.ERROR;
+  bool _shouldBeFatal(DiagnosticSeverity severity) =>
+      severity == DiagnosticSeverity.ERROR;
 
   void _verifyAnalysisOptionsFileExists(CommandLineOptions options) {
     var path = options.defaultAnalysisOptionsPath;
@@ -491,7 +492,7 @@ class Driver implements CommandLineStarter {
       if (!resourceProvider.getFile(path).exists) {
         printAndFail(
           'Options file not found: $path',
-          exitCode: ErrorSeverity.ERROR.ordinal,
+          exitCode: DiagnosticSeverity.ERROR.ordinal,
         );
       }
     }

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,13 +17,10 @@ class SizedBoxForWhitespace extends LintRule {
     : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sized_box_for_whitespace;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_shouldReportForArguments(node.argumentList)) {
-      rule.reportLint(node.constructorName);
+      rule.reportAtNode(node.constructorName);
     }
   }
 

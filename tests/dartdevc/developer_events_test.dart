@@ -83,9 +83,8 @@ void testRegisterExtensionWarningMessage() {
 
     consoleWarnLog.clear();
 
-    var testHandler =
-        (String s, Map<String, String> m) async =>
-            ServiceExtensionResponse.result('test result');
+    var testHandler = (String s, Map<String, String> m) async =>
+        ServiceExtensionResponse.result('test result');
 
     expect(consoleWarnLog.isEmpty, true);
 
@@ -170,9 +169,8 @@ void testRegisterExtension() {
     dwdsVersion = '1.0.0-for-test';
     expect(registerEventLog.isEmpty, true);
 
-    var testHandler =
-        (String s, Map<String, String> m) async =>
-            ServiceExtensionResponse.result('test result');
+    var testHandler = (String s, Map<String, String> m) async =>
+        ServiceExtensionResponse.result('test result');
     registerExtension('ext.method0', testHandler);
 
     expect(registerEventLog.single, 'ext.method0');

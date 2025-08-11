@@ -27,22 +27,23 @@ typedef Dart_ExitIsolateNFT = Void Function();
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final threadPoolBarrierSync = ffiTestFunctions.lookupFunction<
-  Void Function(
-    Pointer<NativeFunction<Dart_CurrentIsolateNFT>>,
-    Pointer<NativeFunction<Dart_EnterIsolateNFT>>,
-    Pointer<NativeFunction<Dart_ExitIsolateNFT>>,
-    IntPtr,
-    Bool,
-  ),
-  void Function(
-    Pointer<NativeFunction<Dart_CurrentIsolateNFT>>,
-    Pointer<NativeFunction<Dart_EnterIsolateNFT>>,
-    Pointer<NativeFunction<Dart_ExitIsolateNFT>>,
-    int,
-    bool,
-  )
->('ThreadPoolTest_BarrierSync');
+final threadPoolBarrierSync = ffiTestFunctions
+    .lookupFunction<
+      Void Function(
+        Pointer<NativeFunction<Dart_CurrentIsolateNFT>>,
+        Pointer<NativeFunction<Dart_EnterIsolateNFT>>,
+        Pointer<NativeFunction<Dart_ExitIsolateNFT>>,
+        IntPtr,
+        Bool,
+      ),
+      void Function(
+        Pointer<NativeFunction<Dart_CurrentIsolateNFT>>,
+        Pointer<NativeFunction<Dart_EnterIsolateNFT>>,
+        Pointer<NativeFunction<Dart_ExitIsolateNFT>>,
+        int,
+        bool,
+      )
+    >('ThreadPoolTest_BarrierSync');
 
 final Pointer<NativeFunction<Dart_CurrentIsolateNFT>> dartCurrentIsolate =
     DynamicLibrary.executable().lookup("Dart_CurrentIsolate").cast();

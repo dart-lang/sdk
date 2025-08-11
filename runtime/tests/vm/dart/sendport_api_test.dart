@@ -26,7 +26,8 @@ final class PortEx extends Struct {
 external SendPort newSendPortEx(PortEx portEx);
 
 @Native<Handle Function(Handle, Pointer<PortEx>)>(
-    symbol: 'Dart_SendPortGetIdEx')
+  symbol: 'Dart_SendPortGetIdEx',
+)
 external Object sendPortGetIdEx(Object sendPort, Pointer<PortEx> outPortExId);
 
 class A {}

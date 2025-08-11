@@ -38,8 +38,10 @@ Future internalMain(List<String> args, [SendPort? sendPort]) async {
     var batch = _BatchHelper();
     await batch._runBatch(parsedArgs);
   } else if (parsedArgs.isExpressionCompiler) {
-    await ExpressionCompilerWorker.createAndStart(parsedArgs.rest,
-        sendPort: sendPort);
+    await ExpressionCompilerWorker.createAndStart(
+      parsedArgs.rest,
+      sendPort: sendPort,
+    );
   } else {
     var result = await compile(parsedArgs);
     exitCode = result.exitCode;
@@ -52,7 +54,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
   final ParsedArguments _startupArgs;
 
   _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
-      : super(connection: workerConnection);
+    : super(connection: workerConnection);
 
   /// Keeps track of our last compilation result so it can potentially be
   /// re-used in a worker.
@@ -72,12 +74,17 @@ class _CompilerWorker extends AsyncWorkerLoop {
     }
 
     lastResult = await runZoned(
-        () => compile(args,
-            compilerState: context?.kernelState, inputDigests: inputDigests),
-        zoneSpecification:
-            ZoneSpecification(print: (self, parent, zone, message) {
-      output.writeln(message.toString());
-    }));
+      () => compile(
+        args,
+        compilerState: context?.kernelState,
+        inputDigests: inputDigests,
+      ),
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, message) {
+          output.writeln(message.toString());
+        },
+      ),
+    );
     return WorkResponse()
       ..exitCode = lastResult!.success ? 0 : 1
       ..output = output.toString();
@@ -108,10 +115,13 @@ class _BatchHelper {
   Future _runBatch(ParsedArguments batchArgs) async {
     _workaroundForLeakingBug();
     if (leakTesting) {
-      var services =
-          await Service.controlWebServer(enable: true, silenceOutput: true);
-      File.fromUri(Directory.systemTemp.uri.resolve('./dart_leak_test_uri'))
-          .writeAsStringSync(services.serverUri!.toString());
+      var services = await Service.controlWebServer(
+        enable: true,
+        silenceOutput: true,
+      );
+      File.fromUri(
+        Directory.systemTemp.uri.resolve('./dart_leak_test_uri'),
+      ).writeAsStringSync(services.serverUri!.toString());
     }
 
     watch.start();
@@ -164,12 +174,18 @@ class _BatchHelper {
   void _workaroundForLeakingBug() {
     try {
       stdin.echoMode;
-    } catch (e) {/**/}
+    } catch (e) {
+      /**/
+    }
     try {
       stdout.writeln();
-    } catch (e) {/**/}
+    } catch (e) {
+      /**/
+    }
     try {
       stderr.writeln();
-    } catch (e) {/**/}
+    } catch (e) {
+      /**/
+    }
   }
 }

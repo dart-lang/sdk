@@ -21,23 +21,26 @@ Stream makeStream(int maxEvents) {
   var c;
   int event = 0;
   bool canceled = false;
-  c = new StreamController(onListen: () {
-    new Timer.periodic(const Duration(milliseconds: 10), (t) {
-      if (canceled) {
-        t.cancel();
-        return;
-      }
-      if (event == maxEvents) {
-        c.addError("NOT CANCELED IN TIME: $maxEvents");
-        c.close();
-        t.cancel();
-      } else {
-        c.add(event++);
-      }
-    });
-  }, onCancel: () {
-    canceled = true;
-  });
+  c = new StreamController(
+    onListen: () {
+      new Timer.periodic(const Duration(milliseconds: 10), (t) {
+        if (canceled) {
+          t.cancel();
+          return;
+        }
+        if (event == maxEvents) {
+          c.addError("NOT CANCELED IN TIME: $maxEvents");
+          c.close();
+          t.cancel();
+        } else {
+          c.add(event++);
+        }
+      });
+    },
+    onCancel: () {
+      canceled = true;
+    },
+  );
   return c.stream;
 }
 

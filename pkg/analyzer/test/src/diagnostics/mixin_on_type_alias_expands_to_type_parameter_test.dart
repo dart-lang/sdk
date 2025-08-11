@@ -25,24 +25,36 @@ mixin M on A {}
   }
 
   test_class_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M on T {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M on T<A> {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 }

@@ -7,15 +7,15 @@ void main() {
   var a = <int>[if (nullBool) 1];
   //                ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   var b = <int, int>{if (nullBool) 1: 1};
   //                     ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   var c = <int>{if (nullBool) 1};
   //                ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 }

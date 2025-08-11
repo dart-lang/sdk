@@ -182,7 +182,7 @@ f() {
 f() {
   var l = [ for (final i in [1, 2]) i + 3 ];
 }
-''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+''', errorFilter: (e) => e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_listPattern() async {
@@ -195,7 +195,7 @@ f() {
 f() {
   for (final [i, j] in [[1, 2]]) { }
 }
-''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+''', errorFilter: (e) => e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_mapPattern() async {
@@ -208,7 +208,7 @@ f() {
 f() {
   for (final {'i' : j} in [{'i' : 1}]) { }
 }
-''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+''', errorFilter: (e) => e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_noType() async {
@@ -248,7 +248,7 @@ class A {
 f() {
   for (final A(:a) in [A(1)]) { }
 } 
-''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+''', errorFilter: (e) => e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_recordPattern() async {
@@ -261,7 +261,7 @@ f() {
 f() {
   for (final (i, j) in [(1, 2)]) { }
 }
-''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
+''', errorFilter: (e) => e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> test_type() async {

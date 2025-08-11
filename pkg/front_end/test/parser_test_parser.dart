@@ -175,7 +175,9 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelDeclarationImpl(
-      Token token, DirectiveContext? directiveState) {
+    Token token,
+    DirectiveContext? directiveState,
+  ) {
     doPrint('parseTopLevelDeclarationImpl(' '$token, ' '$directiveState)');
     indent++;
     var result = super.parseTopLevelDeclarationImpl(token, directiveState);
@@ -185,14 +187,15 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelKeywordDeclaration(
-      Token beginToken,
-      Token modifierStart,
-      Token keyword,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      DirectiveContext? directiveState) {
+    Token beginToken,
+    Token modifierStart,
+    Token keyword,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    DirectiveContext? directiveState,
+  ) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$beginToken, '
         '$modifierStart, '
@@ -434,7 +437,11 @@ class TestParser extends Parser {
 
   @override
   Token parseGetterOrFormalParameters(
-      Token token, Token name, bool isGetter, MemberKind kind) {
+    Token token,
+    Token name,
+    bool isGetter,
+    MemberKind kind,
+  ) {
     doPrint('parseGetterOrFormalParameters('
         '$token, '
         '$name, '
@@ -476,7 +483,10 @@ class TestParser extends Parser {
 
   @override
   Token parseRecordType(
-      final Token start, Token token, bool isQuestionMarkPartOfType) {
+    final Token start,
+    Token token,
+    bool isQuestionMarkPartOfType,
+  ) {
     doPrint(
         'parseRecordType(' '$start, ' '$token, ' '$isQuestionMarkPartOfType)');
     indent++;
@@ -486,8 +496,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseRecordTypeField(Token token,
-      {required bool identifierIsOptional}) {
+  Token parseRecordTypeField(
+    Token token, {
+    required bool identifierIsOptional,
+  }) {
     doPrint('parseRecordTypeField('
         '$token, '
         'identifierIsOptional: $identifierIsOptional)');
@@ -545,7 +557,10 @@ class TestParser extends Parser {
 
   @override
   Token parseFormalParameter(
-      Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
+    Token token,
+    FormalParameterKind parameterKind,
+    MemberKind memberKind,
+  ) {
     doPrint(
         'parseFormalParameter(' '$token, ' '$parameterKind, ' '$memberKind)');
     indent++;
@@ -573,8 +588,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseQualified(Token token, IdentifierContext context,
-      IdentifierContext continuationContext) {
+  Token parseQualified(
+    Token token,
+    IdentifierContext context,
+    IdentifierContext continuationContext,
+  ) {
     doPrint('parseQualified(' '$token, ' '$context, ' '$continuationContext)');
     indent++;
     var result = super.parseQualified(token, context, continuationContext);
@@ -584,7 +602,9 @@ class TestParser extends Parser {
 
   @override
   Token parseQualifiedRestOpt(
-      Token token, IdentifierContext continuationContext) {
+    Token token,
+    IdentifierContext continuationContext,
+  ) {
     doPrint('parseQualifiedRestOpt(' '$token, ' '$continuationContext)');
     indent++;
     var result = super.parseQualifiedRestOpt(token, continuationContext);
@@ -648,7 +668,9 @@ class TestParser extends Parser {
 
   @override
   Token? recoverySmallLookAheadSkipTokens(
-      final Token token, List<TokenType> lookFor) {
+    final Token token,
+    List<TokenType> lookFor,
+  ) {
     doPrint('recoverySmallLookAheadSkipTokens(' '$token, ' '$lookFor)');
     indent++;
     var result = super.recoverySmallLookAheadSkipTokens(token, lookFor);
@@ -667,16 +689,17 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrNamedMixinApplication(
-      Token beginToken,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token classKeyword) {
+    Token beginToken,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token classKeyword,
+  ) {
     doPrint('parseClassOrNamedMixinApplication('
         '$beginToken, '
         '$abstractToken, '
@@ -706,7 +729,10 @@ class TestParser extends Parser {
 
   @override
   Token parseNamedMixinApplication(
-      Token token, Token begin, Token classKeyword) {
+    Token token,
+    Token begin,
+    Token classKeyword,
+  ) {
     doPrint(
         'parseNamedMixinApplication(' '$token, ' '$begin, ' '$classKeyword)');
     indent++;
@@ -717,7 +743,11 @@ class TestParser extends Parser {
 
   @override
   Token parseClass(
-      Token token, Token beginToken, Token classKeyword, String className) {
+    Token token,
+    Token beginToken,
+    Token classKeyword,
+    String className,
+  ) {
     doPrint('parseClass('
         '$token, '
         '$beginToken, '
@@ -759,8 +789,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseDeclarationHeaderRecoveryInternal(Token token, Token begin,
-      Token declarationKeyword, DeclarationHeaderKind kind) {
+  Token parseDeclarationHeaderRecoveryInternal(
+    Token token,
+    Token begin,
+    Token declarationKeyword,
+    DeclarationHeaderKind kind,
+  ) {
     doPrint('parseDeclarationHeaderRecoveryInternal('
         '$token, '
         '$begin, '
@@ -784,7 +818,10 @@ class TestParser extends Parser {
 
   @override
   Token parseClassExtendsSeenExtendsClause(
-      Token extendsKeyword, Token token, DeclarationHeaderKind kind) {
+    Token extendsKeyword,
+    Token token,
+    DeclarationHeaderKind kind,
+  ) {
     doPrint('parseClassExtendsSeenExtendsClause('
         '$extendsKeyword, '
         '$token, '
@@ -806,8 +843,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token beginToken, Token? augmentToken, Token? baseToken,
-      Token mixinKeyword) {
+  Token parseMixin(
+    Token beginToken,
+    Token? augmentToken,
+    Token? baseToken,
+    Token mixinKeyword,
+  ) {
     doPrint('parseMixin('
         '$beginToken, '
         '$augmentToken, '
@@ -831,7 +872,10 @@ class TestParser extends Parser {
 
   @override
   Token parseMixinHeaderRecovery(
-      Token token, Token mixinKeyword, Token headerStart) {
+    Token token,
+    Token mixinKeyword,
+    Token headerStart,
+  ) {
     doPrint('parseMixinHeaderRecovery('
         '$token, '
         '$mixinKeyword, '
@@ -863,7 +907,10 @@ class TestParser extends Parser {
 
   @override
   Token parseExtension(
-      Token beginToken, Token? augmentToken, Token extensionKeyword) {
+    Token beginToken,
+    Token? augmentToken,
+    Token extensionKeyword,
+  ) {
     doPrint('parseExtension('
         '$beginToken, '
         '$augmentToken, '
@@ -876,8 +923,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtensionDeclaration(Token beginToken, Token token,
-      Token? augmentToken, Token extensionKeyword) {
+  Token parseExtensionDeclaration(
+    Token beginToken,
+    Token token,
+    Token? augmentToken,
+    Token extensionKeyword,
+  ) {
     doPrint('parseExtensionDeclaration('
         '$beginToken, '
         '$token, '
@@ -891,8 +942,13 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtensionTypeDeclaration(Token beginToken, Token token,
-      Token? augmentToken, Token extensionKeyword, Token typeKeyword) {
+  Token parseExtensionTypeDeclaration(
+    Token beginToken,
+    Token token,
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token typeKeyword,
+  ) {
     doPrint('parseExtensionTypeDeclaration('
         '$beginToken, '
         '$token, '
@@ -916,8 +972,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token insertSyntheticIdentifier(Token token, IdentifierContext context,
-      {codes.Message? message, Token? messageOnToken}) {
+  Token insertSyntheticIdentifier(
+    Token token,
+    IdentifierContext context, {
+    codes.Message? message,
+    Token? messageOnToken,
+  }) {
     doPrint('insertSyntheticIdentifier('
         '$token, '
         '$context, '
@@ -950,7 +1010,10 @@ class TestParser extends Parser {
 
   @override
   Token ensureIdentifierPotentiallyRecovered(
-      Token token, IdentifierContext context, bool isRecovered) {
+    Token token,
+    IdentifierContext context,
+    bool isRecovered,
+  ) {
     doPrint('ensureIdentifierPotentiallyRecovered('
         '$token, '
         '$context, '
@@ -1000,20 +1063,21 @@ class TestParser extends Parser {
 
   @override
   Token parseFields(
-      Token beforeStart,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token beforeType,
-      TypeInfo typeInfo,
-      Token name,
-      DeclarationKind kind,
-      String? enclosingDeclarationName,
-      bool nameIsRecovered) {
+    Token beforeStart,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token beforeType,
+    TypeInfo typeInfo,
+    Token name,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+    bool nameIsRecovered,
+  ) {
     doPrint('parseFields('
         '$beforeStart, '
         '$abstractToken, '
@@ -1051,14 +1115,15 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelMethod(
-      Token beforeStart,
-      Token? augmentToken,
-      Token? externalToken,
-      Token beforeType,
-      TypeInfo typeInfo,
-      Token? getOrSet,
-      Token name,
-      bool nameIsRecovered) {
+    Token beforeStart,
+    Token? augmentToken,
+    Token? externalToken,
+    Token beforeType,
+    TypeInfo typeInfo,
+    Token? getOrSet,
+    Token name,
+    bool nameIsRecovered,
+  ) {
     doPrint('parseTopLevelMethod('
         '$beforeStart, '
         '$augmentToken, '
@@ -1086,15 +1151,16 @@ class TestParser extends Parser {
 
   @override
   Token parseFieldInitializerOpt(
-      Token token,
-      Token name,
-      Token? lateToken,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? varFinalOrConst,
-      DeclarationKind kind,
-      String? enclosingDeclarationName) {
+    Token token,
+    Token name,
+    Token? lateToken,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? varFinalOrConst,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) {
     doPrint('parseFieldInitializerOpt('
         '$token, '
         '$name, '
@@ -1284,7 +1350,10 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrMixinOrExtensionBody(
-      Token token, DeclarationKind kind, String? enclosingDeclarationName) {
+    Token token,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) {
     doPrint('parseClassOrMixinOrExtensionBody('
         '$token, '
         '$kind, '
@@ -1352,7 +1421,10 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrMixinOrExtensionOrEnumMemberImpl(
-      Token token, DeclarationKind kind, String? enclosingDeclarationName) {
+    Token token,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) {
     doPrint('parseClassOrMixinOrExtensionOrEnumMemberImpl('
         '$token, '
         '$kind, '
@@ -1366,21 +1438,22 @@ class TestParser extends Parser {
 
   @override
   Token parseMethod(
-      Token beforeStart,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token beforeType,
-      TypeInfo typeInfo,
-      Token? getOrSet,
-      Token name,
-      DeclarationKind kind,
-      String? enclosingDeclarationName,
-      bool nameIsRecovered) {
+    Token beforeStart,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token beforeType,
+    TypeInfo typeInfo,
+    Token? getOrSet,
+    Token name,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+    bool nameIsRecovered,
+  ) {
     doPrint('parseMethod('
         '$beforeStart, '
         '$abstractToken, '
@@ -1419,8 +1492,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
-      Token? externalToken, Token? staticOrCovariant, Token? varFinalOrConst) {
+  Token parseFactoryMethod(
+    Token token,
+    DeclarationKind kind,
+    Token beforeStart,
+    Token? externalToken,
+    Token? staticOrCovariant,
+    Token? varFinalOrConst,
+  ) {
     doPrint('parseFactoryMethod('
         '$token, '
         '$kind, '
@@ -1455,12 +1534,13 @@ class TestParser extends Parser {
 
   @override
   Token parseFunctionLiteral(
-      Token start,
-      Token beforeName,
-      Token name,
-      TypeInfo typeInfo,
-      TypeParamOrArgInfo typeParam,
-      IdentifierContext context) {
+    Token start,
+    Token beforeName,
+    Token name,
+    TypeInfo typeInfo,
+    TypeParamOrArgInfo typeParam,
+    IdentifierContext context,
+  ) {
     doPrint('parseFunctionLiteral('
         '$start, '
         '$beforeName, '
@@ -1477,7 +1557,11 @@ class TestParser extends Parser {
 
   @override
   Token parseNamedFunctionRest(
-      Token beforeName, Token begin, Token formals, bool isFunctionExpression) {
+    Token beforeName,
+    Token begin,
+    Token formals,
+    bool isFunctionExpression,
+  ) {
     doPrint('parseNamedFunctionRest('
         '$beforeName, '
         '$begin, '
@@ -1492,7 +1576,10 @@ class TestParser extends Parser {
 
   @override
   Token parseAsyncOptBody(
-      Token token, bool ofFunctionExpression, bool allowAbstract) {
+    Token token,
+    bool ofFunctionExpression,
+    bool allowAbstract,
+  ) {
     doPrint('parseAsyncOptBody('
         '$token, '
         '$ofFunctionExpression, '
@@ -1506,8 +1593,10 @@ class TestParser extends Parser {
 
   @override
   Token parseConstructorReference(
-      Token token, ConstructorReferenceContext constructorReferenceContext,
-      [TypeParamOrArgInfo? typeArg]) {
+    Token token,
+    ConstructorReferenceContext constructorReferenceContext, [
+    TypeParamOrArgInfo? typeArg,
+  ]) {
     doPrint('parseConstructorReference('
         '$token, '
         '$constructorReferenceContext, '
@@ -1539,7 +1628,10 @@ class TestParser extends Parser {
 
   @override
   Token parseFunctionBody(
-      Token token, bool ofFunctionExpression, bool allowAbstract) {
+    Token token,
+    bool ofFunctionExpression,
+    bool allowAbstract,
+  ) {
     doPrint('parseFunctionBody('
         '$token, '
         '$ofFunctionExpression, '
@@ -1678,8 +1770,12 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parsePrecedenceExpression(Token token, int precedence,
-      bool allowCascades, ConstantPatternContext constantPatternContext) {
+  Token parsePrecedenceExpression(
+    Token token,
+    int precedence,
+    bool allowCascades,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parsePrecedenceExpression('
         '$token, '
         '$precedence, '
@@ -1702,8 +1798,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseUnaryExpression(Token token, bool allowCascades,
-      ConstantPatternContext constantPatternContext) {
+  Token parseUnaryExpression(
+    Token token,
+    bool allowCascades,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parseUnaryExpression('
         '$token, '
         '$allowCascades, '
@@ -1717,7 +1816,10 @@ class TestParser extends Parser {
 
   @override
   Token parseArgumentOrIndexStar(
-      Token token, TypeParamOrArgInfo typeArg, bool checkedNullAware) {
+    Token token,
+    TypeParamOrArgInfo typeArg,
+    bool checkedNullAware,
+  ) {
     doPrint('parseArgumentOrIndexStar('
         '$token, '
         '$typeArg, '
@@ -1730,8 +1832,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parsePrimary(Token token, IdentifierContext context,
-      ConstantPatternContext constantPatternContext) {
+  Token parsePrimary(
+    Token token,
+    IdentifierContext context,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parsePrimary(' '$token, ' '$context, ' '$constantPatternContext)');
     indent++;
     var result = super.parsePrimary(token, context, constantPatternContext);
@@ -1741,7 +1846,9 @@ class TestParser extends Parser {
 
   @override
   Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
-      Token token, ConstantPatternContext constantPatternContext) {
+    Token token,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parseParenthesizedExpressionFunctionLiteralOrRecordLiteral('
         '$token, '
         '$constantPatternContext)');
@@ -1766,9 +1873,10 @@ class TestParser extends Parser {
 
   @override
   Token parseParenthesizedExpressionOrRecordLiteral(
-      Token token,
-      Token? constKeywordForRecord,
-      ConstantPatternContext constantPatternContext) {
+    Token token,
+    Token? constKeywordForRecord,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parseParenthesizedExpressionOrRecordLiteral('
         '$token, '
         '$constKeywordForRecord, '
@@ -1781,8 +1889,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExpressionInParenthesisRest(Token token,
-      {required bool allowCase}) {
+  Token parseExpressionInParenthesisRest(
+    Token token, {
+    required bool allowCase,
+  }) {
     doPrint('parseExpressionInParenthesisRest('
         '$token, '
         'allowCase: $allowCase)');
@@ -1849,7 +1959,9 @@ class TestParser extends Parser {
 
   @override
   Token parseLiteralListSetMapOrFunction(
-      final Token start, Token? constKeyword) {
+    final Token start,
+    Token? constKeyword,
+  ) {
     doPrint('parseLiteralListSetMapOrFunction(' '$start, ' '$constKeyword)');
     indent++;
     var result = super.parseLiteralListSetMapOrFunction(start, constKeyword);
@@ -1867,8 +1979,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context,
-      ConstantPatternContext constantPatternContext) {
+  Token parseSendOrFunctionLiteral(
+    Token token,
+    IdentifierContext context,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parseSendOrFunctionLiteral('
         '$token, '
         '$context, '
@@ -1909,7 +2024,10 @@ class TestParser extends Parser {
 
   @override
   Token parseImplicitCreationExpression(
-      Token token, Token openAngleBracket, TypeParamOrArgInfo typeArg) {
+    Token token,
+    Token openAngleBracket,
+    TypeParamOrArgInfo typeArg,
+  ) {
     doPrint('parseImplicitCreationExpression('
         '$token, '
         '$openAngleBracket, '
@@ -2021,8 +2139,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSend(Token token, IdentifierContext context,
-      ConstantPatternContext constantPatternContext) {
+  Token parseSend(
+    Token token,
+    IdentifierContext context,
+    ConstantPatternContext constantPatternContext,
+  ) {
     doPrint('parseSend(' '$token, ' '$context, ' '$constantPatternContext)');
     indent++;
     var result = super.parseSend(token, context, constantPatternContext);
@@ -2139,8 +2260,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExpressionStatementOrDeclaration(final Token start,
-      [ForPartsContext? forPartsContext]) {
+  Token parseExpressionStatementOrDeclaration(
+    final Token start, [
+    ForPartsContext? forPartsContext,
+  ]) {
     doPrint('parseExpressionStatementOrDeclaration('
         '$start, '
         '$forPartsContext)');
@@ -2152,9 +2275,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExpressionStatementOrDeclarationAfterModifiers(Token beforeType,
-      Token start, Token? lateToken, Token? varFinalOrConst, TypeInfo? typeInfo,
-      [ForPartsContext? forPartsContext]) {
+  Token parseExpressionStatementOrDeclarationAfterModifiers(
+    Token beforeType,
+    Token start,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    TypeInfo? typeInfo, [
+    ForPartsContext? forPartsContext,
+  ]) {
     doPrint('parseExpressionStatementOrDeclarationAfterModifiers('
         '$beforeType, '
         '$start, '
@@ -2212,7 +2340,10 @@ class TestParser extends Parser {
 
   @override
   Token parseForLoopPartsStart(
-      Token? awaitToken, Token forToken, ForPartsContext forPartsContext) {
+    Token? awaitToken,
+    Token forToken,
+    ForPartsContext forPartsContext,
+  ) {
     doPrint('parseForLoopPartsStart('
         '$awaitToken, '
         '$forToken, '
@@ -2252,8 +2383,13 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseForInRest(Token token, Token? awaitToken, Token forToken,
-      Token? patternKeyword, Token? identifier) {
+  Token parseForInRest(
+    Token token,
+    Token? awaitToken,
+    Token forToken,
+    Token? patternKeyword,
+    Token? identifier,
+  ) {
     doPrint('parseForInRest('
         '$token, '
         '$awaitToken, '
@@ -2268,8 +2404,13 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseForInLoopPartsRest(Token token, Token? awaitToken, Token forToken,
-      Token? patternKeyword, Token? identifier) {
+  Token parseForInLoopPartsRest(
+    Token token,
+    Token? awaitToken,
+    Token forToken,
+    Token? patternKeyword,
+    Token? identifier,
+  ) {
     doPrint('parseForInLoopPartsRest('
         '$token, '
         '$awaitToken, '
@@ -2321,7 +2462,9 @@ class TestParser extends Parser {
 
   @override
   bool looksLikeExpressionAfterAwaitOrYield(
-      Token token, AwaitOrYieldContext context) {
+    Token token,
+    AwaitOrYieldContext context,
+  ) {
     doPrint('looksLikeExpressionAfterAwaitOrYield(' '$token, ' '$context)');
     indent++;
     var result = super.looksLikeExpressionAfterAwaitOrYield(token, context);
@@ -2412,13 +2555,14 @@ class TestParser extends Parser {
 
   @override
   Token parseStatementsInSwitchCase(
-      Token token,
-      Token peek,
-      Token begin,
-      int labelCount,
-      int expressionCount,
-      Token? defaultKeyword,
-      Token? colonAfterDefault) {
+    Token token,
+    Token peek,
+    Token begin,
+    int labelCount,
+    int expressionCount,
+    Token? defaultKeyword,
+    Token? colonAfterDefault,
+  ) {
     doPrint('parseStatementsInSwitchCase('
         '$token, '
         '$peek, '
@@ -2490,17 +2634,18 @@ class TestParser extends Parser {
 
   @override
   Token parseInvalidOperatorDeclaration(
-      Token beforeStart,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token beforeType,
-      DeclarationKind kind,
-      String? enclosingDeclarationName) {
+    Token beforeStart,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token beforeType,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) {
     doPrint('parseInvalidOperatorDeclaration('
         '$beforeStart, '
         '$abstractToken, '
@@ -2532,20 +2677,21 @@ class TestParser extends Parser {
 
   @override
   Token recoverFromInvalidMember(
-      Token token,
-      Token beforeStart,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token beforeType,
-      TypeInfo typeInfo,
-      Token? getOrSet,
-      DeclarationKind kind,
-      String? enclosingDeclarationName) {
+    Token token,
+    Token beforeStart,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token beforeType,
+    TypeInfo typeInfo,
+    Token? getOrSet,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) {
     doPrint('recoverFromInvalidMember('
         '$token, '
         '$beforeStart, '
@@ -2601,7 +2747,10 @@ class TestParser extends Parser {
 
   @override
   void reportRecoverableErrorWithEnd(
-      Token startToken, Token endToken, codes.Message message) {
+    Token startToken,
+    Token endToken,
+    codes.Message message,
+  ) {
     doPrint('reportRecoverableErrorWithEnd('
         '$startToken, '
         '$endToken, '
@@ -2615,7 +2764,10 @@ class TestParser extends Parser {
 
   @override
   void reportExperimentNotEnabled(
-      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentalFlag experimentalFlag,
+    Token startToken,
+    Token endToken,
+  ) {
     doPrint('reportExperimentNotEnabled('
         '$experimentalFlag, '
         '$startToken, '
@@ -2628,7 +2780,10 @@ class TestParser extends Parser {
   }
 
   @override
-  void reportRecoverableErrorWithToken(Token token, dynamic template) {
+  void reportRecoverableErrorWithToken(
+    Token token,
+    dynamic template,
+  ) {
     doPrint('reportRecoverableErrorWithToken(' '$token, ' '$template)');
     indent++;
     var result = super.reportRecoverableErrorWithToken(token, template);
@@ -2718,8 +2873,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parsePattern(Token token, PatternContext patternContext,
-      {int precedence = 1}) {
+  Token parsePattern(
+    Token token,
+    PatternContext patternContext, {
+    int precedence = 1,
+  }) {
     doPrint('parsePattern('
         '$token, '
         '$patternContext, '
@@ -2741,8 +2899,11 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseVariablePattern(Token token, PatternContext patternContext,
-      {TypeInfo typeInfo = noType}) {
+  Token parseVariablePattern(
+    Token token,
+    PatternContext patternContext, {
+    TypeInfo typeInfo = noType,
+  }) {
     doPrint('parseVariablePattern('
         '$token, '
         '$patternContext, '
@@ -2774,7 +2935,9 @@ class TestParser extends Parser {
 
   @override
   Token parseParenthesizedPatternOrRecordPattern(
-      Token token, PatternContext patternContext) {
+    Token token,
+    PatternContext patternContext,
+  ) {
     doPrint('parseParenthesizedPatternOrRecordPattern('
         '$token, '
         '$patternContext)');
@@ -2823,7 +2986,10 @@ class TestParser extends Parser {
 
   @override
   Token parsePatternVariableDeclarationStatement(
-      Token keyword, Token start, Token varOrFinal) {
+    Token keyword,
+    Token start,
+    Token varOrFinal,
+  ) {
     doPrint('parsePatternVariableDeclarationStatement('
         '$keyword, '
         '$start, '

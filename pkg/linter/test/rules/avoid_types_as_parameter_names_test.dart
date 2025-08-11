@@ -30,6 +30,22 @@ void f() {
     );
   }
 
+  test_classTypeParameter_instanceMethodTypeParameter() async {
+    await assertNoDiagnostics(r'''
+class A<X> {
+  X instanceMethod<X>(X x) => x;
+}
+''');
+  }
+
+  test_classTypeParameter_staticMethodTypeParameter() async {
+    await assertNoDiagnostics(r'''
+class A<X> {
+  static X staticMethod<X>(X x) => x;
+}
+''');
+  }
+
   test_extensionType() async {
     await assertDiagnostics(
       r'''
@@ -201,15 +217,43 @@ typedef T = int Function(int);
 ''');
   }
 
-  test_typeParameter_wildcard() async {
+  test_typeParameter_class() async {
     await assertDiagnostics(
       r'''
+class A<Object> {}
+''',
+      [lint(8, 6)],
+    );
+  }
+
+  test_typeParameter_function() async {
+    await assertDiagnostics(
+      r'''
+void f<int>() {}
+''',
+      [lint(7, 3)],
+    );
+  }
+
+  test_typeParameter_instanceMethod_class() async {
+    await assertDiagnostics(
+      r'''
+class A<X> {
+  C instanceMethod<C>(C c) => c;
+}
+
+class C {}
+''',
+      [lint(32, 1)],
+    );
+  }
+
+  test_typeParameter_wildcard() async {
+    await assertNoDiagnostics(r'''
 class C<_> {
   var _;
   C.c(this._, _);
 }
-''',
-      [error(WarningCode.UNUSED_FIELD, 19, 1)],
-    );
+''');
   }
 }

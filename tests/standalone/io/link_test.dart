@@ -15,21 +15,30 @@ testCreateSync() {
   String base = Directory.systemTemp.createTempSync('dart_link').path;
   if (isRelative(base)) {
     Expect.fail(
-        'Link tests expect absolute paths to system temporary directories. '
-        'A relative path in TMPDIR gives relative paths to them.');
+      'Link tests expect absolute paths to system temporary directories. '
+      'A relative path in TMPDIR gives relative paths to them.',
+    );
   }
   String link = join(base, 'link');
   String target = join(base, 'target');
   new Directory(target).createSync();
   new Link(link).createSync(target);
   Expect.equals(
-      FileSystemEntityType.directory, FileSystemEntity.typeSync(link));
+    FileSystemEntityType.directory,
+    FileSystemEntity.typeSync(link),
+  );
   Expect.equals(
-      FileSystemEntityType.directory, FileSystemEntity.typeSync(target));
-  Expect.equals(FileSystemEntityType.link,
-      FileSystemEntity.typeSync(link, followLinks: false));
-  Expect.equals(FileSystemEntityType.directory,
-      FileSystemEntity.typeSync(target, followLinks: false));
+    FileSystemEntityType.directory,
+    FileSystemEntity.typeSync(target),
+  );
+  Expect.equals(
+    FileSystemEntityType.link,
+    FileSystemEntity.typeSync(link, followLinks: false),
+  );
+  Expect.equals(
+    FileSystemEntityType.directory,
+    FileSystemEntity.typeSync(target, followLinks: false),
+  );
   Expect.isTrue(FileSystemEntity.isLinkSync(link));
   Expect.isFalse(FileSystemEntity.isLinkSync(target));
   Expect.isTrue(new Directory(link).existsSync());
@@ -46,30 +55,47 @@ testCreateSync() {
   Expect.isTrue(new Directory(createdThroughLink).existsSync());
   Expect.isTrue(new Directory(createdDirectly).existsSync());
   Expect.isTrue(
-      new Directory(join(base, 'link', 'createdDirectly')).existsSync());
+    new Directory(join(base, 'link', 'createdDirectly')).existsSync(),
+  );
   Expect.isTrue(
-      new Directory(join(base, 'target', 'createdThroughLink')).existsSync());
-  Expect.equals(FileSystemEntityType.directory,
-      FileSystemEntity.typeSync(createdThroughLink, followLinks: false));
-  Expect.equals(FileSystemEntityType.directory,
-      FileSystemEntity.typeSync(createdDirectly, followLinks: false));
+    new Directory(join(base, 'target', 'createdThroughLink')).existsSync(),
+  );
+  Expect.equals(
+    FileSystemEntityType.directory,
+    FileSystemEntity.typeSync(createdThroughLink, followLinks: false),
+  );
+  Expect.equals(
+    FileSystemEntityType.directory,
+    FileSystemEntity.typeSync(createdDirectly, followLinks: false),
+  );
 
   // Test FileSystemEntity.identical on files, directories, and links,
   // reached by different paths.
   Expect.isTrue(
-      FileSystemEntity.identicalSync(createdDirectly, createdDirectly));
+    FileSystemEntity.identicalSync(createdDirectly, createdDirectly),
+  );
   Expect.isFalse(
-      FileSystemEntity.identicalSync(createdDirectly, createdThroughLink));
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      createdDirectly, join(base, 'link', 'createdDirectly')));
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      createdThroughLink, join(base, 'target', 'createdThroughLink')));
+    FileSystemEntity.identicalSync(createdDirectly, createdThroughLink),
+  );
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      createdDirectly,
+      join(base, 'link', 'createdDirectly'),
+    ),
+  );
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      createdThroughLink,
+      join(base, 'target', 'createdThroughLink'),
+    ),
+  );
 
   Expect.isFalse(FileSystemEntity.identicalSync(target, link));
   Expect.isTrue(FileSystemEntity.identicalSync(link, link));
   Expect.isTrue(FileSystemEntity.identicalSync(target, target));
   Expect.isTrue(
-      FileSystemEntity.identicalSync(target, new Link(link).targetSync()));
+    FileSystemEntity.identicalSync(target, new Link(link).targetSync()),
+  );
   String absolutePath = new File(".").resolveSymbolicLinksSync();
   Expect.isTrue(FileSystemEntity.identicalSync(".", absolutePath));
 
@@ -77,10 +103,18 @@ testCreateSync() {
   new File(createdFile).createSync();
   Expect.isTrue(FileSystemEntity.identicalSync(createdFile, createdFile));
   Expect.isFalse(FileSystemEntity.identicalSync(createdFile, createdDirectly));
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      createdFile, join(base, 'link', 'createdFile')));
-  Expect.throws(() => FileSystemEntity.identicalSync(
-      createdFile, join(base, 'link', 'does_not_exist')));
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      createdFile,
+      join(base, 'link', 'createdFile'),
+    ),
+  );
+  Expect.throws(
+    () => FileSystemEntity.identicalSync(
+      createdFile,
+      join(base, 'link', 'does_not_exist'),
+    ),
+  );
 
   var baseDir = new Directory(base);
 
@@ -112,8 +146,10 @@ testCreateSync() {
   for (bool recursive in [true, false]) {
     for (bool followLinks in [true, false]) {
       Map expected = makeExpected(recursive, followLinks);
-      for (var x
-          in baseDir.listSync(recursive: recursive, followLinks: followLinks)) {
+      for (var x in baseDir.listSync(
+        recursive: recursive,
+        followLinks: followLinks,
+      )) {
         checkEntity(x, expected);
       }
       for (var v in expected.values) {
@@ -124,23 +160,29 @@ testCreateSync() {
       // a future that completes when done.
       var f = new Completer();
       futures.add(f.future);
-      baseDir.list(recursive: recursive, followLinks: followLinks).listen(
-          (entity) {
-        checkEntity(entity, expected);
-      }, onDone: () {
-        for (var v in expected.values) {
-          Expect.equals('Found', v);
-        }
-        f.complete(null);
-      });
+      baseDir
+          .list(recursive: recursive, followLinks: followLinks)
+          .listen(
+            (entity) {
+              checkEntity(entity, expected);
+            },
+            onDone: () {
+              for (var v in expected.values) {
+                Expect.equals('Found', v);
+              }
+              f.complete(null);
+            },
+          );
     }
   }
   Future.wait(futures).then((_) {
     new Directory(target).deleteSync(recursive: true);
     for (bool recursive in [true, false]) {
       for (bool followLinks in [true, false]) {
-        var result =
-            baseDir.listSync(recursive: recursive, followLinks: followLinks);
+        var result = baseDir.listSync(
+          recursive: recursive,
+          followLinks: followLinks,
+        );
         Expect.equals(1, result.length);
         Expect.isTrue(result[0] is Link);
       }
@@ -155,27 +197,37 @@ testCreateLoopingLink() {
   String base = Directory.systemTemp.createTempSync('dart_link').path;
   new Directory(join(base, 'a', 'b', 'c'))
       .create(recursive: true)
-      .then((_) =>
-          new Link(join(base, 'a', 'b', 'c', 'd')).create(join(base, 'a', 'b')))
-      .then((_) =>
-          new Link(join(base, 'a', 'b', 'c', 'e')).create(join(base, 'a')))
-      .then((_) => new Directory(join(base, 'a'))
-          .list(recursive: true, followLinks: false)
-          .last)
-      .then((_) =>
-          // This directory listing must terminate, even though it contains loops.
-          new Directory(join(base, 'a'))
-              .list(recursive: true, followLinks: true)
-              .last)
-      .then((_) =>
-          // This directory listing must terminate, even though it contains loops.
-          new Directory(join(base, 'a', 'b', 'c'))
-              .list(recursive: true, followLinks: true)
-              .last)
+      .then(
+        (_) => new Link(
+          join(base, 'a', 'b', 'c', 'd'),
+        ).create(join(base, 'a', 'b')),
+      )
+      .then(
+        (_) => new Link(join(base, 'a', 'b', 'c', 'e')).create(join(base, 'a')),
+      )
+      .then(
+        (_) => new Directory(
+          join(base, 'a'),
+        ).list(recursive: true, followLinks: false).last,
+      )
+      .then(
+        (_) =>
+            // This directory listing must terminate, even though it contains loops.
+            new Directory(
+              join(base, 'a'),
+            ).list(recursive: true, followLinks: true).last,
+      )
+      .then(
+        (_) =>
+            // This directory listing must terminate, even though it contains loops.
+            new Directory(
+              join(base, 'a', 'b', 'c'),
+            ).list(recursive: true, followLinks: true).last,
+      )
       .whenComplete(() {
-    new Directory(base).deleteSync(recursive: true);
-    asyncEnd();
-  });
+        new Directory(base).deleteSync(recursive: true);
+        asyncEnd();
+      });
 }
 
 testRenameSync() {
@@ -207,8 +259,10 @@ testRenameSync() {
     try {
       Link renamed = link.renameSync(target);
       if (isDirectory) {
-        Expect.fail('Renaming a link to the name of an existing directory ' +
-            'should fail');
+        Expect.fail(
+          'Renaming a link to the name of an existing directory ' +
+              'should fail',
+        );
       }
       Expect.isTrue(renamed.existsSync());
       renamed.deleteSync();
@@ -216,8 +270,9 @@ testRenameSync() {
       if (isDirectory) {
         return;
       }
-      Expect.fail('Renaming a link to the name of an existing file should ' +
-          'not fail');
+      Expect.fail(
+        'Renaming a link to the name of an existing file should ' + 'not fail',
+      );
     }
   }
 
@@ -239,9 +294,11 @@ testRenameSync() {
 
 void testLinkErrorSync() {
   Expect.throws(
-      () => new Link('some-dir-that-does-not exist/some link file/bla/fisk')
-          .createSync('bla bla bla/b lalal/blfir/sdfred/es'),
-      (e) => e is PathNotFoundException);
+    () => new Link(
+      'some-dir-that-does-not exist/some link file/bla/fisk',
+    ).createSync('bla bla bla/b lalal/blfir/sdfred/es'),
+    (e) => e is PathNotFoundException,
+  );
 }
 
 checkExists(String filePath) => Expect.isTrue(new File(filePath).existsSync());
@@ -333,11 +390,15 @@ testBrokenLinkTypeSync() {
   String link = join(base, 'link');
   Link(link).createSync('does not exist');
 
-  Expect.equals(FileSystemEntityType.link,
-      FileSystemEntity.typeSync(link, followLinks: false));
+  Expect.equals(
+    FileSystemEntityType.link,
+    FileSystemEntity.typeSync(link, followLinks: false),
+  );
 
-  Expect.equals(FileSystemEntityType.notFound,
-      FileSystemEntity.typeSync(link, followLinks: true));
+  Expect.equals(
+    FileSystemEntityType.notFound,
+    FileSystemEntity.typeSync(link, followLinks: true),
+  );
 }
 
 void testTopLevelLinkSync() {

@@ -26,64 +26,70 @@ main() {
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @unresolved
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 11)],
+    );
   }
 
   test_unresolved_invocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @Unresolved()
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 13)],
+    );
   }
 
   test_unresolved_prefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @p.A(0)
 class B {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 7)],
+    );
   }
 
   test_unresolved_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as p;
 
 @p.A(0)
 class B {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 26, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 26, 7)],
+    );
   }
 
   test_unresolved_prefixedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as p;
 @p.unresolved
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 25, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 25, 13)],
+    );
   }
 
   test_useLibraryScope() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @foo
 class A {
   static const foo = null;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 4)],
+    );
   }
 }

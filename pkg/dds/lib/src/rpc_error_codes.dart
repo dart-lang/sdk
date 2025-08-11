@@ -20,9 +20,9 @@ abstract class RpcErrorCodes {
   static const kMethodNotFound = -32601;
 
   static const kInvalidParams = -32602;
-  // static const kInternalError = -32603;
+  static const kInternalError = -32603;
 
-  // static const kExtensionError = -32000;
+  static const kExtensionError = -32000;
 
   static const kConnectionDisposed = -32010;
 
@@ -43,6 +43,7 @@ abstract class RpcErrorCodes {
   static const kExpressionCompilationError = 113;
 
   // static const kInvalidTimelineRequest = 114;
+  // static const kCannotGetQueuedMicrotasks = 115;
   static const kCustomStreamDoesNotExist = 130;
   static const kCoreStreamNotAllowed = 131;
 

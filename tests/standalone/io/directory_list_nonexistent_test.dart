@@ -18,7 +18,9 @@ void testListNonExistent() {
     d.delete().then((ignore) {
       Expect.throws(() => d.listSync(), (e) => e is PathNotFoundException);
       Expect.throws(
-          () => d.listSync(recursive: true), (e) => e is PathNotFoundException);
+        () => d.listSync(recursive: true),
+        (e) => e is PathNotFoundException,
+      );
       asyncEnd();
     });
   });
@@ -39,8 +41,10 @@ void testListTooLongName() {
       }
       var long = new Directory("${buffer.toString()}");
       Expect.throws(() => long.listSync(), (e) => e is FileSystemException);
-      Expect.throws(() => long.listSync(recursive: true),
-          (e) => e is FileSystemException);
+      Expect.throws(
+        () => long.listSync(recursive: true),
+        (e) => e is FileSystemException,
+      );
       d.deleteSync(recursive: true);
       asyncEnd();
     });

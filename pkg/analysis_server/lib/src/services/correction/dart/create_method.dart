@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -43,7 +43,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
   FixKind get multiFixKind => DartFixKind.CREATE_METHOD_MULTI;
 
   @override
-  Future<void> compute(ChangeBuilder builder) async => switch (_kind) {
+  Future<void> compute(ChangeBuilder builder) => switch (_kind) {
     _MethodKind.equalityOrHashCode => _createEqualsOrHashCode(builder),
     _MethodKind.method => _createMethod(builder),
   };
@@ -66,18 +66,16 @@ class CreateMethod extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (fileBuilder) {
       fileBuilder.insertIntoUnitMember(classDecl, (builder) {
-        ExecutableElement2? element;
+        ExecutableElement? element;
         if (missingEquals) {
           _memberName = '==';
-          element = inheritanceManager.getInherited4(
-            classElement,
-            Name.forLibrary(classElement.library2, _memberName),
+          element = classElement.getInheritedMember(
+            Name.forLibrary(classElement.library, _memberName),
           );
         } else {
           _memberName = 'hashCode';
-          element = inheritanceManager.getInherited4(
-            classElement,
-            Name.forLibrary(classElement.library2, _memberName),
+          element = classElement.getInheritedMember(
+            Name.forLibrary(classElement.library, _memberName),
           );
         }
         if (element == null) {
@@ -102,22 +100,11 @@ class CreateMethod extends ResolvedCorrectionProducer {
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
     if (target is ExtensionOverride) {
-      targetFragment = target.element2.firstFragment;
-      if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration(targetFragment);
-        if (targetNode == null) {
-          return;
-        }
-      }
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetFragment = (target.element as ExtensionElement2).firstFragment;
-      if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration(targetFragment);
-        if (targetNode == null) {
-          return;
-        }
-      }
-      staticModifier = true;
+      // This case should be handled by the "Add extension method" quick fix
+      return;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      // This case should be handled by the "Add extension method" quick fix
+      return;
     } else if (target == null) {
       targetFragment = unit.declaredFragment;
       var enclosingMember = node.thisOrAncestorOfType<ClassMember>();
@@ -127,9 +114,18 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       var enclosingMemberParent = enclosingMember.parent;
-      if (enclosingMemberParent is CompilationUnitMember) {
+      if (enclosingMemberParent is CompilationUnitMember &&
+          enclosingMemberParent is! ExtensionDeclaration) {
         targetNode = enclosingMemberParent;
-        staticModifier = inStaticContext;
+        staticModifier = switch (enclosingMember) {
+          ConstructorDeclaration(:var factoryKeyword) => factoryKeyword != null,
+          MethodDeclaration(:var isStatic) => isStatic,
+          FieldDeclaration(
+            :var isStatic,
+            fields: VariableDeclarationList(:var isLate),
+          ) =>
+            isStatic || !isLate,
+        };
       }
     } else {
       var targetClassElement = getTargetInterfaceElement(target);
@@ -137,19 +133,22 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       targetFragment = targetClassElement.firstFragment;
-      if (targetClassElement.library2.isInSdk) {
+      if (targetClassElement.library.isInSdk) {
         return;
       }
       // Prepare target ClassDeclaration.
-      if (targetClassElement is MixinElement2) {
+      if (targetClassElement is MixinElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getMixinDeclaration(fragment);
-      } else if (targetClassElement is ClassElement2) {
+      } else if (targetClassElement is ClassElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getClassDeclaration(fragment);
-      } else if (targetClassElement is ExtensionTypeElement2) {
+      } else if (targetClassElement is ExtensionTypeElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getExtensionTypeDeclaration(fragment);
+      } else if (targetClassElement is EnumElement) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getEnumDeclaration(fragment);
       }
       if (targetNode == null) {
         return;
@@ -158,6 +157,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (target is Identifier) {
         staticModifier =
             target.element?.kind == ElementKind.CLASS ||
+            target.element?.kind == ElementKind.ENUM ||
             target.element?.kind == ElementKind.EXTENSION_TYPE ||
             target.element?.kind == ElementKind.MIXIN;
       }

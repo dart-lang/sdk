@@ -43,10 +43,7 @@ class B extends A {
 
   B.one() : super.one();
 
-  B.two()
-      : b1 = log(201),
-        b3 = log(203),
-        super.two() {
+  B.two() : b1 = log(201), b3 = log(203), super.two() {
     log('body(B.two)');
   }
 
@@ -114,8 +111,10 @@ test_two() {
   Expect.equals(202, b.b2);
   Expect.equals(203, b.b3);
 
-  Expect.equals('[202, 201, 101, 104, 103, 203, body(A.two), 124, body(B.two)]',
-      '$trace');
+  Expect.equals(
+    '[202, 201, 101, 104, 103, 203, body(A.two), 124, body(B.two)]',
+    '$trace',
+  );
 }
 
 test_three() {

@@ -24,10 +24,10 @@ class FeatureSetProvider {
     required AllowedExperiments allowedExperiments,
     required ResourceProvider resourceProvider,
     required Packages packages,
-  })  : _sdkLanguageVersion = sdkLanguageVersion,
-        _allowedExperiments = allowedExperiments,
-        _resourceProvider = resourceProvider,
-        _packages = packages;
+  }) : _sdkLanguageVersion = sdkLanguageVersion,
+       _allowedExperiments = allowedExperiments,
+       _resourceProvider = resourceProvider,
+       _packages = packages;
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
     String key = experiments.join("|");

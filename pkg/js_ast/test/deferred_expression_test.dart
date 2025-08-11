@@ -9,8 +9,9 @@ import 'package:js_ast/src/precedence.dart';
 void main() {
   Map<Expression, DeferredExpression> map = {};
   VariableUse variableUse = VariableUse('variable');
-  DeferredExpression deferred =
-      map[variableUse] = _DeferredExpression(variableUse);
+  DeferredExpression deferred = map[variableUse] = _DeferredExpression(
+    variableUse,
+  );
   VariableUse variableUseAlias = VariableUse('variable');
   map[variableUseAlias] = _DeferredExpression(variableUseAlias);
 

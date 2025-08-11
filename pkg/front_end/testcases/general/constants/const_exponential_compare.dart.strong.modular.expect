@@ -40,5 +40,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///const_exponential_compare.dart:
-- Class. (from org-dartlang-testcase:///const_exponential_compare.dart:4:9)
+- Class. (from org-dartlang-testcase:///const_exponential_compare.dart:8:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

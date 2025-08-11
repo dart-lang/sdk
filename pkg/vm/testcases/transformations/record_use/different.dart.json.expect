@@ -1,9 +1,6 @@
 {
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.1.0"
-  },
-  "uris": [],
-  "ids": [],
-  "constants": []
+    "version": "0.2.0"
+  }
 }

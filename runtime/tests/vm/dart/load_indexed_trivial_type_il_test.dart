@@ -40,7 +40,9 @@ void matchIL$forInListOfInt(FlowGraph graph) {
           if (is32BitConfiguration) 'box(index)' << match.BoxInt32('index'),
           'e' <<
               match.LoadIndexed(
-                  'list.data', is32BitConfiguration ? 'box(index)' : 'index'),
+                'list.data',
+                is32BitConfiguration ? 'box(index)' : 'index',
+              ),
           if (is32BitConfiguration)
             'index+1' << match.BinaryInt32Op('index', 'int 1')
           else

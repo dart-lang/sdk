@@ -15,7 +15,8 @@ void return_body() {
   try {
     1;
     return;
-    /*stmt: unreachable*/ 2;
+    /*stmt: unreachable*/
+    2;
   } catch (_) {
     3;
   }
@@ -28,7 +29,8 @@ void return_catch() {
   } catch (_) {
     2;
     return;
-    /*stmt: unreachable*/ 3;
+    /*stmt: unreachable*/
+    3;
   }
   4;
 }
@@ -56,7 +58,8 @@ void return_bodyCatch() {
   } finally {
     3;
   }
-  /*stmt: unreachable*/ 4;
+  /*stmt: unreachable*/
+  4;
 }
 
 void return_catch2() {
@@ -79,5 +82,6 @@ void return_body3() {
   } finally {
     2;
   }
-  /*stmt: unreachable*/ 3;
+  /*stmt: unreachable*/
+  3;
 }

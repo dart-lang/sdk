@@ -190,13 +190,16 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitVariableGet(VariableGet node) {
-    return new VariableGet(
-        getVariableClone(node.variable)!, visitOptionalType(node.promotedType));
+    VariableDeclaration? variable = getVariableClone(node.variable);
+    assert(variable != null, "Missing clone for variable ${node.variable}.");
+    return new VariableGet(variable!, visitOptionalType(node.promotedType));
   }
 
   @override
   TreeNode visitVariableSet(VariableSet node) {
-    return new VariableSet(getVariableClone(node.variable)!, clone(node.value));
+    VariableDeclaration? variable = getVariableClone(node.variable);
+    assert(variable != null, "Missing clone for variable ${node.variable}.");
+    return new VariableSet(variable!, clone(node.value));
   }
 
   @override
@@ -622,7 +625,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   void prepareTypeParameters(List<TypeParameter> typeParameters) {
-    for (TypeParameter node in typeParameters) {
+    for (int i = 0; i < typeParameters.length; i++) {
+      TypeParameter node = typeParameters[i];
       TypeParameter? newNode = typeParams[node];
       if (newNode == null) {
         newNode = new TypeParameter(node.name);

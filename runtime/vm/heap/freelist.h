@@ -86,8 +86,6 @@ class FreeList {
 
   void Reset();
 
-  void Print() const;
-
   Mutex* mutex() { return &mutex_; }
   uword TryAllocateLocked(intptr_t size, bool is_protected);
   void FreeLocked(uword addr, intptr_t size);
@@ -200,9 +198,6 @@ class FreeList {
   void SplitElementAfterAndEnqueue(FreeListElement* element,
                                    intptr_t size,
                                    bool is_protected);
-
-  void PrintSmall() const;
-  void PrintLarge() const;
 
   // Bump pointer region.
   uword top_ = 0;

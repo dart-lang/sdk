@@ -5,16 +5,14 @@
 
 import "package:expect/expect.dart";
 
-makeMap() =>
-    new Map()
-      ..[3] = 4
-      ..[0] = 11;
+makeMap() => new Map()
+  ..[3] = 4
+  ..[0] = 11;
 
 class MyClass {
-  foo() =>
-      this
-        ..bar(3)
-        ..baz(4);
+  foo() => this
+    ..bar(3)
+    ..baz(4);
   bar(x) => x;
   baz(y) => y * 2;
 }

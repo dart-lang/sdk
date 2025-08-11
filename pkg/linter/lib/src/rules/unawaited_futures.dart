@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
+import '../util/unused_futures.dart';
 
 const _desc =
     r'`Future` results in `async` function bodies must be '
@@ -18,92 +20,35 @@ class UnawaitedFutures extends LintRule {
     : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unawaited_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unawaited_futures;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var visitor = _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    var visitor = UnusedFuturesVisitor(
+      rule: this,
+      isInteresting: (node) {
+        var type = node.staticType;
+        // This rule is not currently concerned with `FutureOr`.
+        if (type == null || !type.isOrImplementsFuture) {
+          return false;
+        }
+        // This rule is only concerned with code in async functions.
+        return node.thisOrAncestorOfType<FunctionBody>()?.isAsynchronous ??
+            false;
+      },
+    );
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
     registry.addInterpolationExpression(this, visitor);
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitCascadeExpression(CascadeExpression node) {
-    var sections = node.cascadeSections;
-    for (var i = 0; i < sections.length; i++) {
-      _visit(sections[i]);
-    }
-  }
-
-  @override
-  void visitExpressionStatement(ExpressionStatement node) {
-    var expr = node.expression;
-    if (expr is AssignmentExpression) return;
-
-    var type = expr.staticType;
-    if (type == null) {
-      return;
-    }
-    if (!type.implementsInterface('Future', 'dart.async')) {
-      return;
-    }
-
-    // Ignore a couple of special known cases.
-    if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
-        _isMapPutIfAbsentInvocation(expr)) {
-      return;
-    }
-
-    if (_isEnclosedInAsyncFunctionBody(node)) {
-      // Future expression statement that isn't awaited in an async function:
-      // while this is legal, it's a very frequent sign of an error.
-      rule.reportLint(node);
-    }
-  }
-
-  @override
-  void visitInterpolationExpression(InterpolationExpression node) {
-    _visit(node.expression);
-  }
-
-  bool _isEnclosedInAsyncFunctionBody(AstNode node) {
-    var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
-    return enclosingFunctionBody?.isAsynchronous ?? false;
-  }
-
-  /// Detects `Future.delayed(duration, [computation])` creations with a
-  /// computation.
-  bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
-      expr is InstanceCreationExpression &&
-      (expr.staticType?.isDartAsyncFuture ?? false) &&
-      expr.constructorName.name?.name == 'delayed' &&
-      expr.argumentList.arguments.length == 2;
-
-  bool _isMapClass(Element2? e) =>
-      e is ClassElement2 && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
-
-  /// Detects Map.putIfAbsent invocations.
-  bool _isMapPutIfAbsentInvocation(Expression expr) =>
-      expr is MethodInvocation &&
-      expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.element?.enclosingElement2);
-
-  void _visit(Expression expr) {
-    // TODO(srawlins): Check whether `expr`'s static type _implements_ `Future`.
-    if ((expr.staticType?.isDartAsyncFuture ?? false) &&
-        _isEnclosedInAsyncFunctionBody(expr) &&
-        expr is! AssignmentExpression) {
-      rule.reportLint(expr);
-    }
+extension on DartType {
+  /// Whether this type is `Future` from dart:async, or is a subtype thereof.
+  bool get isOrImplementsFuture {
+    var typeElement = element;
+    if (typeElement is! InterfaceElement) return false;
+    return isDartAsyncFuture ||
+        typeElement.allSupertypes.any((t) => t.isDartAsyncFuture);
   }
 }

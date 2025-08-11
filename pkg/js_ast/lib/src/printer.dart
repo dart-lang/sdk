@@ -796,10 +796,9 @@ class Printer implements NodeVisitor<void> {
     required bool newInForInit,
     required bool newAtStatementBegin,
   }) {
-    Precedence precedenceLevel =
-        (isDebugContext && !node.isFinalized)
-            ? Precedence.call
-            : node.precedenceLevel;
+    Precedence precedenceLevel = (isDebugContext && !node.isFinalized)
+        ? Precedence.call
+        : node.precedenceLevel;
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != Precedence.expression &&
@@ -1365,12 +1364,11 @@ class Printer implements NodeVisitor<void> {
     VarCollector vars = VarCollector();
     vars.visitNamedFunction(namedFunction);
     startNode(namedFunction.function);
-    int closingPosition =
-        currentNode!.closingPosition = functionOut(
-          namedFunction.function,
-          namedFunction.name,
-          vars,
-        );
+    int closingPosition = currentNode!.closingPosition = functionOut(
+      namedFunction.function,
+      namedFunction.name,
+      vars,
+    );
     endNode(namedFunction.function);
     // Use closing position of `namedFunction.function` as the closing position
     // of the named function itself.

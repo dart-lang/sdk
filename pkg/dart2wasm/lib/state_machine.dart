@@ -316,17 +316,14 @@ class ExceptionHandlerStack {
     int nextHandlerIdx = _handlers.length - 1;
     final b = codeGen.b;
     for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
-      final stackTraceLocal =
-          b.addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
+      final stackTraceLocal = b.addLocal(codeGen.translator.stackTraceType);
 
-      final exceptionLocal =
-          b.addLocal(codeGen.translator.topInfo.nonNullableType);
+      final exceptionLocal = b.addLocal(codeGen.translator.topTypeNonNullable);
 
-      final previousException =
-          b.addLocal(codeGen.translator.topInfo.nullableType);
+      final previousException = b.addLocal(codeGen.translator.topType);
 
       final previousStackTrace =
-          b.addLocal(codeGen.translator.stackTraceInfo.repr.nullableType);
+          b.addLocal(codeGen.translator.stackTraceTypeNullable);
 
       _previousCatchLocals.add((previousException, previousStackTrace));
 
@@ -1049,7 +1046,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       setVariable(catch_.exception!, () {
         getSuspendStateCurrentException();
         // Type test already passed, convert the exception.
-        translator.convertType(b, translator.topInfo.nullableType,
+        translator.convertType(b, translator.topType,
             translator.translateType(catch_.exception!.type));
       });
       setVariable(catch_.stackTrace!, () => getSuspendStateCurrentStackTrace());
@@ -1194,21 +1191,21 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     if (firstFinalizer == null) {
       emitReturn(() {
         if (value == null) {
-          b.ref_null(translator.topInfo.struct);
+          b.ref_null(translator.topType.heapType);
         } else {
-          translateExpression(value, translator.topInfo.nullableType);
+          translateExpression(value, translator.topType);
         }
       });
       return;
     }
 
     if (value == null) {
-      b.ref_null(translator.topInfo.struct);
+      b.ref_null(translator.topType.heapType);
     } else {
-      translateExpression(value, translator.topInfo.nullableType);
+      translateExpression(value, translator.topType);
     }
 
-    final returnValueLocal = addLocal(translator.topInfo.nullableType);
+    final returnValueLocal = addLocal(translator.topType);
     b.local_set(returnValueLocal);
 
     // Set return value for the last finalizer to return.
@@ -1230,12 +1227,11 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
-    translateExpression(node.expression, translator.topInfo.nonNullableType);
+    final exceptionLocal = addLocal(translator.topTypeNonNullable);
+    translateExpression(node.expression, translator.topTypeNonNullable);
     b.local_set(exceptionLocal);
 
-    final stackTraceLocal =
-        addLocal(translator.stackTraceInfo.repr.nonNullableType);
+    final stackTraceLocal = addLocal(translator.stackTraceType);
     call(translator.stackTraceCurrent.reference);
     b.local_set(stackTraceLocal);
 
@@ -1320,6 +1316,6 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   /// Same as [_getVariable], but boxes the value if it's not already boxed.
   void _getVariableBoxed(VariableDeclaration variable) {
     final varType = _getVariable(variable);
-    translator.convertType(b, varType, translator.topInfo.nullableType);
+    translator.convertType(b, varType, translator.topType);
   }
 }

@@ -1871,7 +1871,7 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(true);
   __ mov(R0, Operand(27));
@@ -1889,7 +1889,7 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 
 ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
   EXPECT(test != nullptr);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(true);
   typedef int (*Tst)() DART_UNUSED;
@@ -1902,7 +1902,7 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(false);
   __ mov(R0, Operand(27));
@@ -1920,7 +1920,7 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 
 ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
   EXPECT(test != nullptr);
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(false);
   typedef int (*Tst)() DART_UNUSED;

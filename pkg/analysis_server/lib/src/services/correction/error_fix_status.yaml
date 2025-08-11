@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  58 "needsEvaluation"
-# - 308 "needsFix"
-# - 470 "hasFix"
-# - 514 "noFix"
+# -  62 "needsEvaluation"
+# - 302 "needsFix"
+# - 500 "hasFix"
+# - 498 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -58,19 +58,19 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.DEPRECATED_LINT:
-  status: hasFix
-AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
-  status: needsFix
-  notes: |-
-    We should be able to replace the deprecated lint rule with its replacement.
-AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsWarningCode.DUPLICATE_RULE:
   status: hasFix
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
@@ -514,6 +514,12 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
+CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
+  status: needsEvaluation
+CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -724,18 +730,18 @@ CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
 CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter and add an
-    assignment to the field in the method.
+    Replace the initializing formal parameter with a normal parameter and
+    add an assignment to the field in the method.
 CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
@@ -759,7 +765,7 @@ CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
 CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
   status: noFix
 CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
   status: noFix
 CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
@@ -828,7 +834,7 @@ CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
@@ -1665,6 +1671,8 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
   since: 2.15
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
   status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+  status: needsEvaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
   status: noFix
   since: 2.17
@@ -1861,8 +1869,6 @@ LintCode.analyzer_public_api_exports_non_public_name:
   status: noFix
 LintCode.analyzer_public_api_impl_in_public_api:
   status: noFix
-LintCode.analyzer_use_new_elements:
-  status: noFix
 LintCode.annotate_overrides:
   status: hasFix
 LintCode.annotate_redeclares:
@@ -1981,7 +1987,11 @@ LintCode.avoid_type_to_string:
   notes: |-
     Theoretically we could replace some uses with `is` checks, but it's probably
     uncommon enough to not be worth the cost.
-LintCode.avoid_types_as_parameter_names:
+LintCode.avoid_types_as_parameter_names_type_parameter:
+  status: noFix
+  notes: |-
+    The type variable needs to be renamed, but that's a refactoring.
+LintCode.avoid_types_as_parameter_names_formal_parameter:
   status: hasFix
 LintCode.avoid_types_on_closure_parameters:
   status: hasFix
@@ -2279,9 +2289,7 @@ LintCode.prefer_final_parameters:
 LintCode.prefer_for_elements_to_map_fromIterable:
   status: hasFix
 LintCode.prefer_foreach:
-  status: needsFix
-  notes: |-
-    The fix is to rewrite the loop.
+  status: hasFix
 LintCode.prefer_function_declarations_over_variables:
   status: hasFix
 LintCode.prefer_generic_function_type_aliases:
@@ -2386,6 +2394,8 @@ LintCode.strict_top_level_inference_split_to_types:
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
+LintCode.switch_on_type:
+  status: noFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:
@@ -2405,9 +2415,7 @@ LintCode.unintended_html_in_doc_comment:
   notes: |-
     The fix is to encode the angle brackets.
 LintCode.unnecessary_async:
-  status: needsFix
-  notes: |-
-    And probably also quick assist that works even if returns `Future`.
+  status: hasFix
 LintCode.unnecessary_await_in_return:
   status: hasFix
 LintCode.unnecessary_brace_in_string_interps:
@@ -2470,6 +2478,8 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_unawaited:
+  status: hasFix
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:
@@ -2503,7 +2513,7 @@ LintCode.use_full_hex_values_for_flutter_colors:
 LintCode.use_function_type_syntax_for_parameters:
   status: hasFix
 LintCode.use_if_null_to_convert_nulls_to_bools:
-  status: needsFix
+  status: hasFix
 LintCode.use_is_even_rather_than_modulo:
   status: needsFix
 LintCode.use_key_in_widget_constructors:
@@ -2665,8 +2675,6 @@ ParserErrorCode.COVARIANT_CONSTRUCTOR:
     are treated the same as members (see `COVARIANT_MEMBER`).
 ParserErrorCode.COVARIANT_MEMBER:
   status: hasFix
-ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
-  status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
@@ -3399,6 +3407,8 @@ ScannerErrorCode.UNABLE_GET_CONTENT:
   status: noFix
 ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING:
   status: noFix
+ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER:
+  status: hasFix
 ScannerErrorCode.UNSUPPORTED_OPERATOR:
   status: noFix
 ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
@@ -3542,6 +3552,8 @@ WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
 WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
+WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+  status: needsFix
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-
@@ -3622,7 +3634,7 @@ WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
-WarningCode.invalid_use_of_do_not_submit_member:
+WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
   status: needsEvaluation
 WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
   status: noFix
@@ -3635,6 +3647,10 @@ WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
   status: noFix
 WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
+WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION:
+  status: needsEvaluation
+WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+  status: needsEvaluation
 WarningCode.INVALID_VISIBILITY_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:

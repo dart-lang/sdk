@@ -57,20 +57,23 @@ class C {
   void test4() {
     void Q() {
       P(); // Refers to non-existing top-level function P
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-// [cfe] Local variable 'P' can't be referenced before it is declared.
-// [cfe] The method 'P' isn't defined for the class 'C'.
+      // [error column 7, length 1]
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'P' can't be referenced before it is declared.
+      // [cfe] The method 'P' isn't defined for the type 'C'.
     }
+
     void P() {
       Q();
     }
 
-    Function f = () {x = f;};
-    //                   ^
-    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-    // [cfe] Local variable 'f' can't be referenced before it is declared.
+    Function f = () {
+      x = f;
+      //  ^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'f' can't be referenced before it is declared.
+    };
   }
 
   test() {
@@ -83,9 +86,9 @@ class C {
 
 void testTypeRef() {
   String s = 'Can vegetarians eat animal crackers?';
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-// [cfe] Local variable 'String' can't be referenced before it is declared.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Local variable 'String' can't be referenced before it is declared.
   var String = "I distinctly remember forgetting that.";
 }
 

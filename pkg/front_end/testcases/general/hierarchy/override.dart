@@ -14,7 +14,7 @@ class Super {
 }
 
 class Class extends Super {
-  // Valid override.
+  // Not a valid override due to being abstract.
   void extendedMethod1(num n);
 
   // Not a valid override.

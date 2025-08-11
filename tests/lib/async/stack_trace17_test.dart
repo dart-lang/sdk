@@ -18,14 +18,20 @@ main() {
   Completer completer = new Completer();
   StackTrace trace = captureStackTrace();
   asyncStart();
-  completer.future.whenComplete(() => 499).then<Null>((_) {
-    throw "bad things happen";
-  }).then<Null>((_) {
-    throw "Unreachable";
-  }, onError: (e, st) {
-    Expect.equals("bad things happen", e);
-    Expect.isNotNull(st);
-    asyncEnd();
-  });
+  completer.future
+      .whenComplete(() => 499)
+      .then<Null>((_) {
+        throw "bad things happen";
+      })
+      .then<Null>(
+        (_) {
+          throw "Unreachable";
+        },
+        onError: (e, st) {
+          Expect.equals("bad things happen", e);
+          Expect.isNotNull(st);
+          asyncEnd();
+        },
+      );
   completer.complete(499);
 }

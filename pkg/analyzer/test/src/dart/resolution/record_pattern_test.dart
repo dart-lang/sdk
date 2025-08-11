@@ -34,16 +34,17 @@ RecordPattern
   }
 
   test_dynamicType_named_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -56,8 +57,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@46
-          type: dynamic
+        declaredFragment: isPublic y@46
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -66,16 +69,17 @@ RecordPattern
   }
 
   test_dynamicType_positional_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case (var y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -85,8 +89,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@41
-          type: dynamic
+        declaredFragment: isPublic y@41
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -142,16 +148,17 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (foo: int y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -167,8 +174,10 @@ RecordPattern
           element2: dart:core::@class::int
           type: int
         name: y
-        declaredElement: y@54
+        declaredFragment: isPublic y@54
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -177,16 +186,17 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -199,8 +209,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@54
-          type: Object?
+        declaredFragment: isPublic y@54
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -235,16 +247,17 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (int y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -257,8 +270,10 @@ RecordPattern
           element2: dart:core::@class::int
           type: int
         name: y
-        declaredElement: y@49
+        declaredFragment: isPublic y@49
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -267,16 +282,17 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (var y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -286,8 +302,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@49
-          type: Object?
+        declaredFragment: isPublic y@49
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -296,7 +314,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_hasName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (a: var b):
@@ -304,10 +323,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -320,8 +341,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: b
-        declaredElement: hasImplicitType b@47
-          type: Object?
+        declaredFragment: isPublic b@47
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -330,7 +353,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (: var a):
@@ -338,10 +362,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -353,8 +379,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@46
-          type: Object?
+        declaredFragment: isPublic a@46
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -363,17 +391,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int b}) x) {
   switch (x) {
     case (: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -385,8 +416,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@53
-          type: Object?
+        declaredFragment: isPublic a@53
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -395,17 +428,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooMany_noName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int a, int b}) x) {
   switch (x) {
     case (: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -417,8 +453,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@60
-          type: Object?
+        declaredFragment: isPublic a@60
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -427,7 +465,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (var a,):
@@ -435,10 +474,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -448,8 +489,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: Object?
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -458,17 +501,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   switch (x) {
     case (var a,):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -478,8 +524,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@55
-          type: Object?
+        declaredFragment: isPublic a@55
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -488,7 +536,8 @@ RecordPattern
   }
 
   test_recordType_sameShape_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case ():
@@ -496,10 +545,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 60, 7),
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 60, 7),
+        error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -510,18 +561,21 @@ RecordPattern
   }
 
   test_recordType_sameShape_mixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, double, {String foo}) x) {
   switch (x) {
     case (var a, foo: var b, var c):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -531,8 +585,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@69
-          type: int
+        declaredFragment: isPublic a@69
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
     PatternField
@@ -542,16 +598,20 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: b
-        declaredElement: hasImplicitType b@81
-          type: String
+        declaredFragment: isPublic b@81
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
       element2: <null>
     PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: c
-        declaredElement: hasImplicitType c@88
-          type: double
+        declaredFragment: isPublic c@88
+          type: null
+          element: hasImplicitType isPublic
+            type: double
         matchedValueType: double
       element2: <null>
   rightParenthesis: )
@@ -560,17 +620,20 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (bar: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -583,8 +646,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@58
-          type: Object?
+        declaredFragment: isPublic a@58
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -593,16 +658,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -615,8 +681,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@58
-          type: int
+        declaredFragment: isPublic y@58
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -625,17 +693,20 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_constant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: 0):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
-      error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
+        error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -656,16 +727,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: var foo):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -677,8 +749,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
-        declaredElement: hasImplicitType foo@55
-          type: int
+        declaredFragment: isPublic foo@55
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -687,16 +761,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_cast() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo as int):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -709,8 +784,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         asToken: as
         type: NamedType
@@ -725,16 +802,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullAssert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo!):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -747,8 +825,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: !
         matchedValueType: int?
@@ -759,16 +839,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullCheck() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo?):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -781,8 +862,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: ?
         matchedValueType: int?
@@ -793,16 +876,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_positional_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int,) x) {
   switch (x) {
     case (var a,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -812,8 +896,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@48
-          type: int
+        declaredFragment: isPublic a@48
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -822,14 +908,17 @@ RecordPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   var (a, b) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -840,15 +929,19 @@ PatternVariableDeclaration
       PatternField
         pattern: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@33
-            type: int
+          declaredFragment: isPublic a@33
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
           name: b
-          declaredElement: hasImplicitType b@36
-            type: String
+          declaredFragment: isPublic b@36
+            type: null
+            element: hasImplicitType isPublic
+              type: String
           matchedValueType: String
         element2: <null>
     rightParenthesis: )
@@ -856,23 +949,26 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int, String)
   patternTypeSchema: (_, _)
 ''');
   }
 
   test_variableDeclaration_typeSchema() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (int a, String b) = g();
 }
 
 (T, U) g<T, U>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -887,8 +983,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@22
+          declaredFragment: isPublic a@22
             type: int
+            element: isPublic
+              type: int
           matchedValueType: int
         element2: <null>
       PatternField
@@ -898,8 +996,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::String
             type: String
           name: b
-          declaredElement: b@32
+          declaredFragment: isPublic b@32
             type: String
+            element: isPublic
+              type: String
           matchedValueType: String
         element2: <null>
     rightParenthesis: )

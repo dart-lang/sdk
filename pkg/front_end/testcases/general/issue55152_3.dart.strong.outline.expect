@@ -12,7 +12,7 @@ import "dart:core" as core;
 typedef Alias<X extends core::Object? = dynamic> = self::Const<X%>;
 typedef Alias2<X extends core::Object? = dynamic> = self::Const<X%>;
 class Class extends core::Object /*hasConstConstructor*/  {
-  const constructor named({dynamic x = invalid-expression "pkg/front_end/testcases/general/issue55152_3.dart:11:21: Error: Not a constant expression.
+  const constructor named({erroneously-initialized dynamic x = invalid-expression "pkg/front_end/testcases/general/issue55152_3.dart:11:21: Error: Not a constant expression.
       {dynamic x = (({dynamic y = const [Alias2.impl()]}) =>
                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"}) → self::Class
     : super core::Object::•()

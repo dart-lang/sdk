@@ -15,6 +15,9 @@ void main() {
 @reflectiveTest
 class DiscardedFuturesTest extends LintRuleTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintRule => LintNames.discarded_futures;
 
   Future<void> test_as_ok_future() async {
@@ -101,7 +104,7 @@ void foo() {
 }
 
 Future<int> g() async => 0;
-  ''');
+''');
   }
 
   Future<void> test_assignment_ok_implicit_setOfFuture() async {
@@ -111,7 +114,7 @@ void foo() {
 }
 
 Future<int> g() async => 0;
-  ''');
+''');
   }
 
   Future<void> test_cascade_ok_future() async {
@@ -146,7 +149,7 @@ void foo() {
 extension on int {
   Future<int> g() async => this;
 }
-  ''',
+''',
       [lint(26, 1)],
     );
   }
@@ -262,13 +265,15 @@ Future<int> g() async => 0;
     await assertDiagnostics(
       '''
 void f() {
-  // ignore: await_in_wrong_context
   await g();
 }
 
-Future<void> g() async { }
+Future<void> g() async {}
 ''',
-      [lint(55, 1)],
+      [
+        // No lint.
+        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
+      ],
     );
   }
 
@@ -277,14 +282,16 @@ Future<void> g() async { }
       '''
 class C {
   void f() {
-    // ignore: await_in_wrong_context
     await g();
   }
 
-  Future<void> g() async { }
+  Future<void> g() async {}
 }
 ''',
-      [lint(71, 1)],
+      [
+        // No lint.
+        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 27, 5),
+      ],
     );
   }
 
@@ -306,16 +313,26 @@ Future<int> g() async => 0;
   Future<void> test_function() async {
     await assertDiagnostics(
       r'''
-void recreateDir(String path) {
-  deleteDir(path);
-  createDir(path);
+void f() {
+  g();
 }
 
-Future<void> deleteDir(String path) async {}
-Future<void> createDir(String path) async {}
+Future<int> g() async => 7;
 ''',
-      [lint(34, 9), lint(53, 9)],
+      [lint(13, 1)],
     );
+  }
+
+  Future<void> test_function_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() {
+  g();
+}
+
+@awaitNotRequired
+Future<int> g() async => 7;
+''');
   }
 
   Future<void> test_function_closure() async {
@@ -359,6 +376,21 @@ int h(Function f) => 0;
 
 Future<int> g() async => 0;
 ''');
+  }
+
+  Future<void> test_function_futureOr() async {
+    await assertDiagnostics(
+      '''
+import 'dart:async';
+
+void f() {
+  g();
+}
+
+FutureOr<int> g() async => 0;
+''',
+      [lint(35, 1)],
+    );
   }
 
   Future<void> test_function_ok_async() async {
@@ -431,17 +463,15 @@ Future<int> g() async => 0;
   Future<void> test_method() async {
     await assertDiagnostics(
       r'''
-class Dir{
-  void recreateDir(String path) {
-    deleteDir(path);
-    createDir(path);
+class C {
+  void m() {
+    g();
   }
 
-  Future<void> deleteDir(String path) async {}
-  Future<void> createDir(String path) async {}
+  Future<void> g() async {}
 }
 ''',
-      [lint(49, 9), lint(70, 9)],
+      [lint(27, 1)],
     );
   }
 
@@ -494,6 +524,20 @@ void foo() {
 }
 
 Future<int> g() async => 0;
+''');
+  }
+
+  Future<void> test_method_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+class C {
+  void m() {
+    g();
+  }
+
+  @awaitNotRequired
+  Future<void> g() async {}
+}
 ''');
   }
 
@@ -700,21 +744,6 @@ Future<int> a = g();
 
 Future<int> g() async => 0;
 ''');
-  }
-
-  Future<void> test_trigger_futureOr() async {
-    await assertDiagnostics(
-      '''
-import 'dart:async';
-
-void foo() {
-  g();
-}
-
-FutureOr<int> g() async => 0;
-''',
-      [lint(37, 1)],
-    );
   }
 
   Future<void> test_variable_assignment() async {

@@ -16,8 +16,10 @@ Future<void> main(List<String> args) async {
     return;
   } else {
     // Create child process and keeps writing into stdout.
-    final p = await Process.start(
-        Platform.executable, [Platform.script.toFilePath(), 'child']);
+    final p = await Process.start(Platform.executable, [
+      Platform.script.toFilePath(),
+      'child',
+    ]);
     p.stdout.drain();
     p.stderr.drain();
     final exitCode = await p.exitCode;

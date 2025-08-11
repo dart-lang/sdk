@@ -16,28 +16,42 @@ group("all") {
 group("aot") {
   deps = [
     ":run_main_aot",
+    ":run_main_aot_static",
     ":run_timer_aot",
+    ":run_timer_aot_static",
     ":run_timer_async_aot",
+    ":run_timer_async_aot_static",
     ":run_two_programs_aot",
+    ":run_two_programs_aot_static",
   ]
 
   # FFI can't execute on the VM's simulator
   if (dart_target_arch == host_cpu) {
-    deps += [ ":run_futures_aot" ]
+    deps += [
+      ":run_futures_aot",
+      ":run_futures_aot_static",
+    ]
   }
 }
 
 group("kernel") {
   deps = [
     ":run_main_kernel",
+    ":run_main_kernel_static",
     ":run_timer_async_kernel",
+    ":run_timer_async_kernel_static",
     ":run_timer_kernel",
+    ":run_timer_kernel_static",
     ":run_two_programs_kernel",
+    ":run_two_programs_kernel_static",
   ]
 
   # FFI can't execute on the VM's simulator
   if (dart_target_arch == host_cpu) {
-    deps += [ ":run_futures_kernel" ]
+    deps += [
+      ":run_futures_kernel",
+      ":run_futures_kernel_static",
+    ]
   }
 }
 
@@ -45,6 +59,7 @@ _all_configs = [
   {
     suffix = "_kernel"
     dart_shared_lib = "../../runtime/engine:dart_engine_jit_shared"
+    dart_static_lib = "../../runtime/engine:dart_engine_jit_static"
     dart_snapshot_kind = "kernel"
     gen_kernel_args = [ "--link-platform" ]
     snapshot_target = "application_snapshot"
@@ -53,6 +68,7 @@ _all_configs = [
   {
     suffix = "_aot"
     dart_shared_lib = "../../runtime/engine:dart_engine_aot_shared"
+    dart_static_lib = "../../runtime/engine:dart_engine_aot_static"
     snapshot_target = "aot_snapshot"
 
     # AOT snapshots as shared libraries on Windows are not
@@ -105,6 +121,37 @@ template("sample") {
       }
       deps += extra_deps
     }
+
+    executable("${target_name}${conf.suffix}_static") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      # Otherwise build with --no-clang (jit) or MSAN (aot) fails.
+      if (is_linux) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,--allow-shlib-undefined" ]
+      }
+      deps = [ conf.dart_static_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}_static" ]
+      }
+      deps += extra_deps
+    }
   }
 }
 
@@ -118,7 +165,8 @@ template("snapshots") {
     extra_deps += invoker.extra_deps
   }
   foreach(conf, _all_configs) {
-    target(conf.snapshot_target, "${target_name}${conf.suffix}") {
+    snapshot_target_name = "${target_name}${conf.suffix}"
+    target(conf.snapshot_target, snapshot_target_name) {
       forward_variables_from(invoker,
                              "*",
                              [
@@ -142,6 +190,9 @@ template("snapshots") {
         deps += [ "${dep}${conf.suffix}" ]
       }
       deps += extra_deps
+    }
+    group("${snapshot_target_name}_static") {
+      deps = [ ":${snapshot_target_name}" ]
     }
   }
 }
@@ -192,6 +243,35 @@ template("shims") {
       ]
       public = [ "$name.h" ]
       deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "$dep${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+
+    static_library("${target_name}${conf.suffix}_static") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "name",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      sources = [
+        "$name.cc",
+        "$name.h",
+      ]
+      public = [ "$name.h" ]
+      deps = [ conf.dart_static_lib ]
       foreach(dep, configurable_deps) {
         deps += [ "$dep${conf.suffix}" ]
       }

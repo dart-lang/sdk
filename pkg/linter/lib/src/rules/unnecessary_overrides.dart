@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,13 +21,10 @@ class UnnecessaryOverrides extends LintRule {
     : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_overrides;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -37,12 +36,12 @@ abstract class _AbstractUnnecessaryOverrideVisitor
 
   /// If [declaration] is an inherited member of interest, then this is set in
   /// [visitMethodDeclaration].
-  late ExecutableElement2 _inheritedMethod;
+  late ExecutableElement _inheritedMethod;
   late MethodDeclaration declaration;
 
   _AbstractUnnecessaryOverrideVisitor(this.rule);
 
-  ExecutableElement2? getInheritedElement(MethodDeclaration node);
+  ExecutableElement? getInheritedElement(MethodDeclaration node);
 
   @override
   void visitBlock(Block node) {
@@ -105,17 +104,17 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   @override
   void visitSuperExpression(SuperExpression node) {
     if (node.beginToken.precedingComments != null) return;
-    rule.reportLintForToken(declaration.name);
+    rule.reportAtToken(declaration.name);
   }
 
   /// Returns whether [declaration] is annotated with any metadata (other than
   /// `@override` or `@Override`).
   bool _addsMetadata() {
-    var metadata = declaration.declaredFragment?.element.metadata2;
+    var metadata = declaration.declaredFragment?.element.metadata;
     if (metadata != null) {
       for (var annotation in metadata.annotations) {
         if (annotation.isOverride) continue;
-        if (annotation.isProtected && _inheritedMethod.metadata2.hasProtected) {
+        if (annotation.isProtected && _inheritedMethod.metadata.hasProtected) {
           continue;
         }
 
@@ -142,7 +141,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
       var superParam = _inheritedMethod.formalParameters[i];
       var param = declaredElement.formalParameters[i];
       if (param.type != superParam.type) return false;
-      if (param.name3 != superParam.name3) return false;
+      if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
       if (!_sameKind(param, superParam)) return false;
       if (param.defaultValueCode != superParam.defaultValueCode) return false;
@@ -158,10 +157,10 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   bool _makesPublicFromProtected() {
     var declaredElement = declaration.declaredFragment?.element;
     if (declaredElement == null) return false;
-    if (declaredElement.metadata2.hasProtected) {
+    if (declaredElement.metadata.hasProtected) {
       return false;
     }
-    return _inheritedMethod.metadata2.hasProtected;
+    return _inheritedMethod.metadata.hasProtected;
   }
 
   bool _sameKind(FormalParameterElement first, FormalParameterElement second) {
@@ -181,16 +180,16 @@ class _UnnecessaryGetterOverrideVisitor
   _UnnecessaryGetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(MethodDeclaration node) {
+  ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
-    var getterName = element.name3;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return null;
+    var getterName = element.name;
     if (getterName == null) return null;
-    return enclosingElement.thisType.lookUpGetter3(
+    return enclosingElement.thisType.lookUpGetter(
       getterName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -198,7 +197,7 @@ class _UnnecessaryGetterOverrideVisitor
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.name == _inheritedMethod.name3) {
+    if (node.propertyName.name == _inheritedMethod.name) {
       node.target?.accept(this);
     }
   }
@@ -209,16 +208,16 @@ class _UnnecessaryMethodOverrideVisitor
   _UnnecessaryMethodOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
 
-    var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return null;
 
-    return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
+    return enclosingElement.firstFragment.element.thisType.lookUpMethod(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -228,7 +227,7 @@ class _UnnecessaryMethodOverrideVisitor
   void visitMethodInvocation(MethodInvocation node) {
     var declarationParameters = declaration.parameters;
     if (declarationParameters != null &&
-        node.methodName.name == _inheritedMethod.name3 &&
+        node.methodName.name == _inheritedMethod.name &&
         argumentsMatchParameters(
           node.argumentList.arguments,
           declarationParameters.parameters,
@@ -243,16 +242,16 @@ class _UnnecessaryOperatorOverrideVisitor
   _UnnecessaryOperatorOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
-    var methodName = element.name3;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return null;
+    var methodName = element.name;
     if (methodName == null) return null;
-    return enclosingElement.thisType.lookUpMethod3(
+    return enclosingElement.thisType.lookUpMethod(
       methodName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -292,14 +291,14 @@ class _UnnecessarySetterOverrideVisitor
   _UnnecessarySetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
-    return enclosingElement.thisType.lookUpSetter3(
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return null;
+    return enclosingElement.thisType.lookUpSetter(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -314,7 +313,7 @@ class _UnnecessarySetterOverrideVisitor
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        if (node.writeElement2?.name3 == _inheritedMethod.name3) {
+        if (node.writeElement?.name == _inheritedMethod.name) {
           leftPart.target?.accept(this);
         }
       }

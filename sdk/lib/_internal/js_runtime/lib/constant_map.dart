@@ -249,7 +249,8 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
     return backingMap;
   }
 
-  static bool Function(Object?) _typeTest<T>() => (Object? o) => o is T;
+  static bool Function(Object?) _typeTest<T>() =>
+      (Object? o) => o is T;
 
   bool containsValue(Object? needle) {
     return _getMap().containsValue(needle);

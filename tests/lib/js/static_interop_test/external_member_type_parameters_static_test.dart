@@ -82,8 +82,11 @@ extension UninstantiatedExtension<T, U extends JSAny?, V extends Instantiated>
   external X returnX<X extends JSArray>();
 }
 
-extension type UninstantiatedExtensionType<T, U extends JSAny?,
-    V extends InstantiatedExtensionType>._(JSObject _) {
+extension type UninstantiatedExtensionType<
+  T,
+  U extends JSAny?,
+  V extends InstantiatedExtensionType
+>._(JSObject _) {
   external UninstantiatedExtensionType(T t);
   //       ^
   // [web] External JS interop member contains invalid types in its function signature: 'UninstantiatedExtensionType<T, U, V> Function(*T*)'.
@@ -139,8 +142,11 @@ extension type UninstantiatedExtensionType<T, U extends JSAny?,
   external X returnX<X extends JSArray>();
 }
 
-extension UninstantiatedExtensionTypeExtension<T, U extends JSAny?,
-        V extends InstantiatedExtensionType>
+extension UninstantiatedExtensionTypeExtension<
+  T,
+  U extends JSAny?,
+  V extends InstantiatedExtensionType
+>
     on UninstantiatedExtensionType<T, U, V> {
   external T get extensionGetT;
   //             ^

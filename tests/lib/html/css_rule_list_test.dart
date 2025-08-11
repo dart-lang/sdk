@@ -7,8 +7,10 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isCssRuleList =
-      predicate((x) => x is List<CssRule>, 'is a List<CssRule>');
+  var isCssRuleList = predicate(
+    (x) => x is List<CssRule>,
+    'is a List<CssRule>',
+  );
 
   test("ClientRectList test", () {
     var sheet = document.styleSheets![0] as CssStyleSheet;

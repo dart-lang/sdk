@@ -25,24 +25,36 @@ class B with A {}
   }
 
   test_class_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {}
 typedef T<X extends A> = X;
 class B with T {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          52, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          52,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {}
 typedef T<X extends A> = X;
 class B with T<A> {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          52, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          52,
+          1,
+        ),
+      ],
+    );
   }
 }

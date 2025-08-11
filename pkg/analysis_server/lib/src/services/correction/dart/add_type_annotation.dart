@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -31,7 +31,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     : applicability = CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
+  AssistKind get assistKind => DartAssistKind.addTypeAnnotation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;
@@ -62,7 +62,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is VariableDeclarationList) {
         await _forVariableDeclaration(builder, node);
         return;
@@ -114,7 +114,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement2!.type;
+    var type = declaredIdentifier.declaredElement!.type;
     if (type is! InterfaceType &&
         type is! FunctionType &&
         type is! RecordType &&
@@ -225,7 +225,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement2;
+    var element = variable.declaredElement;
     if (element == null) {
       return null;
     }
@@ -243,7 +243,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The type system used to compute the best type.
   final TypeSystem typeSystem;
 
-  final LocalVariableElement2 variable;
+  final LocalVariableElement variable;
 
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};

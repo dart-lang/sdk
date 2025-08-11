@@ -44,8 +44,9 @@ void testManyLines() {
 
 String _getLinesSliced(String str) {
   late String lines;
-  var stringSink =
-      new StringConversionSink.withCallback((result) => lines = result);
+  var stringSink = new StringConversionSink.withCallback(
+    (result) => lines = result,
+  );
   var sink = new LineSplitter().startChunkedConversion(stringSink);
 
   const chunkSize = 3;
@@ -74,14 +75,25 @@ void testSimpleConvert() {
   var test = "Line1\nLine2\r\nLine3\rLine4\n\n\n\r\n\r\n\r\r";
   var result = decoder.convert(test);
 
-  Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
+  Expect.listEquals([
+    'Line1',
+    'Line2',
+    'Line3',
+    'Line4',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+  ], result);
 }
 
 void testReadLine1() {
   var controller = new StreamController<List<int>>(sync: true);
-  var stream =
-      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
+  var stream = controller.stream
+      .transform(utf8.decoder)
+      .transform(const LineSplitter());
 
   var stage = 0;
   var done = false;
@@ -108,8 +120,9 @@ void testReadLine1() {
 void testReadLine2() {
   var controller = new StreamController<List<int>>(sync: true);
 
-  var stream =
-      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
+  var stream = controller.stream
+      .transform(utf8.decoder)
+      .transform(const LineSplitter());
 
   var expectedLines = [
     'Line1',
@@ -123,7 +136,7 @@ void testReadLine2() {
     '',
     '',
     'Line5',
-    'Line6'
+    'Line6',
   ];
 
   var index = 0;
@@ -152,8 +165,18 @@ void testSplit() {
   var test = "Line1\nLine2\r\nLine3\rLine4\n\n\n\r\n\r\n\r\r";
   var result = LineSplitter.split(test).toList();
 
-  Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
+  Expect.listEquals([
+    'Line1',
+    'Line2',
+    'Line3',
+    'Line4',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+  ], result);
 }
 
 void testSplitWithOffsets() {
@@ -182,8 +205,18 @@ void testSplitWithOffsets() {
 
   var result = LineSplitter.split(test).toList();
 
-  Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
+  Expect.listEquals([
+    'Line1',
+    'Line2',
+    'Line3',
+    'Line4',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+  ], result);
 
   test = "a\n\nb\r\nc\n\rd\r\re\r\n\nf\r\n";
   result = LineSplitter.split(test).toList();
@@ -210,8 +243,9 @@ void testChunkedConversion() {
     for (int j = i; j < test.length; j++) {
       var output = [];
       var splitter = new LineSplitter();
-      var outSink =
-          new ChunkedConversionSink<String>.withCallback(output.addAll);
+      var outSink = new ChunkedConversionSink<String>.withCallback(
+        output.addAll,
+      );
       var sink = splitter.startChunkedConversion(outSink);
       sink.addSlice(test, 0, i, false);
       sink.addSlice(test, i, j, false);

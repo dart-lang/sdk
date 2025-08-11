@@ -33,7 +33,8 @@ class State { }
   }
 
   test_badReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class Stateful {
   State _s = new State();
@@ -42,13 +43,14 @@ class Stateful {
   State createState() => _s;
 }
 class State { }
-''', [
-      error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 96, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 96, 11)],
+    );
   }
 
   test_badReturn_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 extension type E(int i) {
   @factory
@@ -56,9 +58,9 @@ extension type E(int i) {
     return i;
   }  
 }
-''', [
-      error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 79, 6),
-    ]);
+''',
+      [error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 79, 6)],
+    );
   }
 
   test_block() async {
@@ -154,15 +156,16 @@ class MyState extends State { }
   }
 
   test_voidReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class Stateful {
   @factory
   void createState() {}
 }
-''', [
-      error(WarningCode.INVALID_FACTORY_METHOD_DECL, 69, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_FACTORY_METHOD_DECL, 69, 11)],
+    );
   }
 }

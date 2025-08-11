@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_pr
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
@@ -35,7 +35,7 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
       'requireResolvedUnit',
-      (_) async => path.mapResult(requireResolvedUnit),
+      (_) => path.mapResult(requireResolvedUnit),
     );
     return await unit.mapResult((result) {
       return performance.runAsync(
@@ -97,7 +97,7 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
         addCodeLens('Go to Augmentation', fragment, nextFragment);
       }
 
-      for (var fragment in fragment.children3) {
+      for (var fragment in fragment.children) {
         addCodeLenses(fragment);
       }
     }

@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class UnusedLocalVariableTest extends PubPackageResolutionTest {
   test_forEachPartsWithPattern_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(List<(int,)> x) {
   for (var (a,) in x) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1)],
+    );
   }
 
   test_forEachPartsWithPattern_used() async {
@@ -44,13 +45,14 @@ void f(List<(int,)> x) {
   }
 
   test_forPartsWithPattern_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   for (var (a,) = (0,);;) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+    );
   }
 
   test_forPartsWithPattern_used() async {
@@ -72,14 +74,17 @@ void f() {
   }
 
   test_ifStatement_caseClause_logicalOr_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || [int a]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      ],
+    );
   }
 
   test_ifStatement_caseClause_logicalOr_used() async {
@@ -93,13 +98,14 @@ void f(Object? x) {
   }
 
   test_ifStatement_caseClause_single_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1)],
+    );
   }
 
   test_ifStatement_caseClause_single_used() async {
@@ -129,7 +135,8 @@ void f(Object? x) {
   }
 
   test_inFor_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   for (var _ in [1,2,3]) {
     for (var __ in [4,5,6]) {
@@ -137,9 +144,9 @@ f() {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 2)],
+    );
   }
 
   test_inFor_underscores_preWildCards() async {
@@ -157,27 +164,31 @@ f() {
   }
 
   test_localVariable_forElement_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
     [
       for (var __ in [1, 2, 3]) 1
     ];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 2)],
+    );
   }
 
   test_localVariable_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   var __ = 0;
   var ___ = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 3),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+      ],
+    );
   }
 
   test_localVariable_wildcard() async {
@@ -189,13 +200,14 @@ f() {
   }
 
   test_localVariableListPattern_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   var [__] = [1];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2)],
+    );
   }
 
   test_localVariableListPattern_wildcard() async {
@@ -207,13 +219,14 @@ f() {
   }
 
   test_localVariablePattern_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   var (__) = (1);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2)],
+    );
   }
 
   test_localVariablePattern_wildcard() async {
@@ -225,15 +238,16 @@ f() {
   }
 
   test_localVariableSwitchListPattern_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object o) {
   switch(o) {
     case [var __] : {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2)],
+    );
   }
 
   test_localVariableSwitchListPattern_wildcard() async {
@@ -247,49 +261,59 @@ void f(Object o) {
   }
 
   test_patternVariableDeclarationStatement_noneUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a, b) = (0, 1);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      ],
+    );
   }
 
   test_patternVariableDeclarationStatement_noneUsed_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a, [b, _]) = (0, []);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      ],
+    );
   }
 
   test_patternVariableDeclarationStatement_noneUsed_withChildStatements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a, b) = () {
     var (c, d) = (0, 1);
     return (c, d);
   }();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+      ],
+    );
   }
 
   test_patternVariableDeclarationStatement_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a,) = (0,);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
   }
 
   test_patternVariableDeclarationStatement_someUsed() async {
@@ -329,16 +353,17 @@ void f() {
   }
 
   test_switchExpression_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Object? f(Object? x) {
   return switch (x) {
     (int a,) => 0,
     _ => 0,
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
   }
 
   test_switchExpression_used() async {
@@ -364,16 +389,17 @@ Object? f(Object? x) {
   }
 
   test_switchStatement_patternCase_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (var a,):
       break;
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
   }
 
   test_switchStatement_patternCase_used() async {
@@ -399,7 +425,8 @@ void f(Object? x) {
   }
 
   test_switchStatement_sharedScope_consistent_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (var a,):
@@ -407,10 +434,12 @@ void f(Object? x) {
       break;
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      ],
+    );
   }
 
   test_switchStatement_sharedScope_consistent_used() async {
@@ -426,7 +455,8 @@ void f(Object? x) {
   }
 
   test_switchStatement_sharedScope_notConsistent_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -434,13 +464,14 @@ void f(Object? x) {
       break;
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1)],
+    );
   }
 
   test_switchStatement_sharedScope_notConsistent_used() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -448,16 +479,20 @@ void f(Object? x) {
       a;
   };
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           71,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_switchStatement_sharedScope_whenClause_notUsed_used() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case [int a,]:
@@ -465,9 +500,9 @@ void f(Object? x) {
       break;
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
   }
 
   test_switchStatement_sharedScope_whenClause_used_notDeclared() async {
@@ -483,7 +518,8 @@ void f(Object? x) {
   }
 
   test_switchStatement_sharedScope_whenClause_used_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (int a,) when a > 0:
@@ -491,9 +527,9 @@ void f(Object? x) {
       break;
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 1)],
+    );
   }
 
   test_switchStatement_sharedScope_whenClause_used_used() async {
@@ -509,27 +545,29 @@ void f(Object? x) {
   }
 
   test_variableDeclarationStatement_inFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = 1;
   v = 2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_variableDeclarationStatement_inMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   foo() {
     var v = 1;
     v = 2;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1)],
+    );
   }
 
   test_variableDeclarationStatement_isInvoked() async {
@@ -554,36 +592,39 @@ doSomething() => 42;
   }
 
   test_variableDeclarationStatement_isRead_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = 1;
   v += 2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_variableDeclarationStatement_isRead_notUsed_postfixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = 1;
   v++;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_variableDeclarationStatement_isRead_notUsed_prefixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = 1;
   ++v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_variableDeclarationStatement_isRead_usedArgument() async {

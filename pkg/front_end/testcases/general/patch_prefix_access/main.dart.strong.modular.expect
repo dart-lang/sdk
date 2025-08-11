@@ -27,7 +27,7 @@ class Class extends core::Object {
   method /* from org-dartlang-testcase:///patch_lib.dart */ method() → core::int
     return #C2;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension Extension on core::int {
   method method = test::Extension|method;
   method tearoff method = test::Extension|get#method;

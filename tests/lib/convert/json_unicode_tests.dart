@@ -39,8 +39,8 @@ _expandUnicodeTests() {
     // For example: 'abcd' -> '[[["abcd"]]]'.
     var listExpected = [
       [
-        [string]
-      ]
+        [string],
+      ],
     ];
     var inListBytes = <int>[];
     inListBytes.addAll([_bracketOpen, _bracketOpen, _bracketOpen]);

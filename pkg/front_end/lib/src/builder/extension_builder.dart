@@ -24,10 +24,11 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
   // member lookup to avoid reporting that the member doesn't exist when it is
   // duplicate.
-  Builder? lookupLocalMemberByName(Name name,
+  MemberBuilder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false});
 }
 
+// Coverage-ignore(suite): Not run.
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
@@ -45,10 +46,6 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  bool get isExtension => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
           {required Map<TypeParameterBuilder, TraversalState>
               typeParametersTraversalState}) =>

@@ -104,12 +104,12 @@ class _HttpProfileData {
 
   Map? formatConnectionInfo(HttpConnectionInfo? connectionInfo) =>
       connectionInfo == null
-          ? null
-          : {
-            'localPort': connectionInfo.localPort,
-            'remoteAddress': connectionInfo.remoteAddress.address,
-            'remotePort': connectionInfo.remotePort,
-          };
+      ? null
+      : {
+          'localPort': connectionInfo.localPort,
+          'remoteAddress': connectionInfo.remoteAddress.address,
+          'remotePort': connectionInfo.remotePort,
+        };
 
   void finishRequest({required HttpClientRequest request}) {
     // TODO(bkonyi): include encoding?
@@ -309,10 +309,9 @@ class _CopyingBytesBuilder implements BytesBuilder {
   Uint8List _buffer;
 
   _CopyingBytesBuilder([int initialCapacity = 0])
-    : _buffer =
-          (initialCapacity <= 0)
-              ? _emptyList
-              : Uint8List(_pow2roundup(initialCapacity));
+    : _buffer = (initialCapacity <= 0)
+          ? _emptyList
+          : Uint8List(_pow2roundup(initialCapacity));
 
   void add(List<int> bytes) {
     int bytesLength = bytes.length;
@@ -555,12 +554,11 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
     }
 
     var proto = headers['x-forwarded-proto'];
-    var scheme =
-        proto != null
-            ? proto.first
-            : _httpConnection._socket is SecureSocket
-            ? "https"
-            : "http";
+    var scheme = proto != null
+        ? proto.first
+        : _httpConnection._socket is SecureSocket
+        ? "https"
+        : "http";
     var hostList = headers['x-forwarded-host'];
     String host;
     if (hostList != null) {
@@ -1172,10 +1170,9 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }) : _uri = uri,
        headers = _HttpHeaders(
          protocolVersion,
-         defaultPortForScheme:
-             uri.isScheme('https')
-                 ? HttpClient.defaultHttpsPort
-                 : HttpClient.defaultHttpPort,
+         defaultPortForScheme: uri.isScheme('https')
+             ? HttpClient.defaultHttpsPort
+             : HttpClient.defaultHttpPort,
          initialHeaders: initialHeaders,
        ),
        _outgoing = outgoing,
@@ -1540,11 +1537,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     }, onError: (e) {});
   }
 
-  Future<HttpClientResponse> get done =>
-      _response ??= Future.wait([
-        _responseCompleter.future,
-        super.done,
-      ], eagerError: true).then((list) => list[0]);
+  Future<HttpClientResponse> get done => _response ??= Future.wait([
+    _responseCompleter.future,
+    super.done,
+  ], eagerError: true).then((list) => list[0]);
 
   Future<HttpClientResponse> close() {
     if (!_aborted) {
@@ -2205,7 +2201,11 @@ class _HttpClientConnection {
         // We assume the response is not here, until we have send the request.
         if (_nextResponseCompleter == null) {
           throw HttpException(
-            "Unexpected response (unsolicited response without request).",
+            "Unexpected response (unsolicited response without request). This "
+            "can be caused when a malformed request is sent to the server "
+            "(e.g. a GET request containing a body) or if the server is not "
+            "correctly implemented. Future requests to this server, using the "
+            "same HttpClient, are likely to fail.",
             uri: _currentUri,
           );
         }
@@ -2238,11 +2238,10 @@ class _HttpClientConnection {
                   );
                   _nextResponseCompleter = null;
                 },
-                test:
-                    (error) =>
-                        error is HttpException ||
-                        error is SocketException ||
-                        error is TlsException,
+                test: (error) =>
+                    error is HttpException ||
+                    error is SocketException ||
+                    error is TlsException,
               );
         } else {
           _nextResponseCompleter!.complete(incoming);
@@ -2521,11 +2520,10 @@ class _HttpClientConnection {
             profileData?.requestEvent(error);
             throw HttpException(error, uri: request.uri);
           }
-          var socket =
-              (response as _HttpClientResponse)
-                  ._httpRequest
-                  ._httpClientConnection
-                  ._socket;
+          var socket = (response as _HttpClientResponse)
+              ._httpRequest
+              ._httpClientConnection
+              ._socket;
           return SecureSocket.secure(
             socket,
             host: host,
@@ -2699,16 +2697,15 @@ class _ConnectionTarget {
         connectionTask = cf(uri, host, port);
       }
     } else {
-      connectionTask =
-          (isSecure && proxy.isDirect
-              ? SecureSocket.startConnect(
-                host,
-                port,
-                context: context,
-                onBadCertificate: callback,
-                keyLog: client._keyLog,
-              )
-              : Socket.startConnect(host, port));
+      connectionTask = (isSecure && proxy.isDirect
+          ? SecureSocket.startConnect(
+              host,
+              port,
+              context: context,
+              onBadCertificate: callback,
+              keyLog: client._keyLog,
+            )
+          : Socket.startConnect(host, port));
     }
     _connecting++;
     return connectionTask.then(
@@ -3030,8 +3027,9 @@ class _HttpClient implements HttpClient {
 
     int port = uri.port;
     if (port == 0) {
-      port =
-          isSecure ? HttpClient.defaultHttpsPort : HttpClient.defaultHttpPort;
+      port = isSecure
+          ? HttpClient.defaultHttpsPort
+          : HttpClient.defaultHttpPort;
     }
     // Check to see if a proxy server should be used for this connection.
     var proxyConf = const _ProxyConfiguration.direct();
@@ -3746,7 +3744,7 @@ class _ProxyConfiguration {
             String userinfo = proxy.substring(0, at).trim();
             proxy = proxy.substring(at + 1).trim();
             int colon = userinfo.indexOf(":");
-            if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
+            if (colon == -1 || colon == 0 || colon == userinfo.length - 1) {
               throw HttpException("Invalid proxy configuration $configuration");
             }
             username = userinfo.substring(0, colon).trim();
@@ -3947,13 +3945,12 @@ abstract class _Credentials {
       // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
       // now always use UTF-8 encoding.
       var creds = credentials as _HttpClientDigestCredentials;
-      var hasher =
-          _MD5()
-            ..add(utf8.encode(creds.username))
-            ..add([_CharCode.COLON])
-            ..add(realm.codeUnits)
-            ..add([_CharCode.COLON])
-            ..add(utf8.encode(creds.password));
+      var hasher = _MD5()
+        ..add(utf8.encode(creds.username))
+        ..add([_CharCode.COLON])
+        ..add(realm.codeUnits)
+        ..add([_CharCode.COLON])
+        ..add(utf8.encode(creds.password));
       ha1 = _CryptoUtils.bytesToHex(hasher.close());
     }
   }
@@ -3972,8 +3969,9 @@ class _SiteCredentials extends _Credentials {
   bool applies(Uri uri, _AuthenticationScheme? scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
     if (uri.host != this.uri.host) return false;
-    int thisPort =
-        this.uri.port == 0 ? HttpClient.defaultHttpPort : this.uri.port;
+    int thisPort = this.uri.port == 0
+        ? HttpClient.defaultHttpPort
+        : this.uri.port;
     int otherPort = uri.port == 0 ? HttpClient.defaultHttpPort : uri.port;
     if (otherPort != thisPort) return false;
     return uri.path.startsWith(this.uri.path);
@@ -4085,20 +4083,18 @@ final class _HttpClientDigestCredentials extends _HttpClientCredentials
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
-    _MD5 hasher =
-        _MD5()
-          ..add(request.method.codeUnits)
-          ..add([_CharCode.COLON])
-          ..add(requestUri.codeUnits);
+    _MD5 hasher = _MD5()
+      ..add(request.method.codeUnits)
+      ..add([_CharCode.COLON])
+      ..add(requestUri.codeUnits);
     var ha2 = _CryptoUtils.bytesToHex(hasher.close());
 
     bool isAuth = false;
     String cnonce = "";
     String nc = "";
-    hasher =
-        _MD5()
-          ..add(credentials.ha1!.codeUnits)
-          ..add([_CharCode.COLON]);
+    hasher = _MD5()
+      ..add(credentials.ha1!.codeUnits)
+      ..add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       isAuth = true;
       cnonce = _CryptoUtils.bytesToHex(_CryptoUtils.getRandomBytes(4));
@@ -4123,14 +4119,13 @@ final class _HttpClientDigestCredentials extends _HttpClientCredentials
     }
     var response = _CryptoUtils.bytesToHex(hasher.close());
 
-    StringBuffer buffer =
-        StringBuffer()
-          ..write('Digest ')
-          ..write('username="$username"')
-          ..write(', realm="${credentials.realm}"')
-          ..write(', nonce="${credentials.nonce}"')
-          ..write(', uri="$requestUri"')
-          ..write(', algorithm="${credentials.algorithm}"');
+    StringBuffer buffer = StringBuffer()
+      ..write('Digest ')
+      ..write('username="$username"')
+      ..write(', realm="${credentials.realm}"')
+      ..write(', nonce="${credentials.nonce}"')
+      ..write(', uri="$requestUri"')
+      ..write(', algorithm="${credentials.algorithm}"');
     if (isAuth) {
       buffer
         ..write(', qop="auth"')

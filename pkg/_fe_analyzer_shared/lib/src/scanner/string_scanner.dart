@@ -46,19 +46,24 @@ class StringScanner extends AbstractScanner {
   @override
   int scanOffset = -1;
 
-  StringScanner(this._string,
-      {ScannerConfiguration? configuration,
-      bool includeComments = false,
-      LanguageVersionChanged? languageVersionChanged})
-      : _stringLengthMinusOne = _string.length - 1,
-        super(configuration, includeComments, languageVersionChanged,
-            numberOfBytesHint: _string.length);
+  StringScanner(
+    this._string, {
+    ScannerConfiguration? configuration,
+    bool includeComments = false,
+    LanguageVersionChanged? languageVersionChanged,
+  }) : _stringLengthMinusOne = _string.length - 1,
+       super(
+         configuration,
+         includeComments,
+         languageVersionChanged,
+         numberOfBytesHint: _string.length,
+       );
 
   StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
-      : _string = copyFrom._string,
-        _stringLengthMinusOne = copyFrom._stringLengthMinusOne,
-        scanOffset = copyFrom.scanOffset,
-        super.recoveryOptionScanner();
+    : _string = copyFrom._string,
+      _stringLengthMinusOne = copyFrom._stringLengthMinusOne,
+      scanOffset = copyFrom.scanOffset,
+      super.recoveryOptionScanner();
 
   @override
   StringScanner createRecoveryOptionScanner() {
@@ -141,46 +146,95 @@ class StringScanner extends AbstractScanner {
   void handleUnicode(int startScanOffset) {}
 
   @override
-  analyzer.StringToken createSubstringToken(TokenType type, int start,
-      bool asciiOnly, int extraOffset, bool allowLazy) {
+  analyzer.StringToken createSubstringToken(
+    TokenType type,
+    int start,
+    bool asciiOnly,
+    int extraOffset,
+    bool allowLazy,
+  ) {
     return new StringTokenImpl.fromSubstring(
-        type, _string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true, precedingComments: comments, allowLazy: allowLazy);
+      type,
+      _string,
+      start,
+      scanOffset + extraOffset,
+      tokenStart,
+      canonicalize: true,
+      precedingComments: comments,
+      allowLazy: allowLazy,
+    );
   }
 
   @override
   analyzer.StringToken createSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String syntheticChars) {
-    String value = syntheticChars.length == 0
-        ? canonicalizeSubString(_string, start, scanOffset)
-        : canonicalizeString(
-            _string.substring(start, scanOffset) + syntheticChars);
+    TokenType type,
+    int start,
+    bool asciiOnly,
+    String syntheticChars,
+  ) {
+    String value =
+        syntheticChars.length == 0
+            ? canonicalizeSubString(_string, start, scanOffset)
+            : canonicalizeString(
+              _string.substring(start, scanOffset) + syntheticChars,
+            );
     return new SyntheticStringToken(
-        type, value, tokenStart, value.length - syntheticChars.length);
+      type,
+      value,
+      tokenStart,
+      value.length - syntheticChars.length,
+    );
   }
 
   @override
-  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]) {
+  CommentToken createCommentToken(
+    TokenType type,
+    int start,
+    bool asciiOnly, [
+    int extraOffset = 0,
+  ]) {
     return new CommentTokenImpl.fromSubstring(
-        type, _string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true);
+      type,
+      _string,
+      start,
+      scanOffset + extraOffset,
+      tokenStart,
+      canonicalize: true,
+    );
   }
 
   @override
-  DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]) {
+  DartDocToken createDartDocToken(
+    TokenType type,
+    int start,
+    bool asciiOnly, [
+    int extraOffset = 0,
+  ]) {
     return new DartDocToken.fromSubstring(
-        type, _string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true);
+      type,
+      _string,
+      start,
+      scanOffset + extraOffset,
+      tokenStart,
+      canonicalize: true,
+    );
   }
 
   @override
   LanguageVersionToken createLanguageVersionToken(
-      int start, int major, int minor) {
+    int start,
+    int major,
+    int minor,
+  ) {
     return new LanguageVersionTokenImpl.fromSubstring(
-        _string, start, scanOffset, tokenStart, major, minor,
-        canonicalize: true);
+      _string,
+      start,
+      scanOffset,
+      tokenStart,
+      major,
+      minor,
+      canonicalize: true,
+    );
   }
 
   @override

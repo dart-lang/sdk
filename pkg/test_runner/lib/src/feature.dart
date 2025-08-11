@@ -36,21 +36,6 @@ class Feature {
   /// Supports native number semantics.
   static const nativeNumbers = Feature._("native-numbers");
 
-  /// Opted out of NNBD and still using the legacy semantics.
-  static const nnbdLegacy = Feature._("nnbd-legacy");
-
-  /// Opted in to NNBD features.
-  ///
-  /// Note that this does not imply either strong or weak checking. A test that
-  /// only requires "nnbd" should run in both weak and strong checking modes.
-  static const nnbd = Feature._("nnbd");
-
-  /// Weak checking of NNBD features.
-  static const nnbdWeak = Feature._("nnbd-weak");
-
-  /// Full strong checking of NNBD features.
-  static const nnbdStrong = Feature._("nnbd-strong");
-
   /// Expects [Type.toString] to show the original type name and original
   /// names in function type named parameters.
   static const readableTypeStrings = Feature._("readable-type-strings");
@@ -61,15 +46,8 @@ class Feature {
     checkedParameters,
     jsNumbers,
     nativeNumbers,
-    nnbdLegacy,
-    nnbd,
-    nnbdWeak,
-    nnbdStrong,
     readableTypeStrings,
   ];
-
-  /// All modes that should be tested on a platform that support legacy code.
-  static const legacy = [nnbdLegacy, nnbdWeak];
 
   final String name;
 

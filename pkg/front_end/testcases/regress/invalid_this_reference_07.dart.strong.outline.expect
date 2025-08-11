@@ -11,7 +11,7 @@ library;
 //   var foo = this();
 //             ^^^^
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the class 'FooClass'.
+// pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the type 'FooClass'.
 //  - 'FooClass' is from 'pkg/front_end/testcases/regress/invalid_this_reference_07.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   var foo = this();
@@ -38,7 +38,7 @@ extension type Foo(dynamic d) {
 }
 static extension-type-member method Foo|constructor#(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(d);
 static abstract extension-type-member method Foo|get#foo(lowered dynamic #this) → invalid-type;
 static abstract extension-type-member method Foo|set#foo(lowered dynamic #this, synthesized invalid-type #externalFieldValue) → void;

@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
 import 'add_digit_separators_test.dart' as add_digit_separators;
+import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
@@ -15,6 +16,8 @@ import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_field_formal_to_normal_test.dart'
+    as convert_field_formal_to_normal;
 import 'convert_into_async_body_test.dart' as convert_into_async_body;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
@@ -85,6 +88,7 @@ import 'join_else_with_if_test.dart' as join_else_with_if;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
 import 'join_if_with_outer_test.dart' as join_if_with_outer;
 import 'join_variable_declaration_test.dart' as join_variable_declaration;
+import 'remove_async_test.dart' as remove_async;
 import 'remove_digit_separators_test.dart' as remove_digit_separators;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'replace_conditional_with_if_else_test.dart'
@@ -110,6 +114,7 @@ void main() {
   defineReflectiveSuite(() {
     add_diagnostic_property.main();
     add_digit_separators.main();
+    add_late.main();
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
@@ -117,6 +122,7 @@ void main() {
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
+    convert_field_formal_to_normal.main();
     convert_into_async_body.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
@@ -177,6 +183,7 @@ void main() {
     join_if_with_inner.main();
     join_if_with_outer.main();
     join_variable_declaration.main();
+    remove_async.main();
     remove_digit_separators.main();
     remove_type_annotation.main();
     replace_conditional_with_if_else.main();

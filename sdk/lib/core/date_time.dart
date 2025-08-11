@@ -679,8 +679,9 @@ class DateTime implements Comparable<DateTime> {
   /// print(isoDate); // 1969-07-20T20:18:04.000Z
   /// ```
   String toIso8601String() {
-    String y =
-        (year >= -9999 && year <= 9999) ? _fourDigits(year) : _sixDigits(year);
+    String y = (year >= -9999 && year <= 9999)
+        ? _fourDigits(year)
+        : _sixDigits(year);
     String m = _twoDigits(month);
     String d = _twoDigits(day);
     String h = _twoDigits(hour);

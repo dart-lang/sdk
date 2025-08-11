@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,13 +22,11 @@ class AvoidUnusedConstructorParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_unused_constructor_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -41,10 +41,10 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
           element.parameters.parameters.where((p) {
             var element = p.declaredFragment?.element;
             return element != null &&
-                element is! FieldFormalParameterElement2 &&
-                element is! SuperFormalParameterElement2 &&
-                !element.metadata2.hasDeprecated &&
-                !(element.name3 ?? '').isJustUnderscores;
+                element is! FieldFormalParameterElement &&
+                element is! SuperFormalParameterElement &&
+                !element.metadata.hasDeprecated &&
+                !(element.name ?? '').isJustUnderscores;
           }).toSet();
 
   @override
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var parameter in constructorVisitor.unusedParameters) {
-      rule.reportLint(parameter, arguments: [parameter.name!.lexeme]);
+      rule.reportAtNode(parameter, arguments: [parameter.name!.lexeme]);
     }
   }
 }

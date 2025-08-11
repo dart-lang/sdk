@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -24,8 +23,6 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class BundleWriter {
   late final _BundleWriterReferences _references;
@@ -40,7 +37,7 @@ class BundleWriter {
   /// require any other declaration read it later. For example type inference
   /// errors, or whether a parameter inherits `covariant`, or a class is
   /// simply bounded.
-  late final _SummaryDataWriter _sink = _SummaryDataWriter(
+  late _SummaryDataWriter _sink = _SummaryDataWriter(
     stringIndexer: _stringIndexer,
   );
 
@@ -51,17 +48,24 @@ class BundleWriter {
     references: _references,
   );
 
-  /// [_writeClassElement] remembers the length of data written into [_sink]
-  /// while writing members. So, when we read, we can skip members initially,
-  /// and read them later on demand.
-  List<int> _classMembersLengths = [];
+  /// We fill this map before writing the library.
+  ///
+  /// When we write getter / setter fragments, we write non-synthetic
+  /// fragments as full data objects. But for synthetic getter / setter
+  /// fragments we write only the ID of the non-synthetic variable fragment,
+  /// from this map.
+  ///
+  /// When we write property fragments, we write non-synthetic fragments as
+  /// full data objects. But for synthetic property fragments we write the
+  /// pair of getter / setter fragments IDs, from this map.
+  final Map<FragmentImpl, int> _fragmentIds = Map.identity();
 
   final StringIndexer _stringIndexer = StringIndexer();
 
   final List<_Library> _libraries = [];
 
-  BundleWriter(Reference dynamicReference) {
-    _references = _BundleWriterReferences(dynamicReference);
+  BundleWriter() {
+    _references = _BundleWriterReferences();
   }
 
   BundleWriterResult finish() {
@@ -72,7 +76,6 @@ class BundleWriter {
     _sink.writeList<_Library>(_libraries, (library) {
       _sink._writeStringReference(library.uriStr);
       _sink.writeUInt30(library.offset);
-      _sink.writeUint30List(library.classMembersOffsets);
     });
 
     var referencesOffset = _sink.offset;
@@ -89,14 +92,11 @@ class BundleWriter {
     _sink.writeUInt32(stringTableOffset);
 
     var bytes = _sink.takeBytes();
-    return BundleWriterResult(
-      resolutionBytes: bytes,
-    );
+    return BundleWriterResult(resolutionBytes: bytes);
   }
 
   void writeLibraryElement(LibraryElementImpl libraryElement) {
     var libraryOffset = _sink.offset;
-    _classMembersLengths = [];
 
     // Write non-resolution data for the library.
     _sink._writeStringReference(libraryElement.name);
@@ -111,67 +111,113 @@ class BundleWriter {
     // This will write also resolution data, e.g. for classes.
     _writeUnitElement(libraryElement.definingCompilationUnit);
 
+    _writeClassElements(libraryElement.classes);
+    _writeEnumElements(libraryElement.enums);
+    _writeExtensionElements(libraryElement.extensions);
+    _writeExtensionTypeElements(libraryElement.extensionTypes);
+    _writeTopLevelFunctionElements(libraryElement.topLevelFunctions);
+    _writeMixinElements(libraryElement.mixins);
+    _writeTypeAliasElements(libraryElement.typeAliases);
+
+    // TODO(scheglov): extract
+    _sink.writeList(libraryElement.topLevelVariables, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
+    });
+
+    _writeGetterElements(libraryElement.getters);
+    _writeSetterElements(libraryElement.setters);
+    _writeVariableGetterSetterLinking(libraryElement.topLevelVariables);
+
     // Write resolution data for the library.
-    _sink.writeUInt30(_resolutionSink.offset);
-    _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _resolutionSink.writeElement2(libraryElement.entryPoint2);
+    _writeResolutionOffset();
+    _resolutionSink._writeMetadata(libraryElement.metadata);
+    _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
-        libraryElement.fieldNameNonPromotabilityInfo);
+      libraryElement.fieldNameNonPromotabilityInfo,
+    );
 
     _libraries.add(
-      _Library(
-        uriStr: '${libraryElement.source.uri}',
-        offset: libraryOffset,
-        classMembersOffsets: _classMembersLengths,
-      ),
+      _Library(uriStr: '${libraryElement.source.uri}', offset: libraryOffset),
     );
   }
 
-  void _writeClassElement(ClassElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeClassElements(List<ClassElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, (fragment) {
+        _writeFragmentId(fragment);
+      });
 
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    ClassElementFlags.write(_sink, fragment);
+      // We read members lazily.
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeMethodElements(element.methods);
+          if (!element.isMixinApplication) {
+            _writeConstructorElements(element.constructors);
+          }
+        });
+      });
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeType(fragment.supertype);
-      _resolutionSink._writeTypeList(fragment.mixins);
-      _resolutionSink._writeTypeList(fragment.interfaces);
-
-      if (!fragment.isMixinApplication) {
-        var membersOffset = _sink.offset;
-        _writeList(
-          fragment.fields.where((e) => !e.isSynthetic).toList(),
-          _writeFieldElement,
-        );
-        _writeList(
-          fragment.accessors.where((e) => !e.isSynthetic).toList(),
-          _writePropertyAccessorElement,
-        );
-        _writeList(fragment.constructors, _writeConstructorElement);
-        _writeList(fragment.methods, _writeMethodElement);
-        _classMembersLengths.add(_sink.offset - membersOffset);
-      }
+      _writeElementResolution(() {
+        // TODO(scheglov): write any element resolution
+      });
     });
   }
 
-  void _writeConstructorElement(ConstructorElementImpl element) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _sink._writeOptionalStringReference(element.typeName);
-    _sink._writeStringReference(element.name2);
-    ConstructorElementFlags.write(_sink, element);
-    _resolutionSink._writeAnnotationList(element.metadata);
+  void _writeClassFragment(ClassFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.supertype);
+        _resolutionSink._writeTypeList(fragment.mixins);
+        _resolutionSink._writeTypeList(fragment.interfaces);
 
-    _resolutionSink.localElements.withElements(element.parameters, () {
-      _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeElement(element.superConstructor);
-      _resolutionSink.writeElement(element.redirectedConstructor);
-      _resolutionSink._writeNodeList(element.constantInitializers);
+        _writeForLazyRead(() {
+          _writeList(fragment.fields, _writeFieldFragment);
+          _writeList(fragment.getters, _writeGetterFragment);
+          _writeList(fragment.setters, _writeSetterFragment);
+          _writeList(fragment.methods, _writeMethodFragment);
+          if (!fragment.isMixinApplication) {
+            _writeList(fragment.constructors, _writeConstructorFragment);
+          }
+        });
+      });
+    });
+  }
+
+  void _writeConstructorElements(List<ConstructorElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
+
+      _writeElementResolution(() {
+        // TODO(scheglov): avoid cast
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+          _resolutionSink.writeElement(element.superConstructor);
+          _resolutionSink.writeElement(element.redirectedConstructor);
+          // TODO(scheglov): formal parameters
+        });
+      });
+    });
+  }
+
+  void _writeConstructorFragment(ConstructorFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink._writeOptionalStringReference(fragment.typeName);
+      _writeTypeParameters(fragment.typeParameters, () {
+        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.returnType);
+        _resolutionSink._writeNodeList(fragment.constantInitializers);
+      });
     });
   }
 
@@ -196,7 +242,7 @@ class BundleWriter {
     } else if (element is DirectiveUriWithUnitImpl) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
-      _writeUnitElement(element.unit);
+      _writeUnitElement(element.libraryFragment);
     } else if (element is DirectiveUriWithSource) {
       _sink.writeByte(DirectiveUriKind.withSource.index);
       writeWithSource(element);
@@ -211,32 +257,49 @@ class BundleWriter {
     }
   }
 
-  void _writeEnumElement(EnumElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    EnumElementFlags.write(_sink, fragment);
+  void _writeElementResolution(void Function() operation) {
+    _writeResolutionOffset();
+    operation();
+  }
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
+  void _writeEnumElements(List<EnumElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, (fragment) {
+        _writeFragmentId(fragment);
+      });
 
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeType(fragment.supertype);
-      _resolutionSink._writeTypeList(fragment.mixins);
-      _resolutionSink._writeTypeList(fragment.interfaces);
+      // TODO(scheglov): consider reading lazily
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
+        _writeFieldElements(element.fields);
+        _writeGetterElements(element.getters);
+        _writeSetterElements(element.setters);
+        _writeVariableGetterSetterLinking(element.fields);
+        _writeConstructorElements(element.constructors);
+        _writeMethodElements(element.methods);
+      });
 
-      _writeList(
-        fragment.fields.where((e) {
-          return !e.isSynthetic || e.isSyntheticEnumField;
-        }).toList(),
-        _writeFieldElement,
-      );
-      _writeList(
-        fragment.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(fragment.constructors, _writeConstructorElement);
-      _writeList(fragment.methods, _writeMethodElement);
+      _writeElementResolution(() {
+        // TODO(scheglov): write any element resolution
+      });
+    });
+  }
+
+  void _writeEnumFragment(EnumFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.supertype);
+        _resolutionSink._writeTypeList(fragment.mixins);
+        _resolutionSink._writeTypeList(fragment.interfaces);
+
+        // TODO(scheglov): consider reading lazily
+        _writeList(fragment.fields, _writeFieldFragment);
+        _writeList(fragment.getters, _writeGetterFragment);
+        _writeList(fragment.setters, _writeSetterFragment);
+        _writeList(fragment.constructors, _writeConstructorFragment);
+        _writeList(fragment.methods, _writeMethodFragment);
+      });
     });
   }
 
@@ -256,66 +319,87 @@ class BundleWriter {
     });
   }
 
-  void _writeExportElement(LibraryExportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeDirectiveUri(element.uri);
-  }
-
   void _writeExportLocation(ExportLocation location) {
     _sink.writeUInt30(location.fragmentIndex);
     _sink.writeUInt30(location.exportIndex);
   }
 
-  void _writeExtensionElement(ExtensionElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeExtensionElements(List<ExtensionElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, (fragment) {
+        _writeFragmentId(fragment);
+      });
 
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    ExtensionElementFlags.write(_sink, fragment);
+      // TODO(scheglov): consider reading lazily
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
+        _writeFieldElements(element.fields);
+        _writeGetterElements(element.getters);
+        _writeSetterElements(element.setters);
+        _writeVariableGetterSetterLinking(element.fields);
+        _writeMethodElements(element.methods);
+      });
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-
-    _writeTypeParameters(fragment.typeParameters, () {
-      var element = fragment.element;
-      _resolutionSink.writeType(element.extendedType);
-
-      _writeList(
-        fragment.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(
-        fragment.fields.where((e) => !e.isSynthetic).toList(),
-        _writeFieldElement,
-      );
-      _writeList(fragment.methods, _writeMethodElement);
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _resolutionSink.writeType(element.extendedType);
+        });
+      });
     });
   }
 
-  void _writeExtensionTypeElement(ExtensionTypeElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    ExtensionTypeElementFlags.write(_sink, fragment);
+  void _writeExtensionFragment(ExtensionFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _writeList(fragment.fields, _writeFieldFragment);
+        _writeList(fragment.getters, _writeGetterFragment);
+        _writeList(fragment.setters, _writeSetterFragment);
+        _writeList(fragment.methods, _writeMethodFragment);
+      });
+    });
+  }
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
+  void _writeExtensionTypeElements(List<ExtensionTypeElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, (fragment) {
+        _writeFragmentId(fragment);
+      });
 
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink._writeTypeList(fragment.interfaces);
-      _resolutionSink.writeType(fragment.typeErasure);
+      // TODO(scheglov): consider reading lazily
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
+        _writeFieldElements(element.fields);
+        _writeGetterElements(element.getters);
+        _writeSetterElements(element.setters);
+        _writeVariableGetterSetterLinking(element.fields);
+        _writeConstructorElements(element.constructors);
+        _writeMethodElements(element.methods);
+      });
 
-      _writeList(
-        fragment.fields.where((e) => !e.isSynthetic).toList(),
-        _writeFieldElement,
-      );
-      _writeList(
-        fragment.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(fragment.constructors, _writeConstructorElement);
-      _writeList(fragment.methods, _writeMethodElement);
+      _writeElementResolution(() {
+        // TODO(scheglov): write any element resolution
+      });
+    });
+  }
+
+  void _writeExtensionTypeFragment(ExtensionTypeFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      // TODO(fshcheglov): Put these separate flags into modifiers
+      _sink.writeBool(fragment.hasRepresentationSelfReference);
+      _sink.writeBool(fragment.hasImplementsSelfReference);
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink._writeTypeList(fragment.interfaces);
+        _resolutionSink.writeType(fragment.typeErasure);
+
+        // TODO(scheglov): consider reading lazily
+        _writeList(fragment.fields, _writeFieldFragment);
+        _writeList(fragment.getters, _writeGetterFragment);
+        _writeList(fragment.setters, _writeSetterFragment);
+        _writeList(fragment.constructors, _writeConstructorFragment);
+        _writeList(fragment.methods, _writeMethodFragment);
+      });
     });
   }
 
@@ -325,23 +409,27 @@ class BundleWriter {
     _sink.writeUint8List(encoded);
   }
 
-  void _writeFieldElement(FieldElementImpl element) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _writeOptionalReference(element.getter?.reference);
-    _writeOptionalReference(element.setter?.reference);
-    _writeFragmentName(element);
-    _sink._writeStringReference(element.name);
-    _sink.writeBool(element is ConstFieldElementImpl);
-    FieldElementFlags.write(_sink, element);
-    _sink._writeTopLevelInferenceError(element.typeInferenceError);
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeType(element.type);
-    _resolutionSink._writeOptionalNode(element.constantInitializer);
+  void _writeFieldElements(List<FieldElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
+    });
+  }
+
+  void _writeFieldFragment(FieldFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink.writeType(fragment.type);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    });
   }
 
   void _writeFieldNameNonPromotabilityInfo(
-      Map<String, FieldNameNonPromotabilityInfo>? info) {
+    Map<String, FieldNameNonPromotabilityInfo>? info,
+  ) {
     _resolutionSink.writeOptionalObject(info, (info) {
       _resolutionSink.writeMap(
         info,
@@ -349,57 +437,61 @@ class BundleWriter {
           _resolutionSink._writeStringReference(key);
         },
         writeValue: (value) {
-          _resolutionSink._writeElementList2(value.conflictingFields);
-          _resolutionSink._writeElementList2(value.conflictingGetters);
-          _resolutionSink._writeElementList2(value.conflictingNsmClasses);
+          _resolutionSink._writeElementList(value.conflictingFields);
+          _resolutionSink._writeElementList(value.conflictingGetters);
+          _resolutionSink._writeElementList(value.conflictingNsmClasses);
         },
       );
     });
   }
 
-  void _writeFragmentName(Fragment fragment) {
-    _sink._writeOptionalStringReference(fragment.name2);
+  /// Support for writing data that can be read lazily.
+  ///
+  /// Resulting state of [_sink].
+  ///   - length of data to read lazily
+  ///   - data to read lazily, written by [operation]
+  ///   - after return new data is written here
+  void _writeForLazyRead(void Function() operation) {
+    var newSink = _sink.clone();
+
+    var savedSink = _sink;
+    _sink = newSink;
+    operation();
+    _sink = savedSink;
+
+    var bytes = newSink.takeBytes();
+    _sink.writeUInt30(bytes.length);
+    _sink.writeBytes(bytes);
   }
 
-  void _writeFunctionElement(TopLevelFunctionFragmentImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeFragmentId(FragmentImpl fragment) {
+    var id = _fragmentIds.getId(fragment);
+    _sink.writeUInt30(id);
+  }
 
-    var element = fragment.element;
+  void _writeFragmentName(Fragment fragment) {
+    _sink._writeOptionalStringReference(fragment.name);
+  }
 
-    _writeReference(fragment);
-    _writeReference2(element.reference);
-    _writeFragmentName(fragment);
-    FunctionElementFlags.write(_sink, fragment);
+  void _writeGetterElements(List<GetterElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink.writeType(fragment.returnType);
-      _writeList(fragment.parameters, _writeParameterElement);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.returnType);
+      });
     });
   }
 
-  void _writeImportElement(LibraryImportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeImportElementPrefix(element.prefix);
-    _writeLibraryImportPrefixFragment(element.prefix2);
-    _writeDirectiveUri(element.uri);
-    LibraryImportElementFlags.write(_sink, element);
-  }
-
-  void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
-    if (prefix is DeferredImportElementPrefixImpl) {
-      _sink.writeByte(ImportElementPrefixKind.isDeferred.index);
-      _sink._writeStringReference(prefix.element.name);
-      _writeReference(prefix.element);
-    } else if (prefix is ImportElementPrefixImpl) {
-      _sink.writeByte(ImportElementPrefixKind.isNotDeferred.index);
-      _sink._writeStringReference(prefix.element.name);
-      _writeReference(prefix.element);
-    } else {
-      _sink.writeByte(ImportElementPrefixKind.isNull.index);
-    }
+  void _writeGetterFragment(GetterFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.returnType);
+      });
+    });
   }
 
   void _writeLanguageVersion(LibraryLanguageVersion version) {
@@ -416,10 +508,24 @@ class BundleWriter {
     }
   }
 
+  void _writeLibraryExport(LibraryExportImpl element) {
+    _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeLibraryImport(LibraryImportImpl element) {
+    _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeBool(element.isSynthetic);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeLibraryImportPrefixFragment(element.prefix2);
+    _writeDirectiveUri(element.uri);
+  }
+
   void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
     _sink.writeOptionalObject(fragment, (fragment) {
       _writeFragmentName(fragment);
-      _writeReference2(fragment.element.reference);
+      _writeReference(fragment.element.reference);
       _sink.writeBool(fragment.isDeferred);
     });
   }
@@ -432,55 +538,77 @@ class BundleWriter {
   }
 
   void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
-    var element = library.loadLibraryFunction2;
-    _writeReference2(element.firstFragment.reference);
-    _writeReference2(element.reference);
+    var element = library.loadLibraryFunction;
+    _writeReference(element.reference);
   }
 
-  void _writeMethodElement(MethodElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(fragment);
-    _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name);
-    MethodElementFlags.write(_sink, fragment);
+  void _writeMethodElements(List<MethodElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-
-    _writeTypeParameters(fragment.typeParameters, () {
-      _writeList(fragment.parameters, _writeParameterElement);
-      _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
-      _resolutionSink.writeType(fragment.returnType);
+      _writeElementResolution(() {
+        // TODO(scheglov): avoid cast
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+          _resolutionSink.writeType(element.returnType);
+          // TODO(scheglov): formal parameters
+        });
+      });
     });
   }
 
-  void _writeMixinElement(MixinElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeMethodFragment(MethodFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
+      _writeTypeParameters(fragment.typeParameters, () {
+        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.returnType);
+      });
+    });
+  }
 
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    MixinElementFlags.write(_sink, fragment);
+  void _writeMixinElements(List<MixinElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, (fragment) {
+        _writeFragmentId(fragment);
+      });
 
-    _resolutionSink._writeAnnotationList(fragment.metadata);
+      // TODO(scheglov): consider reading lazily
+      _resolutionSink.withTypeParameters(element.typeParameters, () {
+        _writeFieldElements(element.fields);
+        _writeGetterElements(element.getters);
+        _writeSetterElements(element.setters);
+        _writeVariableGetterSetterLinking(element.fields);
+        _writeConstructorElements(element.constructors);
+        _writeMethodElements(element.methods);
+      });
 
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink._writeTypeList(fragment.superclassConstraints);
-      _resolutionSink._writeTypeList(fragment.interfaces);
+      _writeElementResolution(() {
+        // TODO(scheglov): write any element resolution
+        // _resolutionSink._writeTypeList(element.superclassConstraints);
+        // _resolutionSink._writeTypeList(element.interfaces);
+      });
+    });
+  }
 
-      var element = fragment.element;
-      _resolutionSink._writeTypeList(element.superclassConstraints);
-
-      _writeList(
-        fragment.fields.where((e) => !e.isSynthetic).toList(),
-        _writeFieldElement,
-      );
-      _writeList(
-        fragment.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(fragment.constructors, _writeConstructorElement);
-      _writeList(fragment.methods, _writeMethodElement);
+  void _writeMixinFragment(MixinFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
       _sink._writeStringList(fragment.superInvokedNames);
+
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink._writeTypeList(fragment.superclassConstraints);
+        _resolutionSink._writeTypeList(fragment.interfaces);
+
+        // TODO(scheglov): consider reading lazily
+        _writeList(fragment.fields, _writeFieldFragment);
+        _writeList(fragment.getters, _writeGetterFragment);
+        _writeList(fragment.setters, _writeSetterFragment);
+        _writeList(fragment.constructors, _writeConstructorFragment);
+        _writeList(fragment.methods, _writeMethodFragment);
+      });
     });
   }
 
@@ -500,131 +628,147 @@ class BundleWriter {
   }
 
   void _writeOptionalReference(Reference? reference) {
-    _sink.writeOptionalObject(reference, (reference) {
-      var index = _references._indexOfReference(reference);
-      _sink.writeUInt30(index);
-    });
+    _sink.writeOptionalObject(reference, _writeReference);
   }
 
   // TODO(scheglov): Deduplicate parameter writing implementation.
-  void _writeParameterElement(ParameterElementImpl element) {
+  void _writeParameterElement(FormalParameterFragmentImpl element) {
+    _writeFragmentId(element);
     _writeFragmentName(element);
-    _sink._writeStringReference(element.name);
-    _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
-    _writeOptionalReference(element.reference);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 
-    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink._writeMetadata(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeType(element.type);
+      _resolutionSink.writeType(element.type2);
+      _resolutionSink._writeOptionalNode(element.constantInitializer);
 
-      if (element is ConstVariableElement) {
-        var constElement = element as ConstVariableElement;
-        _resolutionSink._writeOptionalNode(constElement.constantInitializer);
-      }
-      if (element is FieldFormalParameterElementImpl) {
-        _resolutionSink.writeElement(element.field);
+      if (element is FieldFormalParameterFragmentImpl) {
+        // TODO(scheglov): formal parameter types? Anything else?
+        // _resolutionSink.writeFragmentOrMember(element.field);
+        _resolutionSink.writeElement(element.field?.element);
       }
     });
   }
 
-  void _writePartElement(PartElementImpl element) {
+  /// We write metadata here, to keep it inside [unitElement] resolution
+  /// data, because [_writePartInclude] recursively writes included unit
+  /// elements. But the bundle reader wants all metadata for `parts`
+  /// sequentially.
+  void _writePartElementsMetadata(LibraryFragmentImpl unitElement) {
+    for (var element in unitElement.parts) {
+      _resolutionSink._writeMetadata(element.metadata);
+    }
+  }
+
+  void _writePartInclude(PartIncludeImpl element) {
     _writeDirectiveUri(element.uri);
   }
 
-  /// We write metadata here, to keep it inside [unitElement] resolution
-  /// data, because [_writePartElement] recursively writes included unit
-  /// elements. But the bundle reader wants all metadata for `parts`
-  /// sequentially.
-  void _writePartElementsMetadata(CompilationUnitElementImpl unitElement) {
-    for (var element in unitElement.parts) {
-      _resolutionSink._writeAnnotationList(element.metadata);
-    }
-  }
-
-  void _writePropertyAccessorElement(PropertyAccessorElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(fragment);
-    _writeFragmentName(fragment);
-    PropertyAccessorElementFlags.write(_sink, fragment);
-
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-    _resolutionSink.writeType(fragment.returnType);
-    _writeList(fragment.parameters, _writeParameterElement);
-
-    // Write the reference for the variable, the reader will use it.
-    if (!fragment.isAugmentation) {
-      var variableFragment = fragment.variable2!;
-      _writeReference(variableFragment);
-      _writeOptionalReference(
-        variableFragment
-            .ifTypeOrNull<TopLevelVariableElementImpl>()
-            ?.element
-            .reference,
-      );
-      switch (variableFragment) {
-        case FieldElementImpl fieldFragment:
-          var field = fieldFragment.element;
-          _sink.writeBool(field.isPromotable);
-      }
-    }
-  }
-
-  /// Write the reference of a non-local element.
-  void _writeReference(ElementImpl element) {
-    _writeReference2(element.reference);
-  }
-
-  void _writeReference2(Reference? reference) {
+  void _writeReference(Reference reference) {
     var index = _references._indexOfReference(reference);
     _sink.writeUInt30(index);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElementImpl fragment) {
+  /// Invoke this after writing enough information to create an element, but
+  /// before writing any resolution data.
+  void _writeResolutionOffset() {
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeOptionalReference(fragment.getter?.reference);
-    _writeOptionalReference(fragment.setter?.reference);
-    _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name);
-    _sink.writeBool(fragment.isConst);
-    TopLevelVariableElementFlags.write(_sink, fragment);
-    _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-    _resolutionSink.writeType(fragment.type);
-
-    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
   }
 
-  void _writeTypeAliasElement(TypeAliasElementImpl fragment) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeSetterElements(List<SetterElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
 
-    _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
-    _writeFragmentName(fragment);
-    _sink._writeStringReference(fragment.name);
-    _sink.writeBool(fragment.isFunctionTypeAliasBased);
-    TypeAliasElementFlags.write(_sink, fragment);
-
-    _resolutionSink._writeAnnotationList(fragment.metadata);
-
-    _writeTypeParameters(fragment.typeParameters, () {
-      _resolutionSink._writeAliasedElement(fragment.aliasedElement);
-      _resolutionSink.writeType(fragment.aliasedType);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.returnType);
+        // TODO(scheglov): formal parameter types? Anything else?
+      });
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterElementImpl element) {
-    _sink._writeStringReference(element.name);
+  void _writeSetterFragment(SetterFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.returnType);
+      });
+    });
+  }
+
+  void _writeTemplateFragment<T extends FragmentImpl>(
+    T fragment,
+    void Function() writeFragmentBody,
+  ) {
+    _writeFragmentId(fragment);
+    _writeFragmentName(fragment);
+    _writeResolutionOffset();
+    fragment.writeModifiers(_sink);
+    writeFragmentBody();
+  }
+
+  void _writeTopLevelFunctionElements(
+    List<TopLevelFunctionElementImpl> elements,
+  ) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+          _resolutionSink.writeType(element.returnType);
+        });
+      });
+    });
+  }
+
+  void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _writeTypeParameters(fragment.typeParameters, () {
+        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink.writeType(fragment.returnType);
+      });
+    });
+  }
+
+  void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink.writeType(fragment.type);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    });
+  }
+
+  void _writeTypeAliasElements(List<TypeAliasElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _sink.writeList(element.fragments, _writeFragmentId);
+      // TODO(scheglov): resolution too?
+    });
+  }
+
+  void _writeTypeAliasFragment(TypeAliasFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink.writeBool(fragment.isFunctionTypeAliasBased);
+      _writeTypeParameters(fragment.typeParameters, () {
+        _resolutionSink._writeMetadata(fragment.metadata);
+        _resolutionSink._writeAliasedElement(fragment.aliasedElement);
+        _resolutionSink.writeType(fragment.aliasedType);
+      });
+    });
+  }
+
+  void _writeTypeParameterElement(TypeParameterFragmentImpl element) {
     _writeFragmentName(element);
     _sink.writeByte(_encodeVariance(element).index);
-    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink._writeMetadata(element.metadata);
     _resolutionSink.writeType(element.bound);
     _resolutionSink.writeType(element.defaultType);
   }
@@ -632,54 +776,59 @@ class BundleWriter {
   /// Add [typeParameters] to the indexing scope, so make them available
   /// when writing types that might reference them, and write the elements.
   void _writeTypeParameters(
-    List<TypeParameterElementImpl> typeParameters,
+    List<TypeParameterFragmentImpl> typeParameterFragments,
     void Function() f,
   ) {
+    // TODO(scheglov): review
+    var typeParameters = typeParameterFragments.map((f) => f.element).toList();
     _resolutionSink.localElements.withElements(typeParameters, () {
-      _sink.writeList(typeParameters, _writeTypeParameterElement);
+      _sink.writeList(typeParameterFragments, _writeTypeParameterElement);
       f();
     });
   }
 
-  void _writeUnitElement(CompilationUnitElementImpl unitElement) {
-    _sink.writeUInt30(_resolutionSink.offset);
+  void _writeUnitElement(LibraryFragmentImpl unitElement) {
+    _writeResolutionOffset();
 
-    _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
 
-    _writeList(unitElement.libraryImports, _writeImportElement);
-    _writeList(unitElement.libraryExports, _writeExportElement);
+    _writeList(unitElement.libraryImports, _writeLibraryImport);
+    _writeList(unitElement.libraryExports, _writeLibraryExport);
 
     // Write the metadata for parts here, even though we write parts below.
     // The reason is that resolution data must be in a single chunk.
     _writePartElementsMetadata(unitElement);
 
-    _writeList(unitElement.classes, _writeClassElement);
-    _writeList(unitElement.enums, _writeEnumElement);
-    _writeList(unitElement.extensions, _writeExtensionElement);
-    _writeList(unitElement.extensionTypes, _writeExtensionTypeElement);
-    _writeList(unitElement.functions, _writeFunctionElement);
-    _writeList(unitElement.mixins, _writeMixinElement);
-    _writeList(unitElement.typeAliases, _writeTypeAliasElement);
+    _writeList(unitElement.classes, _writeClassFragment);
+    _writeList(unitElement.enums, _writeEnumFragment);
+    _writeList(unitElement.extensions, _writeExtensionFragment);
+    _writeList(unitElement.extensionTypes, _writeExtensionTypeFragment);
+    _writeList(unitElement.functions, _writeTopLevelFunctionFragment);
+    _writeList(unitElement.mixins, _writeMixinFragment);
+    _writeList(unitElement.typeAliases, _writeTypeAliasFragment);
 
-    _writeList(
-      unitElement.topLevelVariables
-          .where((element) => !element.isSynthetic)
-          .toList(),
-      _writeTopLevelVariableElement,
-    );
-    _writeList(
-      unitElement.accessors.where((e) => !e.isSynthetic).toList(),
-      _writePropertyAccessorElement,
-    );
+    _writeList(unitElement.topLevelVariables, _writeTopLevelVariableFragment);
+    _writeList(unitElement.getters, _writeGetterFragment);
+    _writeList(unitElement.setters, _writeSetterFragment);
 
     // Write parts after this library fragment, so that when we read, we
     // process fragments of declarations in the same order as we build them.
-    _writeList(unitElement.parts, _writePartElement);
+    _writeList(unitElement.parts, _writePartInclude);
+  }
+
+  void _writeVariableGetterSetterLinking(
+    List<PropertyInducingElementImpl> variables,
+  ) {
+    _sink.writeList(variables, (variable) {
+      _writeReference(variable.reference);
+      _writeOptionalReference(variable.getter?.reference);
+      _writeOptionalReference(variable.setter?.reference);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
-      TypeParameterElementImpl element) {
+    TypeParameterFragmentImpl element,
+  ) {
     if (element.isLegacyCovariant) {
       return TypeParameterVarianceTag.legacy;
     }
@@ -702,9 +851,7 @@ class BundleWriter {
 class BundleWriterResult {
   final Uint8List resolutionBytes;
 
-  BundleWriterResult({
-    required this.resolutionBytes,
-  });
+  BundleWriterResult({required this.resolutionBytes});
 }
 
 class ResolutionSink extends _SummaryDataWriter {
@@ -716,51 +863,54 @@ class ResolutionSink extends _SummaryDataWriter {
     required _BundleWriterReferences references,
   }) : _references = references;
 
-  // TODO(scheglov): Triage places where we write elements.
-  // Some of then cannot be members, e.g. type names.
-  void writeElement(ElementOrMember? element) {
-    if (element == null) {
-      writeByte(Tag.RawElement);
-      writeUInt30(0);
-    } else if (element is Member) {
-      var declaration = element.declaration;
-
-      var typeArguments = _enclosingClassTypeArguments(
-        declaration.asElement2!,
-        element.substitution.map,
-      );
-
-      writeByte(Tag.MemberWithTypeArguments);
-      _writeElementImpl(declaration);
-      _writeTypeList(typeArguments);
-    } else {
-      writeByte(Tag.RawElement);
-      _writeElementImpl(element as ElementImpl);
-    }
+  void withTypeParameters(
+    List<TypeParameterElementImpl> typeParameters,
+    void Function() operation,
+  ) {
+    localElements.withElements(typeParameters, operation);
   }
 
-  // TODO(scheglov): Triage places where we write elements.
-  // Some of then cannot be members, e.g. type names.
-  void writeElement2(Element2? element) {
-    if (element case Member element) {
-      var baseElement = element.baseElement;
+  void writeElement(Element? element) {
+    switch (element) {
+      case null:
+        writeEnum(ElementTag.null_);
+      case DynamicElementImpl():
+        writeEnum(ElementTag.dynamic_);
+      case NeverElementImpl():
+        writeEnum(ElementTag.never_);
+      case MultiplyDefinedElementImpl():
+        writeEnum(ElementTag.multiplyDefined);
+      case Member element:
+        writeEnum(ElementTag.memberWithTypeArguments);
 
-      var typeArguments = _enclosingClassTypeArguments(
-        baseElement,
-        element.substitution.map,
-      );
+        var baseElement = element.baseElement;
+        writeElement(baseElement);
 
-      writeByte(Tag.MemberWithTypeArguments);
-      _writeElement2(baseElement);
-      _writeTypeList(typeArguments);
-    } else {
-      writeByte(Tag.RawElement);
-      _writeElement2(element);
+        var typeArguments = _enclosingClassTypeArguments(
+          baseElement,
+          element.substitution.map,
+        );
+        _writeTypeList(typeArguments);
+      case TypeParameterElementImpl():
+        writeEnum(ElementTag.typeParameter);
+        var localIndex = localElements[element];
+        writeUInt30(localIndex);
+      case FormalParameterElementImpl():
+        writeEnum(ElementTag.formalParameter);
+        var enclosingElement = element.enclosingElement;
+        enclosingElement as ExecutableElement;
+        writeElement(enclosingElement);
+        var index = enclosingElement.formalParameters.indexOf(element);
+        assert(index >= 0);
+        writeUInt30(index);
+      case ElementImpl():
+        writeEnum(ElementTag.elementImpl);
+        var reference = element.reference!;
+        var referenceIndex = _references._indexOfReference(reference);
+        writeUInt30(referenceIndex);
+      default:
+        throw StateError('${element.runtimeType}');
     }
-  }
-
-  void writeFragment(Fragment? fragment) {
-    writeElement(fragment as ElementImpl?);
   }
 
   void writeOptionalTypeList(List<DartType>? types) {
@@ -774,9 +924,9 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void writeType(DartType? type) {
     if (type == null) {
-      writeByte(Tag.NullType);
+      writeEnum(TypeTag.NullType);
     } else if (type is DynamicTypeImpl) {
-      writeByte(Tag.DynamicType);
+      writeEnum(TypeTag.DynamicType);
       _writeTypeAliasElementArguments(type);
     } else if (type is FunctionTypeImpl) {
       _writeFunctionType(type);
@@ -786,16 +936,16 @@ class ResolutionSink extends _SummaryDataWriter {
       var nullabilitySuffix = type.nullabilitySuffix;
       if (typeArguments.isEmpty) {
         if (nullabilitySuffix == NullabilitySuffix.none) {
-          writeByte(Tag.InterfaceType_noTypeArguments_none);
+          writeEnum(TypeTag.InterfaceType_noTypeArguments_none);
         } else if (nullabilitySuffix == NullabilitySuffix.question) {
-          writeByte(Tag.InterfaceType_noTypeArguments_question);
+          writeEnum(TypeTag.InterfaceType_noTypeArguments_question);
         }
         // TODO(scheglov): Write raw
-        writeElement2(type.element3);
+        writeElement(type.element);
       } else {
-        writeByte(Tag.InterfaceType);
+        writeEnum(TypeTag.InterfaceType);
         // TODO(scheglov): Write raw
-        writeElement2(type.element3);
+        writeElement(type.element);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);
@@ -804,53 +954,32 @@ class ResolutionSink extends _SummaryDataWriter {
       }
       _writeTypeAliasElementArguments(type);
     } else if (type is InvalidTypeImpl) {
-      writeByte(Tag.InvalidType);
+      writeEnum(TypeTag.InvalidType);
       _writeTypeAliasElementArguments(type);
     } else if (type is NeverTypeImpl) {
-      writeByte(Tag.NeverType);
+      writeEnum(TypeTag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is RecordTypeImpl) {
       _writeRecordType(type);
       _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterTypeImpl) {
-      writeByte(Tag.TypeParameterType);
-      writeElement2(type.element3);
+      writeEnum(TypeTag.TypeParameterType);
+      writeElement(type.element);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidTypeImpl) {
-      writeByte(Tag.VoidType);
+      writeEnum(TypeTag.VoidType);
       _writeTypeAliasElementArguments(type);
     } else {
       throw UnimplementedError('${type.runtimeType}');
     }
   }
 
-  int _indexOfElement(ElementImpl element) {
-    // Positional parameters cannot be referenced outside of their scope,
-    // so don't have a reference, so are stored as local elements.
-    if (element is ParameterElementImpl && element.reference == null) {
-      return localElements[element] << 1 | 0x1;
-    }
-
-    // Type parameters cannot be referenced outside of their scope,
-    // so don't have a reference, so are stored as local elements.
-    if (element is TypeParameterElementImpl) {
-      return localElements[element] << 1 | 0x1;
-    }
-
-    if (identical(element, DynamicElementImpl.instance)) {
-      return _references._dynamicReferenceIndex << 1;
-    }
-
-    var reference = element.reference;
-    return _references._indexOfReference(reference) << 1;
-  }
-
-  void _writeAliasedElement(ElementImpl? element) {
+  void _writeAliasedElement(FragmentImpl? element) {
     if (element == null) {
       writeByte(AliasedElementTag.nothing);
-    } else if (element is GenericFunctionTypeElementImpl) {
+    } else if (element is GenericFunctionTypeFragmentImpl) {
       writeByte(AliasedElementTag.genericFunctionElement);
       _writeTypeParameters(element.typeParameters, () {
         _writeFormalParameters(element.parameters, withAnnotations: true);
@@ -861,97 +990,87 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void _writeAnnotationList(List<ElementAnnotation> annotations) {
-    writeUInt30(annotations.length);
-    for (var annotation in annotations) {
-      annotation as ElementAnnotationImpl;
-      _writeNode(annotation.annotationAst);
-    }
-  }
-
-  void _writeElement2(Element2? element) {
-    switch (element) {
-      case null:
-      case MultiplyDefinedElementImpl2():
-        writeUInt30(0);
-      case DynamicElementImpl2():
-        _writeElementImpl(DynamicElementImpl.instance);
-      case ExecutableElementImpl2 element:
-        _writeElementImpl(element.asElement as ElementImpl);
-      case FieldElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      case FormalParameterElementImpl element:
-        _writeElementImpl(element.asElement);
-      case InstanceElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      case NeverElementImpl2():
-        _writeElementImpl(NeverElementImpl.instance);
-      case PrefixElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      case TopLevelVariableElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      case TypeAliasElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      case TypeParameterElementImpl2 element:
-        _writeElementImpl(element.asElement);
-      default:
-        throw UnimplementedError('${element.runtimeType}');
-    }
-  }
-
-  void _writeElementImpl(ElementImpl element) {
-    var elementIndex = _indexOfElement(element);
-    writeUInt30(elementIndex);
-  }
-
-  void _writeElementList2(List<Element2> elements) {
+  void _writeElementList(List<Element> elements) {
     writeUInt30(elements.length);
     for (var element in elements) {
-      writeElement2(element);
+      writeElement(element);
     }
+  }
+
+  void _writeElementName(Element element) {
+    _writeOptionalStringReference(element.name);
   }
 
   void _writeFormalParameters(
-    List<ParameterElementMixin> parameters, {
+    List<FormalParameterFragmentImpl> parameters, {
     required bool withAnnotations,
   }) {
     writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
-      writeBool(parameter is ConstVariableElement);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {
         writeType(parameter.type);
-        _writeStringReference(parameter.name);
+        _writeFragmentName(parameter);
         _writeFormalParameters(
           parameter.parameters,
           withAnnotations: withAnnotations,
         );
       }, withAnnotations: withAnnotations);
       if (withAnnotations) {
-        _writeAnnotationList(parameter.metadata);
+        _writeMetadata(parameter.metadata);
       }
     }
+  }
+
+  void _writeFormalParameters2(
+    List<FormalParameterElementMixin> parameters, {
+    required bool withAnnotations,
+  }) {
+    writeUInt30(parameters.length);
+    for (var parameter in parameters) {
+      _writeFormalParameterKind2(parameter);
+      writeBool(parameter.hasImplicitType);
+      writeBool(parameter.isInitializingFormal);
+      _writeTypeParameters2(parameter.typeParameters.cast(), () {
+        writeType(parameter.type);
+        _writeElementName(parameter);
+        _writeFormalParameters2(
+          parameter.formalParameters.cast(),
+          withAnnotations: withAnnotations,
+        );
+      }, withAnnotations: withAnnotations);
+      if (withAnnotations) {
+        _writeMetadata(parameter.metadata as MetadataImpl);
+      }
+    }
+  }
+
+  void _writeFragmentName(Fragment fragment) {
+    _writeOptionalStringReference(fragment.name);
   }
 
   void _writeFunctionType(FunctionTypeImpl type) {
     type = _toSyntheticFunctionType(type);
 
-    writeByte(Tag.FunctionType);
+    writeEnum(TypeTag.FunctionType);
 
-    _writeTypeParameters(type.typeFormals, () {
+    _writeTypeParameters2(type.typeParameters, () {
       writeType(type.returnType);
-      _writeFormalParameters(type.parameters, withAnnotations: false);
+      _writeFormalParameters2(type.formalParameters, withAnnotations: false);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
+  void _writeMetadata(MetadataImpl metadata) {
+    writeList(metadata.annotations, (annotation) {
+      _writeNode(annotation.annotationAst);
+    });
+  }
+
   void _writeNode(AstNode node) {
-    var astWriter = AstBinaryWriter(
-      sink: this,
-      stringIndexer: _stringIndexer,
-    );
+    var astWriter = AstBinaryWriter(sink: this, stringIndexer: _stringIndexer);
     node.accept(astWriter);
   }
 
@@ -976,7 +1095,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeRecordType(RecordTypeImpl type) {
-    writeByte(Tag.RecordType);
+    writeEnum(TypeTag.RecordType);
 
     writeList<RecordTypePositionalField>(type.positionalFields, (field) {
       writeType(field.type);
@@ -992,7 +1111,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeTypeAliasElementArguments(TypeImpl type) {
     var alias = type.alias;
-    _writeElement2(alias?.element2);
+    writeElement(alias?.element);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
     }
@@ -1006,6 +1125,27 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeTypeParameters(
+    List<TypeParameterFragmentImpl> typeParameterFragments,
+    void Function() f, {
+    required bool withAnnotations,
+  }) {
+    var typeParameters = typeParameterFragments.map((f) => f.element).toList();
+    localElements.withElements(typeParameters, () {
+      writeUInt30(typeParameters.length);
+      for (var typeParameter in typeParameterFragments) {
+        _writeFragmentName(typeParameter);
+      }
+      for (var typeParameter in typeParameterFragments) {
+        writeType(typeParameter.bound);
+        if (withAnnotations) {
+          _writeMetadata(typeParameter.metadata);
+        }
+      }
+      f();
+    });
+  }
+
+  void _writeTypeParameters2(
     List<TypeParameterElementImpl> typeParameters,
     void Function() f, {
     required bool withAnnotations,
@@ -1013,12 +1153,12 @@ class ResolutionSink extends _SummaryDataWriter {
     localElements.withElements(typeParameters, () {
       writeUInt30(typeParameters.length);
       for (var typeParameter in typeParameters) {
-        _writeStringReference(typeParameter.name);
+        _writeElementName(typeParameter);
       }
       for (var typeParameter in typeParameters) {
         writeType(typeParameter.bound);
         if (withAnnotations) {
-          _writeAnnotationList(typeParameter.metadata);
+          _writeMetadata(typeParameter.metadata);
         }
       }
       f();
@@ -1026,17 +1166,17 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static List<DartType> _enclosingClassTypeArguments(
-    Element2 declaration,
-    Map<TypeParameterElement2, DartType> substitution,
+    Element declaration,
+    Map<TypeParameterElement, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
     if (substitution.isEmpty) {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement2;
-    if (enclosing is InstanceElement2) {
-      var typeParameters = enclosing.typeParameters2;
+    var enclosing = declaration.enclosingElement;
+    if (enclosing is InstanceElement) {
+      var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }
@@ -1051,10 +1191,10 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static FunctionTypeImpl _toSyntheticFunctionType(FunctionTypeImpl type) {
-    var typeParameters = [for (var tp in type.typeFormals) tp.asElement2];
+    var typeParameters = type.typeParameters;
     if (typeParameters.isEmpty) return type;
 
-    var fresh = getFreshTypeParameters2(typeParameters);
+    var fresh = getFreshTypeParameters(typeParameters);
     return fresh.applyToFunctionType(type);
   }
 }
@@ -1136,30 +1276,16 @@ class StringIndexer {
 class UnitToWriteAst {
   final CompilationUnit node;
 
-  UnitToWriteAst({
-    required this.node,
-  });
+  UnitToWriteAst({required this.node});
 }
 
 class _BundleWriterReferences {
-  /// The `dynamic` class is declared in `dart:core`, but is not a class.
-  /// Also, it is static, so we cannot set `reference` for it.
-  /// So, we have to push it in a separate way.
-  final Reference _dynamicReference;
-
   /// References used in all libraries being linked.
   /// Element references in nodes are indexes in this list.
   final List<Reference?> _references = [null];
 
   final List<int> _referenceParents = [0];
   final List<String> _referenceNames = [''];
-
-  _BundleWriterReferences(this._dynamicReference);
-
-  /// The index for the `dynamic` element.
-  int get _dynamicReferenceIndex {
-    return _indexOfReference(_dynamicReference);
-  }
 
   /// We need indexes for references during linking, but once we are done,
   /// we must clear indexes to make references ready for linking a next bundle.
@@ -1171,34 +1297,30 @@ class _BundleWriterReferences {
     }
   }
 
-  int _indexOfReference(Reference? reference) {
-    if (reference == null) return 0;
-    if (reference.parent == null) return 0;
-
+  int _indexOfReference(Reference reference) {
     var index = reference.index;
     if (index != null) return index;
 
-    var parentIndex = _indexOfReference(reference.parent);
-    _referenceParents.add(parentIndex);
-    _referenceNames.add(reference.name);
+    if (reference.parent case var parent?) {
+      var parentIndex = _indexOfReference(parent);
+      _referenceParents.add(parentIndex);
+      _referenceNames.add(reference.name);
 
-    index = _references.length;
-    reference.index = index;
-    _references.add(reference);
-    return index;
+      index = _references.length;
+      reference.index = index;
+      _references.add(reference);
+      return index;
+    } else {
+      return 0;
+    }
   }
 }
 
 class _Library {
   final String uriStr;
   final int offset;
-  final List<int> classMembersOffsets;
 
-  _Library({
-    required this.uriStr,
-    required this.offset,
-    required this.classMembersOffsets,
-  });
+  _Library({required this.uriStr, required this.offset});
 }
 
 class _LocalElementIndexer {
@@ -1227,11 +1349,28 @@ class _LocalElementIndexer {
 class _SummaryDataWriter extends BufferedSink {
   final StringIndexer _stringIndexer;
 
-  _SummaryDataWriter({
-    required StringIndexer stringIndexer,
-  }) : _stringIndexer = stringIndexer;
+  _SummaryDataWriter({required StringIndexer stringIndexer})
+    : _stringIndexer = stringIndexer;
 
-  void _writeFormalParameterKind(ParameterElementMixin p) {
+  _SummaryDataWriter clone() {
+    return _SummaryDataWriter(stringIndexer: _stringIndexer);
+  }
+
+  void _writeFormalParameterKind(FormalParameterFragmentImpl p) {
+    if (p.isRequiredPositional) {
+      writeByte(Tag.ParameterKindRequiredPositional);
+    } else if (p.isOptionalPositional) {
+      writeByte(Tag.ParameterKindOptionalPositional);
+    } else if (p.isRequiredNamed) {
+      writeByte(Tag.ParameterKindRequiredNamed);
+    } else if (p.isOptionalNamed) {
+      writeByte(Tag.ParameterKindOptionalNamed);
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
+    }
+  }
+
+  void _writeFormalParameterKind2(FormalParameterElementMixin p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {
@@ -1273,5 +1412,11 @@ class _SummaryDataWriter extends BufferedSink {
     } else {
       writeByte(TopLevelInferenceErrorKind.none.index);
     }
+  }
+}
+
+extension on Map<FragmentImpl, int> {
+  int getId(FragmentImpl fragment) {
+    return this[fragment] ??= length;
   }
 }

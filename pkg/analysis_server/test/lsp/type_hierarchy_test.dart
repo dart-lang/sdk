@@ -418,8 +418,8 @@ extension type E^2(A a) implements B, E1 {}
     );
   }
 
-  /// Ensure that type arguments flow across multiple levels of the tree.
-  Future<void> test_generics_typeArgsFlow() async {
+  /// Ensure that we always show type parameters and not type arguments.
+  Future<void> test_generics_typeParameters() async {
     var content = '''
 class A<T1, T2> {}
 class B<T1, T2> extends A<T1, T2> {}
@@ -442,14 +442,7 @@ class ^E extends D {}
     }
 
     // Check for substituted type args.
-    expect(names, [
-      'E',
-      'D',
-      'C<int>',
-      'B<int, String>',
-      'A<int, String>',
-      'Object',
-    ]);
+    expect(names, ['E', 'D', 'C<T1>', 'B<T1, T2>', 'A<T1, T2>', 'Object']);
   }
 
   Future<void> test_implements() async {

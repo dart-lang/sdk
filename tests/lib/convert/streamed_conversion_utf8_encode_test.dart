@@ -10,18 +10,20 @@ import "package:expect/async_helper.dart";
 
 Stream<List<int>> encode(String string, int chunkSize) {
   var controller;
-  controller = new StreamController<String>(onListen: () {
-    int i = 0;
-    while (i < string.length) {
-      if (i + chunkSize <= string.length) {
-        controller.add(string.substring(i, i + chunkSize));
-      } else {
-        controller.add(string.substring(i));
+  controller = new StreamController<String>(
+    onListen: () {
+      int i = 0;
+      while (i < string.length) {
+        if (i + chunkSize <= string.length) {
+          controller.add(string.substring(i, i + chunkSize));
+        } else {
+          controller.add(string.substring(i));
+        }
+        i += chunkSize;
       }
-      i += chunkSize;
-    }
-    controller.close();
-  });
+      controller.close();
+    },
+  );
   return controller.stream.transform(utf8.encoder);
 }
 
@@ -40,13 +42,16 @@ void testWithPauses(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   var combined = <int>[];
   var sub;
-  sub = stream.listen((x) {
-    combined.addAll(x);
-    sub.pause(new Future.delayed(Duration.zero));
-  }, onDone: () {
-    Expect.listEquals(expected, combined);
-    asyncEnd();
-  });
+  sub = stream.listen(
+    (x) {
+      combined.addAll(x);
+      sub.pause(new Future.delayed(Duration.zero));
+    },
+    onDone: () {
+      Expect.listEquals(expected, combined);
+      asyncEnd();
+    },
+  );
 }
 
 main() {

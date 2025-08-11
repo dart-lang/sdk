@@ -12,48 +12,46 @@ main() {
 
 class TypedefTest extends PartialCodeTest {
   buildAll() {
-    buildTests(
+    buildTests('typedef', [
+      TestDescriptor(
+        'keyword',
         'typedef',
         [
-          TestDescriptor(
-              'keyword',
-              'typedef',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "typedef _s_();",
-              failing: ['functionVoid', 'functionNonVoid', 'getter']),
-          TestDescriptor(
-              'name',
-              'typedef T',
-              [
-                ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "typedef T();",
-              failing: ['functionNonVoid', 'getter', 'mixin', 'setter']),
-          TestDescriptor(
-              'keywordEquals',
-              'typedef =',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "typedef _s_ = _s_;",
-              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
-          TestDescriptor(
-              'equals',
-              'typedef T =',
-              [
-                ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "typedef T = _s_;",
-              failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+          ParserErrorCode.EXPECTED_TOKEN,
         ],
-        PartialCodeTest.declarationSuffixes);
+        "typedef _s_();",
+        failing: ['functionVoid', 'functionNonVoid', 'getter'],
+      ),
+      TestDescriptor(
+        'name',
+        'typedef T',
+        [
+          ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ],
+        "typedef T();",
+        failing: ['functionNonVoid', 'getter', 'mixin', 'setter'],
+      ),
+      TestDescriptor(
+        'keywordEquals',
+        'typedef =',
+        [
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TYPE_NAME,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ],
+        "typedef _s_ = _s_;",
+        failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin'],
+      ),
+      TestDescriptor(
+        'equals',
+        'typedef T =',
+        [ParserErrorCode.EXPECTED_TYPE_NAME, ParserErrorCode.EXPECTED_TOKEN],
+        "typedef T = _s_;",
+        failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin'],
+      ),
+    ], PartialCodeTest.declarationSuffixes);
   }
 }

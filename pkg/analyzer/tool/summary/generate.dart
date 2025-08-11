@@ -23,34 +23,42 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
+import 'package:path/path.dart';
 
 import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';
 
-void main(List<String> args) async {
-  if (args.length != 1) {
-    print('Error: IDL path is required');
-    print('usage: dart generate.dart path/to/idl.dart');
-    return;
-  }
-  String idlPath = args[0];
+void main() async {
+  var idlFolderPath = normalize(
+    join(pkg_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
+  );
+  var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
   await GeneratedContent.generateAll(
-      File(idlPath).parent.path, getAllTargets(idlPath));
+    pkg_root.packageRoot,
+    getAllTargets(idlPath),
+  );
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {
-  GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFormatCode();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile formatTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.dart',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFormatCode();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
-  GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFlatBufferSchema();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile schemaTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.fbs',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFlatBufferSchema();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
   return <GeneratedContent>[formatTarget, schemaTarget];
 }
@@ -80,8 +88,10 @@ class _BaseGenerator {
   String? defaultValue(idl_model.FieldType type, bool builder) {
     if (type.isList) {
       if (builder) {
-        idl_model.FieldType elementType =
-            idl_model.FieldType(type.typeName, false);
+        idl_model.FieldType elementType = idl_model.FieldType(
+          type.typeName,
+          false,
+        );
         return '<${encodedType(elementType)}>[]';
       } else {
         return 'const <${idlPrefix(type.typeName)}>[]';
@@ -244,9 +254,11 @@ class _BuilderGenerator extends _BaseGenerator {
     }
 
     indent(() {
-      List<idl_model.FieldDeclaration> sortedFields = cls.fields.toList()
-        ..sort((idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
-            a.id.compareTo(b.id));
+      List<idl_model.FieldDeclaration> sortedFields =
+          cls.fields.toList()..sort(
+            (idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
+                a.id.compareTo(b.id),
+          );
       for (idl_model.FieldDeclaration field in sortedFields) {
         writeField(field);
       }
@@ -506,8 +518,10 @@ class _CodeGenerator {
   _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
     File idlFile = File(idlPath);
-    String idlText =
-        idlFile.readAsStringSync().replaceAll(RegExp('\r\n?'), '\n');
+    String idlText = idlFile.readAsStringSync().replaceAll(
+      RegExp('\r\n?'),
+      '\n',
+    );
     // Extract a description of the IDL and make sure it is valid.
     var startingToken = scanString(idlText, includeComments: true).tokens;
     var listener = MiniAstBuilder();
@@ -529,7 +543,8 @@ class _CodeGenerator {
         for (int i = 0; i < fileIdentifier.length; i++) {
           if (fileIdentifier.codeUnitAt(i) >= 256) {
             throw Exception(
-                '$name: file identifier must be encodable as Latin-1');
+              '$name: file identifier must be encodable as Latin-1',
+            );
           }
         }
       }
@@ -552,12 +567,15 @@ class _CodeGenerator {
             // List of strings is ok
           } else {
             throw Exception(
-                '$name.$fieldName: illegal type (list of ${type.typeName})');
+              '$name.$fieldName: illegal type (list of ${type.typeName})',
+            );
           }
         }
         if (idsUsed.containsKey(field.id)) {
-          throw Exception('$name.$fieldName: id ${field.id} already used by'
-              ' ${idsUsed[field.id]}');
+          throw Exception(
+            '$name.$fieldName: id ${field.id} already used by'
+            ' ${idsUsed[field.id]}',
+          );
         }
         idsUsed[field.id] = fieldName;
       }
@@ -590,12 +608,14 @@ class _CodeGenerator {
                 fileIdentifier = arg.stringValue;
               } else {
                 throw Exception(
-                    'Class `$clsName`: TopLevel argument must be a string'
-                    ' literal');
+                  'Class `$clsName`: TopLevel argument must be a string'
+                  ' literal',
+                );
               }
             } else if (arguments.isNotEmpty) {
               throw Exception(
-                  'Class `$clsName`: TopLevel requires 0 or 1 arguments');
+                'Class `$clsName`: TopLevel requires 0 or 1 arguments',
+              );
             }
           } else if (arguments == null &&
               annotation.name == 'deprecated' &&
@@ -629,8 +649,10 @@ class _CodeGenerator {
         }
       } else if (decl is EnumDeclaration) {
         var doc = _getNodeDoc(decl);
-        idl_model.EnumDeclaration enm =
-            idl_model.EnumDeclaration(doc, decl.name);
+        idl_model.EnumDeclaration enm = idl_model.EnumDeclaration(
+          doc,
+          decl.name,
+        );
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
           var doc = _getNodeDoc(constDecl);
@@ -691,14 +713,22 @@ class _CodeGenerator {
   }
 
   void outputHeader() {
-    out('// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file');
-    out('// for details. All rights reserved. Use of this source code is governed by a');
+    out(
+      '// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file',
+    );
+    out(
+      '// for details. All rights reserved. Use of this source code is governed by a',
+    );
     out('// BSD-style license that can be found in the LICENSE file.');
     out();
-    out('// This file has been automatically generated.  Please do not edit it manually.');
+    out(
+      '// This file has been automatically generated.  Please do not edit it manually.',
+    );
     out('// To regenerate the file, use the SDK script');
     out('// "pkg/analyzer/tool/summary/generate.dart \$IDL_FILE_PATH",');
-    out('// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.');
+    out(
+      '// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.',
+    );
     out();
   }
 
@@ -746,9 +776,7 @@ class _CodeGenerator {
         if (idExpression is IntegerLiteral) {
           id = idExpression.value;
         } else {
-          throw Exception(
-            '@Id argument must be an integer literal ($desc)',
-          );
+          throw Exception('@Id argument must be an integer literal ($desc)');
         }
       } else if (annotation.name == 'deprecated') {
         if (arguments != null) {
@@ -785,13 +813,17 @@ class _CodeGenerator {
       if (comment.tokens.length == 1 &&
           comment.tokens.first.lexeme.startsWith('/*')) {
         Token token = comment.tokens.first;
-        return token.lexeme.split('\n').map((String line) {
-          line = line.trimLeft();
-          if (line.startsWith('*')) line = ' $line';
-          return line;
-        }).join('\n');
-      } else if (comment.tokens
-          .every((token) => token.lexeme.startsWith('///'))) {
+        return token.lexeme
+            .split('\n')
+            .map((String line) {
+              line = line.trimLeft();
+              if (line.startsWith('*')) line = ' $line';
+              return line;
+            })
+            .join('\n');
+      } else if (comment.tokens.every(
+        (token) => token.lexeme.startsWith('///'),
+      )) {
         return comment.tokens
             .map((token) => token.lexeme.trimLeft())
             .join('\n');
@@ -925,8 +957,10 @@ class _ImplGenerator extends _BaseGenerator {
     String name = cls.name;
     String implName = '_${name}Impl';
     String mixinName = '_${name}Mixin';
-    out('class $implName extends Object with $mixinName'
-        ' implements ${idlPrefix(name)} {');
+    out(
+      'class $implName extends Object with $mixinName'
+      ' implements ${idlPrefix(name)} {',
+    );
     indent(() {
       out('final fb.BufferContext _bc;');
       out('final int _bcOffset;');
@@ -1042,7 +1076,10 @@ class _MixinGenerator extends _BaseGenerator {
       }
 
       String jsonStore(
-          idl_model.FieldType type, String name, String localName) {
+        idl_model.FieldType type,
+        String name,
+        String localName,
+      ) {
         _StringToString? convertItem;
         if (_idl.classes.containsKey(type.typeName)) {
           convertItem = (String name) => '$name.toJson()';
@@ -1058,7 +1095,8 @@ class _MixinGenerator extends _BaseGenerator {
         if (convertItem == null) {
           convertField = localName;
         } else if (type.isList) {
-          convertField = '$localName.map((value) =>'
+          convertField =
+              '$localName.map((value) =>'
               ' ${convertItem('value')}).toList()';
         } else {
           convertField = convertItem(localName);
@@ -1126,7 +1164,9 @@ class _ReaderGenerator extends _BaseGenerator {
       out('const $readerName();');
       out();
       out('@override');
-      out('$implName createObject(fb.BufferContext bc, int offset) => $implName(bc, offset);');
+      out(
+        '$implName createObject(fb.BufferContext bc, int offset) => $implName(bc, offset);',
+      );
     });
     out('}');
   }

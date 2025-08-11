@@ -36,7 +36,8 @@ abstract class MirrorsVisitor {
       visitDeclarationMirror(mirror);
     } else {
       throw new StateError(
-          'Unexpected mirror kind ${mirror.runtimeType}: $mirror');
+        'Unexpected mirror kind ${mirror.runtimeType}: $mirror',
+      );
     }
   }
 

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -72,7 +72,7 @@ List<String> getVariableNameSuggestionsForExpression(
     } else if (expectedType.isDartCoreString) {
       _addSingleCharacterName(excluded, res, 0x73);
     } else if (expectedType is InterfaceType) {
-      var className = expectedType.element3.name3;
+      var className = expectedType.element.name;
       if (className != null) {
         _addAll(excluded, res, getCamelWordCombinations(className));
       }
@@ -199,11 +199,11 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
     var importPrefix = namedType.importPrefix;
     // new ClassName()
     if (importPrefix == null) {
-      return namedType.name2.lexeme;
+      return namedType.name.lexeme;
     }
     // new prefix.ClassName()
-    if (importPrefix.element2 is PrefixElement2) {
-      return namedType.name2.lexeme;
+    if (importPrefix.element is PrefixElement) {
+      return namedType.name.lexeme;
     }
     // new ClassName.constructorName()
     return importPrefix.name.lexeme;

@@ -21,20 +21,29 @@ Uint8List generateSampleList(final int size) {
 void validateReceivedList(final int expectedSize, final list) {
   Expect.equals(expectedSize, list.length);
   // probe few elements
-  for (int i = 0;
-      i < list.length;
-      i += max<num>(1, expectedSize ~/ 1000) as int) {
+  for (
+    int i = 0;
+    i < list.length;
+    i += max<num>(1, expectedSize ~/ 1000) as int
+  ) {
     Expect.equals(i % 243, list[i]);
   }
 }
 
 Future<Null> testSend(
-    bool transferable, int toIsolateSize, int fromIsolateSize) async {
+  bool transferable,
+  int toIsolateSize,
+  int fromIsolateSize,
+) async {
   asyncStart();
   final port = ReceivePort();
   final inbox = StreamIterator(port);
-  await Isolate.spawn(isolateMain,
-      [transferable, toIsolateSize, fromIsolateSize, port.sendPort]);
+  await Isolate.spawn(isolateMain, [
+    transferable,
+    toIsolateSize,
+    fromIsolateSize,
+    port.sendPort,
+  ]);
   await inbox.moveNext();
   final outbox = inbox.current;
   final workWatch = Stopwatch();
@@ -45,10 +54,9 @@ Future<Null> testSend(
     outbox.send(transferable ? TransferableTypedData.fromList([data]) : data);
     await inbox.moveNext();
     validateReceivedList(
-        fromIsolateSize,
-        transferable
-            ? inbox.current.materialize().asUint8List()
-            : inbox.current);
+      fromIsolateSize,
+      transferable ? inbox.current.materialize().asUint8List() : inbox.current,
+    );
   }
   print('total ${workWatch.elapsedMilliseconds}ms');
   outbox.send(null);
@@ -82,10 +90,9 @@ Future<Null> isolateMain(List config) async {
       break;
     }
     validateReceivedList(
-        toIsolateSize,
-        transferable
-            ? inbox.current.materialize().asUint8List()
-            : inbox.current);
+      toIsolateSize,
+      transferable ? inbox.current.materialize().asUint8List() : inbox.current,
+    );
     outbox.send(transferable ? TransferableTypedData.fromList([data]) : data);
   }
   port.close();

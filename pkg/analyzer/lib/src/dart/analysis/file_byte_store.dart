@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -36,7 +37,7 @@ class EvictingFileByteStore implements ByteStore {
   bool _evictionIsolateIsRunning = false;
 
   EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
-      : _fileByteStore = FileByteStore(_cachePath) {
+    : _fileByteStore = FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
 
@@ -58,7 +59,7 @@ class EvictingFileByteStore implements ByteStore {
   void release(Iterable<String> keys) {}
 
   /// If the cache clean up process has not been requested yet, request it.
-  Future<void> _requestCacheCleanUp() async {
+  void _requestCacheCleanUp() async {
     if (_cleanUpSendPortShouldBePrepared) {
       _cleanUpSendPortShouldBePrepared = false;
       ReceivePort response = ReceivePort();
@@ -75,7 +76,8 @@ class EvictingFileByteStore implements ByteStore {
       try {
         ReceivePort response = ReceivePort();
         _cleanUpSendPort!.send(
-            CacheCleanUpRequest(_cachePath, _maxSizeBytes, response.sendPort));
+          CacheCleanUpRequest(_cachePath, _maxSizeBytes, response.sendPort),
+        );
         await response.first;
       } finally {
         _evictionIsolateIsRunning = false;
@@ -156,8 +158,8 @@ class FileByteStore implements ByteStore {
   /// If the same cache path is used from more than one isolate of the same
   /// process, then a unique [tempNameSuffix] must be provided for each isolate.
   FileByteStore(this._cachePath, {String tempNameSuffix = ''})
-      : _tempSuffix =
-            '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
+    : _tempSuffix =
+          '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
   @override
   Uint8List? get(String key) {
@@ -299,12 +301,14 @@ class FuturePool {
   void _run(Future Function() fn) {
     _available--;
 
-    fn().whenComplete(() {
-      _available++;
+    unawaited(
+      fn().whenComplete(() {
+        _available++;
 
-      if (waiting.isNotEmpty) {
-        _run(waiting.removeAt(0));
-      }
-    });
+        if (waiting.isNotEmpty) {
+          _run(waiting.removeAt(0));
+        }
+      }),
+    );
   }
 }

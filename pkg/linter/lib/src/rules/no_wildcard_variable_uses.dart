@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -17,14 +19,11 @@ class NoWildcardVariableUses extends LintRule {
     : super(name: LintNames.no_wildcard_variable_uses, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_wildcard_variable_uses;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_wildcard_variable_uses;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    if (context.libraryElement2.hasWildcardVariablesFeatureEnabled) return;
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    if (context.libraryElement.hasWildcardVariablesFeatureEnabled) return;
 
     var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
@@ -39,13 +38,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is! LocalVariableElement2 &&
+    if (element is! LocalVariableElement &&
         element is! FormalParameterElement) {
       return;
     }
 
     if (node.name.isJustUnderscores) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

@@ -331,8 +331,8 @@ class BufferedSink {
   BufferedSink(this._sink);
 
   void addDouble(double d) {
-    final doubleBufferUint8 =
-        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    final doubleBufferUint8 = _doubleBufferUint8 ??= _doubleBuffer.buffer
+        .asUint8List();
     _doubleBuffer[0] = d;
     addByte4(
       doubleBufferUint8[0],

@@ -47,41 +47,41 @@ main() {
   inferCovContra(Covariant<int>(), Contravariant<String>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
 //                                 ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'Contravariant<String>' can't be assigned to the parameter type 'Contravariant<int>'.
 
   // String <: T <: int is not a valid constraint.
   inferCovContra(Covariant<String>(), Contravariant<int>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
 //                                    ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'Contravariant<int>' can't be assigned to the parameter type 'Contravariant<String>'.
 
   // Middle <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Middle>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
 //                                    ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'Contravariant<Lower>' can't be assigned to the parameter type 'Contravariant<Middle>'.
 
   // Upper <: T <: Lower is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Lower>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
 //                                   ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'Contravariant<Lower>' can't be assigned to the parameter type 'Contravariant<Upper>'.
 
   // Upper <: T <: Middle is not a valid constraint
   inferCovContra(Covariant<Upper>(), Contravariant<Middle>());
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] unspecified
 //                                   ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'Contravariant<Middle>' can't be assigned to the parameter type 'Contravariant<Upper>'.
 
   // Inference for Contrabound(...) produces Lower <: T <: Upper.
   // Since T is contravariant, we choose Upper as the solution.

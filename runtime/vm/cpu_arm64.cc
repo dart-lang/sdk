@@ -10,7 +10,6 @@
 
 #include "vm/cpuinfo.h"
 
-#if !defined(USING_SIMULATOR)
 #if defined(DART_HOST_OS_FUCHSIA)
 #include <zircon/syscalls.h>
 #elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
@@ -18,14 +17,19 @@
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
 #endif
-#endif
 
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-#elif !defined(USING_SIMULATOR)
+#else
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    return;
+  }
+#endif
+
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -61,9 +65,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
       "sim"
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
       "arm64";
 }
 
@@ -72,7 +76,7 @@ const char* HostCPUFeatures::hardware_ = nullptr;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
@@ -92,7 +96,7 @@ void HostCPUFeatures::Cleanup() {
   CpuInfo::Cleanup();
 }
 
-#else  // !defined(USING_SIMULATOR)
+#else  // !defined(DART_INCLUDE_SIMULATOR)
 
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
@@ -112,7 +116,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = nullptr;
   CpuInfo::Cleanup();
 }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 }  // namespace dart
 

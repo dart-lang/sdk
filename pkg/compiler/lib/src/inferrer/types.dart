@@ -205,13 +205,12 @@ class GlobalTypeInferenceTask extends CompilerTask {
           globalLocalsMap,
         );
       } else {
-        final inferrer =
-            typesInferrerInternal ??= compiler.backendStrategy
-                .createTypesInferrer(
-                  closedWorld,
-                  globalLocalsMap,
-                  inferredDataBuilder,
-                );
+        final inferrer = typesInferrerInternal ??= compiler.backendStrategy
+            .createTypesInferrer(
+              closedWorld,
+              globalLocalsMap,
+              inferredDataBuilder,
+            );
         results = inferrer.analyzeMain(mainElement);
         _metrics = inferrer.metrics;
       }
@@ -310,8 +309,9 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
                 .readAbstractValueFromDataSource(source),
           ),
         );
-    Set<Selector> returnsListElementTypeSet =
-        source.readList(() => Selector.readFromDataSource(source)).toSet();
+    Set<Selector> returnsListElementTypeSet = source
+        .readList(() => Selector.readFromDataSource(source))
+        .toSet();
     Deferrable<Map<ir.TreeNode, AbstractValue>> allocatedLists = source
         .readDeferrable(
           (source) => source.readTreeNodeMap(

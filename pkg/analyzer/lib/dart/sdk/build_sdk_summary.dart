@@ -35,11 +35,9 @@ Future<Uint8List> buildSdkSummary({
     var file = resourceProvider.getFile(embedderYamlPath);
     var content = file.readAsStringSync();
     var map = loadYaml(content) as YamlMap;
-    var embedderSdk = EmbedderSdk(
-      resourceProvider,
-      {file.parent: map},
-      languageVersion: sdk.languageVersion,
-    );
+    var embedderSdk = EmbedderSdk(resourceProvider, {
+      file.parent: map,
+    }, languageVersion: sdk.languageVersion);
     for (var library in embedderSdk.sdkLibraries) {
       var uriStr = library.shortName;
       if (sdk.libraryMap.getLibrary(uriStr) == null) {
@@ -57,9 +55,7 @@ Future<Uint8List> buildSdkSummary({
     logger: logger,
     resourceProvider: resourceProvider,
     byteStore: byteStore,
-    sourceFactory: SourceFactory([
-      DartUriResolver(sdk),
-    ]),
+    sourceFactory: SourceFactory([DartUriResolver(sdk)]),
     analysisOptionsMap: optionsMap,
     packages: Packages({}),
   );

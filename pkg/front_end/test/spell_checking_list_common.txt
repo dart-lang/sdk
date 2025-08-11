@@ -184,6 +184,7 @@ approach
 appropriate
 appropriately
 approximately
+apriori
 arbitrary
 archive
 are
@@ -3308,6 +3309,7 @@ unchanged
 unchecked
 unclaimed
 unclear
+unconventional
 undeclared
 undefined
 under

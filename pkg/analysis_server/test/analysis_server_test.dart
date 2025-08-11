@@ -14,9 +14,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -349,7 +349,7 @@ analyzer:
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(pathContext: pathContext));
   }
 
   /// Creates a simple package named [name] with [content] in the file at

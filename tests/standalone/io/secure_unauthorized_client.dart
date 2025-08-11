@@ -31,12 +31,15 @@ Future runClients(int port) {
   var testFutures = <Future>[];
   for (int i = 0; i < 20; ++i) {
     testFutures.add(
-        SecureSocket.connect(HOST_NAME, port, context: clientContext).then(
-            (SecureSocket socket) {
-      expect(false);
-    }, onError: (e) {
-      expect(e is HandshakeException || e is SocketException);
-    }));
+      SecureSocket.connect(HOST_NAME, port, context: clientContext).then(
+        (SecureSocket socket) {
+          expect(false);
+        },
+        onError: (e) {
+          expect(e is HandshakeException || e is SocketException);
+        },
+      ),
+    );
   }
   return Future.wait(testFutures);
 }

@@ -23,3 +23,5 @@ linter:
     - directives_ordering
     - prefer_single_quotes
     - prefer_relative_imports
+    - unnecessary_ignore
+    - unnecessary_statements

@@ -39,19 +39,19 @@ f() => [if (true) 1 else ^];
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   if
     kind: keyword
   for
     kind: keyword
   const
     kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -77,19 +77,19 @@ f() => [if (true) ^];
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   for
     kind: keyword
-  false
-    kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }

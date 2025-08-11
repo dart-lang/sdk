@@ -40,14 +40,15 @@ extension type E(int i) {}
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @immutable
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 9),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 9)],
+    );
   }
 }

@@ -79,20 +79,18 @@ abstract class Deferrable<E> {
     E Function(DataSourceReader source) f,
     int offset, {
     bool cacheData = true,
-  }) =>
-      cacheData
-          ? _DeferredCache(reader, f, offset)
-          : _Deferred(reader, f, offset);
+  }) => cacheData
+      ? _DeferredCache(reader, f, offset)
+      : _Deferred(reader, f, offset);
   static Deferrable<E> deferredWithArg<E, A>(
     DataSourceReader reader,
     E Function(DataSourceReader source, A arg) f,
     A arg,
     int offset, {
     bool cacheData = true,
-  }) =>
-      cacheData
-          ? _DeferredCacheWithArg(reader, f, arg, offset)
-          : _DeferredWithArg(reader, f, arg, offset);
+  }) => cacheData
+      ? _DeferredCacheWithArg(reader, f, arg, offset)
+      : _DeferredWithArg(reader, f, arg, offset);
   const factory Deferrable.eager(E data) = _Eager;
 
   const Deferrable();

@@ -48,12 +48,14 @@ class BeginToken extends SimpleToken {
    * [offset].
    */
   BeginToken(TokenType type, int offset, [CommentToken? precedingComment])
-      : super(type, offset, precedingComment) {
-    assert(type == TokenType.LT ||
-        type == TokenType.OPEN_CURLY_BRACKET ||
-        type == TokenType.OPEN_PAREN ||
-        type == TokenType.OPEN_SQUARE_BRACKET ||
-        type == TokenType.STRING_INTERPOLATION_EXPRESSION);
+    : super(type, offset, precedingComment) {
+    assert(
+      type == TokenType.LT ||
+          type == TokenType.OPEN_CURLY_BRACKET ||
+          type == TokenType.OPEN_PAREN ||
+          type == TokenType.OPEN_SQUARE_BRACKET ||
+          type == TokenType.STRING_INTERPOLATION_EXPRESSION,
+    );
   }
 
   @override
@@ -96,11 +98,7 @@ class DocumentationCommentToken extends CommentToken {
 }
 
 @AnalyzerPublicApi(message: 'exposed by Keyword.keywordStyle')
-enum KeywordStyle {
-  reserved,
-  builtIn,
-  pseudo,
-}
+enum KeywordStyle { reserved, builtIn, pseudo }
 
 /**
  * The keywords in the Dart programming language.
@@ -110,244 +108,536 @@ enum KeywordStyle {
 @AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class Keyword extends TokenType {
   static const Keyword ABSTRACT = const Keyword(
-      /* index = */ 82, "abstract", "ABSTRACT", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 82,
+    "abstract",
+    "ABSTRACT",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
   static const Keyword AS = const Keyword(
-      /* index = */ 83, "as", "AS", KeywordStyle.builtIn,
-      precedence: RELATIONAL_PRECEDENCE);
+    /* index = */ 83,
+    "as",
+    "AS",
+    KeywordStyle.builtIn,
+    precedence: RELATIONAL_PRECEDENCE,
+  );
 
   static const Keyword ASSERT = const Keyword(
-      /* index = */ 84, "assert", "ASSERT", KeywordStyle.reserved);
+    /* index = */ 84,
+    "assert",
+    "ASSERT",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword ASYNC =
-      const Keyword(/* index = */ 85, "async", "ASYNC", KeywordStyle.pseudo);
+  static const Keyword ASYNC = const Keyword(
+    /* index = */ 85,
+    "async",
+    "ASYNC",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword AUGMENT = const Keyword(
-      /* index = */ 86, "augment", "AUGMENT", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 86,
+    "augment",
+    "AUGMENT",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
-  static const Keyword AWAIT =
-      const Keyword(/* index = */ 87, "await", "AWAIT", KeywordStyle.pseudo);
+  static const Keyword AWAIT = const Keyword(
+    /* index = */ 87,
+    "await",
+    "AWAIT",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword BASE =
-      const Keyword(/* index = */ 88, "base", "BASE", KeywordStyle.pseudo);
+  static const Keyword BASE = const Keyword(
+    /* index = */ 88,
+    "base",
+    "BASE",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword BREAK =
-      const Keyword(/* index = */ 89, "break", "BREAK", KeywordStyle.reserved);
+  static const Keyword BREAK = const Keyword(
+    /* index = */ 89,
+    "break",
+    "BREAK",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword CASE =
-      const Keyword(/* index = */ 90, "case", "CASE", KeywordStyle.reserved);
+  static const Keyword CASE = const Keyword(
+    /* index = */ 90,
+    "case",
+    "CASE",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword CATCH =
-      const Keyword(/* index = */ 91, "catch", "CATCH", KeywordStyle.reserved);
+  static const Keyword CATCH = const Keyword(
+    /* index = */ 91,
+    "catch",
+    "CATCH",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword CLASS = const Keyword(
-      /* index = */ 92, "class", "CLASS", KeywordStyle.reserved,
-      isTopLevelKeyword: true);
+    /* index = */ 92,
+    "class",
+    "CLASS",
+    KeywordStyle.reserved,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword CONST = const Keyword(
-      /* index = */ 93, "const", "CONST", KeywordStyle.reserved,
-      isModifier: true);
+    /* index = */ 93,
+    "const",
+    "CONST",
+    KeywordStyle.reserved,
+    isModifier: true,
+  );
 
   static const Keyword CONTINUE = const Keyword(
-      /* index = */ 94, "continue", "CONTINUE", KeywordStyle.reserved);
+    /* index = */ 94,
+    "continue",
+    "CONTINUE",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword COVARIANT = const Keyword(
-      /* index = */ 95, "covariant", "COVARIANT", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 95,
+    "covariant",
+    "COVARIANT",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
   static const Keyword DEFAULT = const Keyword(
-      /* index = */ 96, "default", "DEFAULT", KeywordStyle.reserved);
+    /* index = */ 96,
+    "default",
+    "DEFAULT",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword DEFERRED = const Keyword(
-      /* index = */ 97, "deferred", "DEFERRED", KeywordStyle.builtIn);
+    /* index = */ 97,
+    "deferred",
+    "DEFERRED",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword DO =
-      const Keyword(/* index = */ 98, "do", "DO", KeywordStyle.reserved);
+  static const Keyword DO = const Keyword(
+    /* index = */ 98,
+    "do",
+    "DO",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword DYNAMIC = const Keyword(
-      /* index = */ 99, "dynamic", "DYNAMIC", KeywordStyle.builtIn);
+    /* index = */ 99,
+    "dynamic",
+    "DYNAMIC",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword ELSE =
-      const Keyword(/* index = */ 100, "else", "ELSE", KeywordStyle.reserved);
+  static const Keyword ELSE = const Keyword(
+    /* index = */ 100,
+    "else",
+    "ELSE",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword ENUM = const Keyword(
-      /* index = */ 101, "enum", "ENUM", KeywordStyle.reserved,
-      isTopLevelKeyword: true);
+    /* index = */ 101,
+    "enum",
+    "ENUM",
+    KeywordStyle.reserved,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword EXPORT = const Keyword(
-      /* index = */ 102, "export", "EXPORT", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 102,
+    "export",
+    "EXPORT",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword EXTENDS = const Keyword(
-      /* index = */ 103, "extends", "EXTENDS", KeywordStyle.reserved);
+    /* index = */ 103,
+    "extends",
+    "EXTENDS",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword EXTENSION = const Keyword(
-      /* index = */ 104, "extension", "EXTENSION", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 104,
+    "extension",
+    "EXTENSION",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword EXTERNAL = const Keyword(
-      /* index = */ 105, "external", "EXTERNAL", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 105,
+    "external",
+    "EXTERNAL",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
   static const Keyword FACTORY = const Keyword(
-      /* index = */ 106, "factory", "FACTORY", KeywordStyle.builtIn);
+    /* index = */ 106,
+    "factory",
+    "FACTORY",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword FALSE =
-      const Keyword(/* index = */ 107, "false", "FALSE", KeywordStyle.reserved);
+  static const Keyword FALSE = const Keyword(
+    /* index = */ 107,
+    "false",
+    "FALSE",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword FINAL = const Keyword(
-      /* index = */ 108, "final", "FINAL", KeywordStyle.reserved,
-      isModifier: true);
+    /* index = */ 108,
+    "final",
+    "FINAL",
+    KeywordStyle.reserved,
+    isModifier: true,
+  );
 
   static const Keyword FINALLY = const Keyword(
-      /* index = */ 109, "finally", "FINALLY", KeywordStyle.reserved);
+    /* index = */ 109,
+    "finally",
+    "FINALLY",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword FOR =
-      const Keyword(/* index = */ 110, "for", "FOR", KeywordStyle.reserved);
+  static const Keyword FOR = const Keyword(
+    /* index = */ 110,
+    "for",
+    "FOR",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword FUNCTION = const Keyword(
-      /* index = */ 111, "Function", "FUNCTION", KeywordStyle.builtIn);
+    /* index = */ 111,
+    "Function",
+    "FUNCTION",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword GET =
-      const Keyword(/* index = */ 112, "get", "GET", KeywordStyle.builtIn);
+  static const Keyword GET = const Keyword(
+    /* index = */ 112,
+    "get",
+    "GET",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword HIDE =
-      const Keyword(/* index = */ 113, "hide", "HIDE", KeywordStyle.pseudo);
+  static const Keyword HIDE = const Keyword(
+    /* index = */ 113,
+    "hide",
+    "HIDE",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword IF =
-      const Keyword(/* index = */ 114, "if", "IF", KeywordStyle.reserved);
+  static const Keyword IF = const Keyword(
+    /* index = */ 114,
+    "if",
+    "IF",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword IMPLEMENTS = const Keyword(
-      /* index = */ 115, "implements", "IMPLEMENTS", KeywordStyle.builtIn);
+    /* index = */ 115,
+    "implements",
+    "IMPLEMENTS",
+    KeywordStyle.builtIn,
+  );
 
   static const Keyword IMPORT = const Keyword(
-      /* index = */ 116, "import", "IMPORT", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 116,
+    "import",
+    "IMPORT",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
-  static const Keyword IN =
-      const Keyword(/* index = */ 117, "in", "IN", KeywordStyle.reserved);
+  static const Keyword IN = const Keyword(
+    /* index = */ 117,
+    "in",
+    "IN",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword INOUT =
-      const Keyword(/* index = */ 118, "inout", "INOUT", KeywordStyle.pseudo);
+  static const Keyword INOUT = const Keyword(
+    /* index = */ 118,
+    "inout",
+    "INOUT",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword INTERFACE = const Keyword(
-      /* index = */ 119, "interface", "INTERFACE", KeywordStyle.builtIn);
+    /* index = */ 119,
+    "interface",
+    "INTERFACE",
+    KeywordStyle.builtIn,
+  );
 
   static const Keyword IS = const Keyword(
-      /* index = */ 120, "is", "IS", KeywordStyle.reserved,
-      precedence: RELATIONAL_PRECEDENCE);
+    /* index = */ 120,
+    "is",
+    "IS",
+    KeywordStyle.reserved,
+    precedence: RELATIONAL_PRECEDENCE,
+  );
 
   static const Keyword LATE = const Keyword(
-      /* index = */ 121, "late", "LATE", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 121,
+    "late",
+    "LATE",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
   static const Keyword LIBRARY = const Keyword(
-      /* index = */ 122, "library", "LIBRARY", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 122,
+    "library",
+    "LIBRARY",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword MIXIN = const Keyword(
-      /* index = */ 123, "mixin", "MIXIN", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 123,
+    "mixin",
+    "MIXIN",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
-  static const Keyword NATIVE =
-      const Keyword(/* index = */ 124, "native", "NATIVE", KeywordStyle.pseudo);
+  static const Keyword NATIVE = const Keyword(
+    /* index = */ 124,
+    "native",
+    "NATIVE",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword NEW =
-      const Keyword(/* index = */ 125, "new", "NEW", KeywordStyle.reserved);
+  static const Keyword NEW = const Keyword(
+    /* index = */ 125,
+    "new",
+    "NEW",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword NULL =
-      const Keyword(/* index = */ 126, "null", "NULL", KeywordStyle.reserved);
+  static const Keyword NULL = const Keyword(
+    /* index = */ 126,
+    "null",
+    "NULL",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword OF =
-      const Keyword(/* index = */ 127, "of", "OF", KeywordStyle.pseudo);
+  static const Keyword OF = const Keyword(
+    /* index = */ 127,
+    "of",
+    "OF",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword ON =
-      const Keyword(/* index = */ 128, "on", "ON", KeywordStyle.pseudo);
+  static const Keyword ON = const Keyword(
+    /* index = */ 128,
+    "on",
+    "ON",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword OPERATOR = const Keyword(
-      /* index = */ 129, "operator", "OPERATOR", KeywordStyle.builtIn);
+    /* index = */ 129,
+    "operator",
+    "OPERATOR",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword OUT =
-      const Keyword(/* index = */ 130, "out", "OUT", KeywordStyle.pseudo);
+  static const Keyword OUT = const Keyword(
+    /* index = */ 130,
+    "out",
+    "OUT",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword PART = const Keyword(
-      /* index = */ 131, "part", "PART", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 131,
+    "part",
+    "PART",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
-  static const Keyword PATCH =
-      const Keyword(/* index = */ 132, "patch", "PATCH", KeywordStyle.pseudo);
+  static const Keyword PATCH = const Keyword(
+    /* index = */ 132,
+    "patch",
+    "PATCH",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword REQUIRED = const Keyword(
-      /* index = */ 133, "required", "REQUIRED", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 133,
+    "required",
+    "REQUIRED",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
   static const Keyword RETHROW = const Keyword(
-      /* index = */ 134, "rethrow", "RETHROW", KeywordStyle.reserved);
+    /* index = */ 134,
+    "rethrow",
+    "RETHROW",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword RETURN = const Keyword(
-      /* index = */ 135, "return", "RETURN", KeywordStyle.reserved);
+    /* index = */ 135,
+    "return",
+    "RETURN",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword SEALED =
-      const Keyword(/* index = */ 136, "sealed", "SEALED", KeywordStyle.pseudo);
+  static const Keyword SEALED = const Keyword(
+    /* index = */ 136,
+    "sealed",
+    "SEALED",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword SET =
-      const Keyword(/* index = */ 137, "set", "SET", KeywordStyle.builtIn);
+  static const Keyword SET = const Keyword(
+    /* index = */ 137,
+    "set",
+    "SET",
+    KeywordStyle.builtIn,
+  );
 
-  static const Keyword SHOW =
-      const Keyword(/* index = */ 138, "show", "SHOW", KeywordStyle.pseudo);
+  static const Keyword SHOW = const Keyword(
+    /* index = */ 138,
+    "show",
+    "SHOW",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword SOURCE =
-      const Keyword(/* index = */ 139, "source", "SOURCE", KeywordStyle.pseudo);
+  static const Keyword SOURCE = const Keyword(
+    /* index = */ 139,
+    "source",
+    "SOURCE",
+    KeywordStyle.pseudo,
+  );
 
   static const Keyword STATIC = const Keyword(
-      /* index = */ 140, "static", "STATIC", KeywordStyle.builtIn,
-      isModifier: true);
+    /* index = */ 140,
+    "static",
+    "STATIC",
+    KeywordStyle.builtIn,
+    isModifier: true,
+  );
 
-  static const Keyword SUPER =
-      const Keyword(/* index = */ 141, "super", "SUPER", KeywordStyle.reserved);
+  static const Keyword SUPER = const Keyword(
+    /* index = */ 141,
+    "super",
+    "SUPER",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword SWITCH = const Keyword(
-      /* index = */ 142, "switch", "SWITCH", KeywordStyle.reserved);
+    /* index = */ 142,
+    "switch",
+    "SWITCH",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword SYNC =
-      const Keyword(/* index = */ 143, "sync", "SYNC", KeywordStyle.pseudo);
+  static const Keyword SYNC = const Keyword(
+    /* index = */ 143,
+    "sync",
+    "SYNC",
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword THIS =
-      const Keyword(/* index = */ 144, "this", "THIS", KeywordStyle.reserved);
+  static const Keyword THIS = const Keyword(
+    /* index = */ 144,
+    "this",
+    "THIS",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword THROW =
-      const Keyword(/* index = */ 145, "throw", "THROW", KeywordStyle.reserved);
+  static const Keyword THROW = const Keyword(
+    /* index = */ 145,
+    "throw",
+    "THROW",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword TRUE =
-      const Keyword(/* index = */ 146, "true", "TRUE", KeywordStyle.reserved);
+  static const Keyword TRUE = const Keyword(
+    /* index = */ 146,
+    "true",
+    "TRUE",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword TRY =
-      const Keyword(/* index = */ 147, "try", "TRY", KeywordStyle.reserved);
+  static const Keyword TRY = const Keyword(
+    /* index = */ 147,
+    "try",
+    "TRY",
+    KeywordStyle.reserved,
+  );
 
   static const Keyword TYPEDEF = const Keyword(
-      /* index = */ 148, "typedef", "TYPEDEF", KeywordStyle.builtIn,
-      isTopLevelKeyword: true);
+    /* index = */ 148,
+    "typedef",
+    "TYPEDEF",
+    KeywordStyle.builtIn,
+    isTopLevelKeyword: true,
+  );
 
   static const Keyword VAR = const Keyword(
-      /* index = */ 149, "var", "VAR", KeywordStyle.reserved,
-      isModifier: true);
+    /* index = */ 149,
+    "var",
+    "VAR",
+    KeywordStyle.reserved,
+    isModifier: true,
+  );
 
-  static const Keyword VOID =
-      const Keyword(/* index = */ 150, "void", "VOID", KeywordStyle.reserved);
+  static const Keyword VOID = const Keyword(
+    /* index = */ 150,
+    "void",
+    "VOID",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword WHEN =
-      const Keyword(/* index = */ 151, "when", 'WHEN', KeywordStyle.pseudo);
+  static const Keyword WHEN = const Keyword(
+    /* index = */ 151,
+    "when",
+    'WHEN',
+    KeywordStyle.pseudo,
+  );
 
-  static const Keyword WHILE =
-      const Keyword(/* index = */ 152, "while", "WHILE", KeywordStyle.reserved);
+  static const Keyword WHILE = const Keyword(
+    /* index = */ 152,
+    "while",
+    "WHILE",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword WITH =
-      const Keyword(/* index = */ 153, "with", "WITH", KeywordStyle.reserved);
+  static const Keyword WITH = const Keyword(
+    /* index = */ 153,
+    "with",
+    "WITH",
+    KeywordStyle.reserved,
+  );
 
-  static const Keyword YIELD =
-      const Keyword(/* index = */ 154, "yield", "YIELD", KeywordStyle.pseudo);
+  static const Keyword YIELD = const Keyword(
+    /* index = */ 154,
+    "yield",
+    "YIELD",
+    KeywordStyle.pseudo,
+  );
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -435,12 +725,23 @@ class Keyword extends TokenType {
   /**
    * Initialize a newly created keyword.
    */
-  const Keyword(int index, String lexeme, String name, this.keywordStyle,
-      {bool isModifier = false,
-      bool isTopLevelKeyword = false,
-      int precedence = NO_PRECEDENCE})
-      : super(index, lexeme, name, precedence, KEYWORD_TOKEN,
-            isModifier: isModifier, isTopLevelKeyword: isTopLevelKeyword);
+  const Keyword(
+    int index,
+    String lexeme,
+    String name,
+    this.keywordStyle, {
+    bool isModifier = false,
+    bool isTopLevelKeyword = false,
+    int precedence = NO_PRECEDENCE,
+  }) : super(
+         index,
+         lexeme,
+         name,
+         precedence,
+         KEYWORD_TOKEN,
+         isModifier: isModifier,
+         isTopLevelKeyword: isTopLevelKeyword,
+       );
 
   @override
   bool get isBuiltIn => keywordStyle == KeywordStyle.builtIn;
@@ -519,7 +820,7 @@ class LanguageVersionToken extends CommentToken {
   final int minor;
 
   LanguageVersionToken.from(String text, int offset, this.major, this.minor)
-      : super(TokenType.SINGLE_LINE_COMMENT, text, offset);
+    : super(TokenType.SINGLE_LINE_COMMENT, text, offset);
 }
 
 /**
@@ -527,7 +828,8 @@ class LanguageVersionToken extends CommentToken {
  * precede and follow it, acting as a link in a doubly linked list of tokens.
  */
 @AnalyzerPublicApi(
-    message: 'exposed by CommentToken.parent and StringToken (superclass)')
+  message: 'exposed by CommentToken.parent and StringToken (superclass)',
+)
 class SimpleToken implements Token {
   /**
    * The type of the token.
@@ -583,7 +885,7 @@ class SimpleToken implements Token {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   SimpleToken(TokenType type, int offset, [this._precedingComment])
-      : _typeAndOffset = (((offset + 1) << 8) | type.index) {
+    : _typeAndOffset = (((offset + 1) << 8) | type.index) {
     // See https://github.com/dart-lang/sdk/issues/50048 for details.
     assert(offset >= -1);
 
@@ -728,7 +1030,7 @@ class StringToken extends SimpleToken {
    * with the given [value] at the given [offset].
    */
   StringToken(super.type, String value, super.offset, [super.precedingComment])
-      : _value = StringUtilities.intern(value);
+    : _value = StringUtilities.intern(value);
 
   @override
   bool get isIdentifier => kind == IDENTIFIER_TOKEN;
@@ -825,7 +1127,7 @@ class ReplacementToken extends SyntheticToken {
   final Token replacedToken;
 
   ReplacementToken(TokenType type, this.replacedToken)
-      : super(type, replacedToken.offset) {
+    : super(type, replacedToken.offset) {
     precedingComments = replacedToken.precedingComments;
   }
 
@@ -1085,8 +1387,13 @@ abstract class Token implements SyntacticEntity {
    * Return the token with the smallest offset, or `null` if all of the
    * tokens are `null`.
    */
-  static Token? lexicallyFirst(
-      [Token? t1, Token? t2, Token? t3, Token? t4, Token? t5]) {
+  static Token? lexicallyFirst([
+    Token? t1,
+    Token? t2,
+    Token? t3,
+    Token? t4,
+    Token? t5,
+  ]) {
     Token? result = t1;
     if (result == null || t2 != null && t2.offset < result.offset) {
       result = t2;
@@ -1117,98 +1424,130 @@ class TokenClass {
   /**
    * A value used to indicate that the token type is an additive operator.
    */
-  static const TokenClass ADDITIVE_OPERATOR =
-      const TokenClass('ADDITIVE_OPERATOR', ADDITIVE_PRECEDENCE);
+  static const TokenClass ADDITIVE_OPERATOR = const TokenClass(
+    'ADDITIVE_OPERATOR',
+    ADDITIVE_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is an assignment operator.
    */
-  static const TokenClass ASSIGNMENT_OPERATOR =
-      const TokenClass('ASSIGNMENT_OPERATOR', ASSIGNMENT_PRECEDENCE);
+  static const TokenClass ASSIGNMENT_OPERATOR = const TokenClass(
+    'ASSIGNMENT_OPERATOR',
+    ASSIGNMENT_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
    */
-  static const TokenClass BITWISE_AND_OPERATOR =
-      const TokenClass('BITWISE_AND_OPERATOR', BITWISE_AND_PRECEDENCE);
+  static const TokenClass BITWISE_AND_OPERATOR = const TokenClass(
+    'BITWISE_AND_OPERATOR',
+    BITWISE_AND_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
-  static const TokenClass BITWISE_OR_OPERATOR =
-      const TokenClass('BITWISE_OR_OPERATOR', BITWISE_OR_PRECEDENCE);
+  static const TokenClass BITWISE_OR_OPERATOR = const TokenClass(
+    'BITWISE_OR_OPERATOR',
+    BITWISE_OR_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
-  static const TokenClass BITWISE_XOR_OPERATOR =
-      const TokenClass('BITWISE_XOR_OPERATOR', BITWISE_XOR_PRECEDENCE);
+  static const TokenClass BITWISE_XOR_OPERATOR = const TokenClass(
+    'BITWISE_XOR_OPERATOR',
+    BITWISE_XOR_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a cascade operator.
    */
-  static const TokenClass CASCADE_OPERATOR =
-      const TokenClass('CASCADE_OPERATOR', CASCADE_PRECEDENCE);
+  static const TokenClass CASCADE_OPERATOR = const TokenClass(
+    'CASCADE_OPERATOR',
+    CASCADE_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a conditional operator.
    */
-  static const TokenClass CONDITIONAL_OPERATOR =
-      const TokenClass('CONDITIONAL_OPERATOR', CONDITIONAL_PRECEDENCE);
+  static const TokenClass CONDITIONAL_OPERATOR = const TokenClass(
+    'CONDITIONAL_OPERATOR',
+    CONDITIONAL_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is an equality operator.
    */
-  static const TokenClass EQUALITY_OPERATOR =
-      const TokenClass('EQUALITY_OPERATOR', EQUALITY_PRECEDENCE);
+  static const TokenClass EQUALITY_OPERATOR = const TokenClass(
+    'EQUALITY_OPERATOR',
+    EQUALITY_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is an if-null operator.
    */
-  static const TokenClass IF_NULL_OPERATOR =
-      const TokenClass('IF_NULL_OPERATOR', IF_NULL_PRECEDENCE);
+  static const TokenClass IF_NULL_OPERATOR = const TokenClass(
+    'IF_NULL_OPERATOR',
+    IF_NULL_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a logical-and operator.
    */
-  static const TokenClass LOGICAL_AND_OPERATOR =
-      const TokenClass('LOGICAL_AND_OPERATOR', LOGICAL_AND_PRECEDENCE);
+  static const TokenClass LOGICAL_AND_OPERATOR = const TokenClass(
+    'LOGICAL_AND_OPERATOR',
+    LOGICAL_AND_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a logical-or operator.
    */
-  static const TokenClass LOGICAL_OR_OPERATOR =
-      const TokenClass('LOGICAL_OR_OPERATOR', LOGICAL_OR_PRECEDENCE);
+  static const TokenClass LOGICAL_OR_OPERATOR = const TokenClass(
+    'LOGICAL_OR_OPERATOR',
+    LOGICAL_OR_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a multiplicative operator.
    */
-  static const TokenClass MULTIPLICATIVE_OPERATOR =
-      const TokenClass('MULTIPLICATIVE_OPERATOR', MULTIPLICATIVE_PRECEDENCE);
+  static const TokenClass MULTIPLICATIVE_OPERATOR = const TokenClass(
+    'MULTIPLICATIVE_OPERATOR',
+    MULTIPLICATIVE_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a relational operator.
    */
-  static const TokenClass RELATIONAL_OPERATOR =
-      const TokenClass('RELATIONAL_OPERATOR', RELATIONAL_PRECEDENCE);
+  static const TokenClass RELATIONAL_OPERATOR = const TokenClass(
+    'RELATIONAL_OPERATOR',
+    RELATIONAL_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a shift operator.
    */
-  static const TokenClass SHIFT_OPERATOR =
-      const TokenClass('SHIFT_OPERATOR', SHIFT_PRECEDENCE);
+  static const TokenClass SHIFT_OPERATOR = const TokenClass(
+    'SHIFT_OPERATOR',
+    SHIFT_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
-  static const TokenClass UNARY_POSTFIX_OPERATOR =
-      const TokenClass('UNARY_POSTFIX_OPERATOR', POSTFIX_PRECEDENCE);
+  static const TokenClass UNARY_POSTFIX_OPERATOR = const TokenClass(
+    'UNARY_POSTFIX_OPERATOR',
+    POSTFIX_PRECEDENCE,
+  );
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
-  static const TokenClass UNARY_PREFIX_OPERATOR =
-      const TokenClass('UNARY_PREFIX_OPERATOR', PREFIX_PRECEDENCE);
+  static const TokenClass UNARY_PREFIX_OPERATOR = const TokenClass(
+    'UNARY_PREFIX_OPERATOR',
+    PREFIX_PRECEDENCE,
+  );
 
   /**
    * The name of the token class.
@@ -1239,364 +1578,771 @@ class TokenClass {
 @AnalyzerPublicApi(message: 'exported by package:analyzer/dart/ast/token.dart')
 class TokenType {
   static const TokenType UNUSED = const TokenType(
-      /* index = */ 255, '', 'UNUSED', NO_PRECEDENCE, EOF_TOKEN);
+    /* index = */ 255,
+    '',
+    'UNUSED',
+    NO_PRECEDENCE,
+    EOF_TOKEN,
+  );
 
   /**
    * The type of the token that marks the start or end of the input.
    */
-  static const TokenType EOF =
-      const TokenType(/* index = */ 0, '', 'EOF', NO_PRECEDENCE, EOF_TOKEN);
+  static const TokenType EOF = const TokenType(
+    /* index = */ 0,
+    '',
+    'EOF',
+    NO_PRECEDENCE,
+    EOF_TOKEN,
+  );
 
   static const TokenType DOUBLE = const TokenType(
-      /* index = */ 1, 'double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 1,
+    'double',
+    'DOUBLE',
+    NO_PRECEDENCE,
+    DOUBLE_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType DOUBLE_WITH_SEPARATORS = const TokenType(
-      /* index = */ 2,
-      'double',
-      'DOUBLE_WITH_SEPARATORS',
-      NO_PRECEDENCE,
-      DOUBLE_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 2,
+    'double',
+    'DOUBLE_WITH_SEPARATORS',
+    NO_PRECEDENCE,
+    DOUBLE_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
-  static const TokenType HEXADECIMAL = const TokenType(/* index = */ 3,
-      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN,
-      stringValueShouldBeNull: true);
+  static const TokenType HEXADECIMAL = const TokenType(
+    /* index = */ 3,
+    'hexadecimal',
+    'HEXADECIMAL',
+    NO_PRECEDENCE,
+    HEXADECIMAL_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType HEXADECIMAL_WITH_SEPARATORS = const TokenType(
-      /* index = */ 4,
-      'hexadecimal',
-      'HEXADECIMAL_WITH_SEPARATORS',
-      NO_PRECEDENCE,
-      HEXADECIMAL_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 4,
+    'hexadecimal',
+    'HEXADECIMAL_WITH_SEPARATORS',
+    NO_PRECEDENCE,
+    HEXADECIMAL_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
-  static const TokenType IDENTIFIER = const TokenType(/* index = */ 5,
-      'identifier', 'IDENTIFIER', NO_PRECEDENCE, IDENTIFIER_TOKEN,
-      stringValueShouldBeNull: true);
+  static const TokenType IDENTIFIER = const TokenType(
+    /* index = */ 5,
+    'identifier',
+    'IDENTIFIER',
+    NO_PRECEDENCE,
+    IDENTIFIER_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType INT = const TokenType(
-      /* index = */ 6, 'int', 'INT', NO_PRECEDENCE, INT_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 6,
+    'int',
+    'INT',
+    NO_PRECEDENCE,
+    INT_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType INT_WITH_SEPARATORS = const TokenType(
-      /* index = */ 7, 'int', 'INT_WITH_SEPARATORS', NO_PRECEDENCE, INT_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 7,
+    'int',
+    'INT_WITH_SEPARATORS',
+    NO_PRECEDENCE,
+    INT_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
-  static const TokenType MULTI_LINE_COMMENT = const TokenType(/* index = */ 8,
-      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
-      stringValueShouldBeNull: true);
+  static const TokenType MULTI_LINE_COMMENT = const TokenType(
+    /* index = */ 8,
+    'comment',
+    'MULTI_LINE_COMMENT',
+    NO_PRECEDENCE,
+    COMMENT_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType SCRIPT_TAG = const TokenType(
-      /* index = */ 9, 'script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
+    /* index = */ 9,
+    'script',
+    'SCRIPT_TAG',
+    NO_PRECEDENCE,
+    SCRIPT_TOKEN,
+  );
 
-  static const TokenType SINGLE_LINE_COMMENT = const TokenType(/* index = */ 10,
-      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
-      stringValueShouldBeNull: true);
+  static const TokenType SINGLE_LINE_COMMENT = const TokenType(
+    /* index = */ 10,
+    'comment',
+    'SINGLE_LINE_COMMENT',
+    NO_PRECEDENCE,
+    COMMENT_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   static const TokenType STRING = const TokenType(
-      /* index = */ 11, 'string', 'STRING', NO_PRECEDENCE, STRING_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 11,
+    'string',
+    'STRING',
+    NO_PRECEDENCE,
+    STRING_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
-  static const TokenType AMPERSAND = const TokenType(/* index = */ 12, '&',
-      'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+  static const TokenType AMPERSAND = const TokenType(
+    /* index = */ 12,
+    '&',
+    'AMPERSAND',
+    BITWISE_AND_PRECEDENCE,
+    AMPERSAND_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType AMPERSAND_AMPERSAND = const TokenType(
-      /* index = */ 13,
-      '&&',
-      'AMPERSAND_AMPERSAND',
-      LOGICAL_AND_PRECEDENCE,
-      AMPERSAND_AMPERSAND_TOKEN,
-      isOperator: true,
-      isBinaryOperator: true);
+    /* index = */ 13,
+    '&&',
+    'AMPERSAND_AMPERSAND',
+    LOGICAL_AND_PRECEDENCE,
+    AMPERSAND_AMPERSAND_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+  );
 
   // This is not yet part of the language and not supported by the scanner.
   static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
-      /* index = */ 14,
-      '&&=',
-      'AMPERSAND_AMPERSAND_EQ',
-      ASSIGNMENT_PRECEDENCE,
-      AMPERSAND_AMPERSAND_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND_AMPERSAND,
-      isOperator: true);
+    /* index = */ 14,
+    '&&=',
+    'AMPERSAND_AMPERSAND_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    AMPERSAND_AMPERSAND_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND_AMPERSAND,
+    isOperator: true,
+  );
 
-  static const TokenType AMPERSAND_EQ = const TokenType(/* index = */ 15, '&=',
-      'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND,
-      isOperator: true);
+  static const TokenType AMPERSAND_EQ = const TokenType(
+    /* index = */ 15,
+    '&=',
+    'AMPERSAND_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    AMPERSAND_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND,
+    isOperator: true,
+  );
 
-  static const TokenType AT =
-      const TokenType(/* index = */ 16, '@', 'AT', NO_PRECEDENCE, AT_TOKEN);
+  static const TokenType AT = const TokenType(
+    /* index = */ 16,
+    '@',
+    'AT',
+    NO_PRECEDENCE,
+    AT_TOKEN,
+  );
 
   static const TokenType BANG = const TokenType(
-      /* index = */ 17, '!', 'BANG', PREFIX_PRECEDENCE, BANG_TOKEN,
-      isOperator: true);
+    /* index = */ 17,
+    '!',
+    'BANG',
+    PREFIX_PRECEDENCE,
+    BANG_TOKEN,
+    isOperator: true,
+  );
 
   static const TokenType BANG_EQ = const TokenType(
-      /* index = */ 18, '!=', 'BANG_EQ', EQUALITY_PRECEDENCE, BANG_EQ_TOKEN,
-      isOperator: true);
+    /* index = */ 18,
+    '!=',
+    'BANG_EQ',
+    EQUALITY_PRECEDENCE,
+    BANG_EQ_TOKEN,
+    isOperator: true,
+  );
 
-  static const TokenType BANG_EQ_EQ = const TokenType(/* index = */ 19, '!==',
-      'BANG_EQ_EQ', EQUALITY_PRECEDENCE, BANG_EQ_EQ_TOKEN);
+  static const TokenType BANG_EQ_EQ = const TokenType(
+    /* index = */ 19,
+    '!==',
+    'BANG_EQ_EQ',
+    EQUALITY_PRECEDENCE,
+    BANG_EQ_EQ_TOKEN,
+  );
 
   static const TokenType BAR = const TokenType(
-      /* index = */ 20, '|', 'BAR', BITWISE_OR_PRECEDENCE, BAR_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 20,
+    '|',
+    'BAR',
+    BITWISE_OR_PRECEDENCE,
+    BAR_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType BAR_BAR = const TokenType(
-      /* index = */ 21, '||', 'BAR_BAR', LOGICAL_OR_PRECEDENCE, BAR_BAR_TOKEN,
-      isOperator: true, isBinaryOperator: true);
+    /* index = */ 21,
+    '||',
+    'BAR_BAR',
+    LOGICAL_OR_PRECEDENCE,
+    BAR_BAR_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+  );
 
   // This is not yet part of the language and not supported by the scanner.
-  static const TokenType BAR_BAR_EQ = const TokenType(/* index = */ 22, '||=',
-      'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.BAR_BAR, isOperator: true);
+  static const TokenType BAR_BAR_EQ = const TokenType(
+    /* index = */ 22,
+    '||=',
+    'BAR_BAR_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    BAR_BAR_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.BAR_BAR,
+    isOperator: true,
+  );
 
   static const TokenType BAR_EQ = const TokenType(
-      /* index = */ 23, '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.BAR, isOperator: true);
+    /* index = */ 23,
+    '|=',
+    'BAR_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    BAR_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.BAR,
+    isOperator: true,
+  );
 
   static const TokenType COLON = const TokenType(
-      /* index = */ 24, ':', 'COLON', NO_PRECEDENCE, COLON_TOKEN);
+    /* index = */ 24,
+    ':',
+    'COLON',
+    NO_PRECEDENCE,
+    COLON_TOKEN,
+  );
 
   static const TokenType COMMA = const TokenType(
-      /* index = */ 25, ',', 'COMMA', NO_PRECEDENCE, COMMA_TOKEN);
+    /* index = */ 25,
+    ',',
+    'COMMA',
+    NO_PRECEDENCE,
+    COMMA_TOKEN,
+  );
 
   static const TokenType CARET = const TokenType(
-      /* index = */ 26, '^', 'CARET', BITWISE_XOR_PRECEDENCE, CARET_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 26,
+    '^',
+    'CARET',
+    BITWISE_XOR_PRECEDENCE,
+    CARET_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType CARET_EQ = const TokenType(
-      /* index = */ 27, '^=', 'CARET_EQ', ASSIGNMENT_PRECEDENCE, CARET_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.CARET, isOperator: true);
+    /* index = */ 27,
+    '^=',
+    'CARET_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    CARET_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.CARET,
+    isOperator: true,
+  );
 
-  static const TokenType CLOSE_CURLY_BRACKET = const TokenType(/* index = */ 28,
-      '}', 'CLOSE_CURLY_BRACKET', NO_PRECEDENCE, CLOSE_CURLY_BRACKET_TOKEN);
+  static const TokenType CLOSE_CURLY_BRACKET = const TokenType(
+    /* index = */ 28,
+    '}',
+    'CLOSE_CURLY_BRACKET',
+    NO_PRECEDENCE,
+    CLOSE_CURLY_BRACKET_TOKEN,
+  );
 
   static const TokenType CLOSE_PAREN = const TokenType(
-      /* index = */ 29, ')', 'CLOSE_PAREN', NO_PRECEDENCE, CLOSE_PAREN_TOKEN);
+    /* index = */ 29,
+    ')',
+    'CLOSE_PAREN',
+    NO_PRECEDENCE,
+    CLOSE_PAREN_TOKEN,
+  );
 
   static const TokenType CLOSE_SQUARE_BRACKET = const TokenType(
-      /* index = */ 30,
-      ']',
-      'CLOSE_SQUARE_BRACKET',
-      NO_PRECEDENCE,
-      CLOSE_SQUARE_BRACKET_TOKEN);
+    /* index = */ 30,
+    ']',
+    'CLOSE_SQUARE_BRACKET',
+    NO_PRECEDENCE,
+    CLOSE_SQUARE_BRACKET_TOKEN,
+  );
 
   static const TokenType EQ = const TokenType(
-      /* index = */ 31, '=', 'EQ', ASSIGNMENT_PRECEDENCE, EQ_TOKEN,
-      isOperator: true);
+    /* index = */ 31,
+    '=',
+    'EQ',
+    ASSIGNMENT_PRECEDENCE,
+    EQ_TOKEN,
+    isOperator: true,
+  );
 
   static const TokenType EQ_EQ = const TokenType(
-      /* index = */ 32, '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 32,
+    '==',
+    'EQ_EQ',
+    EQUALITY_PRECEDENCE,
+    EQ_EQ_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   /// The `===` operator is not supported in the Dart language
   /// but is parsed as such by the scanner to support better recovery
   /// when a JavaScript code snippet is pasted into a Dart file.
   static const TokenType EQ_EQ_EQ = const TokenType(
-      /* index = */ 33, '===', 'EQ_EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_EQ_TOKEN);
+    /* index = */ 33,
+    '===',
+    'EQ_EQ_EQ',
+    EQUALITY_PRECEDENCE,
+    EQ_EQ_EQ_TOKEN,
+  );
 
   static const TokenType FUNCTION = const TokenType(
-      /* index = */ 34, '=>', 'FUNCTION', NO_PRECEDENCE, FUNCTION_TOKEN);
+    /* index = */ 34,
+    '=>',
+    'FUNCTION',
+    NO_PRECEDENCE,
+    FUNCTION_TOKEN,
+  );
 
   static const TokenType GT = const TokenType(
-      /* index = */ 35, '>', 'GT', RELATIONAL_PRECEDENCE, GT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 35,
+    '>',
+    'GT',
+    RELATIONAL_PRECEDENCE,
+    GT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType GT_EQ = const TokenType(
-      /* index = */ 36, '>=', 'GT_EQ', RELATIONAL_PRECEDENCE, GT_EQ_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 36,
+    '>=',
+    'GT_EQ',
+    RELATIONAL_PRECEDENCE,
+    GT_EQ_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType GT_GT = const TokenType(
-      /* index = */ 37, '>>', 'GT_GT', SHIFT_PRECEDENCE, GT_GT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 37,
+    '>>',
+    'GT_GT',
+    SHIFT_PRECEDENCE,
+    GT_GT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType GT_GT_EQ = const TokenType(/* index = */ 38, '>>=',
-      'GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.GT_GT, isOperator: true);
+  static const TokenType GT_GT_EQ = const TokenType(
+    /* index = */ 38,
+    '>>=',
+    'GT_GT_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    GT_GT_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.GT_GT,
+    isOperator: true,
+  );
 
   static const TokenType GT_GT_GT = const TokenType(
-      /* index = */ 39, '>>>', 'GT_GT_GT', SHIFT_PRECEDENCE, GT_GT_GT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 39,
+    '>>>',
+    'GT_GT_GT',
+    SHIFT_PRECEDENCE,
+    GT_GT_GT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType GT_GT_GT_EQ = const TokenType(/* index = */ 40, '>>>=',
-      'GT_GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.GT_GT_GT, isOperator: true);
+  static const TokenType GT_GT_GT_EQ = const TokenType(
+    /* index = */ 40,
+    '>>>=',
+    'GT_GT_GT_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    GT_GT_GT_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.GT_GT_GT,
+    isOperator: true,
+  );
 
-  static const TokenType HASH =
-      const TokenType(/* index = */ 41, '#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
+  static const TokenType HASH = const TokenType(
+    /* index = */ 41,
+    '#',
+    'HASH',
+    NO_PRECEDENCE,
+    HASH_TOKEN,
+  );
 
   static const TokenType INDEX = const TokenType(
-      /* index = */ 42, '[]', 'INDEX', SELECTOR_PRECEDENCE, INDEX_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+    /* index = */ 42,
+    '[]',
+    'INDEX',
+    SELECTOR_PRECEDENCE,
+    INDEX_TOKEN,
+    isOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType INDEX_EQ = const TokenType(
-      /* index = */ 43, '[]=', 'INDEX_EQ', NO_PRECEDENCE, INDEX_EQ_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+    /* index = */ 43,
+    '[]=',
+    'INDEX_EQ',
+    NO_PRECEDENCE,
+    INDEX_EQ_TOKEN,
+    isOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType LT = const TokenType(
-      /* index = */ 44, '<', 'LT', RELATIONAL_PRECEDENCE, LT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 44,
+    '<',
+    'LT',
+    RELATIONAL_PRECEDENCE,
+    LT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType LT_EQ = const TokenType(
-      /* index = */ 45, '<=', 'LT_EQ', RELATIONAL_PRECEDENCE, LT_EQ_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 45,
+    '<=',
+    'LT_EQ',
+    RELATIONAL_PRECEDENCE,
+    LT_EQ_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType LT_LT = const TokenType(
-      /* index = */ 46, '<<', 'LT_LT', SHIFT_PRECEDENCE, LT_LT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 46,
+    '<<',
+    'LT_LT',
+    SHIFT_PRECEDENCE,
+    LT_LT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType LT_LT_EQ = const TokenType(/* index = */ 47, '<<=',
-      'LT_LT_EQ', ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.LT_LT, isOperator: true);
+  static const TokenType LT_LT_EQ = const TokenType(
+    /* index = */ 47,
+    '<<=',
+    'LT_LT_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    LT_LT_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.LT_LT,
+    isOperator: true,
+  );
 
   static const TokenType MINUS = const TokenType(
-      /* index = */ 48, '-', 'MINUS', ADDITIVE_PRECEDENCE, MINUS_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 48,
+    '-',
+    'MINUS',
+    ADDITIVE_PRECEDENCE,
+    MINUS_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType MINUS_EQ = const TokenType(
-      /* index = */ 49, '-=', 'MINUS_EQ', ASSIGNMENT_PRECEDENCE, MINUS_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.MINUS, isOperator: true);
+    /* index = */ 49,
+    '-=',
+    'MINUS_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    MINUS_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.MINUS,
+    isOperator: true,
+  );
 
-  static const TokenType MINUS_MINUS = const TokenType(/* index = */ 50, '--',
-      'MINUS_MINUS', POSTFIX_PRECEDENCE, MINUS_MINUS_TOKEN,
-      isOperator: true);
+  static const TokenType MINUS_MINUS = const TokenType(
+    /* index = */ 50,
+    '--',
+    'MINUS_MINUS',
+    POSTFIX_PRECEDENCE,
+    MINUS_MINUS_TOKEN,
+    isOperator: true,
+  );
 
-  static const TokenType OPEN_CURLY_BRACKET = const TokenType(/* index = */ 51,
-      '{', 'OPEN_CURLY_BRACKET', NO_PRECEDENCE, OPEN_CURLY_BRACKET_TOKEN);
+  static const TokenType OPEN_CURLY_BRACKET = const TokenType(
+    /* index = */ 51,
+    '{',
+    'OPEN_CURLY_BRACKET',
+    NO_PRECEDENCE,
+    OPEN_CURLY_BRACKET_TOKEN,
+  );
 
-  static const TokenType OPEN_PAREN = const TokenType(/* index = */ 52, '(',
-      'OPEN_PAREN', SELECTOR_PRECEDENCE, OPEN_PAREN_TOKEN);
+  static const TokenType OPEN_PAREN = const TokenType(
+    /* index = */ 52,
+    '(',
+    'OPEN_PAREN',
+    SELECTOR_PRECEDENCE,
+    OPEN_PAREN_TOKEN,
+  );
 
   static const TokenType OPEN_SQUARE_BRACKET = const TokenType(
-      /* index = */ 53,
-      '[',
-      'OPEN_SQUARE_BRACKET',
-      SELECTOR_PRECEDENCE,
-      OPEN_SQUARE_BRACKET_TOKEN);
+    /* index = */ 53,
+    '[',
+    'OPEN_SQUARE_BRACKET',
+    SELECTOR_PRECEDENCE,
+    OPEN_SQUARE_BRACKET_TOKEN,
+  );
 
-  static const TokenType PERCENT = const TokenType(/* index = */ 54, '%',
-      'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+  static const TokenType PERCENT = const TokenType(
+    /* index = */ 54,
+    '%',
+    'PERCENT',
+    MULTIPLICATIVE_PRECEDENCE,
+    PERCENT_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType PERCENT_EQ = const TokenType(/* index = */ 55, '%=',
-      'PERCENT_EQ', ASSIGNMENT_PRECEDENCE, PERCENT_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.PERCENT, isOperator: true);
+  static const TokenType PERCENT_EQ = const TokenType(
+    /* index = */ 55,
+    '%=',
+    'PERCENT_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    PERCENT_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.PERCENT,
+    isOperator: true,
+  );
 
   static const TokenType PERIOD = const TokenType(
-      /* index = */ 56, '.', 'PERIOD', SELECTOR_PRECEDENCE, PERIOD_TOKEN);
+    /* index = */ 56,
+    '.',
+    'PERIOD',
+    SELECTOR_PRECEDENCE,
+    PERIOD_TOKEN,
+  );
 
-  static const TokenType PERIOD_PERIOD = const TokenType(/* index = */ 57, '..',
-      'PERIOD_PERIOD', CASCADE_PRECEDENCE, PERIOD_PERIOD_TOKEN,
-      isOperator: true);
+  static const TokenType PERIOD_PERIOD = const TokenType(
+    /* index = */ 57,
+    '..',
+    'PERIOD_PERIOD',
+    CASCADE_PRECEDENCE,
+    PERIOD_PERIOD_TOKEN,
+    isOperator: true,
+  );
 
   static const TokenType PLUS = const TokenType(
-      /* index = */ 58, '+', 'PLUS', ADDITIVE_PRECEDENCE, PLUS_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 58,
+    '+',
+    'PLUS',
+    ADDITIVE_PRECEDENCE,
+    PLUS_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType PLUS_EQ = const TokenType(
-      /* index = */ 59, '+=', 'PLUS_EQ', ASSIGNMENT_PRECEDENCE, PLUS_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.PLUS, isOperator: true);
+    /* index = */ 59,
+    '+=',
+    'PLUS_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    PLUS_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.PLUS,
+    isOperator: true,
+  );
 
   static const TokenType PLUS_PLUS = const TokenType(
-      /* index = */ 60, '++', 'PLUS_PLUS', POSTFIX_PRECEDENCE, PLUS_PLUS_TOKEN,
-      isOperator: true);
+    /* index = */ 60,
+    '++',
+    'PLUS_PLUS',
+    POSTFIX_PRECEDENCE,
+    PLUS_PLUS_TOKEN,
+    isOperator: true,
+  );
 
   static const TokenType QUESTION = const TokenType(
-      /* index = */ 61, '?', 'QUESTION', CONDITIONAL_PRECEDENCE, QUESTION_TOKEN,
-      isOperator: true);
+    /* index = */ 61,
+    '?',
+    'QUESTION',
+    CONDITIONAL_PRECEDENCE,
+    QUESTION_TOKEN,
+    isOperator: true,
+  );
 
-  static const TokenType QUESTION_PERIOD = const TokenType(/* index = */ 62,
-      '?.', 'QUESTION_PERIOD', SELECTOR_PRECEDENCE, QUESTION_PERIOD_TOKEN,
-      isOperator: true);
+  static const TokenType QUESTION_PERIOD = const TokenType(
+    /* index = */ 62,
+    '?.',
+    'QUESTION_PERIOD',
+    SELECTOR_PRECEDENCE,
+    QUESTION_PERIOD_TOKEN,
+    isOperator: true,
+  );
 
-  static const TokenType QUESTION_QUESTION = const TokenType(/* index = */ 63,
-      '??', 'QUESTION_QUESTION', IF_NULL_PRECEDENCE, QUESTION_QUESTION_TOKEN,
-      isOperator: true, isBinaryOperator: true);
+  static const TokenType QUESTION_QUESTION = const TokenType(
+    /* index = */ 63,
+    '??',
+    'QUESTION_QUESTION',
+    IF_NULL_PRECEDENCE,
+    QUESTION_QUESTION_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+  );
 
   static const TokenType QUESTION_QUESTION_EQ = const TokenType(
-      /* index = */ 64,
-      '??=',
-      'QUESTION_QUESTION_EQ',
-      ASSIGNMENT_PRECEDENCE,
-      QUESTION_QUESTION_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.QUESTION_QUESTION,
-      isOperator: true);
+    /* index = */ 64,
+    '??=',
+    'QUESTION_QUESTION_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    QUESTION_QUESTION_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.QUESTION_QUESTION,
+    isOperator: true,
+  );
 
   static const TokenType SEMICOLON = const TokenType(
-      /* index = */ 65, ';', 'SEMICOLON', NO_PRECEDENCE, SEMICOLON_TOKEN);
+    /* index = */ 65,
+    ';',
+    'SEMICOLON',
+    NO_PRECEDENCE,
+    SEMICOLON_TOKEN,
+  );
 
   static const TokenType SLASH = const TokenType(
-      /* index = */ 66, '/', 'SLASH', MULTIPLICATIVE_PRECEDENCE, SLASH_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 66,
+    '/',
+    'SLASH',
+    MULTIPLICATIVE_PRECEDENCE,
+    SLASH_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType SLASH_EQ = const TokenType(
-      /* index = */ 67, '/=', 'SLASH_EQ', ASSIGNMENT_PRECEDENCE, SLASH_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.SLASH, isOperator: true);
+    /* index = */ 67,
+    '/=',
+    'SLASH_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    SLASH_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.SLASH,
+    isOperator: true,
+  );
 
   static const TokenType STAR = const TokenType(
-      /* index = */ 68, '*', 'STAR', MULTIPLICATIVE_PRECEDENCE, STAR_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+    /* index = */ 68,
+    '*',
+    'STAR',
+    MULTIPLICATIVE_PRECEDENCE,
+    STAR_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
   static const TokenType STAR_EQ = const TokenType(
-      /* index = */ 69, '*=', 'STAR_EQ', ASSIGNMENT_PRECEDENCE, STAR_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.STAR, isOperator: true);
+    /* index = */ 69,
+    '*=',
+    'STAR_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    STAR_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.STAR,
+    isOperator: true,
+  );
 
   static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType(
-      /* index = */ 70,
-      '\${',
-      'STRING_INTERPOLATION_EXPRESSION',
-      NO_PRECEDENCE,
-      STRING_INTERPOLATION_TOKEN);
+    /* index = */ 70,
+    '\${',
+    'STRING_INTERPOLATION_EXPRESSION',
+    NO_PRECEDENCE,
+    STRING_INTERPOLATION_TOKEN,
+  );
 
   static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType(
-      /* index = */ 71,
-      '\$',
-      'STRING_INTERPOLATION_IDENTIFIER',
-      NO_PRECEDENCE,
-      STRING_INTERPOLATION_IDENTIFIER_TOKEN);
+    /* index = */ 71,
+    '\$',
+    'STRING_INTERPOLATION_IDENTIFIER',
+    NO_PRECEDENCE,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+  );
 
   static const TokenType TILDE = const TokenType(
-      /* index = */ 72, '~', 'TILDE', PREFIX_PRECEDENCE, TILDE_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+    /* index = */ 72,
+    '~',
+    'TILDE',
+    PREFIX_PRECEDENCE,
+    TILDE_TOKEN,
+    isOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType TILDE_SLASH = const TokenType(/* index = */ 73, '~/',
-      'TILDE_SLASH', MULTIPLICATIVE_PRECEDENCE, TILDE_SLASH_TOKEN,
-      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
+  static const TokenType TILDE_SLASH = const TokenType(
+    /* index = */ 73,
+    '~/',
+    'TILDE_SLASH',
+    MULTIPLICATIVE_PRECEDENCE,
+    TILDE_SLASH_TOKEN,
+    isOperator: true,
+    isBinaryOperator: true,
+    isUserDefinableOperator: true,
+  );
 
-  static const TokenType TILDE_SLASH_EQ = const TokenType(/* index = */ 74,
-      '~/=', 'TILDE_SLASH_EQ', ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN,
-      binaryOperatorOfCompoundAssignment: TokenType.TILDE_SLASH,
-      isOperator: true);
+  static const TokenType TILDE_SLASH_EQ = const TokenType(
+    /* index = */ 74,
+    '~/=',
+    'TILDE_SLASH_EQ',
+    ASSIGNMENT_PRECEDENCE,
+    TILDE_SLASH_EQ_TOKEN,
+    binaryOperatorOfCompoundAssignment: TokenType.TILDE_SLASH,
+    isOperator: true,
+  );
 
   static const TokenType BACKPING = const TokenType(
-      /* index = */ 75, '`', 'BACKPING', NO_PRECEDENCE, BACKPING_TOKEN);
+    /* index = */ 75,
+    '`',
+    'BACKPING',
+    NO_PRECEDENCE,
+    BACKPING_TOKEN,
+  );
 
   static const TokenType BACKSLASH = const TokenType(
-      /* index = */ 76, '\\', 'BACKSLASH', NO_PRECEDENCE, BACKSLASH_TOKEN);
+    /* index = */ 76,
+    '\\',
+    'BACKSLASH',
+    NO_PRECEDENCE,
+    BACKSLASH_TOKEN,
+  );
 
   static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
-      /* index = */ 77,
-      '...',
-      'PERIOD_PERIOD_PERIOD',
-      NO_PRECEDENCE,
-      PERIOD_PERIOD_PERIOD_TOKEN);
+    /* index = */ 77,
+    '...',
+    'PERIOD_PERIOD_PERIOD',
+    NO_PRECEDENCE,
+    PERIOD_PERIOD_PERIOD_TOKEN,
+  );
 
   static const TokenType PERIOD_PERIOD_PERIOD_QUESTION = const TokenType(
-      /* index = */ 78,
-      '...?',
-      'PERIOD_PERIOD_PERIOD_QUESTION',
-      NO_PRECEDENCE,
-      PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
+    /* index = */ 78,
+    '...?',
+    'PERIOD_PERIOD_PERIOD_QUESTION',
+    NO_PRECEDENCE,
+    PERIOD_PERIOD_PERIOD_QUESTION_TOKEN,
+  );
 
   static const TokenType QUESTION_PERIOD_PERIOD = const TokenType(
-      /* index = */ 79,
-      '?..',
-      'QUESTION_PERIOD_PERIOD',
-      CASCADE_PRECEDENCE,
-      QUESTION_PERIOD_PERIOD_TOKEN);
+    /* index = */ 79,
+    '?..',
+    'QUESTION_PERIOD_PERIOD',
+    CASCADE_PRECEDENCE,
+    QUESTION_PERIOD_PERIOD_TOKEN,
+  );
 
   static const TokenType AS = Keyword.AS;
 
@@ -1605,17 +2351,27 @@ class TokenType {
   /**
    * Token type used by error tokens.
    */
-  static const TokenType BAD_INPUT = const TokenType(/* index = */ 80,
-      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN,
-      stringValueShouldBeNull: true);
+  static const TokenType BAD_INPUT = const TokenType(
+    /* index = */ 80,
+    'malformed input',
+    'BAD_INPUT',
+    NO_PRECEDENCE,
+    BAD_INPUT_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   /**
    * Token type used by synthetic tokens that are created during parser
    * recovery (non-analyzer use case).
    */
   static const TokenType RECOVERY = const TokenType(
-      /* index = */ 81, 'recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN,
-      stringValueShouldBeNull: true);
+    /* index = */ 81,
+    'recovery',
+    'RECOVERY',
+    NO_PRECEDENCE,
+    RECOVERY_TOKEN,
+    stringValueShouldBeNull: true,
+  );
 
   // TODO(danrubel): "all" is misleading
   // because this list does not include all TokenType instances.
@@ -1775,15 +2531,19 @@ class TokenType {
   final String? stringValue;
 
   const TokenType(
-      this.index, this.lexeme, this.name, this.precedence, this.kind,
-      {this.binaryOperatorOfCompoundAssignment,
-      this.isBinaryOperator = false,
-      this.isModifier = false,
-      this.isOperator = false,
-      this.isTopLevelKeyword = false,
-      this.isUserDefinableOperator = false,
-      bool stringValueShouldBeNull = false})
-      : this.stringValue = stringValueShouldBeNull ? null : lexeme;
+    this.index,
+    this.lexeme,
+    this.name,
+    this.precedence,
+    this.kind, {
+    this.binaryOperatorOfCompoundAssignment,
+    this.isBinaryOperator = false,
+    this.isModifier = false,
+    this.isOperator = false,
+    this.isTopLevelKeyword = false,
+    this.isUserDefinableOperator = false,
+    bool stringValueShouldBeNull = false,
+  }) : this.stringValue = stringValueShouldBeNull ? null : lexeme;
 
   /**
    * Return `true` if this type of token represents an additive operator.

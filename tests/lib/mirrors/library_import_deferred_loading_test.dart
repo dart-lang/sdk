@@ -14,8 +14,9 @@ import 'other_library.dart' deferred as other;
 main() {
   var ms = currentMirrorSystem();
   LibraryMirror thisLibrary = ms.findLibrary(#library_loading_deferred_loading);
-  LibraryDependencyMirror dep =
-      thisLibrary.libraryDependencies.singleWhere((d) => d.prefix == #other);
+  LibraryDependencyMirror dep = thisLibrary.libraryDependencies.singleWhere(
+    (d) => d.prefix == #other,
+  );
   Expect.isNull(dep.targetLibrary, "should not be loaded yet");
 
   asyncStart();

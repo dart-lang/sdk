@@ -100,7 +100,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   /// Sends a message prefixed with the required LSP headers.
-  void _sendLsp(Map<String, dynamic> json) {
+  void _sendLsp(Map<String, Object?> json) {
     // Don't send any further responses after the communication channel is
     // closed.
     if (_closeRequested) {

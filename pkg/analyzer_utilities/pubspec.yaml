@@ -3,13 +3,14 @@ name: analyzer_utilities
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.7.0
 
 resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   analyzer: any
+  collection: any
   dart_style: any
   package_config: any
   path: any

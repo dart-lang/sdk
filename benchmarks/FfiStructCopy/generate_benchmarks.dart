@@ -29,7 +29,8 @@ import 'package:ffi/ffi.dart';
 import 'FfiStructCopy.dart';
 ''';
 
-String generateSize(int size) => '''
+String generateSize(int size) =>
+    '''
 final class Struct${size}Bytes extends Struct {
   @Array($size)
   external Array<Uint8> a0;

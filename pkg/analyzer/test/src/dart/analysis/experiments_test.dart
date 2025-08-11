@@ -19,10 +19,7 @@ class ExperimentsTest {
   var knownFeatures = <String, ExperimentalFeature>{};
 
   void assertCurrentSdkLanguageVersion(ExperimentStatus status) {
-    expect(
-      getSdkLanguageVersion(status),
-      ExperimentStatus.currentVersion,
-    );
+    expect(getSdkLanguageVersion(status), ExperimentStatus.currentVersion);
   }
 
   void assertSdkLanguageVersion(ExperimentStatus status, String expectedStr) {
@@ -51,14 +48,20 @@ class ExperimentsTest {
   }
 
   List<ConflictingFlagLists> getValidateCombinationResult(
-      List<String> flags1, List<String> flags2) {
+    List<String> flags1,
+    List<String> flags2,
+  ) {
     return overrideKnownFeatures(
-        knownFeatures, () => validateFlagCombination(flags1, flags2).toList());
+      knownFeatures,
+      () => validateFlagCombination(flags1, flags2).toList(),
+    );
   }
 
   List<ValidationResult> getValidationResult(List<String> flags) {
     return overrideKnownFeatures(
-        knownFeatures, () => validateFlags(flags).toList());
+      knownFeatures,
+      () => validateFlags(flags).toList(),
+    );
   }
 
   test_currentVersion() {
@@ -496,8 +499,10 @@ class ExperimentsTest {
       experimentalReleaseVersion: null,
       releaseVersion: null,
     );
-    var validationResult =
-        getValidateCombinationResult(['a', 'no-c'], ['no-b', 'c']);
+    var validationResult = getValidateCombinationResult(
+      ['a', 'no-c'],
+      ['no-b', 'c'],
+    );
     expect(validationResult, hasLength(1));
     var error = validationResult[0];
     expect(error.feature, knownFeatures['c']);
@@ -532,8 +537,10 @@ class ExperimentsTest {
       experimentalReleaseVersion: null,
       releaseVersion: null,
     );
-    var validationResult =
-        getValidateCombinationResult(['a', 'c'], ['no-b', 'no-c']);
+    var validationResult = getValidateCombinationResult(
+      ['a', 'c'],
+      ['no-b', 'no-c'],
+    );
     expect(validationResult, hasLength(1));
     var error = validationResult[0];
     expect(error.feature, knownFeatures['c']);

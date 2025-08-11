@@ -132,7 +132,7 @@ class Enum1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, decl
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum1<self::Enum1::X%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum1.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::List<core::num> /*isMixinDeclaration*/  {
@@ -148,7 +148,7 @@ class Enum2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, decl
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum2<self::Enum2::X%, self::Enum2::Y%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum2.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::M2::X% = dynamic> extends core::List<core::num> /*isMixinDeclaration*/  {
@@ -176,7 +176,7 @@ static extension-type-member method E1|constructor#<X extends core::Object? = dy
   lowered final self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::X%>(it);
 static method foo1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>() → dynamic {}
 static method bar1() → dynamic {
@@ -188,7 +188,7 @@ static extension-type-member method ET1|constructor#<X extends invalid-type = se
   lowered final self::ET1<self::ET1|constructor#::X%>% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::Object? it) → self::ET1<self::ET1|constructor#_#new#tearOff::X%>% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::Object? it) → self::ET1<self::ET1|constructor#_#new#tearOff::X%>% /* erasure=core::Object?, declared=! */
   return self::ET1|constructor#<self::ET1|constructor#_#new#tearOff::X%>(it);
 static method foo2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::foo2::X% = dynamic>() → dynamic {}
 static method bar2() → dynamic {
@@ -200,11 +200,11 @@ static extension-type-member method ET2|constructor#<X extends invalid-type = se
   lowered final self::ET2<self::ET2|constructor#::X%, self::ET2|constructor#::Y%>% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method ET2|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::ET2|constructor#_#new#tearOff::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::ET2|constructor#_#new#tearOff::X% = dynamic>(core::Object? it) → self::ET2<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>% /* erasure=core::Object?, declared=! */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::X%, self::ET2|constructor#_#new#tearOff::Y%>(it);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F1#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::String name, {core::int defaultValue = #C1}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F1#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F2#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, unrelated Y extends self::_#F2#fromEnvironment#tearOff::X% = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F2#fromEnvironment#tearOff<unrelated X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, unrelated Y extends self::_#F2#fromEnvironment#tearOff::X% = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
 constants  {

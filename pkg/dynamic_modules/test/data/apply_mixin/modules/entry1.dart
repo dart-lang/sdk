@@ -15,4 +15,7 @@ class Child extends RealA with M {
 }
 
 @pragma('dyn-module:entry-point')
-Object? dynamicModuleEntrypoint() => Child();
+Object? dynamicModuleEntrypoint() {
+  M3().method3();
+  return Child();
+}

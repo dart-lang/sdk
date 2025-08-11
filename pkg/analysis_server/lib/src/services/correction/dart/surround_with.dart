@@ -167,7 +167,7 @@ class _SurroundWithBlock extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_BLOCK;
+  AssistKind get assistKind => DartAssistKind.surroundWithBlock;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -200,7 +200,7 @@ class _SurroundWithDoWhile extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_DO_WHILE;
+  AssistKind get assistKind => DartAssistKind.surroundWithDoWhile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -233,7 +233,7 @@ class _SurroundWithFor extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR;
+  AssistKind get assistKind => DartAssistKind.surroundWithFor;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -272,7 +272,7 @@ class _SurroundWithForIn extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR_IN;
+  AssistKind get assistKind => DartAssistKind.surroundWithForIn;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -307,7 +307,7 @@ class _SurroundWithIf extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_IF;
+  AssistKind get assistKind => DartAssistKind.surroundWithIf;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -340,7 +340,7 @@ class _SurroundWithSetState extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_SET_STATE;
+  AssistKind get assistKind => DartAssistKind.surroundWithSetState;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -376,7 +376,7 @@ class _SurroundWithTryCatch extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_CATCH;
+  AssistKind get assistKind => DartAssistKind.surroundWithTryCatch;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -419,7 +419,7 @@ class _SurroundWithTryFinally extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_FINALLY;
+  AssistKind get assistKind => DartAssistKind.surroundWithTryFinally;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -460,7 +460,7 @@ class _SurroundWithWhile extends _SurroundWith {
   });
 
   @override
-  AssistKind get assistKind => DartAssistKind.SURROUND_WITH_WHILE;
+  AssistKind get assistKind => DartAssistKind.surroundWithWhile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

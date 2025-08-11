@@ -33,36 +33,42 @@ Future<void> foo() async {
 Future<void> bar() async {
   await foo();
   stacktraces.add(StackTrace.current);
-  await Completer().future.timeout(Duration(milliseconds: 1), onTimeout: () {
-    stacktraces.add(StackTrace.current);
-  });
+  await Completer().future.timeout(
+    Duration(milliseconds: 1),
+    onTimeout: () {
+      stacktraces.add(StackTrace.current);
+    },
+  );
 }
 
 Future<void> runTest() {
   final Zone testZone = Zone.current.fork(
-      specification: ZoneSpecification(
-    registerUnaryCallback: _registerUnaryCallback,
-    registerBinaryCallback: _registerBinaryCallback,
-  ));
+    specification: ZoneSpecification(
+      registerUnaryCallback: _registerUnaryCallback,
+      registerBinaryCallback: _registerBinaryCallback,
+    ),
+  );
   return testZone.run(bar);
 }
 
 final stacktraces = <StackTrace>[];
 
 ZoneUnaryCallback<R, T> _registerUnaryCallback<R, T>(
-    Zone self,
-    ZoneDelegate parent,
-    Zone zone,
-    @pragma('vm:awaiter-link') R Function(T) f) {
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  @pragma('vm:awaiter-link') R Function(T) f,
+) {
   stacktraces.add(StackTrace.current);
   return parent.registerUnaryCallback(zone, (v) => f(v));
 }
 
 ZoneBinaryCallback<R, T1, T2> _registerBinaryCallback<R, T1, T2>(
-    Zone self,
-    ZoneDelegate parent,
-    Zone zone,
-    @pragma('vm:awaiter-link') R Function(T1, T2) f) {
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  @pragma('vm:awaiter-link') R Function(T1, T2) f,
+) {
   stacktraces.add(StackTrace.current);
   return parent.registerBinaryCallback(zone, (a, b) => f(a, b));
 }
@@ -167,6 +173,6 @@ final currentExpectations = [
 #4    bar (%test%)
 <asynchronous suspension>
 #5    main (%test%)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

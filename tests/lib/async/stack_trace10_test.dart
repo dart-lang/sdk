@@ -17,16 +17,24 @@ StackTrace captureStackTrace() {
 main() {
   StackTrace trace = captureStackTrace();
   var controller;
-  controller = new StreamController(onListen: () {
-    controller.addError("error", trace);
-    controller.close();
-  });
+  controller = new StreamController(
+    onListen: () {
+      controller.addError("error", trace);
+      controller.close();
+    },
+  );
   asyncStart();
-  controller.stream.listen(null).asFuture().then((_) {
-    throw "should never be reached";
-  }, onError: (e, st) {
-    Expect.equals("error", e);
-    Expect.identical(trace, st);
-    asyncEnd();
-  });
+  controller.stream
+      .listen(null)
+      .asFuture()
+      .then(
+        (_) {
+          throw "should never be reached";
+        },
+        onError: (e, st) {
+          Expect.equals("error", e);
+          Expect.identical(trace, st);
+          asyncEnd();
+        },
+      );
 }

@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class InvalidExtensionArgumentCountTest extends PubPackageResolutionTest {
   test_many() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void m() {}
 }
 f() {
   E('a', 'b', 'c').m();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 15)],
+    );
     assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }
 
@@ -41,16 +42,17 @@ f() {
   }
 
   test_zero() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void m() {}
 }
 f() {
   E().m();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 2)],
+    );
     assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }
 }

@@ -26,15 +26,21 @@ class A {}
 class B extends A {};
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class B extends A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
-          35, 7,
-          contextMessages: [message(a, 37, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
+          35,
+          7,
+          contextMessages: [message(a, 37, 1)],
+        ),
+      ],
+    );
   }
 
   test_alreadyPresent2() async {
@@ -53,15 +59,21 @@ part of 'a.dart';
 augment class B {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class B extends A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
-          35, 7,
-          contextMessages: [message(a, 52, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
+          35,
+          7,
+          contextMessages: [message(a, 52, 1)],
+        ),
+      ],
+    );
   }
 
   test_notPresent() async {

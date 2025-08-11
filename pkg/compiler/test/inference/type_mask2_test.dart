@@ -59,10 +59,10 @@ checkMasks(
       powerset,
     );
     Expect.equals(
-      flattened,
-      flattenResult,
+      flattened.withOnlySpecialValuesForTesting(commonMasks),
+      flattenResult.withOnlySpecialValuesForTesting(commonMasks),
       'Unexpected flattening of $disjoint: '
-      '$flattenResult, expected $flattened.',
+      '$flattenResult, expected $flattened with powerset $powerset.',
     );
   }
   dynamic union = UnionTypeMask.unionOf(masks, commonMasks);

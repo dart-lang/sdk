@@ -200,10 +200,12 @@ class _FlowLinkReader extends FlowLinkReader<_Link> {}
 base class _Link extends FlowLink<_Link> {
   final String debugName;
 
-  _Link(this.debugName,
-      {required super.key,
-      required super.previous,
-      required super.previousForKey});
+  _Link(
+    this.debugName, {
+    required super.key,
+    required super.previous,
+    required super.previousForKey,
+  });
 
   @override
   String toString() => debugName;

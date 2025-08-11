@@ -37,6 +37,7 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  analyzer_testing: any
   analyzer_utilities: any
   cli_util: any
   lints: any

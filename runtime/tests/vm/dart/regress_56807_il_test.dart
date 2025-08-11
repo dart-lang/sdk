@@ -70,25 +70,30 @@ void matchIL$useList2(FlowGraph graph) {
             'a.length_unboxed' << match.UnboxInt32('a.length')
           else
             'a.length_unboxed' << match.UnboxInt64('a.length'),
-          match.Branch(match.RelationalOp('i', 'a.length_unboxed', kind: '>='),
-              ifTrue: 'B4', ifFalse: 'B10'),
+          match.Branch(
+            match.RelationalOp('i', 'a.length_unboxed', kind: '>='),
+            ifTrue: 'B4',
+            ifFalse: 'B10',
+          ),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn('c_null'),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn('c_null')]),
     'B10' <<
         match.block('Target', [
           // No bounds check here.
           'a.data' <<
-              match.LoadField('a',
-                  slot: 'GrowableObjectArray.data', skipUntilMatched: false),
+              match.LoadField(
+                'a',
+                slot: 'GrowableObjectArray.data',
+                skipUntilMatched: false,
+              ),
           if (is32BitConfiguration)
             'i_boxed' << match.BoxInt32('i', skipUntilMatched: false),
           'value' <<
               match.LoadIndexed(
-                  'a.data', is32BitConfiguration ? 'i_boxed' : 'i',
-                  skipUntilMatched: false),
+                'a.data',
+                is32BitConfiguration ? 'i_boxed' : 'i',
+                skipUntilMatched: false,
+              ),
           if (is32BitConfiguration)
             'i+1' << match.BinaryInt32Op('i', 'c_one', op_kind: '+')
           else

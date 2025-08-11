@@ -61,7 +61,7 @@ class StringInterpolationTest {
       "${i.toHorse()}";
       //   ^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-      // [cfe] The method 'toHorse' isn't defined for the class 'int'.
+      // [cfe] The method 'toHorse' isn't defined for the type 'int'.
     }
 
     Expect.equals("${m}", "$m");

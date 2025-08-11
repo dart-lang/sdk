@@ -90,6 +90,8 @@ main() async {
     Expect.equals(barClass.classId, fooObjectBarField.classId);
     Expect.equals(listClass.classId, fooObjectBar2Field.classId);
     Expect.equals(
-        listClass.fields.length + 1, fooObjectBar2Field.references.length);
+      listClass.fields.length + 1,
+      fooObjectBar2Field.references.length,
+    );
   });
 }

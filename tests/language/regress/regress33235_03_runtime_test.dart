@@ -10,8 +10,6 @@
 // Files 01 to 16 should be compile time errors, files 17 to 21 should not.
 
 class C {
-
-
   static set n(int x) {}
 }
 

@@ -60,9 +60,7 @@ class StringInterpolationTest {
     Expect.equals("2", "escaped     \${3+2}"[16]);
     Expect.equals("}", "escaped     \${3+2}"[17]);
 
-    if (alwaysFalse) {
-
-    }
+    if (alwaysFalse) {}
 
     Expect.equals("${m}", "$m");
   }

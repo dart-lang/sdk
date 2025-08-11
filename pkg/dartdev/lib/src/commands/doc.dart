@@ -56,6 +56,9 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.sourceCode;
+
+  @override
   String get invocation => '${super.invocation} [<directory>]';
 
   @override
@@ -112,7 +115,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     final packageBuilder = PubPackageBuilder(
         config, pubPackageMetaProvider, packageConfigProvider);
     final dartdoc = config.generateDocs
-        ? await Dartdoc.fromContext(config, packageBuilder)
+        ? Dartdoc.fromContext(config, packageBuilder)
         : Dartdoc.withEmptyGenerator(config, packageBuilder);
     dartdoc.executeGuarded();
     return 0;

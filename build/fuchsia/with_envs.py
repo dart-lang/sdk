@@ -45,6 +45,9 @@ def Main():
     os.environ['FUCHSIA_GN_SDK_ROOT'] = os.path.join(os.environ['SRC_ROOT'],
                                                      'third_party', 'fuchsia',
                                                      'gn-sdk', 'src')
+    os.environ['FUCHSIA_READELF'] = os.path.join(os.environ['SRC_ROOT'],
+                                                 'buildtools', 'linux-x64',
+                                                 'clang', 'bin', 'llvm-readelf')
 
     with subprocess.Popen(sys.argv[1:]) as proc:
         try:

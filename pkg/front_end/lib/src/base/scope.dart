@@ -7,20 +7,18 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import 'lookup_result.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -123,145 +121,9 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
-}
-
-/// Returns the correct value of the [getable] and [setable] found as a lookup
-/// of [name].
-///
-/// If [isSetter] is `true`, the lookup intends to find a setable. Otherwise it
-/// intends to find a getable.
-///
-/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
-/// a duplicate.
-///
-/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
-/// an instance member.
-Builder? normalizeLookup(
-    {required Builder? getable,
-    required Builder? setable,
-    required String name,
-    required int charOffset,
-    required Uri fileUri,
-    required String classNameOrDebugName,
-    required bool isSetter,
-    bool forStaticAccess = false}) {
-  if (getable == null && setable == null) {
-    return null;
-  }
-  Builder? thisBuilder;
-  Builder? otherBuilder;
-  if (isSetter) {
-    thisBuilder = setable;
-    otherBuilder = getable;
-  } else {
-    thisBuilder = getable;
-    otherBuilder = setable;
-  }
-  Builder? builder = _normalizeBuilderLookup(thisBuilder,
-      name: name,
-      charOffset: charOffset,
-      fileUri: fileUri,
-      classNameOrDebugName: classNameOrDebugName,
-      forStaticAccess: forStaticAccess);
-  if (builder != null) {
-    return builder;
-  }
-  builder = _normalizeCrossLookup(
-      _normalizeBuilderLookup(otherBuilder,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          forStaticAccess: forStaticAccess),
-      name: name,
-      charOffset: charOffset,
-      fileUri: fileUri);
-  return builder;
-}
-
-/// Returns the correct value of [builder] found as a lookup of [name].
-///
-/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
-/// a duplicate.
-///
-/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
-/// an instance member.
-Builder? _normalizeBuilderLookup(Builder? builder,
-    {required String name,
-    required int charOffset,
-    required Uri fileUri,
-    required String classNameOrDebugName,
-    required bool forStaticAccess}) {
-  if (builder == null) return null;
-  if (builder.next != null) {
-    return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
-        builder, charOffset, fileUri);
-  } else if (forStaticAccess && builder.isDeclarationInstanceMember) {
-    return null;
-  } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-    // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-    return null;
-  } else {
-    return builder;
-  }
-}
-
-/// Returns the correct value of [builder] found as a lookup of [name] where
-/// [builder] is found as a setable in search of a getable or as a getable in
-/// search of a setable.
-///
-/// This ensures that an [AccessErrorBuilder] is returned if a non-problem
-/// builder was found.
-Builder? _normalizeCrossLookup(Builder? builder,
-    {required String name, required int charOffset, required Uri fileUri}) {
-  if (builder != null && !builder.hasProblem) {
-    return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-  }
-  return builder;
-}
-
-mixin LookupScopeMixin implements LookupScope {
-  String get classNameOrDebugName;
-
-  Builder? lookupGetableIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
-    Builder? getable = getables[name];
-    if (getable == null) {
-      return null;
-    }
-    return normalizeLookup(
-        getable: getable,
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
-  }
-
-  Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
-      Map<String, Builder>? getables) {
-    Builder? getable = getables?[name];
-    if (getable == null) {
-      return null;
-    }
-    // Coverage-ignore(suite): Not run.
-    return normalizeLookup(
-        getable: getable,
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
@@ -269,48 +131,17 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   final ScopeKind kind;
 
-  final String classNameOrDebugName;
-
-  BaseNameSpaceLookupScope(this.kind, this.classNameOrDebugName);
+  BaseNameSpaceLookupScope(this.kind);
 
   NameSpace get _nameSpace;
 
   LookupScope? get _parent;
 
   @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    return _nameSpace.lookupLocal(name,
+            fileUri: fileUri, fileOffset: fileOffset, staticOnly: false) ??
+        _parent?.lookup(name, fileOffset, fileUri);
   }
 
   @override
@@ -320,7 +151,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   }
 
   @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
+  String toString() => "$runtimeType(${kind})";
 }
 
 class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
@@ -330,8 +161,7 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  NameSpaceLookupScope(this._nameSpace, super.kind, super.classNameOrDebugName,
-      {LookupScope? parent})
+  NameSpaceLookupScope(this._nameSpace, super.kind, {LookupScope? parent})
       : _parent = parent;
 }
 
@@ -340,48 +170,17 @@ abstract class AbstractTypeParameterScope implements LookupScope {
 
   AbstractTypeParameterScope(this._parent);
 
-  Builder? getTypeParameter(String name);
+  TypeParameterBuilder? getTypeParameter(String name);
 
   @override
   // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? typeParameter = getTypeParameter(name);
-    Builder? builder;
-    if (typeParameter != null) {
-      builder = normalizeLookup(
-          getable: typeParameter,
-          setable: null,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    LookupResult? result = getTypeParameter(name);
+    return result ?? _parent.lookup(name, fileOffset, fileUri);
   }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? typeParameter = getTypeParameter(name);
-    Builder? builder;
-    if (typeParameter != null) {
-      // Coverage-ignore-block(suite): Not run.
-      builder = normalizeLookup(
-          getable: typeParameter,
-          setable: null,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
-  }
-
-  String get classNameOrDebugName => "type parameter";
 
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {
@@ -389,91 +188,27 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   }
 
   @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
+  String toString() => "$runtimeType(${kind},type parameter)";
 }
 
 class TypeParameterScope extends AbstractTypeParameterScope {
-  final Map<String, Builder> _typeParameters;
+  final Map<String, TypeParameterBuilder> _typeParameters;
 
   TypeParameterScope(super._parent, this._typeParameters);
 
   @override
-  Builder? getTypeParameter(String name) => _typeParameters[name];
+  TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
       LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
     if (typeParameterBuilders == null) return parent;
-    Map<String, Builder> map = {};
+    Map<String, TypeParameterBuilder> map = {};
     for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
       if (typeParameterBuilder.isWildcard) continue;
       map[typeParameterBuilder.name] = typeParameterBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
-}
-
-class FixedLookupScope implements LookupScope {
-  final LookupScope? _parent;
-  @override
-  final ScopeKind kind;
-  final String classNameOrDebugName;
-  final Map<String, Builder>? _getables;
-  final Map<String, Builder>? _setables;
-
-  FixedLookupScope(this.kind, this.classNameOrDebugName,
-      {Map<String, Builder>? getables,
-      Map<String, Builder>? setables,
-      LookupScope? parent})
-      : this._getables = getables,
-        this._setables = setables,
-        this._parent = parent;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _getables?[name];
-    Builder? setable = _setables?[name];
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _getables?[name];
-    Builder? setable = _setables?[name];
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent?.forEachExtension(f);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// The import scope of a compilation unit.
@@ -489,7 +224,7 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
   final NameSpace _importNameSpace;
 
   CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
-      : super(ScopeKind.import, 'import');
+      : super(ScopeKind.import);
 
   @override
   NameSpace get _nameSpace => _importNameSpace;
@@ -514,9 +249,7 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitScope(
-      this._compilationUnit, super.kind, super.classNameOrDebugName,
-      {LookupScope? parent})
+  CompilationUnitScope(this._compilationUnit, super.kind, {LookupScope? parent})
       : _parent = parent;
 
   @override
@@ -540,13 +273,12 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 /// The scope containing the prefixes imported into a compilation unit.
 class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
-  final NameSpace _nameSpace;
+  final ComputedNameSpace _nameSpace;
 
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(
-      this._nameSpace, super.kind, super.classNameOrDebugName,
+  CompilationUnitPrefixScope(this._nameSpace, super.kind,
       {required LookupScope? parent})
       : _parent = parent;
 
@@ -558,8 +290,7 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     if (_extensions == null) {
       Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator =
-          _nameSpace.filteredIterator(includeDuplicates: false);
+      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator();
       while (iterator.moveNext()) {
         iterator.current.forEachExtension((e) {
           extensions.add(e);
@@ -577,8 +308,7 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  DeclarationBuilderScope(this._parent)
-      : super(ScopeKind.declaration, 'declaration');
+  DeclarationBuilderScope(this._parent) : super(ScopeKind.declaration);
 
   @override
   NameSpace get _nameSpace {
@@ -595,8 +325,11 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
 
 /// Computes a builder for the import collision between [declaration] and
 /// [other].
-Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
-    String name, Builder declaration, Builder other,
+NamedBuilder computeAmbiguousDeclarationForImport(
+    ProblemReporting problemReporting,
+    String name,
+    NamedBuilder declaration,
+    NamedBuilder other,
     {required UriOffset uriOffset}) {
   // Prefix fragments are merged to singular prefix builders when computing the
   // import scope.
@@ -607,17 +340,7 @@ Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
   if (declaration == other) return declaration;
   if (declaration is InvalidTypeDeclarationBuilder) return declaration;
   if (other is InvalidTypeDeclarationBuilder) return other;
-  if (declaration is AccessErrorBuilder) {
-    // Coverage-ignore-block(suite): Not run.
-    AccessErrorBuilder error = declaration;
-    declaration = error.builder;
-  }
-  if (other is AccessErrorBuilder) {
-    // Coverage-ignore-block(suite): Not run.
-    AccessErrorBuilder error = other;
-    other = error.builder;
-  }
-  Builder? preferred;
+  NamedBuilder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
   if (declaration is LoadLibraryBuilder) {
@@ -648,15 +371,18 @@ Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
   // We report the error lazily (setting suppressMessage to false) because the
   // spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
-  return new InvalidTypeDeclarationBuilder(name,
-      message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
+  return new InvalidTypeDeclarationBuilder(
+      name,
+      message.withLocation(
+          uriOffset.fileUri, uriOffset.fileOffset, name.length),
       suppressMessage: false);
 }
 
-abstract class ProblemBuilder extends BuilderImpl {
+abstract class ProblemBuilder extends NamedBuilderImpl {
+  @override
   final String name;
 
-  final Builder builder;
+  final NamedBuilder builder;
 
   @override
   final int fileOffset;
@@ -666,69 +392,15 @@ abstract class ProblemBuilder extends BuilderImpl {
 
   ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
 
-  @override
-  bool get hasProblem => true;
-
   Message get message;
 
   @override
   String get fullNameForErrors => name;
 }
 
-/// Represents a [builder] that's being accessed incorrectly. For example, an
-/// attempt to write to a final field, or to read from a setter.
-class AccessErrorBuilder extends ProblemBuilder {
-  AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
-  @override
-  Builder? get parent => builder.parent;
-
-  @override
-  bool get isField => builder.isField;
-
-  @override
-  bool get isRegularMethod => builder.isRegularMethod;
-
-  @override
-  bool get isGetter => !builder.isGetter;
-
-  @override
-  bool get isSetter => !builder.isSetter;
-
-  @override
-  bool get isDeclarationInstanceMember => builder.isDeclarationInstanceMember;
-
-  @override
-  bool get isClassInstanceMember => builder.isClassInstanceMember;
-
-  @override
-  bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
-
-  @override
-  bool get isExtensionTypeInstanceMember =>
-      builder.isExtensionTypeInstanceMember;
-
-  @override
-  bool get isStatic => builder.isStatic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isTopLevel => builder.isTopLevel;
-
-  @override
-  bool get isTypeDeclaration => builder.isTypeDeclaration;
-
-  @override
-  bool get isLocal => builder.isLocal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Message get message => templateAccessError.withArguments(name);
-}
-
 class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
+  AmbiguousBuilder(
+      String name, NamedBuilder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   @override
@@ -739,10 +411,8 @@ class AmbiguousBuilder extends ProblemBuilder {
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
   // Coverage-ignore(suite): Not run.
-  // TODO(ahe): Also provide context.
-
-  Builder getFirstDeclaration() {
-    Builder declaration = builder;
+  NamedBuilder getFirstDeclaration() {
+    NamedBuilder declaration = builder;
     while (declaration.next != null) {
       declaration = declaration.next!;
     }
@@ -797,38 +467,11 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstract => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  bool get isConflictingSetter => false;
-
-  @override
-  bool get isConflictingAugmentationMember => false;
-
-  @override
-  void set isConflictingAugmentationMember(bool value) {
-    throw new UnsupportedError('$runtimeType.isConflictingAugmentationMember=');
-  }
 
   @override
   DeclarationBuilder get declarationBuilder {
@@ -893,236 +536,96 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
       TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
-
-  @override
-  bool get isAugmentation {
-    throw new UnsupportedError('$runtimeType.isAugmentation');
-  }
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
-  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder
     with ErroneousMemberBuilderMixin {
   AmbiguousMemberBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
+      String name, NamedBuilder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  NamedBuilder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  NamedBuilder get setable => this;
 }
 
-/// Iterator over builders mapped in a [Scope], including duplicates for each
-/// directly mapped builder.
-class ScopeIterator implements Iterator<Builder> {
-  Iterator<Builder>? local;
-  Iterator<Builder>? setters;
-  Iterator<Builder>? extensions;
+class LookupResultIterator implements Iterator<NamedBuilder> {
+  Iterator<LookupResult>? _lookupResultIterator;
+  Iterator<ExtensionBuilder>? _extensionsIterator;
+  LookupResult? _currentLookupResult;
+  NamedBuilder? _currentBuilder;
 
-  Builder? _current;
-
-  ScopeIterator(this.local, this.setters, this.extensions);
+  LookupResultIterator(this._lookupResultIterator, this._extensionsIterator);
 
   @override
   bool moveNext() {
-    Builder? next = _current?.next;
+    NamedBuilder? next = _currentBuilder?.next;
     if (next != null) {
-      _current = next;
+      // Coverage-ignore-block(suite): Not run.
+      _currentBuilder = next;
       return true;
     }
-    if (local != null) {
-      if (local!.moveNext()) {
-        _current = local!.current;
-        return true;
-      }
-      local = null;
+    next = _currentLookupResult?.setable;
+    if (next != null) {
+      _currentLookupResult = null;
+      _currentBuilder = next;
+      return true;
     }
-    if (setters != null) {
-      if (setters!.moveNext()) {
-        _current = setters!.current;
-        return true;
-      }
-      setters = null;
-    }
-    if (extensions != null) {
-      while (extensions!.moveNext()) {
-        Builder extension = extensions!.current;
-        // Named extensions have already been included throw [local] so we skip
-        // them here.
-        if (extension is SourceExtensionBuilder &&
-            extension.isUnnamedExtension) {
-          _current = extension;
+    if (_lookupResultIterator != null) {
+      if (_lookupResultIterator!.moveNext()) {
+        LookupResult result = _lookupResultIterator!.current;
+        if (result is NamedBuilder) {
+          _currentBuilder = result as NamedBuilder;
           return true;
+        } else {
+          next = result.getable;
+          if (next != null) {
+            _currentBuilder = next;
+            _currentLookupResult = result;
+            return true;
+          }
+          // Coverage-ignore-block(suite): Not run.
+          next = result.setable;
+          if (next != null) {
+            _currentBuilder = next;
+            return true;
+          }
         }
+      } else {
+        _lookupResultIterator = null;
       }
-      extensions = null;
     }
-    _current = null;
-    return false;
-  }
-
-  @override
-  Builder get current {
-    return _current ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
-/// Iterator over builders mapped in a [Scope], including duplicates for each
-/// directly mapped builder.
-///
-/// Compared to [ScopeIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
-  Iterator<String>? localNames;
-  Iterator<String>? setterNames;
-
-  String? _name;
-
-  ScopeNameIterator(Map<String, Builder>? getables,
-      Map<String, Builder>? setables, Iterator<Builder>? extensions)
-      : localNames = getables?.keys.iterator,
-        setterNames = setables?.keys.iterator,
-        super(getables?.values.iterator, setables?.values.iterator, extensions);
-
-  @override
-  bool moveNext() {
-    Builder? next = _current?.next;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (local != null) {
-      if (local!.moveNext()) {
-        localNames!.moveNext();
-        _current = local!.current;
-        _name = localNames!.current;
-        return true;
+    if (_extensionsIterator != null) {
+      // Coverage-ignore-block(suite): Not run.
+      if (_extensionsIterator!.moveNext()) {
+        _currentBuilder = _extensionsIterator!.current;
+      } else {
+        _extensionsIterator = null;
       }
-      local = null;
-      localNames = null;
-    }
-    if (setters != null) {
-      if (setters!.moveNext()) {
-        setterNames!.moveNext();
-        _current = setters!.current;
-        _name = setterNames!.current;
-        return true;
-      }
-      setters = null;
-      setterNames = null;
-    }
-    if (extensions != null) {
-      while (extensions!.moveNext()) {
-        Builder extension = extensions!.current;
-        // Named extensions have already been included throw [local] so we skip
-        // them here.
-        if (extension is SourceExtensionBuilder &&
-            extension.isUnnamedExtension) {
-          _current = extension;
-          _name = extension.name;
-          return true;
-        }
-      }
-      extensions = null;
-    }
-    _current = null;
-    _name = null;
-    return false;
-  }
-
-  @override
-  String get name {
-    return _name ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
-/// Iterator over builders mapped in a [ConstructorNameSpace], including
-/// duplicates for each directly mapped builder.
-class ConstructorNameSpaceIterator implements Iterator<MemberBuilder> {
-  Iterator<MemberBuilder>? _local;
-
-  MemberBuilder? _current;
-
-  ConstructorNameSpaceIterator(this._local);
-
-  @override
-  bool moveNext() {
-    MemberBuilder? next = _current?.next as MemberBuilder?;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (_local != null) {
-      if (_local!.moveNext()) {
-        _current = _local!.current;
-        return true;
-      }
-      _local = null;
     }
     return false;
   }
 
   @override
-  MemberBuilder get current {
-    return _current ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
-/// Iterator over builders mapped in a [ConstructorNameSpace], including
-/// duplicates for each directly mapped builder.
-///
-/// Compared to [ConstructorNameSpaceIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class ConstructorNameSpaceNameIterator extends ConstructorNameSpaceIterator
-    implements NameIterator<MemberBuilder> {
-  Iterator<String>? _localNames;
-
-  String? _name;
-
-  ConstructorNameSpaceNameIterator(this._localNames, super.local);
-
-  @override
-  bool moveNext() {
-    MemberBuilder? next = _current?.next as MemberBuilder?;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (_local != null) {
-      if (_local!.moveNext()) {
-        _localNames!.moveNext();
-        _current = _local!.current;
-        _name = _localNames!.current;
-        return true;
-      }
-      _local = null;
-      _localNames = null;
-    }
-    _current = null;
-    _name = null;
-    return false;
-  }
-
-  @override
-  String get name {
-    return _name ?? // Coverage-ignore(suite): Not run.
+  NamedBuilder get current {
+    return _currentBuilder ?? // Coverage-ignore(suite): Not run.
         (throw new StateError('No element'));
   }
 }
 
 /// Filtered builder [Iterator].
-class FilteredIterator<T extends Builder> implements Iterator<T> {
-  final Iterator<Builder> _iterator;
+class FilteredIterator<T extends NamedBuilder> implements Iterator<T> {
+  final Iterator<NamedBuilder> _iterator;
   final bool includeDuplicates;
 
   FilteredIterator(this._iterator, {required this.includeDuplicates});
 
-  bool _include(Builder element) {
-    if (!includeDuplicates &&
-        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+  bool _include(NamedBuilder element) {
+    if (!includeDuplicates && (element.isDuplicate)) {
       return false;
     }
     return element is T;
@@ -1134,7 +637,7 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
   @override
   bool moveNext() {
     while (_iterator.moveNext()) {
-      Builder candidate = _iterator.current;
+      NamedBuilder candidate = _iterator.current;
       if (_include(candidate)) {
         return true;
       }
@@ -1143,43 +646,7 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
   }
 }
 
-/// Filtered [NameIterator].
-///
-/// Compared to [FilteredIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
-  final NameIterator<Builder> _iterator;
-  final bool includeDuplicates;
-
-  FilteredNameIterator(this._iterator, {required this.includeDuplicates});
-
-  bool _include(Builder element) {
-    if (!includeDuplicates &&
-        (element.isDuplicate || element.isConflictingAugmentationMember)) {
-      return false;
-    }
-    return element is T;
-  }
-
-  @override
-  T get current => _iterator.current as T;
-
-  @override
-  String get name => _iterator.name;
-
-  @override
-  bool moveNext() {
-    while (_iterator.moveNext()) {
-      Builder candidate = _iterator.current;
-      if (_include(candidate)) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-extension IteratorExtension<T extends Builder> on Iterator<T> {
+extension IteratorExtension<T extends NamedBuilder> on Iterator<T> {
   void forEach(void Function(T) f) {
     while (moveNext()) {
       f(current);
@@ -1196,27 +663,6 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
 
   Iterator<T> join(Iterator<T> other) {
     return new IteratorSequence<T>([this, other]);
-  }
-}
-
-extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
-  void forEach(void Function(String, T) f) {
-    while (moveNext()) {
-      f(name, current);
-    }
-  }
-}
-
-extension on Builder {
-  bool get isConflictingAugmentationMember {
-    Builder self = this;
-    if (self is SourceMemberBuilder) {
-      return self.isConflictingAugmentationMember;
-    } else if (self is SourceClassBuilder) {
-      return self.isConflictingAugmentationMember;
-    }
-    // TODO(johnniwinther): Handle all cases here.
-    return false;
   }
 }
 

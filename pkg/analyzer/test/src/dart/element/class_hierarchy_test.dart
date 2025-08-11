@@ -37,17 +37,11 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
   }
 
   test_valid_equal() {
-    _checkA(
-      typeArguments: [intNone, intNone],
-      interfaces: ['A<int>'],
-    );
+    _checkA(typeArguments: [intNone, intNone], interfaces: ['A<int>']);
   }
 
   test_valid_equal_neverNone() {
-    _checkA(
-      typeArguments: [neverNone, neverNone],
-      interfaces: ['A<Never>'],
-    );
+    _checkA(typeArguments: [neverNone, neverNone], interfaces: ['A<Never>']);
   }
 
   test_valid_merge() {
@@ -59,7 +53,7 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
 }
 
 mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  late ClassElementImpl2 A;
+  late ClassElementImpl A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(
@@ -89,9 +83,10 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
     required List<String> interfaces,
     List<String> errors = const [],
   }) {
-    var specifiedInterfaces = typeArguments
-        .map((e) => interfaceTypeNone(A, typeArguments: [e]))
-        .toList();
+    var specifiedInterfaces =
+        typeArguments
+            .map((e) => interfaceTypeNone(A, typeArguments: [e]))
+            .toList();
     var X = class_2(name: 'X', interfaces: specifiedInterfaces);
 
     var classHierarchy = ClassHierarchy();

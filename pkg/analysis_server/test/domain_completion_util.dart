@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -82,17 +83,10 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    var code = TestCode.parse(content);
+    var completionOffset = code.position.offset;
 
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    newFile(
-      path,
-      content.substring(0, completionOffset) +
-          content.substring(completionOffset + 1),
-    );
+    newFile(path, code.code);
 
     return await getSuggestions(
       path: path,

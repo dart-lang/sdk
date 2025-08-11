@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
+import 'package:front_end/src/base/lookup_result.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -28,7 +29,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
-import '../source/builder_factory.dart';
+import '../source/fragment_factory.dart';
 import '../source/source_type_parameter_builder.dart';
 import 'body_builder.dart';
 
@@ -258,7 +259,8 @@ final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
 final CombinatorBuilder dummyCombinator =
     new CombinatorBuilder(false, {}, -1, dummyUri);
-final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
+final MetadataBuilder dummyMetadataBuilder =
+    new MetadataBuilder(dummyToken, dummyUri);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
@@ -299,5 +301,16 @@ final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
 final FieldInfo dummyFieldInfo =
     new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
-final LookupScope dummyLookupScope =
-    new FixedLookupScope(ScopeKind.library, 'dummy');
+final LookupScope dummyLookupScope = new _DummyLookupScope();
+
+// Coverage-ignore(suite): Not run.
+class _DummyLookupScope implements LookupScope {
+  @override
+  void forEachExtension(void Function(ExtensionBuilder p1) f) {}
+
+  @override
+  ScopeKind get kind => ScopeKind.library;
+
+  @override
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) => null;
+}

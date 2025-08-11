@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class ConflictingInheritedMethodAndSetterTest extends PubPackageResolutionTest {
   test_class_declaresSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -28,13 +29,14 @@ class B {
 abstract class C implements A, B {
   set foo(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 103, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 103, 3)],
+    );
   }
 
   test_class_interface2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -44,17 +46,21 @@ class B {
 }
 
 abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
-          contextMessages: [
-            message(testFile, 17, 3),
-            message(testFile, 45, 3)
-          ]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          77,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_mixin_interface() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {
   void foo() {}
 }
@@ -64,17 +70,21 @@ class B {
 }
 
 abstract class C with A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
-          contextMessages: [
-            message(testFile, 17, 3),
-            message(testFile, 45, 3)
-          ]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          77,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_superclass_interface() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -84,17 +94,21 @@ class B {
 }
 
 abstract class C extends A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
-          contextMessages: [
-            message(testFile, 17, 3),
-            message(testFile, 45, 3)
-          ]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          77,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_superclass_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -104,17 +118,21 @@ mixin B {
 }
 
 abstract class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 77, 1,
-          contextMessages: [
-            message(testFile, 17, 3),
-            message(testFile, 45, 3)
-          ]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          77,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
+        ),
+      ],
+    );
   }
 
   test_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(Object? it) {
   void foo() {}
 }
@@ -124,13 +142,15 @@ extension type B(Object? it) {
 }
 
 extension type C(Object? it) implements A, B {}
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER, 119, 1,
-          contextMessages: [
-            message(testFile, 38, 3),
-            message(testFile, 87, 3)
-          ]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          119,
+          1,
+          contextMessages: [message(testFile, 38, 3), message(testFile, 87, 3)],
+        ),
+      ],
+    );
   }
 }

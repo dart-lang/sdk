@@ -12,10 +12,12 @@ final jsonUtf8 = json.fuse<List<int>>(utf8);
 
 Stream<List<int>> encode(Object o) {
   var controller;
-  controller = new StreamController(onListen: () {
-    controller.add(o);
-    controller.close();
-  });
+  controller = new StreamController(
+    onListen: () {
+      controller.add(o);
+      controller.close();
+    },
+  );
   return controller.stream.transform(jsonUtf8.encoder);
 }
 
@@ -33,13 +35,16 @@ void testWithPauses(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   var accumulated = <int>[];
   var sub;
-  sub = stream.listen((x) {
-    accumulated.addAll(x);
-    sub.pause(new Future.delayed(Duration.zero));
-  }, onDone: () {
-    Expect.listEquals(expected, accumulated);
-    asyncEnd();
-  });
+  sub = stream.listen(
+    (x) {
+      accumulated.addAll(x);
+      sub.pause(new Future.delayed(Duration.zero));
+    },
+    onDone: () {
+      Expect.listEquals(expected, accumulated);
+      asyncEnd();
+    },
+  );
 }
 
 void main() {

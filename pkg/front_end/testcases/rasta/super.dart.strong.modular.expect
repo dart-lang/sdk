@@ -69,6 +69,14 @@ library;
 //     use(super.m++);
 //               ^
 //
+// pkg/front_end/testcases/rasta/super.dart:97:11: Error: Superclass has no setter named 'n'.
+//     super.n++;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:98:15: Error: Superclass has no setter named 'n'.
+//     use(super.n++);
+//               ^
+//
 // pkg/front_end/testcases/rasta/super.dart:108:13: Error: Superclass has no setter named 'e'.
 //     ++super.e;
 //             ^
@@ -99,6 +107,14 @@ library;
 //
 // pkg/front_end/testcases/rasta/super.dart:121:17: Error: Superclass has no setter named 'm'.
 //     use(++super.m);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:122:13: Error: Superclass has no setter named 'n'.
+//     ++super.n;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:123:17: Error: Superclass has no setter named 'n'.
+//     use(++super.n);
 //                 ^
 //
 // pkg/front_end/testcases/rasta/super.dart:137:11: Error: Superclass has no method named 'g'.
@@ -133,6 +149,14 @@ library;
 //     use(super.m = 42);
 //               ^
 //
+// pkg/front_end/testcases/rasta/super.dart:174:11: Error: Superclass has no setter named 'n'.
+//     super.n = 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:175:15: Error: Superclass has no setter named 'n'.
+//     use(super.n = 42);
+//               ^
+//
 // pkg/front_end/testcases/rasta/super.dart:185:11: Error: Superclass has no setter named 'e'.
 //     super.e ??= 42;
 //           ^
@@ -163,6 +187,14 @@ library;
 //
 // pkg/front_end/testcases/rasta/super.dart:198:15: Error: Superclass has no setter named 'm'.
 //     use(super.m ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:199:11: Error: Superclass has no setter named 'n'.
+//     super.n ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:200:15: Error: Superclass has no setter named 'n'.
+//     use(super.n ??= 42);
 //               ^
 //
 // pkg/front_end/testcases/rasta/super.dart:210:11: Error: Superclass has no setter named 'e'.
@@ -197,6 +229,14 @@ library;
 //     use(super.m += 42);
 //               ^
 //
+// pkg/front_end/testcases/rasta/super.dart:224:11: Error: Superclass has no setter named 'n'.
+//     super.n += 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:225:15: Error: Superclass has no setter named 'n'.
+//     use(super.n += 42);
+//               ^
+//
 // pkg/front_end/testcases/rasta/super.dart:235:11: Error: Superclass has no setter named 'e'.
 //     super.e -= 42;
 //           ^
@@ -229,25 +269,13 @@ library;
 //     use(super.m -= 42);
 //               ^
 //
-// pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     super.n++;
-//            ^
+// pkg/front_end/testcases/rasta/super.dart:249:11: Error: Superclass has no setter named 'n'.
+//     super.n -= 42;
+//           ^
 //
-// pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     use(super.n++);
-//                ^
-//
-// pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     ++super.n;
-//     ^
-//
-// pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     use(++super.n);
-//         ^
+// pkg/front_end/testcases/rasta/super.dart:250:15: Error: Superclass has no setter named 'n'.
+//     use(super.n -= 42);
+//               ^
 //
 // pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
 //     use(super.m());
@@ -272,26 +300,6 @@ library;
 // Try removing the extra positional arguments.
 //     use(super.n(87));
 //                ^
-//
-// pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     super.n += 42;
-//             ^
-//
-// pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '+' operator.
-//     use(super.n += 42);
-//                 ^
-//
-// pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '-' operator.
-//     super.n -= 42;
-//             ^
-//
-// pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
-// Try correcting the operator to an existing operator, or defining a '-' operator.
-//     use(super.n -= 42);
-//                 ^
 //
 // pkg/front_end/testcases/rasta/super.dart:11:9: Error: Final field 'f' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
@@ -334,7 +342,6 @@ class A extends core::Object {
     return true;
   method m() → void {}
   method n() → void {}
-  set n(wildcard dynamic _#wc3#formal) → void {}
 }
 class B extends self::A {
   final field dynamic d = null;
@@ -437,14 +444,12 @@ To delegate a constructor to a super constructor, put the super call as an initi
     self::use(let final () → void #t23 = super.{self::A::m} in let final invalid-type #t24 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:15: Error: Superclass has no setter named 'm'.
     use(super.m++);
               ^" in #t23);
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:11: Error: Superclass has no setter named 'n'.
     super.n++;
-           ^" in super.{self::A::n}{<unresolved>}.+(1);
-    self::use(let final () → void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+          ^";
+    self::use(let final () → void #t25 = super.{self::A::n} in let final invalid-type #t26 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:15: Error: Superclass has no setter named 'n'.
     use(super.n++);
-               ^" in #t25{<unresolved>}.+(1) in #t25);
+              ^" in #t25);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(1));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
@@ -483,14 +488,12 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:17: Error: Superclass has no setter named 'm'.
     use(++super.m);
                 ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:13: Error: Superclass has no setter named 'n'.
     ++super.n;
-    ^" in super.{self::A::n}{<unresolved>}.+(1);
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+            ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:17: Error: Superclass has no setter named 'n'.
     use(++super.n);
-        ^" in super.{self::A::n}{<unresolved>}.+(1));
+                ^");
     super.{self::A::a}{dynamic}();
     self::use(super.{self::A::a}{dynamic}());
     super.{self::B::b}{dynamic}();
@@ -569,8 +572,12 @@ Try removing the extra positional arguments.
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:173:15: Error: Superclass has no setter named 'm'.
     use(super.m = 42);
               ^");
-    super.{self::A::n} = 42;
-    self::use(super.{self::A::n} = 42);
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:174:11: Error: Superclass has no setter named 'n'.
+    super.n = 42;
+          ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:175:15: Error: Superclass has no setter named 'n'.
+    use(super.n = 42);
+              ^");
     super.{self::A::a} == null ?{dynamic} super.{self::A::a} = 42 : null;
     self::use(let final dynamic #t36 = super.{self::A::a} in #t36 == null ?{dynamic} super.{self::A::a} = 42 : #t36);
     super.{self::B::b} == null ?{dynamic} super.{self::A::b} = 42 : null;
@@ -609,8 +616,12 @@ Try removing the extra positional arguments.
     self::use(let final () → void #t50 = super.{self::A::m} in #t50 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:198:15: Error: Superclass has no setter named 'm'.
     use(super.m ??= 42);
               ^" : #t50);
-    super.{self::A::n} == null ?{core::Object?} super.{self::A::n} = 42 : null;
-    self::use(let final () → void #t51 = super.{self::A::n} in #t51 == null ?{core::Object} super.{self::A::n} = 42 : #t51);
+    super.{self::A::n} == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:199:11: Error: Superclass has no setter named 'n'.
+    super.n ??= 42;
+          ^" : null;
+    self::use(let final () → void #t51 = super.{self::A::n} in #t51 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:200:15: Error: Superclass has no setter named 'n'.
+    use(super.n ??= 42);
+              ^" : #t51);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(42);
@@ -649,14 +660,12 @@ Try removing the extra positional arguments.
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:15: Error: Superclass has no setter named 'm'.
     use(super.m += 42);
               ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:11: Error: Superclass has no setter named 'n'.
     super.n += 42;
-            ^" in super.{self::A::n}{<unresolved>}.+(42);
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '+' operator.
+          ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:15: Error: Superclass has no setter named 'n'.
     use(super.n += 42);
-                ^" in super.{self::A::n}{<unresolved>}.+(42));
+              ^");
     super.{self::A::a} = super.{self::A::a}{dynamic}.-(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.-(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.-(42);
@@ -695,14 +704,12 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:15: Error: Superclass has no setter named 'm'.
     use(super.m -= 42);
               ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '-' operator.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:11: Error: Superclass has no setter named 'n'.
     super.n -= 42;
-            ^" in super.{self::A::n}{<unresolved>}.-(42);
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
-Try correcting the operator to an existing operator, or defining a '-' operator.
+          ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:15: Error: Superclass has no setter named 'n'.
     use(super.n -= 42);
-                ^" in super.{self::A::n}{<unresolved>}.-(42));
+              ^");
   }
 }
 static method use(dynamic x) → dynamic {

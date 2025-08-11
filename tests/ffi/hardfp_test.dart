@@ -26,10 +26,11 @@ void main() {
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final sumFloatsAndDoubles = ffiTestFunctions.lookupFunction<
-  Double Function(Float, Double, Float),
-  double Function(double, double, double)
->("SumFloatsAndDoubles");
+final sumFloatsAndDoubles = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Float, Double, Float),
+      double Function(double, double, double)
+    >("SumFloatsAndDoubles");
 
 void testSumFloatsAndDoubles() {
   Expect.approxEquals(6.0, sumFloatsAndDoubles(1.0, 2.0, 3.0));

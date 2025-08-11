@@ -298,8 +298,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
     _addSubtypes(superclass, emitter);
 
     _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
-      List<ClassEntity> subtypes =
-          emitter.subtypes[type.element] ??= <ClassEntity>[];
+      List<ClassEntity> subtypes = emitter.subtypes[type.element] ??=
+          <ClassEntity>[];
       subtypes.add(cls);
     });
 
@@ -311,8 +311,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
       superclass = _elementEnvironment.getSuperClass(superclass)!;
     }
 
-    List<ClassEntity> directSubtypes =
-        emitter.directSubtypes[superclass] ??= <ClassEntity>[];
+    List<ClassEntity> directSubtypes = emitter.directSubtypes[superclass] ??=
+        <ClassEntity>[];
     directSubtypes.add(cls);
   }
 

@@ -237,10 +237,9 @@ Future<CompiledData<T>?> computeData<T>(
     );
   }
 
-  dynamic closedWorld =
-      testFrontend
-          ? compiler.frontendClosedWorldForTesting
-          : compiler.backendClosedWorldForTesting;
+  dynamic closedWorld = testFrontend
+      ? compiler.frontendClosedWorldForTesting
+      : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
 
@@ -248,14 +247,13 @@ Future<CompiledData<T>?> computeData<T>(
     // The Entity objects passed here can be from the K-world but
     // `compiler.backendStrategy.spanFromSpannable` does a J-world look up so
     // we may have to convert the entity first.
-    final backendEntity =
-        testFrontend
-            ? compiler
-                    .backendClosedWorldForTesting
-                    ?.elementMap
-                    .kToJMembers[entity] ??
-                entity
-            : entity;
+    final backendEntity = testFrontend
+        ? compiler
+                  .backendClosedWorldForTesting
+                  ?.elementMap
+                  .kToJMembers[entity] ??
+              entity
+        : entity;
     SourceSpan span = compiler.backendStrategy.spanFromSpannable(
       backendEntity,
       backendEntity,
@@ -308,8 +306,9 @@ Future<CompiledData<T>?> computeData<T>(
   ir.Library getIrLibrary(LibraryEntity library) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
-    LibraryEntity kLibrary =
-        elementMap.elementEnvironment.lookupLibrary(library.canonicalUri)!;
+    LibraryEntity kLibrary = elementMap.elementEnvironment.lookupLibrary(
+      library.canonicalUri,
+    )!;
     return elementMap.getLibraryNode(kLibrary);
   }
 
@@ -490,8 +489,9 @@ Future<void> checkTests<T>(
   Future<void> verifyCompiler(String test, Compiler compiler)?,
 }) async {
   if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
-  Set<String> testedMarkers =
-      testedConfigs.map((config) => config.marker).toSet();
+  Set<String> testedMarkers = testedConfigs
+      .map((config) => config.marker)
+      .toSet();
   Expect.isTrue(
     testedConfigs.length == testedMarkers.length,
     "Unexpected test markers $testedMarkers. "
@@ -591,20 +591,19 @@ Future<TestResult<T>> runTestForConfiguration<T>(
 }) async {
   MemberAnnotations<IdValue> annotations =
       testData.expectedMaps[testConfiguration.marker]!;
-  CompiledData<T> compiledData =
-      (await computeData(
-        testData.name,
-        testData.entryPoint,
-        testData.memorySourceFiles,
-        dataComputer,
-        options: [...options, ...testConfiguration.options],
-        verbose: verbose,
-        printCode: printCode,
-        testFrontend: dataComputer.testFrontend,
-        forUserLibrariesOnly: forUserLibrariesOnly,
-        globalIds: annotations.globalData.keys,
-        verifyCompiler: verifyCompiler,
-      ))!;
+  CompiledData<T> compiledData = (await computeData(
+    testData.name,
+    testData.entryPoint,
+    testData.memorySourceFiles,
+    dataComputer,
+    options: [...options, ...testConfiguration.options],
+    verbose: verbose,
+    printCode: printCode,
+    testFrontend: dataComputer.testFrontend,
+    forUserLibrariesOnly: forUserLibrariesOnly,
+    globalIds: annotations.globalData.keys,
+    verifyCompiler: verifyCompiler,
+  ))!;
   return await checkCode(
     markerOptions,
     testConfiguration.marker,

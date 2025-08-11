@@ -113,7 +113,7 @@ static ErrorPtr BootstrapFromKernelSingleProgram(
     Thread* thread,
     std::unique_ptr<kernel::Program> program) {
   Zone* zone = thread->zone();
-  LongJumpScope jump;
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 

@@ -12,15 +12,18 @@ main() {
 
   bool shouldForward = true;
   Expect.identical(Zone.root, Zone.current);
-  Zone forked = Zone.current.fork(specification: new ZoneSpecification(
+  Zone forked = Zone.current.fork(
+    specification: new ZoneSpecification(
       run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
-    // The zone is still the same as when origin.run was invoked, which
-    // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.root, Zone.current);
-    events.add("forked.run");
-    if (shouldForward) return parent.run(origin, f);
-    return 42 as R;
-  }));
+        // The zone is still the same as when origin.run was invoked, which
+        // is the root zone. (The origin zone hasn't been set yet).
+        Expect.identical(Zone.root, Zone.current);
+        events.add("forked.run");
+        if (shouldForward) return parent.run(origin, f);
+        return 42 as R;
+      },
+    ),
+  );
 
   events.add("zone forked");
   Zone expectedZone = forked;
@@ -67,7 +70,7 @@ main() {
       "run closure 2",
       "after nested scheduleMicrotask",
       "forked.run",
-      "run closure 3"
+      "run closure 3",
     ], events);
     asyncEnd();
   });

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -24,7 +24,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   SimpleIdentifierResolver(this._resolver);
 
   @override
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -50,14 +50,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// @return the type that should be recorded for a node that resolved to the given accessor
   ///
   // TODO(scheglov): this is duplicate
-  DartType _getTypeOfProperty(PropertyAccessorElement2 accessor) {
+  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
     if (accessor is SetterElement) {
       var parameterTypes = functionType.normalParameterTypes;
       if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      var getter = accessor.variable3?.getter2;
+      var getter = accessor.variable?.getter;
       if (getter != null) {
         functionType = getter.type;
         return functionType.returnType;
@@ -116,8 +116,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
   }
 
-  PropertyElementResolverResult? _resolve1(SimpleIdentifierImpl node,
-      {required DartType contextType}) {
+  PropertyElementResolverResult? _resolve1(
+    SimpleIdentifierImpl node, {
+    required DartType contextType,
+  }) {
     _currentAlreadyResolved = false;
 
     //
@@ -133,7 +135,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (node.inDeclarationContext()) {
       return null;
     }
-    if (node.element is LocalVariableElement2 ||
+    if (node.element is LocalVariableElement ||
         node.element is FormalParameterElement) {
       return null;
     }
@@ -171,8 +173,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      var staticType = _resolver.inferenceHelper
-          .inferTearOff(node, node, callFunctionType, contextType: contextType);
+      var staticType = _resolver.inferenceHelper.inferTearOff(
+        node,
+        node,
+        callFunctionType,
+        contextType: contextType,
+      );
       node.recordStaticType(staticType, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
@@ -190,7 +196,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
       );
@@ -198,9 +204,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if (element is PrefixElement2 && !_isValidAsPrefix(node)) {
-      if (element.name3 case var name?) {
-        errorReporter.atNode(
+    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
+      if (element.name case var name?) {
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
           arguments: [name],
@@ -209,13 +215,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         );
-      } else if (!_resolver.libraryFragment
-          .shouldIgnoreUndefinedIdentifier(node)) {
-        errorReporter.atNode(
+      } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
+        node,
+      )) {
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           arguments: [node.name],
@@ -227,29 +234,31 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   void _resolve2(
-      SimpleIdentifierImpl node, PropertyElementResolverResult? propertyResult,
-      {required DartType contextType}) {
+    SimpleIdentifierImpl node,
+    PropertyElementResolverResult? propertyResult, {
+    required DartType contextType,
+  }) {
     if (_currentAlreadyResolved) {
       return;
     }
 
     var element = node.element;
 
-    if (element is ExtensionElement2) {
+    if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
       inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }
 
     DartType staticType = InvalidTypeImpl.instance;
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
       } else {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
-    } else if (element is TypeAliasElement2) {
+    } else if (element is TypeAliasElement) {
       if (_isExpressionIdentifier(node) ||
           element.aliasedType is! InterfaceType) {
         node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
@@ -257,18 +266,20 @@ class SimpleIdentifierResolver with ScopeHelpers {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       staticType = element.type;
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       staticType = propertyResult?.getType ?? _getTypeOfProperty(element);
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       staticType = element.type;
-    } else if (element is TypeParameterElement2) {
+    } else if (element is TypeParameterElement) {
       staticType = _typeProvider.typeType;
-    } else if (element is VariableElement2) {
-      staticType = _resolver.localVariableTypeProvider
-          .getType(node, isRead: node.inGetterContext());
-    } else if (element is PrefixElement2) {
+    } else if (element is VariableElement) {
+      staticType = _resolver.localVariableTypeProvider.getType(
+        node,
+        isRead: node.inGetterContext(),
+      );
+    } else if (element is PrefixElement) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
           parent is MethodInvocation && parent.target == node) {
@@ -276,9 +287,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         return;
       }
       staticType = InvalidTypeImpl.instance;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
-    } else if (element is NeverElementImpl2) {
+    } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
       staticType = InvalidTypeImpl.instance;
@@ -291,8 +302,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      staticType = _resolver.inferenceHelper
-          .inferTearOff(node, node, staticType, contextType: contextType);
+      staticType = _resolver.inferenceHelper.inferTearOff(
+        node,
+        node,
+        staticType,
+        contextType: contextType,
+      );
     }
     node.recordStaticType(staticType, resolver: _resolver);
   }
@@ -317,7 +332,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.errorReporter.atNode(
+    _resolver.diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
       arguments: [node.name],

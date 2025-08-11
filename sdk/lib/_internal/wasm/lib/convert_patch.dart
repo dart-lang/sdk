@@ -89,10 +89,9 @@ class _JsonListener {
   int stackLength = 0;
 
   void stackPush(WasmArray<Object?>? value, int valueLength) {
-    final GrowableList<Object?>? valueAsList =
-        value == null
-            ? null
-            : GrowableList.withDataAndLength(value, valueLength);
+    final GrowableList<Object?>? valueAsList = value == null
+        ? null
+        : GrowableList.withDataAndLength(value, valueLength);
 
     // `GrowableList._nextCapacity` is copied here as the next capacity. We
     // can't use `GrowableList._nextCapacity` as tear-off as it's difficult to
@@ -858,8 +857,12 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
     int keywordType = partialState & KWD_TYPE_MASK;
     int count = partialState >> KWD_COUNT_SHIFT;
     int keywordTypeIndex = keywordType >> KWD_TYPE_SHIFT;
-    String keyword =
-        const ["null", "true", "false", "\xEF\xBB\xBF"][keywordTypeIndex];
+    String keyword = const [
+      "null",
+      "true",
+      "false",
+      "\xEF\xBB\xBF",
+    ][keywordTypeIndex];
     assert(count < keyword.length);
     do {
       if (position == chunkEnd) {
@@ -1229,11 +1232,11 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         listener.handleString(
           isJsonObjectKey
               ? getJsonObjectKeyString(
-                start,
-                sliceEnd,
-                bits,
-                stringFinalizeHash(hash),
-              )
+                  start,
+                  sliceEnd,
+                  bits,
+                  stringFinalizeHash(hash),
+                )
               : getString(start, sliceEnd, bits, codeUnitsCache),
         );
         return sliceEnd + 1;
@@ -2720,10 +2723,9 @@ class _Utf8Decoder {
       multibyte:
       while (true) {
         int type = _typeTable.readUnsigned(byte) & typeMask;
-        char =
-            (state <= afterBom)
-                ? byte & (shiftedByteMask >> type)
-                : (byte & 0x3F) | (char << 6);
+        char = (state <= afterBom)
+            ? byte & (shiftedByteMask >> type)
+            : (byte & 0x3F) | (char << 6);
         state = _transitionTable.readUnsigned(state + type);
         if (state == accept) {
           buffer.writeCharCode(char);

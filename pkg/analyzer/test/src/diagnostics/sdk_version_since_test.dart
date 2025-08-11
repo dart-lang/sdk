@@ -28,15 +28,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A(foo: 0);
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+    );
   }
 
   test_class_constructor_formalParameter_optionalPositional() async {
@@ -48,15 +50,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A(42);
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 2),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 2)],
+    );
   }
 
   test_class_constructor_named_instanceCreation() async {
@@ -69,15 +73,17 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A<int>.named();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 5),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 5)],
+    );
   }
 
   test_class_constructor_named_tearOff() async {
@@ -90,15 +96,17 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A<int>.named;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 5),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 5)],
+    );
   }
 
   test_class_constructor_unnamed_instanceCreation() async {
@@ -111,15 +119,17 @@ class A<T> {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A<int>();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+    );
   }
 
   test_class_field_read() async {
@@ -132,17 +142,21 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
   a.foo;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-      error(WarningCode.SDK_VERSION_SINCE, 49, 3),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
+        error(WarningCode.SDK_VERSION_SINCE, 49, 3),
+      ],
+    );
   }
 
   test_class_field_readWrite() async {
@@ -155,17 +169,21 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo += 0;
   a.foo += 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-      error(WarningCode.SDK_VERSION_SINCE, 54, 3),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
+        error(WarningCode.SDK_VERSION_SINCE, 54, 3),
+      ],
+    );
   }
 
   test_class_field_write() async {
@@ -178,17 +196,21 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo = 0;
   a.foo = 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-      error(WarningCode.SDK_VERSION_SINCE, 53, 3),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
+        error(WarningCode.SDK_VERSION_SINCE, 53, 3),
+      ],
+    );
   }
 
   test_class_getter() async {
@@ -201,17 +223,21 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
   a.foo;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-      error(WarningCode.SDK_VERSION_SINCE, 49, 3),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
+        error(WarningCode.SDK_VERSION_SINCE, 49, 3),
+      ],
+    );
   }
 
   test_class_getterSetter_readWrite_both() async {
@@ -226,15 +252,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
   }
 
   test_class_getterSetter_readWrite_getter() async {
@@ -248,15 +276,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
   }
 
   test_class_getterSetter_readWrite_setter() async {
@@ -270,15 +300,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a.foo += 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
   }
 
   test_class_indexRead() async {
@@ -291,15 +323,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a[0];
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 37, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 1)],
+    );
   }
 
   test_class_indexWrite() async {
@@ -312,15 +346,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a[0] = 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 37, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 1)],
+    );
   }
 
   test_class_instanceCreation_prefixed() async {
@@ -331,15 +367,17 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo' as foo;
 
 void f() {
   foo.A<int>();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 44, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 1)],
+    );
   }
 
   test_class_instanceCreation_unprefixed() async {
@@ -350,15 +388,17 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   A<int>();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+    );
   }
 
   test_class_method_call_functionExpressionInvocation() async {
@@ -371,15 +411,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 37, 2),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 2)],
+    );
   }
 
   test_class_method_formalParameter_optionalNamed() async {
@@ -393,15 +435,17 @@ void foo(
 }) {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   foo(0, bar: 1);
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 3)],
+    );
   }
 
   test_class_method_formalParameter_optionalPositional() async {
@@ -415,15 +459,17 @@ void foo(
 ]) {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   foo(0, 42);
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 2),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 2)],
+    );
   }
 
   test_class_method_methodInvocation() async {
@@ -436,15 +482,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a.foo();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
   }
 
   test_class_method_methodTearOff_prefixedIdentifier() async {
@@ -457,29 +505,31 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   a.foo;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
 
     var node = findNode.prefixed('.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: dart:foo::<fragment>::@class::A::@method::foo#element
+    element: dart:foo::@class::A::@method::foo
     staticType: void Function()
-  element: dart:foo::<fragment>::@class::A::@method::foo#element
+  element: dart:foo::@class::A::@method::foo
   staticType: void Function()
 ''');
   }
@@ -494,15 +544,17 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 3)],
+    );
 
     var node = findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
@@ -511,14 +563,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: dart:foo::<fragment>::@class::A::@method::foo#element
+    element: dart:foo::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');
@@ -534,17 +586,21 @@ class A {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {
   (a).foo = 0;
   a.foo = 0;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-      error(WarningCode.SDK_VERSION_SINCE, 53, 3),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
+        error(WarningCode.SDK_VERSION_SINCE, 53, 3),
+      ],
+    );
   }
 
   test_class_typeAnnotation_prefixed() async {
@@ -555,13 +611,15 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 1)],
+    );
   }
 
   test_class_typeAnnotation_unprefixed() async {
@@ -572,13 +630,15 @@ import 'dart:_internal';
 class A<T> {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A<int> a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_constraints_exact_equal() async {
@@ -619,13 +679,15 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('2.14.0', '''
+    await verifyVersion(
+      '2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_constraints_greater_equal() async {
@@ -696,13 +758,15 @@ import 'dart:_internal';
 class A {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(A a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_enum_constant() async {
@@ -716,15 +780,17 @@ enum E {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   E.v2;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 2),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 2)],
+    );
   }
 
   test_enum_index_onConcreteEnum() async {
@@ -738,14 +804,18 @@ void f(E e) {
   }
 
   test_enum_index_onDartCoreEnum() async {
-    await verifyVersion('>=2.12.0', '''
+    await verifyVersion(
+      '>=2.12.0',
+      '''
 void f(Enum e) {
   e.index;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 7, 4),
-      error(WarningCode.SDK_VERSION_SINCE, 21, 5),
-    ]);
+''',
+      expectedErrors: [
+        error(WarningCode.SDK_VERSION_SINCE, 7, 4),
+        error(WarningCode.SDK_VERSION_SINCE, 21, 5),
+      ],
+    );
   }
 
   test_enum_index_onDartCoreEnum_fromOtherLibrary() async {
@@ -753,15 +823,17 @@ void f(Enum e) {
 Enum get myEnum => throw 0;
 ''');
 
-    await verifyVersion('>=2.12.0', '''
+    await verifyVersion(
+      '>=2.12.0',
+      '''
 import 'a.dart';
 
 void f() {
   myEnum.index;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 5),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 5)],
+    );
   }
 
   test_enum_typeAnnotation() async {
@@ -774,13 +846,15 @@ enum E {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(E a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_extension_getter() async {
@@ -793,15 +867,17 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   0.foo;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+    );
   }
 
   test_extension_itself_extensionOverride_methodInvocation() async {
@@ -814,15 +890,17 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   E(0).foo();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 38, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+    );
   }
 
   test_extension_itself_methodInvocation() async {
@@ -835,15 +913,17 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   0.foo();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+    );
   }
 
   test_extension_method_methodInvocation() async {
@@ -856,15 +936,17 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   0.foo();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+    );
   }
 
   test_extension_setter() async {
@@ -877,15 +959,17 @@ extension E on int {
 }
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   0.foo = 1;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 35, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+    );
   }
 
   test_functionTypeAlias() async {
@@ -896,13 +980,15 @@ import 'dart:_internal';
 typedef void X(int _);
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(X a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_genericTypeAlias() async {
@@ -913,13 +999,15 @@ import 'dart:_internal';
 typedef X = List<int>;
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(X a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_mixin_typeAnnotation() async {
@@ -930,13 +1018,15 @@ import 'dart:_internal';
 mixin M<T> {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f(M<int> a) {}
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 27, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+    );
   }
 
   test_topLevelFunction_prefixed() async {
@@ -947,15 +1037,17 @@ import 'dart:_internal';
 void bar() {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo' as foo;
 
 void f() {
   foo.bar();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 44, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 3)],
+    );
   }
 
   test_topLevelFunction_unprefixed() async {
@@ -966,15 +1058,17 @@ import 'dart:_internal';
 void foo() {}
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   foo();
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 3),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 3)],
+    );
   }
 
   test_topLevelVariable_prefixed() async {
@@ -985,15 +1079,17 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo' as foo;
 
 void f() {
   foo.v;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 44, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 1)],
+    );
   }
 
   test_topLevelVariable_unprefixed() async {
@@ -1004,22 +1100,22 @@ import 'dart:_internal';
 const v = 0;
 ''');
 
-    await verifyVersion('>=2.14.0', '''
+    await verifyVersion(
+      '>=2.14.0',
+      '''
 import 'dart:foo';
 
 void f() {
   v;
 }
-''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 1),
-    ]);
+''',
+      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+    );
   }
 
   void _addDartFooLibrary(String content) {
     additionalMockSdkLibraries.add(
-      MockSdkLibrary('foo', [
-        MockSdkLibraryUnit('foo/foo.dart', content),
-      ]),
+      MockSdkLibrary('foo', [MockSdkLibraryUnit('foo/foo.dart', content)]),
     );
   }
 }

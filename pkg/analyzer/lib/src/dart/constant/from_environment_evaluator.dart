@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
@@ -25,7 +25,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getBool2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str == 'true') {
@@ -55,7 +55,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getInt2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
@@ -98,7 +98,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getString2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
@@ -138,9 +138,11 @@ class FromEnvironmentEvaluator {
   }
 
   static DartObjectImpl _defaultValueDefaultValue(
-      ConstructorElement2 constructor) {
+    ConstructorElement constructor,
+  ) {
     return constructor.formalParameters
-        .singleWhere((parameter) => parameter.name3 == _defaultValue)
-        .computeConstantValue() as DartObjectImpl;
+            .singleWhere((parameter) => parameter.name == _defaultValue)
+            .computeConstantValue()
+        as DartObjectImpl;
   }
 }

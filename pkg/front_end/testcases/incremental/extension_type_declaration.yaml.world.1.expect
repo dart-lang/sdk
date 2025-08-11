@@ -6,9 +6,9 @@ library from "org-dartlang-test:///main.dart" as main {
     method method = main::ExtensionType|method;
     method tearoff method = main::ExtensionType|get#method;
     get getter = main::ExtensionType|get#getter;
+    set setter = main::ExtensionType|set#setter;
     static method staticMethod = main::ExtensionType|staticMethod;
     static field staticField = main::ExtensionType|staticField;
-    set setter = main::ExtensionType|set#setter;
     constructor • = main::ExtensionType|constructor#;
     constructor tearoff • = main::ExtensionType|constructor#_#new#tearOff;
     static factory f = main::ExtensionType|constructor#f;
@@ -21,15 +21,15 @@ library from "org-dartlang-test:///main.dart" as main {
     lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this = i;
     return #this;
   }
-  static extension-type-member method ExtensionType|constructor#_#new#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
+  static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
   static extension-type-member method ExtensionType|constructor#f(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|constructor#_#f#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
+  static extension-type-member synthetic method ExtensionType|constructor#_#f#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#f(i);
   static extension-type-member method ExtensionType|constructor#r(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */ /* redirection-target: main::ExtensionType|constructor# */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|constructor#_#r#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
+  static extension-type-member synthetic method ExtensionType|constructor#_#r#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
   static extension-type-member method ExtensionType|method(lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this) → dart.core::int
     return #this as{Unchecked} dart.core::int;

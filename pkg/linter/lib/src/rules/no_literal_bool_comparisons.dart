@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,13 +18,11 @@ class NoLiteralBoolComparisons extends LintRule {
     : super(name: LintNames.no_literal_bool_comparisons, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_literal_bool_comparisons;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.no_literal_bool_comparisons;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
@@ -30,7 +30,7 @@ class NoLiteralBoolComparisons extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -46,9 +46,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var left = node.leftOperand;
       var right = node.rightOperand;
       if (right is BooleanLiteral && isBool(left.staticType)) {
-        rule.reportLint(right);
+        rule.reportAtNode(right);
       } else if (left is BooleanLiteral && isBool(right.staticType)) {
-        rule.reportLint(left);
+        rule.reportAtNode(left);
       }
     }
   }

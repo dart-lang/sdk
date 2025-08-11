@@ -80,7 +80,10 @@ unresolved=UnresolvedExpression(UnresolvedInvoke(
 resolved=StringLiteral('a${IntegerLiteral(0)}b')*/
 void literal9() {}
 
-@Helper('a' 'b')
+@Helper(
+  'a'
+  'b',
+)
 /*member: literal10:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -92,7 +95,11 @@ resolved=AdjacentStringLiterals(
     StringLiteral('b'))*/
 void literal10() {}
 
-@Helper('a' 'b' 'c')
+@Helper(
+  'a'
+  'b'
+  'c',
+)
 /*member: literal11:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)

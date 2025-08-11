@@ -8,13 +8,16 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 topLevel() => 1;
-topLevelLocal() => () => 2;
+topLevelLocal() =>
+    () => 2;
 
 class C {
   static klass() => 3;
-  static klassLocal() => () => 4;
+  static klassLocal() =>
+      () => 4;
   instance() => 5;
-  instanceLocal() => () => 6;
+  instanceLocal() =>
+      () => 6;
 }
 
 main() {

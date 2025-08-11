@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 extension type E1(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
+  set m1 = self::E1|set#m1;
   method m2 = self::E1|m2;
   method tearoff m2 = self::E1|get#m2;
   get m3 = self::E1|get#m3;
-  set m1 = self::E1|set#m1;
   set m4 = self::E1|set#m4;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
@@ -16,15 +16,15 @@ extension type E2(core::int i) implements self::E1% /* erasure=core::int, declar
   abstract extension-type-member representation-field get i() → core::int;
   method m1 = self::E2|m1;
   method tearoff m1 = self::E2|get#m1;
-  get m4 = self::E2|get#m4;
   set m2 = self::E2|set#m2;
   set m3 = self::E2|set#m3;
+  get m4 = self::E2|get#m4;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 static extension-type-member method E1|constructor#(core::int i) → self::E1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#(i);
 static extension-type-member method E1|set#m1(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void
   ;
@@ -38,7 +38,7 @@ static extension-type-member method E1|set#m4(lowered final self::E1% /* erasure
   ;
 static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
   return self::E2|constructor#(i);
 static extension-type-member method E2|m1(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → void
   ;

@@ -35,6 +35,9 @@ class WasmAnyRef extends _WasmBase {
   /// Whether this reference is a Dart object.
   external bool get isObject;
 
+  /// Whether this reference is an `i31`.
+  external bool get isI31;
+
   /// Downcast `anyref` to a Dart object.
   ///
   /// Will throw if the reference is not a Dart object.
@@ -77,6 +80,28 @@ external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
 external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
 @pragma("wasm:intrinsic")
 external bool _wasmExternRefIsNull(WasmExternRef? ref);
+
+/// The Wasm `i31ref` type.
+@pragma("wasm:entry-point")
+class WasmI31Ref extends _WasmBase {
+  /// Wasm `i31.new` instruction.
+  @pragma("wasm:intrinsic")
+  external factory WasmI31Ref.fromI32(WasmI32 i);
+}
+
+extension WasmI31RefExtensions on WasmI31Ref {
+  /// Convert a `i31ref` to `externref` with `extern.convert_any`.
+  @pragma("wasm:intrinsic")
+  external WasmExternRef? externalize();
+
+  /// Wasm `i32.get_s` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get_s();
+
+  /// Wasm `i32.get_u` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get_u();
+}
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")

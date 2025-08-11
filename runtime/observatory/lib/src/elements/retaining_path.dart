@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class RetainingPathElement extends CustomElement implements Renderable {
   late RenderingScheduler<RetainingPathElement> _r;
@@ -48,7 +51,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -64,7 +67,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = <Element>[curlyBlock.element];
+    children = <HTMLElement>[curlyBlock.element];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -74,12 +77,12 @@ class RetainingPathElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  List<Element> _createContent() {
+  List<HTMLElement> _createContent() {
     if (_path == null) {
-      return [new SpanElement()..text = 'Loading'];
+      return [new HTMLSpanElement()..textContent = 'Loading'];
     }
 
-    var elements = <Element>[];
+    var elements = <HTMLElement>[];
     bool first = true;
     for (var item in _path!.elements) {
       elements.add(_createItem(item, first));
@@ -89,34 +92,34 @@ class RetainingPathElement extends CustomElement implements Renderable {
     return elements;
   }
 
-  Element _createItem(M.RetainingPathItem item, bool first) {
-    final content = <Element>[];
+  HTMLElement _createItem(M.RetainingPathItem item, bool first) {
+    final content = <HTMLElement>[];
 
     if (first) {
       // No prefix.
     } else if (item.parentField != null) {
-      content
-          .add(new SpanElement()..text = 'retained by ${item.parentField} of ');
+      content.add(new HTMLSpanElement()
+        ..textContent = 'retained by ${item.parentField} of ');
     } else if (item.parentListIndex != null) {
-      content.add(new SpanElement()
-        ..text = 'retained by [ ${item.parentListIndex} ] of ');
+      content.add(new HTMLSpanElement()
+        ..textContent = 'retained by [ ${item.parentListIndex} ] of ');
     } else if (item.parentWordOffset != null) {
-      content.add(new SpanElement()
-        ..text = 'retained by offset ${item.parentWordOffset} of ');
+      content.add(new HTMLSpanElement()
+        ..textContent = 'retained by offset ${item.parentWordOffset} of ');
     } else {
-      content.add(new SpanElement()..text = 'retained by ');
+      content.add(new HTMLSpanElement()..textContent = 'retained by ');
     }
 
     content.add(anyRef(_isolate, item.source, _objects, queue: _r.queue));
 
-    return new DivElement()
-      ..classes = ['indent']
-      ..children = content;
+    return new HTMLDivElement()
+      ..className = 'indent'
+      ..appendChildren(content);
   }
 
-  Element _createGCRootItem(String gcRootType) {
-    return new DivElement()
-      ..classes = ['indent']
-      ..text = 'retained by a GC root ($gcRootType)';
+  HTMLElement _createGCRootItem(String gcRootType) {
+    return new HTMLDivElement()
+      ..className = 'indent'
+      ..textContent = 'retained by a GC root ($gcRootType)';
   }
 }

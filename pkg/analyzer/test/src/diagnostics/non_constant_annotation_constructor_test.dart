@@ -16,28 +16,30 @@ main() {
 @reflectiveTest
 class NonConstantAnnotationConstructorTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.fromInt() {}
 }
 @A.fromInt()
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 29, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 29, 12)],
+    );
   }
 
   test_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() {}
 }
 @A()
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 21, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 21, 4)],
+    );
   }
 }

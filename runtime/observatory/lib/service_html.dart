@@ -5,8 +5,9 @@
 library service_html;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:typed_data';
+
+import 'package:web/web.dart';
 
 import 'package:observatory/service_common.dart';
 
@@ -19,7 +20,7 @@ class _HtmlWebSocket implements CommonWebSocket {
   Future<void> connect(WebSocketVMTarget target, void onOpen(),
       void onMessage(dynamic data), void onError(), void onClose()) async {
     // The VM service will attempt to redirect our websocket connection request
-    // to DDS, but the dart:html WebSocket doesn't follow redirects. Instead of
+    // to DDS, but the package:web/web.dart WebSocket doesn't follow redirects. Instead of
     // relying on a redirect, we'll request the websocket URI from the service.
 
     // TODO(bkonyi): re-enable when DDS is enabled. Currently causing Observatory
@@ -63,7 +64,7 @@ class _HtmlWebSocket implements CommonWebSocket {
     FileReader fileReader = new FileReader();
     fileReader.readAsArrayBuffer(data);
     return fileReader.onLoadEnd.first.then((e) {
-      Uint8List result = fileReader.result as Uint8List;
+      final Uint8List result = (fileReader.result as ByteBuffer).asUint8List();
       return new ByteData.view(
           result.buffer, result.offsetInBytes, result.length);
     });

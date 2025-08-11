@@ -26,16 +26,17 @@ f() {
   }
 
   test_on_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 f() {
   try {
   } on dynamic {
   }
 }
-''', [
-      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7),
-    ]);
+''',
+      [error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 7)],
+    );
   }
 
   test_on_functionType_nonNullable() async {
@@ -49,15 +50,16 @@ f() {
   }
 
   test_on_functionType_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   try {
   } on void Function()? {
   }
 }
-''', [
-      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16),
-    ]);
+''',
+      [error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 16)],
+    );
   }
 
   test_on_interfaceType_nonNullable() async {
@@ -71,15 +73,16 @@ f() {
   }
 
   test_on_interfaceType_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   try {
   } on int? {
   }
 }
-''', [
-      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4),
-    ]);
+''',
+      [error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 4)],
+    );
   }
 
   test_on_typeParameter_nonNullable() async {
@@ -95,7 +98,8 @@ class A<B extends Object> {
   }
 
   test_on_typeParameter_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<B> {
   m() {
     try {
@@ -103,8 +107,8 @@ class A<B> {
     }
   }
 }
-''', [
-      error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
-    ]);
+''',
+      [error(WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1)],
+    );
   }
 }

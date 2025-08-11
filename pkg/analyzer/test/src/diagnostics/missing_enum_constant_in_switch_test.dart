@@ -67,7 +67,8 @@ void f(E e) {
   }
 
   test_first() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E { one, two, three }
 
 void f(E e) {
@@ -77,16 +78,19 @@ void f(E e) {
       break;
   }
 }
-''', [
-      if (!_arePatternsEnabled)
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
-      else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled)
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+        else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+      ],
+    );
   }
 
   test_last() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E { one, two, three }
 
 void f(E e) {
@@ -96,16 +100,19 @@ void f(E e) {
       break;
   }
 }
-''', [
-      if (!_arePatternsEnabled)
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
-      else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled)
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+        else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+      ],
+    );
   }
 
   test_middle() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E { one, two, three }
 
 void f(E e) {
@@ -115,16 +122,19 @@ void f(E e) {
       break;
   }
 }
-''', [
-      if (!_arePatternsEnabled)
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
-      else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled)
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+        else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+      ],
+    );
   }
 
   test_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E { one, two }
 
 void f(E? e) {
@@ -134,12 +144,14 @@ void f(E? e) {
       break;
   }
 }
-''', [
-      if (!_arePatternsEnabled)
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10)
-      else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled)
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10)
+        else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
+      ],
+    );
   }
 
   test_nullable_default() async {

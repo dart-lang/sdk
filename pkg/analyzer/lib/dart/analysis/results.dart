@@ -6,13 +6,15 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
+
+@Deprecated('Use AnalysisResultWithDiagnostics instead')
+typedef AnalysisResultWithErrors = AnalysisResultWithDiagnostics;
 
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.
@@ -23,12 +25,15 @@ abstract class AnalysisResult {
   AnalysisSession get session;
 }
 
-/// An analysis result that includes the errors computed during analysis.
+/// An analysis result that includes the diagnostics computed during analysis.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AnalysisResultWithErrors implements FileResult {
-  /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors;
+abstract class AnalysisResultWithDiagnostics implements FileResult {
+  /// The diagnostics that were computed during analysis.
+  List<Diagnostic> get diagnostics;
+
+  @Deprecated("Use 'diagnostics' instead")
+  List<Diagnostic> get errors => diagnostics;
 }
 
 /// The type of [InvalidResult] returned when the given URI cannot be resolved.
@@ -59,10 +64,6 @@ class DisposedAnalysisContextResult
 /// The declaration of an [Element].
 @Deprecated('Use FragmentDeclarationResult instead')
 abstract class ElementDeclarationResult {
-  /// The [Element] that this object describes.
-  @Deprecated('Use fragment instead')
-  Element get element;
-
   /// The [Fragment] that this object describes.
   Fragment get fragment;
 
@@ -85,7 +86,7 @@ abstract class ElementDeclarationResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ErrorsResult
-    implements SomeErrorsResult, AnalysisResultWithErrors {}
+    implements SomeErrorsResult, AnalysisResultWithDiagnostics {}
 
 /// The result of computing some cheap information for a single file, when full
 /// parsed file is not required, so [ParsedUnitResult] is not necessary.
@@ -167,13 +168,9 @@ abstract class InvalidResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElementResult implements SomeLibraryElementResult {
-  /// The element of the library.
-  @Deprecated('Use element2 instead')
-  LibraryElement get element;
-
   /// The element representing the library.
   @experimental
-  LibraryElement2 get element2;
+  LibraryElement get element2;
 }
 
 /// The type of [InvalidResult] returned when the given element was not
@@ -222,12 +219,6 @@ abstract class ParsedLibraryResult
   /// The parsed units of the library.
   List<ParsedUnitResult> get units;
 
-  /// Return the declaration of the [element], or `null` if the [element]
-  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
-  /// this library.
-  @Deprecated('Use getFragmentDeclaration() instead')
-  ElementDeclarationResult? getElementDeclaration(Element element);
-
   /// Returns the declaration of the [fragment].
   ///
   /// Returns `null` if the [fragment] is synthetic.
@@ -251,7 +242,7 @@ abstract class ParsedLibraryResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedUnitResult
-    implements SomeParsedUnitResult, AnalysisResultWithErrors {
+    implements SomeParsedUnitResult, AnalysisResultWithDiagnostics {
   /// The parsed, unresolved compilation unit for the [content].
   CompilationUnit get unit;
 }
@@ -268,7 +259,7 @@ abstract class ParseStringResult {
   String get content;
 
   /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors;
+  List<Diagnostic> get errors;
 
   /// Information about lines in the content.
   LineInfo get lineInfo;
@@ -283,12 +274,8 @@ abstract class ParseStringResult {
 abstract class ResolvedLibraryResult
     implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
-  @Deprecated('Use element2 instead')
-  LibraryElement get element;
-
-  /// The element representing this library.
   @experimental
-  LibraryElement2 get element2;
+  LibraryElement get element2;
 
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
@@ -312,12 +299,8 @@ abstract class ResolvedUnitResult
   bool get exists;
 
   /// The element representing the library containing the compilation [unit].
-  @Deprecated('Use libraryElement2 instead')
-  LibraryElement get libraryElement;
-
-  /// The element representing the library containing the compilation [unit].
   @experimental
-  LibraryElement2 get libraryElement2;
+  LibraryElement get libraryElement2;
 
   /// The fragment corresponding to the [unit].
   @experimental
@@ -404,10 +387,6 @@ abstract class SomeUnitElementResult {}
 ///
 // TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
-  /// The element of the file.
-  @Deprecated('Use fragment instead')
-  CompilationUnitElement get element;
-
   /// The fragment representing the content of the file.
   @experimental
   LibraryFragment get fragment;
@@ -420,8 +399,14 @@ abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
 class UnspecifiedInvalidResult
     implements
         InvalidResult,
+        SomeErrorsResult,
+        SomeFileResult,
         SomeLibraryElementResult,
-        SomeParsedLibraryResult {}
+        SomeParsedLibraryResult,
+        SomeParsedUnitResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
 
 /// The type of [InvalidResult] returned when the given URI corresponds to
 /// a library that is served from an external summary bundle.

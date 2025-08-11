@@ -59,6 +59,22 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// A map of absolute normalized path to YAML file edit builders.
   final Map<String, YamlFileEditBuilderImpl> _yamlFileEditBuilders = {};
 
+  /// The number of times that any of the file edit builders in this change have
+  /// been modified.
+  ///
+  /// A file builder is considered to be modified when the list of edits is
+  /// modified in any way, such as by adding a new edit to the list. For Dart
+  /// file edit builders this includes changes to the list of libraries that
+  /// will be imported by creating edits at a later point.
+  ///
+  /// This can be used, for example, to determine whether any edits were added
+  /// by a given correction producer.
+  int modificationCount = 0;
+
+  /// The data used to revert any changes made since the last time [commit] was
+  /// called.
+  final _ChangeBuilderRevertData _revertData = _ChangeBuilderRevertData();
+
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
@@ -66,26 +82,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
       {AnalysisSession? session, ChangeWorkspace? workspace, this.eol})
       : assert(session == null || workspace == null),
         workspace = workspace ?? _SingleSessionWorkspace(session!);
-
-  /// Return a hash value that will change when new edits have been added to
-  /// this builder.
-  int get changeHash {
-    // The hash value currently ignores edits to import directives because
-    // finalizing the builders needs to happen exactly once and this getter
-    // needs to be invoked repeatedly.
-    //
-    // In addition, we should consider implementing our own hash function for
-    // file edits because the `hashCode` defined for them might not be
-    // sufficient to detect all changes to the list of edits.
-    return Object.hashAll([
-      for (var builder in _genericFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-      for (var builder in _dartFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-      for (var builder in _yamlFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-    ]);
-  }
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -162,6 +158,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
               "Can't add multiple edits concurrently for the same file");
         }
         _dartFileEditBuilders[path] = builder;
+        _revertData._addedDartFileEditBuilders.add(path);
       }
     }
     if (builder != null) {
@@ -198,6 +195,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (builder == null) {
       builder = FileEditBuilderImpl(this, path, 0);
       _genericFileEditBuilders[path] = builder;
+      _revertData._addedGenericFileEditBuilders.add(path);
     }
     builder.currentChangeDescription = currentChangeDescription;
     buildFileEdit(builder);
@@ -225,11 +223,43 @@ class ChangeBuilderImpl implements ChangeBuilder {
               recover: true),
           0);
       _yamlFileEditBuilders[path] = builder;
+      _revertData._addedYamlFileEditBuilders.add(path);
     }
     builder.currentChangeDescription = currentChangeDescription;
     buildFileEdit(builder);
   }
 
+  /// Commit the changes that have been made up to this point.
+  void commit() {
+    // Capture the current values of simple values.
+    _revertData._selection = _selection;
+    _revertData._selectionRange = _selectionRange;
+    _revertData._currentChangeDescription = currentChangeDescription;
+    _revertData._modificationCount = modificationCount;
+
+    // Discard any information about changes to maps.
+    _revertData._addedLinkedEditGroups.clear();
+    _revertData._addedLinkedEditGroupPositions.clear();
+    _revertData._addedLinkedEditGroupSuggestions.clear();
+
+    _revertData._addedGenericFileEditBuilders.clear();
+    _revertData._addedDartFileEditBuilders.clear();
+    _revertData._addedYamlFileEditBuilders.clear();
+
+    // Commit the changes in any pre-existing builders.
+    for (var builder in _genericFileEditBuilders.values) {
+      builder.commit();
+    }
+    for (var builder in _dartFileEditBuilders.values) {
+      builder.commit();
+    }
+    for (var builder in _yamlFileEditBuilders.values) {
+      builder.commit();
+    }
+  }
+
+  @Deprecated('Copying change builders is expensive. Internal users of this '
+      'method now use `commit` and `revert` instead.')
   @override
   ChangeBuilder copy() {
     var copy = ChangeBuilderImpl(workspace: workspace, eol: eol);
@@ -270,6 +300,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     for (var entry in _yamlFileEditBuilders.entries) {
       copy._yamlFileEditBuilders[entry.key] = entry.value.copyWith(copy);
     }
+    copy.modificationCount = modificationCount;
     return copy;
   }
 
@@ -280,6 +311,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (group == null) {
       group = LinkedEditGroup.empty();
       _linkedEditGroups[groupName] = group;
+      _revertData._addedLinkedEditGroups[groupName] = group;
     }
     return group;
   }
@@ -289,6 +321,65 @@ class ChangeBuilderImpl implements ChangeBuilder {
     return _dartFileEditBuilders.containsKey(path) ||
         _genericFileEditBuilders.containsKey(path) ||
         _yamlFileEditBuilders.containsKey(path);
+  }
+
+  /// Revert any changes made since the last time [commit] was called.
+  void revert() {
+    // Set simple values back to their previous values.
+    _selection = _revertData._selection;
+    _selectionRange = _revertData._selectionRange;
+    currentChangeDescription = _revertData._currentChangeDescription;
+    modificationCount = _revertData._modificationCount;
+
+    // Remove any linked edit groups that have been added.
+    for (var entry in _revertData._addedLinkedEditGroups.entries) {
+      _linkedEditGroups.remove(entry.key);
+    }
+    // Remove any positions or suggestions that were added to pre-existing
+    // link edit groups.
+    //
+    // Note that this code assumes that the lengths of the groups have not been
+    // changed. It's invalid to change the length, but there's no code to
+    // validate that it hasn't been changed.
+    for (var entry in _revertData._addedLinkedEditGroupPositions.entries) {
+      for (var position in entry.value) {
+        entry.key.positions.remove(position);
+      }
+    }
+    for (var entry in _revertData._addedLinkedEditGroupSuggestions.entries) {
+      for (var suggestion in entry.value) {
+        entry.key.suggestions.remove(suggestion);
+      }
+    }
+    // Discard any data about linked edit groups because it's no longer needed.
+    _revertData._addedLinkedEditGroups.clear();
+    _revertData._addedLinkedEditGroupPositions.clear();
+    _revertData._addedLinkedEditGroupSuggestions.clear();
+
+    // Remove any file edit builders that have been added.
+    for (var path in _revertData._addedGenericFileEditBuilders) {
+      _genericFileEditBuilders.remove(path);
+    }
+    for (var path in _revertData._addedDartFileEditBuilders) {
+      _dartFileEditBuilders.remove(path);
+    }
+    for (var path in _revertData._addedYamlFileEditBuilders) {
+      _yamlFileEditBuilders.remove(path);
+    }
+    // Revert the data changes in any pre-existing builders.
+    for (var builder in _genericFileEditBuilders.values) {
+      builder.revert();
+    }
+    for (var builder in _dartFileEditBuilders.values) {
+      builder.revert();
+    }
+    for (var builder in _yamlFileEditBuilders.values) {
+      builder.revert();
+    }
+    // Discard any data about file builders because it's no longer needed.
+    _revertData._addedGenericFileEditBuilders.clear();
+    _revertData._addedDartFileEditBuilders.clear();
+    _revertData._addedYamlFileEditBuilders.clear();
   }
 
   @override
@@ -442,8 +533,15 @@ class EditBuilderImpl implements EditBuilder {
         fileEditBuilder.changeBuilder._lockedPositions.add(position);
         var group = fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
         group.addPosition(position, length);
+        var revertData = fileEditBuilder.changeBuilder._revertData;
+        revertData._addedLinkedEditGroupPositions
+            .putIfAbsent(group, () => [])
+            .add(position);
         for (var suggestion in builder.suggestions) {
           group.addSuggestion(suggestion);
+          revertData._addedLinkedEditGroupSuggestions
+              .putIfAbsent(group, () => [])
+              .add(suggestion);
         }
       }
     }
@@ -515,6 +613,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// single description.
   String? currentChangeDescription;
 
+  final _FileEditBuilderRevertData _revertData = _FileEditBuilderRevertData();
+
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
@@ -549,6 +649,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var position =
         Position(fileEdit.file, range.offset + _deltaToOffset(range.offset));
     group.addPosition(position, range.length);
+    var revertData = changeBuilder._revertData;
+    revertData._addedLinkedEditGroupPositions
+        .putIfAbsent(group, () => [])
+        .add(position);
   }
 
   @override
@@ -582,6 +686,15 @@ class FileEditBuilderImpl implements FileEditBuilder {
     }
   }
 
+  /// Commit the changes that have been made up to this point.
+  void commit() {
+    _revertData._currentChangeDescription = currentChangeDescription;
+
+    _revertData._addedEdits.clear();
+  }
+
+  @Deprecated('Copying change builders is expensive. Internal users of this '
+      'method now use `commit` and `revert` instead.')
   FileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder) {
     var copy =
         FileEditBuilderImpl(changeBuilder, fileEdit.file, fileEdit.fileStamp);
@@ -601,8 +714,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   /// Replace edits in the [range] with the given [edit].
+  ///
   /// The [range] is relative to the original code.
   void replaceEdits(SourceRange range, SourceEdit edit) {
+    // This does not record the edits that are being replaced, so we cannot
+    // correctly revert the current transaction.
+    //
+    // I think this is ok because this method is only called from
+    // `DartFileEditBuilder.format`, which isn't called from the bulk fix
+    // processor. But we will need to fix this if we start using it in a context
+    // where we do want to be able to revert such changes.
     fileEdit.edits.removeWhere((edit) {
       if (range.contains(edit.offset)) {
         if (!range.contains(edit.end)) {
@@ -618,13 +739,22 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _addEdit(edit);
   }
 
+  /// Revert any changes made since the last time [commit] was called.
+  void revert() {
+    currentChangeDescription = _revertData._currentChangeDescription;
+
+    fileEdit.edits.removeWhere(_revertData._addedEdits.contains);
+  }
+
   /// Add the edit from the given [edit] to the edits associated with the
   /// current file.
   void _addEdit(SourceEdit edit, {bool insertBeforeExisting = false}) {
     fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
+    _revertData._addedEdits.add(edit);
     var delta = _editDelta(edit);
     changeBuilder._updatePositions(edit.offset, delta);
     changeBuilder._lockedPositions.clear();
+    changeBuilder.modificationCount++;
   }
 
   /// Add the edit from the given [builder] to the edits associated with the
@@ -714,6 +844,75 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
   void writeln([String? string]) {
     editBuilder.writeln(string);
   }
+}
+
+/// The data used to revert any changes made to a [ChangeBuilder] since the last
+/// time [commit] was called.
+class _ChangeBuilderRevertData {
+  /// The last committed value of the change builder's `_selection`.
+  Position? _selection;
+
+  /// The last committed value of the change builder's `_selectionRange`.
+  SourceRange? _selectionRange;
+
+  /// The last committed value of the change builder's
+  /// `currentChangeDescription`.
+  String? _currentChangeDescription;
+
+  /// The last committed value of the change builder's `modificationCount`.
+  int _modificationCount = 0;
+
+  /// A map from the names of linked edit groups to the linked edit groups that
+  /// have been added since the last commit.
+  final Map<String, LinkedEditGroup> _addedLinkedEditGroups = {};
+
+  /// A map from pre-existing linked edit groups to the positions that were
+  /// added to the group.
+  final Map<LinkedEditGroup, List<Position>> _addedLinkedEditGroupPositions =
+      {};
+
+  /// A map from pre-existing linked edit groups to the suggestions that were
+  /// added to the group.
+  final Map<LinkedEditGroup, List<LinkedEditSuggestion>>
+      _addedLinkedEditGroupSuggestions = {};
+
+  /// A map of absolute normalized path to generic file edit builders that have
+  /// been added since the last commit.
+  final Set<String> _addedGenericFileEditBuilders = {};
+
+  /// A map of absolute normalized path to Dart file edit builders that have
+  /// been added since the last commit.
+  final Set<String> _addedDartFileEditBuilders = {};
+
+  /// A map of absolute normalized path to YAML file edit builders that have
+  /// been added since the last commit.
+  final Set<String> _addedYamlFileEditBuilders = {};
+}
+
+/// The data used to revert any changes made to a [FileEditBuilder] since the
+/// last time [commit] was called.
+class _FileEditBuilderRevertData {
+  /// The last committed value of the change builder's
+  /// `currentChangeDescription`.
+  String? _currentChangeDescription;
+
+  // This needs to be an identify set because it is possible for the data-driven
+  // fixes support to produce the same set of (multiple) edits multiple times.
+  // More investigation is required to determine whether that behavior is a bug
+  // in the data-driven fixes support or whether this is (or can be) caused by
+  // the data being used by it. If it is a bug that can be fixed, then we can
+  // safely use a non-identiy set, though leaving it won't cause any problems.
+  //
+  // In either case, when that happens, the second set of edits will usually
+  // conflict with the previous set of edits. Because the edits are the same,
+  // they will return `true` from `==`, causing some of the edits to not be
+  // recorded in this set. When the conflict is detected and an attempt is made
+  // to revert the changes, only the one edit in this set will be removed from
+  // the builder's list, making it impossible to correctly revert the change.
+  //
+  // The other option would be to make this a list, but doing so would decrease
+  // the performance of `revert`.
+  final Set<SourceEdit> _addedEdits = HashSet.identity();
 }
 
 /// Workspace that wraps a single [AnalysisSession].

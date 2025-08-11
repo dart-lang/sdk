@@ -12,7 +12,6 @@ import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
 import 'rules/analyzer_public_api.dart';
-import 'rules/analyzer_use_new_elements.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
 import 'rules/avoid_annotating_with_dynamic.dart';
@@ -191,6 +190,7 @@ import 'rules/specify_nonobvious_local_variable_types.dart';
 import 'rules/specify_nonobvious_property_types.dart';
 import 'rules/strict_top_level_inference.dart';
 import 'rules/super_goes_last.dart';
+import 'rules/switch_on_type.dart';
 import 'rules/test_types_in_equals.dart';
 import 'rules/throw_in_finally.dart';
 import 'rules/tighten_type_of_initializing_formals.dart';
@@ -226,6 +226,7 @@ import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
 import 'rules/unnecessary_to_list_in_spreads.dart';
+import 'rules/unnecessary_unawaited.dart';
 import 'rules/unnecessary_underscores.dart';
 import 'rules/unreachable_from_main.dart';
 import 'rules/unrelated_type_equality_checks.dart';
@@ -264,7 +265,6 @@ void registerLintRules() {
     ..registerLintRule(AlwaysSpecifyTypes())
     ..registerLintRule(AlwaysUsePackageImports())
     ..registerLintRule(AnalyzerPublicApi())
-    ..registerLintRule(AnalyzerUseNewElements())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
     ..registerLintRule(AvoidAnnotatingWithDynamic())
@@ -443,6 +443,7 @@ void registerLintRules() {
     ..registerLintRule(SpecifyNonObviousLocalVariableTypes())
     ..registerLintRule(SpecifyNonObviousPropertyTypes())
     ..registerLintRule(StrictTopLevelInference())
+    ..registerLintRule(SwitchOnType())
     ..registerLintRule(TestTypesInEquals())
     ..registerLintRule(ThrowInFinally())
     ..registerLintRule(TightenTypeOfInitializingFormals())
@@ -478,6 +479,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryStringInterpolations())
     ..registerLintRule(UnnecessaryThis())
     ..registerLintRule(UnnecessaryToListInSpreads())
+    ..registerLintRule(UnnecessaryUnawaited())
     ..registerLintRule(UnnecessaryUnderscores())
     ..registerLintRule(UnreachableFromMain())
     ..registerLintRule(UnrelatedTypeEqualityChecks())

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   zero();
   one();
@@ -28,84 +28,84 @@ main() {
 /// Return a zero integer literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: zero:[exact=JSUInt31|powerset=0]*/
+/*member: zero:[exact=JSUInt31|powerset={I}{O}{N}]*/
 zero() => 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a positive integer literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: one:[exact=JSUInt31|powerset=0]*/
+/*member: one:[exact=JSUInt31|powerset={I}{O}{N}]*/
 one() => 1;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a double literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: half:[exact=JSNumNotInt|powerset=0]*/
+/*member: half:[exact=JSNumNotInt|powerset={I}{O}{N}]*/
 half() => 0.5;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return an integer valued zero double literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: zeroPointZero:[exact=JSUInt31|powerset=0]*/
+/*member: zeroPointZero:[exact=JSUInt31|powerset={I}{O}{N}]*/
 zeroPointZero() => 0.0;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return an integer valued double literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: onePointZero:[exact=JSUInt31|powerset=0]*/
+/*member: onePointZero:[exact=JSUInt31|powerset={I}{O}{N}]*/
 onePointZero() => 1.0;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a >31bit integer literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: large:[subclass=JSUInt32|powerset=0]*/
+/*member: large:[subclass=JSUInt32|powerset={I}{O}{N}]*/
 large() => 2147483648;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a >32bit integer literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: huge:[subclass=JSPositiveInt|powerset=0]*/
+/*member: huge:[subclass=JSPositiveInt|powerset={I}{O}{N}]*/
 huge() => 4294967296;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a negative integer literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: minusOne:[subclass=JSInt|powerset=0]*/
+/*member: minusOne:[subclass=JSInt|powerset={I}{O}{N}]*/
 minusOne() => -1;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a negative double literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: minusHalf:[exact=JSNumNotInt|powerset=0]*/
+/*member: minusHalf:[exact=JSNumNotInt|powerset={I}{O}{N}]*/
 minusHalf() => -0.5;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return an empty string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: emptyString:Value([exact=JSString|powerset=0], value: "", powerset: 0)*/
+/*member: emptyString:Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/
 emptyString() => '';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a non-empty string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: nonEmptyString:Value([exact=JSString|powerset=0], value: "foo", powerset: 0)*/
+/*member: nonEmptyString:Value([exact=JSString|powerset={I}{O}{I}], value: "foo", powerset: {I}{O}{I})*/
 nonEmptyString() => 'foo';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a string juxtaposition.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: stringJuxtaposition:Value([exact=JSString|powerset=0], value: "foobar", powerset: 0)*/
+/*member: stringJuxtaposition:Value([exact=JSString|powerset={I}{O}{I}], value: "foobar", powerset: {I}{O}{I})*/
 stringJuxtaposition() =>
     'foo'
     'bar';
@@ -114,29 +114,29 @@ stringJuxtaposition() =>
 /// Return a string constant interpolation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: stringConstantInterpolation:Value([exact=JSString|powerset=0], value: "foobar", powerset: 0)*/
+/*member: stringConstantInterpolation:Value([exact=JSString|powerset={I}{O}{I}], value: "foobar", powerset: {I}{O}{I})*/
 stringConstantInterpolation() => 'foo${'bar'}';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a string non-constant interpolation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method1:[exact=JSBool|powerset=0]*/
-_method1(/*[exact=JSBool|powerset=0]*/ c) => c;
+/*member: _method1:[exact=JSBool|powerset={I}{O}{N}]*/
+_method1(/*[exact=JSBool|powerset={I}{O}{N}]*/ c) => c;
 
-/*member: stringNonConstantInterpolation:[exact=JSString|powerset=0]*/
+/*member: stringNonConstantInterpolation:[exact=JSString|powerset={I}{O}{I}]*/
 stringNonConstantInterpolation() => 'foo${_method1(true)}${_method1(false)}';
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a symbol literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: symbolLiteral:[exact=Symbol|powerset=0]*/
+/*member: symbolLiteral:[exact=Symbol|powerset={N}{O}{N}]*/
 symbolLiteral() => #main;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a type literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: typeLiteral:[exact=_Type|powerset=0]*/
+/*member: typeLiteral:[exact=_Type|powerset={N}{O}{N}]*/
 typeLiteral() => Object;

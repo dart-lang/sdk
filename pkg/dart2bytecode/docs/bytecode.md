@@ -789,6 +789,11 @@ type ConstantDynamicCall extends ConstantPoolEntry {
   PackedObject selectorName;
   PackedObject argDesc;
 }
+
+// Occupies 2 entries in the constant pool
+type ConstantExternalCall extends ConstantPoolEntry {
+  Byte tag = 15;
+}
 ```
 
 ### Exceptions table
@@ -1249,6 +1254,11 @@ can be omitted.
 Lookup and invoke instance method with arguments SP[-(F-1)], ..., SP[0].
 ContantPool[D] is a ConstantDynamicCall specifying selector and
 arguments descriptor.
+
+#### ExternalCall D
+
+Invoke body of an external method.
+ContantPool[D] is a ConstantExternalCall.
 
 #### ReturnTOS
 

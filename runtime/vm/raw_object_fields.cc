@@ -28,6 +28,7 @@ namespace dart {
   F(Class, constants_)                                                         \
   F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
+  F(Class, declaration_instance_type_arguments_)                               \
   F(PatchClass, wrapped_class_)                                                \
   F(PatchClass, script_)                                                       \
   F(Function, name_)                                                           \
@@ -246,10 +247,11 @@ namespace dart {
   F(Class, direct_subclasses_)
 
 #define JIT_CLASSES_AND_FIELDS(F)                                              \
-  F(Class, allocation_stub_)                                                   \
-  F(Class, dependent_code_)                                                    \
   F(Class, direct_implementors_)                                               \
   F(Class, direct_subclasses_)                                                 \
+  F(Class, allocation_stub_)                                                   \
+  F(Class, dependent_code_)                                                    \
+  F(Library, kernel_program_info_)                                             \
   F(Code, active_instructions_)                                                \
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \

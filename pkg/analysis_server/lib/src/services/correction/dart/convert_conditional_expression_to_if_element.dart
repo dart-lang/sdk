@@ -20,7 +20,7 @@ class ConvertConditionalExpressionToIfElement
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
+  AssistKind get assistKind => DartAssistKind.convertToIfElement;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_ELEMENT;

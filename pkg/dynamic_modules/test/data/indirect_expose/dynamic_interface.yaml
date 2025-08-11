@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 callable:
+  - library: 'dart:core'
   - library: 'package:expect/expect.dart'
   # Sufficient to export interface, even if implementation is private.
   - library: 'shared/shared.dart'
@@ -11,14 +12,3 @@ callable:
   # Sufficient to expose reexported name
   - library: 'shared/shared.dart'
     class: 'Exported'
-    # TODO(sigmund): This should be included by default
-  - library: 'dart:core'
-    class: 'Object'
-  - library: 'dart:core'
-    class: 'int'
-  - library: 'dart:core'
-    class: 'pragma'
-    member: '_'
-  - library: 'dart:core'
-    member: 'override'
-

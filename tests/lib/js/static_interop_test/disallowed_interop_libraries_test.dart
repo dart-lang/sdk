@@ -4,24 +4,24 @@
 
 // Check that dart2wasm disallows these interop libraries from being imported.
 
-/**/ import 'dart:js';
-//          ^
+import 'dart:js';
+//     ^
 // [web] Dart library 'dart:js' is not available on this platform.
 
-/**/ import 'dart:js_util';
-//   ^
+import 'dart:js_util';
+// [error column 1]
 // [web] JS interop library 'dart:js_util' can't be imported when compiling to Wasm.
 
-/**/ import 'package:js/js.dart';
-//   ^
+import 'package:js/js.dart';
+// [error column 1]
 // [web] JS interop library 'package:js/js.dart' can't be imported when compiling to Wasm.
 
-/**/ import 'package:js/js_util.dart';
-//   ^
+import 'package:js/js_util.dart';
+// [error column 1]
 // [web] JS interop library 'package:js/js_util.dart' can't be imported when compiling to Wasm.
 
-/**/ import 'dart:ffi';
-//   ^
+import 'dart:ffi';
+// [error column 1]
 // [web] 'dart:ffi' can't be imported when compiling to Wasm.
 
 void main() {}

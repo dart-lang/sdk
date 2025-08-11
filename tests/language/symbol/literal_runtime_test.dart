@@ -47,5 +47,4 @@ main() {
   Expect.equals(1, m[#B]);
 
   // Tries to call the symbol literal #a.toString
-
 }

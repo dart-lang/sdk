@@ -4,11 +4,14 @@
 
 library general_error_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -45,25 +48,25 @@ class GeneralErrorElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = <Element>[
-          new HeadingElement.h1()..text = 'Error',
-          new BRElement(),
-          new DivElement()
-            ..classes = ['well']
-            ..text = message
-        ]
-    ];
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()..textContent = 'Error',
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'well'
+            ..textContent = message
+        ])
+    ]);
   }
 }

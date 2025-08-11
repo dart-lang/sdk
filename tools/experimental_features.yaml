@@ -110,7 +110,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.8.0'
+current-version: '3.9.0'
 
 features:
   variance:
@@ -125,7 +125,8 @@ features:
 
   native-assets:
     help: "Compile and bundle native assets."
-    channels: [ "main", "dev" ]
+    channels: [ "main", "dev", "beta" ]
+    enabledIn: '3.9.0'
 
   record-use:
     help: "Output arguments used by static functions."
@@ -148,13 +149,6 @@ features:
   dot-shorthands:
     help: "Shorter dot syntax for static accesses."
 
-  getter-setter-error:
-    help: "Stop reporting errors about mismatching types in a getter/setter pair."
-
-  sound-flow-analysis:
-    # See https://github.com/dart-lang/language/issues/3100
-    help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -167,6 +161,33 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+
+  getter-setter-error:
+    enabledIn: '3.9.0'
+    validation: |
+      class A {
+        String get foo => 'feature enabled';
+        void set foo(int value) {}
+      }
+      main() {
+        A a = new A();
+        a.foo = 0;
+        print(a.foo);
+      }
+    help: "Stop reporting errors about mismatching types in a getter/setter pair."
+
+  sound-flow-analysis:
+    enabledIn: '3.9.0'
+    validation: |
+      main() {
+        var x = 0;
+        String y;
+        if (x != null) y = 'feature enabled';
+        print(y);
+      }
+    # See https://github.com/dart-lang/language/issues/3100
+    help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
 
   null-aware-elements:
     enabledIn: '3.8.0'

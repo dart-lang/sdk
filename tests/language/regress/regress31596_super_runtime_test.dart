@@ -38,23 +38,15 @@ class E extends D {
 
     // ok since I0 is assignable to B
 
-
     // not ok since B2 is not assignable to B
-
 
     var superF = super.f; // Inferred static type: void Function(B)
 
     // ok since I0 is assignable to B
 
-
     // not ok since B2 is not assignable to B
 
-
     // Should pass since superF's runtime type is void Function(Object)
-
-
-
-
   }
 }
 

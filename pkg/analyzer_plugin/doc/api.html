@@ -884,6 +884,10 @@ a:focus, a:hover {
         <p>
           The new content of the file.
         </p>
+      </dd><dt class="field"><b>version: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>An optional version number for the document. Version numbers allow the server to tag edits with the version of the document they apply to which can avoid applying edits to documents that have already been updated since the edits were computed.</p>
+        <p>If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be increasing (but not necessarily consecutive) numbers.</p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisError">AnalysisError: object</a></dt><dd>
     <p>
       An indication of an error, warning, or hint that was produced by the
@@ -1019,6 +1023,10 @@ a:focus, a:hover {
         <p>
           The edits to be applied to the file.
         </p>
+      </dd><dt class="field"><b>version: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>An optional version number for the document. Version numbers allow the server to tag edits with the version of the document they apply to which can avoid applying edits to documents that have already been updated since the edits were computed.</p>
+        <p>If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be increasing (but not necessarily consecutive) numbers.</p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionSuggestion">CompletionSuggestion: object</a></dt><dd>
     <p>
       A suggestion for how to complete partially entered text. Many of the

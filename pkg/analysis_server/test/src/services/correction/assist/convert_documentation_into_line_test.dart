@@ -18,28 +18,28 @@ void main() {
 @reflectiveTest
 class ConvertDocumentationIntoLineTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE;
+  AssistKind get kind => DartAssistKind.convertDocumentationIntoLine;
 
   Future<void> test_alreadyLine() async {
     await resolveTestCode('''
-/// AAAAAAA
+/// ^AAAAAAA
 class A {}
 ''');
-    await assertNoAssistAt('AAA');
+    await assertNoAssist();
   }
 
   Future<void> test_hasEmptyLine() async {
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA [int] AAAAAAA
+   * AAAA^AAA [int] AAAAAAA
    *
    * BBBBBBBB BBBB BBBB
    */
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA [', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA [int] AAAAAAA
   ///
@@ -52,11 +52,11 @@ class A {
   Future<void> test_indentation_last() async {
     await resolveTestCode('''
 /**
- * AAAAAAA
+ * ^AAAAAAA
   */
 class A {}
 ''');
-    await assertHasAssistAt('AAAAAAA', '''
+    await assertHasAssist('''
 /// AAAAAAA
 class A {}
 ''');
@@ -65,11 +65,11 @@ class A {}
   Future<void> test_indentation_middle() async {
     await resolveTestCode('''
 /**
-  * AAAAAAA
+  * ^AAAAAAA
  */
 class A {}
 ''');
-    await assertHasAssistAt('AAAAAAA', '''
+    await assertHasAssist('''
 /// AAAAAAA
 class A {}
 ''');
@@ -79,7 +79,7 @@ class A {}
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA
+   * ^AAAAAAA
    *
    *    while (i < 100) {
    *      i++;
@@ -88,7 +88,7 @@ class A {
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA
   ///
@@ -104,7 +104,7 @@ class A {
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA
+   * ^AAAAAAA
    *
    *    while (i < 100) {
    *      i++;
@@ -112,7 +112,7 @@ class A {
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA
   ///
@@ -128,11 +128,11 @@ class A {
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA */
+   * ^AAAAAAA */
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA
   mmm() {}
@@ -142,20 +142,20 @@ class A {
 
   Future<void> test_notDocumentation() async {
     await resolveTestCode('''
-/* AAAA */
+/* ^AAAA */
 class A {}
 ''');
-    await assertNoAssistAt('AAA');
+    await assertNoAssist();
   }
 
   Future<void> test_onReference() async {
     await resolveTestCode('''
 /**
- * AAAAAAA [int] AAAAAAA
+ * AAAAAAA [i^nt] AAAAAAA
  */
 class A {}
 ''');
-    await assertHasAssistAt('nt]', '''
+    await assertHasAssist('''
 /// AAAAAAA [int] AAAAAAA
 class A {}
 ''');
@@ -165,14 +165,14 @@ class A {}
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA [int] AAAAAAA
+   * AAAA^AAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA [', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
@@ -185,14 +185,14 @@ class A {
   Future<void> test_onText_hasFirstLine() async {
     await resolveTestCode('''
 class A {
-  /** AAAAAAA [int] AAAAAAA
+  /** AAAA^AAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA [', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
@@ -208,7 +208,7 @@ class A {
     await resolveTestCode('''
 class A {
   /**
-   * AAAAAAA [int] AAAAAAA
+   * ^AAAAAAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */
@@ -223,13 +223,13 @@ class A {
 class A {
   /**
    * First line.
-   *     Indented line.
+   *     ^Indented line.
    * Last line.
    */
   m() {}
 }
 ''');
-    await assertHasAssistAt('Indented', '''
+    await assertHasAssist('''
 class A {
   /// First line.
   ///     Indented line.
@@ -242,11 +242,11 @@ class A {
   Future<void> test_singleLine() async {
     await resolveTestCode('''
 class A {
-  /** AAAAAAA */
+  /** ^AAAAAAA */
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA', '''
+    await assertHasAssist('''
 class A {
   /// AAAAAAA
   mmm() {}

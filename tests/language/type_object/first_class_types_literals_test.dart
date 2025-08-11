@@ -60,37 +60,35 @@ main() {
   Expect.throwsNoSuchMethodError(() => C + 1);
   //                                     ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '+' isn't defined for the class 'Type'.
+  // [cfe] The operator '+' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2]);
   //                                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2] = 'hest');
   //                                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]=' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]=' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic = 1);
-  //                                   ^
-  // [cfe] Can't assign to a type literal.
   //                                   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => dynamic++);
-  //                                   ^
-  // [cfe] Can't assign to a type literal.
   //                                   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => dynamic + 1);
   //                                           ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '+' isn't defined for the class 'Type'.
+  // [cfe] The operator '+' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2]);
   //                                          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest');
   //                                          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]=' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]=' isn't defined for the type 'Type'.
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

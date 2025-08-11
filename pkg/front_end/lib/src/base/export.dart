@@ -5,13 +5,14 @@
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'uri_offset.dart';
 
 class Export {
-  /// The compilation unit that is exporting [exported];
-  final CompilationUnit exporter;
+  /// The compilation unit that is exporting [exported].
+  final SourceCompilationUnit exporter;
 
   /// The library being exported.
   CompilationUnit exportedCompilationUnit;
@@ -31,7 +32,7 @@ class Export {
   /// This set in [SourceLibraryBuilder._addDependencies].
   late final LibraryDependency libraryDependency;
 
-  bool addToExportScope(String name, Builder member) {
+  bool addToExportScope(String name, NamedBuilder member) {
     if (combinators != null) {
       for (CombinatorBuilder combinator in combinators!) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;

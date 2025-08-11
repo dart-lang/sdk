@@ -110,7 +110,7 @@ abstract class BodyBuilderContext {
   /// declaration or library.
   ///
   /// If [required] is `true`, an error is thrown if the member is not found.
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return declarationContext.lookupLocalMember(name, required: required);
   }
 
@@ -125,7 +125,9 @@ abstract class BodyBuilderContext {
   /// member whose body is being built.
   FormalParameterBuilder? getFormalParameterByName(Identifier identifier) {
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
+      List<FormalParameterBuilder> formals = this.formals!;
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
         if (formal.isWildcard &&
             identifier.name == '_' &&
             formal.fileOffset == identifier.nameOffset) {
@@ -423,7 +425,7 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupSuperConstructor');
   }
 
-  Builder? lookupLocalMember(String name, {bool required = false});
+  NamedBuilder? lookupLocalMember(String name, {bool required = false});
 
   bool get isExtensionTypeDeclaration => false;
 
@@ -460,7 +462,7 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
   DeclarationBuilder get _declarationBuilder;
 
   @override
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return _declarationBuilder.lookupLocalMember(name, required: required);
   }
 
@@ -468,7 +470,7 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
   InterfaceType? get thisType => _declarationBuilder.thisType;
 
   @override
-  bool get isExtensionDeclaration => _declarationBuilder.isExtension;
+  bool get isExtensionDeclaration => _declarationBuilder is ExtensionBuilder;
 }
 
 class _SourceClassBodyBuilderDeclarationContext
@@ -639,7 +641,7 @@ class _TopLevelBodyBuilderDeclarationContext
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? lookupLocalMember(String name, {bool required = false}) {
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
     return _libraryBuilder.lookupLocalMember(name, required: required);
   }
 }

@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+
 import 'package:observatory/models.dart' as M
     show IsolateRef, MegamorphicCacheRef;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   late RenderingScheduler<MegamorphicCacheRefElement> _r;
@@ -44,18 +48,19 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _cache))
-        ..children = <Element>[
-          new SpanElement()
-            ..classes = ['emphasize']
-            ..text = 'MegamorphicCache',
-          new SpanElement()..text = ' (${_cache.selector})'
-        ]
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(_isolate, object: _cache)
+        ..appendChildren(<HTMLElement>[
+          new HTMLSpanElement()
+            ..className = 'emphasize'
+            ..textContent = 'MegamorphicCache',
+          new HTMLSpanElement()..textContent = ' (${_cache.selector})'
+        ])
     ];
   }
 }

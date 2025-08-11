@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,19 +19,16 @@ class OmitLocalVariableTypes extends LintRule {
     : super(name: LintNames.omit_local_variable_types, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.omit_local_variable_types;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.always_specify_types,
     LintNames.specify_nonobvious_local_variable_types,
   ];
 
   @override
-  LintCode get lintCode => LinterLintCode.omit_local_variable_types;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeProvider);
     registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -56,12 +55,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       var loopType = loopParts.iterable.staticType;
       if (loopType is! InterfaceType) return;
 
-      var iterableType = loopType.asInstanceOf2(typeProvider.iterableElement2);
+      var iterableType = loopType.asInstanceOf(typeProvider.iterableElement);
       if (iterableType == null) return;
 
       if (iterableType.typeArguments.isNotEmpty &&
           iterableType.typeArguments.first == staticType) {
-        rule.reportLint(loopVariableType);
+        rule.reportAtNode(loopVariableType);
       }
     }
   }
@@ -93,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    rule.reportLint(node.type);
+    rule.reportAtNode(node.type);
   }
 }
 

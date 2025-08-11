@@ -4,36 +4,41 @@
 
 void forEachStatement(Object x) {
   if (x is int) {
-    /*int*/ x;
+    /*int*/
+    x;
     for (x in [0]) {
-      /*int*/ x;
+      /*int*/
+      x;
     }
   }
 }
 
 forEachElementInListLiteral(Object x) {
   if (x is int) {
-    /*int*/ x;
+    /*int*/
+    x;
     return [
-      for (x in [0]) /*int*/ x
+      for (x in [0]) /*int*/ x,
     ];
   }
 }
 
 forEachElementInMapLiteral(Object x) {
   if (x is int) {
-    /*int*/ x;
+    /*int*/
+    x;
     return {
-      for (x in [0]) /*int*/ x: /*int*/ x
+      for (x in [0]) /*int*/ x: /*int*/ x,
     };
   }
 }
 
 forEachElementInSetLiteral(Object x) {
   if (x is int) {
-    /*int*/ x;
+    /*int*/
+    x;
     return {
-      for (x in [0]) /*int*/ x
+      for (x in [0]) /*int*/ x,
     };
   }
 }

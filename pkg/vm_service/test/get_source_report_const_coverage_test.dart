@@ -87,6 +87,7 @@ final tests = <IsolateTest>[
       final coverage = await service.getSourceReport(
         isolateId,
         [SourceReportKind.kCoverage],
+        forceCompile: true,
       );
       hits = getHitsFor(coverage, filename);
       final lines = <int>{};
@@ -106,6 +107,7 @@ final tests = <IsolateTest>[
         isolateId,
         [SourceReportKind.kCoverage],
         scriptId: foundScript.id!,
+        forceCompile: true,
       );
       final localHits = getHitsFor(coverage, filename);
       expect(localHits.length, hits.length);

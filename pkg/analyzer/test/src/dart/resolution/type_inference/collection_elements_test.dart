@@ -18,15 +18,16 @@ main() {
 @reflectiveTest
 class ForElementTest extends PubPackageResolutionTest {
   test_list_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   <int>[await for (var e in a()) e];
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -98,15 +99,16 @@ MethodInvocation
   }
 
   test_list_forIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   <int>[for (var e in a()) e];
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -152,16 +154,19 @@ MethodInvocation
   }
 
   test_map_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   <int, int>{await for (var e in a()) e : e};
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -233,16 +238,19 @@ MethodInvocation
   }
 
   test_map_forIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   <int, int>{for (var e in a()) e : e};
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 43, 1),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 43, 1),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -288,15 +296,16 @@ MethodInvocation
   }
 
   test_set_awaitForIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   <int>{await for (var e in a()) e};
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -368,15 +377,16 @@ MethodInvocation
   }
 
   test_set_forIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   <int>{for (var e in a()) e};
 }
 
 T a<T>() => throw '';
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''

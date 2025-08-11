@@ -16,23 +16,25 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresAbstractMethodTest extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   bool get isPalindrome;
 }
-''', [
-      error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 35, 12),
-    ]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 35, 12)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   String reversed();
 }
-''', [
-      error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 33, 8),
-    ]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 33, 8)],
+    );
   }
 
   test_none() async {
@@ -42,22 +44,24 @@ extension E on String {}
   }
 
   test_operator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   String operator -(String otherString);
 }
-''', [
-      error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 42, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 42, 1)],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   set length(int newLength);
 }
-''', [
-      error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 30, 6),
-    ]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 30, 6)],
+    );
   }
 }

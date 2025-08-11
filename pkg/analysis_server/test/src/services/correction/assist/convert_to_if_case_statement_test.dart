@@ -17,20 +17,20 @@ void main() {
 @reflectiveTest
 class ConvertToIfCaseStatementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT;
+  AssistKind get kind => DartAssistKind.convertToIfCaseStatement;
 
   Future<void> test_isType() async {
     await resolveTestCode('''
 void f(A a) {
   var y = a.x;
-  if (y is List<int>) {}
+  ^if (y is List<int>) {}
 }
 
 class A {
   Object? x;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(A a) {
   if (a.x case List<int> y) {}
 }
@@ -45,14 +45,14 @@ class A {
     await resolveTestCode('''
 void f(A a) {
   final y = a.x;
-  if (y is int) {}
+  ^if (y is int) {}
 }
 
 class A {
   Object? x;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(A a) {
   if (a.x case final int y) {}
 }
@@ -67,7 +67,7 @@ class A {
     await resolveTestCode('''
 void f(A a) {
   var y = a.x;
-  if (y is int) {}
+  ^if (y is int) {}
   y;
 }
 
@@ -75,14 +75,14 @@ class A {
   Object? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_isType_hasReference_inElse() async {
     await resolveTestCode('''
 void f(A a) {
   var y = a.x;
-  if (y is int) {} else {
+  ^if (y is int) {} else {
     y;
   }
 }
@@ -91,7 +91,7 @@ class A {
   Object? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_isType_language219() async {
@@ -99,37 +99,37 @@ class A {
 // @dart = 2.19
 void f(A a) {
   var y = a.x;
-  if (y is List<int>) {}
+  ^if (y is List<int>) {}
 }
 
 class A {
   Object? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_isType_previousStatement_absent() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x is int) {}
+  ^if (x is int) {}
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_notEqNull() async {
     await resolveTestCode('''
 void f(A a) {
   var y = a.x;
-  if (y != null) {}
+  ^if (y != null) {}
 }
 
 class A {
   int? x;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(A a) {
   if (a.x case var y?) {}
 }
@@ -144,14 +144,14 @@ class A {
     await resolveTestCode('''
 void f(A a) {
   final y = a.x;
-  if (y != null) {}
+  ^if (y != null) {}
 }
 
 class A {
   int? x;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(A a) {
   if (a.x case final y?) {}
 }
@@ -166,7 +166,7 @@ class A {
     await resolveTestCode('''
 void f(A a) {
   final y = a.x;
-  if (y != null) {}
+  ^if (y != null) {}
   y;
 }
 
@@ -174,14 +174,14 @@ class A {
   int? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_notEqNull_hasReference_inElse() async {
     await resolveTestCode('''
 void f(A a) {
   final y = a.x;
-  if (y != null) {} else {
+  i^f (y != null) {} else {
     y;
   }
 }
@@ -190,39 +190,39 @@ class A {
   int? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_notEqNull_previousStatement_absent() async {
     await resolveTestCode('''
 void f(int? x) {
-  if (x != null) {}
+  i^f (x != null) {}
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_notEqNull_previousStatement_multipleDeclarations() async {
     await resolveTestCode('''
 void f(A a) {
   final x = a.x, x2 = 0;
-  if (x != null) {}
+  ^if (x != null) {}
 }
 
 class A {
   int? x;
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_notEqNull_previousStatement_notDeclaration() async {
     await resolveTestCode('''
 void f(int? x) {
   x;
-  if (x != null) {}
+  i^f (x != null) {}
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 }

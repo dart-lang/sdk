@@ -16,24 +16,26 @@ main() {
 @reflectiveTest
 class SuperInvocationNotLastTest extends PubPackageResolutionTest {
   test_superBeforeAssert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int? x) : super(), assert(x != null);
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 24, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 24, 5)],
+    );
   }
 
   test_superBeforeAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final int x;
   A() : super(), x = 1;
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 33, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 33, 5)],
+    );
   }
 
   test_superIsLast() async {

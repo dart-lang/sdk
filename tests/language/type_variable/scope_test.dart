@@ -7,17 +7,13 @@
 class Foo<T> implements I<T> {
   Foo() {}
 
-  static
-  Foo<T>
-  //  ^
+  static Foo<T> m(Foo<T> f) {
+  //         ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
-      m(
-    Foo<T>
-    //  ^
-    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    // [cfe] Type variables can't be used in static members.
-          f) {
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Type variables can't be used in static members.
     Foo<T> x = new Foo<String>();
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
@@ -41,23 +37,19 @@ class Foo<T> implements I<T> {
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
 
-  static
-  Foo<T>
-  //  ^
+  static Foo<T> get f {
+  //         ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
-      get f {
     return new Foo<String>();
     //     ^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
-  static void set f(
-                    Foo<T>
-                    //  ^
-                    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-                    // [cfe] Type variables can't be used in static members.
-      value) {}
+  static void set f(Foo<T> value) {}
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Type variables can't be used in static members.
 }
 
 abstract class I<T> {

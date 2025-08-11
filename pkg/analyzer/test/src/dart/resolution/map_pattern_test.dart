@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class MapPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case {0: String a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -42,8 +43,10 @@ MapPattern
           element2: dart:core::@class::String
           type: String
         name: a
-        declaredElement: a@47
+        declaredFragment: isPublic a@47
           type: String
+          element: isPublic
+            type: String
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: dynamic
@@ -52,16 +55,17 @@ MapPattern
   }
 
   test_matchDynamic_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case {0: var a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -75,8 +79,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: dynamic
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: dynamic
@@ -85,16 +91,17 @@ MapPattern
   }
 
   test_matchDynamic_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case <int, String>{0: var a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -120,8 +127,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@57
-          type: String
+        declaredFragment: isPublic a@57
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
   rightBracket: }
   matchedValueType: dynamic
@@ -130,13 +139,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {}) {}
 }
-''', [
-      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -148,13 +158,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_first() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: ''}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -178,13 +189,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_last() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -208,14 +220,17 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: '', ...}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -241,14 +256,17 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_withPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...var rest}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -268,8 +286,10 @@ MapPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: rest
-        declaredElement: hasImplicitType rest@57
-          type: dynamic
+        declaredFragment: isPublic rest@57
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: Map<int, String>
@@ -278,13 +298,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -298,8 +319,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@50
-          type: String
+        declaredFragment: isPublic a@50
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
   rightBracket: }
   matchedValueType: Map<int, String>
@@ -308,13 +331,14 @@ MapPattern
   }
 
   test_matchMap_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -340,8 +364,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@62
-          type: int
+        declaredFragment: isPublic a@62
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightBracket: }
   matchedValueType: Map<bool, num>
@@ -377,13 +403,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {}) {}
 }
-''', [
-      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -395,13 +422,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {true: int a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -418,8 +446,10 @@ MapPattern
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@43
+        declaredFragment: isPublic a@43
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
   rightBracket: }
   matchedValueType: Object
@@ -428,13 +458,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -448,8 +479,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@43
-          type: Object?
+        declaredFragment: isPublic a@43
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
   rightBracket: }
   matchedValueType: Object
@@ -497,13 +530,14 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -529,8 +563,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@54
-          type: int
+        declaredFragment: isPublic a@54
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightBracket: }
   matchedValueType: Object
@@ -539,13 +575,14 @@ MapPattern
   }
 
   test_rewrite_key() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -555,7 +592,7 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -576,13 +613,14 @@ MapPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<bool, int> x) {
   var {true: a} = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -597,8 +635,10 @@ PatternVariableDeclaration
         separator: :
         value: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@40
-            type: int
+          declaredFragment: isPublic a@40
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<bool, int>
@@ -606,22 +646,23 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');
   }
 
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var <bool, int>{true: a} = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -648,8 +689,10 @@ PatternVariableDeclaration
         separator: :
         value: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@35
-            type: int
+          declaredFragment: isPublic a@35
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<bool, int>
@@ -672,15 +715,16 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withVariableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var {true: int a} = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -699,8 +743,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@28
+          declaredFragment: isPublic a@28
             type: int
+            element: isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<Object?, int>

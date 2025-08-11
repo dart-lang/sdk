@@ -24,7 +24,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     static get staticGetter() → sta::StaticJSClass
       return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart._js_helper::staticInteropGlobalContext, "JSClass"));
     static set staticSetter((sta::StaticJSClass) → void f) → void {}
-    static method _#new#tearOff() → lib1::Class
+    static synthetic method _#new#tearOff() → lib1::Class
       return new lib1::Class::•();
   }
   static method topLevelMethod() → sta::StaticJSClass
@@ -42,12 +42,12 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C5
   class StaticJSClass extends dart.core::Object {
     external static factory •() → sta::StaticJSClass;
-    static method _#new#tearOff() → sta::StaticJSClass
+    static synthetic method _#new#tearOff() → sta::StaticJSClass
       return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart._js_helper::staticInteropGlobalContext, "JSClass"));
     static factory factory() → sta::StaticJSClass {
       return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart._js_helper::staticInteropGlobalContext, "JSClass"));
     }
-    static method _#factory#tearOff() → sta::StaticJSClass
+    static synthetic method _#factory#tearOff() → sta::StaticJSClass
       return sta::StaticJSClass::factory();
   }
   @#C2
@@ -71,7 +71,7 @@ library from "org-dartlang-test:///main.dart" as main {
       baz = super.{lib1::Class::instanceGetter};
       super.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
     }
-    static method _#new#tearOff() → main::Subclass
+    static synthetic method _#new#tearOff() → main::Subclass
       return new main::Subclass::•();
   }
   static method main() → dynamic {

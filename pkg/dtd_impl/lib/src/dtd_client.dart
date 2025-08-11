@@ -5,15 +5,15 @@
 import 'dart:async';
 
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
+import 'package:dtd/dtd.dart' show CoreDtdServiceConstants, DtdParameters;
 import 'package:sse/server/sse_handler.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:dtd/dtd.dart' show RpcErrorCodes;
+import 'package:dtd/dtd.dart' show RpcErrorCodes, RegisteredServicesResponse;
 
 import 'constants.dart';
 import 'dart_tooling_daemon.dart';
-import 'dtd_stream_manager.dart';
 
 /// Represents a client that is connected to a DTD service.
 ///
@@ -67,12 +67,15 @@ class DTDClient extends Client {
       return;
     }
 
-    return await _clientPeer.sendRequest(method, parameters.asMap);
+    return await _clientPeer.sendRequest(method, parameters.value);
   }
 
   @override
   void streamNotify(String stream, Object data) {
-    _clientPeer.sendNotification('streamNotify', data);
+    _clientPeer.sendNotification(
+      CoreDtdServiceConstants.streamNotify,
+      data,
+    );
   }
 
   /// Start receiving JSON RPC requests from the client.
@@ -82,12 +85,25 @@ class DTDClient extends Client {
         (_) => dtd.streamManager.onClientDisconnect(this),
       );
 
+  /// The set of RPC methods registered by DTD itself.
+  ///
+  /// This will be a combination of first party DTD methods and methods
+  /// registered by internal services.
+  final _dtdRpcMethods = <String>{};
+
   /// Registers handlers for the Dart Tooling Daemon JSON RPC method endpoints.
   void _registerJsonRpcMethods() {
-    _clientPeer.registerMethod('streamListen', _streamListen);
-    _clientPeer.registerMethod('streamCancel', _streamCancel);
-    _clientPeer.registerMethod('postEvent', _postEvent);
-    _clientPeer.registerMethod('registerService', _registerService);
+    _registerDtdMethod(CoreDtdServiceConstants.streamListen, _streamListen);
+    _registerDtdMethod(CoreDtdServiceConstants.streamCancel, _streamCancel);
+    _registerDtdMethod(CoreDtdServiceConstants.postEvent, _postEvent);
+    _registerDtdMethod(
+      CoreDtdServiceConstants.registerService,
+      _registerService,
+    );
+    _registerDtdMethod(
+      CoreDtdServiceConstants.getRegisteredServices,
+      _getRegisteredServices,
+    );
 
     // Handle service extension invocations.
     _clientPeer.registerFallback(_fallback);
@@ -100,7 +116,7 @@ class DTDClient extends Client {
   Future<Map<String, Object?>> _streamListen(
     json_rpc.Parameters parameters,
   ) async {
-    final streamId = parameters['streamId'].asString;
+    final streamId = parameters[DtdParameters.streamId].asString;
     try {
       await dtd.streamManager.streamListen(
         this,
@@ -117,21 +133,43 @@ class DTDClient extends Client {
 
     // If the remote client was subscribing to the services stream, send all
     // of the existing streams.
-    if (streamId == DTDStreamManager.servicesStreamId) {
+    if (streamId == CoreDtdServiceConstants.servicesStreamId) {
       for (final client in dtd.clientManager.clients) {
         for (final service in client.services.values) {
           for (final method in service.methods.values) {
             _streamNotifyHelper(
-              DTDStreamManager.servicesStreamId,
-              DTDStreamManager.serviceRegisteredId,
+              CoreDtdServiceConstants.servicesStreamId,
+              CoreDtdServiceConstants.serviceRegisteredKind,
               _buildServiceRegisteredData(
-                service.name,
-                method.name,
-                method.capabilities,
+                service: service.name,
+                method: method.name,
+                capabilities: method.capabilities,
               ),
             );
           }
         }
+      }
+
+      for (final method in _dtdRpcMethods) {
+        // If the DTD service method has the form 'service.method', split up the
+        // two values. Otherwise, leave the service null and use the entire name
+        // as the method.
+        String? serviceName;
+        String methodName;
+        final parts = method.split('.');
+        if (parts.length == 2) {
+          serviceName = parts[0];
+        }
+        methodName = parts.last;
+
+        _streamNotifyHelper(
+          CoreDtdServiceConstants.servicesStreamId,
+          CoreDtdServiceConstants.serviceRegisteredKind,
+          _buildServiceRegisteredData(
+            service: serviceName,
+            method: methodName,
+          ),
+        );
       }
     }
 
@@ -145,10 +183,10 @@ class DTDClient extends Client {
     Map<String, Object?>? eventData,
   ) {
     streamNotify(stream, {
-      'streamId': stream,
-      'eventKind': eventKind,
-      'eventData': eventData,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      DtdParameters.streamId: stream,
+      DtdParameters.eventKind: eventKind,
+      DtdParameters.eventData: eventData,
+      DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -159,7 +197,7 @@ class DTDClient extends Client {
   Future<Map<String, Object?>> _streamCancel(
     json_rpc.Parameters parameters,
   ) async {
-    final streamId = parameters['streamId'].asString;
+    final streamId = parameters[DtdParameters.streamId].asString;
 
     if (!dtd.streamManager.isSubscribed(this, streamId)) {
       throw RpcErrorCodes.buildRpcException(
@@ -182,9 +220,10 @@ class DTDClient extends Client {
   Future<Map<String, Object?>> _postEvent(
     json_rpc.Parameters parameters,
   ) async {
-    final eventKind = parameters['eventKind'].asString;
-    final eventData = parameters['eventData'].asMap.cast<String, Object?>();
-    final stream = parameters['streamId'].asString;
+    final eventKind = parameters[DtdParameters.eventKind].asString;
+    final eventData =
+        parameters[DtdParameters.eventData].asMap.cast<String, Object?>();
+    final stream = parameters[DtdParameters.streamId].asString;
     dtd.streamManager.postEventHelper(stream, eventKind, eventData);
     return RPCResponses.success;
   }
@@ -199,10 +238,10 @@ class DTDClient extends Client {
   /// 'service': the name of the service that is being registered to.
   /// 'method': the name of the method that is being registered on the service.
   Map<String, Object?> _registerService(json_rpc.Parameters parameters) {
-    final serviceName = parameters['service'].asString;
-    final methodName = parameters['method'].asString;
-    final capabilities = parameters['capabilities'].exists
-        ? parameters['capabilities'].asMap.cast<String, Object?>()
+    final serviceName = parameters[DtdParameters.service].asString;
+    final methodName = parameters[DtdParameters.method].asString;
+    final capabilities = parameters[DtdParameters.capabilities].exists
+        ? parameters[DtdParameters.capabilities].asMap.cast<String, Object?>()
         : null;
 
     if (!_isValidServiceName(serviceName)) {
@@ -257,11 +296,31 @@ class DTDClient extends Client {
     // Send an event to inform other clients that this service method is
     // available.
     dtd.streamManager.postEventHelper(
-      DTDStreamManager.servicesStreamId,
-      DTDStreamManager.serviceRegisteredId,
-      _buildServiceRegisteredData(serviceName, methodName, capabilities),
+      CoreDtdServiceConstants.servicesStreamId,
+      CoreDtdServiceConstants.serviceRegisteredKind,
+      _buildServiceRegisteredData(
+        service: serviceName,
+        method: methodName,
+        capabilities: capabilities,
+      ),
     );
     return RPCResponses.success;
+  }
+
+  /// Returns a structured response with all the currently registered services
+  /// available on this DTD instance.
+  Map<String, Object?> _getRegisteredServices() {
+    final clientServices =
+        dtd.clientManager.clients.map((client) => client.services);
+    final combinedClientServices = {
+      // This will not create collisions because [_registerService] ensures
+      // the uniqueness of service methods across clients.
+      for (final servicesForClient in clientServices) ...servicesForClient,
+    };
+    return RegisteredServicesResponse(
+      dtdServices: _dtdRpcMethods.toList(),
+      clientServices: combinedClientServices.values.toList(),
+    ).toJson();
   }
 
   /// Cleans up when this client is disconnecting, before it is removed from the
@@ -271,23 +330,28 @@ class DTDClient extends Client {
       for (final method in service.methods.values) {
         // Notify other clients about this service going away.
         dtd.streamManager.postEventHelper(
-          DTDStreamManager.servicesStreamId,
-          DTDStreamManager.serviceUnregisteredId,
+          CoreDtdServiceConstants.servicesStreamId,
+          CoreDtdServiceConstants.serviceUnregisteredKind,
           _buildServiceUnregisteredData(service.name, method.name),
         );
       }
     }
   }
 
-  Map<String, Object?> _buildServiceRegisteredData(
-    String service,
-    String method,
+  /// Builds a structured object describing a service method that is being
+  /// registered on DTD.
+  ///
+  /// [service] may be null if this service method is a first party service
+  /// method registered by DTD or by an internal service.
+  Map<String, Object?> _buildServiceRegisteredData({
+    required String? service,
+    required String method,
     Map<String, Object?>? capabilities,
-  ) {
+  }) {
     return {
-      'service': service,
-      'method': method,
-      if (capabilities != null) 'capabilities': capabilities,
+      if (service != null) DtdParameters.service: service,
+      DtdParameters.method: method,
+      if (capabilities != null) DtdParameters.capabilities: capabilities,
     };
   }
 
@@ -296,8 +360,8 @@ class DTDClient extends Client {
     String method,
   ) {
     return {
-      'service': service,
-      'method': method,
+      DtdParameters.service: service,
+      DtdParameters.method: method,
     };
   }
 
@@ -356,6 +420,13 @@ class DTDClient extends Client {
     void Function(json_rpc.Parameters parameters) callback,
   ) {
     final combinedName = '$service.$method';
-    _clientPeer.registerMethod(combinedName, callback);
+    _registerDtdMethod(combinedName, callback);
+  }
+
+  /// A helper method for registering a service method on DTD and adding the
+  /// service method to the [_dtdRpcMethods] set.
+  void _registerDtdMethod(String method, Function callback) {
+    _dtdRpcMethods.add(method);
+    _clientPeer.registerMethod(method, callback);
   }
 }

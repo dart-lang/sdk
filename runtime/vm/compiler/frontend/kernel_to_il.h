@@ -277,7 +277,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment BuildImplicitClosureCreation(TokenPosition position,
                                         const Function& target);
 
-  Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckAssignable(

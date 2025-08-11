@@ -15,14 +15,20 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/inference/'
-          'inferred_type_arguments/data'));
-  return runTests<List<DartType>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _InferredTypeArgumentsDataComputer(), [analyzerDefaultConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/inference/'
+      'inferred_type_arguments/data',
+    ),
+  );
+  return runTests<List<DartType>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _InferredTypeArgumentsDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
@@ -36,8 +42,11 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
   bool get supportsErrors => true;
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<List<DartType>>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<List<DartType>>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _InferredTypeArgumentsDataExtractor(unitUri, actualMap).run(unit);
   }

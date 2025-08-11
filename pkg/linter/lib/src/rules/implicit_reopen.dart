@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -15,17 +18,14 @@ class ImplicitReopen extends LintRule {
     : super(
         name: LintNames.implicit_reopen,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.implicit_reopen;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implicit_reopen;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
@@ -38,19 +38,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   void checkElement(
-    InterfaceElement2? element,
+    InterfaceElement? element,
     NamedCompilationUnitMember node, {
     required String type,
   }) {
-    if (element is! ClassElement2) return;
-    if (element.metadata2.hasReopen) return;
+    if (element is! ClassElement) return;
+    if (element.metadata.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
-    var library = element.library2;
-    var supertype = element.supertype?.element3;
-    if (supertype is! ClassElement2) return;
-    if (supertype.library2 != library) return;
+    var library = element.library;
+    var supertype = element.supertype?.element;
+    if (supertype is! ClassElement) return;
+    if (supertype.library != library) return;
 
     if (element.isBase) {
       if (supertype.isFinal) {
@@ -89,14 +89,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   void reportLint(
     NamedCompilationUnitMember member, {
     required String type,
-    required InterfaceElement2 target,
-    required InterfaceElement2 other,
+    required InterfaceElement target,
+    required InterfaceElement other,
     required String reason,
   }) {
-    var targetName = target.name3;
-    var otherName = other.name3;
+    var targetName = target.name;
+    var otherName = other.name;
     if (targetName != null && otherName != null) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         member.name,
         arguments: [type, targetName, otherName, reason],
       );
@@ -114,6 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on ClassElement2 {
+extension on ClassElement {
   bool get hasNoModifiers => !isInterface && !isBase && !isSealed && !isFinal;
 }

@@ -24,7 +24,7 @@ main() {
   // [cfe] Expected '(' after this.
   //               ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
+  // [cfe] The method 'baz' isn't defined for the type 'Foo<int>'.
   new Foo.bar<int>();
   //      ^
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
@@ -58,7 +58,7 @@ main() {
   // [cfe] Expected '(' after this.
   //                 ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
+  // [cfe] The method 'baz' isn't defined for the type 'Foo<int>'.
   const Foo.bar<int>();
   //        ^
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
@@ -82,13 +82,13 @@ main() {
   Foo.bar.baz();
 //        ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] The method 'baz' isn't defined for the class 'Foo<X> Function<X>()'.
+// [cfe] The method 'baz' isn't defined for the type 'Foo<X> Function<X>()'.
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'baz' isn't defined for the class 'Foo<int> Function()'.
+  // [cfe] The method 'baz' isn't defined for the type 'Foo<int> Function()'.
   Foo.bar<int>();
   //  ^
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
@@ -101,5 +101,5 @@ main() {
   Foo.bar.baz<int>();
 //        ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] The method 'baz' isn't defined for the class 'Foo<X> Function<X>()'.
+// [cfe] The method 'baz' isn't defined for the type 'Foo<X> Function<X>()'.
 }

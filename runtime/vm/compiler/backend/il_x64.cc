@@ -2442,8 +2442,11 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
+  const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      can_call_to_throw ? LocationSummary::kCallOnSlowPath
+                                        : LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterLocation(kWriteBarrierValueReg));
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
@@ -2454,6 +2457,40 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
 
   compiler->used_static_fields().Add(&field());
+
+  if (FLAG_experimental_shared_data) {
+    if (!field().is_shared()) {
+      // Ensure non-shared fields are accessed with dart isolate
+      auto slow_path = new FieldAccessErrorSlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ LoadIsolate(temp);
+      __ BranchIfZero(temp, slow_path->entry_label());
+    } else {
+      // TODO(dartbug.com/61078): use field static type information to decide
+      // whether the following value check is needed or not.
+      auto throw_if_cant_be_shared_slow_path =
+          new ThrowIfValueCantBeSharedSlowPath(this, value);
+      compiler->AddSlowPathCode(throw_if_cant_be_shared_slow_path);
+
+      compiler::Label allow_store;
+      __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
+      __ movq(temp, compiler::FieldAddress(
+                        value, compiler::target::Object::tags_offset()));
+      __ testq(temp, compiler::Immediate(
+                         1 << compiler::target::UntaggedObject::kImmutableBit));
+      __ j(NOT_ZERO, &allow_store, compiler::Assembler::kNearJump);
+
+      // Allow TypedData because they contain non-structural mutable state.
+      __ LoadClassId(temp, value);
+      __ CompareImmediate(temp, kFirstTypedDataCid);
+      __ BranchIf(LESS, throw_if_cant_be_shared_slow_path->entry_label());
+      __ CompareImmediate(temp, kLastTypedDataCid);
+      __ BranchIf(GREATER, throw_if_cant_be_shared_slow_path->entry_label());
+
+      __ Bind(&allow_store);
+    }
+  }
 
   __ movq(temp,
           compiler::Address(

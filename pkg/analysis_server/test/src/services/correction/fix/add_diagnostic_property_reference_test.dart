@@ -158,6 +158,9 @@ class D extends Widget with Diagnosticable {
 @reflectiveTest
 class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   @override
+  bool get addVectorMathPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
 
   @override
@@ -515,7 +518,7 @@ class C extends Widget with Diagnosticable {
   }
 
   Future<void> test_matrix4Field() async {
-    writeTestPackageConfig(flutter: true, vector_math: true);
+    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -656,7 +659,8 @@ class C extends Widget with Diagnosticable {
 }
 ''',
       errorFilter:
-          (error) => error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+          (error) =>
+              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
     );
   }
 
@@ -690,7 +694,8 @@ class C extends Widget with Diagnosticable {
 }
 ''',
       errorFilter:
-          (error) => error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+          (error) =>
+              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
     );
   }
 

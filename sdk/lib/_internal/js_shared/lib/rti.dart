@@ -18,7 +18,7 @@ import 'dart:_foreign_helper'
         RAW_DART_FUNCTION_REF,
         TYPE_REF;
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray, JSObject;
 import 'dart:_js_helper'
     as records
     show createRecordTypePredicate, getRtiForRecord;
@@ -84,12 +84,12 @@ class Rti {
     rti._is = fn;
   }
 
-  @pragma('dart2js:tryInline')
+  @pragma('dart2js:prefer-inline')
   static Object? _asCheck(Rti rti, Object? object) {
     return JS('', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), object);
   }
 
-  @pragma('dart2js:tryInline')
+  @pragma('dart2js:prefer-inline')
   static bool _isCheck(Rti rti, Object? object) {
     return JS(
       'bool',
@@ -549,10 +549,9 @@ Rti? instantiatedGenericFunctionType(
   // instantiation appears to be an interface type instead.
   if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
-  var typeArguments =
-      JS_GET_FLAG('DEV_COMPILER')
-          ? Rti._getBindingArguments(instantiationRti)
-          : Rti._getInterfaceTypeArguments(instantiationRti);
+  var typeArguments = JS_GET_FLAG('DEV_COMPILER')
+      ? Rti._getBindingArguments(instantiationRti)
+      : Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
 
   var cache = Rti._getBindCache(genericFunctionRti);
@@ -981,7 +980,7 @@ Rti _instanceType(Object? object) {
 
 String instanceTypeName(Object? object) {
   Rti rti = instanceType(object);
-  return _rtiToString(rti, null);
+  return rtiToString(rti);
 }
 
 Rti _instanceTypeFromConstructor(Object? instance) {
@@ -1011,14 +1010,13 @@ Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
     //
     // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
     // prototype of Closure/BoundClosure/StaticClosure classes?
-    var effectiveConstructor =
-        _isClosure(instance)
-            ? JS(
-              '',
-              'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
-              instance,
-            )
-            : constructor;
+    var effectiveConstructor = _isClosure(instance)
+        ? JS(
+            '',
+            'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
+            instance,
+          )
+        : constructor;
     rti = _Universe.findErasedType(
       _theUniverse(),
       JS('String', '#.name', effectiveConstructor),
@@ -1169,7 +1167,7 @@ class _Type implements Type {
   }
 
   @override
-  String toString() => _rtiToString(_rti, null);
+  String toString() => rtiToString(_rti);
 }
 
 Rti _getTypeRti(Type type) => _Utils.as_Type(type)._rti;
@@ -1217,36 +1215,35 @@ bool _installSpecializedIsTest(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
+  final isFn = _specializedIsTest(testRti);
+  Rti._setIsTestFunction(testRti, isFn);
+  return Rti._isCheck(testRti, object);
+}
 
-  if (isObjectType(testRti)) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isObject));
-  }
-  if (isTopType(testRti)) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
-  }
+/// Returns a raw function reference for a specialized `_is` test. Also installs
+/// 'resources' on [testRti] if the specialized function needs additional data
+/// to perform the test.
+Object? _specializedIsTest(Rti testRti) {
+  if (isObjectType(testRti)) return RAW_DART_FUNCTION_REF(_isObject);
+
+  if (isTopType(testRti)) return RAW_DART_FUNCTION_REF(_isTop);
 
   int kind = Rti._getKind(testRti);
 
   if (kind == Rti.kindQuestion) {
-    return _finishIsFn(
-      testRti,
-      object,
-      RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation),
-    );
+    return RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation);
   }
 
   if (kind == Rti.kindNever) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
+    return RAW_DART_FUNCTION_REF(_isNever);
   }
 
   if (kind == Rti.kindFutureOr) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
+    return RAW_DART_FUNCTION_REF(_isFutureOr);
   }
 
-  var isFn = _simpleSpecializedIsTest(testRti);
-  if (isFn != null) {
-    return _finishIsFn(testRti, object, isFn);
-  }
+  final simpleIsFn = _simpleSpecializedIsTest(testRti);
+  if (simpleIsFn != null) return simpleIsFn;
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(testRti);
@@ -1256,61 +1253,50 @@ bool _installSpecializedIsTest(Object? object) {
     // TODO(sra): Can we easily recognize other interface types instantiated to
     // bounds?
     if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-      Object propertyName =
-          JS_GET_FLAG('DEV_COMPILER')
-              // DDC uses a JavaScript symbol when tagging the type to hide them
-              // on native types.
-              ? getSpecializedTestTag(name)
-              : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Object propertyName = JS_GET_FLAG('DEV_COMPILER')
+          // DDC uses a JavaScript symbol when tagging the type to hide them
+          // on native types.
+          ? getSpecializedTestTag(name)
+          : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
       if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
-        return _finishIsFn(
-          testRti,
-          object,
-          RAW_DART_FUNCTION_REF(_isListTestViaProperty),
-        );
+        return RAW_DART_FUNCTION_REF(_isListTestViaProperty);
       }
-      return _finishIsFn(
-        testRti,
-        object,
-        RAW_DART_FUNCTION_REF(_isTestViaProperty),
-      );
+      if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
+        return RAW_DART_FUNCTION_REF(_isJSObject);
+      }
+      return RAW_DART_FUNCTION_REF(_isTestViaProperty);
     }
+
     // fall through to general implementation.
   } else if (kind == Rti.kindRecord) {
-    isFn = _recordSpecializedIsTest(testRti);
-    return _finishIsFn(testRti, object, isFn);
+    return _recordSpecializedIsTest(testRti);
   }
-  return _finishIsFn(
-    testRti,
-    object,
-    RAW_DART_FUNCTION_REF(_generalIsTestImplementation),
-  );
-}
-
-@pragma('dart2js:noInline') // Slightly smaller code.
-bool _finishIsFn(Rti testRti, Object? object, Object? isFn) {
-  Rti._setIsTestFunction(testRti, isFn);
-  return Rti._isCheck(testRti, object);
+  return RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
 }
 
 Object? _simpleSpecializedIsTest(Rti testRti) {
   // Note: We must not match `Never` below.
-  var isFn = null;
-  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isInt);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>()) ||
-      _Utils.isIdentical(testRti, TYPE_REF<num>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isNum);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isString);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isBool);
+  int kind = Rti._getKind(testRti);
+  if (kind == Rti.kindInterface) {
+    if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+      return RAW_DART_FUNCTION_REF(_isInt);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<double>()) ||
+        _Utils.isIdentical(testRti, TYPE_REF<num>())) {
+      return RAW_DART_FUNCTION_REF(_isNum);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+      return RAW_DART_FUNCTION_REF(_isString);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+      return RAW_DART_FUNCTION_REF(_isBool);
+    }
   }
-  return isFn;
+  return null;
 }
 
-Object? _recordSpecializedIsTest(Rti testRti) {
+Object _recordSpecializedIsTest(Rti testRti) {
   final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
   final fieldRtis = Rti._getRecordFields(testRti);
   final predicate = records.createRecordTypePredicate(
@@ -1328,7 +1314,12 @@ Object? _installSpecializedAsCheck(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
+  final asFn = _specializedAsCheck(testRti);
+  Rti._setAsCheckFunction(testRti, asFn);
+  return Rti._asCheck(testRti, object);
+}
 
+Object? _specializedAsCheck(Rti testRti) {
   var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
   if (isTopType(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_asTop);
@@ -1336,31 +1327,35 @@ Object? _installSpecializedAsCheck(Object? object) {
     asFn = RAW_DART_FUNCTION_REF(_asObject);
   } else if (isNullable(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
+    if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asIntQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asStringQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNumQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asJSObjectQ);
+    }
+  } else {
+    if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asInt);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asString);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBool);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNum);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDouble);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asJSObject);
+    }
   }
-  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asInt);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asIntQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asString);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asStringQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asBool);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asNum);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asNumQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asDouble);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
-  }
-
-  Rti._setAsCheckFunction(testRti, asFn);
-  return Rti._asCheck(testRti, object);
+  return asFn;
 }
 
 /// Called from generated code.
@@ -1435,6 +1430,61 @@ bool _isListTestViaProperty(Object? object) {
   return JS('bool', '!!#[#]', interceptor, tag);
 }
 
+/// Specialized test for JSObject that avoids the uncached interceptor for plain
+/// JavaScript objects.
+///
+/// Based on [_isTestViaProperty] to handle mocks and fakes defined in Dart.
+bool _isJSObject(Object? object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  if (object == null) return false;
+  if (JS('bool', 'typeof # == "object"', object)) {
+    if (_isDartObject(object)) {
+      // This path includes dart2js functions which are objects that extend
+      // `Closure`.
+      //
+      // Some Dart objects implement a subtype of JSObject, e.g. a Mock that
+      // implements Window from `dart:html`. This test would be unnecessary of
+      // the only form of js_interop was `dart:js_interop`.
+      var tag = Rti._getSpecializedTestResource(testRti);
+      return JS('bool', '!!#[#]', object, tag);
+    }
+    return true;
+  }
+  if (JS('bool', 'typeof # == "function"', object)) {
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // DDC functions are JavaScript functions, but have a signature attached.
+      var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+      var signature = JS('', '#[#]', object, signatureName);
+      return signature == null;
+    }
+    return true;
+  }
+  return false;
+}
+
+/// A version of _isJSObject that does not need to be attached to an Rti `_is`
+/// method. The Rti is needed on the uncommon slow path (Dart mocks and fakes of
+/// interp objects), so this method falls back to using a full `is JSObject`
+/// expression, with some duplicated work on the uncommon paths.
+bool _isJSObjectStandalone(Object? object) {
+  // Keep the control flow here matching `_isJSObject`.
+  if (JS('bool', 'typeof # == "object"', object)) {
+    if (_isDartObject(object)) {
+      return object is JSObject;
+    }
+    return true;
+  }
+  if (JS('bool', 'typeof # == "function"', object)) {
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      return object is JSObject;
+    }
+    return true;
+  }
+  return false;
+}
+
 /// General unspecialized 'as' check that works for any type.
 /// Called from generated code.
 @pragma('dart2js:stack-starts-at-throw')
@@ -1467,7 +1517,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 _TypeError _errorForAsCheck(Object? object, Rti testRti) {
-  String message = _Error.compose(object, _rtiToString(testRti, null));
+  String message = _Error.compose(object, rtiToString(testRti));
   return _TypeError.fromMessage(message);
 }
 
@@ -1477,7 +1527,7 @@ Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
   if (isSubtype(_theUniverse(), type, bound)) return type;
   String message =
       "The type argument '${_rtiToString(type, null)}' is not"
-      " a subtype of the type variable bound '${_rtiToString(bound, null)}'"
+      " a subtype of the type variable bound '${rtiToString(bound)}'"
       " of type variable '$variable' in '$methodName'.";
   throw _TypeError.fromMessage(message);
 }
@@ -1496,7 +1546,7 @@ class _Error extends Error {
   static String compose(Object? object, String checkedTypeDescription) {
     String objectDescription = Error.safeToString(object);
     Rti objectRti = _structuralTypeOf(object);
-    String objectTypeDescription = _rtiToString(objectRti, null);
+    String objectTypeDescription = rtiToString(objectRti);
     return "${objectDescription}:"
         " type '${objectTypeDescription}'"
         " is not a subtype of type '${checkedTypeDescription}'";
@@ -1676,6 +1726,23 @@ String? _asStringQ(dynamic object) {
   throw _TypeError.forType(object, 'String?');
 }
 
+/// Specialization for 'as JSObject'.
+/// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
+JSObject _asJSObject(Object? object) {
+  if (_isJSObjectStandalone(object)) return _Utils.asJSObject(object);
+  throw _TypeError.forType(object, 'JSObject');
+}
+
+/// Specialization for 'as JSObject?'.
+/// Called from generated code.
+@pragma('dart2js:stack-starts-at-throw')
+JSObject? _asJSObjectQ(Object? object) {
+  if (object == null) return _Utils.asNull(object);
+  if (_isJSObjectStandalone(object)) return _Utils.asJSObject(object);
+  throw _TypeError.forType(object, 'JSObject?');
+}
+
 String _rtiArrayToString(Object? array, List<String>? genericContext) {
   String s = '', sep = '';
   for (int i = 0; i < _Utils.arrayLength(array); i++) {
@@ -1829,10 +1896,6 @@ String _functionRtiToString(
 }
 
 /// Returns a human readable version of [rti].
-///
-/// The result is equivalent to `createRuntimeType(rti).toString()`.
-///
-/// Called by the DDC runtime library for type error messages.
 String rtiToString(Object rti) => _rtiToString(_Utils.asRti(rti), null);
 
 String _rtiToString(Rti rti, List<String>? genericContext) {
@@ -2490,10 +2553,9 @@ class _Universe {
     for (int i = 0; i < length; i += 3) {
       String name = _Utils.asString(_Utils.arrayAt(arguments, i));
       bool isRequired = _Utils.asBool(_Utils.arrayAt(arguments, i + 1));
-      String nameSep =
-          isRequired
-              ? Recipe.requiredNameSeparatorString
-              : Recipe.nameSeparatorString;
+      String nameSep = isRequired
+          ? Recipe.requiredNameSeparatorString
+          : Recipe.nameSeparatorString;
       Rti type = _Utils.asRti(_Utils.arrayAt(arguments, i + 2));
       String subrecipe = Rti._getCanonicalRecipe(type);
       s = _recipeJoin5(s, sep, name, nameSep, subrecipe);
@@ -3795,10 +3857,9 @@ bool _areArgumentsSubtypes(
     Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
     Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
     if (JS_GET_FLAG("VARIANCE")) {
-      int sVariance =
-          hasVariances
-              ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
-              : Variance.legacyCovariant;
+      int sVariance = hasVariances
+          ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
+          : Variance.legacyCovariant;
       switch (sVariance) {
         case Variance.legacyCovariant:
         case Variance.covariant:
@@ -3901,6 +3962,7 @@ class _Utils {
   static Rti asRti(Object? s) => JS('Rti', '#', s);
   static Rti? asRtiOrNull(Object? s) => JS('Rti|Null', '#', s);
   static _Type as_Type(Object? o) => JS('_Type', '#', o);
+  static JSObject asJSObject(Object? o) => JS('', '#', o);
 
   static bool isString(Object? o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object? o) => JS('bool', 'typeof # == "number"', o);
@@ -3930,10 +3992,9 @@ class _Utils {
   static void objectDelete(Object? o, Object? property) =>
       JS('', 'delete #[#]', o, property);
 
-  static Object? newArrayOrEmpty(int length) =>
-      length > 0
-          ? JS('', 'new Array(#)', length)
-          : _Universe.sharedEmptyArray(_theUniverse());
+  static Object? newArrayOrEmpty(int length) => length > 0
+      ? JS('', 'new Array(#)', length)
+      : _Universe.sharedEmptyArray(_theUniverse());
 
   static bool isArray(Object? o) => JS('bool', 'Array.isArray(#)', o);
 

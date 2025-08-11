@@ -4,7 +4,8 @@
 
 void promotes_nullability(int? x) {
   if (x is int) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }

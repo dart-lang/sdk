@@ -122,6 +122,10 @@ declare_args() {
   # Compile for Address Sanitizer to find memory bugs.
   is_asan = false
 
+  # Compile with HWAddress Sanitizer to find memory bugs.
+  # Requires ARM64 hardware
+  is_hwasan = false
+
   # Compile for Leak Sanitizer to find leaks.
   is_lsan = false
 
@@ -173,6 +177,7 @@ if (current_os == "win") {
   is_mac = false
   is_nacl = false
   is_posix = false
+  is_watchos = false
   is_win = true
 } else if (current_os == "mac") {
   is_android = false
@@ -183,6 +188,7 @@ if (current_os == "win") {
   is_mac = true
   is_nacl = false
   is_posix = true
+  is_watchos = false
   is_win = false
 } else if (current_os == "android") {
   is_android = true
@@ -193,6 +199,7 @@ if (current_os == "win") {
   is_mac = false
   is_nacl = false
   is_posix = true
+  is_watchos = false
   is_win = false
 } else if (current_os == "linux") {
   is_android = false
@@ -203,6 +210,7 @@ if (current_os == "win") {
   is_mac = false
   is_nacl = false
   is_posix = true
+  is_watchos = false
   is_win = false
 } else if (current_os == "fuchsia") {
   is_android = false
@@ -213,6 +221,7 @@ if (current_os == "win") {
   is_mac = false
   is_nacl = false
   is_posix = true
+  is_watchos = false
   is_win = false
 } else if (current_os == "ios") {
   is_android = false
@@ -223,6 +232,23 @@ if (current_os == "win") {
   is_mac = false
   is_nacl = false
   is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "watchos") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+
+  # watchOS and iOS are similar enough, so almost all codepaths in
+  # BUILD files are the same for watchOS and iOS. Additionally,
+  # BUILD.gn zlib file doesn't support `is_watchos`, but works fine
+  # with `is_ios`.
+  is_ios = true
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = true
   is_win = false
 }
 
@@ -230,7 +256,8 @@ if (current_os == "win") {
 # BUILD OPTIONS
 # =============================================================================
 
-use_flutter_cxx = is_clang && (is_msan || is_tsan || is_ios)
+use_flutter_cxx =
+    is_clang && ((is_asan && is_mac) || is_msan || is_tsan || is_ios)
 
 # =============================================================================
 # TARGET DEFAULTS
@@ -441,17 +468,19 @@ if (is_win) {
   host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
   set_default_toolchain("//build/toolchain/mac:clang_$current_cpu")
 } else if (is_ios) {
-  import("//build/config/ios/ios_sdk.gni")  # For use_ios_simulator
+  import("//build/config/ios/ios_sdk.gni")  # For use_simulator
   host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
-  if (use_ios_simulator) {
-    if (target_cpu == "arm64") {
-      set_default_toolchain("//build/toolchain/mac:ios_clang_arm64_sim")
-    } else {
-      set_default_toolchain("//build/toolchain/mac:ios_clang_x64_sim")
-    }
+  toolchain_target = "clang"
+  if (is_watchos) {
+    toolchain_target = "watchos_$toolchain_target"
   } else {
-    set_default_toolchain("//build/toolchain/mac:ios_clang_arm64")
+    toolchain_target = "ios_$toolchain_target"
   }
+  toolchain_target = "${toolchain_target}_$target_cpu"
+  if (use_simulator) {
+    toolchain_target = "${toolchain_target}_sim"
+  }
+  set_default_toolchain("//build/toolchain/mac:$toolchain_target")
 } else if (is_fuchsia) {
   assert(host_cpu == "x64")
   if (host_os == "linux") {
@@ -550,7 +579,8 @@ if (!is_shared_library) {
 
       output_prefix = "lib"
       if (!defined(output_extension)) {
-        if (current_os == "mac" || current_os == "ios") {
+        if (current_os == "mac" || current_os == "ios" ||
+            current_os == "watchos") {
           output_extension = "dylib"
         } else if (current_os == "win") {
           output_extension = "dll"

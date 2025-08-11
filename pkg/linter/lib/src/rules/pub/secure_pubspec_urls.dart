@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
+import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../../analyzer.dart';
 
@@ -13,10 +14,10 @@ class SecurePubspecUrls extends LintRule {
     : super(name: LintNames.secure_pubspec_urls, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.secure_pubspec_urls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.secure_pubspec_urls;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
@@ -25,52 +26,52 @@ class Visitor extends PubspecVisitor<void> {
   Visitor(this.rule);
 
   @override
-  void visitPackageDependencies(PSDependencyList dependencies) {
+  void visitPackageDependencies(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
+  void visitPackageDependencyOverrides(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDevDependencies(PSDependencyList dependencies) {
+  void visitPackageDevDependencies(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDocumentation(PSEntry documentation) {
+  void visitPackageDocumentation(PubspecEntry documentation) {
     _checkUrl(documentation.value);
   }
 
   @override
-  void visitPackageHomepage(PSEntry homepage) {
+  void visitPackageHomepage(PubspecEntry homepage) {
     _checkUrl(homepage.value);
   }
 
   @override
-  void visitPackageIssueTracker(PSEntry issueTracker) {
+  void visitPackageIssueTracker(PubspecEntry issueTracker) {
     _checkUrl(issueTracker.value);
   }
 
   @override
-  void visitPackageRepository(PSEntry repository) {
+  void visitPackageRepository(PubspecEntry repository) {
     _checkUrl(repository.value);
   }
 
-  void _checkUrl(PSNode? node) {
+  void _checkUrl(PubspecNode? node) {
     if (node == null) return;
     var text = node.text;
     if (text != null) {
       var uri = Uri.tryParse(text);
       if (uri != null && (uri.isScheme('http') || uri.isScheme('git'))) {
-        rule.reportPubLint(node, arguments: [uri.scheme]);
+        rule.reportAtPubNode(node, arguments: [uri.scheme]);
       }
     }
   }
 
-  void _visitDeps(PSDependencyList dependencies) {
+  void _visitDeps(PubspecDependencyList dependencies) {
     for (var dep in dependencies) {
       _checkUrl(dep.git?.url?.value);
       _checkUrl(dep.host?.url?.value);

@@ -45,9 +45,9 @@ class Class extends self::Super {
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
-  abstract method extendedMethod1(core::num n) → void;
-  abstract method extendedMethod2(core::int i) → void;
+  abstract erroneous method extendedMethod1(core::num n) → void;
+  abstract erroneous method extendedMethod2(core::int i) → void;
   method overriddenMethod1(core::num n) → void {}
-  method overriddenMethod2(core::int n) → void {}
+  erroneous method overriddenMethod2(core::int n) → void {}
 }
 static method main() → dynamic {}

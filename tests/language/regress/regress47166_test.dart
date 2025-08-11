@@ -41,9 +41,10 @@ void main() {
   log5 = triggerTheProblem(true);
   log6 = g(); // Use 'g'.
   Expect.equals(
-      'log1=0 log2=100 log3=100 log4=100 log5=100 log6=100',
-      'log1=$log1 log2=$log2 log3=$log3 log4=$log4 log5=$log5 log6=$log6',
-      'throwing');
+    'log1=0 log2=100 log3=100 log4=100 log5=100 log6=100',
+    'log1=$log1 log2=$log2 log3=$log3 log4=$log4 log5=$log5 log6=$log6',
+    'throwing',
+  );
 
   // Run the test with 'doThrow' being false to avoid any confounding
   // optimizations due to constant propagation.
@@ -51,7 +52,8 @@ void main() {
   log5 = triggerTheProblem(false);
   log6 = g(); // Use 'g'.
   Expect.equals(
-      'log1=1 log2=0 log3=1 log4=1 log5=1 log6=1',
-      'log1=$log1 log2=$log2 log3=$log3 log4=$log4 log5=$log5 log6=$log6',
-      'not throwing');
+    'log1=1 log2=0 log3=1 log4=1 log5=1 log6=1',
+    'log1=$log1 log2=$log2 log3=$log3 log4=$log4 log5=$log5 log6=$log6',
+    'not throwing',
+  );
 }

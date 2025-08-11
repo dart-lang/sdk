@@ -33,10 +33,10 @@ main() async {
   var out = find(Platform.executable, ["out", "xcodebuild"]);
   var targetFlag = {
     "MSAN": "--target_memory_sanitizer",
-    "TSAN": "--target_thread_sanitizer"
+    "TSAN": "--target_thread_sanitizer",
   }[sanitizer]!;
 
-  var nonePlatform = "$out/$mode$arch/vm_platform_strong.dill";
+  var nonePlatform = "$out/$mode$arch/vm_platform.dill";
   var noneGenSnapshot = "$out/$mode$arch/gen_snapshot";
   var noneJitRuntime = "$out/$mode$arch/dart";
   var noneAotRuntime = "$out/$mode$arch/dartaotruntime";
@@ -62,18 +62,24 @@ main() async {
       "--aot",
       "-o",
       aotDill,
-      "tests/language/unsorted/first_test.dart"
+      "tests/language/unsorted/first_test.dart",
     ]);
 
-    await run(noneGenSnapshot,
-        ["--snapshot-kind=app-aot-elf", "--elf=$noneElf", aotDill]);
-    await run(sanitizerGenSnapshot,
-        ["--snapshot-kind=app-aot-elf", "--elf=$sanitizerElf", aotDill]);
+    await run(noneGenSnapshot, [
+      "--snapshot-kind=app-aot-elf",
+      "--elf=$noneElf",
+      aotDill,
+    ]);
+    await run(sanitizerGenSnapshot, [
+      "--snapshot-kind=app-aot-elf",
+      "--elf=$sanitizerElf",
+      aotDill,
+    ]);
     await run(noneGenSnapshot, [
       "--snapshot-kind=app-aot-elf",
       "--elf=$sanitizerElf2",
       targetFlag,
-      aotDill
+      aotDill,
     ]);
 
     await run(noneAotRuntime, [noneElf]);

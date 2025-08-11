@@ -37,13 +37,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -55,15 +55,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_missingRequiredArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>({required T x, required T y}) {}
 
 f() {
   foo(x: 1);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -80,7 +81,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: x
             element: ParameterMember
-              baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+              baseElement: <testLibrary>::@function::foo::@formalParameter::x
               substitution: {T: int}
             staticType: null
           colon: :
@@ -88,7 +89,7 @@ MethodInvocation
           literal: 1
           staticType: int
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: void Function({required int x, required int y})
@@ -99,16 +100,22 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_notEnoughPositionalArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1);
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
-          39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          39,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -123,7 +130,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -135,15 +142,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_tooManyPositionalArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, 3);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -158,13 +166,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
       IntegerLiteral
@@ -180,15 +188,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_undefinedNamedParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, z: 3);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -203,13 +212,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
       NamedExpression

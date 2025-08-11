@@ -4,10 +4,12 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -22,13 +24,11 @@ class AvoidRenamingMethodParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_renaming_method_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_renaming_method_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
@@ -40,13 +40,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final InheritanceManager3 inheritanceManager;
-
   final LintRule rule;
 
-  _Visitor(this.rule, LinterContext context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables),
-      inheritanceManager = context.inheritanceManager;
+  _Visitor(this.rule, RuleContext context)
+    : _wildCardVariablesEnabled = context.isFeatureEnabled(
+        Feature.wildcard_variables,
+      );
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
@@ -70,13 +69,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parentElement = parentNode.declaredFragment?.element;
 
       // Note: there are no override semantics with extension methods.
-      if (parentElement is! InterfaceElement2) return;
+      if (parentElement is! InterfaceElement) return;
       if (parentElement.isPrivate) return;
 
-      var parentMethod = inheritanceManager.getMember4(
-        parentElement,
-        Name(parentElement.library2.uri, node.name.lexeme),
-        forSuper: true,
+      var parentMethod = parentElement.getInheritedConcreteMember(
+        Name(parentElement.library.uri, node.name.lexeme),
       );
       if (parentMethod == null) return;
 
@@ -94,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
 
-      var parentParameterName = parentParameters[i].name3;
+      var parentParameterName = parentParameters[i].name;
       if (parentParameterName == null ||
           isWildcardIdentifier(parentParameterName)) {
         continue;
@@ -107,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (isWildcardIdentifier(paramLexeme)) continue;
 
       if (paramLexeme != parentParameterName) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           parameterName,
           arguments: [paramLexeme, parentParameterName],
         );

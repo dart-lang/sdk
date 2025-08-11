@@ -5,16 +5,19 @@
 library function_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/code_ref.dart';
 import 'package:observatory/src/elements/field_ref.dart';
-import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -100,41 +103,42 @@ class FunctionViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
+    setChildren(<HTMLElement>[
       navBar(_createMenu()),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Function ${_function.name}',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()
+            ..textContent = 'Function ${_function.name}',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _function, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new BRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _createMembers(),
-          new HRElement(),
-          new DivElement()
-            ..children = _function.location == null
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(_createMembers()),
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..appendChildren(_function.location == null
                 ? const []
                 : [
                     new SourceInsetElement(_isolate, _function.location!,
                             _scripts, _objects, _events,
                             queue: _r.queue)
                         .element
-                  ],
-        ]
-    ];
+                  ]),
+        ])
+    ]);
   }
 
-  List<Element> _createMenu() {
-    final menu = <Element>[
+  List<HTMLElement> _createMenu() {
+    final menu = <HTMLElement>[
       new NavTopMenuElement(queue: _r.queue).element,
       new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
@@ -148,7 +152,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
               queue: _r.queue)
           .element);
     }
-    menu.addAll(<Element>[
+    menu.addAll(<HTMLElement>[
       navMenu(_function.name!),
       (new NavRefreshElement(queue: _r.queue)
             ..onRefresh.listen((e) {
@@ -161,197 +165,197 @@ class FunctionViewElement extends CustomElement implements Renderable {
     return menu;
   }
 
-  List<Element> _createMembers() {
-    final members = <Element>[
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'kind',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
-              new SpanElement()
-                ..text = '${_function.isStatic! ? "static " : ""}'
+  List<HTMLElement> _createMembers() {
+    final members = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'kind',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..textContent = '${_function.isStatic! ? "static " : ""}'
                     '${_function.isConst! ? "const " : ""}'
                     '${_functionKindToString(_function.kind)}'
-            ]
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'owner',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+            ])
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'owner',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               _function.dartOwner == null
-                  ? (new SpanElement()..text = '...')
+                  ? (new HTMLSpanElement()..textContent = '...')
                   : anyRef(_isolate, _function.dartOwner, _objects,
                       queue: _r.queue)
-            ]
-        ]
+            ])
+        ])
     ];
     if (_function.field != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'script',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'script',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               new FieldRefElement(_isolate, _function.field!, _objects,
                       queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
-    members.add(new DivElement()
-      ..classes = ['memberItem']
-      ..children = <Element>[
-        new DivElement()
-          ..classes = ['memberName']
-          ..text = 'script',
-        new DivElement()
-          ..classes = ['memberName']
-          ..children = <Element>[
+    members.add(new HTMLDivElement()
+      ..className = 'memberItem'
+      ..appendChildren(<HTMLElement>[
+        new HTMLDivElement()
+          ..className = 'memberName'
+          ..textContent = 'script',
+        new HTMLDivElement()
+          ..className = 'memberName'
+          ..appendChildren(<HTMLElement>[
             new SourceLinkElement(_isolate, _function.location!, _scripts,
                     queue: _r.queue)
                 .element
-          ]
-      ]);
+          ])
+      ]));
     if (_function.code != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'current code',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'current code',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               new CodeRefElement(_isolate, _function.code!, queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (_function.unoptimizedCode != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'unoptimized code',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'unoptimized code',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               new CodeRefElement(_isolate, _function.unoptimizedCode!,
                       queue: _r.queue)
                   .element,
-              new SpanElement()
+              new HTMLSpanElement()
                 ..title = 'This count is used to determine when a function '
                     'will be optimized.  It is a combination of call '
                     'counts and other factors.'
-                ..text = ' (usage count: ${function.usageCounter})'
-            ]
-        ]);
+                ..textContent = ' (usage count: ${function.usageCounter})'
+            ])
+        ]));
     }
-    members.add(new DivElement()
-      ..classes = ['memberItem']
-      ..text = ' ');
+    members.add(new HTMLDivElement()
+      ..className = 'memberItem'
+      ..textContent = ' ');
 
     if (_function.icDataArray != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'ic data array',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'ic data array',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               new InstanceRefElement(_isolate, _function.icDataArray!, _objects,
                       queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
 
     members.addAll([
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'deoptimizations',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = '${_function.deoptimizations}'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'optimizable',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.isOptimizable! ? 'yes' : 'no'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'inlinable',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.isInlinable! ? 'yes' : 'no'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'intrinsic',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.hasIntrinsic! ? 'yes' : 'no'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'recognized',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.isRecognized! ? 'yes' : 'no'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'native',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.isNative! ? 'yes' : 'no'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'vm name',
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _function.vmName
-        ]
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'deoptimizations',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = '${_function.deoptimizations}'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'optimizable',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.isOptimizable! ? 'yes' : 'no'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'inlinable',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.isInlinable! ? 'yes' : 'no'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'intrinsic',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.hasIntrinsic! ? 'yes' : 'no'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'recognized',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.isRecognized! ? 'yes' : 'no'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'native',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.isNative! ? 'yes' : 'no'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'vm name',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = _function.vmName ?? ''
+        ])
     ]);
     return members;
   }

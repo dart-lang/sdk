@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Introduce an aliased type.
 
 typedef T = Null;
@@ -12,8 +11,8 @@ typedef T = Null;
 abstract class C {
   final T v12;
 
-  C(): v12 = T();
-  //         ^
+  C() : v12 = T();
+  //          ^
   // [analyzer] unspecified
   // [cfe] unspecified
 
@@ -58,9 +57,9 @@ main() {
   Set<List<T>> v16 = v15;
   v15 = v16;
   T();
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+  //^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 
   T.named();
   //^^^^^

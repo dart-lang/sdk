@@ -15,10 +15,14 @@ typedef PthreadSelfFT = int Function();
 typedef PthreadSelfNFT = IntPtr Function();
 
 // int pthread_getschedparam(pthread_t thread, int *policy, struct sched_param *param);
-typedef GetSchedParamFT = int Function(
-    int self, Pointer<Int32> policy, Pointer<SchedParam> param);
-typedef GetSchedParamNFT = IntPtr Function(
-    IntPtr self, Pointer<Int32> policy, Pointer<SchedParam> param);
+typedef GetSchedParamFT =
+    int Function(int self, Pointer<Int32> policy, Pointer<SchedParam> param);
+typedef GetSchedParamNFT =
+    IntPtr Function(
+      IntPtr self,
+      Pointer<Int32> policy,
+      Pointer<SchedParam> param,
+    );
 
 final pthreadSelf = DynamicLibrary.process()
     .lookupFunction<PthreadSelfNFT, PthreadSelfFT>('pthread_self');

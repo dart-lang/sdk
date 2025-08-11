@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
 
@@ -33,6 +33,10 @@ class CompletionState {
   CompletionState(this.request, this.selection, this.budget, this.matcher)
     : assert(selection.length == 0);
 
+  /// The [CodeStyleOptions] used to format the completion text.
+  CodeStyleOptions get codeStyleOptions =>
+      request.fileState.analysisOptions.codeStyleOptions;
+
   /// The type of value required by the context in which completion was
   /// requested.
   DartType? get contextType => request.contextType;
@@ -44,8 +48,7 @@ class CompletionState {
   }
 
   /// Indicates if types should be specified whenever possible.
-  bool get includeTypes =>
-      request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
+  bool get includeTypes => codeStyleOptions.specifyTypes;
 
   /// The indentation for the completion text.
   String get indent => getRequestLineIndent(request);
@@ -58,15 +61,12 @@ class CompletionState {
   }
 
   /// The element of the library containing the completion location.
-  LibraryElement2 get libraryElement => request.libraryElement;
+  LibraryElement get libraryElement => request.libraryElement;
 
-  /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
+  /// The type of quotes preferred for [String]s as specified in
+  /// [CodeStyleOptions].
   String get preferredQuoteForStrings =>
-      request
-          .fileState
-          .analysisOptions
-          .codeStyleOptions
-          .preferredQuoteForStrings;
+      codeStyleOptions.preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.

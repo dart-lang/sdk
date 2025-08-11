@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dtd/dtd.dart';
-import 'package:dtd/src/unified_analytics_service.dart';
+import 'package:dtd/src/services/unified_analytics_service.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -16,7 +16,7 @@ void main() {
   // Use an arbitrary [DashTool] for testing.
   const tool = DashTool.devtools;
 
-  group(kUnifiedAnalyticsServiceName, () {
+  group(UnifiedAnalyticsServiceConstants.serviceName, () {
     setUp(() async {
       toolingDaemonProcess = ToolingDaemonTestProcess(unrestricted: false);
       await toolingDaemonProcess.start();
@@ -27,7 +27,7 @@ void main() {
       toolingDaemonProcess.kill();
     });
 
-    test('getConsentMessage', () async {
+    test(UnifiedAnalyticsServiceConstants.getConsentMessage, () async {
       final response = await client.analyticsGetConsentMessage(tool);
       expect(response.value, isNotNull);
       expect(response.value, contains('Google Analytics'));
@@ -37,13 +37,13 @@ void main() {
       );
     });
 
-    test('clientShowedMessage', () async {
+    test(UnifiedAnalyticsServiceConstants.clientShowedMessage, () async {
       // Verify this can be called without error.
       final response = await client.analyticsClientShowedMessage(tool);
       expect(response.value, isNull);
     });
 
-    test('shouldShowMessage', () async {
+    test(UnifiedAnalyticsServiceConstants.shouldShowMessage, () async {
       final response = await client.analyticsShouldShowConsentMessage(tool);
       // Since `clientShowedMessage` has already been called on the
       // FakeAnalytics instance when we create it in package:dtd_impl, this will
@@ -51,7 +51,9 @@ void main() {
       expect(response.value, false);
     });
 
-    test('telemetryEnabled & setTelemetry', () async {
+    test(
+        '${UnifiedAnalyticsServiceConstants.telemetryEnabled} & '
+        '${UnifiedAnalyticsServiceConstants.setTelemetry}', () async {
       await client.analyticsSetTelemetry(tool, enabled: false);
       var response = await client.analyticsTelemetryEnabled(tool);
       expect(response.value, false);
@@ -85,7 +87,7 @@ void main() {
 extension on DartToolingDaemon {
   Future<StringListResponse> listFakeAnalyticsSentEvents(DashTool tool) async {
     final result = await call(
-      kUnifiedAnalyticsServiceName,
+      UnifiedAnalyticsServiceConstants.serviceName,
       'listFakeAnalyticsSentEvents',
       params: {'tool': tool.name},
     );

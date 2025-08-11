@@ -5,11 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -50,10 +49,10 @@ Future<String> generateRulesJson() async {
 }
 
 Future<String> getMachineListing(
-  Iterable<LintRule> ruleRegistry, {
+  Iterable<AbstractAnalysisRule> ruleRegistry, {
   Map<String, String> fixStatusMap = const {},
 }) async {
-  var rulesToDocument = List<LintRule>.of(
+  var rulesToDocument = List<AbstractAnalysisRule>.of(
     ruleRegistry,
     growable: false,
   ).where((rule) => !rule.state.isInternal).sortedBy((rule) => rule.name);
@@ -70,7 +69,8 @@ Future<String> getMachineListing(
         'incompatible': rule.incompatibleRules,
         'sets': const [],
         'fixStatus':
-            fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
+            fixStatusMap[rule.diagnosticCodes.first.uniqueName] ??
+            'unregistered',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),
       },

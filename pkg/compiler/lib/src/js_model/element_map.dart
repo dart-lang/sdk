@@ -468,10 +468,9 @@ class SpecialMemberDefinition implements MemberDefinition {
     : _node = Deferrable.eager(node);
 
   SpecialMemberDefinition.from(MemberDefinition baseMember, this.kind)
-    : _node =
-          baseMember is ClosureMemberDefinition
-              ? baseMember._node
-              : Deferrable.eager(baseMember.node as ir.TreeNode);
+    : _node = baseMember is ClosureMemberDefinition
+          ? baseMember._node
+          : Deferrable.eager(baseMember.node as ir.TreeNode);
 
   SpecialMemberDefinition._deserialized(this._node, this.kind);
 

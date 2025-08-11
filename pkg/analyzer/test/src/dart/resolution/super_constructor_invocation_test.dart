@@ -34,22 +34,23 @@ SuperConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::named#element
+  element: <testLibrary>::@class::A::@constructor::named
 ''');
   }
 
   test_named_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a);
 }
@@ -57,9 +58,15 @@ class A {
 class B extends A {
   B() : super.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 53, 14),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          53,
+          14,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -83,7 +90,8 @@ SuperConstructorInvocation
   }
 
   test_nonConst_fromConst() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final a;
   A(this.a);
@@ -92,9 +100,15 @@ class A {
 class B extends A {
   const B() : super(5);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 71, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+          71,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -105,10 +119,10 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 5
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::new#element
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -132,15 +146,16 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::A::@constructor::new#element
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
   test_unnamed_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.named(int a);
 }
@@ -148,10 +163,15 @@ class A {
 class B extends A {
   B() : super(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          59, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          59,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''

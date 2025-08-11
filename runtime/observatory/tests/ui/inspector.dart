@@ -9,10 +9,10 @@
 
 library manual_inspector_test;
 
+import 'dart:developer';
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:mirrors';
-import 'dart:developer';
 import 'dart:typed_data';
 
 part 'inspector_part.dart';
@@ -74,7 +74,7 @@ class Node {
   var record;
   var recordType;
   var regex;
-  late var sentinel;  // Not initialized
+  late var sentinel; // Not initialized
   var set;
   var setConst;
   var smi;
@@ -171,9 +171,10 @@ class Node {
     capability = new Capability();
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
-    finalizer = Finalizer<dynamic>((_){});
+    finalizer = Finalizer<dynamic>((_) {});
     finalizer.attach(this, this);
-    finalizerNative = NativeFinalizer(Pointer<NativeFinalizerFunction>.fromAddress(0));
+    finalizerNative =
+        NativeFinalizer(Pointer<NativeFinalizerFunction>.fromAddress(0));
     float32x4 = new Float32x4(0.0, -1.0, 3.14, 2e28);
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);
@@ -199,13 +200,9 @@ class Node {
     record = (1, 2, three: 3, four: 4);
     recordType = record.runtimeType;
     regex = new RegExp("a*b+c");
-    set = {
-      "element1", "element2", "removed-element"
-    };
+    set = {"element1", "element2", "removed-element"};
     set.remove("removed-element");
-    setConst = const {
-      10, 20, 30
-    };
+    setConst = const {10, 20, 30};
     smi = 7;
     stacktrace = genStackTrace();
     string = "Hello $smi ${smi.runtimeType}";

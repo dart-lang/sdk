@@ -51,6 +51,7 @@
 #include "vm/kernel_binary.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
+#include "vm/line_starts_reader.h"
 #include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object_graph.h"
@@ -567,6 +568,9 @@ static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
                     -1, TypedDataBase::Handle(), Object::empty_object_pool()));
   bytecode.set_pc_descriptors(Object::empty_descriptors());
   bytecode.set_exception_handlers(Object::empty_exception_handlers());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bytecode.set_var_descriptors(Object::empty_var_descriptors());
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return bytecode.ptr();
 }
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -2655,7 +2659,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                                           isolate_group);
 
     cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
-                                              /*register_isolate_group=*/false);
+                                              /*register_class=*/false);
     cls.set_instance_size_in_words(0, 0);
     isolate_group->class_table()->Register(cls);
 
@@ -2891,9 +2895,6 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
-      if (thread->IsInNoThrowOOMScope()) {
-        return Object::null();
-      }
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
@@ -4390,6 +4391,11 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // blocks inlining and can't take Function-s only Code objects.
   forwarder.set_is_visible(false);
 
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasBytecode()) {
+    forwarder.ClearBytecode();
+  }
+#endif
   forwarder.ClearICDataArray();
   forwarder.ClearCode();
   forwarder.set_usage_counter(0);
@@ -4431,13 +4437,7 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
       /*create_if_absent=*/false);
   if (!result.IsNull()) return result.ptr();
 
-  const bool needs_dyn_forwarder =
-#if defined(DART_DYNAMIC_MODULES) && defined(DART_PRECOMPILED_RUNTIME)
-      // TODO(alexmarkov)
-      false;
-#else
-      kernel::NeedsDynamicInvocationForwarder(*this);
-#endif
+  const bool needs_dyn_forwarder = NeedsDynamicInvocationForwarder();
   if (!needs_dyn_forwarder) {
     return ptr();
   }
@@ -4456,6 +4456,90 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
   return result.ptr();
+}
+
+bool Function::NeedsDynamicInvocationForwarder() const {
+  Zone* zone = Thread::Current()->zone();
+
+  // Right now closures do not need a dyn:* forwarder.
+  // See https://github.com/dart-lang/sdk/issues/40813
+  if (IsClosureFunction()) return false;
+
+  // Method extractors have no parameters to check and return value is a closure
+  // and therefore not an unboxed primitive type.
+  if (IsMethodExtractor()) {
+    return false;
+  }
+
+  // Record field getters have no parameters to check and 'dynamic' return type.
+  if (IsRecordFieldGetter()) {
+    return false;
+  }
+
+  // Invoke field dispatchers are dynamically generated, will invoke a getter to
+  // obtain the field value and then invoke ".call()" on the result.
+  // Those dynamically generated dispathers don't have proper kernel metadata
+  // associated with them - we can therefore not query if there are dynamic
+  // calls to them or not and are therefore conservative.
+  if (IsInvokeFieldDispatcher()) {
+    return true;
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // The dyn:* forwarders perform unboxing of parameters before calling the
+  // actual target (which accepts unboxed parameters) and boxes return values
+  // of the return value.
+  if (HasUnboxedParameters() || HasUnboxedReturnValue()) {
+    return true;
+  }
+
+  if (MaxNumberOfParametersInRegisters(zone) > 0) {
+    return true;
+  }
+#endif
+
+  // There are no parameters to type check for getters and if the return value
+  // is boxed, then the dyn:* forwarder is not needed.
+  if (IsImplicitGetterFunction()) {
+    return false;
+  }
+
+  // Covariant parameters (both explicitly covariant and generic-covariant-impl)
+  // are checked in the body of a function and therefore don't need checks in a
+  // dynamic invocation forwarder. So dynamic invocation forwarder is only
+  // needed if there are non-covariant parameters of non-top type.
+  if (IsImplicitSetterFunction()) {
+    const auto& field = Field::Handle(zone, accessor_field());
+    return !(field.is_covariant() || field.is_generic_covariant_impl());
+  }
+
+  const auto& type_params = TypeParameters::Handle(zone, type_parameters());
+  if (!type_params.IsNull()) {
+    auto& bound = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
+      bound = type_params.BoundAt(i);
+      if (!bound.IsTopTypeForSubtyping() &&
+          !type_params.IsGenericCovariantImplAt(i)) {
+        return true;
+      }
+    }
+  }
+
+  const intptr_t num_params = NumParameters();
+  BitVector is_covariant(zone, num_params);
+  BitVector is_generic_covariant_impl(zone, num_params);
+  ReadParameterCovariance(&is_covariant, &is_generic_covariant_impl);
+
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = NumImplicitParameters(); i < num_params; ++i) {
+    type = ParameterTypeAt(i);
+    if (!type.IsTopTypeForSubtyping() &&
+        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void Function::ReadParameterCovariance(
@@ -5641,6 +5725,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
     cls.set_is_isolate_unsendable(true);
+    cls.set_is_deeply_immutable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();
@@ -7368,8 +7453,10 @@ bool TypeArguments::IsSubvectorEquivalent(
     return true;
   }
   if (kind == TypeEquality::kCanonical) {
-    if (IsNull() || other.IsNull()) {
-      return false;
+    if (IsNull()) {
+      return other.IsRaw(from_index, len);
+    } else if (other.IsNull()) {
+      return IsRaw(from_index, len);
     }
     if (Length() != other.Length()) {
       return false;
@@ -8394,6 +8481,12 @@ void Function::AttachBytecode(const Bytecode& value) const {
 
   // Set the code entry_point to InterpretCall stub.
   SetInstructions(StubCode::InterpretCall());
+}
+
+void Function::ClearBytecode() const {
+  ASSERT(HasBytecode());
+  untag()->set_ic_data_array_or_bytecode(Object::null());
+  ClearCode();
 }
 
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -10510,16 +10603,12 @@ bool FunctionType::HasSameTypeParametersAndBounds(
             TypeArguments::Handle(zone, type_params.defaults());
         const TypeArguments& other_defaults =
             TypeArguments::Handle(zone, other_type_params.defaults());
-        if (defaults.IsNull()) {
-          if (!other_defaults.IsNull()) {
-            TRACE_TYPE_CHECKS_VERBOSE(
-                "   - result: false (mismatch in defaults)\n");
-            return false;
-          }
-        } else if (!defaults.IsEquivalent(other_defaults, kind,
-                                          function_type_equivalence)) {
+        if (!defaults.IsEquivalent(other_defaults, kind,
+                                   function_type_equivalence)) {
           TRACE_TYPE_CHECKS_VERBOSE(
-              "   - result: false (default types are not equivalent)\n");
+              "   - result: false (default types are not equivalent,"
+              " %s - %s)\n",
+              defaults.ToCString(), other_defaults.ToCString());
           return false;
         }
       }
@@ -11804,10 +11893,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
-#if !defined(DEBUG)
-  return true;  // Only check on debug.
-#endif
-
+#if defined(DEBUG)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Check that the function is marked as recognized via the vm:recognized
   // pragma. This is so that optimizations that change the signature will know
@@ -11836,6 +11922,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
     THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     return false;
   }
+#endif  // defined(DEBUG)
   return true;
 }
 
@@ -11919,8 +12006,7 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
 
   // Only if there are dynamic callers and if we didn't create a dyn:* forwarder
   // for it do we need the monomorphic checked entry.
-  return HasDynamicCallers(zone) &&
-         !kernel::NeedsDynamicInvocationForwarder(*this);
+  return HasDynamicCallers(zone) && !NeedsDynamicInvocationForwarder();
 #else
   UNREACHABLE();
   return true;
@@ -13001,11 +13087,12 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   auto thread = Thread::Current();
   auto zone = thread->zone();
-  auto initial_field_table = thread->isolate_group()->initial_field_table();
+  auto initial_field_table =
+      is_shared() ? thread->isolate_group()->shared_initial_field_table()
+                  : thread->isolate_group()->initial_field_table();
 
   // We can safely cache the value of the static const field in the initial
   // field table.
-  ASSERT(!is_shared());
   auto& value = Object::Handle(
       zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
@@ -13027,9 +13114,10 @@ ObjectPtr Field::StaticConstFieldValue() const {
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
   ASSERT(is_static());
-  ASSERT(!is_shared());
   auto thread = Thread::Current();
-  auto initial_field_table = thread->isolate_group()->initial_field_table();
+  auto initial_field_table =
+      is_shared() ? thread->isolate_group()->shared_initial_field_table()
+                  : thread->isolate_group()->initial_field_table();
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   ASSERT(initial_field_table->At(field_id()) == Object::sentinel().ptr() ||
@@ -13347,7 +13435,6 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 }
 
 void Field::SetStaticValue(const Object& value) const {
-  ASSERT(!is_shared());
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
@@ -13357,7 +13444,11 @@ void Field::SetStaticValue(const Object& value) const {
   ASSERT(id >= 0);
 
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-  thread->isolate()->field_table()->SetAt(id, value.ptr());
+  if (is_shared()) {
+    thread->isolate_group()->shared_field_table()->SetAt(id, value.ptr());
+  } else {
+    thread->isolate()->field_table()->SetAt(id, value.ptr());
+  }
 }
 
 static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
@@ -13716,10 +13807,11 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   intptr_t line_count = line_starts_data.Length();
   const Array& debug_positions_array = Array::Handle(debug_positions());
+  ASSERT(!debug_positions_array.IsNull());
   intptr_t token_count = debug_positions_array.Length();
   int token_index = 0;
 
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  LineStartsReader line_starts_reader(line_starts_data);
   for (int line_index = 0; line_index < line_count; ++line_index) {
     intptr_t start = line_starts_reader.At(line_index);
     // Output the rest of the tokens if we have no next line.
@@ -13758,10 +13850,10 @@ TokenPosition Script::MaxPosition() const {
         UntaggedScript::CachedMaxPositionBitField::decode(
             untag()->flags_and_max_position_));
   }
-  auto const zone = Thread::Current()->zone();
   if (!HasCachedMaxPosition() && line_starts() != TypedData::null()) {
+    auto const zone = Thread::Current()->zone();
     const auto& starts = TypedData::Handle(zone, line_starts());
-    kernel::KernelLineStartsReader reader(starts, zone);
+    LineStartsReader reader(starts);
     const intptr_t max_position = reader.MaxPosition();
     SetCachedMaxPosition(max_position);
     SetHasCachedMaxPosition(true);
@@ -13789,23 +13881,76 @@ TypedDataViewPtr Script::constant_coverage() const {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-void Script::set_debug_positions(const Array& value) const {
-  untag()->set_debug_positions(value.ptr());
-}
-
 TypedDataPtr Script::line_starts() const {
   return untag()->line_starts();
 }
+
+void Script::set_line_starts(const TypedData& value) const {
+  untag()->set_line_starts(value.ptr());
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+static int LowestFirst(const intptr_t* a, const intptr_t* b) {
+  return *a - *b;
+}
+
+static ArrayPtr SortAndDeduplicate(GrowableArray<intptr_t>* source) {
+  intptr_t size = source->length();
+  if (size == 0) {
+    return Object::empty_array().ptr();
+  }
+
+  source->Sort(LowestFirst);
+
+  intptr_t last = 0;
+  for (intptr_t current = 1; current < size; ++current) {
+    if (source->At(last) != source->At(current)) {
+      (*source)[++last] = source->At(current);
+    }
+  }
+  Array& array_object = Array::Handle();
+  array_object = Array::New(last + 1, Heap::kOld);
+  Smi& smi_value = Smi::Handle();
+  for (intptr_t i = 0; i <= last; ++i) {
+    smi_value = Smi::New(source->At(i));
+    array_object.SetAt(i, smi_value);
+  }
+  return array_object.ptr();
+}
+
+void Script::CollectDebugTokenPositions() const {
+  GrowableArray<intptr_t> token_positions(10);
+  if (kernel_program_info() != Object::null()) {
+    kernel::CollectScriptTokenPositionsFromKernel(*this, &token_positions);
+  } else {
+#if defined(DART_DYNAMIC_MODULES)
+    bytecode::BytecodeReader::CollectScriptTokenPositionsFromBytecode(
+        *this, &token_positions);
+#else
+    UNREACHABLE();
+#endif
+  }
+  const auto& debug_positions =
+      Array::Handle(SortAndDeduplicate(&token_positions));
+  set_debug_positions(debug_positions);
+}
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Array& debug_positions_array = Array::Handle(untag()->debug_positions());
   if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
-    CollectTokenPositionsFor();
+    CollectDebugTokenPositions();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return untag()->debug_positions();
+}
+
+void Script::set_debug_positions(const Array& value) const {
+  untag()->set_debug_positions(value.ptr());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -13862,7 +14007,7 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   ASSERT(line != nullptr);
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // Scripts in the AOT snapshot do not have a line starts array.
   return false;
 #else
@@ -13871,9 +14016,9 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
   auto const zone = Thread::Current()->zone();
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   if (line_starts_data.IsNull()) return false;
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  LineStartsReader line_starts_reader(line_starts_data);
   return line_starts_reader.LocationForPosition(token_pos.Pos(), line, column);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 intptr_t Script::GetTokenLength(const TokenPosition& token_pos) const {
@@ -13901,7 +14046,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != nullptr && last_token_index != nullptr);
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // Scripts in the AOT snapshot do not have a line starts array.
   return false;
 #else
@@ -13909,7 +14054,8 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   if (line_number <= 0) return false;
   Zone* zone = Thread::Current()->zone();
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  if (line_starts_data.IsNull()) return false;
+  LineStartsReader line_starts_reader(line_starts_data);
   if (!line_starts_reader.TokenRangeAtLine(line_number, first_token_index,
                                            last_token_index)) {
     return false;
@@ -13919,6 +14065,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   if (!HasSource()) {
     Smi& value = Smi::Handle(zone);
     const Array& debug_positions_array = Array::Handle(zone, debug_positions());
+    ASSERT(!debug_positions_array.IsNull());
     value ^= debug_positions_array.At(debug_positions_array.Length() - 1);
     source_length = value.Value();
   } else {
@@ -13928,7 +14075,7 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(last_token_index->Serialize() <= source_length);
 #endif
   return true;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 // Returns the index in the given source string for the given (1-based) absolute
@@ -14217,6 +14364,11 @@ void Library::SetLoaded() const {
 
 void Library::AddMetadata(const Object& declaration,
                           intptr_t kernel_offset) const {
+  AddMetadata(declaration, Smi::Handle(Smi::New(kernel_offset)));
+}
+
+void Library::AddMetadata(const Object& declaration,
+                          const Object& metadata_value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
@@ -14224,7 +14376,7 @@ void Library::AddMetadata(const Object& declaration,
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
   MetadataMap map(metadata());
-  map.UpdateOrInsert(declaration, Smi::Handle(Smi::New(kernel_offset)));
+  map.UpdateOrInsert(declaration, metadata_value);
   set_metadata(map.Release());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -15932,31 +16084,6 @@ FunctionPtr Library::GetFunction(const Library& lib,
     }
   }
   return func.ptr();
-}
-
-ObjectPtr Library::GetFunctionClosure(const String& name) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& func = Function::Handle(zone, LookupFunctionAllowPrivate(name));
-  if (func.IsNull()) {
-    // Check whether the function is reexported into the library.
-    const Object& obj = Object::Handle(zone, LookupReExport(name));
-    if (obj.IsFunction()) {
-      func ^= obj.ptr();
-    } else {
-      // Check if there is a getter of 'name', in which case invoke it
-      // and return the result.
-      const String& getter_name = String::Handle(zone, Field::GetterName(name));
-      func = LookupFunctionAllowPrivate(getter_name);
-      if (func.IsNull()) {
-        return Closure::null();
-      }
-      // Invoke the getter and return the result.
-      return DartEntry::InvokeFunction(func, Object::empty_array());
-    }
-  }
-  func = func.ImplicitClosureFunction();
-  return func.ImplicitStaticClosure();
 }
 
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -18648,7 +18775,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
     // Copy the instructions into the instruction area and apply all fixups.
     // Embedded pointers are still in handles at this point.
-    MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
+    MemoryRegion region(reinterpret_cast<void*>(
+                            Instructions::WritablePayloadStart(instrs.ptr())),
                         instrs.Size());
     assembler->FinalizeInstructions(region);
 
@@ -18675,10 +18803,12 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     // Write protect instructions and, if supported by OS, use dual mapping
     // for execution.
     if (FLAG_write_protect_code) {
+      // Note: when dual mapping is used we have separate RX and RW mappings.
+      // RX mapping never changes protection while RW mapping flips between
+      // R and RW.
       uword address = UntaggedObject::ToAddr(instrs.ptr());
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.ptr()->untag()->HeapSize(),
-                             VirtualMemory::kReadExecute);
+      VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address),
+                                      instrs.ptr()->untag()->HeapSize());
     }
 
     // Hook up Code and Instructions objects.
@@ -18700,7 +18830,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
 #endif
 
-    CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
+    CPU::FlushICache(region.start(), region.size());
   }
 
 #if defined(INCLUDE_IL_PRINTER)
@@ -19208,6 +19338,26 @@ uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
 #endif
 }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
+#if defined(DART_DYNAMIC_MODULES)
+  Zone* zone = Thread::Current()->zone();
+  auto& var_descs = LocalVarDescriptors::Handle(zone, var_descriptors());
+  if (var_descs.IsNull()) {
+    const auto& func = Function::Handle(zone, function());
+    ASSERT(!func.IsNull());
+    var_descs =
+        bytecode::BytecodeReader::ComputeLocalVarDescriptors(zone, func, *this);
+    ASSERT(!var_descs.IsNull());
+    set_var_descriptors(var_descs);
+  }
+  return var_descs.ptr();
+#else
+  UNREACHABLE();
+#endif
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 const char* Bytecode::ToCString() const {
   return Thread::Current()->zone()->PrintToString("Bytecode(%s)",
                                                   QualifiedName());
@@ -19620,12 +19770,10 @@ void MegamorphicCache::InsertLocked(const Smi& class_id,
   // NOTE: In the future we might change the megamorphic cache insertions to
   // carefully use store-release barriers on the writer as well as
   // load-acquire barriers on the reader, ...
-  isolate_group->RunWithStoppedMutators(
-      [&]() {
-        EnsureCapacityLocked();
-        InsertEntryLocked(class_id, target);
-      },
-      /*use_force_growth=*/true);
+  isolate_group->RunWithStoppedMutators([&]() {
+    EnsureCapacityLocked();
+    InsertEntryLocked(class_id, target);
+  });
 }
 
 void MegamorphicCache::EnsureCapacityLocked() const {
@@ -25580,7 +25728,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
     // The backing array may be a shared instance, or may not have correct
     // type parameters. Create a new empty array.
-    Heap::Space space = thread->IsDartMutatorThread() ? Heap::kNew : Heap::kOld;
+    Heap::Space space = thread->HasDartMutatorStack() ? Heap::kNew : Heap::kOld;
     Array& array = Array::Handle(zone, Array::New(0, space));
     array.SetTypeArguments(type_arguments);
     return array.ptr();
@@ -26411,7 +26559,7 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const SendPort& send_port =
-      SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
+      SendPort::Handle(zone, SendPort::New(id, thread->isolate_group()->id()));
 #if !defined(PRODUCT)
   const StackTrace& allocation_location_ =
       HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
@@ -26735,7 +26883,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_elf()) {
+  if (!vm && image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -26938,15 +27086,15 @@ const char* StackTrace::ToCString() const {
 #else
     const char kCompressedPointers[] = "no";
 #endif
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
     const char kUsingSimulator[] = "yes";
 #else
     const char kUsingSimulator[] = "no";
 #endif
-    buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
-                  kHostOperatingSystemName, kTargetArchitectureName,
-                  kCompressedPointers, kUsingSimulator);
-    WriteImageBuildId(&buffer, "build_id: ", isolate_instructions);
+    buffer.Printf("os: %s arch: %s comp: %s sim: %s", kHostOperatingSystemName,
+                  kTargetArchitectureName, kCompressedPointers,
+                  kUsingSimulator);
+    WriteImageBuildId(&buffer, "\nbuild_id: ", isolate_instructions);
     buffer.AddString("\n");
     if (!loading_units.IsNull()) {
       const intptr_t unit_count = loading_units.Length();
@@ -27134,7 +27282,7 @@ static void DwarfStackTracesHandler(bool value) {
 #if defined(PRODUCT)
   // We can safely remove function objects in precompiled snapshots if the
   // runtime will generate DWARF stack traces and we don't have runtime
-  // debugging options like the observatory available.
+  // debugging options like the VM service available.
   if (value) {
     FLAG_retain_function_objects = false;
     FLAG_retain_code_objects = false;

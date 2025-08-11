@@ -68,7 +68,6 @@ async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
 math/point_test: RuntimeError
 math/rectangle_test: RuntimeError
-mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 

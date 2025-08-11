@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,16 +21,14 @@ class AvoidTypesOnClosureParameters extends LintRule {
       );
 
   @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_types_on_closure_parameters;
+
+  @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_types_on_closure_parameters;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFunctionExpression(this, visitor);
   }
@@ -58,14 +58,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
     if (type is NamedType && type.type is! DynamicType) {
-      rule.reportLint(node.type);
+      rule.reportAtNode(node.type);
     }
   }
 }

@@ -18,19 +18,12 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart' as test show expect;
 import 'package:test/test.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'change_verifier.dart';
+import 'server_abstract.dart';
 
 /// A mixin with helpers for applying LSP edits to strings.
 mixin LspEditHelpersMixin {
-  String applyTextEdit(String content, TextEdit edit) {
-    var startPos = edit.range.start;
-    var endPos = edit.range.end;
-    var lineInfo = LineInfo.fromContent(content);
-    var start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-    var end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, edit.newText);
-  }
-
   String applyTextEdits(String content, List<TextEdit> changes) {
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
@@ -46,22 +39,48 @@ mixin LspEditHelpersMixin {
 
     /// Ensures changes are simple enough to apply easily without any complicated
     /// logic.
-    void validateChangesCanBeApplied() {
-      for (var change1 in changes) {
-        for (var change2 in changes) {
-          if (change1 != change2 && change1.range.intersects(change2.range)) {
-            throw 'Test helper applyTextEdits does not support applying multiple edits '
-                'where the edits are not in reverse order.';
-          }
+    for (var change1 in changes) {
+      for (var change2 in changes) {
+        if (change1 != change2 && change1.range.intersects(change2.range)) {
+          throw 'Test helper applyTextEdits does not support applying multiple edits '
+              'where the edits are not in reverse order.';
         }
       }
     }
 
-    validateChangesCanBeApplied();
-
     var indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
     indexedEdits.sort(TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
+
+    var lineInfo = LineInfo.fromContent(content);
+    var buffer = StringBuffer();
+    var currentOffset = 0;
+
+    // Build a new string by appending parts of the original string and then
+    // the new text from each edit into a buffer. This is faster for multiple
+    // edits than sorting in reverse and repeatedly applying sequentially as it
+    // cuts out a lot of (potentially large) intermediate strings.
+    for (var edit in indexedEdits.map((e) => e.edit)) {
+      var startPos = edit.range.start;
+      var endPos = edit.range.end;
+      var start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+      var end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+
+      // Append any text between the current position and the start of this edit
+      if (start != currentOffset) {
+        buffer.write(content.substring(currentOffset, start));
+      }
+      // Append the replacement text
+      buffer.write(edit.newText);
+      // Move the current position to the end of this edit
+      currentOffset = end;
+    }
+
+    // Finally, add any remainder from after the last edit.
+    if (currentOffset != content.length) {
+      buffer.write(content.substring(currentOffset));
+    }
+
+    return buffer.toString();
   }
 
   /// Returns the text for [range] in [content].
@@ -70,6 +89,26 @@ mixin LspEditHelpersMixin {
     var sourceRange = toSourceRange(lineInfo, range).result;
     return content.substring(sourceRange.offset, sourceRange.end);
   }
+}
+
+/// Helpers to simplify handling LSP notifications.
+mixin LspNotificationHelpersMixin {
+  /// A stream of [DartTextDocumentContentDidChangeParams] for any
+  /// `dart/textDocumentContentDidChange` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
+      .where(
+        (notification) =>
+            notification.method ==
+            CustomMethods.dartTextDocumentContentDidChange,
+      )
+      .map(
+        (message) => DartTextDocumentContentDidChangeParams.fromJson(
+          message.params as Map<String, Object?>,
+        ),
+      );
+
+  Stream<NotificationMessage> get notificationsFromServer;
 }
 
 mixin LspProgressNotificationsMixin {
@@ -137,24 +176,9 @@ mixin LspRequestHelpersMixin {
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
 
-  /// A stream of [DartTextDocumentContentDidChangeParams] for any
-  /// `dart/textDocumentContentDidChange` notifications.
-  Stream<DartTextDocumentContentDidChangeParams>
-  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
-      .where(
-        (notification) =>
-            notification.method ==
-            CustomMethods.dartTextDocumentContentDidChange,
-      )
-      .map(
-        (message) => DartTextDocumentContentDidChangeParams.fromJson(
-          message.params as Map<String, Object?>,
-        ),
-      );
-
-  Stream<NotificationMessage> get notificationsFromServer;
-
-  Stream<RequestMessage> get requestsFromServer;
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
     CallHierarchyItem item,
@@ -209,31 +233,27 @@ mixin LspRequestHelpersMixin {
   Range entireRange(String code) =>
       Range(start: startOfDocPos, end: positionFromOffset(code.length, code));
 
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    ProgressToken? workDoneToken,
+  }) {
+    var request = makeRequest(
+      Method.workspace_executeCommand,
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+        workDoneToken: workDoneToken,
+      ),
+    );
+    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
+      request,
+      decoder ?? (result) => result as T,
+    );
+  }
+
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
-
-  /// Expects a [method] request from the server after executing [f].
-  Future<RequestMessage> expectRequest(
-    Method method,
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
-    await f();
-
-    var requestFromServer = await firstRequest.timeout(
-      timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Did not receive the expected $method request from the server in the timeout period',
-                timeout,
-              ),
-    );
-
-    expect(requestFromServer, isNotNull);
-    return requestFromServer;
-  }
 
   Future<T> expectSuccessfulResponseTo<T, R>(
     RequestMessage request,
@@ -320,14 +340,14 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+  Future<List<CodeAction>> getCodeActions(
     Uri fileUri, {
     Range? range,
     Position? position,
     List<CodeActionKind>? kinds,
     CodeActionTriggerKind? triggerKind,
     ProgressToken? workDoneToken,
-  }) {
+  }) async {
     range ??=
         position != null
             ? Range(start: position, end: position)
@@ -348,17 +368,38 @@ mixin LspRequestHelpersMixin {
         workDoneToken: workDoneToken,
       ),
     );
-    return expectSuccessfulResponseTo(
+
+    var actions = await expectSuccessfulResponseTo(
       request,
       _fromJsonList(
         _generateFromJsonFor(
+          CodeActionLiteral.canParse,
+          CodeActionLiteral.fromJson,
           Command.canParse,
           Command.fromJson,
-          CodeAction.canParse,
-          CodeAction.fromJson,
         ),
       ),
     );
+
+    // As an additional check, ensure all returned values are either exact
+    // matches or sub-kinds of the requested kind(s).
+    if (kinds != null && kinds.isNotEmpty) {
+      // Kinds must either by an exact match, or start with the
+      // requested value followed by a dot (a sub-kind).
+      var allowedKinds =
+          kinds
+              .expand((kind) => [equals('$kind'), startsWith('$kind.')])
+              .toList();
+
+      // Only CodeActionLiterals can be checked because bare commands do not
+      // have CodeActionKinds (once they've left the server).
+      var literals = actions.where((action) => action.isCodeActionLiteral);
+      for (var result in literals) {
+        expect(result.asCodeActionLiteral.kind.toString(), anyOf(allowedKinds));
+      }
+    }
+
+    return actions;
   }
 
   Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {
@@ -829,71 +870,6 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  /// Executes [f] then waits for a request of type [method] from the server which
-  /// is passed to [handler] to process, then waits for (and returns) the
-  /// response to the original request.
-  ///
-  /// This is used for testing things like code actions, where the client initiates
-  /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it received a response.
-  ///
-  ///     Client                                 Server
-  ///     1. |- Req: textDocument/codeAction      ->
-  ///     1. <- Resp: textDocument/codeAction     -|
-  ///
-  ///     2. |- Req: workspace/executeCommand  ->
-  ///           3. <- Req: textDocument/applyEdits  -|
-  ///           3. |- Resp: textDocument/applyEdits ->
-  ///     2. <- Resp: workspace/executeCommand -|
-  ///
-  /// Request 2 from the client is not responded to until the server has its own
-  /// response to the request it sends (3).
-  Future<T> handleExpectedRequest<T, R, RR>(
-    Method method,
-    R Function(Map<String, dynamic>) fromJson,
-    Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    late Future<T> outboundRequest;
-    Object? outboundRequestError;
-
-    // Run [f] and wait for the incoming request from the server.
-    var incomingRequest = await expectRequest(method, () {
-      // Don't return/await the response yet, as this may not complete until
-      // after we have handled the request that comes from the server.
-      outboundRequest = f();
-
-      // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test even if expected.
-      // Instead, capture the error and suppress it. But if we time out (in
-      // which case we will never return outboundRequest), then we'll raise this
-      // error.
-      outboundRequest.then(
-        (_) {},
-        onError: (e) {
-          outboundRequestError = e;
-          return null;
-        },
-      );
-    }, timeout: timeout).catchError((Object timeoutException) {
-      // We timed out waiting for the request from the server. Probably this is
-      // because our outbound request for some reason, so if we have an error
-      // for that, then throw it. Otherwise, propogate the timeout.
-      throw outboundRequestError ?? timeoutException;
-    }, test: (e) => e is TimeoutException);
-
-    // Handle the request from the server and send the response back.
-    var clientsResponse = await handler(
-      fromJson(incomingRequest.params as Map<String, Object?>),
-    );
-    respondTo(incomingRequest, clientsResponse);
-
-    // Return a future that completes when the response to the original request
-    // (from [f]) returns.
-    return outboundRequest;
-  }
-
   RequestMessage makeRequest(Method method, Object? params) {
     var id = Either2<int, String>.t1(_id++);
     return RequestMessage(
@@ -968,21 +944,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
   }
 
-  /// Sends [responseParams] to the server as a successful response to
-  /// a server-initiated [request].
-  void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(
-      ResponseMessage(
-        id: request.id,
-        result: responseParams,
-        jsonrpc: jsonRpcVersion,
-      ),
-    );
-  }
-
-  /// Sends a ResponseMessage to the server, completing a reverse
-  /// (server-to-client) request.
-  void sendResponseToServer(ResponseMessage response);
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
 
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
     TypeHierarchyItem item,
@@ -1215,18 +1177,162 @@ mixin LspRequestHelpersMixin {
   }
 }
 
+/// Helpers to simplify handling LSP reverse-requests.
+///
+/// The sending of responses must be supplied by the implementing class
+/// via [sendResponseToServer].
+mixin LspReverseRequestHelpersMixin {
+  /// A stream of reverse-requests from the server that can be responded to via
+  /// [sendResponseToServer].
+  ///
+  /// Only LSP message requests (`lsp.handle`) from the server are included
+  /// here.
+  Stream<RequestMessage> get requestsFromServer;
+
+  /// Expects a [method] request from the server after executing [f].
+  Future<RequestMessage> expectRequest(
+    Method method,
+    FutureOr<void> Function() f, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    var firstRequest = requestsFromServer.firstWhere((n) => n.method == method);
+    await f();
+
+    var requestFromServer = await firstRequest.timeout(
+      timeout,
+      onTimeout:
+          () =>
+              throw TimeoutException(
+                'Did not receive the expected $method request from the server in the timeout period',
+                timeout,
+              ),
+    );
+
+    expect(requestFromServer, isNotNull);
+    return requestFromServer;
+  }
+
+  /// Executes [f] then waits for a request of type [method] from the server which
+  /// is passed to [handler] to process, then waits for (and returns) the
+  /// response to the original request.
+  ///
+  /// This is used for testing things like code actions, where the client initiates
+  /// a request but the server does not respond to it until it's sent its own
+  /// request to the client and it received a response.
+  ///
+  ///     Client                                 Server
+  ///     1. |- Req: textDocument/codeAction      ->
+  ///     1. <- Resp: textDocument/codeAction     -|
+  ///
+  ///     2. |- Req: workspace/executeCommand  ->
+  ///           3. <- Req: textDocument/applyEdits  -|
+  ///           3. |- Resp: textDocument/applyEdits ->
+  ///     2. <- Resp: workspace/executeCommand -|
+  ///
+  /// Request 2 from the client is not responded to until the server has its own
+  /// response to the request it sends (3).
+  Future<T> handleExpectedRequest<T, R, RR>(
+    Method method,
+    R Function(Map<String, dynamic>) fromJson,
+    Future<T> Function() f, {
+    required FutureOr<RR> Function(R) handler,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    late Future<T> outboundRequest;
+    Object? outboundRequestError;
+
+    // Run [f] and wait for the incoming request from the server.
+    var incomingRequest = await expectRequest(method, () {
+      // Don't return/await the response yet, as this may not complete until
+      // after we have handled the request that comes from the server.
+      outboundRequest = f();
+
+      // Because we don't await this future until "later", if it throws the
+      // error is treated as unhandled and will fail the test even if expected.
+      // Instead, capture the error and suppress it. But if we time out (in
+      // which case we will never return outboundRequest), then we'll raise this
+      // error.
+      outboundRequest.then(
+        (_) {},
+        onError: (e) {
+          outboundRequestError = e;
+          return null;
+        },
+      );
+    }, timeout: timeout).catchError((Object timeoutException) {
+      // We timed out waiting for the request from the server. Probably this is
+      // because our outbound request for some reason, so if we have an error
+      // for that, then throw it. Otherwise, propogate the timeout.
+      throw outboundRequestError ?? timeoutException;
+    }, test: (e) => e is TimeoutException);
+
+    // Handle the request from the server and send the response back.
+    var clientsResponse = await handler(
+      fromJson(incomingRequest.params as Map<String, Object?>),
+    );
+    respondTo(incomingRequest, clientsResponse);
+
+    // Return a future that completes when the response to the original request
+    // (from [f]) returns.
+    return outboundRequest;
+  }
+
+  /// Sends [responseParams] to the server as a successful response to
+  /// a server-initiated [request].
+  void respondTo<T>(RequestMessage request, T responseParams) {
+    sendResponseToServer(
+      ResponseMessage(
+        id: request.id,
+        result: responseParams,
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
+  }
+
+  /// Sends a ResponseMessage to the server, completing a reverse
+  /// (server-to-client) request.
+  void sendResponseToServer(ResponseMessage response);
+}
+
 /// A mixin with helpers for verifying LSP edits in a given project.
 ///
 /// Extends [LspEditHelpersMixin] with methods for accessing file state and
 /// information about the project to build paths.
-mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
-  LspClientCapabilities get editorClientCapabilities;
+mixin LspVerifyEditHelpersMixin
+    on LspEditHelpersMixin, ClientCapabilitiesHelperMixin {
+  LspClientCapabilities get editorClientCapabilities => LspClientCapabilities(
+    ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+      experimental: experimentalCapabilities,
+    ),
+  );
 
   path.Context get pathContext;
 
   String get projectFolderPath;
 
   ClientUriConverter get uriConverter;
+
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    ProgressToken? workDoneToken,
+  });
+
+  /// Executes [command] which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeCommandForEdits(
+    Command command, {
+    ProgressToken? workDoneToken,
+  }) {
+    return executeForEdits(
+      () => executeCommand(command, workDoneToken: workDoneToken),
+    );
+  }
 
   /// Executes a function which is expected to call back to the client to apply
   /// a [WorkspaceEdit].
@@ -1289,4 +1395,36 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
   ///
   /// This is used in the text format for comparing edits.
   String relativeUri(Uri uri) => relativePath(uriConverter.fromClientUri(uri));
+
+  /// Verifies that executing the given command on the server results in an edit
+  /// being sent in the client that updates the files to match the expected
+  /// content.
+  Future<LspChangeVerifier> verifyCommandEdits(
+    Command command,
+    String expectedContent, {
+    ProgressToken? workDoneToken,
+  }) async {
+    var verifier = await executeCommandForEdits(
+      command,
+      workDoneToken: workDoneToken,
+    );
+
+    verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
+
+  LspChangeVerifier verifyEdit(
+    WorkspaceEdit edit,
+    String expected, {
+    Map<Uri, int>? expectedVersions,
+  }) {
+    var expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    var verifier = LspChangeVerifier(this, edit);
+    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
+    return verifier;
+  }
 }

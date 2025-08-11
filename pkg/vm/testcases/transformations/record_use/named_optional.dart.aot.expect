@@ -1,0 +1,26 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C1
+  static method someStaticMethod({[@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int i = #C2}) → dynamic {
+    return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=int] self::SomeClass::someStaticMethod(i: 3));
+  core::print([@vm.inferred-type.metadata=int] self::SomeClass::someStaticMethod());
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 4
+}

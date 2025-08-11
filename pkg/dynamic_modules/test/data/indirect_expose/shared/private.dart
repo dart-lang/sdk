@@ -12,4 +12,3 @@ class Implementation2 implements Interface {
   @override
   int method1() => 4;
 }
-

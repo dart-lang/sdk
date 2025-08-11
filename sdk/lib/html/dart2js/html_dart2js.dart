@@ -46,6 +46,7 @@ import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 import 'dart:js_util' as js_util;
 
+export 'dart:_native_typed_data' show SharedArrayBuffer;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper'
     show
@@ -13375,15 +13376,15 @@ class Element extends Node
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
   List<Node> get _children =>
-  // Element.children always returns the same list-like object which is a
-  // live view on the underlying DOM tree. So we can GVN it and remove it if
-  // unused.
-  JS(
-    'returns:HtmlCollection;creates:HtmlCollection;'
-        'depends:none;effects:none;gvn:true',
-    '#.children',
-    this,
-  );
+      // Element.children always returns the same list-like object which is a
+      // live view on the underlying DOM tree. So we can GVN it and remove it if
+      // unused.
+      JS(
+        'returns:HtmlCollection;creates:HtmlCollection;'
+            'depends:none;effects:none;gvn:true',
+        '#.children',
+        this,
+      );
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -13650,8 +13651,9 @@ class Element extends Node
     } else {
       convertedFrames = frames;
     }
-    var convertedTiming =
-        timing is Map ? convertDartToNative_Dictionary(timing) : timing;
+    var convertedTiming = timing is Map
+        ? convertDartToNative_Dictionary(timing)
+        : timing;
     return convertedTiming == null
         ? _animate(convertedFrames)
         : _animate(convertedFrames, convertedTiming);
@@ -28878,32 +28880,6 @@ Please remove them from your code.
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("SharedArrayBuffer")
-class SharedArrayBuffer extends JavaScriptObject {
-  // To suppress missing implicit constructor warnings.
-  factory SharedArrayBuffer._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  factory SharedArrayBuffer([int? length]) {
-    if (length != null) {
-      return SharedArrayBuffer._create_1(length);
-    }
-    return SharedArrayBuffer._create_2();
-  }
-  static SharedArrayBuffer _create_1(length) =>
-      JS('SharedArrayBuffer', 'new SharedArrayBuffer(#)', length);
-  static SharedArrayBuffer _create_2() =>
-      JS('SharedArrayBuffer', 'new SharedArrayBuffer()');
-
-  int? get byteLength native;
-
-  SharedArrayBuffer slice([int? begin, int? end]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 @Native("SharedWorker")
 class SharedWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
@@ -30390,15 +30366,14 @@ class TableRowElement extends HtmlElement {
     }
     // IE9 workaround which does not support innerHTML on Table elements.
     var fragment = new DocumentFragment();
-    var section =
-        new TableElement()
-            .createFragment(
-              html,
-              validator: validator,
-              treeSanitizer: treeSanitizer,
-            )
-            .nodes
-            .single;
+    var section = new TableElement()
+        .createFragment(
+          html,
+          validator: validator,
+          treeSanitizer: treeSanitizer,
+        )
+        .nodes
+        .single;
     var row = section.nodes.single;
     fragment.nodes.addAll(row.nodes);
     return fragment;
@@ -30458,15 +30433,14 @@ class TableSectionElement extends HtmlElement {
     }
     // IE9 workaround which does not support innerHTML on Table elements.
     var fragment = new DocumentFragment();
-    var section =
-        new TableElement()
-            .createFragment(
-              html,
-              validator: validator,
-              treeSanitizer: treeSanitizer,
-            )
-            .nodes
-            .single;
+    var section = new TableElement()
+        .createFragment(
+          html,
+          validator: validator,
+          treeSanitizer: treeSanitizer,
+        )
+        .nodes
+        .single;
     fragment.nodes.addAll(section.nodes);
     return fragment;
   }
@@ -32943,8 +32917,9 @@ class Window extends EventTarget
    *   from MDN.
    */
   WindowBase open(String url, String name, [String? options]) {
-    final win =
-        options == null ? _open2(url, name) : _open3(url, name, options);
+    final win = options == null
+        ? _open2(url, name)
+        : _open3(url, name, options);
     return _DOMWindowCrossFrame._createSafe(win);
   }
 
@@ -34575,10 +34550,9 @@ class Window extends EventTarget
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  int get scrollX =>
-      JS<bool>('bool', '("scrollX" in #)', this)
-          ? JS<num>('num', '#.scrollX', this).round()
-          : document.documentElement!.scrollLeft;
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
+      ? JS<num>('num', '#.scrollX', this).round()
+      : document.documentElement!.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -34590,10 +34564,9 @@ class Window extends EventTarget
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  int get scrollY =>
-      JS<bool>('bool', '("scrollY" in #)', this)
-          ? JS<num>('num', '#.scrollY', this).round()
-          : document.documentElement!.scrollTop;
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
+      ? JS<num>('num', '#.scrollY', this).round()
+      : document.documentElement!.scrollTop;
 }
 
 class NullWindowException implements Exception {
@@ -37398,28 +37371,25 @@ abstract class CssRect implements Rectangle<num> {
       // The border-box and default box model both exclude margin in the regular
       // height/width calculation, so add it if we want it for this measurement.
       if (augmentingMeasurement == _MARGIN) {
-        val +=
-            new Dimension.css(
-              styles.getPropertyValue('$augmentingMeasurement-$measurement'),
-            ).value;
+        val += new Dimension.css(
+          styles.getPropertyValue('$augmentingMeasurement-$measurement'),
+        ).value;
       }
 
       // The border-box includes padding and border, so remove it if we want
       // just the content itself.
       if (augmentingMeasurement == _CONTENT) {
-        val -=
-            new Dimension.css(
-              styles.getPropertyValue('${_PADDING}-$measurement'),
-            ).value;
+        val -= new Dimension.css(
+          styles.getPropertyValue('${_PADDING}-$measurement'),
+        ).value;
       }
 
       // At this point, we don't wan't to augment with border or margin,
       // so remove border.
       if (augmentingMeasurement != _MARGIN) {
-        val -=
-            new Dimension.css(
-              styles.getPropertyValue('border-${measurement}-width'),
-            ).value;
+        val -= new Dimension.css(
+          styles.getPropertyValue('border-${measurement}-width'),
+        ).value;
       }
     }
     return val;
@@ -37767,17 +37737,17 @@ class _ElementCssClassSet extends CssClassSetImpl {
     DomTokenList list,
     String value,
   ) =>
-  // 'throws:never' is a lie, since 'contains' will throw on an illegal
-  // token.  However, we always call this function immediately prior to
-  // add/remove/toggle with the same token.  Often the result of 'contains'
-  // is unused and the lie makes it possible for the 'contains' instruction
-  // to be removed.
-  JS(
-    'returns:bool;effects:none;depends:all;throws:null(1)',
-    '#.contains(#)',
-    list,
-    value,
-  );
+      // 'throws:never' is a lie, since 'contains' will throw on an illegal
+      // token.  However, we always call this function immediately prior to
+      // add/remove/toggle with the same token.  Often the result of 'contains'
+      // is unused and the lie makes it possible for the 'contains' instruction
+      // to be removed.
+      JS(
+        'returns:bool;effects:none;depends:all;throws:null(1)',
+        '#.contains(#)',
+        list,
+        value,
+      );
 
   static void _classListAdd(DomTokenList list, String value) {
     // list.add(value);
@@ -38145,13 +38115,12 @@ class _EventStreamSubscription<T extends Event>
     this._eventType,
     void onData(T event)?,
     this._useCapture,
-  ) : _onData =
-          onData == null
-              ? null
-              // If removed, we would need an `is` check on a function type which
-              // is ultimately more expensive.
-              // ignore: avoid_dynamic_calls
-              : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
+  ) : _onData = onData == null
+          ? null
+          // If removed, we would need an `is` check on a function type which
+          // is ultimately more expensive.
+          // ignore: avoid_dynamic_calls
+          : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 
@@ -38173,13 +38142,12 @@ class _EventStreamSubscription<T extends Event>
     }
     // Remove current event listener.
     _unlisten();
-    _onData =
-        handleData == null
-            ? null
-            // If removed, we would need an `is` check on a function type which is
-            // ultimately more expensive.
-            // ignore: avoid_dynamic_calls
-            : _wrapZone<Event>((e) => (handleData as dynamic)(e));
+    _onData = handleData == null
+        ? null
+        // If removed, we would need an `is` check on a function type which is
+        // ultimately more expensive.
+        // ignore: avoid_dynamic_calls
+        : _wrapZone<Event>((e) => (handleData as dynamic)(e));
     _tryResume();
   }
 
@@ -40887,10 +40855,9 @@ class Console {
   // allow for more.
 
   // We rename assert to assertCondition here.
-  void assertCondition([bool? condition, Object? arg]) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.assert(#, #)', condition, arg)
-          : null;
+  void assertCondition([bool? condition, Object? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.assert(#, #)', condition, arg)
+      : null;
 
   // clear no longer takes in an argument, but we keep this as optional to
   // maintain backwards compatibility.
@@ -40902,18 +40869,16 @@ class Console {
   void count([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.count(#)', arg) : null;
 
-  void countReset([String? arg]) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.countReset(#)', arg)
-          : null;
+  void countReset([String? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.countReset(#)', arg)
+      : null;
 
   void debug(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.debug(#)', arg) : null;
 
-  void dir([Object? item, Object? options]) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.dir(#, #)', item, options)
-          : null;
+  void dir([Object? item, Object? options]) => _isConsoleDefined
+      ? JS('void', 'window.console.dir(#, #)', item, options)
+      : null;
 
   void dirxml(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.dirxml(#)', arg) : null;
@@ -40924,10 +40889,9 @@ class Console {
   void group(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.group(#)', arg) : null;
 
-  void groupCollapsed(Object? arg) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.groupCollapsed(#)', arg)
-          : null;
+  void groupCollapsed(Object? arg) => _isConsoleDefined
+      ? JS('void', 'window.console.groupCollapsed(#)', arg)
+      : null;
 
   void groupEnd() =>
       _isConsoleDefined ? JS('void', 'window.console.groupEnd()') : null;
@@ -40940,8 +40904,8 @@ class Console {
 
   void table([Object? tabularData, List<String>? properties]) =>
       _isConsoleDefined
-          ? JS('void', 'window.console.table(#, #)', tabularData, properties)
-          : null;
+      ? JS('void', 'window.console.table(#, #)', tabularData, properties)
+      : null;
 
   void time([String? label]) =>
       _isConsoleDefined ? JS('void', 'window.console.time(#)', label) : null;
@@ -40949,10 +40913,9 @@ class Console {
   void timeEnd([String? label]) =>
       _isConsoleDefined ? JS('void', 'window.console.timeEnd(#)', label) : null;
 
-  void timeLog([String? label, Object? arg]) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.timeLog(#, #)', label, arg)
-          : null;
+  void timeLog([String? label, Object? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.timeLog(#, #)', label, arg)
+      : null;
 
   void trace(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.trace(#)', arg) : null;
@@ -40964,20 +40927,18 @@ class Console {
   void profile([String? title]) =>
       _isConsoleDefined ? JS('void', 'window.console.profile(#)', title) : null;
 
-  void profileEnd([String? title]) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.profileEnd(#)', title)
-          : null;
+  void profileEnd([String? title]) => _isConsoleDefined
+      ? JS('void', 'window.console.profileEnd(#)', title)
+      : null;
 
   void timeStamp([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.timeStamp(#)', arg) : null;
 
   // The following is deprecated and should be removed once we drop support for
   // older Safari browsers.
-  void markTimeline(Object? arg) =>
-      _isConsoleDefined
-          ? JS('void', 'window.console.markTimeline(#)', arg)
-          : null;
+  void markTimeline(Object? arg) => _isConsoleDefined
+      ? JS('void', 'window.console.markTimeline(#)', arg)
+      : null;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41188,51 +41149,45 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  Events get on =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  Events get on => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void _addEventListener(
     String? type,
     EventListener? listener, [
     bool? useCapture,
-  ]) =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  ]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void addEventListener(
     String type,
     EventListener? listener, [
     bool? useCapture,
-  ]) =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  ]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  bool dispatchEvent(Event event) =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  bool dispatchEvent(Event event) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void _removeEventListener(
     String? type,
     EventListener? listener, [
     bool? useCapture,
-  ]) =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  ]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void removeEventListener(
     String type,
     EventListener? listener, [
     bool? useCapture,
-  ]) =>
-      throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.',
-      );
+  ]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.',
+  );
 }
 
 class _LocationCrossFrame implements LocationBase {
@@ -41972,10 +41927,9 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // On IE, erratically, the hasCorruptedAttributes test can return false,
       // even though it clearly is corrupted. A separate copy of the test
       // inlining just the basic check seems to help.
-      corrupted =
-          corruptedTest1
-              ? true
-              : Element._hasCorruptedAttributesAdditionalCheck(element);
+      corrupted = corruptedTest1
+          ? true
+          : Element._hasCorruptedAttributesAdditionalCheck(element);
     } catch (e) {}
     var elementText = 'element unprintable';
     try {

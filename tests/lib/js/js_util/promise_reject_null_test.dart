@@ -31,20 +31,24 @@ void main() {
 
     // Rejected promise with a `null` value should trigger a
     // `NullRejectionException`.
-    await promiseToFuture(getRejectedPromise(null)).then((_) {
-      fail("Expected promise to reject and not fulfill.");
-    }).catchError((e) {
-      expect(e is NullRejectionException, true);
-      expect(e.isUndefined, false);
-    });
+    await promiseToFuture(getRejectedPromise(null))
+        .then((_) {
+          fail("Expected promise to reject and not fulfill.");
+        })
+        .catchError((e) {
+          expect(e is NullRejectionException, true);
+          expect(e.isUndefined, false);
+        });
 
     // Similar to the above, except we reject using JS interop.
-    var future = promiseToFuture(getNewPromise()).then((_) {
-      fail("Expected promise to reject and not fulfill.");
-    }).catchError((e) {
-      expect(e is NullRejectionException, true);
-      expect(e.isUndefined, false);
-    });
+    var future = promiseToFuture(getNewPromise())
+        .then((_) {
+          fail("Expected promise to reject and not fulfill.");
+        })
+        .catchError((e) {
+          expect(e is NullRejectionException, true);
+          expect(e.isUndefined, false);
+        });
 
     reject(null);
 
@@ -52,12 +56,14 @@ void main() {
 
     // It's also possible to reject with `undefined`. Make sure that the
     // exception correctly flags that case.
-    future = promiseToFuture(getNewPromise()).then((_) {
-      fail("Expected promise to reject and not fulfill.");
-    }).catchError((e) {
-      expect(e is NullRejectionException, true);
-      expect(e.isUndefined, true);
-    });
+    future = promiseToFuture(getNewPromise())
+        .then((_) {
+          fail("Expected promise to reject and not fulfill.");
+        })
+        .catchError((e) {
+          expect(e is NullRejectionException, true);
+          expect(e.isUndefined, true);
+        });
 
     eval('''
       self.reject(undefined);

@@ -94,14 +94,13 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         in _closedWorld.classHierarchy
             .getClassSet(_closedWorld.commonElements.objectClass)
             .subtypes()) {
-      ClassUse classUse =
-          ClassUse()
-            ..directInstance = true
-            ..checkedInstance = true
-            ..typeArgument = true
-            ..checkedTypeArgument = true
-            ..typeLiteral = true
-            ..functionType = _computeFunctionType(_elementEnvironment, cls);
+      ClassUse classUse = ClassUse()
+        ..directInstance = true
+        ..checkedInstance = true
+        ..typeArgument = true
+        ..checkedTypeArgument = true
+        ..typeLiteral = true
+        ..functionType = _computeFunctionType(_elementEnvironment, cls);
       classUseMap[cls] = classUse;
     }
     TypeChecks typeChecks = _substitutions._computeChecks(classUseMap);
@@ -263,8 +262,9 @@ mixin RuntimeTypesSubstitutionsMixin implements RuntimeTypesSubstitutions {
           );
 
           // The checks for [checkedClass] inherited for [superClass].
-          TypeCheck? checkFromSuperClass =
-              superChecks != null ? superChecks[checkedClass] : null;
+          TypeCheck? checkFromSuperClass = superChecks != null
+              ? superChecks[checkedClass]
+              : null;
 
           // Whether [cls] need an explicit $isX property for [checkedClass].
           //
@@ -297,8 +297,10 @@ mixin RuntimeTypesSubstitutionsMixin implements RuntimeTypesSubstitutions {
               } else {
                 // We need a non-trivial substitution function for
                 // [checkedClass].
-                Substitution substitution =
-                    computeSubstitution(cls, checkedClass)!;
+                Substitution substitution = computeSubstitution(
+                  cls,
+                  checkedClass,
+                )!;
                 checks.add(
                   TypeCheck(checkedClass, substitution, needsIs: false),
                 );
@@ -321,8 +323,10 @@ mixin RuntimeTypesSubstitutionsMixin implements RuntimeTypesSubstitutions {
             } else {
               // We need a non-trivial substitution function for
               // [checkedClass].
-              Substitution substitution =
-                  computeSubstitution(cls, checkedClass)!;
+              Substitution substitution = computeSubstitution(
+                cls,
+                checkedClass,
+              )!;
               checks.add(
                 TypeCheck(checkedClass, substitution, needsIs: needsIs),
               );
@@ -756,8 +760,8 @@ class RuntimeTypesImpl
           .getParameterCheckPolicy(method)
           .isEmitted) {
         if (_rtiNeed.methodNeedsTypeArguments(method)) {
-          for (TypeVariableType typeVariable in _elementEnvironment
-              .getFunctionTypeVariables(method)) {
+          for (TypeVariableType typeVariable
+              in _elementEnvironment.getFunctionTypeVariables(method)) {
             DartType bound = _elementEnvironment.getTypeVariableBound(
               typeVariable.element,
             );

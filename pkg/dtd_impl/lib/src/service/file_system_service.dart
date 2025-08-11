@@ -21,10 +21,8 @@ class FileSystemService extends InternalService {
   final bool unrestrictedMode;
   final List<Uri> _ideWorkspaceRoots = [];
 
-  // Note: These values should match the values from
-  // package:dtd/src/constants.dart.
   @override
-  String get serviceName => 'FileSystem';
+  String get serviceName => FileSystemServiceConstants.serviceName;
 
   static const int _defaultGetProjectRootsDepth = 4;
 
@@ -33,34 +31,39 @@ class FileSystemService extends InternalService {
     client
       ..registerServiceMethod(
         serviceName,
-        'readFileAsString',
+        FileSystemServiceConstants.readFileAsString,
         _readFileAsString,
       )
       ..registerServiceMethod(
         serviceName,
-        'writeFileAsString',
+        FileSystemServiceConstants.writeFileAsString,
         _writeFileAsString,
       )
       ..registerServiceMethod(
         serviceName,
-        'listDirectoryContents',
+        FileSystemServiceConstants.listDirectoryContents,
         _listDirectoryContents,
       )
       ..registerServiceMethod(
         serviceName,
-        'setIDEWorkspaceRoots',
+        FileSystemServiceConstants.setIDEWorkspaceRoots,
         _setIDEWorkspaceRoots,
       )
       ..registerServiceMethod(
         serviceName,
-        'getIDEWorkspaceRoots',
+        FileSystemServiceConstants.getIDEWorkspaceRoots,
         _getIDEWorkspaceRoots,
       )
       ..registerServiceMethod(
         serviceName,
-        'getProjectRoots',
+        FileSystemServiceConstants.getProjectRoots,
         _getProjectRoots,
       );
+  }
+
+  @override
+  void shutdown() {
+    _ideWorkspaceRoots.clear();
   }
 
   void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
@@ -82,7 +85,7 @@ class FileSystemService extends InternalService {
   }
 
   Map<String, Object?> _setIDEWorkspaceRoots(Parameters parameters) {
-    final incomingSecret = parameters['secret'].asString;
+    final incomingSecret = parameters[DtdParameters.secret].asString;
 
     if (!unrestrictedMode && secret != incomingSecret) {
       throw RpcErrorCodes.buildRpcException(
@@ -90,7 +93,7 @@ class FileSystemService extends InternalService {
       );
     }
     final newRoots = <Uri>[];
-    for (final root in parameters['roots'].asList.cast<String>()) {
+    for (final root in parameters[DtdParameters.roots].asList.cast<String>()) {
       final rootUri = Uri.parse(path.normalize(root));
       if (rootUri.scheme != 'file') {
         throw RpcErrorCodes.buildRpcException(
@@ -113,7 +116,7 @@ class FileSystemService extends InternalService {
 
   Future<Map<String, Object?>> _getProjectRoots(Parameters parameters) async {
     final searchDepth =
-        parameters['depth'].asIntOr(_defaultGetProjectRootsDepth);
+        parameters[DtdParameters.depth].asIntOr(_defaultGetProjectRootsDepth);
 
     final projectRoots = <Uri>[];
 
@@ -184,9 +187,9 @@ class FileSystemService extends InternalService {
 
   Future<Map<String, Object?>> _writeFileAsString(Parameters parameters) async {
     final uri = _extractUri(parameters);
-    final contents = parameters['contents'].asString;
+    final contents = parameters[DtdParameters.contents].asString;
     final encoding = Encoding.getByName(
-      parameters['encoding'].asString,
+      parameters[DtdParameters.encoding].asString,
     )!;
 
     _ensureIDEWorkspaceRootsContainUri(uri);

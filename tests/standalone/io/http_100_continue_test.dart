@@ -33,12 +33,15 @@ void test(responseBytes, bodyLength) async {
   server.listen(handleSocket);
 
   var client = new HttpClient();
-  var request =
-      await client.getUrl(Uri.parse('http://127.0.0.1:${server.port}/'));
+  var request = await client.getUrl(
+    Uri.parse('http://127.0.0.1:${server.port}/'),
+  );
   var response = await request.close();
   Expect.equals(response.statusCode, 200);
-  Expect.equals(bodyLength,
-      (await response.fold<List<int>>(<int>[], (p, e) => p..addAll(e))).length);
+  Expect.equals(
+    bodyLength,
+    (await response.fold<List<int>>(<int>[], (p, e) => p..addAll(e))).length,
+  );
   server.close();
 }
 

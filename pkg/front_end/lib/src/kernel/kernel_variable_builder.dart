@@ -7,14 +7,17 @@ import 'package:kernel/ast.dart' show VariableDeclaration;
 import '../builder/builder.dart';
 import '../builder/variable_builder.dart';
 
-class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
+class VariableBuilderImpl extends NamedBuilderImpl implements VariableBuilder {
+  @override
+  final String name;
+
   @override
   final Uri fileUri;
 
   @override
   final VariableDeclaration variable;
 
-  VariableBuilderImpl(this.variable, this.fileUri);
+  VariableBuilderImpl(this.name, this.variable, this.fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -24,13 +27,16 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   int get fileOffset => variable.fileOffset;
 
   @override
-  bool get isLocal => true;
-
-  @override
   bool get isConst => variable.isConst;
 
   @override
   bool get isAssignable => variable.isAssignable;
+
+  @override
+  NamedBuilder get getable => this;
+
+  @override
+  NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -25,8 +25,9 @@ main() async {
     const prefix = 'fileapi_directory_reader_';
     var file =
         await fs.root!.createFile('${prefix}file_$testName') as FileEntry;
-    var dir = await fs.root!.createDirectory('${prefix}dir_$testName')
-        as DirectoryEntry;
+    var dir =
+        await fs.root!.createDirectory('${prefix}dir_$testName')
+            as DirectoryEntry;
     return new Future.value(new FileAndDir(file, dir));
   }
 

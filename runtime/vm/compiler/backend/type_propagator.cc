@@ -49,7 +49,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
       is_aot_(CompilerState::Current().is_aot()),
-      visited_blocks_(new(flow_graph->zone())
+      visited_blocks_(new (flow_graph->zone())
                           BitVector(flow_graph->zone(),
                                     flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),

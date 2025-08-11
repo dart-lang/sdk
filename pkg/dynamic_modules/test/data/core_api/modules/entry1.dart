@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 @pragma('dyn-module:entry-point')
 Future<bool> dynamicModuleEntrypoint() async {
-  final list = ['1','2','3'];
+  final list = ['1', '2', '3'];
   list.add('4');
   final list2 = list.map((e) => 'item $e').toList().reversed.toList();
   final list3 = <Future>[];

@@ -292,10 +292,9 @@ class TypeHierarchyComputerFindSupertypesTest
   ) async {
     var file = getFile(target.file);
     var result = await getResolvedUnit(file);
-    var anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
     return DartLazyTypeHierarchyComputer(
       result,
-    ).findSupertypes(target.location, anchor: anchor);
+    ).findSupertypes(target.location);
   }
 
   /// Test that if the file is modified between fetching a target and it's
@@ -338,7 +337,7 @@ class ^MyClass2<T1> implements MyClass1<T1, String> {}
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
-        'MyClass1<T1, String>',
+        'MyClass1<T1, T2>',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
         codeRange: parsedTestCode.ranges[0].sourceRange,
@@ -347,8 +346,8 @@ class ^MyClass2<T1> implements MyClass1<T1, String> {}
     ]);
   }
 
-  /// Ensure that type arguments flow across multiple levels of the tree.
-  Future<void> test_class_generic_typeArgsFlow() async {
+  /// Ensure that type parameters are shown instead of type arguments.
+  Future<void> test_class_generic_typeParameters() async {
     var content = '''
 class A<T1, T2> {}
 class B<T1, T2> extends A<T1, T2> {}
@@ -371,15 +370,7 @@ class ^E extends D {}
               : null;
     }
 
-    // Check for substituted type args.
-    expect(names, [
-      'E',
-      'D',
-      'C<int>',
-      'B<int, String>',
-      'A<int, String>',
-      'Object',
-    ]);
+    expect(names, ['E', 'D', 'C<T1>', 'B<T1, T2>', 'A<T1, T2>', 'Object']);
   }
 
   Future<void> test_class_interfaces() async {
@@ -741,7 +732,8 @@ int? b;
     );
   }
 
-  /// Ensure invocations directly on a type with type args retain those args.
+  /// Ensure invocations directly on a type with type arguments show the type
+  /// parameters.
   Future<void> test_typeReference_generic() async {
     var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/<T1, T2> {}/*0]*/
@@ -751,7 +743,7 @@ MyCl^ass1<String, String>? a;
     addTestSource(content);
     await expectTarget(
       _isItem(
-        'MyClass1<String, String>?',
+        'MyClass1<T1, T2>',
         testFile.path,
         codeRange: parsedTestCode.ranges[0].sourceRange,
         nameRange: parsedTestCode.ranges[1].sourceRange,

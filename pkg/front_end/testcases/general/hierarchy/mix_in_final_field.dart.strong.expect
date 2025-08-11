@@ -132,28 +132,28 @@ class NamedMixin = self::Super with self::Mixin {
   synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
-  mixin-super-stub get mixedInConcreteField() → core::int
+  synthetic mixin-super-stub get mixedInConcreteField() → core::int
     return super.{self::Mixin::mixedInConcreteField};
-  mixin-super-stub get extendedConcreteMixedInConcreteField() → core::int
+  abstract synthetic mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
+  synthetic mixin-super-stub get extendedConcreteMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedConcreteMixedInConcreteField};
-  mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
+  synthetic mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteField};
-  abstract mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
-  abstract mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
-  abstract mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
+  abstract synthetic mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
+  abstract synthetic mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
 }
 abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub get mixedInConcreteField() → core::int
+  synthetic mixin-super-stub get mixedInConcreteField() → core::int
     return super.{self::Mixin::mixedInConcreteField};
-  mixin-super-stub get extendedConcreteMixedInConcreteField() → core::int
+  abstract synthetic mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
+  synthetic mixin-super-stub get extendedConcreteMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedConcreteMixedInConcreteField};
-  mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
+  synthetic mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteField};
-  abstract mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
-  abstract mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
-  abstract mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
+  abstract synthetic mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
+  abstract synthetic mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
 }
 static method main() → dynamic {}

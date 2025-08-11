@@ -10,8 +10,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 main() {
   var isList = predicate((x) => x is List, 'is a List');
   var isNumList = predicate((x) => x is List<num>, 'is a List<num>');
-  var isNotStringList =
-      predicate((x) => x is! List<String>, 'is not a List<String>');
+  var isNotStringList = predicate(
+    (x) => x is! List<String>,
+    'is not a List<String>',
+  );
   var expectation = Platform.supportsTypedData ? returnsNormally : throws;
 
   group('supported', () {

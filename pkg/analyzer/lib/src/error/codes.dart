@@ -6,4 +6,5 @@ export 'package:analyzer/src/analysis_options/error/option_codes.dart';
 export 'package:analyzer/src/dart/error/hint_codes.dart';
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/error/todo_codes.dart';
+// ignore: deprecated_member_use_from_same_package
 export 'package:analyzer/src/error/codes.g.dart';

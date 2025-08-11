@@ -14,12 +14,21 @@ class C {
 
 main() {
   LibraryMirror thisLibrary = reflectClass(C).owner as LibraryMirror;
-  Expect.equals(thisLibrary.declarations[#topLevelMethod],
-      (reflect(topLevelMethod) as ClosureMirror).function, "topLevel");
+  Expect.equals(
+    thisLibrary.declarations[#topLevelMethod],
+    (reflect(topLevelMethod) as ClosureMirror).function,
+    "topLevel",
+  );
 
-  Expect.equals(reflectClass(C).declarations[#staticMethod],
-      (reflect(C.staticMethod) as ClosureMirror).function, "static");
+  Expect.equals(
+    reflectClass(C).declarations[#staticMethod],
+    (reflect(C.staticMethod) as ClosureMirror).function,
+    "static",
+  );
 
-  Expect.equals(reflectClass(C).declarations[#instanceMethod],
-      (reflect(new C().instanceMethod) as ClosureMirror).function, "instance");
+  Expect.equals(
+    reflectClass(C).declarations[#instanceMethod],
+    (reflect(new C().instanceMethod) as ClosureMirror).function,
+    "instance",
+  );
 }

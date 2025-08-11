@@ -33,10 +33,7 @@ extension type E$code {}
     var findNode = _parseStringToFindNode(r'''
 var v = 'a' 'b';
 ''');
-    _assertSource(
-      "'a' 'b'",
-      findNode.adjacentStrings("'a'"),
-    );
+    _assertSource("'a' 'b'", findNode.adjacentStrings("'a'"));
   }
 
   void test_visitAnnotation_constant() {
@@ -78,10 +75,7 @@ final x = f$code;
     var findNode = _parseStringToFindNode(r'''
 var v = a as T;
 ''');
-    _assertSource(
-      'a as T',
-      findNode.as_('as T'),
-    );
+    _assertSource('a as T', findNode.as_('as T'));
   }
 
   void test_visitAssertStatement() {
@@ -90,10 +84,7 @@ void f() {
   assert(a);
 }
 ''');
-    _assertSource(
-      'assert (a);',
-      findNode.assertStatement('assert'),
-    );
+    _assertSource('assert (a);', findNode.assertStatement('assert'));
   }
 
   void test_visitAssertStatement_withMessage() {
@@ -102,10 +93,7 @@ void f() {
   assert(a, b);
 }
 ''');
-    _assertSource(
-      'assert (a, b);',
-      findNode.assertStatement('assert'),
-    );
+    _assertSource('assert (a, b);', findNode.assertStatement('assert'));
   }
 
   void test_visitAssignedVariablePattern() {
@@ -131,30 +119,21 @@ void f() {
     var findNode = _parseStringToFindNode(r'''
 void f() async => await e;
 ''');
-    _assertSource(
-      'await e',
-      findNode.awaitExpression('await e'),
-    );
+    _assertSource('await e', findNode.awaitExpression('await e'));
   }
 
   void test_visitBinaryExpression() {
     var findNode = _parseStringToFindNode(r'''
 var v = a + b;
 ''');
-    _assertSource(
-      'a + b',
-      findNode.binary('a + b'),
-    );
+    _assertSource('a + b', findNode.binary('a + b'));
   }
 
   void test_visitBinaryExpression_precedence() {
     var findNode = _parseStringToFindNode(r'''
 var v = a * (b + c);
 ''');
-    _assertSource(
-      'a * (b + c)',
-      findNode.binary('a *'),
-    );
+    _assertSource('a * (b + c)', findNode.binary('a *'));
   }
 
   void test_visitBlock_empty() {
@@ -284,10 +263,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'y as int',
-      findNode.castPattern('as '),
-    );
+    _assertSource('y as int', findNode.castPattern('as '));
   }
 
   void test_visitCatchClause_catch_noStack() {
@@ -356,10 +332,7 @@ void f() {
     var findNode = _parseStringToFindNode(r'''
 base class A {}
 ''');
-    _assertSource(
-      'base class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    _assertSource('base class A {}', findNode.classDeclaration('class A'));
   }
 
   void test_visitClassDeclaration_empty() {
@@ -406,10 +379,7 @@ void f() {}
     var findNode = _parseStringToFindNode(r'''
 final class A {}
 ''');
-    _assertSource(
-      'final class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    _assertSource('final class A {}', findNode.classDeclaration('class A'));
   }
 
   void test_visitClassDeclaration_implements() {
@@ -424,20 +394,14 @@ $code
     var findNode = _parseStringToFindNode(r'''
 interface class A {}
 ''');
-    _assertSource(
-      'interface class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    _assertSource('interface class A {}', findNode.classDeclaration('class A'));
   }
 
   void test_visitClassDeclaration_mixin() {
     var findNode = _parseStringToFindNode(r'''
 mixin class A {}
 ''');
-    _assertSource(
-      'mixin class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    _assertSource('mixin class A {}', findNode.classDeclaration('class A'));
   }
 
   void test_visitClassDeclaration_multipleMember() {
@@ -498,10 +462,7 @@ $code
     var findNode = _parseStringToFindNode(r'''
 sealed class A {}
 ''');
-    _assertSource(
-      'sealed class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    _assertSource('sealed class A {}', findNode.classDeclaration('class A'));
   }
 
   void test_visitClassDeclaration_singleMember() {
@@ -673,7 +634,7 @@ void f() {}
 /// [$code]
 void f() {}
 ''');
-    _assertSource('', findNode.commentReference(code));
+    _assertSource('[x]', findNode.commentReference(code));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -754,10 +715,7 @@ void f(x) {
   if (x case true) {}
 }
 ''');
-    _assertSource(
-      'true',
-      findNode.constantPattern('true'),
-    );
+    _assertSource('true', findNode.constantPattern('true'));
   }
 
   void test_visitConstructorDeclaration_const() {
@@ -917,10 +875,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'int? a',
-      findNode.declaredVariablePattern('int?'),
-    );
+    _assertSource('int? a', findNode.declaredVariablePattern('int?'));
   }
 
   void test_visitDefaultFormalParameter_annotation() {
@@ -1019,30 +974,21 @@ enum E {
   v<double>(42)
 }
 ''');
-    _assertSource(
-      'enum E {v<double>(42)}',
-      findNode.enumDeclaration('enum E'),
-    );
+    _assertSource('enum E {v<double>(42)}', findNode.enumDeclaration('enum E'));
   }
 
   void test_visitEnumDeclaration_constants_multiple() {
     var findNode = _parseStringToFindNode(r'''
 enum E {one, two}
 ''');
-    _assertSource(
-      'enum E {one, two}',
-      findNode.enumDeclaration('E'),
-    );
+    _assertSource('enum E {one, two}', findNode.enumDeclaration('E'));
   }
 
   void test_visitEnumDeclaration_constants_single() {
     var findNode = _parseStringToFindNode(r'''
 enum E {one}
 ''');
-    _assertSource(
-      'enum E {one}',
-      findNode.enumDeclaration('E'),
-    );
+    _assertSource('enum E {one}', findNode.enumDeclaration('E'));
   }
 
   void test_visitEnumDeclaration_field_constructor() {
@@ -1100,7 +1046,8 @@ $code
   }
 
   void test_visitExportDirective_configurations() {
-    var unit = _parseStringToFindNode(r'''
+    var unit =
+        _parseStringToFindNode(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2015,7 +1962,8 @@ $code
   }
 
   void test_visitImportDirective_configurations() {
-    var unit = _parseStringToFindNode(r'''
+    var unit =
+        _parseStringToFindNode(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2314,10 +2262,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '[]',
-      findNode.listPattern('[]'),
-    );
+    _assertSource('[]', findNode.listPattern('[]'));
   }
 
   void test_visitListPattern_nonEmpty() {
@@ -2329,10 +2274,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '[1, 2]',
-      findNode.listPattern('1'),
-    );
+    _assertSource('[1, 2]', findNode.listPattern('1'));
   }
 
   void test_visitListPattern_withTypeArguments() {
@@ -2344,10 +2286,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '<int>[]',
-      findNode.listPattern('[]'),
-    );
+    _assertSource('<int>[]', findNode.listPattern('[]'));
   }
 
   void test_visitLogicalAndPattern() {
@@ -2421,10 +2360,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '{}',
-      findNode.mapPattern('{}'),
-    );
+    _assertSource('{}', findNode.mapPattern('{}'));
   }
 
   void test_visitMapPattern_notEmpty() {
@@ -2436,10 +2372,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '{1: 2}',
-      findNode.mapPattern('1'),
-    );
+    _assertSource('{1: 2}', findNode.mapPattern('1'));
   }
 
   void test_visitMapPattern_withTypeArguments() {
@@ -2451,10 +2384,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '<int, int>{}',
-      findNode.mapPattern('{}'),
-    );
+    _assertSource('<int, int>{}', findNode.mapPattern('{}'));
   }
 
   void test_visitMapPatternEntry() {
@@ -2466,10 +2396,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '1: 2',
-      findNode.mapPatternEntry('1'),
-    );
+    _assertSource('1: 2', findNode.mapPatternEntry('1'));
   }
 
   void test_visitMethodDeclaration_augment() {
@@ -2675,29 +2602,20 @@ void f() {
   void test_visitMixinDeclaration_augment() {
     var code = 'augment mixin M {}';
     var findNode = _parseStringToFindNode(code);
-    _assertSource(
-      code,
-      findNode.singleMixinDeclaration,
-    );
+    _assertSource(code, findNode.singleMixinDeclaration);
   }
 
   void test_visitMixinDeclaration_augment_base() {
     var code = 'augment base mixin M {}';
     var findNode = _parseStringToFindNode(code);
-    _assertSource(
-      code,
-      findNode.singleMixinDeclaration,
-    );
+    _assertSource(code, findNode.singleMixinDeclaration);
   }
 
   void test_visitMixinDeclaration_base() {
     var findNode = _parseStringToFindNode(r'''
 base mixin M {}
 ''');
-    _assertSource(
-      'base mixin M {}',
-      findNode.mixinDeclaration('mixin M'),
-    );
+    _assertSource('base mixin M {}', findNode.mixinDeclaration('mixin M'));
   }
 
   void test_visitNamedExpression() {
@@ -2799,10 +2717,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'C(f: 1)',
-      findNode.objectPattern('C'),
-    );
+    _assertSource('C(f: 1)', findNode.objectPattern('C'));
   }
 
   void test_visitParenthesizedExpression() {
@@ -2822,10 +2737,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '(3)',
-      findNode.parenthesizedPattern('(3'),
-    );
+    _assertSource('(3)', findNode.parenthesizedPattern('(3'));
   }
 
   void test_visitPartDirective() {
@@ -2835,7 +2747,8 @@ void f(x) {
   }
 
   void test_visitPartDirective_configurations() {
-    var unit = _parseStringToFindNode(r'''
+    var unit =
+        _parseStringToFindNode(r'''
 part 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2856,10 +2769,11 @@ part 'foo.dart'
   }
 
   void test_visitPartOfDirective_name() {
-    var unit = _parseStringToFindNode(
-      'part of l;',
-      featureSet: FeatureSets.language_3_4,
-    ).unit;
+    var unit =
+        _parseStringToFindNode(
+          'part of l;',
+          featureSet: FeatureSets.language_3_4,
+        ).unit;
     var directive = unit.directives[0] as PartOfDirective;
     _assertSource("part of l;", directive);
   }
@@ -2897,10 +2811,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'a: 1',
-      findNode.patternField('1'),
-    );
+    _assertSource('a: 1', findNode.patternField('1'));
   }
 
   void test_visitPatternField_positional() {
@@ -2912,10 +2823,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '1',
-      findNode.patternField('1'),
-    );
+    _assertSource('1', findNode.patternField('1'));
   }
 
   void test_visitPatternFieldName() {
@@ -2927,10 +2835,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'b:',
-      findNode.patternFieldName('b:'),
-    );
+    _assertSource('b:', findNode.patternFieldName('b:'));
   }
 
   @failingTest
@@ -2972,10 +2877,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'true!',
-      findNode.nullAssertPattern('true'),
-    );
+    _assertSource('true!', findNode.nullAssertPattern('true'));
   }
 
   void test_visitPrefixedIdentifier() {
@@ -3002,10 +2904,7 @@ int f() {
     var findNode = _parseStringToFindNode(r'''
 var v = !(a == b);
 ''');
-    _assertSource(
-      '!(a == b)',
-      findNode.prefix('!'),
-    );
+    _assertSource('!(a == b)', findNode.prefix('!'));
   }
 
   void test_visitPropertyAccess() {
@@ -3029,10 +2928,7 @@ final x = $code;
     var findNode = _parseStringToFindNode('''
 final x = $code;
 ''');
-    _assertSource(
-      code,
-      findNode.recordLiteral(code),
-    );
+    _assertSource(code, findNode.recordLiteral(code));
   }
 
   void test_visitRecordLiteral_named() {
@@ -3040,10 +2936,7 @@ final x = $code;
     var findNode = _parseStringToFindNode('''
 final x = $code;
 ''');
-    _assertSource(
-      code,
-      findNode.recordLiteral(code),
-    );
+    _assertSource(code, findNode.recordLiteral(code));
   }
 
   void test_visitRecordLiteral_positional() {
@@ -3051,10 +2944,7 @@ final x = $code;
     var findNode = _parseStringToFindNode('''
 final x = $code;
 ''');
-    _assertSource(
-      code,
-      findNode.recordLiteral(code),
-    );
+    _assertSource(code, findNode.recordLiteral(code));
   }
 
   void test_visitRecordPattern() {
@@ -3066,10 +2956,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '(1, 2)',
-      findNode.recordPattern('(1'),
-    );
+    _assertSource('(1, 2)', findNode.recordPattern('(1'));
   }
 
   void test_visitRecordTypeAnnotation_mixed() {
@@ -3077,10 +2964,7 @@ void f(x) {
     var findNode = _parseStringToFindNode('''
 $code f() {}
 ''');
-    _assertSource(
-      code,
-      findNode.recordTypeAnnotation(code),
-    );
+    _assertSource(code, findNode.recordTypeAnnotation(code));
   }
 
   void test_visitRecordTypeAnnotation_named() {
@@ -3088,10 +2972,7 @@ $code f() {}
     var findNode = _parseStringToFindNode('''
 $code f() {}
 ''');
-    _assertSource(
-      code,
-      findNode.recordTypeAnnotation(code),
-    );
+    _assertSource(code, findNode.recordTypeAnnotation(code));
   }
 
   void test_visitRecordTypeAnnotation_positional() {
@@ -3099,10 +2980,7 @@ $code f() {}
     var findNode = _parseStringToFindNode('''
 $code f() {}
 ''');
-    _assertSource(
-      code,
-      findNode.recordTypeAnnotation(code),
-    );
+    _assertSource(code, findNode.recordTypeAnnotation(code));
   }
 
   void test_visitRecordTypeAnnotation_positional_nullable() {
@@ -3110,10 +2988,7 @@ $code f() {}
     var findNode = _parseStringToFindNode('''
 $code f() {}
 ''');
-    _assertSource(
-      code,
-      findNode.recordTypeAnnotation(code),
-    );
+    _assertSource(code, findNode.recordTypeAnnotation(code));
   }
 
   void test_visitRedirectingConstructorInvocation_named() {
@@ -3123,10 +2998,7 @@ class A {
   A() : $code;
 }
 ''');
-    _assertSource(
-      code,
-      findNode.redirectingConstructorInvocation(code),
-    );
+    _assertSource(code, findNode.redirectingConstructorInvocation(code));
   }
 
   void test_visitRedirectingConstructorInvocation_unnamed() {
@@ -3136,10 +3008,7 @@ class A {
   A.named() : $code;
 }
 ''');
-    _assertSource(
-      code,
-      findNode.redirectingConstructorInvocation(code),
-    );
+    _assertSource(code, findNode.redirectingConstructorInvocation(code));
   }
 
   void test_visitRelationalPattern() {
@@ -3151,10 +3020,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      '> 3',
-      findNode.relationalPattern('>'),
-    );
+    _assertSource('> 3', findNode.relationalPattern('>'));
   }
 
   void test_visitRethrowExpression() {
@@ -3912,10 +3778,7 @@ void f(x) {
   }
 }
 ''');
-    _assertSource(
-      'int? _',
-      findNode.wildcardPattern('int?'),
-    );
+    _assertSource('int? _', findNode.wildcardPattern('int?'));
   }
 
   void test_visitWithClause_multiple() {
@@ -3963,10 +3826,7 @@ void f() sync* {
   }
 
   // TODO(scheglov): Use [parseStringWithErrors] everywhere? Or just there?
-  FindNode _parseStringToFindNode(
-    String content, {
-    FeatureSet? featureSet,
-  }) {
+  FindNode _parseStringToFindNode(String content, {FeatureSet? featureSet}) {
     var parseResult = parseString(
       content: content,
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,

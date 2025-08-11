@@ -8,11 +8,11 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/type_algorithms.dart';
@@ -24,6 +24,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceSetterEncoding extends SetterEncoding
@@ -139,19 +140,19 @@ sealed class SetterEncoding {
   void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
@@ -212,17 +213,20 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
 
     buildTypeParametersForOutlineExpressions(
         classHierarchy,
@@ -243,7 +247,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
@@ -306,7 +310,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -352,7 +356,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
 
   @override
   LocalScope createFormalParameterScope(LookupScope parent) {
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     List<FormalParameterBuilder>? formals = _fragment.declaredFormals;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
@@ -437,17 +441,20 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
 
     buildTypeParametersForOutlineExpressions(
         classHierarchy,
@@ -475,7 +482,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;
@@ -556,7 +563,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -617,7 +624,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
 
   @override
   LocalScope createFormalParameterScope(LookupScope parent) {
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
 
     assert(!_thisFormal.isWildcard);
     local[_thisFormal.name] = _thisFormal;

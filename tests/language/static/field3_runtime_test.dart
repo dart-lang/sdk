@@ -13,10 +13,5 @@ class Foo {
 }
 
 main() {
-  if (false) {
-
-
-
-
-  }
+  if (false) {}
 }

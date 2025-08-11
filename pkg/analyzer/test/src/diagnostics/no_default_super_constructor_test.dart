@@ -105,28 +105,41 @@ class B extends A {
   }
 
   test_super_requiredNamed_subclass_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A({required int? a});
 }
 class B extends A {
   B();
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
-          58, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          58,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_requiredNamed_subclass_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A({required int? a});
 }
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+          42,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_requiredNamed_subclass_superParameter() async {
@@ -141,17 +154,23 @@ class B extends A {
   }
 
   test_super_requiredNamed_subclass_superParameter_oneLeft() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A({required int? a, required int? b});
 }
 class B extends A {
   B({required super.a});
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
-          75, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          75,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_requiredNamed_subclass_superParameter_optionalNamed_hasDefault() async {
@@ -177,17 +196,23 @@ class B extends A {
   }
 
   test_super_requiredPositional_subclass_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(p);
 }
 class B extends A {
   B();
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
-          42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          42,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_requiredPositional_subclass_external() async {
@@ -202,14 +227,21 @@ class B extends A {
   }
 
   test_super_requiredPositional_subclass_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(p);
 }
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 26, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+          26,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_requiredPositional_subclass_superParameter_optionalPositional_withDefault() async {

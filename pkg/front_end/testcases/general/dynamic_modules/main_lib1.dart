@@ -98,3 +98,9 @@ class C9 {
   factory C9() = C9._;
   C9._() {}
 }
+
+extension type ExtType1(int raw) {}
+
+extension Ext1 on int {
+  bool get isPositive => this > 0;
+}

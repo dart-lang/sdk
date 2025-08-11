@@ -50,12 +50,11 @@ linter:
   rules:
     - always_use_package_imports
     - analyzer_public_api
-    - analyzer_use_new_elements
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
+    - discarded_futures
     - flutter_style_todos
-    - library_annotations
     - unawaited_futures
     - unnecessary_breaks
     - unnecessary_final

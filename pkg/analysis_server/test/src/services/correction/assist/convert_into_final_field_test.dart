@@ -17,17 +17,17 @@ void main() {
 @reflectiveTest
 class ConvertIntoFinalFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
+  AssistKind get kind => DartAssistKind.convertIntoFinalField;
 
   Future<void> test_blockBody_onlyReturnStatement() async {
     await resolveTestCode('''
 class A {
-  int get foo {
+  int ^get foo {
     return 1 + 2;
   }
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   final int foo = 1 + 2;
 }
@@ -37,19 +37,19 @@ class A {
   Future<void> test_extension_instance() async {
     await resolveTestCode('''
 extension E on int {
-  int get foo => 0;
+  int ^get foo => 0;
 }
 ''');
-    await assertNoAssistAt('get foo');
+    await assertNoAssist();
   }
 
   Future<void> test_extension_static() async {
     await resolveTestCode('''
 extension E on int {
-  static int get foo => 0;
+  static int ^get foo => 0;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 extension E on int {
   static final int foo = 0;
 }
@@ -59,19 +59,19 @@ extension E on int {
   Future<void> test_extensionType_instance() async {
     await resolveTestCode('''
 extension type E(int v) {
-  int get foo => 0;
+  int ^get foo => 0;
 }
 ''');
-    await assertNoAssistAt('get foo');
+    await assertNoAssist();
   }
 
   Future<void> test_extensionType_static() async {
     await resolveTestCode('''
 extension type E(int v) {
-  static int get foo => 0;
+  static int ^get foo => 0;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 extension type E(int v) {
   static final int foo = 0;
 }
@@ -83,10 +83,10 @@ extension type E(int v) {
 const myAnnotation = const Object();
 class A {
   @myAnnotation
-  int get foo => 42;
+  int ^get foo => 42;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation
@@ -101,10 +101,10 @@ class A {
   void set foo(_) {}
 }
 class B extends A {
-  int get foo => 3;
+  int ^get foo => 3;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   void set foo(_) {}
 }
@@ -117,20 +117,20 @@ class B extends A {
   Future<void> test_hasSetter_inThisClass() async {
     await resolveTestCode('''
 class A {
-  int get foo => 0;
+  int ^get foo => 0;
   void set foo(_) {}
 }
 ''');
-    await assertNoAssistAt('get foo');
+    await assertNoAssist();
   }
 
   Future<void> test_noReturnType() async {
     await resolveTestCode('''
 class A {
-  get foo => 42;
+  ^get foo => 42;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   final foo = 42;
 }
@@ -140,10 +140,10 @@ class A {
   Future<void> test_noReturnType_static() async {
     await resolveTestCode('''
 class A {
-  static get foo => 42;
+  static ^get foo => 42;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   static final foo = 42;
 }
@@ -153,31 +153,31 @@ class A {
   Future<void> test_notExpressionBody() async {
     await resolveTestCode('''
 class A {
-  int get foo {
+  int ^get foo {
     int v = 1 + 2;
     return v + 3;
   }
 }
 ''');
-    await assertNoAssistAt('get foo');
+    await assertNoAssist();
   }
 
   Future<void> test_notGetter() async {
     await resolveTestCode('''
 class A {
-  int foo() => 42;
+  int ^foo() => 42;
 }
 ''');
-    await assertNoAssistAt('foo');
+    await assertNoAssist();
   }
 
   Future<void> test_notNull() async {
     await resolveTestCode('''
 class A {
-  int get foo => 1 + 2;
+  int ^get foo => 1 + 2;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   final int foo = 1 + 2;
 }
@@ -187,10 +187,10 @@ class A {
   Future<void> test_null() async {
     await resolveTestCode('''
 class A {
-  int? get foo => null;
+  int? ^get foo => null;
 }
 ''');
-    await assertHasAssistAt('get foo', '''
+    await assertHasAssist('''
 class A {
   final int? foo;
 }
@@ -200,10 +200,10 @@ class A {
   Future<void> test_onName() async {
     await resolveTestCode('''
 class A {
-  int get foo => 42;
+  int get ^foo => 42;
 }
 ''');
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 class A {
   final int foo = 42;
 }
@@ -213,10 +213,10 @@ class A {
   Future<void> test_onReturnType_parameterized() async {
     await resolveTestCode('''
 class A {
-  List<int>? get foo => null;
+  List<i^nt>? get foo => null;
 }
 ''');
-    await assertHasAssistAt('nt>? get', '''
+    await assertHasAssist('''
 class A {
   final List<int>? foo;
 }
@@ -226,10 +226,10 @@ class A {
   Future<void> test_onReturnType_simple() async {
     await resolveTestCode('''
 class A {
-  int get foo => 42;
+  ^int get foo => 42;
 }
 ''');
-    await assertHasAssistAt('int get', '''
+    await assertHasAssist('''
 class A {
   final int foo = 42;
 }

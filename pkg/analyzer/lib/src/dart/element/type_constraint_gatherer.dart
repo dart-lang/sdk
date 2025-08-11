@@ -30,55 +30,90 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
 /// Instance of [shared.GeneratedTypeConstraint] specific to the Analyzer.
-typedef GeneratedTypeConstraint
-    = shared.GeneratedTypeConstraint<PromotableElementImpl2>;
+typedef GeneratedTypeConstraint =
+    shared.GeneratedTypeConstraint<PromotableElementImpl>;
 
 /// Instance of [shared.MergedTypeConstraint] specific to the Analyzer.
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<
-    PromotableElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef MergedTypeConstraint =
+    shared.MergedTypeConstraint<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
-typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<
-    PromotableElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef TypeConstraintFromArgument =
+    shared.TypeConstraintFromArgument<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
-typedef TypeConstraintFromExtendsClause
-    = shared.TypeConstraintFromExtendsClause<PromotableElementImpl2,
-        InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef TypeConstraintFromExtendsClause =
+    shared.TypeConstraintFromExtendsClause<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
-typedef TypeConstraintFromFunctionContext
-    = shared.TypeConstraintFromFunctionContext<PromotableElementImpl2,
-        InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef TypeConstraintFromFunctionContext =
+    shared.TypeConstraintFromFunctionContext<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
-typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
-    PromotableElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef TypeConstraintFromReturnType =
+    shared.TypeConstraintFromReturnType<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
-typedef TypeConstraintGenerationDataForTesting
-    = shared.TypeConstraintGenerationDataForTesting<PromotableElementImpl2,
-        AstNodeImpl>;
+typedef TypeConstraintGenerationDataForTesting =
+    shared.TypeConstraintGenerationDataForTesting<
+      PromotableElementImpl,
+      AstNodeImpl
+    >;
 
 /// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
-typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<
-    PromotableElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef TypeConstraintOrigin =
+    shared.TypeConstraintOrigin<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
-typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    PromotableElementImpl2, InterfaceTypeImpl, InterfaceElementImpl2>;
+typedef UnknownTypeConstraintOrigin =
+    shared.UnknownTypeConstraintOrigin<
+      PromotableElementImpl,
+      InterfaceTypeImpl,
+      InterfaceElementImpl
+    >;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
 /// attempt to make one type schema a subtype of another.
-class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
-        PromotableElementImpl2,
-        InterfaceTypeImpl,
-        InterfaceElementImpl2,
-        AstNodeImpl>
+class TypeConstraintGatherer
+    extends
+        shared.TypeConstraintGenerator<
+          PromotableElementImpl,
+          InterfaceTypeImpl,
+          InterfaceElementImpl,
+          AstNodeImpl
+        >
     with
-        shared.TypeConstraintGeneratorMixin<PromotableElementImpl2,
-            InterfaceTypeImpl, InterfaceElementImpl2, AstNodeImpl> {
+        shared.TypeConstraintGeneratorMixin<
+          PromotableElementImpl,
+          InterfaceTypeImpl,
+          InterfaceElementImpl,
+          AstNodeImpl
+        > {
   @override
-  final Set<TypeParameterElementImpl2> typeParametersToConstrain =
+  final Set<TypeParameterElementImpl> typeParametersToConstrain =
       Set.identity();
 
   final List<GeneratedTypeConstraint> _constraints = [];
@@ -86,7 +121,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   TypeConstraintGatherer({
-    required Iterable<TypeParameterElementImpl2> typeParameters,
+    required Iterable<TypeParameterElementImpl> typeParameters,
     required TypeSystemOperations typeSystemOperations,
     required super.inferenceUsingBoundsIsEnabled,
     required this.dataForTesting,
@@ -109,35 +144,45 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   void addLowerConstraintForParameter(
-      TypeParameterElementImpl2 element, TypeImpl lower,
-      {required AstNodeImpl? astNodeForTesting}) {
+    TypeParameterElementImpl element,
+    TypeImpl lower, {
+    required AstNodeImpl? astNodeForTesting,
+  }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.lower(
-            SharedTypeParameterView(element), SharedTypeSchemaView(lower));
+          SharedTypeParameterView(element),
+          SharedTypeSchemaView(lower),
+        );
     _constraints.add(generatedTypeConstraint);
     if (dataForTesting != null && astNodeForTesting != null) {
-      (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= [])
-          .add(generatedTypeConstraint);
+      (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= []).add(
+        generatedTypeConstraint,
+      );
     }
   }
 
   @override
   void addUpperConstraintForParameter(
-      TypeParameterElementImpl2 element, TypeImpl upper,
-      {required AstNodeImpl? astNodeForTesting}) {
+    TypeParameterElementImpl element,
+    TypeImpl upper, {
+    required AstNodeImpl? astNodeForTesting,
+  }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         GeneratedTypeConstraint.upper(
-            SharedTypeParameterView(element), SharedTypeSchemaView(upper));
+          SharedTypeParameterView(element),
+          SharedTypeSchemaView(upper),
+        );
     _constraints.add(generatedTypeConstraint);
     if (dataForTesting != null && astNodeForTesting != null) {
-      (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= [])
-          .add(generatedTypeConstraint);
+      (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= []).add(
+        generatedTypeConstraint,
+      );
     }
   }
 
   @override
-  Map<TypeParameterElementImpl2, MergedTypeConstraint> computeConstraints() {
-    var result = <TypeParameterElementImpl2, MergedTypeConstraint>{};
+  Map<TypeParameterElementImpl, MergedTypeConstraint> computeConstraints() {
+    var result = <TypeParameterElementImpl, MergedTypeConstraint>{};
     for (var parameter in typeParametersToConstrain) {
       result[parameter] = MergedTypeConstraint(
         lower: SharedTypeSchemaView(UnknownInferredType.instance),
@@ -147,9 +192,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     for (var constraint in _constraints) {
-      var parameter = constraint.typeParameter
-          .unwrapTypeParameterViewAsTypeParameterStructure<
-              TypeParameterElementImpl2>();
+      var parameter =
+          constraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                TypeParameterElementImpl
+              >();
       var mergedConstraint = result[parameter]!;
 
       mergedConstraint.mergeIn(constraint, _typeSystemOperations);
@@ -160,37 +207,48 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   void eliminateTypeParametersInGeneratedConstraints(
-      covariant List<TypeParameterElementImpl2> eliminator,
-      shared.TypeConstraintGeneratorState eliminationStartState,
-      {required AstNodeImpl? astNodeForTesting}) {
+    covariant List<TypeParameterElementImpl> eliminator,
+    shared.TypeConstraintGeneratorState eliminationStartState, {
+    required AstNodeImpl? astNodeForTesting,
+  }) {
     var constraints = _constraints.sublist(eliminationStartState.count);
     _constraints.length = eliminationStartState.count;
     for (var constraint in constraints) {
       if (constraint.isUpper) {
         addUpperConstraintForParameter(
-            constraint.typeParameter
-                .unwrapTypeParameterViewAsTypeParameterStructure<
-                    TypeParameterElementImpl2>(),
-            typeAnalyzerOperations.leastClosureOfTypeInternal(
-                constraint.constraint.unwrapTypeSchemaView(), eliminator),
-            astNodeForTesting: astNodeForTesting);
+          constraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                TypeParameterElementImpl
+              >(),
+          typeAnalyzerOperations.leastClosureOfTypeInternal(
+            constraint.constraint.unwrapTypeSchemaView(),
+            eliminator,
+          ),
+          astNodeForTesting: astNodeForTesting,
+        );
       } else {
         addLowerConstraintForParameter(
-            constraint.typeParameter
-                .unwrapTypeParameterViewAsTypeParameterStructure<
-                    TypeParameterElementImpl2>(),
-            typeAnalyzerOperations.greatestClosureOfTypeInternal(
-                constraint.constraint.unwrapTypeSchemaView(), eliminator),
-            astNodeForTesting: astNodeForTesting);
+          constraint.typeParameter
+              .unwrapTypeParameterViewAsTypeParameterStructure<
+                TypeParameterElementImpl
+              >(),
+          typeAnalyzerOperations.greatestClosureOfTypeInternal(
+            constraint.constraint.unwrapTypeSchemaView(),
+            eliminator,
+          ),
+          astNodeForTesting: astNodeForTesting,
+        );
       }
     }
   }
 
   @override
   List<TypeImpl>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, InterfaceElementImpl2 typeDeclaration) {
-    for (var interface in type.element3.allSupertypes) {
-      if (interface.element3 == typeDeclaration) {
+    InterfaceType type,
+    InterfaceElementImpl typeDeclaration,
+  ) {
+    for (var interface in type.element.allSupertypes) {
+      if (interface.element == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
         return substitution.mapInterfaceType(interface).typeArguments;
       }
@@ -202,39 +260,45 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   (
     TypeImpl,
     TypeImpl, {
-    List<TypeParameterElementImpl2> typeParametersToEliminate
-  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
-      covariant FunctionTypeImpl P, covariant FunctionTypeImpl Q,
-      {required bool leftSchema}) {
+    List<TypeParameterElementImpl> typeParametersToEliminate,
+  })
+  instantiateFunctionTypesAndProvideFreshTypeParameters(
+    covariant FunctionTypeImpl P,
+    covariant FunctionTypeImpl Q, {
+    required bool leftSchema,
+  }) {
     // And `Z0...Zn` are fresh variables with bounds `B20, ..., B2n`.
     //   Where `B2i` is `B0i[Z0/T0, ..., Zn/Tn]` if `P` is a type schema.
     //   Or `B2i` is `B1i[Z0/S0, ..., Zn/Sn]` if `Q` is a type schema.
     // In other words, we choose the bounds for the fresh variables from
     // whichever of the two generic function types is a type schema and does
     // not contain any variables from `L`.
-    var newTypeParameters = <TypeParameterElementImpl2>[];
-    for (var i = 0; i < P.typeFormals.length; i++) {
-      var Z = TypeParameterElementImpl('Z$i', -1);
+    var newTypeParameters = <TypeParameterElementImpl>[];
+    for (var i = 0; i < P.typeParameters.length; i++) {
+      var Z = TypeParameterFragmentImpl(name: 'Z$i', firstTokenOffset: null);
       if (leftSchema) {
-        Z.bound = P.typeFormals[i].bound;
+        Z.bound = P.typeParameters[i].bound;
       } else {
-        Z.bound = Q.typeFormals[i].bound;
+        Z.bound = Q.typeParameters[i].bound;
       }
       newTypeParameters.add(Z.element);
     }
 
     // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for
     // `F1[Z0/S0, ..., Zn/Sn]` with respect to `L` under constraints `C0`.
-    var typeArguments = newTypeParameters
-        .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
-        .toList();
+    var typeArguments =
+        newTypeParameters
+            .map(
+              (e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none),
+            )
+            .toList();
     var P_instantiated = P.instantiate(typeArguments);
     var Q_instantiated = Q.instantiate(typeArguments);
 
     return (
       P_instantiated,
       Q_instantiated,
-      typeParametersToEliminate: newTypeParameters
+      typeParametersToEliminate: newTypeParameters,
     );
   }
 

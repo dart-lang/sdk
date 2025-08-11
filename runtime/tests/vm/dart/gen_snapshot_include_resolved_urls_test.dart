@@ -50,43 +50,39 @@ main(List<String> args) async {
   });
 
   // Let the test runner handle timeouts.
-  test(
-    'Include resolved urls',
-    () async {
-      final scriptDill = path.join(tempDir.path, 'test.dill');
+  test('Include resolved urls', () async {
+    final scriptDill = path.join(tempDir.path, 'test.dill');
 
-      // Compile script to Kernel IR.
-      await run(genKernel, <String>[
-        '--aot',
-        '--packages=$sdkDir/.dart_tool/package_config.json',
-        '--platform=$platformDill',
-        '-o',
-        scriptDill,
-        scriptUrl,
-      ]);
+    // Compile script to Kernel IR.
+    await run(genKernel, <String>[
+      '--aot',
+      '--packages=$sdkDir/.dart_tool/package_config.json',
+      '--platform=$platformDill',
+      '-o',
+      scriptDill,
+      scriptUrl,
+    ]);
 
-      final elfFile = path.join(tempDir.path, 'aot.snapshot');
-      await run(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$elfFile',
-        scriptDill,
-      ]);
+    final elfFile = path.join(tempDir.path, 'aot.snapshot');
+    await run(genSnapshot, <String>[
+      '--snapshot-kind=app-aot-elf',
+      '--elf=$elfFile',
+      scriptDill,
+    ]);
 
-      // Ensure we can actually run the code.
-      expect(
-        await run(dartPrecompiledRuntime, <String>[
-          '--enable-vm-service=0',
-          // Spawning DDS in SIMARM configs can be slow and causes this already
-          // slow test to timeout.
-          '--no-dds',
-          '--profiler',
-          elfFile,
-        ]),
-        true,
-      );
-    },
-    timeout: Timeout.none,
-  );
+    // Ensure we can actually run the code.
+    expect(
+      await run(dartPrecompiledRuntime, <String>[
+        '--enable-vm-service=0',
+        // Spawning DDS in SIMARM configs can be slow and causes this already
+        // slow test to timeout.
+        '--no-dds',
+        '--profiler',
+        elfFile,
+      ]),
+      true,
+    );
+  }, timeout: Timeout.none);
 }
 
 Future<String> readFile(String file) {

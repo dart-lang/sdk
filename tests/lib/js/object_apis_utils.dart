@@ -23,7 +23,8 @@ void testRuntimeType(x) {
 
 void testNoSuchMethod(x) {
   var noSuchMethodResult = Expect.throws(
-      () => x.noSuchMethod(Invocation.method(Symbol('testMethod'), null)));
+    () => x.noSuchMethod(Invocation.method(Symbol('testMethod'), null)),
+  );
   Expect.type<NoSuchMethodError>(noSuchMethodResult);
   Expect.contains('testMethod', noSuchMethodResult.toString());
 }
@@ -33,7 +34,8 @@ void testNoSuchMethodTearoff(x) {
   Expect.type<dynamic Function(Invocation)>(noSuchMethodTearoff);
   Expect.equals(x.noSuchMethod, noSuchMethodTearoff);
   var noSuchMethodResult = Expect.throws(
-      () => noSuchMethodTearoff(Invocation.method(Symbol('testMethod'), null)));
+    () => noSuchMethodTearoff(Invocation.method(Symbol('testMethod'), null)),
+  );
   Expect.type<NoSuchMethodError>(noSuchMethodResult);
   Expect.contains('testMethod', noSuchMethodResult.toString());
 }

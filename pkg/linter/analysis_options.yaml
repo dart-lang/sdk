@@ -13,7 +13,6 @@ analyzer:
 linter:
   rules:
     - always_put_required_named_parameters_first
-    - analyzer_use_new_elements
     - avoid_annotating_with_dynamic
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
@@ -32,7 +31,6 @@ linter:
     - discarded_futures
     - flutter_style_todos
     - join_return_with_assignment
-    - library_annotations
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - noop_primitive_operations
@@ -50,6 +48,7 @@ linter:
     - test_types_in_equals
     - throw_in_finally
     - unawaited_futures # pedantic
+    - unnecessary_async
     - unnecessary_breaks
     - unnecessary_final
     - unnecessary_ignore
@@ -58,7 +57,6 @@ linter:
     - unnecessary_null_checks
     - unnecessary_parenthesis
     - unnecessary_statements
-    - unnecessary_underscores
     - unreachable_from_main
     - use_if_null_to_convert_nulls_to_bools
     - use_late_for_private_fields_and_variables

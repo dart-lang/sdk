@@ -14,8 +14,12 @@ FutureOr<T> inferable2<T>(T t) => t;
 context2(Object x) {}
 
 main() {
-  context1(inferable1 /*cfe.T <: num,T :> int,T :> int*/
-      /*analyzer.T <: num,T :> int*/ (0));
-  context2(inferable2 /*cfe.T <: Object,T :> bool,T :> bool*/
-      /*analyzer.T <: Object,T :> bool*/ (false));
+  context1(
+    inferable1 /*cfe.T <: num,T :> int,T :> int*/
+    /*analyzer.T <: num,T :> int*/ (0),
+  );
+  context2(
+    inferable2 /*cfe.T <: Object,T :> bool,T :> bool*/
+    /*analyzer.T <: Object,T :> bool*/ (false),
+  );
 }

@@ -4,7 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
+    as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -119,20 +120,21 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    var referencedLibraries = kind.fileKinds
-        .map((fileKind) {
-          return [
-            ...fileKind.libraryImports
-                .whereType<LibraryImportWithFile>()
-                .map((import) => import.importedLibrary),
-            ...fileKind.libraryExports
-                .whereType<LibraryExportWithFile>()
-                .map((export) => export.exportedLibrary),
-          ];
-        })
-        .flattenedToList
-        .nonNulls
-        .toSet();
+    var referencedLibraries =
+        kind.fileKinds
+            .map((fileKind) {
+              return [
+                ...fileKind.libraryImports
+                    .whereType<LibraryImportWithFile>()
+                    .map((import) => import.importedLibrary),
+                ...fileKind.libraryExports
+                    .whereType<LibraryExportWithFile>()
+                    .map((export) => export.exportedLibrary),
+              ];
+            })
+            .flattenedToList
+            .nonNulls
+            .toSet();
 
     return referencedLibraries.map(walker.getNode).toList();
   }

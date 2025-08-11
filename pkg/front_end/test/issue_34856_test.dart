@@ -47,7 +47,7 @@ abstract class UnmodifiableMapView<K, V> extends MapView<K, V>
 };
 
 Future<void> test() async {
-  final String platformBaseName = "vm_platform_strong.dill";
+  final String platformBaseName = "vm_platform.dill";
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri platformDill = base.resolve(platformBaseName);
   final List<int> platformDillBytes = await new File.fromUri(

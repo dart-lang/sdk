@@ -27,8 +27,10 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProvider;
     typeSystem = analysisContext.typeSystem;
-    typeSystemOperations = TypeSystemOperations(typeSystem,
-        strictCasts: analysisContext.analysisOptions.strictCasts);
+    typeSystemOperations = TypeSystemOperations(
+      typeSystem,
+      strictCasts: analysisContext.analysisOptions.strictCasts,
+    );
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',

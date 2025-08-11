@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: The value 'null' can't be returned from a function with return type 'Iterable<dynamic>' because 'Iterable<dynamic>' is not nullable.
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: A value of type 'Null' can't be returned from a function with return type 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 // Iterable takesNoArg() => null;
 //                          ^
@@ -34,7 +34,7 @@ import self as self;
 import "dart:core" as core;
 
 static method takesNoArg() → core::Iterable<dynamic>
-  return invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: The value 'null' can't be returned from a function with return type 'Iterable<dynamic>' because 'Iterable<dynamic>' is not nullable.
+  return invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:5:26: Error: A value of type 'Null' can't be returned from a function with return type 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
 Iterable takesNoArg() => null;
                          ^" in let Null #t1 = null in #t1 == null ?{core::Iterable<dynamic>} #t1 as{TypeError} core::Iterable<dynamic> : #t1{core::Iterable<dynamic>};

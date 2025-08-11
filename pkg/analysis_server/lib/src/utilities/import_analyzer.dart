@@ -6,7 +6,7 @@ import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
 
@@ -21,18 +21,18 @@ class ImportAnalyzer {
   final ResolvedLibraryResult result;
 
   /// The elements for the declarations to be moved.
-  final Set<Element2> movingDeclarations = {};
+  final Set<Element> movingDeclarations = {};
 
   /// The elements for the declarations that are staying.
-  final Set<Element2> stayingDeclarations = {};
+  final Set<Element> stayingDeclarations = {};
 
   /// A map from the elements referenced by the declarations to be moved to the
   /// set of imports used to reference those declarations.
-  final Map<Element2, Set<LibraryImport>> movingReferences = {};
+  final Map<Element, Set<LibraryImport>> movingReferences = {};
 
   /// A map from the elements referenced by the declarations that are staying to
   /// the set of imports used to reference those declarations.
-  final Map<Element2, Set<LibraryImport>> stayingReferences = {};
+  final Map<Element, Set<LibraryImport>> stayingReferences = {};
 
   /// Analyzes the given library [result] to find the declarations and
   /// references being moved and that are staying.
@@ -103,7 +103,7 @@ class _ElementRecorder {
   /// is being moved. Not necessary the offset of the name. For example to
   /// a [MethodDeclaration] it would be the offset of the enclosing
   /// [ClassDeclaration] because we move the whole top-level declarations.
-  void recordDeclaration(int offset, Element2? declaredElement) {
+  void recordDeclaration(int offset, Element? declaredElement) {
     if (declaredElement == null) {
       return;
     }
@@ -119,13 +119,13 @@ class _ElementRecorder {
   /// [referenceOffset]. [import] is the specific import used to reference the
   /// including any prefix, show, hide.
   void recordReference(
-    Element2 referencedElement,
+    Element referencedElement,
     int referenceOffset,
     LibraryImport? import,
   ) {
-    if (referencedElement is PropertyAccessorElement2) {
+    if (referencedElement is PropertyAccessorElement) {
       if (referencedElement.isSynthetic) {
-        var variable = referencedElement.variable3;
+        var variable = referencedElement.variable;
         if (variable == null) {
           return;
         }
@@ -183,15 +183,15 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.unit, this.recorder) {
     for (var import in unit.libraryElement2.firstFragment.libraryImports2) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name3 ?? '', () => {})
+          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
           .add(import);
     }
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _recordReference(node.writeElement2, node, node.leftHandSide);
-    _recordReference(node.readElement2, node, node.leftHandSide);
+    _recordReference(node.writeElement, node, node.leftHandSide);
+    _recordReference(node.readElement, node, node.leftHandSide);
     super.visitAssignmentExpression(node);
   }
 
@@ -224,22 +224,22 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     var extensionElement = node.declaredFragment?.element;
     if (extensionElement != null) {
       recorder.recordDeclaration(node.offset, extensionElement);
-      for (var getter in extensionElement.getters2) {
+      for (var getter in extensionElement.getters) {
         if (!getter.isStatic && !getter.isSynthetic) {
           recorder.recordDeclaration(node.offset, getter);
         }
       }
-      for (var setter in extensionElement.setters2) {
+      for (var setter in extensionElement.setters) {
         if (!setter.isStatic && !setter.isSynthetic) {
           recorder.recordDeclaration(node.offset, setter);
         }
       }
-      for (var field in extensionElement.fields2) {
+      for (var field in extensionElement.fields) {
         if (!field.isStatic && !field.isSynthetic) {
           recorder.recordDeclaration(node.offset, field);
         }
       }
-      for (var method in extensionElement.methods2) {
+      for (var method in extensionElement.methods) {
         if (!method.isStatic) {
           recorder.recordDeclaration(node.offset, method);
         }
@@ -274,21 +274,21 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _recordReference(node.element2, node, node);
+    _recordReference(node.element, node, node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPostfixExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPrefixExpression(node);
   }
 
@@ -311,11 +311,11 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   /// Finds the [LibraryImport] that is used to import [element] for use
   /// in [node].
-  LibraryImport? _getImportForElement(AstNode? node, Element2 element) {
-    var prefix = _getPrefixFromExpression(node)?.name3;
+  LibraryImport? _getImportForElement(AstNode? node, Element element) {
+    var prefix = _getPrefixFromExpression(node)?.name;
 
     var lookupName = () {
-      var name = element.name3;
+      var name = element.name;
       if (name == null) {
         return null;
       }
@@ -343,7 +343,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
     // Extensions can be used without a prefix, so we can use any import that
     // brings in the extension.
-    if (import == null && prefix == null && element is ExtensionElement2) {
+    if (import == null && prefix == null && element is ExtensionElement) {
       import =
           _importsByPrefix.values.flattenedToList
               .where(
@@ -352,7 +352,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // allowed), use the imports own prefix when checking for the
                     // element.
                     import.namespace.getPrefixed2(
-                      import.prefix2?.element.name3 ?? '',
+                      import.prefix2?.element.name ?? '',
                       lookupName,
                     ) ==
                     element,
@@ -364,18 +364,18 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 
   /// Return the prefix used in [node].
-  PrefixElement2? _getPrefixFromExpression(AstNode? node) {
+  PrefixElement? _getPrefixFromExpression(AstNode? node) {
     if (node is PrefixedIdentifier) {
       var prefix = node.prefix;
       var element = prefix.element;
-      if (element is PrefixElement2) {
+      if (element is PrefixElement) {
         return element;
       }
     } else if (node is PropertyAccess) {
       var target = node.target;
       if (target is PrefixedIdentifier) {
         var element = target.prefix.element;
-        if (element is PrefixElement2) {
+        if (element is PrefixElement) {
           return element;
         }
       }
@@ -383,23 +383,23 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
       var target = node.target;
       if (target is SimpleIdentifier) {
         var element = target.element;
-        if (element is PrefixElement2) {
+        if (element is PrefixElement) {
           return element;
         }
       }
     } else if (node is NamedType) {
-      return node.importPrefix?.element2.ifTypeOrNull();
+      return node.importPrefix?.element.ifTypeOrNull();
     }
     return null;
   }
 
   /// Records a reference to [element] (if not null) at the offset of [node],
   /// extracting any prefix from [prefixNode].
-  void _recordReference(Element2? element, AstNode node, AstNode? prefixNode) {
-    if (element is ExecutableElement2 &&
-        element.enclosingElement2 is ExtensionElement2 &&
+  void _recordReference(Element? element, AstNode node, AstNode? prefixNode) {
+    if (element is ExecutableElement &&
+        element.enclosingElement is ExtensionElement &&
         !element.isStatic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     if (element == null) {
       return;
@@ -413,10 +413,10 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-extension on Element2 {
+extension on Element {
   /// Return `true` if this element reference is an interesting reference from
   /// the perspective of determining which imports need to be added.
   bool get isInterestingReference {
-    return this is! PrefixElement2 && enclosingElement2 is LibraryElement2;
+    return this is! PrefixElement && enclosingElement is LibraryElement;
   }
 }

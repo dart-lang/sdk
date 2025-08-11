@@ -12,13 +12,13 @@ class A extends self::Class {
   constructor •(core::int value) → self::A
     : super self::Class::•(value)
     ;
-  static method _#new#tearOff(core::int value) → self::A
+  static synthetic method _#new#tearOff(core::int value) → self::A
     return new self::A::•(value);
 }
 class B extends self::Class {
   constructor •(core::int value) → self::B
     : super self::Class::•(value)
     ;
-  static method _#new#tearOff(core::int value) → self::B
+  static synthetic method _#new#tearOff(core::int value) → self::B
     return new self::B::•(value);
 }

@@ -14,12 +14,6 @@
 #include "vm/instructions.h"
 #include "vm/tags.h"
 
-// An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
-    !defined(DART_HOST_OS_IOS) && !defined(DART_HOST_OS_MACOS)
-#error ARM cross-compile only supported on Linux, Android, iOS, and Mac
-#endif
-
 // For use by LR related macros (e.g. CLOBBERS_LR).
 #define __ this->
 

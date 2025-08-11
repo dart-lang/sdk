@@ -8,7 +8,7 @@ part of "core_patch.dart";
 class Uri {
   @patch
   static Uri get base {
-    final currentUri = JSStringImpl(
+    final currentUri = JSStringImpl.fromRefUnchecked(
       JS<WasmExternRef?>("""() => {
       // On browsers return `globalThis.location.href`
       if (globalThis.location != null) {

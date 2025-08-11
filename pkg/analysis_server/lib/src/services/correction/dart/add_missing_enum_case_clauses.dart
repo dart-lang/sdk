@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -44,12 +44,12 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element3;
-      if (enumElement is EnumElement2) {
-        enumName = enumElement.name3;
-        for (var field in enumElement.fields2) {
+      var enumElement = expressionType.element;
+      if (enumElement is EnumElement) {
+        enumName = enumElement.name;
+        for (var field in enumElement.fields) {
           if (field.isEnumConstant) {
-            unhandledEnumCases.addIfNotNull(field.name3);
+            unhandledEnumCases.addIfNotNull(field.name);
           }
         }
         prefix = _importPrefix(enumElement);
@@ -68,7 +68,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            unhandledEnumCases.remove(element.name3);
+            unhandledEnumCases.remove(element.name);
           }
         } else if (expression is NullLiteral) {
           unhandledNullValue = false;
@@ -122,7 +122,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   /// Return the shortest prefix for the [element], or an empty String if not
   /// found.
-  String _importPrefix(Element2 element) {
+  String _importPrefix(Element element) {
     var shortestPrefix = '';
     for (var directive in unit.directives) {
       if (directive is ImportDirective) {

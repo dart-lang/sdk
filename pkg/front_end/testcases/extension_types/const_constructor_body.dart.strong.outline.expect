@@ -19,9 +19,9 @@ extension type ET(core::int i) {
 }
 static extension-type-member method ET|constructor#(core::int i) → self::ET% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(i);
 static extension-type-member method ET|constructor#named(core::int i) → self::ET% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET|constructor#_#named#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET|constructor#_#named#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#named(i);

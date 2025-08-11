@@ -66,12 +66,12 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@class::A::@field::f#element
+    element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
 ''');
   }
@@ -89,7 +89,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -108,19 +108,19 @@ ConstructorFieldInitializer
                 expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: a
-                    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
                     literal: 1
-                    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
                     staticType: int
-                  element: dart:core::<fragment>::@class::num::@method::+#element
+                  element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 semicolon: ;
             rightBracket: }
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: int Function()
         staticType: int Function()
       rightParenthesis: )
@@ -147,7 +147,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -162,17 +162,17 @@ ConstructorFieldInitializer
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
               literal: 1
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::+#element
+            element: dart:core::@class::num::@method::+
             staticInvokeType: num Function(num)
             staticType: int
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: int Function()
         staticType: int Function()
       rightParenthesis: )
@@ -187,44 +187,49 @@ ConstructorFieldInitializer
   }
 
   test_invalid_declarationAndInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final x = 0;
   const A() : x = a;
 }
 const a = 0;
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           39,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A() : X = a;
 }
 const a = 0;
 class X {}
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -236,48 +241,52 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   int get x => 0;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_importPrefix() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async' as x;
 class A {
   A() : x = a;
 }
 const a = 0;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
+      ],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -289,21 +298,22 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   void x() {}
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -315,47 +325,49 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   set x(int _) {}
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
 void x() {}
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -367,21 +379,22 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_topLevelVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
 var x = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -393,20 +406,21 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A() : T = a;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -418,20 +432,21 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_invalid_notField_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -443,7 +458,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }

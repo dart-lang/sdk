@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart';
 import 'package:front_end/src/kernel/record_use.dart' as recordUse;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
@@ -13,14 +12,15 @@ import 'package:vm/transformations/record_use/record_use.dart';
 /// * static or top-level method calls through [recordStaticInvocation]
 /// * tear-offs through [recordConstantExpression]
 ///
-/// The result of adding calls can be fetched from [foundCalls].
+/// The result of adding calls can be fetched from [callsForMethod].
 class CallRecorder {
-  /// The collection of recorded calls found so far.
-  Iterable<Usage<CallReference>> get foundCalls => _callsForMethod.values;
+  /// Keep track of the calls which are recorded, to easily add newly found
+  /// ones.
+  final Map<Identifier, List<CallReference>> callsForMethod = {};
 
   /// Keep track of the calls which are recorded, to easily add newly found
   /// ones.
-  final Map<ast.Procedure, Usage<CallReference>> _callsForMethod = {};
+  final Map<Identifier, String> loadingUnitForDefinition = {};
 
   /// The ordered list of loading units to retrieve the loading unit index from.
   final List<LoadingUnit> _loadingUnits;
@@ -28,16 +28,18 @@ class CallRecorder {
   /// The source uri to base relative URIs off of.
   final Uri _source;
 
+  /// Whether to save line and column info as well as the URI.
+  //TODO(mosum): add verbose mode to enable this
+  bool exactLocation = false;
+
   CallRecorder(this._source, this._loadingUnits);
 
   /// Will record a static invocation if it is annotated with `@RecordUse`.
   void recordStaticInvocation(ast.StaticInvocation node) {
-    final annotations = recordUse.findRecordUseAnnotation(node.target);
-    if (annotations.isNotEmpty) {
-      final call = _getCall(node.target);
-
+    if (recordUse.hasRecordUseAnnotation(node.target)) {
       // Collect the (int, bool, double, or String) arguments passed in the call.
-      call.references.add(_createCallReference(node));
+      final createCallReference = _createCallReference(node);
+      _addToUsage(node.target, createCallReference);
     }
   }
 
@@ -45,51 +47,34 @@ class CallRecorder {
   void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;
     if (constant is ast.StaticTearOffConstant) {
-      final hasRecordUseAnnotation =
-          recordUse.findRecordUseAnnotation(constant.target).isNotEmpty;
+      final hasRecordUseAnnotation = recordUse.hasRecordUseAnnotation(
+        constant.target,
+      );
       if (hasRecordUseAnnotation) {
-        _recordTearOff(constant, node);
+        _addToUsage(
+          constant.target,
+          CallTearOff(
+            loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
+            location: node.location!.recordLocation(_source, exactLocation),
+          ),
+        );
       }
     }
   }
 
-  void _recordTearOff(
-    ast.StaticTearOffConstant constant,
-    ast.ConstantExpression node,
-  ) {
-    final call = _getCall(constant.target);
-    final reference = _collectTearOff(constant, node);
-    call.references.add(reference);
-  }
-
-  /// Record a tear off as a call with all non-const arguments.
-  CallReference _collectTearOff(
-    ast.StaticTearOffConstant constant,
-    ast.TreeNode node,
-  ) {
-    final function = constant.target.function;
-    final nonConstArguments = NonConstArguments(
-      named:
-          function.namedParameters.map((parameter) => parameter.name!).toList(),
-      positional: List.generate(
-        function.positionalParameters.length,
-        (index) => index,
-      ),
-    );
-    return CallReference(
-      location: node.location!.recordLocation(_source),
-      arguments: Arguments(nonConstArguments: nonConstArguments),
-    );
-  }
-
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
-  Usage _getCall(ast.Procedure target) {
-    final definition = _definitionFromMember(target);
-    return _callsForMethod[target] ??= Usage(
-      definition: definition,
-      references: [],
+  void _addToUsage(ast.Procedure target, CallReference call) {
+    var (:identifier, :loadingUnit) = _definitionFromMember(target);
+    callsForMethod.update(
+      identifier,
+      (usage) => usage..add(call),
+      ifAbsent: () => [call],
     );
+    loadingUnitForDefinition.update(identifier, (value) {
+      assert(value == loadingUnit);
+      return value;
+    }, ifAbsent: () => loadingUnit);
   }
 
   CallReference _createCallReference(ast.StaticInvocation node) {
@@ -101,48 +86,46 @@ class CallRecorder {
       argumentStart = 0;
     }
 
-    final positionalArguments = node.arguments.positional
-        .skip(argumentStart)
-        .mapIndexed((i, argument) => MapEntry(i, _evaluateLiteral(argument)));
-    final namedArguments = node.arguments.named.map(
-      (argument) => MapEntry(argument.name, _evaluateLiteral(argument.value)),
-    );
+    final positionalArguments =
+        node.arguments.positional
+            .skip(argumentStart)
+            .map((argument) => _evaluateLiteral(argument))
+            .toList();
 
-    // Group by the evaluated literal - if it exists, the argument was const.
-    final positionalGrouped = _groupByNull(positionalArguments);
-    final namedGrouped = _groupByNull(namedArguments);
+    final namedArguments = {
+      for (final argument in node.arguments.named)
+        argument.name: _evaluateLiteral(argument.value),
+    };
 
-    return CallReference(
-      location: node.location!.recordLocation(_source),
+    // Fill up with the default values
+    for (final parameter in node.target.function.namedParameters) {
+      final initializer = parameter.initializer;
+      final name = parameter.name;
+      if (initializer != null &&
+          name != null &&
+          !namedArguments.containsKey(name)) {
+        namedArguments[name] = _evaluateLiteral(initializer);
+      }
+    }
+    for (
+      var i = positionalArguments.length;
+      i < node.target.function.positionalParameters.length;
+      i++
+    ) {
+      final parameter = node.target.function.positionalParameters[i];
+      final initializer = parameter.initializer;
+      if (initializer != null) {
+        positionalArguments.add(_evaluateLiteral(initializer));
+      }
+    }
+
+    return CallWithArguments(
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
       loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
-      arguments: Arguments(
-        constArguments: ConstArguments(
-          positional:
-              positionalGrouped[false] != null
-                  ? Map.fromEntries(
-                    positionalGrouped[false]!.map(
-                      (e) => MapEntry(e.key, e.value!),
-                    ),
-                  )
-                  : null,
-          named:
-              namedGrouped[false] != null
-                  ? Map.fromEntries(
-                    namedGrouped[false]!.map((e) => MapEntry(e.key, e.value!)),
-                  )
-                  : null,
-        ),
-        nonConstArguments: NonConstArguments(
-          positional: positionalGrouped[true]?.map((e) => e.key).toList(),
-          named: namedGrouped[true]?.map((e) => e.key).toList(),
-        ),
-      ),
+      location: node.location!.recordLocation(_source, exactLocation),
     );
   }
-
-  Map<bool, List<MapEntry<T, Constant?>>> _groupByNull<T>(
-    Iterable<MapEntry<T, Constant?>> arguments,
-  ) => groupBy(arguments, (entry) => entry.value == null);
 
   Constant? _evaluateLiteral(ast.Expression expression) {
     if (expression is ast.BasicLiteral) {
@@ -154,17 +137,18 @@ class CallRecorder {
     }
   }
 
-  Definition _definitionFromMember(ast.Member target) {
+  ({Identifier identifier, String loadingUnit}) _definitionFromMember(
+    ast.Member target,
+  ) {
     final enclosingLibrary = target.enclosingLibrary;
     String file = getImportUri(enclosingLibrary, _source);
 
-    return Definition(
+    return (
       identifier: Identifier(
         importUri: file,
-        parent: target.enclosingClass?.name,
+        scope: target.enclosingClass?.name,
         name: target.name.text,
       ),
-      location: target.location!.recordLocation(_source),
       loadingUnit:
           loadingUnitForNode(enclosingLibrary, _loadingUnits).toString(),
     );

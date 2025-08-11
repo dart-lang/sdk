@@ -109,12 +109,11 @@ abstract class CompilerTask {
     return runZoned(
       action,
       zoneValues: _zoneValues ??= {_measurer: this},
-      zoneSpecification:
-          _zoneSpecification ??= ZoneSpecification(
-            run: _run,
-            runUnary: _runUnary,
-            runBinary: _runBinary,
-          ),
+      zoneSpecification: _zoneSpecification ??= ZoneSpecification(
+        run: _run,
+        runUnary: _runUnary,
+        runBinary: _runBinary,
+      ),
     );
   }
 

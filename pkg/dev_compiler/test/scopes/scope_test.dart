@@ -17,15 +17,21 @@ import '../id_testing_helper.dart';
 
 Future<void> main(List<String> args) async {
   var dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../front_end/test/scopes/data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const ScopeDataComputer(), [
-        DdcTestConfig(ddcMarker, 'ddc',
-            experimentalFlags: {fe.ExperimentalFlag.inlineClass: true})
-      ]));
+    Platform.script.resolve('../../../front_end/test/scopes/data'),
+  );
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ScopeDataComputer(), [
+      DdcTestConfig(
+        ddcMarker,
+        'ddc',
+        experimentalFlags: {fe.ExperimentalFlag.inlineClass: true},
+      ),
+    ]),
+  );
 }
 
 class Tags {
@@ -40,11 +46,19 @@ class ScopeDataComputer extends DdcDataComputer<Features> {
   const ScopeDataComputer();
 
   @override
-  void computeMemberData(DdcTestResultData testResultData, Member member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    member.accept(ScopeDataExtractor(
-        member.enclosingLibrary, testResultData.compilerResult, actualMap));
+  void computeMemberData(
+    DdcTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      ScopeDataExtractor(
+        member.enclosingLibrary,
+        testResultData.compilerResult,
+        actualMap,
+      ),
+    );
   }
 
   @override
@@ -67,7 +81,11 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
       var location = node.location;
       if (location != null) {
         var scope = DartScopeBuilder.findScope(
-            component, library, location.line, location.column);
+          component,
+          library,
+          location.line,
+          location.column,
+        );
         if (scope != null) {
           var features = Features();
           if (scope.cls != null) {
@@ -80,11 +98,14 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
             features.add(Tags.isStatic);
           }
           for (var typeParameter in scope.typeParameters) {
-            var printer = AstPrinter(const AstTextStrategy(
+            var printer = AstPrinter(
+              const AstTextStrategy(
                 useQualifiedTypeParameterNames: true,
                 useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions:
                     true,
-                includeLibraryNamesInTypes: false));
+                includeLibraryNamesInTypes: false,
+              ),
+            );
             printer.writeTypeParameterName(typeParameter);
             features.addElement(Tags.typeParameter, printer.getText());
           }

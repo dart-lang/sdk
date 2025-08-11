@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/code_ref.dart';
@@ -27,10 +28,10 @@ import 'package:observatory/src/elements/type_arguments_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/unlinkedcall_ref.dart';
 
-Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
+HTMLElement anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     {RenderingQueue? queue, bool expandable = true}) {
   if (ref == null) {
-    return new SpanElement()..text = "???";
+    return new HTMLSpanElement()..textContent = "???";
   }
   if (ref is M.Guarded) {
     if (ref.isSentinel) {
@@ -88,13 +89,14 @@ Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     } else if (ref is M.UnlinkedCallRef) {
       return new UnlinkedCallRefElement(isolate, ref, queue: queue).element;
     } else {
-      return new AnchorElement(href: Uris.inspect(isolate, object: ref))
+      return new HTMLAnchorElement()
+        ..href = Uris.inspect(isolate, object: ref)
         ..text = 'object';
     }
   } else if (ref is M.Sentinel) {
     return new SentinelValueElement(ref, queue: queue).element;
   } else if (ref is num || ref is String) {
-    return new SpanElement()..text = ref.toString();
+    return new HTMLSpanElement()..textContent = ref.toString();
   }
   throw new Exception('Unknown ref type (${ref.runtimeType})');
 }

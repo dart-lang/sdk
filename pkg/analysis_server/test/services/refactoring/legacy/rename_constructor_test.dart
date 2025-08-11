@@ -669,7 +669,7 @@ enum E {
 
   void _createEnumConstantRefactoring(String search) {
     var enumConstant = findNode.enumConstantDeclaration(search);
-    var element = enumConstant.constructorElement2;
+    var element = enumConstant.constructorElement;
     createRenameRefactoringForElement2(element);
   }
 }

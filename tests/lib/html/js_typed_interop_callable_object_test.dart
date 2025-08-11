@@ -17,16 +17,18 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 confuse(x) => x;
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
   "use strict";
 
   window.callableObject = function (a, b) { return a + b; };
   window.callableObject.foo = function() { return "bar"; };
   window.callableObject.bar = 42;
 
-""");
+""",
+  );
 }
 
 @JS()

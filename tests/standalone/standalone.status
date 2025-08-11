@@ -11,6 +11,7 @@ io/large_file_read_small_file_test: Slow, Pass # Test reads small file 1M times
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
+io/stdout_stderr_test: Pass, Slow # Spawns many subprocesses
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 
@@ -93,8 +94,6 @@ dwarf_stack_trace_test: SkipByDesign # Due to instruction canonicalization we ca
 io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
-io/raw_secure_server_socket_test: Crash
-io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
 [ $compiler == dart2js || $compiler == dart2wasm || $compiler == ddc ]

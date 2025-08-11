@@ -526,10 +526,9 @@ class _HttpHeaders implements HttpHeaders {
     // Content-Length header field when the request message does not
     // contain a payload body and the method semantics do not anticipate
     // such a body.
-    String? ignoreHeader =
-        _contentLength == 0 && skipZeroContentLength
-            ? HttpHeaders.contentLengthHeader
-            : null;
+    String? ignoreHeader = _contentLength == 0 && skipZeroContentLength
+        ? HttpHeaders.contentLengthHeader
+        : null;
     _headers.forEach((String name, List<String> values) {
       if (ignoreHeader == name) {
         return;
@@ -946,8 +945,10 @@ class _ContentType extends _HeaderValue implements ContentType {
     if (index == -1 || index == (result._value.length - 1)) {
       result._primaryType = result._value.trim().toLowerCase();
     } else {
-      result._primaryType =
-          result._value.substring(0, index).trim().toLowerCase();
+      result._primaryType = result._value
+          .substring(0, index)
+          .trim()
+          .toLowerCase();
       result._subType = result._value.substring(index + 1).trim().toLowerCase();
     }
     return result;
@@ -1070,10 +1071,9 @@ class _Cookie implements Cookie {
             "lax" => SameSite.lax,
             "none" => SameSite.none,
             "strict" => SameSite.strict,
-            _ =>
-              throw HttpException(
-                'SameSite value should be one of Lax, Strict or None.',
-              ),
+            _ => throw HttpException(
+              'SameSite value should be one of Lax, Strict or None.',
+            ),
           };
         }
         if (!done()) index++; // Skip the ; character

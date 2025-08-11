@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -86,9 +86,10 @@ class BodyInferenceContext {
     }
 
     if (isGenerator) {
-      var requiredClass = isAsynchronous
-          ? _typeProvider.streamElement2
-          : _typeProvider.iterableElement2;
+      var requiredClass =
+          isAsynchronous
+              ? _typeProvider.streamElement
+              : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
       if (type != null) {
         _returnTypes.add(type);
@@ -96,9 +97,7 @@ class BodyInferenceContext {
     }
   }
 
-  TypeImpl computeInferredReturnType({
-    required bool endOfBlockIsReachable,
-  }) {
+  TypeImpl computeInferredReturnType({required bool endOfBlockIsReachable}) {
     var actualReturnedType = _computeActualReturnedType(
       endOfBlockIsReachable: endOfBlockIsReachable,
     );
@@ -149,9 +148,7 @@ class BodyInferenceContext {
     return R;
   }
 
-  TypeImpl _computeActualReturnedType({
-    required bool endOfBlockIsReachable,
-  }) {
+  TypeImpl _computeActualReturnedType({required bool endOfBlockIsReachable}) {
     if (isGenerator) {
       if (_returnTypes.isEmpty) {
         return DynamicTypeImpl.instance;
@@ -161,18 +158,20 @@ class BodyInferenceContext {
       return _returnTypes.cast<TypeImpl>().reduce(_typeSystem.leastUpperBound);
     }
 
-    var initialType = endOfBlockIsReachable
-        ? _typeProvider.nullType
-        : _typeProvider.neverType;
+    var initialType =
+        endOfBlockIsReachable
+            ? _typeProvider.nullType
+            : _typeProvider.neverType;
     // TODO(paulberry): eliminate this cast by changing the type of
     // `_returnTypes` to `List<TypeImpl>`.
-    return _returnTypes
-        .cast<TypeImpl>()
-        .fold(initialType, _typeSystem.leastUpperBound);
+    return _returnTypes.cast<TypeImpl>().fold(
+      initialType,
+      _typeSystem.leastUpperBound,
+    );
   }
 
-  static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement2 element) {
-    var elementType = type.asInstanceOf2(element);
+  static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement element) {
+    var elementType = type.asInstanceOf(element);
     return elementType?.typeArguments[0];
   }
 
@@ -197,7 +196,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isAsynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.streamElement2,
+        typeSystem.typeProvider.streamElement,
       );
       if (elementType != null) {
         return elementType;
@@ -210,7 +209,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isSynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.iterableElement2,
+        typeSystem.typeProvider.iterableElement,
       );
       if (elementType != null) {
         return elementType;

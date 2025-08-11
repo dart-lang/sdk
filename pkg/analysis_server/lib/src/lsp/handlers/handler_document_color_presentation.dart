@@ -8,10 +8,9 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Handles textDocument/colorPresentation.
@@ -71,7 +70,7 @@ class DocumentColorPresentationHandler
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement2 colorType,
+    required InterfaceElement colorType,
     required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
@@ -232,7 +231,7 @@ class DocumentColorPresentationHandler
   /// `const` should be inserted if the existing expression is constant but
   /// we are not already in a constant context.
   bool _willRequireConstKeyword(int offset, ResolvedUnitResult unit) {
-    var node = NodeLocator2(offset).searchWithin(unit.unit);
+    var node = unit.unit.nodeCovering(offset: offset);
     if (node is! Expression) {
       return false;
     }
@@ -250,8 +249,8 @@ class DocumentColorPresentationHandler
           parent is PrefixedIdentifier ? parent.element : node.element;
 
       return switch (element) {
-        PropertyAccessorElement2(:var variable3) => variable3?.isConst ?? false,
-        VariableElement2() => element.isConst,
+        PropertyAccessorElement(:var variable) => variable?.isConst ?? false,
+        VariableElement() => element.isConst,
         _ => false,
       };
     } else {

@@ -5,63 +5,59 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:native_assets_cli/code_assets.dart';
+import 'package:hooks/hooks.dart';
+import 'package:code_assets/code_assets.dart';
 import 'package:record_use/record_use.dart';
-
-final callIdAdd = const Identifier(
-  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
-  parent: 'MyMath',
-  name: 'add',
-);
-
-final callIdMultiply = const Identifier(
-  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
-  parent: 'MyMath',
-  name: 'multiply',
-);
-
-final instanceId = const Identifier(
-  importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
-  name: 'RecordCallToC',
-);
 
 void main(List<String> arguments) async {
   await link(arguments, (input, output) async {
-    final file = File.fromUri(input.recordedUsagesFile!);
-    final string = await file.readAsString();
-    final usages =
-        RecordedUsages.fromJson(jsonDecode(string) as Map<String, dynamic>);
-
+    final recordedUsagesFile = input.recordedUsagesFile;
+    if (recordedUsagesFile == null) {
+      throw ArgumentError(
+        'Enable the --enable-experiments=record-use experiment to use this app.',
+      );
+    }
+    final usages = await recordedUsages(recordedUsagesFile);
     final codeAssets = input.assets.code;
     print('Received assets: ${codeAssets.map((a) => a.id).join(', ')}.');
 
     final symbols = <String>{};
     final argumentsFile =
-        await File.fromUri(input.outputDirectory.resolve('arguments.txt'))
-            .create();
+        await File.fromUri(
+          input.outputDirectory.resolve('arguments.txt'),
+        ).create();
 
     final dataLines = <String>[];
     // Tree-shake unused assets using calls
-    for (var callId in [callIdAdd, callIdMultiply]) {
-      var arguments = usages.argumentsTo(callId);
-      if (arguments?.isNotEmpty ?? false) {
-        final argument =
-            (arguments!.first.constArguments.positional[0] as IntConstant)
-                .value;
-        dataLines.add('Argument to "${callId.name}": $argument');
-        symbols.add(callId.name);
+    for (final methodName in ['add', 'multiply']) {
+      final calls = usages.constArgumentsFor(
+        Identifier(
+          importUri:
+              'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+          scope: 'MyMath',
+          name: methodName,
+        ),
+        'int add(int a, int b)',
+      );
+      for (var call in calls) {
+        dataLines.add(
+          'A call was made to "$methodName" with the arguments (${call.positional[0] as int},${call.positional[1] as int})',
+        );
+        symbols.add(methodName);
       }
     }
 
     argumentsFile.writeAsStringSync(dataLines.join('\n'));
 
     // Tree-shake unused assets
-    final instances = usages.instancesOf(instanceId) ?? [];
+    final instances = usages.constantsOf(
+      Identifier(
+        importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+        name: 'RecordCallToC',
+      ),
+    );
     for (final instance in instances) {
-      final symbol =
-          (instance.instanceConstant.fields.values.first as StringConstant)
-              .value;
-
+      final symbol = instance['symbol'] as String;
       symbols.add(symbol);
     }
 
@@ -73,6 +69,15 @@ void main(List<String> arguments) async {
     print('Keeping only ${neededCodeAssets.map((e) => e.id).join(', ')}.');
     output.assets.code.addAll(neededCodeAssets);
 
-    output.addDependency(input.packageRoot.resolve('hook/link.dart'));
+    output.addDependency(recordedUsagesFile);
   });
+}
+
+Future<RecordedUsages> recordedUsages(Uri recordedUsagesFile) async {
+  final file = File.fromUri(recordedUsagesFile);
+  final string = await file.readAsString();
+  final usages = RecordedUsages.fromJson(
+    jsonDecode(string) as Map<String, Object?>,
+  );
+  return usages;
 }

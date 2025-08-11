@@ -7,11 +7,9 @@ class TreeStringSink {
   final StringSink _sink;
   String _indent = '';
 
-  TreeStringSink({
-    required StringSink sink,
-    required String indent,
-  })  : _sink = sink,
-        _indent = indent;
+  TreeStringSink({required StringSink sink, required String indent})
+    : _sink = sink,
+      _indent = indent;
 
   void withIndent(void Function() f) {
     var indent = _indent;
@@ -39,7 +37,7 @@ class TreeStringSink {
     }
   }
 
-  Future<void> writeFlags(Map<String, bool> flags) async {
+  void writeFlags(Map<String, bool> flags) {
     if (flags.values.any((flag) => flag)) {
       writeIndentedLine(() {
         write('flags:');

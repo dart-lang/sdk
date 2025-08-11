@@ -6,12 +6,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
@@ -34,16 +35,16 @@ const loggedAnalyzerErrorExitCode = 63;
 
 const unableToProcessExitCode = 64;
 
-/// Collect all lintable files, recursively, under this [entityPtah] root,
+/// Collect all lintable files, recursively, under this [entityPath] root,
 /// ignoring links.
-Iterable<File> collectFiles(String entityPtah) {
+Iterable<File> collectFiles(String entityPath) {
   var files = <File>[];
 
-  var file = File(entityPtah);
+  var file = File(entityPath);
   if (file.existsSync()) {
     files.add(file);
   } else {
-    var directory = Directory(entityPtah);
+    var directory = Directory(entityPath);
     if (directory.existsSync()) {
       for (var entry in directory.listSync(
         recursive: true,
@@ -145,7 +146,7 @@ Future<void> runLinter(List<String> args) async {
 
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
-    var rules = <LintRule>[];
+    var rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
       var rule = Registry.ruleRegistry[ruleName];
       if (rule == null) {
@@ -214,11 +215,11 @@ Future<void> writeBenchmarks(
   out.writeTimings(stats, 0);
 }
 
-int _maxSeverity(List<AnalysisErrorInfo> infos) {
-  var filteredErrors = infos.expand((i) => i.errors);
+int _maxSeverity(List<DiagnosticInfo> infos) {
+  var filteredErrors = infos.expand((i) => i.diagnostics);
   return filteredErrors.fold(
     0,
-    (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal),
+    (value, e) => math.max(value, e.diagnosticCode.severity.ordinal),
   );
 }
 
@@ -266,7 +267,7 @@ extension on String {
 
   /// Whether this path is a Dart file or a Pubspec file.
   bool get isLintable =>
-      isDartFileName(this) || isPubspecFileName(path.basename(this));
+      endsWith('.dart') || path.basename(this) == file_paths.pubspecYaml;
 }
 
 extension on StringSink {

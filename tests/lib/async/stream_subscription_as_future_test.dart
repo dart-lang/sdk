@@ -17,9 +17,13 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).then(expectAsync((o) {
-      Expect.listEquals([1, 2, 3], o);
-    }));
+    subscription
+        .asFuture(output)
+        .then(
+          expectAsync((o) {
+            Expect.listEquals([1, 2, 3], o);
+          }),
+        );
   });
 
   test("subscription.asFuture success2", () {
@@ -31,9 +35,13 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).then(expectAsync((o) {
-      Expect.listEquals([1, 2, 3], o);
-    }));
+    subscription
+        .asFuture(output)
+        .then(
+          expectAsync((o) {
+            Expect.listEquals([1, 2, 3], o);
+          }),
+        );
   });
 
   test("subscription.asFuture success 3", () {
@@ -42,9 +50,13 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).then(expectAsync((o) {
-      Expect.listEquals([1, 2, 3], o);
-    }));
+    subscription
+        .asFuture(output)
+        .then(
+          expectAsync((o) {
+            Expect.listEquals([1, 2, 3], o);
+          }),
+        );
   });
 
   test("subscription.asFuture different type", () {
@@ -71,9 +83,13 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
-      Expect.equals(error, "foo");
-    }));
+    subscription
+        .asFuture<List?>(output)
+        .catchError(
+          expectAsync((error) {
+            Expect.equals(error, "foo");
+          }),
+        );
   });
 
   test("subscription.asFuture failure2", () {
@@ -85,15 +101,21 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
-      Expect.equals(error, "foo");
-    }));
+    subscription
+        .asFuture<List?>(output)
+        .catchError(
+          expectAsync((error) {
+            Expect.equals(error, "foo");
+          }),
+        );
   });
 
   test("subscription.asFuture delayed cancel", () {
     var completer = new Completer();
-    var controller =
-        new StreamController(onCancel: () => completer.future, sync: true);
+    var controller = new StreamController(
+      onCancel: () => completer.future,
+      sync: true,
+    );
     [1, 2, 3].forEach(controller.add);
     controller.addError("foo");
     controller.close();
@@ -103,40 +125,57 @@ main() {
       output.add(x);
     });
     bool catchErrorHasRun = false;
-    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
-      Expect.equals(error, "foo");
-      catchErrorHasRun = true;
-    }));
-    Timer.run(expectAsync(() {
-      Expect.isFalse(catchErrorHasRun);
-      completer.complete();
-    }));
+    subscription
+        .asFuture<List?>(output)
+        .catchError(
+          expectAsync((error) {
+            Expect.equals(error, "foo");
+            catchErrorHasRun = true;
+          }),
+        );
+    Timer.run(
+      expectAsync(() {
+        Expect.isFalse(catchErrorHasRun);
+        completer.complete();
+      }),
+    );
   });
 
   test("subscription.asFuture failure in cancel", () {
-    runZonedGuarded(() {
-      var completer = new Completer();
-      var controller =
-          new StreamController(onCancel: () => completer.future, sync: true);
-      [1, 2, 3].forEach(controller.add);
-      controller.addError("foo");
-      controller.close();
-      Stream stream = controller.stream;
-      var output = [];
-      var subscription = stream.listen((x) {
-        output.add(x);
-      });
-      bool catchErrorHasRun = false;
-      subscription.asFuture<List?>(output).catchError(expectAsync((error) {
-        Expect.equals(error, "foo");
-        catchErrorHasRun = true;
-      }));
-      Timer.run(expectAsync(() {
-        Expect.isFalse(catchErrorHasRun);
-        completer.completeError(499);
-      }));
-    }, expectAsync2((e, s) {
-      Expect.equals(499, e);
-    }));
+    runZonedGuarded(
+      () {
+        var completer = new Completer();
+        var controller = new StreamController(
+          onCancel: () => completer.future,
+          sync: true,
+        );
+        [1, 2, 3].forEach(controller.add);
+        controller.addError("foo");
+        controller.close();
+        Stream stream = controller.stream;
+        var output = [];
+        var subscription = stream.listen((x) {
+          output.add(x);
+        });
+        bool catchErrorHasRun = false;
+        subscription
+            .asFuture<List?>(output)
+            .catchError(
+              expectAsync((error) {
+                Expect.equals(error, "foo");
+                catchErrorHasRun = true;
+              }),
+            );
+        Timer.run(
+          expectAsync(() {
+            Expect.isFalse(catchErrorHasRun);
+            completer.completeError(499);
+          }),
+        );
+      },
+      expectAsync2((e, s) {
+        Expect.equals(499, e);
+      }),
+    );
   });
 }

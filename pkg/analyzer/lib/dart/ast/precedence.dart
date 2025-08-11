@@ -94,8 +94,9 @@ class Precedence {
 
   static const Precedence additive = Precedence._(ADDITIVE_PRECEDENCE);
 
-  static const Precedence multiplicative =
-      Precedence._(MULTIPLICATIVE_PRECEDENCE);
+  static const Precedence multiplicative = Precedence._(
+    MULTIPLICATIVE_PRECEDENCE,
+  );
 
   static const Precedence prefix = Precedence._(PREFIX_PRECEDENCE);
 

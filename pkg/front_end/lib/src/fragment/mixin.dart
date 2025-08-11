@@ -21,6 +21,10 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   MixinFragment({
     required this.name,
     required super.fileUri,
@@ -31,9 +35,6 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
     required super.nominalParameterNameSpace,
     required super.enclosingCompilationUnit,
   });
-
-  @override
-  int get fileOffset => nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -58,5 +59,5 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }

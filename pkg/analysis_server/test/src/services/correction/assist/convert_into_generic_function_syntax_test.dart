@@ -17,87 +17,87 @@ void main() {
 @reflectiveTest
 class ConvertIntoGenericFunctionSyntaxTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
+  AssistKind get kind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   Future<void> test_functionTypeAlias_insideParameterList() async {
     await resolveTestCode('''
-typedef String F(int x, int y);
+typedef String F(int ^x, int y);
 ''');
-    await assertNoAssistAt('x,');
+    await assertNoAssist();
   }
 
   Future<void> test_functionTypeAlias_noParameterTypes() async {
     await resolveTestCode('''
-typedef String F(x);
+type^def String F(x);
 ''');
-    await assertNoAssistAt('def');
+    await assertNoAssist();
   }
 
   Future<void> test_functionTypeAlias_noReturnType_noTypeParameters() async {
     await resolveTestCode('''
-typedef String F(int x);
+type^def String F(int x);
 ''');
-    await assertHasAssistAt('def', '''
+    await assertHasAssist('''
 typedef F = String Function(int x);
 ''');
   }
 
   Future<void> test_functionTypeAlias_noReturnType_typeParameters() async {
     await resolveTestCode('''
-typedef F<P, R>(P x);
+type^def F<P, R>(P x);
 ''');
-    await assertHasAssistAt('def', '''
+    await assertHasAssist('''
 typedef F<P, R> = Function(P x);
 ''');
   }
 
   Future<void> test_functionTypeAlias_returnType_noTypeParameters() async {
     await resolveTestCode('''
-typedef String F(int x);
+type^def String F(int x);
 ''');
-    await assertHasAssistAt('def', '''
+    await assertHasAssist('''
 typedef F = String Function(int x);
 ''');
   }
 
   Future<void> test_functionTypeAlias_returnType_typeParameters() async {
     await resolveTestCode('''
-typedef R F<P, R>(P x);
+type^def R F<P, R>(P x);
 ''');
-    await assertHasAssistAt('def', '''
+    await assertHasAssist('''
 typedef F<P, R> = R Function(P x);
 ''');
   }
 
   Future<void> test_functionTypedParameter_insideParameterList() async {
     await resolveTestCode('''
-g(String f(int x, int y)) {}
+g(String f(int ^x, int y)) {}
 ''');
-    await assertNoAssistAt('x,');
+    await assertNoAssist();
   }
 
   Future<void> test_functionTypedParameter_noParameterTypes() async {
     await resolveTestCode('''
-g(String f(x)) {}
+g(String ^f(x)) {}
 ''');
-    await assertNoAssistAt('f(');
+    await assertNoAssist();
   }
 
   Future<void>
   test_functionTypedParameter_noReturnType_noTypeParameters() async {
     await resolveTestCode('''
-g(f(int x)) {}
+g(^f(int x)) {}
 ''');
-    await assertHasAssistAt('f(', '''
+    await assertHasAssist('''
 g(Function(int x) f) {}
 ''');
   }
 
   Future<void> test_functionTypedParameter_returnType() async {
     await resolveTestCode('''
-g(String f(int x)) {}
+g(String ^f(int x)) {}
 ''');
-    await assertHasAssistAt('f(', '''
+    await assertHasAssist('''
 g(String Function(int x) f) {}
 ''');
   }

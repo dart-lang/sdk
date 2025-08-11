@@ -639,11 +639,10 @@ class JsInteropChecks extends RecursiveVisitor {
               (pattern) => uri.path.contains(pattern),
             );
         if (allowedToImport) return;
-        final message =
-            dependencyUriString == 'dart:ffi'
-                ? messageDartFfiLibraryInDart2Wasm
-                : templateJsInteropDisallowedInteropLibraryInDart2Wasm
-                    .withArguments(dependencyUriString);
+        final message = dependencyUriString == 'dart:ffi'
+            ? messageDartFfiLibraryInDart2Wasm
+            : templateJsInteropDisallowedInteropLibraryInDart2Wasm
+                  .withArguments(dependencyUriString);
         _reporter.report(
           message,
           dependency.fileOffset,
@@ -797,8 +796,10 @@ class JsInteropChecks extends RecursiveVisitor {
           return false;
         }
         memberKind = 'extension type interop member';
-        memberName =
-            extensionIndex.getExtensionTypeDescriptor(member)!.name.text;
+        memberName = extensionIndex
+            .getExtensionTypeDescriptor(member)!
+            .name
+            .text;
         if (memberName.isEmpty) memberName = 'new';
       } else if (member.isExtensionMember) {
         // JS interop members can not be torn off.
@@ -1128,10 +1129,9 @@ class JsInteropChecks extends RecursiveVisitor {
       parameterTypeString =
           '$positionalParameterTypeString, {$namedParameterTypeString}';
     } else {
-      parameterTypeString =
-          namedParameterTypeString.isNotEmpty
-              ? '{$namedParameterTypeString}'
-              : positionalParameterTypeString;
+      parameterTypeString = namedParameterTypeString.isNotEmpty
+          ? '{$namedParameterTypeString}'
+          : positionalParameterTypeString;
     }
     return '${typeToString(functionType.returnType)} '
         'Function($parameterTypeString)';
@@ -1152,10 +1152,9 @@ class JsInteropChecks extends RecursiveVisitor {
       // There's only one type, so only report that one type instead of a
       // function type. This also avoids duplication in reporting external
       // fields, which are just a getter and a setter.
-      final accessorType =
-          isGetter
-              ? functionType.returnType
-              : functionType.positionalParameters[0];
+      final accessorType = isGetter
+          ? functionType.returnType
+          : functionType.positionalParameters[0];
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
           templateJsInteropStaticInteropExternalAccessorTypeViolation

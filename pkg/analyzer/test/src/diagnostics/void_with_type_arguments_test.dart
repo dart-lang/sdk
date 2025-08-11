@@ -22,11 +22,12 @@ void f() {}
   }
 
   test_withArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void<int> f() {}
-''', [
-      error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1),
-    ]);
+''',
+      [error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1)],
+    );
 
     var node = findNode.namedType('void<int>');
     assertResolvedNodeText(node, r'''

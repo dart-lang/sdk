@@ -8,7 +8,8 @@ import 'package:expect/expect.dart';
 import 'utils.dart';
 
 main() {
-  final String htmlPayload = "<div>"
+  final String htmlPayload =
+      "<div>"
       "<div>"
       "<p class='a'>"
       "<span>Test #1</span>"
@@ -21,8 +22,10 @@ main() {
       "</div>"
       "</div>";
 
-  final elements =
-      new Element.html(htmlPayload, treeSanitizer: new NullTreeSanitizer());
+  final elements = new Element.html(
+    htmlPayload,
+    treeSanitizer: new NullTreeSanitizer(),
+  );
   document.body!.nodes.add(elements);
 
   var para = document.body!.querySelector('p') as ParagraphElement;
@@ -42,7 +45,11 @@ main() {
 
   var checkAllPara = document.body!.querySelectorAll('p');
   Expect.equals(
-      '<p class=""><span>Test #1</span></p>', checkAllPara[0].outerHtml);
+    '<p class=""><span>Test #1</span></p>',
+    checkAllPara[0].outerHtml,
+  );
   Expect.equals(
-      '<p class=""><span>Test #2</span></p>', checkAllPara[1].outerHtml);
+    '<p class=""><span>Test #2</span></p>',
+    checkAllPara[1].outerHtml,
+  );
 }

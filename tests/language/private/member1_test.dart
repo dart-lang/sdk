@@ -11,7 +11,7 @@ class Test extends B {
     _instanceField = true;
     // [error column 5, length 14]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The setter '_instanceField' isn't defined for the class 'Test'.
+    // [cfe] The setter '_instanceField' isn't defined for the type 'Test'.
   }
 }
 

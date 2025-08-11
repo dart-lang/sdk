@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToIntLiteralTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_INT_LITERAL;
+  AssistKind get kind => DartAssistKind.convertToIntLiteral;
 
   Future<void> test_decimal() async {
     await resolveTestCode('''

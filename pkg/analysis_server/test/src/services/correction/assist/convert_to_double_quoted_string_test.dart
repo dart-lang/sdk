@@ -17,15 +17,15 @@ void main() {
 @reflectiveTest
 class ConvertToDoubleQuotedStringTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+  AssistKind get kind => DartAssistKind.convertToDoubleQuotedString;
 
   Future<void> test_interpolation_surroundedByEscapedQuote() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print('a \'$b\'');
+  print(^'a \'$b\'');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print("a '$b'");
 }
@@ -35,10 +35,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote2() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print('a \"$b\"');
+  print(^'a \"$b\"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print("a \"$b\"");
 }
@@ -48,10 +48,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote2_left() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print('a \"$b"');
+  print(^'a \"$b"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print("a \"$b\"");
 }
@@ -61,10 +61,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote2_right() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print('a "$b\"');
+  print(^'a "$b\"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print("a \"$b\"");
 }
@@ -74,10 +74,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote3() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print(' \\"$b\\"');
+  print(^' \\"$b\\"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print(" \\\"$b\\\"");
 }
@@ -87,10 +87,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote4() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print(' \\\'$b\\\'');
+  print(^' \\\'$b\\\'');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print(" \\'$b\\'");
 }
@@ -100,10 +100,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote5() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print(' \\\\"$b\\\\"');
+  print(^' \\\\"$b\\\\"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print(" \\\\\"$b\\\\\"");
 }
@@ -113,10 +113,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByEscapedQuote6() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print(' \\\\\'$b\\\\\'');
+  print(^' \\\\\'$b\\\\\'');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print(" \\\\'$b\\\\'");
 }
@@ -126,10 +126,10 @@ void f(int b) {
   Future<void> test_interpolation_surroundedByQuotes() async {
     await resolveTestCode(r'''
 void f(int b) {
-  print('a "$b"');
+  print(^'a "$b"');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f(int b) {
   print("a \"$b\"");
 }
@@ -139,10 +139,10 @@ void f(int b) {
   Future<void> test_one_backslash() async {
     await resolveTestCode(r'''
 void f() {
-  print('a\'b\'c');
+  print(^'a\'b\'c');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("a'b'c");
 }
@@ -152,10 +152,10 @@ void f() {
   Future<void> test_one_embeddedTarget() async {
     await resolveTestCode('''
 void f() {
-  print('a"b"c');
+  print(^'a"b"c');
 }
 ''');
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("a\"b\"c");
 }
@@ -165,10 +165,10 @@ void f() {
   Future<void> test_one_enclosingTarget() async {
     await resolveTestCode('''
 void f() {
-  print("abc");
+  print(^"abc");
 }
 ''');
-    await assertNoAssistAt('"');
+    await assertNoAssist();
   }
 
   Future<void> test_one_interpolation() async {
@@ -176,10 +176,10 @@ void f() {
 void f() {
   var b = "b";
   var c = "c";
-  print('a $b-${c} d');
+  print(^'a $b-${c} d');
 }
 ''');
-    await assertHasAssistAt(r"'", r'''
+    await assertHasAssist(r'''
 void f() {
   var b = "b";
   var c = "c";
@@ -192,19 +192,19 @@ void f() {
     verifyNoTestUnitErrors = false;
     await resolveTestCode(r'''
 void f(int a) {
-  '$a
+  ^'$a
 }
 ''');
-    await assertNoAssistAt("'");
+    await assertNoAssist();
   }
 
   Future<void> test_one_raw() async {
     await resolveTestCode('''
 void f() {
-  print(r'abc');
+  print(r^'abc');
 }
 ''');
-    await assertHasAssistAt("'", '''
+    await assertHasAssist('''
 void f() {
   print(r"abc");
 }
@@ -214,10 +214,10 @@ void f() {
   Future<void> test_one_simple() async {
     await resolveTestCode('''
 void f() {
-  print('abc');
+  print(^'abc');
 }
 ''');
-    await assertHasAssistAt("'", '''
+    await assertHasAssist('''
 void f() {
   print("abc");
 }
@@ -228,21 +228,21 @@ void f() {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  '
+  ^'
 }
 ''');
-    await assertNoAssistAt("'");
+    await assertNoAssist();
   }
 
   Future<void> test_raw_multiLine_manyQuotes() async {
     await resolveTestCode("""
 void f() {
-  print(r'''
+  print(^r'''
 ""\"""\"""\"""
 ''');
 }
 """);
-    await assertHasAssistAt("r'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("""
 ""\"""\"""\"""
@@ -254,11 +254,11 @@ void f() {
   Future<void> test_raw_multiLine_threeQuotes() async {
     await resolveTestCode("""
 void f() {
-  print(r'''
+  print(^r'''
 ""\"''');
 }
 """);
-    await assertHasAssistAt("r'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("""
 ""\"""");
@@ -269,13 +269,13 @@ void f() {
   Future<void> test_raw_multiLine_twoQuotes() async {
     await resolveTestCode(r"""
 void f() {
-  print(r'''
+  print(^r'''
 ''\''\'
 ""
 ''');
 }
 """);
-    await assertHasAssistAt("r'", '''
+    await assertHasAssist('''
 void f() {
   print(r"""
 ''\''\'
@@ -288,11 +288,11 @@ void f() {
   Future<void> test_raw_multiLine_twoQuotesAtEnd() async {
     await resolveTestCode("""
 void f() {
-  print(r'''
+  print(^r'''
 ""''');
 }
 """);
-    await assertHasAssistAt("r'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("""
 "\"""");
@@ -303,10 +303,10 @@ void f() {
   Future<void> test_raw_nonEscapedChars() async {
     await resolveTestCode(r'''
 void f() {
-  print(r'\$"');
+  print(^r'\$"');
 }
 ''');
-    await assertHasAssistAt("r'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("\\\$\"");
 }
@@ -316,10 +316,10 @@ void f() {
   Future<void> test_three_embeddedTarget() async {
     await resolveTestCode("""
 void f() {
-  print('''a""\"c''');
+  print(^'''a""\"c''');
 }
 """);
-    await assertHasAssistAt("'", r'''
+    await assertHasAssist(r'''
 void f() {
   print("""a""\"c""");
 }
@@ -329,10 +329,10 @@ void f() {
   Future<void> test_three_enclosingTarget() async {
     await resolveTestCode('''
 void f() {
-  print("""abc""");
+  print(^"""abc""");
 }
 ''');
-    await assertNoAssistAt('"');
+    await assertNoAssist();
   }
 
   Future<void> test_three_interpolation() async {
@@ -340,10 +340,10 @@ void f() {
 void f() {
   var b = "b";
   var c = "c";
-  print('''a $b-${c} d''');
+  print(^'''a $b-${c} d''');
 }
 """);
-    await assertHasAssistAt(r"'", r'''
+    await assertHasAssist(r'''
 void f() {
   var b = "b";
   var c = "c";
@@ -355,10 +355,10 @@ void f() {
   Future<void> test_three_raw() async {
     await resolveTestCode("""
 void f() {
-  print(r'''abc''');
+  print(r^'''abc''');
 }
 """);
-    await assertHasAssistAt("'", '''
+    await assertHasAssist('''
 void f() {
   print(r"""abc""");
 }
@@ -368,10 +368,10 @@ void f() {
   Future<void> test_three_simple() async {
     await resolveTestCode("""
 void f() {
-  print('''abc''');
+  print(^'''abc''');
 }
 """);
-    await assertHasAssistAt("'", '''
+    await assertHasAssist('''
 void f() {
   print("""abc""");
 }

@@ -17,38 +17,62 @@ main() {
 class BuiltInIdentifierAsTypeParameterNameTest
     extends PubPackageResolutionTest {
   test_class_as() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<as> {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 8,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+          8,
+          2,
+        ),
+      ],
+    );
   }
 
   test_class_Function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<Function> {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 8,
-          8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+          8,
+          8,
+        ),
+      ],
+    );
   }
 
   test_extension_as() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension <as> on List {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 11,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+          11,
+          2,
+        ),
+      ],
+    );
   }
 
   test_function_as() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<as>() {}
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 7,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+          7,
+          2,
+        ),
+      ],
+    );
   }
 }

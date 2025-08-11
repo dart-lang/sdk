@@ -16,10 +16,11 @@ main() {
 @reflectiveTest
 class ConstEvalThrowsIdbzeTest extends PubPackageResolutionTest {
   test_divisionByZero() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const C = 1 ~/ 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE, 10, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE, 10, 6)],
+    );
   }
 }

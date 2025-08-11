@@ -33,8 +33,11 @@ class Merger {
     YamlMap listToMap(YamlList list) {
       // We use the default linked hash map so the ordering is the same every time.
       Map<YamlNode, YamlNode> map = {};
-      ScalarEvent event =
-          ScalarEvent(o1.span as FileSpan, 'true', ScalarStyle.PLAIN);
+      ScalarEvent event = ScalarEvent(
+        o1.span as FileSpan,
+        'true',
+        ScalarStyle.PLAIN,
+      );
       for (var element in list.nodes) {
         map[element] = YamlScalar.internal(true, event);
       }

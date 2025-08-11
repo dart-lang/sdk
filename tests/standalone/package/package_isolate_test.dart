@@ -52,9 +52,13 @@ void main() {
     var replyPort = expectResponse().sendPort;
     shared.output = 'main';
     Isolate.spawnUri(
-        Uri.parse('test_folder/folder_isolate.dart'), [], replyPort,
-        packageConfig: Uri.parse(
-            'tests/standalone/package/test_folder/.dart_tool/package_config.json'));
+      Uri.parse('test_folder/folder_isolate.dart'),
+      [],
+      replyPort,
+      packageConfig: Uri.parse(
+        'tests/standalone/package/test_folder/.dart_tool/package_config.json',
+      ),
+    );
   }
 }
 

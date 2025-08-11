@@ -70,13 +70,13 @@ class Class extends core::Object {
 class ClassExtends extends self2::Class {
   synthetic constructor •() → self2::ClassExtends
     ;
-  method _privateInstanceMember() → void
+  erroneous method _privateInstanceMember() → void
     ;
 }
 class ClassImplements extends core::Object implements self2::Class {
   synthetic constructor •() → self2::ClassImplements
     ;
-  method _privateInstanceMember() → void
+  erroneous method _privateInstanceMember() → void
     ;
 }
 static method _privateTopLevelMember() → void

@@ -65,6 +65,7 @@ class Tags {
   static const String lateLocalSetter = 'lateLocalSetter';
 
   static const String extensionThis = 'extensionThis';
+  static const String extensionName = 'extensionName';
 
   static const String tearoffLowering = 'tearoffLowering';
   static const String tearoffConstructor = 'tearoffConstructor';
@@ -161,6 +162,10 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       }
       if (isTypedefTearOffLowering(node)) {
         features.add(Tags.tearoffTypedef);
+      }
+      if (node.isExtensionMember || node.isExtensionTypeMember) {
+        features[Tags.extensionName] =
+            extractQualifiedNameFromExtensionMember(node)!;
       }
     }
     if (isTearOffLowering(node)) {

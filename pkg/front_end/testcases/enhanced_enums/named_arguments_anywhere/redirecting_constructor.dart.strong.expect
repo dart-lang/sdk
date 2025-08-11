@@ -23,7 +23,7 @@ class C extends core::_Enum /*isEnum*/  {
   const constructor named3(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
     : final core::int #t5 = #index, final core::String #t6 = #name, final core::int #t7 = z, this self::C::•(#t5, #t6, x, y, z: #t7)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "C.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {

@@ -55,7 +55,8 @@ SafepointMutexLocker::SafepointMutexLocker(ThreadState* thread, Mutex* mutex)
   }
 }
 
-void SafepointMonitorLocker::AcquireLock() {
+template <typename M>
+void SafepointLocker<M>::AcquireLock() {
   ASSERT(monitor_ != nullptr);
   if (!monitor_->TryEnter()) {
     // We did not get the lock and could potentially block, so transition
@@ -70,14 +71,11 @@ void SafepointMonitorLocker::AcquireLock() {
   }
 }
 
-void SafepointMonitorLocker::ReleaseLock() {
-  monitor_->Exit();
-}
-
-Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
+template <typename M>
+typename M::WaitResult SafepointLocker<M>::Wait(int64_t millis) {
   Thread* thread = Thread::Current();
   if (thread != nullptr) {
-    Monitor::WaitResult result;
+    typename M::WaitResult result;
     {
       TransitionVMToBlocked transition(thread);
       result = monitor_->Wait(millis);
@@ -87,6 +85,9 @@ Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
     return monitor_->Wait(millis);
   }
 }
+
+template class SafepointLocker<ReentrantMonitor>;
+template class SafepointLocker<Monitor>;
 
 #if defined(DEBUG)
 bool SafepointRwLock::IsCurrentThreadReader() {
@@ -112,6 +113,7 @@ bool SafepointRwLock::EnterRead() {
   //
   // Though if the lock was already acquired by this thread before entering a
   // safepoint, we do allow the nested acquire (which is a NOP).
+  ASSERT(thread == nullptr || thread->execution_state() == Thread::kThreadInVM);
   DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
                IsCurrentThreadReader());
 
@@ -178,6 +180,7 @@ void SafepointRwLock::EnterWrite() {
   //
   // Though if the lock was already acquired by this thread before entering a
   // safepoint, we do allow the nested acquire (which is a NOP).
+  ASSERT(thread == nullptr || thread->execution_state() == Thread::kThreadInVM);
   DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
                IsCurrentThreadWriter());
 

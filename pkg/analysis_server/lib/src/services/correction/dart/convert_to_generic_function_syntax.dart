@@ -21,8 +21,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
+  AssistKind get assistKind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
@@ -33,7 +32,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is FunctionTypeAlias) {
         return _convertFunctionTypeAlias(builder, node);
       } else if (node is FunctionTypedFormalParameter) {

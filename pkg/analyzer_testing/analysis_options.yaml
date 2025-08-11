@@ -1,0 +1,23 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - lib/mock_packages/package_content/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    - avoid_dynamic_calls
+    - avoid_unused_constructor_parameters
+    - flutter_style_todos
+    - library_annotations
+    - prefer_single_quotes
+    - unawaited_futures
+    - unnecessary_breaks
+    - unnecessary_ignore
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unreachable_from_main

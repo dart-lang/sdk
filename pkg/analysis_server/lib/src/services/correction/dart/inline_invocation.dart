@@ -22,7 +22,7 @@ class InlineInvocation extends ResolvedCorrectionProducer {
   List<String> get assistArguments => ['add'];
 
   @override
-  AssistKind get assistKind => DartAssistKind.INLINE_INVOCATION;
+  AssistKind get assistKind => DartAssistKind.inlineInvocation;
 
   @override
   List<String> get fixArguments => ['add'];

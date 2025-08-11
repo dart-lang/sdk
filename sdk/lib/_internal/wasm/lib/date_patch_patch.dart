@@ -16,7 +16,7 @@ class DateTime {
 
   @patch
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
-      JSStringImpl(
+      JSStringImpl.fromRefUnchecked(
         JS<WasmExternRef>(r"""secondsSinceEpoch => {
         const date = new Date(secondsSinceEpoch * 1000);
         const match = /\((.*)\)/.exec(date.toString());

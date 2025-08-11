@@ -22,18 +22,15 @@ class IsKnownTest extends AbstractTypeSystemTest {
   }
 
   test_function() {
-    _checkKnown(
-      functionTypeNone(returnType: voidNone),
-    );
+    _checkKnown(functionTypeNone(returnType: voidNone));
+
+    _checkUnknown(functionTypeNone(returnType: unknownInferredType));
 
     _checkUnknown(
-      functionTypeNone(returnType: unknownInferredType),
-    );
-
-    _checkUnknown(
-      functionTypeNone(returnType: voidNone, formalParameters: [
-        requiredParameter(type: unknownInferredType),
-      ]),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: unknownInferredType)],
+      ),
     );
   }
 
@@ -52,25 +49,13 @@ class IsKnownTest extends AbstractTypeSystemTest {
   }
 
   test_record() {
-    _checkKnown(recordTypeNone(
-      positionalTypes: [intNone],
-    ));
+    _checkKnown(recordTypeNone(positionalTypes: [intNone]));
 
-    _checkUnknown(recordTypeNone(
-      positionalTypes: [unknownInferredType],
-    ));
+    _checkUnknown(recordTypeNone(positionalTypes: [unknownInferredType]));
 
-    _checkKnown(recordTypeNone(
-      namedTypes: {
-        'x': intNone,
-      },
-    ));
+    _checkKnown(recordTypeNone(namedTypes: {'x': intNone}));
 
-    _checkUnknown(recordTypeNone(
-      namedTypes: {
-        'x': unknownInferredType,
-      },
-    ));
+    _checkUnknown(recordTypeNone(namedTypes: {'x': unknownInferredType}));
   }
 
   test_unknownInferredType() {

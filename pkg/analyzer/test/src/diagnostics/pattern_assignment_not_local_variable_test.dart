@@ -16,17 +16,25 @@ main() {
 @reflectiveTest
 class PatternAssignmentNotLocalVariableTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   (int) = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 14, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   var x = 0;
 
@@ -34,52 +42,86 @@ class A {
     (x) = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          42,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   void f() {
     (T) = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   (dynamic) = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 14, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          14,
+          7,
+        ),
+      ],
+    );
   }
 
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   (f) = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 14, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          14,
+          1,
+        ),
+      ],
+    );
   }
 
   test_topLevelVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var x = 0;
 
 void f() {
   (x) = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE, 26, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+          26,
+          1,
+        ),
+      ],
+    );
   }
 }

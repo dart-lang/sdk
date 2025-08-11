@@ -50,18 +50,15 @@ typedef CommentAroundAnnotation();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        Raw @8
-          reference: <testLibraryFragment>::@typeAlias::Raw
+        #F1 Raw @8
           element: <testLibrary>::@typeAlias::Raw
-        HasDocComment @54
-          reference: <testLibraryFragment>::@typeAlias::HasDocComment
+        #F2 HasDocComment @54
           element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        HasAnnotation @90
-          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+        #F3 HasAnnotation @90
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
@@ -73,9 +70,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        AnnotationThenComment @156
-          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+              element2: dart:core::@class::Object::@constructor::new
+        #F4 AnnotationThenComment @156
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -88,9 +84,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        CommentThenAnnotation @230
-          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+              element2: dart:core::@class::Object::@constructor::new
+        #F5 CommentThenAnnotation @230
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -103,9 +98,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        CommentAroundAnnotation @304
-          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+              element2: dart:core::@class::Object::@constructor::new
+        #F6 CommentAroundAnnotation @304
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -118,17 +112,20 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @278
                 rightParenthesis: ) @279
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
-      firstFragment: <testLibraryFragment>::@typeAlias::Raw
+      reference: <testLibrary>::@typeAlias::Raw
+      firstFragment: #F1
       aliasedType: dynamic Function()
     HasDocComment
-      firstFragment: <testLibraryFragment>::@typeAlias::HasDocComment
+      reference: <testLibrary>::@typeAlias::HasDocComment
+      firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       aliasedType: dynamic Function()
     HasAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::HasAnnotation
+      reference: <testLibrary>::@typeAlias::HasAnnotation
+      firstFragment: #F3
       metadata
         Annotation
           atSign: @ @72
@@ -139,10 +136,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @79
             rightParenthesis: ) @80
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
-      firstFragment: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+      reference: <testLibrary>::@typeAlias::AnnotationThenComment
+      firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -154,10 +152,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @115
             rightParenthesis: ) @116
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+      reference: <testLibrary>::@typeAlias::CommentThenAnnotation
+      firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -169,10 +168,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @219
             rightParenthesis: ) @220
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+      reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
+      firstFragment: #F6
       documentationComment: /// Comment 2.
       metadata
         Annotation
@@ -184,7 +184,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @278
             rightParenthesis: ) @279
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }
@@ -220,18 +220,15 @@ typedef CommentAroundAnnotation = Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        Raw @8
-          reference: <testLibraryFragment>::@typeAlias::Raw
+        #F1 Raw @8
           element: <testLibrary>::@typeAlias::Raw
-        HasDocComment @65
-          reference: <testLibraryFragment>::@typeAlias::HasDocComment
+        #F2 HasDocComment @65
           element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        HasAnnotation @112
-          reference: <testLibraryFragment>::@typeAlias::HasAnnotation
+        #F3 HasAnnotation @112
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
@@ -243,9 +240,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        AnnotationThenComment @189
-          reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+              element2: dart:core::@class::Object::@constructor::new
+        #F4 AnnotationThenComment @189
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -258,9 +254,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        CommentThenAnnotation @274
-          reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+              element2: dart:core::@class::Object::@constructor::new
+        #F5 CommentThenAnnotation @274
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -273,9 +268,8 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-        CommentAroundAnnotation @359
-          reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+              element2: dart:core::@class::Object::@constructor::new
+        #F6 CommentAroundAnnotation @359
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -288,17 +282,20 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @333
                 rightParenthesis: ) @334
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+              element2: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
-      firstFragment: <testLibraryFragment>::@typeAlias::Raw
+      reference: <testLibrary>::@typeAlias::Raw
+      firstFragment: #F1
       aliasedType: dynamic Function()
     HasDocComment
-      firstFragment: <testLibraryFragment>::@typeAlias::HasDocComment
+      reference: <testLibrary>::@typeAlias::HasDocComment
+      firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       aliasedType: dynamic Function()
     HasAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::HasAnnotation
+      reference: <testLibrary>::@typeAlias::HasAnnotation
+      firstFragment: #F3
       metadata
         Annotation
           atSign: @ @94
@@ -309,10 +306,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @101
             rightParenthesis: ) @102
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
-      firstFragment: <testLibraryFragment>::@typeAlias::AnnotationThenComment
+      reference: <testLibrary>::@typeAlias::AnnotationThenComment
+      firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -324,10 +322,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @148
             rightParenthesis: ) @149
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
+      reference: <testLibrary>::@typeAlias::CommentThenAnnotation
+      firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
@@ -339,10 +338,11 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @263
             rightParenthesis: ) @264
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
-      firstFragment: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
+      reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
+      firstFragment: #F6
       documentationComment: /// Comment 2.
       metadata
         Annotation
@@ -354,7 +354,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @333
             rightParenthesis: ) @334
-          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          element2: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }
@@ -367,20 +367,21 @@ typedef void F<T>(int a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(int)
 ''');
   }
@@ -394,34 +395,35 @@ void f(F<int> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
       functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
+        #F3 f @23
           element: <testLibrary>::@function::f
           formalParameters
-            a @32
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F4 a @32
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F3
       formalParameters
-        requiredPositional a
+        #E1 requiredPositional a
+          firstFragment: #F4
           type: int Function()
             alias: <testLibrary>::@typeAlias::F
               typeArguments
@@ -438,20 +440,21 @@ typedef void F<T>(T a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
 ''');
   }
@@ -465,31 +468,33 @@ typedef F1<T> F2<T>();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @13
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @13
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @16
-              element: T@16
-        F2 @39
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @16
+              element: #E0 T
+        #F3 F2 @39
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @42
-              element: T@42
+            #F4 T @42
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: void Function(T) Function()
 ''');
   }
@@ -503,31 +508,33 @@ typedef void F1<T>(T a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F2 @14
-          reference: <testLibraryFragment>::@typeAlias::F2
+        #F1 F2 @14
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @17
-              element: T@17
-        F1 @36
-          reference: <testLibraryFragment>::@typeAlias::F1
+            #F2 T @17
+              element: #E0 T
+        #F3 F1 @36
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @39
-              element: T@39
+            #F4 T @39
+              element: #E1 T
   typeAliases
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T) Function()
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: void Function(T)
 ''');
   }
@@ -540,20 +547,21 @@ typedef T F<T>();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
 ''');
   }
@@ -566,20 +574,21 @@ typedef List<T> F<T>();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @16
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @16
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @18
-              element: T@18
+            #F2 T @18
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: List<T> Function()
 ''');
   }
@@ -593,31 +602,33 @@ typedef F1<T> F2<T>();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @10
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @10
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @13
-              element: T@13
-        F2 @33
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @13
+              element: #E0 T
+        #F3 F2 @33
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @36
-              element: T@36
+            #F4 T @36
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: T Function() Function()
 ''');
   }
@@ -631,31 +642,33 @@ typedef void F2<T>(F1<T> a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @13
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @13
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @16
-              element: T@16
-        F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @16
+              element: #E0 T
+        #F3 F2 @38
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @41
-              element: T@41
+            #F4 T @41
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: void Function(void Function(T))
 ''');
   }
@@ -668,20 +681,21 @@ typedef T F<T>(T a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function(T)
 ''');
   }
@@ -695,31 +709,33 @@ typedef F1<T> F2<T>(T a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @10
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @10
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @13
-              element: T@13
-        F2 @33
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @13
+              element: #E0 T
+        #F3 F2 @33
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @36
-              element: T@36
+            #F4 T @36
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: T Function() Function(T)
 ''');
   }
@@ -732,20 +748,21 @@ typedef void F<T>(int a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(int)
 ''');
   }
@@ -758,20 +775,21 @@ typedef F<T> = void Function<U>(int a);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function<U>(int)
 ''');
   }
@@ -784,20 +802,21 @@ typedef F<X extends F> = Function(F);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            X @10
-              element: X@10
+            #F2 X @10
+              element: #E0 X
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        X
+        #E0 X
+          firstFragment: #F2
           bound: dynamic
       aliasedType: dynamic Function(dynamic)
 ''');
@@ -812,21 +831,21 @@ typedef G = F Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
-        G @34
-          reference: <testLibraryFragment>::@typeAlias::G
+        #F2 G @34
           element: <testLibrary>::@typeAlias::G
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function()
     notSimplyBounded G
-      firstFragment: <testLibraryFragment>::@typeAlias::G
+      reference: <testLibrary>::@typeAlias::G
+      firstFragment: #F2
       aliasedType: dynamic Function()
 ''');
   }
@@ -839,15 +858,15 @@ typedef F = List<F> Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: List<dynamic> Function()
 ''');
   }
@@ -860,20 +879,21 @@ typedef F<T extends F> = void Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: dynamic
       aliasedType: void Function()
 ''');
@@ -887,20 +907,21 @@ typedef F<T> = void Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function()
 ''');
   }
@@ -913,15 +934,15 @@ typedef F = void Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function()
 ''');
   }
@@ -934,20 +955,21 @@ typedef F<T extends F> = List<int>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: dynamic
       aliasedType: List<int>
 ''');
@@ -961,15 +983,15 @@ typedef F = List<F>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: List<dynamic>
 ''');
   }
@@ -985,29 +1007,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @42
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @42
           element: <testLibrary>::@function::f
           formalParameters
-            a @46
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @46
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: void Function({int p})
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: void Function({int p})
             alias: <testLibrary>::@typeAlias::A
       returnType: void
@@ -1022,15 +1044,15 @@ typedef void F(T a<T, U>(U u));
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function(T Function<T, U>(U))
 ''');
   }
@@ -1043,20 +1065,21 @@ typedef F<T> = void Function(T);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
 ''');
   }
@@ -1070,31 +1093,33 @@ typedef F2<T> = F1<T> Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @8
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @11
-              element: T@11
-        F2 @42
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @11
+              element: #E0 T
+        #F3 F2 @42
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @45
-              element: T@45
+            #F4 T @45
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: void Function(T) Function()
 ''');
   }
@@ -1107,20 +1132,21 @@ typedef F<T> = T Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
 ''');
   }
@@ -1133,20 +1159,21 @@ typedef F<T> = List<T> Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: List<T> Function()
 ''');
   }
@@ -1160,31 +1187,33 @@ typedef F2<T> = F1<T> Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @8
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @11
-              element: T@11
-        F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @11
+              element: #E0 T
+        #F3 F2 @38
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @41
-              element: T@41
+            #F4 T @41
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: T Function() Function()
 ''');
   }
@@ -1198,31 +1227,33 @@ typedef F2<T> = void Function(F1<T>);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @8
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @11
-              element: T@11
-        F2 @42
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @11
+              element: #E0 T
+        #F3 F2 @42
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @45
-              element: T@45
+            #F4 T @45
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: void Function(void Function(T))
 ''');
   }
@@ -1236,36 +1267,36 @@ typedef F<T> = void Function(A<int>);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        F @19
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F3 F @19
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @21
-              element: T@21
+            #F4 T @21
+              element: #E0 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F3
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F4
       aliasedType: void Function(A)
 ''');
   }
@@ -1279,26 +1310,27 @@ typedef G<T> = void Function(F<int>);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
-        G @37
-          reference: <testLibraryFragment>::@typeAlias::G
+        #F2 G @37
           element: <testLibrary>::@typeAlias::G
           typeParameters
-            T @39
-              element: T@39
+            #F3 T @39
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function()
     G
-      firstFragment: <testLibraryFragment>::@typeAlias::G
+      reference: <testLibrary>::@typeAlias::G
+      firstFragment: #F2
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F3
       aliasedType: void Function(void Function())
 ''');
   }
@@ -1311,20 +1343,21 @@ typedef F<T> = T Function(T);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function(T)
 ''');
   }
@@ -1338,31 +1371,33 @@ typedef F2<T> = F1<T> Function(T);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
+        #F1 F1 @8
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            T @11
-              element: T@11
-        F2 @38
-          reference: <testLibraryFragment>::@typeAlias::F2
+            #F2 T @11
+              element: #E0 T
+        #F3 F2 @38
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            T @41
-              element: T@41
+            #F4 T @41
+              element: #E1 T
   typeAliases
     F1
-      firstFragment: <testLibraryFragment>::@typeAlias::F1
+      reference: <testLibrary>::@typeAlias::F1
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
     F2
-      firstFragment: <testLibraryFragment>::@typeAlias::F2
+      reference: <testLibrary>::@typeAlias::F2
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: T Function() Function(T)
 ''');
   }
@@ -1375,20 +1410,21 @@ typedef F<T> = void Function(int);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(int)
 ''');
   }
@@ -1401,20 +1437,21 @@ typedef A<T> = List<void Function(T)>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: List<void Function(T)>
 ''');
   }
@@ -1428,31 +1465,33 @@ typedef B<T> = List<A<T>>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
-        B @41
-          reference: <testLibraryFragment>::@typeAlias::B
+            #F2 T @10
+              element: #E0 T
+        #F3 B @41
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            T @43
-              element: T@43
+            #F4 T @43
+              element: #E1 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function(T)
     B
-      firstFragment: <testLibraryFragment>::@typeAlias::B
+      reference: <testLibrary>::@typeAlias::B
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: List<void Function(T)>
 ''');
   }
@@ -1465,20 +1504,21 @@ typedef A<T> = List<T>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: List<T>
 ''');
   }
@@ -1492,31 +1532,33 @@ typedef B<T> = List<A<T>>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
-        B @36
-          reference: <testLibraryFragment>::@typeAlias::B
+            #F2 T @10
+              element: #E0 T
+        #F3 B @36
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            T @38
-              element: T@38
+            #F4 T @38
+              element: #E1 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: Map<int, T>
     B
-      firstFragment: <testLibraryFragment>::@typeAlias::B
+      reference: <testLibrary>::@typeAlias::B
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: List<Map<int, T>>
 ''');
   }
@@ -1529,20 +1571,21 @@ typedef A<T> = (void Function(T), int);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: (void Function(T), int)
 ''');
   }
@@ -1556,31 +1599,33 @@ typedef B<T> = List<A<T>>;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
-        B @48
-          reference: <testLibraryFragment>::@typeAlias::B
+            #F2 T @10
+              element: #E0 T
+        #F3 B @48
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            T @50
-              element: T@50
+            #F4 T @50
+              element: #E1 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: (void Function(T), int)
     B
-      firstFragment: <testLibraryFragment>::@typeAlias::B
+      reference: <testLibrary>::@typeAlias::B
+      firstFragment: #F3
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F4
       aliasedType: List<(void Function(T), int)>
 ''');
   }
@@ -1593,20 +1638,21 @@ typedef A<T> = (T, int);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: (T, int)
 ''');
   }
@@ -1619,20 +1665,21 @@ typedef A<T> = (T Function(T), int);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: (T Function(T), int)
 ''');
   }
@@ -1645,45 +1692,48 @@ typedef A<T> = (int, String);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: (int, String)
 ''');
   }
 
   test_typedef_function_generic() async {
     var library = await buildLibrary(
-        'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
+      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: int Function<S>(List<S>, num Function<A>(A), T)
 ''');
   }
@@ -1699,74 +1749,83 @@ class A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @43
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @43
           element: <testLibrary>::@class::A
           fields
-            f @58
-              reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
-              getter2: <testLibraryFragment>::@class::A::@getter::f
-              setter2: <testLibraryFragment>::@class::A::@setter::f
+            #F2 f @58
+              element: <testLibrary>::@class::A::@field::f
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get f
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              element: <testLibraryFragment>::@class::A::@getter::f#element
+            #F4 synthetic f
+              element: <testLibrary>::@class::A::@getter::f
+              returnType: int Function<T>(T)
+                alias: <testLibrary>::@typeAlias::Foo
+                  typeArguments
+                    int
           setters
-            synthetic set f
-              reference: <testLibraryFragment>::@class::A::@setter::f
-              element: <testLibraryFragment>::@class::A::@setter::f#element
+            #F5 synthetic f
+              element: <testLibrary>::@class::A::@setter::f
               formalParameters
-                _f
-                  element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
+                #F6 _f
+                  element: <testLibrary>::@class::A::@setter::f::@formalParameter::_f
       typeAliases
-        Foo @8
-          reference: <testLibraryFragment>::@typeAlias::Foo
+        #F7 Foo @8
           element: <testLibrary>::@typeAlias::Foo
           typeParameters
-            S @12
-              element: S@12
+            #F8 S @12
+              element: #E0 S
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         f
-          firstFragment: <testLibraryFragment>::@class::A::@field::f
+          reference: <testLibrary>::@class::A::@field::f
+          firstFragment: #F2
           type: int Function<T>(T)
             alias: <testLibrary>::@typeAlias::Foo
               typeArguments
                 int
-          getter: <testLibraryFragment>::@class::A::@getter::f#element
-          setter: <testLibraryFragment>::@class::A::@setter::f#element
+          getter: <testLibrary>::@class::A::@getter::f
+          setter: <testLibrary>::@class::A::@setter::f
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       getters
-        synthetic get f
-          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+        synthetic f
+          reference: <testLibrary>::@class::A::@getter::f
+          firstFragment: #F4
+          returnType: int Function<T>(T)
+            alias: <testLibrary>::@typeAlias::Foo
+              typeArguments
+                int
+          variable: <testLibrary>::@class::A::@field::f
       setters
-        synthetic set f
-          firstFragment: <testLibraryFragment>::@class::A::@setter::f
+        synthetic f
+          reference: <testLibrary>::@class::A::@setter::f
+          firstFragment: #F5
           formalParameters
-            requiredPositional _f
+            #E1 requiredPositional _f
+              firstFragment: #F6
               type: int Function<T>(T)
                 alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
+          returnType: void
   typeAliases
     Foo
-      firstFragment: <testLibraryFragment>::@typeAlias::Foo
+      reference: <testLibrary>::@typeAlias::Foo
+      firstFragment: #F7
       typeParameters
-        S
+        #E0 S
+          firstFragment: #F8
       aliasedType: S Function<T>(T)
 ''');
   }
@@ -1782,37 +1841,37 @@ class C<T extends C<T>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @38
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @38
           element: <testLibrary>::@class::C
           typeParameters
-            T @40
-              element: T@40
+            #F2 T @40
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F4 F @8
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: C<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
@@ -1828,37 +1887,37 @@ class C<T extends C<T>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @36
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @36
           element: <testLibrary>::@class::C
           typeParameters
-            T @38
-              element: T@38
+            #F2 T @38
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F4 F @8
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: C<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
@@ -1874,66 +1933,69 @@ class C<T extends C<T>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @32
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @32
           element: <testLibrary>::@class::C
           typeParameters
-            T @34
-              element: T@34
+            #F2 T @34
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F4 F @8
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: C<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
       aliasedType: C<C<dynamic>> Function()
 ''');
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library =
-        await buildLibrary('typedef F<T extends U, U> = U Function(T t);');
+    var library = await buildLibrary(
+      'typedef F<T extends U, U> = U Function(T t);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
-            U @23
-              element: U@23
+            #F2 T @10
+              element: #E0 T
+            #F3 U @23
+              element: #E1 U
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: U
-        U
+        #E1 U
+          firstFragment: #F3
       aliasedType: U Function(T)
 ''');
   }
@@ -1949,16 +2011,16 @@ typedef F();''');
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @68
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @68
           element: <testLibrary>::@typeAlias::F
           documentationComment: /**\n * Docs\n */
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       documentationComment: /**\n * Docs\n */
       aliasedType: dynamic Function()
 ''');
@@ -1975,37 +2037,37 @@ class C<T extends C<T>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @27
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @27
           element: <testLibrary>::@class::C
           typeParameters
-            T @29
-              element: T@29
+            #F2 T @29
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F4 F @13
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: C<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
 ''');
   }
@@ -2021,37 +2083,37 @@ class C<T extends C<T>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @21
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @21
           element: <testLibrary>::@class::C
           typeParameters
-            T @23
-              element: T@23
+            #F2 T @23
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F4 F @10
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: C<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
       aliasedType: C<C<dynamic>> Function()
 ''');
   }
@@ -2064,20 +2126,21 @@ typedef void F<T extends F>();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: dynamic
       aliasedType: void Function()
 ''');
@@ -2091,15 +2154,15 @@ typedef void F();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function()
 ''');
   }
@@ -2110,20 +2173,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: void Function()
 ''');
   }
@@ -2136,15 +2200,15 @@ typedef void F(int a, b, [int c, d]);
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function(int, dynamic, [int, dynamic])
 ''');
   }
@@ -2155,15 +2219,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
 ''');
   }
@@ -2174,23 +2238,25 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            A @10
-              element: A@10
-            B @13
-              element: B@13
+            #F2 A @10
+              element: #E0 A
+            #F3 B @13
+              element: #E1 B
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        A
-        B
+        #E0 A
+          firstFragment: #F2
+        #E1 B
+          firstFragment: #F3
       aliasedType: dynamic Function(A Function(B))
 ''');
   }
@@ -2201,15 +2267,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function(int Function())
 ''');
   }
@@ -2220,15 +2286,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function(int)
 ''');
   }
@@ -2239,20 +2305,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: dynamic Function(T)
 ''');
   }
@@ -2263,15 +2330,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function(dynamic, dynamic)
 ''');
   }
@@ -2282,15 +2349,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
 ''');
   }
@@ -2301,15 +2368,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @12
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @12
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: int Function()
 ''');
   }
@@ -2320,20 +2387,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T Function()
 ''');
   }
@@ -2344,15 +2412,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: dynamic Function()
 ''');
   }
@@ -2363,15 +2431,15 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: void Function()
 ''');
   }
@@ -2382,68 +2450,72 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
-            U @15
-              element: U@15
+            #F2 T @12
+              element: #E0 T
+            #F3 U @15
+              element: #E1 U
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
-        U
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
       aliasedType: U Function(T)
 ''');
   }
 
   test_typedef_legacy_typeParameters_bound() async {
     var library = await buildLibrary(
-        'typedef U F<T extends Object, U extends D>(T t); class D {}');
+      'typedef U F<T extends Object, U extends D>(T t); class D {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class D @55
-          reference: <testLibraryFragment>::@class::D
+        #F1 class D @55
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F3 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
-            U @30
-              element: U@30
+            #F4 T @12
+              element: #E0 T
+            #F5 U @30
+              element: #E1 U
   classes
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F2
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F3
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F4
           bound: Object
-        U
+        #E1 U
+          firstFragment: #F5
           bound: D
       aliasedType: U Function(T)
 ''');
@@ -2456,20 +2528,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: dynamic
       aliasedType: void Function()
 ''');
@@ -2482,20 +2555,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F2 T @15
+              element: #E0 T
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: List<dynamic>
       aliasedType: void Function()
 ''');
@@ -2507,24 +2581,26 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
-            U @31
-              element: U@31
+            #F2 T @12
+              element: #E0 T
+            #F3 U @31
+              element: #E1 U
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: List<U>
-        U
+        #E1 U
+          firstFragment: #F3
       aliasedType: U Function(T)
 ''');
   }
@@ -2535,24 +2611,26 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @10
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @10
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @12
-              element: T@12
-            U @25
-              element: U@25
+            #F2 T @12
+              element: #E0 T
+            #F3 U @25
+              element: #E1 U
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: U
-        U
+        #E1 U
+          firstFragment: #F3
       aliasedType: U Function(T)
 ''');
   }
@@ -2585,54 +2663,55 @@ void f2(A2<int> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A1 @8
-          reference: <testLibraryFragment>::@typeAlias::A1
+        #F1 A1 @8
           element: <testLibrary>::@typeAlias::A1
-        A2 @38
-          reference: <testLibraryFragment>::@typeAlias::A2
+        #F2 A2 @38
           element: <testLibrary>::@typeAlias::A2
           typeParameters
-            R @41
-              element: R@41
+            #F3 R @41
+              element: #E0 R
       functions
-        f1 @65
-          reference: <testLibraryFragment>::@function::f1
+        #F4 f1 @65
           element: <testLibrary>::@function::f1
           formalParameters
-            a @71
-              element: <testLibraryFragment>::@function::f1::@parameter::a#element
-        f2 @82
-          reference: <testLibraryFragment>::@function::f2
+            #F5 a @71
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F6 f2 @82
           element: <testLibrary>::@function::f2
           formalParameters
-            a @93
-              element: <testLibraryFragment>::@function::f2::@parameter::a#element
+            #F7 a @93
+              element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A1
-      firstFragment: <testLibraryFragment>::@typeAlias::A1
+      reference: <testLibrary>::@typeAlias::A1
+      firstFragment: #F1
       aliasedType: void Function()
     A2
-      firstFragment: <testLibraryFragment>::@typeAlias::A2
+      reference: <testLibrary>::@typeAlias::A2
+      firstFragment: #F2
       typeParameters
-        R
+        #E0 R
+          firstFragment: #F3
       aliasedType: R Function()
   functions
     f1
       reference: <testLibrary>::@function::f1
-      firstFragment: <testLibraryFragment>::@function::f1
+      firstFragment: #F4
       formalParameters
-        requiredPositional a
+        #E1 requiredPositional a
+          firstFragment: #F5
           type: void Function()
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
-      firstFragment: <testLibraryFragment>::@function::f2
+      firstFragment: #F6
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F7
           type: int Function()
             alias: <testLibrary>::@typeAlias::A2
               typeArguments
@@ -2653,57 +2732,59 @@ void f2(A2<int, String> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A1 @8
-          reference: <testLibraryFragment>::@typeAlias::A1
+        #F1 A1 @8
           element: <testLibrary>::@typeAlias::A1
-        A2 @32
-          reference: <testLibraryFragment>::@typeAlias::A2
+        #F2 A2 @32
           element: <testLibrary>::@typeAlias::A2
           typeParameters
-            T @35
-              element: T@35
-            U @38
-              element: U@38
+            #F3 T @35
+              element: #E0 T
+            #F4 U @38
+              element: #E1 U
       functions
-        f1 @59
-          reference: <testLibraryFragment>::@function::f1
+        #F5 f1 @59
           element: <testLibrary>::@function::f1
           formalParameters
-            a @65
-              element: <testLibraryFragment>::@function::f1::@parameter::a#element
-        f2 @76
-          reference: <testLibraryFragment>::@function::f2
+            #F6 a @65
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F7 f2 @76
           element: <testLibrary>::@function::f2
           formalParameters
-            a @95
-              element: <testLibraryFragment>::@function::f2::@parameter::a#element
+            #F8 a @95
+              element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A1
-      firstFragment: <testLibraryFragment>::@typeAlias::A1
+      reference: <testLibrary>::@typeAlias::A1
+      firstFragment: #F1
       aliasedType: List<int>
     A2
-      firstFragment: <testLibraryFragment>::@typeAlias::A2
+      reference: <testLibrary>::@typeAlias::A2
+      firstFragment: #F2
       typeParameters
-        T
-        U
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F4
       aliasedType: Map<T, U>
   functions
     f1
       reference: <testLibrary>::@function::f1
-      firstFragment: <testLibraryFragment>::@function::f1
+      firstFragment: #F5
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F6
           type: List<int>
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
-      firstFragment: <testLibraryFragment>::@function::f2
+      firstFragment: #F7
       formalParameters
-        requiredPositional a
+        #E3 requiredPositional a
+          firstFragment: #F8
           type: Map<int, String>
             alias: <testLibrary>::@typeAlias::A2
               typeArguments
@@ -2743,37 +2824,39 @@ void f(A<int, String> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
-            U @13
-              element: U@13
+            #F2 T @10
+              element: #E0 T
+            #F3 U @13
+              element: #E1 U
       functions
-        f @31
-          reference: <testLibraryFragment>::@function::f
+        #F4 f @31
           element: <testLibrary>::@function::f
           formalParameters
-            a @48
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F5 a @48
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
-        U
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
       aliasedType: (T, U)
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F4
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F5
           type: (int, String)
             alias: <testLibrary>::@typeAlias::A
               typeArguments
@@ -2793,39 +2876,41 @@ void f<U>(A<U> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
       functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
+        #F3 f @23
           element: <testLibrary>::@function::f
           typeParameters
-            U @25
-              element: U@25
+            #F4 U @25
+              element: #E1 U
           formalParameters
-            a @33
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F5 a @33
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F3
       typeParameters
-        U
+        #E1 U
+          firstFragment: #F4
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F5
           type: U
             alias: <testLibrary>::@typeAlias::A
               typeArguments
@@ -2860,50 +2945,48 @@ class B implements X<String> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @32
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @32
           element: <testLibrary>::@class::A
           typeParameters
-            T @34
-              element: T@34
-            U @37
-              element: U@37
+            #F2 T @34
+              element: #E0 T
+            #F3 U @37
+              element: #E1 U
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @49
-          reference: <testLibraryFragment>::@class::B
+        #F5 class B @49
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F6 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F7 X @8
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            T @10
-              element: T@10
+            #F8 T @10
+              element: #E2 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
-        U
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F5
       interfaces
         A<int, String>
           alias: <testLibrary>::@typeAlias::X
@@ -2911,12 +2994,15 @@ library
               String
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F7
       typeParameters
-        T
+        #E2 T
+          firstFragment: #F8
       aliasedType: A<int, T>
 ''');
   }
@@ -2933,86 +3019,84 @@ class D implements B, X<int>, C {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @28
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @28
           element: <testLibrary>::@class::A
           typeParameters
-            T @30
-              element: T@30
+            #F2 T @30
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @42
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @53
-          reference: <testLibraryFragment>::@class::C
+        #F6 class C @53
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F7 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        class D @64
-          reference: <testLibraryFragment>::@class::D
+        #F8 class D @64
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+            #F9 synthetic new
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F10 X @8
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            T @10
-              element: T@10
+            #F11 T @10
+              element: #E1 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F6
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F7
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F8
       interfaces
         B
         C
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F9
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F10
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F11
       aliasedType: A<T>?
 ''');
   }
@@ -3029,75 +3113,70 @@ class D implements B, X<int>, C {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @28
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @28
           element: <testLibrary>::@class::A
           typeParameters
-            T @30
-              element: T@30
+            #F2 T @30
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @42
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @53
-          reference: <testLibraryFragment>::@class::C
+        #F6 class C @53
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F7 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        class D @64
-          reference: <testLibraryFragment>::@class::D
+        #F8 class D @64
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+            #F9 synthetic new
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F10 X @8
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            T @10
-              element: T@10
+            #F11 T @10
+              element: #E1 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F6
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F7
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F8
       interfaces
         B
         A<int?>
@@ -3107,12 +3186,15 @@ library
         C
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F9
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F10
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F11
       aliasedType: A<T?>
 ''');
   }
@@ -3126,31 +3208,30 @@ class A implements X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @25
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Never
 ''');
   }
@@ -3164,31 +3245,30 @@ class A implements X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Null
 ''');
   }
@@ -3204,72 +3284,71 @@ class C<U> implements A, X<U>, B {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @35
-          reference: <testLibraryFragment>::@class::B
+        #F3 class B @35
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F4 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @46
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C @46
           element: <testLibrary>::@class::C
           typeParameters
-            U @48
-              element: U@48
+            #F6 U @48
+              element: #E0 U
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F7 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F8 X @8
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            T @10
-              element: T@10
+            #F9 T @10
+              element: #E1 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       typeParameters
-        U
+        #E0 U
+          firstFragment: #F6
       interfaces
         A
         B
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F7
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F8
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F9
       aliasedType: T
 ''');
   }
@@ -3285,62 +3364,59 @@ class C implements A, X, B {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @35
-          reference: <testLibraryFragment>::@class::B
+        #F3 class B @35
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F4 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @46
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C @46
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F6 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F7 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       interfaces
         A
         B
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F7
       aliasedType: void
 ''');
   }
@@ -3355,54 +3431,53 @@ class B with X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @26
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @26
           element: <testLibrary>::@class::A
           typeParameters
-            T @28
-              element: T@28
+            #F2 T @28
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @40
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @40
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F6 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: Object
       mixins
         A<int>
           alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F6
       aliasedType: A<int>
 ''');
   }
@@ -3419,72 +3494,69 @@ class B with M1, X, M2 {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @27
           element: <testLibrary>::@class::A
           typeParameters
-            T @29
-              element: T@29
+            #F2 T @29
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @65
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @65
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        mixin M1 @41
-          reference: <testLibraryFragment>::@mixin::M1
+        #F6 mixin M1 @41
           element: <testLibrary>::@mixin::M1
-        mixin M2 @53
-          reference: <testLibraryFragment>::@mixin::M2
+        #F7 mixin M2 @53
           element: <testLibrary>::@mixin::M2
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F8 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: Object
       mixins
         M1
         M2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
-      firstFragment: <testLibraryFragment>::@mixin::M1
+      firstFragment: #F6
       superclassConstraints
         Object
     mixin M2
       reference: <testLibrary>::@mixin::M2
-      firstFragment: <testLibraryFragment>::@mixin::M2
+      firstFragment: #F7
       superclassConstraints
         Object
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F8
       aliasedType: A<int>?
 ''');
   }
@@ -3501,51 +3573,46 @@ class B with M1, X, M2 {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @27
           element: <testLibrary>::@class::A
           typeParameters
-            T @29
-              element: T@29
+            #F2 T @29
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @65
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @65
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        mixin M1 @41
-          reference: <testLibraryFragment>::@mixin::M1
+        #F6 mixin M1 @41
           element: <testLibrary>::@mixin::M1
-        mixin M2 @53
-          reference: <testLibraryFragment>::@mixin::M2
+        #F7 mixin M2 @53
           element: <testLibrary>::@mixin::M2
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F8 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: Object
       mixins
         M1
@@ -3554,21 +3621,23 @@ library
         M2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
-      firstFragment: <testLibraryFragment>::@mixin::M1
+      firstFragment: #F6
       superclassConstraints
         Object
     mixin M2
       reference: <testLibrary>::@mixin::M2
-      firstFragment: <testLibraryFragment>::@mixin::M2
+      firstFragment: #F7
       superclassConstraints
         Object
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F8
       aliasedType: A<int?>
 ''');
   }
@@ -3582,31 +3651,30 @@ class A extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @25
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Never
 ''');
   }
@@ -3621,53 +3689,54 @@ class B extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @26
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @26
           element: <testLibrary>::@class::A
           typeParameters
-            T @28
-              element: T@28
+            #F2 T @28
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @40
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @40
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F6 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: A<int>
         alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F6
       aliasedType: A<int>
 ''');
   }
@@ -3682,60 +3751,62 @@ class B extends X<A<int>> {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           typeParameters
-            T @26
-              element: T@26
+            #F2 T @26
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @38
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @38
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F6 X @8
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            T @10
-              element: T@10
+            #F7 T @10
+              element: #E1 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       supertype: A<int>
         alias: <testLibrary>::@typeAlias::X
           typeArguments
             A<int>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F6
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F7
       aliasedType: T
 ''');
   }
@@ -3749,31 +3820,30 @@ class A extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Null
 ''');
   }
@@ -3788,50 +3858,49 @@ class D extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @27
           element: <testLibrary>::@class::A
           typeParameters
-            T @29
-              element: T@29
+            #F2 T @29
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class D @41
-          reference: <testLibraryFragment>::@class::D
+        #F4 class D @41
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F6 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F5
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F6
       aliasedType: A<int>?
 ''');
   }
@@ -3846,53 +3915,54 @@ class D extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @27
           element: <testLibrary>::@class::A
           typeParameters
-            T @29
-              element: T@29
+            #F2 T @29
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class D @41
-          reference: <testLibraryFragment>::@class::D
+        #F4 class D @41
           element: <testLibrary>::@class::D
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              element: <testLibraryFragment>::@class::D::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F6 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class D
       reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
+      firstFragment: #F4
       supertype: A<int?>
         alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F5
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int?}
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F6
       aliasedType: A<int?>
 ''');
   }
@@ -3906,31 +3976,30 @@ class A extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @25
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @25
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Never
 ''');
   }
@@ -3944,31 +4013,30 @@ class A extends X {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @24
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        X @8
-          reference: <testLibraryFragment>::@typeAlias::X
+        #F3 X @8
           element: <testLibrary>::@typeAlias::X
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   typeAliases
     X
-      firstFragment: <testLibraryFragment>::@typeAlias::X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
       aliasedType: Null
 ''');
   }
@@ -3981,15 +4049,15 @@ typedef = int;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        <null-name>
-          reference: <testLibraryFragment>::@typeAlias::0
+        #F1 <null-name> (offset=0)
           element: <testLibrary>::@typeAlias::0
   typeAliases
     <null-name>
-      firstFragment: <testLibraryFragment>::@typeAlias::0
+      reference: <testLibrary>::@typeAlias::0
+      firstFragment: #F1
       aliasedType: int
 ''');
   }
@@ -4003,29 +4071,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @26
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @26
           element: <testLibrary>::@function::f
           formalParameters
-            a @30
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @30
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: dynamic
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: dynamic
       returnType: void
 ''');
@@ -4042,29 +4110,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @24
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @24
           element: <testLibrary>::@typeAlias::A
       functions
-        f @38
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @38
           element: <testLibrary>::@function::f
           formalParameters
-            a @42
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @42
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: dynamic Function()
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::A
       returnType: void
@@ -4080,29 +4148,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @22
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @22
           element: <testLibrary>::@function::f
           formalParameters
-            a @26
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @26
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: int
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: int
             alias: <testLibrary>::@typeAlias::A
       returnType: void
@@ -4118,29 +4186,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @23
           element: <testLibrary>::@function::f
           formalParameters
-            a @27
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @27
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: int?
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: int?
             alias: <testLibrary>::@typeAlias::A
       returnType: void
@@ -4156,34 +4224,35 @@ void f(A<String> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
       functions
-        f @33
-          reference: <testLibraryFragment>::@function::f
+        #F3 f @33
           element: <testLibrary>::@function::f
           formalParameters
-            a @45
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F4 a @45
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: Map<int, T>
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F3
       formalParameters
-        requiredPositional a
+        #E1 requiredPositional a
+          firstFragment: #F4
           type: Map<int, String>
             alias: <testLibrary>::@typeAlias::A
               typeArguments
@@ -4201,29 +4270,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @24
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @24
           element: <testLibrary>::@function::f
           formalParameters
-            a @28
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @28
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: Never
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: Never
       returnType: void
 ''');
@@ -4238,29 +4307,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @25
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @25
           element: <testLibrary>::@function::f
           formalParameters
-            a @29
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @29
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: Never?
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: Never?
       returnType: void
 ''');
@@ -4276,47 +4345,48 @@ void f2(A<int> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
       functions
-        f1 @23
-          reference: <testLibraryFragment>::@function::f1
+        #F3 f1 @23
           element: <testLibrary>::@function::f1
           formalParameters
-            a @28
-              element: <testLibraryFragment>::@function::f1::@parameter::a#element
-        f2 @39
-          reference: <testLibraryFragment>::@function::f2
+            #F4 a @28
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F5 f2 @39
           element: <testLibrary>::@function::f2
           formalParameters
-            a @49
-              element: <testLibraryFragment>::@function::f2::@parameter::a#element
+            #F6 a @49
+              element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T
   functions
     f1
       reference: <testLibrary>::@function::f1
-      firstFragment: <testLibraryFragment>::@function::f1
+      firstFragment: #F3
       formalParameters
-        requiredPositional a
+        #E1 requiredPositional a
+          firstFragment: #F4
           type: dynamic
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
-      firstFragment: <testLibraryFragment>::@function::f2
+      firstFragment: #F5
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F6
           type: int
             alias: <testLibrary>::@typeAlias::A
               typeArguments
@@ -4335,47 +4405,48 @@ void f2(A<int> a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            T @10
-              element: T@10
+            #F2 T @10
+              element: #E0 T
       functions
-        f1 @24
-          reference: <testLibraryFragment>::@function::f1
+        #F3 f1 @24
           element: <testLibrary>::@function::f1
           formalParameters
-            a @29
-              element: <testLibraryFragment>::@function::f1::@parameter::a#element
-        f2 @40
-          reference: <testLibraryFragment>::@function::f2
+            #F4 a @29
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F5 f2 @40
           element: <testLibrary>::@function::f2
           formalParameters
-            a @50
-              element: <testLibraryFragment>::@function::f2::@parameter::a#element
+            #F6 a @50
+              element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       aliasedType: T?
   functions
     f1
       reference: <testLibrary>::@function::f1
-      firstFragment: <testLibraryFragment>::@function::f1
+      firstFragment: #F3
       formalParameters
-        requiredPositional a
+        #E1 requiredPositional a
+          firstFragment: #F4
           type: dynamic
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
-      firstFragment: <testLibraryFragment>::@function::f2
+      firstFragment: #F5
       formalParameters
-        requiredPositional a
+        #E2 requiredPositional a
+          firstFragment: #F6
           type: int?
             alias: <testLibrary>::@typeAlias::A
               typeArguments
@@ -4393,29 +4464,29 @@ void f(A a) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
+        #F1 A @8
           element: <testLibrary>::@typeAlias::A
       functions
-        f @23
-          reference: <testLibraryFragment>::@function::f
+        #F2 f @23
           element: <testLibrary>::@function::f
           formalParameters
-            a @27
-              element: <testLibraryFragment>::@function::f::@parameter::a#element
+            #F3 a @27
+              element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
-      firstFragment: <testLibraryFragment>::@typeAlias::A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
       aliasedType: void
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F2
       formalParameters
-        requiredPositional a
+        #E0 requiredPositional a
+          firstFragment: #F3
           type: void
       returnType: void
 ''');
@@ -4430,15 +4501,15 @@ typedef F = (F, int) Function();
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F1 F @8
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
       aliasedType: (dynamic, int) Function()
 ''');
   }
@@ -4449,23 +4520,21 @@ library
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @0
           element: <testLibrary>::@function::f
-        g @7
-          reference: <testLibraryFragment>::@function::g
+        #F2 g @7
           element: <testLibrary>::@function::g
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       returnType: dynamic
     g
       reference: <testLibrary>::@function::g
-      firstFragment: <testLibraryFragment>::@function::g
+      firstFragment: #F2
       returnType: dynamic
 ''');
   }
@@ -4651,7 +4720,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A
+        synthetic A (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
           getter2: <testLibraryFragment>::@getter::A
@@ -4789,7 +4858,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A
+        synthetic A (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
           setter2: <testLibraryFragment>::@setter::A

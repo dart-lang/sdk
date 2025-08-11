@@ -36,7 +36,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -74,11 +74,12 @@ SwitchExpression
   }
 
   test_cases_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final a = switch (0) {};
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6)],
+    );
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -115,7 +116,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@method::bar::@parameter::x#element
+    element: <testLibrary>::@class::A::@method::bar::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -129,7 +130,7 @@ SwitchExpression
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: foo
-          element: <testLibraryFragment>::@class::A::@method::foo#element
+          element: <testLibrary>::@class::A::@method::foo
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -144,15 +145,16 @@ SwitchExpression
   }
 
   test_expression_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void x) {
   (switch(x) {
     _ => 0,
   });
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1)],
+    );
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -161,7 +163,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: void
   rightParenthesis: )
   leftBracket: {
@@ -224,7 +226,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: num
   rightParenthesis: )
   leftBracket: {
@@ -244,10 +246,12 @@ SwitchExpression
               pattern: DeclaredVariablePattern
                 keyword: var
                 name: isEven
-                declaredElement: hasImplicitType isEven@46
-                  type: bool
+                declaredFragment: isPublic isEven@46
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: bool
                 matchedValueType: bool
-              element2: dart:core::<fragment>::@class::int::@getter::isEven#element
+              element2: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -294,7 +298,7 @@ SwitchExpressionCase
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -324,14 +328,14 @@ class A {
 SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      const: const
+      constKeyword: const
       expression: InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
             name: A
             element2: <testLibrary>::@class::A
             type: A
-          element: <testLibraryFragment>::@class::A::@constructor::new#element
+          element: <testLibrary>::@class::A::@constructor::new
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
@@ -368,7 +372,7 @@ SwitchExpressionCase
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -400,7 +404,7 @@ SwitchExpression
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -442,7 +446,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -489,7 +493,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -520,16 +524,17 @@ SwitchExpression
   }
 
   test_variables_logicalOr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] => a,
     _ => 0,
   });
 }
-''', [
-      error(WarningCode.DEAD_CODE, 52, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 52, 8)],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -538,7 +543,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -560,15 +565,19 @@ SwitchExpression
               leftOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@50
-                  type: int
+                declaredFragment: isPublic a@50
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               operator: ||
               rightOperand: DeclaredVariablePattern
                 keyword: var
                 name: a
-                declaredElement: hasImplicitType a@59
-                  type: int
+                declaredFragment: isPublic a@59
+                  type: null
+                  element: hasImplicitType isPublic
+                    type: int
                 matchedValueType: int
               matchedValueType: int
           rightBracket: ]
@@ -577,7 +586,7 @@ SwitchExpression
       arrow: =>
       expression: SimpleIdentifier
         token: a
-        element: a@-1
+        element: a@null
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
@@ -594,7 +603,8 @@ SwitchExpression
   }
 
   test_variables_scope() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object? x) {
   (switch (x) {
@@ -602,12 +612,21 @@ void f(Object? x) {
     _ => 0,
   });
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 64,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 64, 1,
-          contextMessages: [message(testFile, 58, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          64,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          64,
+          1,
+          contextMessages: [message(testFile, 58, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -616,7 +635,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -632,8 +651,10 @@ SwitchExpression
                 element2: dart:core::@class::int
                 type: int
               name: a
-              declaredElement: a@58
+              declaredFragment: isPublic a@58
                 type: int
+                element: isPublic
+                  type: int
               matchedValueType: Object?
             RelationalPattern
               operator: ==
@@ -641,7 +662,7 @@ SwitchExpression
                 token: a
                 element: a@58
                 staticType: int
-              element2: dart:core::<fragment>::@class::Object::@method::==#element
+              element2: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -656,9 +677,9 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
@@ -681,16 +702,17 @@ SwitchExpression
   }
 
   test_variables_singleCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     int a when a > 0 => a,
     _ => a,
   });
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1)],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -699,7 +721,7 @@ SwitchExpression
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
   rightParenthesis: )
   leftBracket: {
@@ -712,8 +734,10 @@ SwitchExpression
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@44
+          declaredFragment: isPublic a@44
             type: int
+            element: isPublic
+              type: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
@@ -725,9 +749,9 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
-            element: dart:core::<fragment>::@class::num::@method::>#element
+            element: dart:core::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>

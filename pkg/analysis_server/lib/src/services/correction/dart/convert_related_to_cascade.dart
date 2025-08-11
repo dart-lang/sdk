@@ -31,26 +31,21 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     var block = node.parent;
     if (block is! Block) return;
 
-    var errors = unitResult.errors
-        .where((error) => error.errorCode.name == LintNames.cascade_invocations)
-        .whereNot(
-          (error) => error.offset == node.offset && error.length == node.length,
-        );
+    var diagnostics = unitResult.diagnostics
+        .where((d) => d.diagnosticCode.name == LintNames.cascade_invocations)
+        .whereNot((d) => d.offset == node.offset && d.length == node.length);
 
-    if (errors.isEmpty) return;
+    if (diagnostics.isEmpty) return;
 
     var previous = _getPrevious(block, node);
     var next = _getNext(block, node);
 
     // Skip if no error has the offset and length of previous or next.
-    if (errors.none(
-          (error) =>
-              error.offset == previous?.offset &&
-              error.length == previous?.length,
+    if (diagnostics.none(
+          (d) => d.offset == previous?.offset && d.length == previous?.length,
         ) &&
-        errors.none(
-          (error) =>
-              error.offset == next?.offset && error.length == next?.length,
+        diagnostics.none(
+          (d) => d.offset == next?.offset && d.length == next?.length,
         )) {
       return;
     }
@@ -58,17 +53,16 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     // Get the full list of statements with errors that are related to this.
     List<ExpressionStatement> relatedStatements = [node];
     while (previous != null && previous is ExpressionStatement) {
-      if (errors.any(
-        (error) =>
-            error.offset == previous!.offset && error.length == previous.length,
+      if (diagnostics.any(
+        (d) => d.offset == previous!.offset && d.length == previous.length,
       )) {
         relatedStatements.insert(0, previous);
       }
       previous = _getPrevious(block, previous);
     }
     while (next != null && next is ExpressionStatement) {
-      if (errors.any(
-        (error) => error.offset == next!.offset && error.length == next.length,
+      if (diagnostics.any(
+        (d) => d.offset == next!.offset && d.length == next.length,
       )) {
         relatedStatements.add(next);
       }

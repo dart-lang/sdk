@@ -19,7 +19,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 16
+#define SERVICE_PROTOCOL_MINOR_VERSION 19
 
 class Array;
 class EmbedderServiceHandler;
@@ -57,7 +57,7 @@ class ServiceIdZone {
   virtual char* GetServiceId(const Object& obj) = 0;
   // Invalidate all the Service IDs currently living in this zone.
   virtual void Invalidate() = 0;
-  virtual void VisitPointers(ObjectPointerVisitor& visitor) const = 0;
+  virtual void VisitPointers(ObjectPointerVisitor* visitor) const = 0;
 
   virtual void PrintJSON(JSONStream& js) const = 0;
 
@@ -91,7 +91,7 @@ class RingServiceIdZone final : public ServiceIdZone {
   // Returned string will be zone allocated.
   char* GetServiceId(const Object& obj) final;
   void Invalidate() final;
-  void VisitPointers(ObjectPointerVisitor& visitor) const final;
+  void VisitPointers(ObjectPointerVisitor* visitor) const final;
 
   void PrintJSON(JSONStream& js) const final;
 
@@ -131,10 +131,6 @@ class Service : public AllStatic {
   // Handles a message which is not directed to an isolate.
   static ErrorPtr HandleRootMessage(const Array& message);
 
-  // Handles a message which is not directed to an isolate and also
-  // expects the parameter keys and values to be actual dart objects.
-  static ErrorPtr HandleObjectRootMessage(const Array& message);
-
   // Handles a message which is directed to a particular isolate.
   static ErrorPtr HandleIsolateMessage(Isolate* isolate, const Array& message);
 
@@ -156,9 +152,6 @@ class Service : public AllStatic {
       Dart_ServiceStreamListenCallback listen_callback,
       Dart_ServiceStreamCancelCallback cancel_callback);
 
-  static void SetGetServiceAssetsCallback(
-      Dart_GetVMServiceAssetsArchive get_service_assets);
-
   static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
@@ -177,6 +170,9 @@ class Service : public AllStatic {
                            const Instance& zone,
                            const Object& error,
                            const Instance& stack_trace);
+
+  // Sends an event of kind |kTimerSignificantlyOverdue|.
+  static void SendTimerEvent(Isolate* isolate, intptr_t milliseconds_overdue);
 
   static void SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
@@ -213,14 +209,13 @@ class Service : public AllStatic {
   static StreamInfo echo_stream;
   static StreamInfo heapsnapshot_stream;
   static StreamInfo logging_stream;
+  static StreamInfo timer_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
   static StreamInfo profiler_stream;
 
   static bool ListenStream(const char* stream_id, bool include_privates);
   static void CancelStream(const char* stream_id);
-
-  static ObjectPtr RequestAssets();
 
   static Dart_ServiceStreamListenCallback stream_listen_callback() {
     return stream_listen_callback_;
@@ -250,9 +245,7 @@ class Service : public AllStatic {
   }
 
  private:
-  static ErrorPtr InvokeMethod(Isolate* isolate,
-                               const Array& message,
-                               bool parameters_are_dart_objects = false);
+  static ErrorPtr InvokeMethod(Isolate* isolate, const Array& message);
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);
@@ -291,7 +284,6 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* root_service_handler_head_;
   static Dart_ServiceStreamListenCallback stream_listen_callback_;
   static Dart_ServiceStreamCancelCallback stream_cancel_callback_;
-  static Dart_GetVMServiceAssetsArchive get_service_assets_callback_;
   static Dart_EmbedderInformationCallback embedder_information_callback_;
 
   static void* service_response_size_log_file_;

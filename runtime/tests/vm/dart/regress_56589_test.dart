@@ -35,10 +35,7 @@ final zero = Float32x4.zero();
 
 // Uses machine code on hardware or simulator.
 Float32x4 regress56589A() {
-  final result = float32x4.clamp(
-    lowerLimit,
-    zero,
-  );
+  final result = float32x4.clamp(lowerLimit, zero);
   return result;
 }
 
@@ -47,10 +44,7 @@ Float32x4 regress56589B() {
   // Some code which forces using the RTE with the VMOptions above.
   someExtraCall(someOtherExtraCall());
 
-  final result = float32x4.clamp(
-    lowerLimit,
-    zero,
-  );
+  final result = float32x4.clamp(lowerLimit, zero);
   return result;
 }
 

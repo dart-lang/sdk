@@ -25,31 +25,30 @@ const Map<Type, int> _knownSizes = {
 // Keep consistent with pkg/vm/lib/transformations/ffi/abi.dart.
 @pragma("vm:prefer-inline")
 @pragma("wasm:prefer-inline")
-int get _intPtrSize =>
-    (const [
-      4, // androidArm,
-      8, // androidArm64,
-      4, // androidIA32,
-      8, // androidX64,
-      8, // androidRiscv64,
-      8, // fuchsiaArm64,
-      8, // fuchsiaX64,
-      8, // fuchsiaRiscv64,
-      4, // iosArm,
-      8, // iosArm64,
-      8, // iosX64,
-      4, // linuxArm,
-      8, // linuxArm64,
-      4, // linuxIA32,
-      8, // linuxX64,
-      4, // linuxRiscv32,
-      8, // linuxRiscv64,
-      8, // macosArm64,
-      8, // macosX64,
-      8, // windowsArm64,
-      4, // windowsIA32,
-      8, // windowsX64,
-    ])[_abi()];
+int get _intPtrSize => (const [
+  4, // androidArm,
+  8, // androidArm64,
+  4, // androidIA32,
+  8, // androidX64,
+  8, // androidRiscv64,
+  8, // fuchsiaArm64,
+  8, // fuchsiaX64,
+  8, // fuchsiaRiscv64,
+  4, // iosArm,
+  8, // iosArm64,
+  8, // iosX64,
+  4, // linuxArm,
+  8, // linuxArm64,
+  4, // linuxIA32,
+  8, // linuxX64,
+  4, // linuxRiscv32,
+  8, // linuxRiscv64,
+  8, // macosArm64,
+  8, // macosX64,
+  8, // windowsArm64,
+  4, // windowsIA32,
+  8, // windowsX64,
+])[_abi()];
 
 @pragma("vm:prefer-inline")
 int get _smiMax {
@@ -194,6 +193,11 @@ external Pointer<NS> _createNativeCallableIsolateLocal<
   NS extends NativeFunction
 >(dynamic trampoline, dynamic target, bool keepIsolateAlive);
 
+@pragma("vm:external-name", "Ffi_createNativeCallableIsolateGroupShared")
+external Pointer<NS> _createNativeCallableIsolateGroupShared<
+  NS extends NativeFunction
+>(dynamic trampoline, dynamic target);
+
 @pragma("vm:external-name", "Ffi_deleteNativeCallable")
 external void _deleteNativeCallable<NS extends NativeFunction>(
   Pointer<NS> pointer,
@@ -207,6 +211,19 @@ external void _updateNativeCallableKeepIsolateAliveCounter<
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeIsolateLocalCallbackFunction")
 external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
+  dynamic exceptionalReturn,
+);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedCallbackFunction")
+external dynamic _nativeIsolateGroupSharedCallbackFunction<NS extends Function>(
+  Function target,
+  dynamic exceptionalReturn,
+);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedClosureFunction")
+external dynamic _nativeIsolateGroupSharedClosureFunction<NS extends Function>(
   dynamic exceptionalReturn,
 );
 
@@ -328,6 +345,31 @@ final class _NativeCallableListener<T extends Function>
 
   @override
   bool get _keepIsolateAlive => _port.keepIsolateAlive;
+}
+
+final class _NativeCallableIsolateGroupShared<T extends Function>
+    extends _NativeCallableBase<T> {
+  bool _isKeepingIsolateAlive = true;
+
+  _NativeCallableIsolateGroupShared(super._pointer) {
+    _updateNativeCallableKeepIsolateAliveCounter(1);
+  }
+
+  @override
+  void _close() {
+    _keepIsolateAlive = false;
+  }
+
+  @override
+  void set _keepIsolateAlive(bool value) {
+    if (_isKeepingIsolateAlive != value) {
+      _isKeepingIsolateAlive = value;
+      _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
+    }
+  }
+
+  @override
+  bool get _keepIsolateAlive => _isKeepingIsolateAlive;
 }
 
 @patch
@@ -1885,6 +1927,7 @@ class Native<T> {
 
   // Resolver for FFI Native C function pointers.
   @pragma('vm:entry-point')
+  @pragma('vm:shared')
   static final _ffi_resolver =
       _get_ffi_native_resolver<
             NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>

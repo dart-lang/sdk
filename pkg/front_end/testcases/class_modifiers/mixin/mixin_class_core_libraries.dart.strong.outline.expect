@@ -34,16 +34,16 @@ abstract class _A&Object&Comparable = core::Object with core::Comparable<core::i
   const synthetic constructor •() → self::_A&Object&Comparable
     : super core::Object::•()
     ;
-  abstract mixin-stub method compareTo(covariant-by-class core::int other) → core::int; -> core::Comparable::compareTo
+  abstract synthetic mixin-stub method compareTo(covariant-by-class core::int other) → core::int; -> core::Comparable::compareTo
 }
 abstract class _B&Object&Error = core::Object with core::Error /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B&Object&Error
     : super core::Object::•()
     ;
-  mixin-super-stub get stackTrace() → core::StackTrace?
+  synthetic mixin-super-stub get stackTrace() → core::StackTrace?
     return super.{core::Error::stackTrace};
-  mixin-super-stub get _stackTrace() → core::StackTrace?
+  synthetic mixin-super-stub get core::_stackTrace() → core::StackTrace?
     return super.{core::Error::_stackTrace};
-  mixin-super-stub set _stackTrace(core::StackTrace? value) → void
+  synthetic mixin-super-stub set core::_stackTrace(core::StackTrace? value) → void
     return super.{core::Error::_stackTrace} = value;
 }

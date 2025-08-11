@@ -264,11 +264,12 @@ void main() {
 
   // Make sure we recurse and don't reevaluate the receiver.
   var count = 0;
-  Expect.isTrue((() {
-    Expect.isTrue(jsObject.isA<JSObject>());
-    count++;
-    return jsObject;
-  })()
-      .isA<JSObject>());
+  Expect.isTrue(
+    (() {
+      Expect.isTrue(jsObject.isA<JSObject>());
+      count++;
+      return jsObject;
+    })().isA<JSObject>(),
+  );
   Expect.equals(count, 1);
 }

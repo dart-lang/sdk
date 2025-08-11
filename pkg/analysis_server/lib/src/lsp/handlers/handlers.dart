@@ -36,9 +36,10 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   return items.map(converter).where((item) => item != null).cast<T>();
 }
 
-abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
+abstract class CommandHandler<P, R, S extends AnalysisServer>
+    with Handler<R>, HandlerHelperMixin {
   @override
-  final LspAnalysisServer server;
+  final S server;
 
   CommandHandler(this.server);
 
@@ -48,6 +49,10 @@ abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   /// This is useful if a command is generic (for example "performRefactor") and
   /// can record a more specific command name.
   bool get recordsOwnAnalytics => false;
+
+  /// Whether or not this handler can only be called by the owner of the
+  /// analysis server process (for example the editor).
+  bool get requiresTrustedCaller;
 
   Future<ErrorOr<Object?>> handle(
     MessageInfo message,
@@ -112,7 +117,11 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   bool fileHasBeenModified(String path, int? clientVersion) {
     var serverDocumentVersion = server.getDocumentVersion(path);
-    return clientVersion != null && clientVersion != serverDocumentVersion;
+    // Allow nulls on either side, because if a client doesn't support versions
+    // somewhere we can't just reject everything.
+    return clientVersion != null &&
+        serverDocumentVersion != null &&
+        clientVersion != serverDocumentVersion;
   }
 
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
@@ -450,6 +459,10 @@ class MessageInfo {
   /// shown.
   final Completer<void>? completer;
 
+  /// Whether or not this message came from the the owner of the analysis server
+  /// process (for example the editor).
+  final bool isTrustedCaller;
+
   MessageInfo({
     required this.performance,
     // TODO(dantup): Consider a version of this that has a non-nullable
@@ -457,6 +470,7 @@ class MessageInfo {
     //  is non-null and reject the request. Only a small number of handlers need
     //  to run without, so it would remove a bunch of boilerplate in the others.
     required this.clientCapabilities,
+    required this.isTrustedCaller,
     this.timeSinceRequest,
     this.completer,
   });

@@ -154,10 +154,9 @@ class MetadataCollector implements js_ast.TokenFinalizer {
 
   js_ast.Expression _addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     final typeMap = _typesMap[outputUnit] ??= {};
-    final metadataEntryList =
-        (typeMap[type] ??= [
-          BoundMetadataEntry(_computeTypeRepresentation(type)),
-        ]);
+    final metadataEntryList = (typeMap[type] ??= [
+      BoundMetadataEntry(_computeTypeRepresentation(type)),
+    ]);
     return metadataEntryList.single;
   }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:meta/meta.dart';
 
@@ -37,9 +36,6 @@ class Reference {
 
   /// The corresponding [ElementImpl], or `null` if a named container.
   ElementImpl? element;
-
-  /// The corresponding [Element2], or `null` if a named container.
-  Element2? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;
@@ -170,8 +166,10 @@ class Reference {
       childrenUnionAsMap[childrenUnion.name] = childrenUnion;
       return childrenUnionAsMap[name] = Reference._(this, name);
     }
-    return (childrenUnion as Map<String, Reference>)[name] ??=
-        Reference._(this, name);
+    return (childrenUnion as Map<String, Reference>)[name] ??= Reference._(
+      this,
+      name,
+    );
   }
 
   /// Returns children with the given name.

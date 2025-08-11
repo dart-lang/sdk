@@ -2,215 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/error/listener.dart';
+library;
+
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/error_code_values.g.dart';
-import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
-    show ErrorCode, ErrorSeverity, ErrorType;
+    show
+        DiagnosticCode,
+        DiagnosticSeverity,
+        DiagnosticType,
+        // Continue exporting the deprecated element until it is removed.
+        // ignore: deprecated_member_use
+        ErrorCode,
+        // Continue exporting the deprecated element until it is removed.
+        // ignore: deprecated_member_use
+        ErrorSeverity,
+        // Continue exporting the deprecated element until it is removed.
+        // ignore: deprecated_member_use
+        ErrorType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
-export 'package:analyzer/src/error/error_code_values.g.dart';
+export 'package:analyzer/src/diagnostic/diagnostic_code_values.g.dart';
 
-/// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
-/// instance.
-final HashMap<String, ErrorCode> _uniqueNameToCodeMap =
+/// The lazy initialized map from [DiagnosticCode.uniqueName] to the
+/// [DiagnosticCode] instance.
+final HashMap<String, DiagnosticCode> _uniqueNameToCodeMap =
     _computeUniqueNameToCodeMap();
 
-/// Return the [ErrorCode] with the given [uniqueName], or `null` if not
+/// Return the [DiagnosticCode] with the given [uniqueName], or `null` if not
 /// found.
-ErrorCode? errorCodeByUniqueName(String uniqueName) {
+DiagnosticCode? errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/// Return the map from [ErrorCode.uniqueName] to the [ErrorCode] instance
-/// for all [errorCodeValues].
-HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
-  var result = HashMap<String, ErrorCode>();
-  for (ErrorCode errorCode in errorCodeValues) {
-    var uniqueName = errorCode.uniqueName;
+/// The map from [DiagnosticCode.uniqueName] to the [DiagnosticCode] instance
+/// for all [diagnosticCodeValues].
+HashMap<String, DiagnosticCode> _computeUniqueNameToCodeMap() {
+  var result = HashMap<String, DiagnosticCode>();
+  for (DiagnosticCode diagnosticCode in diagnosticCodeValues) {
+    var uniqueName = diagnosticCode.uniqueName;
     assert(() {
       if (result.containsKey(uniqueName)) {
         throw StateError('Not unique: $uniqueName');
       }
       return true;
     }());
-    result[uniqueName] = errorCode;
+    result[uniqueName] = diagnosticCode;
   }
   return result;
 }
 
-/// An error discovered during the analysis of some Dart code.
-///
-/// See `AnalysisErrorListener`.
-class AnalysisError implements Diagnostic {
-  /// The error code associated with the error.
-  final ErrorCode errorCode;
-
-  /// The message describing the problem.
-  late final DiagnosticMessage _problemMessage;
-
-  /// The context messages associated with the problem. This list will be empty
-  /// if there are no context messages.
-  final List<DiagnosticMessage> _contextMessages;
-
-  /// Data associated with this error, specific for [errorCode].
-  final Object? data;
-
-  /// The correction to be displayed for this error, or `null` if there is no
-  /// correction information for this error.
-  String? _correctionMessage;
-
-  /// The source in which the error occurred, or `null` if unknown.
-  final Source source;
-
-  /// Initialize a newly created analysis error with given values.
-  AnalysisError.forValues({
-    required this.source,
-    required int offset,
-    required int length,
-    required this.errorCode,
-    required String message,
-    String? correctionMessage,
-    List<DiagnosticMessage> contextMessages = const [],
-    this.data,
-  })  : _correctionMessage = correctionMessage,
-        _contextMessages = contextMessages {
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: message,
-      offset: offset,
-      url: null,
-    );
-  }
-
-  /// Initialize a newly created analysis error. The error is associated with
-  /// the given [source] and is located at the given [offset] with the given
-  /// [length]. The error will have the given [errorCode] and the list of
-  /// [arguments] will be used to complete the message and correction. If any
-  /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError.tmp({
-    required this.source,
-    required int offset,
-    required int length,
-    required this.errorCode,
-    List<Object?> arguments = const [],
-    List<DiagnosticMessage> contextMessages = const [],
-    this.data,
-  }) : _contextMessages = contextMessages {
-    assert(
-      arguments.length == errorCode.numParameters,
-      'Message $errorCode requires ${errorCode.numParameters} '
-      'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
-      '${arguments.length} '
-      'argument${arguments.length == 1 ? ' was' : 's were'} '
-      'provided',
-    );
-    String problemMessage = formatList(errorCode.problemMessage, arguments);
-    String? correctionTemplate = errorCode.correctionMessage;
-    if (correctionTemplate != null) {
-      _correctionMessage = formatList(correctionTemplate, arguments);
-    }
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: problemMessage,
-      offset: offset,
-      url: null,
-    );
-  }
-
-  @override
-  List<DiagnosticMessage> get contextMessages => _contextMessages;
-
-  /// Return the template used to create the correction to be displayed for this
-  /// error, or `null` if there is no correction information for this error. The
-  /// correction should indicate how the user can fix the error.
-  String? get correction => _correctionMessage;
-
-  @override
-  String? get correctionMessage => _correctionMessage;
-
-  @override
-  int get hashCode {
-    int hashCode = offset;
-    hashCode ^= message.hashCode;
-    hashCode ^= source.hashCode;
-    return hashCode;
-  }
-
-  /// The number of characters from the offset to the end of the source which
-  /// encompasses the compilation error.
-  int get length => _problemMessage.length;
-
-  /// Return the message to be displayed for this error. The message should
-  /// indicate what is wrong and why it is wrong.
-  String get message => _problemMessage.messageText(includeUrl: true);
-
-  /// The character offset from the beginning of the source (zero based) where
-  /// the error occurred.
-  int get offset => _problemMessage.offset;
-
-  @override
-  DiagnosticMessage get problemMessage => _problemMessage;
-
-  @override
-  Severity get severity {
-    switch (errorCode.errorSeverity) {
-      case ErrorSeverity.ERROR:
-        return Severity.error;
-      case ErrorSeverity.WARNING:
-        return Severity.warning;
-      case ErrorSeverity.INFO:
-        return Severity.info;
-      default:
-        throw StateError('Invalid error severity: ${errorCode.errorSeverity}');
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(other, this)) {
-      return true;
-    }
-    // prepare other AnalysisError
-    if (other is AnalysisError) {
-      // Quick checks.
-      if (!identical(errorCode, other.errorCode)) {
-        return false;
-      }
-      if (offset != other.offset || length != other.length) {
-        return false;
-      }
-      // Deep checks.
-      if (message != other.message) {
-        return false;
-      }
-      if (source != other.source) {
-        return false;
-      }
-      // OK
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  String toString() {
-    StringBuffer buffer = StringBuffer();
-    buffer.write(source.fullName);
-    buffer.write("(");
-    buffer.write(offset);
-    buffer.write("..");
-    buffer.write(offset + length - 1);
-    buffer.write("): ");
-    //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
-    buffer.write(message);
-    return buffer.toString();
-  }
-}
+/// A deprecated name for [Diagnostic]. Please use [Diagnostic].
+@Deprecated("Use 'Diagnostic' instead.")
+typedef AnalysisError = Diagnostic;

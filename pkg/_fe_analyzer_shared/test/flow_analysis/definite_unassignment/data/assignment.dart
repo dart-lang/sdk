@@ -4,18 +4,21 @@
 
 leftExpression() {
   late List<int> v;
-  /*unassigned*/ v[0] = (v = [1, 2])[1];
+  /*unassigned*/
+  v[0] = (v = [1, 2])[1];
   v;
 }
 
 leftLocal_compound() {
   late int v;
-  /*unassigned*/ v += 1;
+  /*unassigned*/
+  v += 1;
 }
 
 leftLocal_compound_assignInRight() {
   late int v;
-  /*unassigned*/ v += (v = /*unassigned*/ v);
+  /*unassigned*/
+  v += (v = /*unassigned*/ v);
 }
 
 leftLocal_pure_eq() {
@@ -30,17 +33,20 @@ leftLocal_pure_eq_self() {
 
 leftLocal_pure_questionEq() {
   late int v;
-  /*unassigned*/ v ??= 0;
+  /*unassigned*/
+  v ??= 0;
 }
 
 leftLocal_pure_questionEq_self() {
   late int v;
-  /*unassigned*/ v ??= /*unassigned*/ v;
+  /*unassigned*/
+  v ??= /*unassigned*/ v;
 }
 
 questionEq_rhs_not_guaranteed_to_execute() {
   late int v;
   int? i;
-  /*unassigned*/ i ??= (v = 0);
+  /*unassigned*/
+  i ??= (v = 0);
   v;
 }

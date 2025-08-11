@@ -20,9 +20,10 @@ class ParserError {
   ParserError(this.beginOffset, this.endOffset, this.message);
 
   ParserError.fromTokens(Token begin, Token end, Message message)
-      : this(begin.charOffset, end.charOffset + end.charCount, message);
+    : this(begin.charOffset, end.charOffset + end.charCount, message);
 
   @override
-  String toString() => "@${beginOffset}: ${message.problemMessage}\n"
+  String toString() =>
+      "@${beginOffset}: ${message.problemMessage}\n"
       "${message.correctionMessage}";
 }

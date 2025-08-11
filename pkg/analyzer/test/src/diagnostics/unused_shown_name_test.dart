@@ -28,15 +28,16 @@ extension E on String {
 }
 String s = '';
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' show E, s;
 
 f() {
   s.length;
 }
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 24, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_SHOWN_NAME, 24, 1)],
+    );
   }
 
   test_extension_instance_method_used() async {
@@ -143,23 +144,25 @@ void f() {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' show A, B;
 A a = A();
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_SHOWN_NAME, 27, 1)],
+    );
   }
 
   test_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show max, FooBar;
 main() {
   print(max(1, 2));
 }
-''', [
-      error(WarningCode.UNDEFINED_SHOWN_NAME, 29, 6),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_SHOWN_NAME, 29, 6)],
+    );
   }
 
   test_unusedShownName_as() async {
@@ -167,12 +170,13 @@ main() {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' as p show A, B;
 p.A a = p.A();
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_SHOWN_NAME, 32, 1)],
+    );
   }
 
   test_unusedShownName_duplicates() async {
@@ -182,15 +186,18 @@ class B {}
 class C {}
 class D {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' show A, B;
 import 'lib1.dart' show C, D;
 A a = A();
 C c = C();
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
-      error(WarningCode.UNUSED_SHOWN_NAME, 57, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
+        error(WarningCode.UNUSED_SHOWN_NAME, 57, 1),
+      ],
+    );
   }
 
   test_unusedShownName_topLevelVariable() async {
@@ -200,14 +207,15 @@ const int var2 = 2;
 const int var3 = 3;
 const int var4 = 4;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' show var1, var2;
 import 'lib1.dart' show var3, var4;
 int a = var1;
 int b = var2;
 int c = var3;
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 66, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_SHOWN_NAME, 66, 4)],
+    );
   }
 }

@@ -33,6 +33,7 @@ Streams, also called categories, are sets of events whose recordering can be ena
 | `Embedder` | Events created by `Dart_RecordTimelineEvent`. |
 | `GC` | Events related to garbage collection or heap iteration. |
 | `Isolate` | Isolate or isolate group lifecycle events such as startup or shutdown. |
+| `Microtask` | Events representing `dart:async` microtasks. This stream only contains events when the VM is started with the `--profile-microtasks` flag. |
 | `VM` | VM lifecycle events such a startup or shutdown. |
 
 The set of enabled streams can be selected with the `timeline_streams` flag. E.g., `--timeline_stream=VM,Isolate,GC,Dart` or `--timeline_streams=All`.
@@ -45,7 +46,7 @@ There are also some convenience flags:
 
 | Flag | Expansion |
 | ---- | --------- |
-|`--timeline_streams=All` | `--timeline_streams=API,Compiler,CompilerVerbose,Dart,Debugger,Embedder,GC,Isolate,VM` |
+|`--timeline_streams=All` | `--timeline_streams=API,Compiler,CompilerVerbose,Dart,Debugger,Embedder,GC,Isolate,Microtask,VM` |
 | `--complete_timeline` | `--timeline_recorder=endless --timeline_streams=All` |
 | `--startup_timeline` | `--timeline_recorder=startup --timeline_streams=All` |
 

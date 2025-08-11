@@ -131,11 +131,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [
     {
       "name": "t",
-      "type": "[exact=JSUInt31|powerset=0]",
+      "type": "[exact=JSUInt31|powerset={I}{O}{N}]",
       "declaredType": "int"
     }
   ],
@@ -214,11 +214,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [
     {
       "name": "t",
-      "type": "Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)",
+      "type": "Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})",
       "declaredType": "int"
     }
   ],
@@ -296,7 +296,7 @@ class Clazz = Super<int> with Mixin;
     "external": false
   },
   "returnType": "Subclass",
-  "inferredReturnType": "[exact=Subclass|powerset=0]",
+  "inferredReturnType": "[exact=Subclass|powerset={N}{O}{N}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -320,7 +320,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 1,
@@ -362,7 +362,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
@@ -385,7 +385,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,

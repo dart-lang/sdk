@@ -35,6 +35,11 @@ void _alwaysNull(dynamic _, [dynamic __]) {}
 
 bool _alwaysTrue(dynamic _, [dynamic __]) => true;
 
+/// An LSP Code Action, which can be either a [CodeActionLiteral] (if supported
+/// by the client) that contains a [Command] and/or an inline edit, or just a
+/// [Command] itself.
+typedef CodeAction = Either2<CodeActionLiteral, Command>;
+
 typedef DocumentChanges
     = List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>;
 

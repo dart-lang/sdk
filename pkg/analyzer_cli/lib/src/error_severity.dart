@@ -2,40 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 /// Compute the severity of the error; however:
-/// - if [options.enableTypeChecks] is false, then de-escalate checked-mode
-///   compile time errors to a severity of [ErrorSeverity.INFO].
-/// - if [options.lintsAreFatal] is true, escalate lints to errors.
-ErrorSeverity? computeSeverity(
-  AnalysisError error,
+/// - if `options.enableTypeChecks` is false, then de-escalate checked-mode
+///   compile time errors to a severity of [DiagnosticSeverity.INFO].
+/// - if `options.lintsAreFatal` is true, escalate lints to errors.
+DiagnosticSeverity? computeSeverity(
+  Diagnostic diagnostic,
   CommandLineOptions commandLineOptions,
   AnalysisOptions analysisOptions,
 ) {
-  var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+  var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
   // If there is a processor for this error, defer to it.
   if (processor != null) {
     return processor.severity;
   }
 
-  return error.errorCode.errorSeverity;
+  return diagnostic.diagnosticCode.severity;
 }
 
 /// Check various configuration options to get a desired severity for this
-/// [error] (or `null` if it's to be suppressed).
-ErrorSeverity? determineProcessedSeverity(
-  AnalysisError error,
+/// [diagnostic] (or `null` if it's to be suppressed).
+DiagnosticSeverity? determineProcessedSeverity(
+  Diagnostic diagnostic,
   CommandLineOptions commandLineOptions,
   AnalysisOptions analysisOptions,
 ) {
-  var severity = computeSeverity(error, commandLineOptions, analysisOptions);
+  var severity = computeSeverity(
+    diagnostic,
+    commandLineOptions,
+    analysisOptions,
+  );
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
-  if (error.errorCode.type == ErrorType.TODO &&
-      severity == ErrorSeverity.INFO) {
+  if (diagnostic.diagnosticCode.type == DiagnosticType.TODO &&
+      severity == DiagnosticSeverity.INFO) {
     return null;
   }
 

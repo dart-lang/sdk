@@ -55,7 +55,9 @@ void test(Future<Process> future, int expectedExitCode) {
 main() {
   // Run the test using the process_test binary.
   test(
-      Process.start(getProcessTestFileName(), const ["0", "1", "99", "0"]), 99);
+    Process.start(getProcessTestFileName(), const ["0", "1", "99", "0"]),
+    99,
+  );
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
@@ -65,10 +67,12 @@ main() {
   }
   Expect.isTrue(scriptFile.existsSync());
   test(
-      Process.start(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..addAll([scriptFile.path, "0"])),
-      0);
+    Process.start(
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..addAll([scriptFile.path, "0"]),
+    ),
+    0,
+  );
 }

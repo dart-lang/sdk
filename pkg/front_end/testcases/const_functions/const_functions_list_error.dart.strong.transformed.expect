@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
 //   return x.invalidProperty;
@@ -70,7 +70,7 @@ static const field core::int firstException = invalid-expression "Unhandled core
 static const field core::int lastException = invalid-expression "Unhandled core exception: Bad state: No element";
 static const field core::int singleException = invalid-expression "Unhandled core exception: Bad state: No element";
 static const field core::int singleExceptionMulti = invalid-expression "Unhandled core exception: Bad state: Too many elements";
-static const field core::int invalidProperty = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+static const field core::int invalidProperty = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
   return x.invalidProperty;
@@ -94,7 +94,7 @@ static method singleExceptionMultiFn() → core::int {
   return #C4.{core::Iterable::single}{core::int};
 }
 static method invalidPropertyFn() → core::int {
-  return invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+  return invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
   return x.invalidProperty;

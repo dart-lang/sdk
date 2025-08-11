@@ -5,7 +5,9 @@
 import 'package:kernel/ast.dart';
 
 import '../base/name_space.dart';
+import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
@@ -20,66 +22,86 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  final DeclarationNameSpace _nameSpace;
+  final MutableDeclarationNameSpace _nameSpace;
+
+  final List<MemberBuilder> _constructorBuilders = [];
+  final List<MemberBuilder> _memberBuilders = [];
 
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, this.libraryBuilder)
-      : _nameSpace = new DeclarationNameSpaceImpl() {
+      : _nameSpace = new DillDeclarationNameSpace() {
+    bool isPrivateFromOtherLibrary(Member member) {
+      Name name = member.name;
+      return name.isPrivate &&
+          name.libraryReference != extension.enclosingLibrary.reference;
+    }
+
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
+      if (descriptor.isInternalImplementation) continue;
+
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
             Procedure procedure = descriptor.memberReference!.asProcedure;
-            nameSpace.addLocalMember(
-                name.text,
+            DillExtensionStaticMethodBuilder builder =
                 new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this),
-                setter: false);
+                    procedure, descriptor, libraryBuilder, this);
+            if (!isPrivateFromOtherLibrary(procedure)) {
+              _nameSpace.addLocalMember(name.text, builder, setter: false);
+            }
+            _memberBuilders.add(builder);
           } else {
             Procedure procedure = descriptor.memberReference!.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
-            nameSpace.addLocalMember(
-                name.text,
+            DillExtensionInstanceMethodBuilder builder =
                 new DillExtensionInstanceMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this, tearOff!),
-                setter: false);
+                    procedure, descriptor, libraryBuilder, this, tearOff!);
+            if (!isPrivateFromOtherLibrary(procedure)) {
+              _nameSpace.addLocalMember(name.text, builder, setter: false);
+            }
+            _memberBuilders.add(builder);
           }
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionGetterBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: false);
+          DillExtensionGetterBuilder builder = new DillExtensionGetterBuilder(
+              procedure, descriptor, libraryBuilder, this);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(name.text, builder, setter: false);
+          }
+          _memberBuilders.add(builder);
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.memberReference!.asField;
-          nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionFieldBuilder(
-                  field, descriptor, libraryBuilder, this),
-              setter: false);
+          DillExtensionFieldBuilder builder = new DillExtensionFieldBuilder(
+              field, descriptor, libraryBuilder, this);
+          if (!isPrivateFromOtherLibrary(field)) {
+            _nameSpace.addLocalMember(name.text, builder, setter: false);
+          }
+          _memberBuilders.add(builder);
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          nameSpace.addLocalMember(
-              name.text,
-              new DillExtensionSetterBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: true);
+          DillExtensionSetterBuilder builder = new DillExtensionSetterBuilder(
+              procedure, descriptor, libraryBuilder, this);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(name.text, builder, setter: true);
+          }
+          _memberBuilders.add(builder);
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.memberReference!.asProcedure;
-          nameSpace.addLocalMember(
-              name.text,
+          DillExtensionOperatorBuilder builder =
               new DillExtensionOperatorBuilder(
-                  procedure, descriptor, libraryBuilder, this),
-              setter: false);
+                  procedure, descriptor, libraryBuilder, this);
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            _nameSpace.addLocalMember(name.text, builder, setter: false);
+          }
+          _memberBuilders.add(builder);
           break;
       }
     }
@@ -102,6 +124,30 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<MemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<MemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
 
   @override
   List<NominalParameterBuilder>? get typeParameters {

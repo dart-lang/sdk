@@ -18,8 +18,8 @@ GeneratedFile javaGeneratedFile(
   String path,
   CodegenJavaVisitor Function(Api api) createVisitor,
 ) {
-  return GeneratedFile(path, (String pkgPath) async {
-    var visitor = createVisitor(readApi(pkgPath));
+  return GeneratedFile(path, (pkgRoot) async {
+    var visitor = createVisitor(readApi(pkgRoot));
     return visitor.collectCode(visitor.visitApi);
   });
 }

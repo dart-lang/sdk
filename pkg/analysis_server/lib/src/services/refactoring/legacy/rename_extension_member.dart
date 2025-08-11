@@ -14,14 +14,14 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
-/// A [Refactoring] for renaming extension member [Element2]s.
+/// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
-  final ExtensionElement2 extensionElement;
+  final ExtensionElement extensionElement;
 
   late _ExtensionMemberValidator _validator;
 
@@ -34,9 +34,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    if (element is TypeParameterElement2) {
+    if (element is TypeParameterElement) {
       return 'Rename Type Parameter';
-    } else if (element is FieldElement2) {
+    } else if (element is FieldElement) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -57,7 +57,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element is MethodElement2 && (element as MethodElement2).isOperator) {
+    if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -66,9 +66,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       result.addStatus(validateFieldName(newName));
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -80,9 +80,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
     // Update the declaration.
     var renameElement = element;
-    if (renameElement.isSynthetic && renameElement is FieldElement2) {
-      processor.addDeclarationEdit(renameElement.getter2);
-      processor.addDeclarationEdit(renameElement.setter2);
+    if (renameElement.isSynthetic && renameElement is FieldElement) {
+      processor.addDeclarationEdit(renameElement.getter);
+      processor.addDeclarationEdit(renameElement.setter);
     } else {
       processor.addDeclarationEdit(renameElement);
     }
@@ -92,14 +92,14 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/// Helper to check if the created or renamed [Element2] will cause any
+/// Helper to check if the created or renamed [Element] will cause any
 /// conflicts.
 class _ExtensionMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final LibraryElement2 library;
-  final Element2 element;
-  final ExtensionElement2 elementExtension;
+  final LibraryElement library;
+  final Element element;
+  final ExtensionElement elementExtension;
   final ElementKind elementKind;
   final String name;
   final bool isRename;
@@ -114,7 +114,7 @@ class _ExtensionMemberValidator {
     this.element,
     this.name,
   ) : isRename = true,
-      library = elementExtension.library2,
+      library = elementExtension.library,
       elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
@@ -154,10 +154,10 @@ class _ExtensionMemberValidator {
   }
 
   Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
-    var localElementMap = <LibraryFragment, List<LocalElement2>>{};
-    var visibleRangeMap = <LocalElement2, SourceRange>{};
+    var localElementMap = <LibraryFragment, List<LocalElement>>{};
+    var visibleRangeMap = <LocalElement, SourceRange>{};
 
-    Future<List<LocalElement2>> getLocalElements(Element2 element) async {
+    Future<List<LocalElement>> getLocalElements(Element element) async {
       var unitFragment = element.firstFragment.libraryFragment;
       if (unitFragment == null) {
         return const [];
@@ -212,7 +212,7 @@ class _ExtensionMemberValidator {
 
 class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
-  final List<LocalElement2> elements = [];
+  final List<LocalElement> elements = [];
 
   _LocalElementsCollector(this.name);
 
@@ -244,7 +244,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
-      if (element is LocalVariableElement2) {
+      if (element is LocalVariableElement) {
         elements.add(element);
       }
     }
@@ -255,7 +255,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
 class _MatchShadowedByLocal {
   final SearchMatch match;
-  final LocalElement2 localElement;
+  final LocalElement localElement;
 
   _MatchShadowedByLocal(this.match, this.localElement);
 }

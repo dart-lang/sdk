@@ -66,20 +66,6 @@ class _AssertionError extends Error implements AssertionError {
     Object? message,
   );
 
-  @pragma("vm:entry-point", "call")
-  static bool _evaluateAssertion(condition) {
-    if (identical(condition, true) || identical(condition, false)) {
-      return condition;
-    }
-    if (condition is _Closure) {
-      return (condition as dynamic Function())();
-    }
-    if (condition is Function) {
-      condition = (condition as dynamic Function())();
-    }
-    return condition;
-  }
-
   String get _messageString {
     final msg = message;
     if (msg == null) return "is not true.";
@@ -310,14 +296,13 @@ class NoSuchMethodError {
 
       String kindBuf = "function";
       if (kind >= 0 && kind < 5) {
-        kindBuf =
-            (const [
-              "method",
-              "getter",
-              "setter",
-              "getter or setter",
-              "variable",
-            ])[kind];
+        kindBuf = (const [
+          "method",
+          "getter",
+          "setter",
+          "getter or setter",
+          "variable",
+        ])[kind];
       }
 
       StringBuffer msgBuf = StringBuffer("NoSuchMethodError: ");

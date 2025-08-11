@@ -10,7 +10,7 @@ import 'package:kernel/type_environment.dart';
 /// analysis.
 DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * If T <: S then Never
-  if (typeEnvironment.isSubtypeOf(T, S, SubtypeCheckMode.withNullabilities)) {
+  if (typeEnvironment.isSubtypeOf(T, S)) {
     return const NeverType.nonNullable();
   }
 
@@ -22,25 +22,10 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
       return T;
     }
     DartType factor_RS = factorType(typeEnvironment, R, S);
-    if (typeEnvironment.isSubtypeOf(
-        const NullType(), S, SubtypeCheckMode.withNullabilities)) {
+    if (typeEnvironment.isSubtypeOf(const NullType(), S)) {
       return factor_RS;
     } else {
       return factor_RS.withDeclaredNullability(Nullability.nullable);
-    }
-  }
-
-  // * Else if T is R* and Null <: S then factor(R, S)
-  // * Else if T is R* then factor(R, S)*
-  if (T.declaredNullability == Nullability.legacy) {
-    // Coverage-ignore-block(suite): Not run.
-    DartType R = T.withDeclaredNullability(Nullability.nonNullable);
-    DartType factor_RS = factorType(typeEnvironment, R, S);
-    if (typeEnvironment.isSubtypeOf(
-        const NullType(), S, SubtypeCheckMode.withNullabilities)) {
-      return factor_RS;
-    } else {
-      return factor_RS.withDeclaredNullability(Nullability.legacy);
     }
   }
 
@@ -49,11 +34,10 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   if (T is FutureOrType) {
     DartType R = T.typeArgument;
     DartType future_R = typeEnvironment.futureType(R, Nullability.nonNullable);
-    if (typeEnvironment.isSubtypeOf(
-        future_R, S, SubtypeCheckMode.withNullabilities)) {
+    if (typeEnvironment.isSubtypeOf(future_R, S)) {
       return factorType(typeEnvironment, R, S);
     }
-    if (typeEnvironment.isSubtypeOf(R, S, SubtypeCheckMode.withNullabilities)) {
+    if (typeEnvironment.isSubtypeOf(R, S)) {
       // Coverage-ignore-block(suite): Not run.
       return factorType(typeEnvironment, future_R, S);
     }

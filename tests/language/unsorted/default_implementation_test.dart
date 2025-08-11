@@ -13,9 +13,7 @@ abstract class Point {
 }
 
 class PointImplementation implements Point {
-  const PointImplementation(int x, int y)
-      : this.x = x,
-        this.y = y;
+  const PointImplementation(int x, int y) : this.x = x, this.y = y;
   final int x;
   final int y;
 }

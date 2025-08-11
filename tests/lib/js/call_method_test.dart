@@ -28,13 +28,13 @@ import 'package:js/js.dart';
 import 'call_utils.dart';
 
 @JS('jsFunction')
-external int Function(String) jsFunctionAsFunction;
+external String Function(String) jsFunctionAsFunction;
 
 @JS('jsObject')
-external int Function(String) jsObjectAsFunction;
+external String Function(String) jsObjectAsFunction;
 
 @JS('jsClass')
-external int Function(String) jsClassAsFunction;
+external String Function(String) jsClassAsFunction;
 
 @JS('jsFunction')
 external Function jsFunctionAsFunctionInterface;
@@ -47,7 +47,7 @@ external Function jsClassAsFunctionInterface;
 
 @JS()
 class NamedClass {
-  external int call(String s);
+  external String call(String s);
 }
 
 @JS('jsFunction')
@@ -62,7 +62,7 @@ external NamedClass get jsClassAsNamedClass;
 @JS()
 @anonymous
 class SomeClass {
-  external int call(String s);
+  external String call(String s);
 }
 
 @JS('jsFunction')

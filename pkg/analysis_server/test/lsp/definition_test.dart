@@ -8,7 +8,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -361,6 +361,90 @@ class [!A!] {
       source: "part of 'destin^ation.dart';",
       destination: "part 'source.dart';",
     );
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    var contents = '''
+f() {
+  A a = .nam^ed();
+}
+
+class A {
+  A.[!named!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var contents = '''
+f() {
+  A a = .ne^w();
+}
+
+class A {
+  [!A!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    var contents = '''
+enum A {
+  [!one!],
+}
+
+f() {
+  A a = .on^e;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var contents = '''
+f() {
+  A a = .fie^ld;
+}
+
+extension type A(int x) {
+  static A get [!field!] => A(1);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_field() async {
+    var contents = '''
+f() {
+  A a = .fie^ld;
+}
+
+class A {
+  static A [!field!] = A();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var contents = '''
+f() {
+  A a = .meth^od();
+}
+
+class A {
+  static A [!method!]() => A();
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_field_underscore() async {
@@ -1010,6 +1094,21 @@ f() {
 }
 
 class [!A!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_unexisting_implicit_new_constructor() async {
+    var contents = '''
+class [!A!] {
+  A.constructor();
+}
+
+void f() {
+  // ignore: new_with_undefined_constructor_default
+  A^();
+}
 ''';
 
     await testContents(contents);

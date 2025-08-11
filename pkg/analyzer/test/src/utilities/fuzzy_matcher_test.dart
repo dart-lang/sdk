@@ -38,11 +38,12 @@ class FuzzyMapTest {
   static MatchStyle FILE = MatchStyle.FILENAME;
   static MatchStyle SYM = MatchStyle.SYMBOL;
 
-  void map(
-      {required String str,
-      required String want,
-      MatchStyle matchStyle = MatchStyle.TEXT}) {
-//    test('maps characters of $str', () {
+  void map({
+    required String str,
+    required String want,
+    MatchStyle matchStyle = MatchStyle.TEXT,
+  }) {
+    //    test('maps characters of $str', () {
     var out = List<CharRole>.filled(str.length, CharRole.NONE);
     var matcher = FuzzyMatcher('', matchStyle: matchStyle);
     matcher.fuzzyMap(str, out);
@@ -52,7 +53,7 @@ class FuzzyMapTest {
       result += map[out[i].index];
     }
     expect(result, want);
-//    });
+    //    });
   }
 
   void test_map() {
@@ -105,19 +106,25 @@ class FuzzyMatcherTest {
     var matcher = FuzzyMatcher('jade');
     // Full word matches score higher than subsequence matches.
     expect(
-        matcher.score('jump to a directory in tree'),
-        lessThan(matcher
-            .score('fix imports and dependencies using jade (java only)')));
+      matcher.score('jump to a directory in tree'),
+      lessThan(
+        matcher.score('fix imports and dependencies using jade (java only)'),
+      ),
+    );
 
     matcher = FuzzyMatcher('unedit');
-    expect(matcher.score('Undo an edit'),
-        lessThan(matcher.score('Close unedited tabs')));
+    expect(
+      matcher.score('Undo an edit'),
+      lessThan(matcher.score('Close unedited tabs')),
+    );
 
     matcher = FuzzyMatcher('fix');
     expect(
-        matcher.score('find next match'),
-        lessThan(
-            matcher.score('format edited lines in workspace files (g4 fix)')));
+      matcher.score('find next match'),
+      lessThan(
+        matcher.score('format edited lines in workspace files (g4 fix)'),
+      ),
+    );
   }
 
   void test_ranksFileNames() {
@@ -195,12 +202,13 @@ class FuzzyScorerTest {
 
   static MatchStyle SYM = MatchStyle.SYMBOL;
 
-  void score(
-      {required String p,
-      required String str,
-      String? want,
-      MatchStyle input = MatchStyle.TEXT}) {
-//    test('scores $str against $p', () {
+  void score({
+    required String p,
+    required String str,
+    String? want,
+    MatchStyle input = MatchStyle.TEXT,
+  }) {
+    //    test('scores $str against $p', () {
     var matcher = FuzzyMatcher(p, matchStyle: input);
     if (want != null) {
       expect(matcher.score(str), greaterThanOrEqualTo(0));
@@ -208,7 +216,7 @@ class FuzzyScorerTest {
     } else {
       expect(matcher.score(str), -1);
     }
-//    });
+    //    });
   }
 
   void test_scorer() {
@@ -221,7 +229,10 @@ class FuzzyScorerTest {
     score(p: 'caaa', str: 'c_babababaaa', want: '[c]_bababab[aaa]');
     score(p: 'aaa', str: 'aaababababaaa', want: '[aaa]babababaaa');
     score(
-        p: 'unedit', str: 'Close unedited tabs', want: 'Close [unedit]ed tabs');
+      p: 'unedit',
+      str: 'Close unedited tabs',
+      want: 'Close [unedit]ed tabs',
+    );
     // Forward slashes are ignored in the non-filename mode.
     score(p: 'aaa', str: 'aaabab/ababaaa', want: '[aaa]bab/ababaaa');
     score(p: 'aaa', str: 'baaabab/abab_aaa', want: 'baaabab/abab_[aaa]');
@@ -236,15 +247,17 @@ class FuzzyScorerTest {
     score(p: 'aaaa', str: 'a/baaa', want: '[a]/b[aaa]', input: FILE);
     score(p: 'aaaa', str: 'a/baaa/', want: '[a]/b[aaa]/', input: FILE);
     score(
-        p: 'abcxz',
-        str: 'd/abc/abcd/oxz',
-        want: 'd/[abc]/abcd/o[xz]',
-        input: FILE);
+      p: 'abcxz',
+      str: 'd/abc/abcd/oxz',
+      want: 'd/[abc]/abcd/o[xz]',
+      input: FILE,
+    );
     score(
-        p: 'abcxz',
-        str: 'd/abcd/abc/oxz',
-        want: 'd/[abc]d/abc/o[xz]',
-        input: FILE);
+      p: 'abcxz',
+      str: 'd/abcd/abc/oxz',
+      want: 'd/[abc]d/abc/o[xz]',
+      input: FILE,
+    );
 
     // Symbols
     score(p: 'foo', str: 'abc::foo', want: 'abc::[foo]', input: SYM);
@@ -255,18 +268,35 @@ class FuzzyScorerTest {
     score(p: 'fo_o', str: 'fo_oo.o_oo', want: '[f]o_oo.[o_o]o', input: SYM);
     score(p: 'fOO', str: 'fo_oo.o_oo', want: '[f]o_oo.[o]_[o]o', input: SYM);
     score(
-        p: 'tedit', str: 'foo.TextEdit', want: 'foo.[T]ext[Edit]', input: SYM);
+      p: 'tedit',
+      str: 'foo.TextEdit',
+      want: 'foo.[T]ext[Edit]',
+      input: SYM,
+    );
     score(
-        p: 'tedit',
-        str: '*foo.TextEdit',
-        want: '*foo.[T]ext[Edit]',
-        input: SYM);
+      p: 'tedit',
+      str: '*foo.TextEdit',
+      want: '*foo.[T]ext[Edit]',
+      input: SYM,
+    );
     score(
-        p: 'TEdit', str: 'foo.TextEdit', want: 'foo.[T]ext[Edit]', input: SYM);
+      p: 'TEdit',
+      str: 'foo.TextEdit',
+      want: 'foo.[T]ext[Edit]',
+      input: SYM,
+    );
     score(
-        p: 'Tedit', str: 'foo.TextEdit', want: 'foo.[T]ext[Edit]', input: SYM);
+      p: 'Tedit',
+      str: 'foo.TextEdit',
+      want: 'foo.[T]ext[Edit]',
+      input: SYM,
+    );
     score(
-        p: 'Tedit', str: 'foo.Textedit', want: 'foo.[Te]xte[dit]', input: SYM);
+      p: 'Tedit',
+      str: 'foo.Textedit',
+      want: 'foo.[Te]xte[dit]',
+      input: SYM,
+    );
     score(p: 'TEdit', str: 'foo.Textedit', input: SYM);
     score(p: 'te', str: 'foo.Textedit', want: 'foo.[Te]xtedit', input: SYM);
     score(p: 'ee', str: 'foo.Textedit', input: SYM);
@@ -274,29 +304,40 @@ class FuzzyScorerTest {
     score(p: 'exdi', str: 'foo.Textedit', input: SYM);
     score(p: 'exdit', str: 'foo.Textedit', input: SYM);
     score(
-        p: 'extdit', str: 'foo.Textedit', want: 'foo.T[ext]e[dit]', input: SYM);
+      p: 'extdit',
+      str: 'foo.Textedit',
+      want: 'foo.T[ext]e[dit]',
+      input: SYM,
+    );
     score(p: 'e', str: 'foo.Textedit', want: 'foo.T[e]xtedit', input: SYM);
     score(p: 'ed', str: 'foo.Textedit', want: 'foo.Text[ed]it', input: SYM);
     score(p: 'edt', str: 'foo.Textedit', input: SYM);
     score(p: 'edit', str: 'foo.Textedit', want: 'foo.Text[edit]', input: SYM);
     score(
-        p: 'pub', str: 'public setPubl', want: 'public set[Pub]l', input: SYM);
+      p: 'pub',
+      str: 'public setPubl',
+      want: 'public set[Pub]l',
+      input: SYM,
+    );
     score(
-        p: 'mod',
-        str: 'public List<AbstractModule> getMods',
-        want: 'public List<AbstractModule> get[Mod]s',
-        input: SYM);
+      p: 'mod',
+      str: 'public List<AbstractModule> getMods',
+      want: 'public List<AbstractModule> get[Mod]s',
+      input: SYM,
+    );
     score(
-        p: 'm',
-        str: 'public List<AbstractModule> getMods',
-        want: 'public List<AbstractModule> get[M]ods',
-        input: SYM);
+      p: 'm',
+      str: 'public List<AbstractModule> getMods',
+      want: 'public List<AbstractModule> get[M]ods',
+      input: SYM,
+    );
     score(p: 'f', str: '[]foo.Foo', want: '[]foo.[F]oo', input: SYM);
     score(
-        p: 'edin',
-        str: 'foo.TexteditNum',
-        want: 'foo.Text[edi]t[N]um',
-        input: SYM);
+      p: 'edin',
+      str: 'foo.TexteditNum',
+      want: 'foo.Text[edi]t[N]um',
+      input: SYM,
+    );
   }
 }
 
@@ -304,15 +345,13 @@ class FuzzyScorerTest {
 class ScoringFunctionTest {
   ///
   void score({required String p, required String str, required double want}) {
-//    test('scores $str against $p', () {
+    //    test('scores $str against $p', () {
     var matcher = FuzzyMatcher(p, matchStyle: MatchStyle.SYMBOL);
     expect(
-        matcher
-            .score(str)
-            .toStringAsFixed(4)
-            .startsWith(want.toStringAsFixed(4)),
-        true);
-//    });
+      matcher.score(str).toStringAsFixed(4).startsWith(want.toStringAsFixed(4)),
+      true,
+    );
+    //    });
   }
 
   void test_score() {

@@ -28,6 +28,7 @@ can-be-overridden:
     member: 'field2'
 
 callable:
+  - library: 'dart:core'
   - library: 'main_lib1.dart'
     class: 'C2'
   - library: 'main_lib1.dart'
@@ -56,11 +57,3 @@ callable:
     class: 'C9'
     member: '_'
   - library: 'main_lib2.dart'
-  - library: 'dart:core'
-    class: 'int'
-  - library: 'dart:core'
-    class: 'Object'
-  - library: 'dart:core'
-    class: 'Iterable'
-  - library: 'dart:core'
-    member: 'print'

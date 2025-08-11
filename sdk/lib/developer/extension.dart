@@ -159,6 +159,7 @@ void postEvent(
     '_Echo',
     'HeapSnapshot',
     'Logging',
+    'Timer',
     'Timeline',
     'Profiler',
   ];

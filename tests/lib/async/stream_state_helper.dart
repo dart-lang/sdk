@@ -62,10 +62,13 @@ class StreamProtocolTest {
   Function? _onComplete;
 
   StreamProtocolTest.broadcast({bool sync = false})
-      : isBroadcast = true,
-        isAsBroadcast = false {
+    : isBroadcast = true,
+      isAsBroadcast = false {
     _controller = new StreamController.broadcast(
-        sync: sync, onListen: _onListen, onCancel: _onCancel);
+      sync: sync,
+      onListen: _onListen,
+      onCancel: _onCancel,
+    );
     _controllerStream = _controller.stream;
     _onComplete = expectAsync(() {
       _onComplete = null; // Being null marks the test as being complete.
@@ -73,14 +76,15 @@ class StreamProtocolTest {
   }
 
   StreamProtocolTest({bool sync = false})
-      : isBroadcast = false,
-        isAsBroadcast = false {
+    : isBroadcast = false,
+      isAsBroadcast = false {
     _controller = new StreamController(
-        sync: sync,
-        onListen: _onListen,
-        onPause: _onPause,
-        onResume: _onResume,
-        onCancel: _onCancel);
+      sync: sync,
+      onListen: _onListen,
+      onPause: _onPause,
+      onResume: _onResume,
+      onCancel: _onCancel,
+    );
     _controllerStream = _controller.stream;
     _onComplete = expectAsync(() {
       _onComplete = null; // Being null marks the test as being complete.
@@ -88,16 +92,19 @@ class StreamProtocolTest {
   }
 
   StreamProtocolTest.asBroadcast({bool sync = false})
-      : isBroadcast = false,
-        isAsBroadcast = true {
+    : isBroadcast = false,
+      isAsBroadcast = true {
     _controller = new StreamController(
-        sync: sync,
-        onListen: _onListen,
-        onPause: _onPause,
-        onResume: _onResume,
-        onCancel: _onCancel);
+      sync: sync,
+      onListen: _onListen,
+      onPause: _onPause,
+      onResume: _onResume,
+      onCancel: _onCancel,
+    );
     _controllerStream = _controller.stream.asBroadcastStream(
-        onListen: _onBroadcastListen, onCancel: _onBroadcastCancel);
+      onListen: _onBroadcastListen,
+      onCancel: _onBroadcastCancel,
+    );
     _onComplete = expectAsync(() {
       _onComplete = null; // Being null marks the test as being complete.
     });
@@ -119,15 +126,23 @@ class StreamProtocolTest {
   SubscriptionProtocolTest listen({bool cancelOnError = false}) {
     int subscriptionId = _subscriptionIdCounter++;
 
-    StreamSubscription subscription = _controllerStream.listen((var data) {
-      _onData(subscriptionId, data);
-    }, onError: (Object error) {
-      _onError(subscriptionId, error);
-    }, onDone: () {
-      _onDone(subscriptionId);
-    }, cancelOnError: cancelOnError);
-    _latestSubscription =
-        new SubscriptionProtocolTest(subscriptionId, subscription, this);
+    StreamSubscription subscription = _controllerStream.listen(
+      (var data) {
+        _onData(subscriptionId, data);
+      },
+      onError: (Object error) {
+        _onError(subscriptionId, error);
+      },
+      onDone: () {
+        _onDone(subscriptionId);
+      },
+      cancelOnError: cancelOnError,
+    );
+    _latestSubscription = new SubscriptionProtocolTest(
+      subscriptionId,
+      subscription,
+      this,
+    );
     if (trace) {
       print("[Listen #$subscriptionId(#${_latestSubscription.hashCode})]");
     }
@@ -154,8 +169,10 @@ class StreamProtocolTest {
   void terminate() {
     if (_nextExpectationIndex != _expectations.length) {
       _withNextExpectation((Event expect) {
-        _fail("Expected: $expect\n"
-            "Found   : Early termination.\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : Early termination.\n${expect._stackTrace}",
+        );
       });
     }
     _onComplete!();
@@ -166,8 +183,10 @@ class StreamProtocolTest {
     if (trace) print("[Data#$id : $data]");
     _withNextExpectation((Event expect) {
       if (!expect.matchData(id, data)) {
-        _fail("Expected: $expect\n"
-            "Found   : [Data#$id: $data]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : [Data#$id: $data]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -176,8 +195,10 @@ class StreamProtocolTest {
     if (trace) print("[Error#$id : $error]");
     _withNextExpectation((Event expect) {
       if (!expect.matchError(id, error)) {
-        _fail("Expected: $expect\n"
-            "Found   : [Error#$id: ${error}]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : [Error#$id: ${error}]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -186,8 +207,10 @@ class StreamProtocolTest {
     if (trace) print("[Done#$id]");
     _withNextExpectation((Event expect) {
       if (!expect.matchDone(id)) {
-        _fail("Expected: $expect\n"
-            "Found   : [Done#$id]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : [Done#$id]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -196,8 +219,10 @@ class StreamProtocolTest {
     if (trace) print("[Pause]");
     _withNextExpectation((Event expect) {
       if (!expect.matchPause()) {
-        _fail("Expected: $expect\n"
-            "Found   : [Paused]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : [Paused]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -206,8 +231,10 @@ class StreamProtocolTest {
     if (trace) print("[Resumed]");
     _withNextExpectation((Event expect) {
       if (!expect.matchResume()) {
-        _fail("Expected: $expect\n"
-            "Found   : [Resumed]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found   : [Resumed]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -216,8 +243,10 @@ class StreamProtocolTest {
     if (trace) print("[Subscribed]");
     _withNextExpectation((Event expect) {
       if (!expect.matchSubscribe()) {
-        _fail("Expected: $expect\n"
-            "Found: [Subscribed]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found: [Subscribed]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -226,8 +255,10 @@ class StreamProtocolTest {
     if (trace) print("[Cancelled]");
     _withNextExpectation((Event expect) {
       if (!expect.matchCancel()) {
-        _fail("Expected: $expect\n"
-            "Found: [Cancelled]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found: [Cancelled]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -236,8 +267,10 @@ class StreamProtocolTest {
     if (trace) print("[BroadcastListen]");
     _withNextExpectation((Event expect) {
       if (!expect.matchBroadcastListen(sub)) {
-        _fail("Expected: $expect\n"
-            "Found: [BroadcastListen]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found: [BroadcastListen]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -246,8 +279,10 @@ class StreamProtocolTest {
     if (trace) print("[BroadcastCancel]");
     _withNextExpectation((Event expect) {
       if (!expect.matchBroadcastCancel(sub)) {
-        _fail("Expected: $expect\n"
-            "Found: [BroadcastCancel]\n${expect._stackTrace}");
+        _fail(
+          "Expected: $expect\n"
+          "Found: [BroadcastCancel]\n${expect._stackTrace}",
+        );
       }
     });
   }
@@ -385,7 +420,7 @@ class Event {
   Function? _action;
   StackTrace? _stackTrace;
   Event(void action()?)
-      : _action = (action == null) ? null : expectAsync(action) {
+    : _action = (action == null) ? null : expectAsync(action) {
     try {
       throw 0;
     } catch (_, s) {
@@ -393,7 +428,7 @@ class Event {
     }
   }
   Event.broadcast(void action(StreamSubscription sub)?)
-      : _action = (action == null) ? null : expectAsync(action) {
+    : _action = (action == null) ? null : expectAsync(action) {
     try {
       throw 0;
     } catch (_, s) {
@@ -496,7 +531,7 @@ class MismatchEvent extends Event {
 class DataEvent extends SubscriptionEvent {
   final data;
   DataEvent(SubscriptionProtocolTest? sub, this.data, void action()?)
-      : super(sub, action);
+    : super(sub, action);
   bool _testData(var data) => this.data == data;
   String toString() => "[Data$_id: $data]";
 }
@@ -504,7 +539,7 @@ class DataEvent extends SubscriptionEvent {
 class ErrorEvent extends SubscriptionEvent {
   final error;
   ErrorEvent(SubscriptionProtocolTest? sub, this.error, void action()?)
-      : super(sub, action);
+    : super(sub, action);
   bool _testError(error) => this.error == error;
   String toString() => "[Error$_id: $error]";
 }
@@ -541,14 +576,14 @@ class CancelCallbackEvent extends Event {
 
 class BroadcastCancelCallbackEvent extends Event {
   BroadcastCancelCallbackEvent(void action(StreamSubscription sub)?)
-      : super.broadcast(action);
+    : super.broadcast(action);
   bool _testBroadcastCancel() => true;
   String toString() => "[BroadcastCancel]";
 }
 
 class BroadcastListenCallbackEvent extends Event {
   BroadcastListenCallbackEvent(void action(StreamSubscription sub)?)
-      : super.broadcast(action);
+    : super.broadcast(action);
   bool _testBroadcastListen() => true;
   String toString() => "[BroadcastListen]";
 }

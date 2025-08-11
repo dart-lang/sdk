@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -11,17 +10,17 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassHierarchy {
-  final Map<InterfaceElementImpl2, _Hierarchy> _map = {};
+  final Map<InterfaceElementImpl, _Hierarchy> _map = {};
 
-  List<ClassHierarchyError> errors(InterfaceElementImpl2 element) {
+  List<ClassHierarchyError> errors(InterfaceElementImpl element) {
     return _getHierarchy(element).errors;
   }
 
-  List<InterfaceType> implementedInterfaces(InterfaceElementImpl2 element) {
+  List<InterfaceTypeImpl> implementedInterfaces(InterfaceElementImpl element) {
     return _getHierarchy(element).interfaces;
   }
 
-  void remove(InterfaceElementImpl2 element) {
+  void remove(InterfaceElementImpl element) {
     element.resetCachedAllSupertypes();
     _map.remove(element);
   }
@@ -29,7 +28,7 @@ class ClassHierarchy {
   /// Remove hierarchies for classes defined in specified libraries.
   void removeOfLibraries(Set<Uri> uriSet) {
     _map.removeWhere((element, _) {
-      if (uriSet.contains(element.library2.uri)) {
+      if (uriSet.contains(element.library.uri)) {
         element.resetCachedAllSupertypes();
         return true;
       }
@@ -37,7 +36,7 @@ class ClassHierarchy {
     });
   }
 
-  _Hierarchy _getHierarchy(InterfaceElementImpl2 element) {
+  _Hierarchy _getHierarchy(InterfaceElementImpl element) {
     var hierarchy = _map[element];
     if (hierarchy != null) {
       return hierarchy;
@@ -45,11 +44,11 @@ class ClassHierarchy {
 
     hierarchy = _Hierarchy(
       errors: const <ClassHierarchyError>[],
-      interfaces: const <InterfaceType>[],
+      interfaces: const <InterfaceTypeImpl>[],
     );
     _map[element] = hierarchy;
 
-    var typeSystem = element.library2.typeSystem;
+    var typeSystem = element.library.typeSystem;
     var interfacesMerger = InterfacesMerger(typeSystem);
 
     void append(InterfaceTypeImpl? type) {
@@ -60,7 +59,7 @@ class ClassHierarchy {
       interfacesMerger.add(type);
 
       var substitution = Substitution.fromInterfaceType(type);
-      var element = type.element3;
+      var element = type.element;
       var rawInterfaces = implementedInterfaces(element);
       for (var rawInterface in rawInterfaces) {
         var newInterface = substitution.mapInterfaceType(rawInterface);
@@ -69,7 +68,7 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (element is MixinElementImpl2) {
+    if (element is MixinElementImpl) {
       for (var type in element.superclassConstraints) {
         append(type);
       }
@@ -82,7 +81,7 @@ class ClassHierarchy {
     }
 
     var errors = <ClassHierarchyError>[];
-    var interfaces = <InterfaceType>[];
+    var interfaces = <InterfaceTypeImpl>[];
     for (var collector in interfacesMerger._map.values) {
       var error = collector._error;
       if (error != null) {
@@ -111,15 +110,15 @@ abstract class ClassHierarchyError {}
 /// In opted-in libraries NNBD_TOP_MERGE of NORM of the interfaces must be
 /// successful.
 class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
-  final InterfaceType first;
-  final InterfaceType second;
+  final InterfaceTypeImpl first;
+  final InterfaceTypeImpl second;
 
   IncompatibleInterfacesClassHierarchyError(this.first, this.second);
 }
 
 class InterfacesMerger {
   final TypeSystemImpl _typeSystem;
-  final Map<InterfaceElementImpl2, _ClassInterfaceType> _map = {};
+  final Map<InterfaceElementImpl, _ClassInterfaceType> _map = {};
 
   InterfacesMerger(this._typeSystem);
 
@@ -128,12 +127,12 @@ class InterfacesMerger {
   }
 
   void add(InterfaceTypeImpl type) {
-    var element = type.element3;
+    var element = type.element;
     var classResult = _map[element];
     if (classResult == null) {
       classResult = _ClassInterfaceType(
         _typeSystem,
-        element is ClassElementImpl2 && element.isDartCoreObject,
+        element is ClassElementImpl && element.isDartCoreObject,
       );
       _map[element] = classResult;
     }
@@ -175,19 +174,15 @@ class _ClassInterfaceType {
       } else if (type == _singleType) {
         return;
       } else {
-        _currentResult =
-            _typeSystem.normalize(_singleType!) as InterfaceTypeImpl;
+        _currentResult = _typeSystem.normalizeInterfaceType(_singleType!);
       }
     }
 
-    var normType = _typeSystem.normalize(type) as InterfaceTypeImpl;
+    var normType = _typeSystem.normalizeInterfaceType(type);
     try {
       _currentResult = _merge(_currentResult!, normType);
     } catch (e) {
-      _error = IncompatibleInterfacesClassHierarchyError(
-        _currentResult!,
-        type,
-      );
+      _error = IncompatibleInterfacesClassHierarchyError(_currentResult!, type);
     }
   }
 
@@ -211,10 +206,7 @@ class _ClassInterfaceType {
 
 class _Hierarchy {
   List<ClassHierarchyError> errors;
-  List<InterfaceType> interfaces;
+  List<InterfaceTypeImpl> interfaces;
 
-  _Hierarchy({
-    required this.errors,
-    required this.interfaces,
-  });
+  _Hierarchy({required this.errors, required this.interfaces});
 }

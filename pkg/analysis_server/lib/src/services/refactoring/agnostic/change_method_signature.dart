@@ -15,7 +15,7 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -242,7 +242,7 @@ final class ValidSelectionState extends SelectionState {
 
   /// The element of the target method, used to find corresponding methods
   /// in the class hierarchy.
-  final ExecutableElement2 element;
+  final ExecutableElement element;
 
   /// The current formal parameters.
   final List<FormalParameterState> formalParameters;
@@ -301,7 +301,7 @@ class _AvailabilityAnalyzer {
 
     _Declaration? buildDeclaration(Declaration node) {
       var element = node.declaredFragment?.element;
-      if (element is ExecutableElement2) {
+      if (element is ExecutableElement) {
         return _Declaration(element: element, node: node, selected: selected);
       }
       return null;
@@ -373,7 +373,7 @@ class _AvailabilityAnalyzer {
   Availability _executableElement() {
     var coveringNode = refactoringContext.coveringNode;
 
-    Element2? element;
+    Element? element;
     if (coveringNode is SimpleIdentifier) {
       var invocation = coveringNode.parent;
       if (invocation is MethodInvocation &&
@@ -382,11 +382,11 @@ class _AvailabilityAnalyzer {
       }
     }
 
-    if (element is! ExecutableElement2) {
+    if (element is! ExecutableElement) {
       return NotAvailableNoExecutableElement();
     }
 
-    var libraryFilePath = element.library2.firstFragment.source.fullName;
+    var libraryFilePath = element.library.firstFragment.source.fullName;
     if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
       return NotAvailableExternalElement();
     }
@@ -473,7 +473,7 @@ final class _AvailableWithDeclaration extends Available {
 }
 
 final class _AvailableWithExecutableElement extends Available {
-  final ExecutableElement2 element;
+  final ExecutableElement element;
 
   _AvailableWithExecutableElement({
     required super.refactoringContext,
@@ -488,7 +488,7 @@ final class _AvailableWithExecutableElement extends Available {
 
 /// The target method declaration.
 class _Declaration {
-  final ExecutableElement2 element;
+  final ExecutableElement element;
   final AstNode node;
   final List<FormalParameter> selected;
 
@@ -593,7 +593,7 @@ class _SelectionAnalyzer {
     }
   }
 
-  Future<AstNode?> _elementDeclaration(ExecutableElement2 element) async {
+  Future<AstNode?> _elementDeclaration(ExecutableElement element) async {
     var helper = refactoringContext.sessionHelper;
     var nodeResult = await helper.getFragmentDeclaration(element.firstFragment);
     return nodeResult?.node;
@@ -653,27 +653,27 @@ class _SignatureUpdater {
   /// a function, only the elements itself has to be updated. If the target
   /// is a class method, then every element in this class hierarchy should
   /// be updated.
-  Future<List<ExecutableElement2>> computeElements() async {
+  Future<List<ExecutableElement>> computeElements() async {
     var element = selectionState.element;
     switch (element) {
-      case ConstructorElement2():
-      case MethodElement2():
+      case ConstructorElement():
+      case MethodElement():
         var set = await getHierarchyMembers(searchEngine, element);
-        return set.whereType<ExecutableElement2>().toList();
+        return set.whereType<ExecutableElement>().toList();
       default:
         return [element];
     }
   }
 
-  /// Returns the [MethodDeclaration] for a [MethodElement2].
-  Future<AstNode?> elementDeclaration(ExecutableElement2 element) async {
+  /// Returns the [MethodDeclaration] for a [MethodElement].
+  Future<AstNode?> elementDeclaration(ExecutableElement element) async {
     var helper = sessionHelper;
     var result = await helper.getFragmentDeclaration(element.firstFragment);
     return result?.node;
   }
 
   /// Returns the [Selection] for the [reference], using the resolved unit.
-  /// Used to find [MethodInvocation]s of a [MethodElement2].
+  /// Used to find [MethodInvocation]s of a [MethodElement].
   Future<Selection?> referenceSelection(SearchMatch reference) async {
     var unitResult = await referenceUnitResult(reference);
     return unitResult?.unit.select(
@@ -740,7 +740,7 @@ class _SignatureUpdater {
   /// Replaces formal parameters of [element] with new code as requested
   /// by the formal parameter updates, reordering, changing kind, etc.
   Future<ChangeStatus> updateDeclaration({
-    required ExecutableElement2 element,
+    required ExecutableElement element,
     required ChangeBuilder builder,
   }) async {
     var path = element.firstFragment.libraryFragment.source.fullName;
@@ -961,7 +961,7 @@ class _SignatureUpdater {
 
   /// Updates arguments of invocations of [element].
   Future<ChangeStatus> updateReferences({
-    required ExecutableElement2 element,
+    required ExecutableElement element,
     required ChangeBuilder builder,
   }) async {
     var references = await searchEngine.searchReferences(element);

@@ -4,14 +4,17 @@
 
 library source_link_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/service.dart' as S;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+
 import 'package:observatory/models.dart'
     show IsolateRef, SourceLocation, Script, ScriptRepository;
-import 'package:observatory/service.dart' as S;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SourceLinkElement extends CustomElement implements Renderable {
   late RenderingScheduler<SourceLinkElement> _r;
@@ -66,21 +69,23 @@ class SourceLinkElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   Future render() async {
     if (_script == null) {
-      children = <Element>[new SpanElement()..text = '<LOADING>'];
+      children = <HTMLElement>[
+        new HTMLSpanElement()..textContent = '<LOADING>'
+      ];
     } else {
       String label = _script!.uri!.split('/').last;
       int? token = _location.tokenPos;
       int? line = _script!.tokenToLine(token);
       int? column = _script!.tokenToCol(token);
-      children = <Element>[
-        new AnchorElement(
-            href: Uris.inspect(isolate, object: _script!, pos: token))
+      children = <HTMLElement>[
+        new HTMLAnchorElement()
+          ..href = Uris.inspect(isolate, object: _script!, pos: token)
           ..title = _script!.uri!
           ..text = '${label}:${line}:${column}'
       ];

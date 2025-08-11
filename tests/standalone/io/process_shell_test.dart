@@ -15,14 +15,14 @@ void testRunShell() {
     asyncStart();
     var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
     Process.run(
-            Platform.executable,
-            []
-              ..addAll(Platform.executableArguments)
-              ..add('--verbosity=warning')
-              ..add(script)
-              ..addAll(args),
-            runInShell: true)
-        .then((process_result) {
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
+        ..add(script)
+        ..addAll(args),
+      runInShell: true,
+    ).then((process_result) {
       var result;
       if (Platform.operatingSystem == "windows") {
         result = process_result.stdout.split("\r\n");

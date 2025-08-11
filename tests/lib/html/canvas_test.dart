@@ -40,9 +40,11 @@ main() {
     var url = canvas.toDataUrl();
 
     var img = new ImageElement();
-    img.onLoad.listen(expectAsync((_) {
-      expect(img.complete, true);
-    }));
+    img.onLoad.listen(
+      expectAsync((_) {
+        expect(img.complete, true);
+      }),
+    );
     img.onError.listen((_) {
       fail('URL failed to load.');
     });

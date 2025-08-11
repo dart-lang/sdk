@@ -12,8 +12,9 @@ void main() {
   // Search linearly back from 2020-01-01 in steps of 60 days.
   // Stop if reaching 1970-01-01 (epoch) without finding anything.
   var time = DateTime.utc(2020, 1, 1).millisecondsSinceEpoch;
-  var offset =
-      DateTime.fromMillisecondsSinceEpoch(time).timeZoneOffset.inMilliseconds;
+  var offset = DateTime.fromMillisecondsSinceEpoch(
+    time,
+  ).timeZoneOffset.inMilliseconds;
   var time2 = time;
   var offset2 = offset;
   // Whether the first change found moved the clock forward.
@@ -22,10 +23,9 @@ void main() {
   const delta = 60 * Duration.millisecondsPerDay;
   while (time2 > 0) {
     time2 -= delta;
-    offset2 =
-        DateTime.fromMillisecondsSinceEpoch(
-          time2,
-        ).timeZoneOffset.inMilliseconds;
+    offset2 = DateTime.fromMillisecondsSinceEpoch(
+      time2,
+    ).timeZoneOffset.inMilliseconds;
     if (verbose) {
       print("Search: ${tz(time2, offset2)} - ${tz(time, offset)}");
     }
@@ -44,8 +44,9 @@ void main() {
   // where the change was in the other direction.
   while (time > 0) {
     time -= delta;
-    offset =
-        DateTime.fromMillisecondsSinceEpoch(time).timeZoneOffset.inMilliseconds;
+    offset = DateTime.fromMillisecondsSinceEpoch(
+      time,
+    ).timeZoneOffset.inMilliseconds;
     if (verbose) {
       print("Search: ${tz(time2, offset2)} - ${tz(time, offset)}");
     }
@@ -133,17 +134,20 @@ TimeZoneChange findChange(int before, int after) {
   var min = Duration.millisecondsPerMinute;
   assert(before % min == 0);
   assert(after % min == 0);
-  var offsetBefore =
-      DateTime.fromMillisecondsSinceEpoch(before).timeZoneOffset.inMilliseconds;
-  var offsetAfter =
-      DateTime.fromMillisecondsSinceEpoch(after).timeZoneOffset.inMilliseconds;
+  var offsetBefore = DateTime.fromMillisecondsSinceEpoch(
+    before,
+  ).timeZoneOffset.inMilliseconds;
+  var offsetAfter = DateTime.fromMillisecondsSinceEpoch(
+    after,
+  ).timeZoneOffset.inMilliseconds;
   // Binary search for the precise (to 1 minute increments)
   // time where the change happened.
   while (after - before > min) {
     var mid = before + (after - before) ~/ 2;
     mid -= mid % min;
-    var offsetMid =
-        DateTime.fromMillisecondsSinceEpoch(mid).timeZoneOffset.inMilliseconds;
+    var offsetMid = DateTime.fromMillisecondsSinceEpoch(
+      mid,
+    ).timeZoneOffset.inMilliseconds;
     if (verbose) {
       print(
         "Bsearch: ${tz(before, offsetBefore)} - ${tz(mid, offsetMid)} - ${tz(after, offsetAfter)}",

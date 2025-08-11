@@ -26,9 +26,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   FunctionTypeImpl get _contravariantT {
     return functionTypeNone(
       returnType: voidNone,
-      formalParameters: [
-        positionalParameter(type: T),
-      ],
+      formalParameters: [positionalParameter(type: T)],
     );
   }
 
@@ -47,29 +45,19 @@ class NonCovariantTypeParameterPositionVisitorTest
   }
 
   test_function() {
-    expectNotNonCovariant(
-      functionTypeNone(
-        returnType: T,
-      ),
-    );
+    expectNotNonCovariant(functionTypeNone(returnType: T));
 
     // void Function(T)
     expectNonCovariant(_contravariantT);
 
     // void Function(T) Function()
-    expectNonCovariant(
-      functionTypeNone(
-        returnType: _contravariantT,
-      ),
-    );
+    expectNonCovariant(functionTypeNone(returnType: _contravariantT));
 
     // void Function(void Function(T))
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
-        formalParameters: [
-          positionalParameter(type: _contravariantT),
-        ],
+        formalParameters: [positionalParameter(type: _contravariantT)],
       ),
     );
 
@@ -77,9 +65,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNonCovariant(
       functionTypeNone(
         returnType: T,
-        formalParameters: [
-          positionalParameter(type: T),
-        ],
+        formalParameters: [positionalParameter(type: T)],
       ),
     );
 
@@ -89,9 +75,7 @@ class NonCovariantTypeParameterPositionVisitorTest
       functionTypeNone(
         returnType: voidNone,
         formalParameters: [
-          positionalParameter(
-            type: typeParameterTypeNone(T2),
-          ),
+          positionalParameter(type: typeParameterTypeNone(T2)),
         ],
       ),
     );
@@ -99,9 +83,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     // void Function<U extends T>()
     expectNonCovariant(
       functionTypeNone(
-        typeParameters: [
-          typeParameter('U', bound: T),
-        ],
+        typeParameters: [typeParameter('U', bound: T)],
         returnType: voidNone,
       ),
     );
@@ -122,35 +104,15 @@ class NonCovariantTypeParameterPositionVisitorTest
   }
 
   test_record() {
-    expectNotNonCovariant(
-      recordTypeNone(
-        positionalTypes: [T],
-      ),
-    );
+    expectNotNonCovariant(recordTypeNone(positionalTypes: [T]));
 
-    expectNonCovariant(
-      recordTypeNone(
-        positionalTypes: [_contravariantT],
-      ),
-    );
+    expectNonCovariant(recordTypeNone(positionalTypes: [_contravariantT]));
 
-    expectNonCovariant(
-      recordTypeNone(
-        positionalTypes: [T, _contravariantT],
-      ),
-    );
+    expectNonCovariant(recordTypeNone(positionalTypes: [T, _contravariantT]));
 
-    expectNotNonCovariant(
-      recordTypeNone(
-        namedTypes: {'a': T},
-      ),
-    );
+    expectNotNonCovariant(recordTypeNone(namedTypes: {'a': T}));
 
-    expectNonCovariant(
-      recordTypeNone(
-        namedTypes: {'a': _contravariantT},
-      ),
-    );
+    expectNonCovariant(recordTypeNone(namedTypes: {'a': _contravariantT}));
   }
 
   test_typeParameter() {
@@ -166,10 +128,9 @@ class NonCovariantTypeParameterPositionVisitorTest
 
   bool _compute(DartType type) {
     return type.accept(
-      NonCovariantTypeParameterPositionVisitor(
-        [T_element],
-        initialVariance: Variance.covariant,
-      ),
+      NonCovariantTypeParameterPositionVisitor([
+        T_element,
+      ], initialVariance: Variance.covariant),
     );
   }
 }

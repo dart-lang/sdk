@@ -334,6 +334,57 @@ class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
+class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit FieldAccessErrorSlowPath(Instruction* instruction)
+      : ThrowErrorSlowPathCode(
+            instruction,
+            kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry) {
+    ASSERT(instruction->IsStoreStaticField());
+  }
+  virtual const char* name() { return "field access error"; }
+
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 1;  // field
+  }
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+ private:
+  FieldPtr OriginalField() const {
+    return instruction()->AsStoreStaticField()->field().Original();
+  }
+};
+
+class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit ThrowIfValueCantBeSharedSlowPath(Instruction* instruction,
+                                            Register value)
+      : ThrowErrorSlowPathCode(instruction,
+                               kThrowIfValueCantBeSharedRuntimeEntry),
+        value_(value) {
+    ASSERT(instruction->IsStoreStaticField());
+  }
+  virtual const char* name() { return "shared value error"; }
+
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 2;  // field, value
+  }
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  Register value_;
+
+  FieldPtr OriginalField() const {
+    return instruction()->AsStoreStaticField()->field().Original();
+  }
+
+  Register value() const { return value_; }
+};
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {

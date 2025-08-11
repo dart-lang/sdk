@@ -13,9 +13,11 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 // Html and Svg elements.
 
 Element makeElementsContainer() {
-  var e = new Element.html('<ul class="yes foo">'
-      '<li class="yes quux qux">'
-      '</ul>');
+  var e = new Element.html(
+    '<ul class="yes foo">'
+    '<li class="yes quux qux">'
+    '</ul>',
+  );
   final svgContent = r"""
 <svg version="1.1">
   <circle class="yes qux"></circle>
@@ -35,8 +37,10 @@ topLevelQuerySelector() {
   expect(noElementsTop is List, true);
 
   // Expect runtime error all elements in the list are not the proper type.
-  Expect.throwsAssertionError(() => querySelectorAll<svg.CircleElement>('path'),
-      'All elements not of type CircleElement');
+  Expect.throwsAssertionError(
+    () => querySelectorAll<svg.CircleElement>('path'),
+    'All elements not of type CircleElement',
+  );
 
   var simpleElems = querySelectorAll('circle');
   expect(simpleElems.length, 1);
@@ -53,8 +57,9 @@ topLevelQuerySelector() {
   expect(varElementsFromTop is List<svg.PathElement>, false);
   expect(varElementsFromTop[0] is svg.PathElement, false);
 
-  List<svg.CircleElement> elementsFromTop =
-      querySelectorAll<svg.CircleElement>('circle');
+  List<svg.CircleElement> elementsFromTop = querySelectorAll<svg.CircleElement>(
+    'circle',
+  );
   expect(elementsFromTop is List, true);
   expect(elementsFromTop is List<svg.CircleElement>, true);
   expect(elementsFromTop[0] is svg.CircleElement, true);
@@ -99,8 +104,10 @@ main() {
     // Test that the 'view' helper function is behaving.
     var elements = elementsSetup();
     expect(view(elements.classes), '[classy, foo, quux, qux, yes]');
-    expect(view(elements),
-        '[[foo, yes], [quux, qux, yes], [qux, yes], [classy, yes]]');
+    expect(
+      view(elements),
+      '[[foo, yes], [quux, qux, yes], [qux, yes], [classy, yes]]',
+    );
   });
 
   test('listClasses=', () {
@@ -126,8 +133,10 @@ main() {
 
   test('listMap', () {
     var elements = elementsSetup();
-    expect(elements.classes.map((c) => c.toUpperCase()).toList(),
-        unorderedEquals(['YES', 'FOO', 'QUX', 'QUUX', 'CLASSY']));
+    expect(
+      elements.classes.map((c) => c.toUpperCase()).toList(),
+      unorderedEquals(['YES', 'FOO', 'QUX', 'QUUX', 'CLASSY']),
+    );
   });
 
   test('listContains', () {
@@ -143,17 +152,20 @@ main() {
 
     expect(view(elements.classes), '[classy, foo, lassie, quux, qux, yes]');
     expect(
-        view(elements),
-        '[[foo, lassie, yes], [lassie, quux, qux, yes], '
-        '[lassie, qux, yes], [classy, lassie, yes]]');
+      view(elements),
+      '[[foo, lassie, yes], [lassie, quux, qux, yes], '
+      '[lassie, qux, yes], [classy, lassie, yes]]',
+    );
   });
 
   test('listRemove', () {
     var elements = elementsSetup();
     expect(elements.classes.remove('lassi'), isFalse);
     expect(view(elements.classes), '[classy, foo, quux, qux, yes]');
-    expect(view(elements),
-        '[[foo, yes], [quux, qux, yes], [qux, yes], [classy, yes]]');
+    expect(
+      view(elements),
+      '[[foo, yes], [quux, qux, yes], [qux, yes], [classy, yes]]',
+    );
 
     expect(elements.classes.remove('qux'), isTrue);
     expect(view(elements.classes), '[classy, foo, quux, yes]');
@@ -164,19 +176,24 @@ main() {
     var elements = elementsSetup();
     elements.classes.toggle('qux');
     expect(view(elements.classes), '[classy, foo, quux, qux, yes]');
-    expect(view(elements),
-        '[[foo, qux, yes], [quux, yes], [yes], [classy, qux, yes]]');
+    expect(
+      view(elements),
+      '[[foo, qux, yes], [quux, yes], [yes], [classy, qux, yes]]',
+    );
   });
 
   test('listAddAll', () {
     var elements = elementsSetup();
     elements.classes.addAll(['qux', 'lassi', 'sassy']);
     expect(
-        view(elements.classes), '[classy, foo, lassi, quux, qux, sassy, yes]');
+      view(elements.classes),
+      '[classy, foo, lassi, quux, qux, sassy, yes]',
+    );
     expect(
-        view(elements),
-        '[[foo, lassi, qux, sassy, yes], [lassi, quux, qux, sassy, yes], '
-        '[lassi, qux, sassy, yes], [classy, lassi, qux, sassy, yes]]');
+      view(elements),
+      '[[foo, lassi, qux, sassy, yes], [lassi, quux, qux, sassy, yes], '
+      '[lassi, qux, sassy, yes], [classy, lassi, qux, sassy, yes]]',
+    );
   });
 
   test('listRemoveAll', () {
@@ -195,9 +212,10 @@ main() {
     elements.classes.toggleAll(['qux', 'mornin']);
     expect(view(elements.classes), '[classy, foo, mornin, quux, qux, yes]');
     expect(
-        view(elements),
-        '[[foo, mornin, qux, yes], [mornin, quux, yes], '
-        '[mornin, yes], [classy, mornin, qux, yes]]');
+      view(elements),
+      '[[foo, mornin, qux, yes], [mornin, quux, yes], '
+      '[mornin, yes], [classy, mornin, qux, yes]]',
+    );
   });
 
   test('listRetainAll', () {

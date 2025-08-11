@@ -16,16 +16,17 @@ void main() {
   //  ^
   // [cfe] Type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'C'.
   //    ^^^^^^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
   use(C<int, int>);
   //  ^
   // [cfe] Expected 1 type arguments.
-  //  ^
-  // [analyzer] unspecified
+  //   ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 
   use(C<>);
-  //   ^^
-  // [cfe] unspecified
-  // [analyzer] unspecified
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
+  // [cfe] Expected a type, but got '>'.
+  // [cfe] This couldn't be parsed.
 }

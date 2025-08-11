@@ -22,8 +22,10 @@ void testServerDetachSocket() {
       response.detachSocket().then((socket) {
         Expect.isNotNull(socket);
         var body = new StringBuffer();
-        socket.listen((data) => body.write(new String.fromCharCodes(data)),
-            onDone: () => Expect.equals("Some data", body.toString()));
+        socket.listen(
+          (data) => body.write(new String.fromCharCodes(data)),
+          onDone: () => Expect.equals("Some data", body.toString()),
+        );
         socket.write("Test!");
         socket.close();
       });
@@ -31,20 +33,25 @@ void testServerDetachSocket() {
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.write("GET / HTTP/1.1\r\n"
-          "content-length: 0\r\n\r\n"
-          "Some data");
+      socket.write(
+        "GET / HTTP/1.1\r\n"
+        "content-length: 0\r\n\r\n"
+        "Some data",
+      );
       var body = new StringBuffer();
-      socket.listen((data) => body.write(new String.fromCharCodes(data)),
-          onDone: () {
-        Expect.equals(
+      socket.listen(
+        (data) => body.write(new String.fromCharCodes(data)),
+        onDone: () {
+          Expect.equals(
             "HTTP/1.1 200 OK\r\n"
             "content-length: 0\r\n"
             "\r\n"
             "Test!",
-            body.toString());
-        socket.close();
-      });
+            body.toString(),
+          );
+          socket.close();
+        },
+      );
     });
   });
 }
@@ -57,8 +64,10 @@ void testServerDetachSocketNoWriteHeaders() {
       response.detachSocket(writeHeaders: false).then((socket) {
         Expect.isNotNull(socket);
         var body = new StringBuffer();
-        socket.listen((data) => body.write(new String.fromCharCodes(data)),
-            onDone: () => Expect.equals("Some data", body.toString()));
+        socket.listen(
+          (data) => body.write(new String.fromCharCodes(data)),
+          onDone: () => Expect.equals("Some data", body.toString()),
+        );
         socket.write("Test!");
         socket.close();
       });
@@ -66,15 +75,19 @@ void testServerDetachSocketNoWriteHeaders() {
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.write("GET / HTTP/1.1\r\n"
-          "content-length: 0\r\n\r\n"
-          "Some data");
+      socket.write(
+        "GET / HTTP/1.1\r\n"
+        "content-length: 0\r\n\r\n"
+        "Some data",
+      );
       var body = new StringBuffer();
-      socket.listen((data) => body.write(new String.fromCharCodes(data)),
-          onDone: () {
-        Expect.equals("Test!", body.toString());
-        socket.close();
-      });
+      socket.listen(
+        (data) => body.write(new String.fromCharCodes(data)),
+        onDone: () {
+          Expect.equals("Test!", body.toString());
+          socket.close();
+        },
+      );
     });
   });
 }
@@ -90,11 +103,16 @@ void testBadServerDetachSocket() {
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.write("GET / HTTP/1.1\r\n"
-          "content-length: 0\r\n\r\n");
-      socket.listen((_) {}, onDone: () {
-        socket.close();
-      });
+      socket.write(
+        "GET / HTTP/1.1\r\n"
+        "content-length: 0\r\n\r\n",
+      );
+      socket.listen(
+        (_) {},
+        onDone: () {
+          socket.close();
+        },
+      );
     });
   });
 }
@@ -103,22 +121,26 @@ void testClientDetachSocket() {
   ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) {
       int port = server.port;
-      socket.write("HTTP/1.1 200 OK\r\n"
-          "\r\n"
-          "Test!");
+      socket.write(
+        "HTTP/1.1 200 OK\r\n"
+        "\r\n"
+        "Test!",
+      );
       var body = new StringBuffer();
-      socket.listen((data) => body.write(new String.fromCharCodes(data)),
-          onDone: () {
-        List<String> lines = body.toString().split("\r\n");
-        Expect.equals(5, lines.length);
-        Expect.equals("GET / HTTP/1.1", lines[0]);
-        Expect.equals("", lines[3]);
-        Expect.equals("Some data", lines[4]);
-        lines.sort(); // Lines 1-2 becomes 3-4 in a fixed order.
-        Expect.equals("accept-encoding: gzip", lines[3]);
-        Expect.equals("host: 127.0.0.1:${port}", lines[4]);
-        socket.close();
-      });
+      socket.listen(
+        (data) => body.write(new String.fromCharCodes(data)),
+        onDone: () {
+          List<String> lines = body.toString().split("\r\n");
+          Expect.equals(5, lines.length);
+          Expect.equals("GET / HTTP/1.1", lines[0]);
+          Expect.equals("", lines[3]);
+          Expect.equals("Some data", lines[4]);
+          lines.sort(); // Lines 1-2 becomes 3-4 in a fixed order.
+          Expect.equals("accept-encoding: gzip", lines[3]);
+          Expect.equals("host: 127.0.0.1:${port}", lines[4]);
+          socket.close();
+        },
+      );
       server.close();
     });
 
@@ -128,17 +150,19 @@ void testClientDetachSocket() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      response.detachSocket().then((socket) {
-        var body = new StringBuffer();
-        socket.listen((data) => body.write(new String.fromCharCodes(data)),
-            onDone: () {
-          Expect.equals("Test!", body.toString());
-          client.close();
+          response.detachSocket().then((socket) {
+            var body = new StringBuffer();
+            socket.listen(
+              (data) => body.write(new String.fromCharCodes(data)),
+              onDone: () {
+                Expect.equals("Test!", body.toString());
+                client.close();
+              },
+            );
+            socket.write("Some data");
+            socket.close();
+          });
         });
-        socket.write("Some data");
-        socket.close();
-      });
-    });
   });
 }
 
@@ -161,30 +185,36 @@ void testUpgradedConnection() {
 
     var client = new HttpClient();
     client.userAgent = null;
-    client.get("127.0.0.1", server.port, "/").then((request) {
-      request.headers.set('upgrade', 'mine');
-      return request.close();
-    }).then((response) {
-      client.get("127.0.0.1", server.port, "/").then((request) {
-        response.detachSocket().then((socket) {
-          // We are testing that we can detach the socket, even though
-          // we made a new connection (testing it was not reused).
-          request.close().then((response) {
-            asyncStart();
-            response.listen(null, onDone: () {
-              server.close();
-              asyncEnd();
-            });
-            socket.add([0]);
-            socket.close();
-            socket.fold<List<int>>([], (l, d) => l..addAll(d)).then((data) {
-              asyncEnd();
-              Expect.listEquals([0], data);
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) {
+          request.headers.set('upgrade', 'mine');
+          return request.close();
+        })
+        .then((response) {
+          client.get("127.0.0.1", server.port, "/").then((request) {
+            response.detachSocket().then((socket) {
+              // We are testing that we can detach the socket, even though
+              // we made a new connection (testing it was not reused).
+              request.close().then((response) {
+                asyncStart();
+                response.listen(
+                  null,
+                  onDone: () {
+                    server.close();
+                    asyncEnd();
+                  },
+                );
+                socket.add([0]);
+                socket.close();
+                socket.fold<List<int>>([], (l, d) => l..addAll(d)).then((data) {
+                  asyncEnd();
+                  Expect.listEquals([0], data);
+                });
+              });
             });
           });
         });
-      });
-    });
   });
 }
 

@@ -405,6 +405,55 @@ void main(List<String> args) {
       );
     });
 
+    test('renders a simple set', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final myVariable = {"first", "second", "third", null};
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'Set (4 items)',
+        expectedIndexedItems: 4,
+        expectedVariables: '''
+            [0]: "first", eval: myVariable.elementAt(0)
+            [1]: "second", eval: myVariable.elementAt(1)
+            [2]: "third", eval: myVariable.elementAt(2)
+            [3]: null
+        ''',
+      );
+    });
+
+    test('renders a simple set subset', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final myVariable = {"first", "second", "third"};
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'Set (3 items)',
+        expectedIndexedItems: 3,
+        expectedVariables: '''
+            [1]: "second", eval: myVariable.elementAt(1)
+        ''',
+        start: 1,
+        count: 1,
+      );
+    });
+
     test('only calls toString() for 100 items in a list', () async {
       final client = dap.client;
       // Generate a file that assigns a list of 150 items

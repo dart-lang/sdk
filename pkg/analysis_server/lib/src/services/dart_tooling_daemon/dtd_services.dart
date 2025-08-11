@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -36,22 +35,6 @@ enum DtdConnectionState {
 /// A connection to DTD that exposes some analysis services (such as a subset
 /// of LSP) to other DTD clients.
 class DtdServices {
-  /// The set of LSP methods currently exposed over DTD.
-  ///
-  /// Eventually all "shared" methods will be exposed, but during initial
-  /// development and testing this will be restricted to selected methods (in
-  /// particular, those with well defined results that are not affected by
-  /// differences in client capabilities).
-  static final allowedLspMethods = <Method>{
-    // When removing this allowlist or adding simple methods like
-    // textDocument/hover, skipped tests in `SharedDtdTests` can be unskipped.
-    // TODO(dantup): Enable this but add a flag so we can opt-in to experimental
-    //  handlers being exposed over DTD while in dev.
-    CustomMethods.experimentalEcho,
-    CustomMethods.dartTextDocumentEditableArguments,
-    CustomMethods.dartTextDocumentEditArgument,
-  };
-
   /// The name of the DTD service that methods will be registered under.
   static const _lspServiceName = 'Lsp';
 
@@ -93,6 +76,7 @@ class DtdServices {
       // capabilities so that the responses don't change in format based on the
       // owning editor.
       clientCapabilities: fixedBasicLspClientCapabilities,
+      isTrustedCaller: false,
     );
     var token = NotCancelableToken(); // We don't currently support cancel.
 
@@ -195,7 +179,7 @@ class DtdServices {
     var message = IncomingMessage(
       jsonrpc: jsonRpcVersion,
       method: method,
-      params: params.asMap,
+      params: params.value,
     );
     var scheduler = _server.messageScheduler;
     var completer = Completer<Map<String, Object?>>();
@@ -231,8 +215,7 @@ class DtdServices {
   ) async {
     await Future.wait([
       for (var lspHandler in handler.messageHandlers.values)
-        if (allowedLspMethods.contains(lspHandler.handlesMessage) &&
-            (registerExperimentalHandlers || !lspHandler.isExperimental))
+        if (registerExperimentalHandlers || !lspHandler.isExperimental)
           _registerLspService(lspHandler, dtd),
     ]);
 
@@ -241,7 +224,8 @@ class DtdServices {
     await dtd.postEvent(_lspStreamName, 'initialized', {});
   }
 
-  /// Registers a single message handler to DTD if it allows untrusted callers.
+  /// Registers a single message handler to DTD only if it allows untrusted
+  /// callers.
   Future<void> _registerLspService(
     MessageHandler<Object?, Object?, AnalysisServer> messageHandler,
     DartToolingDaemon dtd,

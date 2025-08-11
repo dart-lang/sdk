@@ -145,6 +145,8 @@ namespace dart {
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(WriteErrorSharedWithFPURegs)                                               \
   V(WriteErrorSharedWithoutFPURegs)                                            \
+  V(FieldAccessErrorSharedWithFPURegs)                                         \
+  V(FieldAccessErrorSharedWithoutFPURegs)                                      \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(DoubleToInteger)                                                           \
@@ -161,7 +163,6 @@ namespace dart {
   V(InitLateInstanceField)                                                     \
   V(InitLateFinalInstanceField)                                                \
   V(InitSharedLateStaticField)                                                 \
-  V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
   V(InstanceOf)                                                                \
@@ -189,6 +190,7 @@ namespace dart {
   V(AsyncExceptionHandler)                                                     \
   V(CloneSuspendState)                                                         \
   V(FfiAsyncCallbackSend)                                                      \
+  V(CheckIsolateFieldAccess)                                                   \
   V(UnknownDartCode)
 
 }  // namespace dart

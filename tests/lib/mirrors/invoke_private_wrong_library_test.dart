@@ -32,7 +32,8 @@ main() {
 
   LibraryMirror lm = cm.owner as LibraryMirror;
   Expect.throwsNoSuchMethodError(
-      () => lm.invoke(#_libraryFunction, [':', ')']));
+    () => lm.invoke(#_libraryFunction, [':', ')']),
+  );
   Expect.throwsNoSuchMethodError(() => lm.getField(#_libraryGetter));
   Expect.throwsNoSuchMethodError(() => lm.getField(#_libraryField));
   Expect.throwsNoSuchMethodError(() => lm.setField(#_librarySetter, 'lfoo'));

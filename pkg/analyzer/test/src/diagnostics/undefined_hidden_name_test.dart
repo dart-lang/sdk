@@ -17,20 +17,24 @@ main() {
 class UndefinedHiddenNameTest extends PubPackageResolutionTest {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'lib1.dart' hide a;
-''', [
-      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1)],
+    );
   }
 
   test_import() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' hide a;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
+      ],
+    );
   }
 }

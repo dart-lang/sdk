@@ -690,10 +690,9 @@ extension on List<Member> {
 extension CompositeTypeGenerator on CompositeType {
   String dartClass() {
     final self = this;
-    final packingAnnotation =
-        (self is StructType) && self.hasPacking
-            ? "@Packed(${self.packing})"
-            : "";
+    final packingAnnotation = (self is StructType) && self.hasPacking
+        ? "@Packed(${self.packing})"
+        : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField()}\n\n";
@@ -731,12 +730,12 @@ extension CompositeTypeGenerator on CompositeType {
 
   String get cDefinition {
     final self = this;
-    final packingPragmaPush =
-        (self is StructType) && self.hasPacking
-            ? "#pragma pack(push, ${self.packing})"
-            : "";
-    final packingPragmaPop =
-        (self is StructType) && self.hasPacking ? "#pragma pack(pop)" : "";
+    final packingPragmaPush = (self is StructType) && self.hasPacking
+        ? "#pragma pack(push, ${self.packing})"
+        : "";
+    final packingPragmaPop = (self is StructType) && self.hasPacking
+        ? "#pragma pack(pop)"
+        : "";
 
     String cFields = "";
     for (final member in members) {
@@ -789,12 +788,11 @@ extension on FunctionType {
 
     var namePostfix = isNative ? "Native" : "";
     namePostfix += isLeaf ? "Leaf" : "";
-    final docs =
-        testType == TestType.compoundSizeOf
-            ? '''
+    final docs = testType == TestType.compoundSizeOf
+        ? '''
 /// Tests that the Dart [sizeOf] returns the same value as the C++ `sizeof` for
 /// [$reason].'''
-            : reason.makeDartDocComment();
+        : reason.makeDartDocComment();
     return """
 
 ${isNative ? '''
@@ -845,7 +843,8 @@ ${assignValues}
       case TestType.structArguments:
         // Sum all input values.
 
-        buildReturnValue = """
+        buildReturnValue =
+            """
   $returnValueType result = 0;
 
 ${arguments.addToResultStatements(true, '${dartName}_')}
@@ -854,7 +853,8 @@ ${arguments.addToResultStatements(true, '${dartName}_')}
         break;
       case TestType.structReturn:
         // Allocate a struct.
-        buildReturnValue = """
+        buildReturnValue =
+            """
   final resultPointer = calloc<${returnValue.dartType}>();
   final result = resultPointer.ref;
 
@@ -864,7 +864,8 @@ ${arguments.addToResultStatements(true, '${dartName}_')}
         structsAsPointers = true;
         break;
       case TestType.structReturnArgument:
-        buildReturnValue = """
+        buildReturnValue =
+            """
   ${returnValue.cType} result = ${dartName}_${structReturnArgument.name};
   """;
         assignReturnGlobal = "${dartName}Result = result;";
@@ -983,14 +984,12 @@ void ${dartName}AfterCallback() {
       }
     }
     final T = '${cName}Type';
-    final constructor =
-        isNativeCallable
-            ? 'NativeCallable<$T>.isolateLocal'
-            : 'Pointer.fromFunction<$T>';
-    final afterCallback =
-        this.arguments.containsPointers
-            ? 'noChecks'
-            : '${dartName}AfterCallback';
+    final constructor = isNativeCallable
+        ? 'NativeCallable<$T>.isolateLocal'
+        : 'Pointer.fromFunction<$T>';
+    final afterCallback = this.arguments.containsPointers
+        ? 'noChecks'
+        : '${dartName}AfterCallback';
 
     return """
   CallbackTest.withCheck("$cName",
@@ -1047,12 +1046,12 @@ Future<void> ${dartName}AfterCallback() async {
 
   String dartNativeCallableListenerTestConstructor({required bool isAsync}) {
     final T = '${cName}Type';
-    final constructor =
-        isAsync ? 'NativeCallable<$T>.listener' : 'Pointer.fromFunction<$T>';
-    final afterCallback =
-        this.arguments.containsPointers
-            ? 'noChecksAsync'
-            : '${dartName}AfterCallback';
+    final constructor = isAsync
+        ? 'NativeCallable<$T>.listener'
+        : 'Pointer.fromFunction<$T>';
+    final afterCallback = this.arguments.containsPointers
+        ? 'noChecksAsync'
+        : '${dartName}AfterCallback';
     return """
   AsyncCallbackTest("$cName",
     $constructor($dartName),
@@ -1071,26 +1070,30 @@ Future<void> ${dartName}AfterCallback() async {
     }
     switch (testType) {
       case TestType.compoundSizeOf:
-        body = """
+        body =
+            """
         $returnValueType result = sizeof($reason);
         """;
         break;
       case TestType.structArguments:
-        body = """
+        body =
+            """
         $returnValueType result = 0;
 
         ${arguments.addToResultStatements(false)}
         """;
         break;
       case TestType.structReturn:
-        body = """
+        body =
+            """
         $returnValueType result = {};
 
         ${arguments.copyValueStatements("", "result.")}
         """;
         break;
       case TestType.structReturnArgument:
-        body = """
+        body =
+            """
         $returnValueType result = ${structReturnArgument.name};
         """;
         break;
@@ -1109,7 +1112,8 @@ Future<void> ${dartName}AfterCallback() async {
 
     String varArgsUnpack = '';
     if (varArgsIndex != null) {
-      varArgsUnpack = """
+      varArgsUnpack =
+          """
   va_list var_args;
   va_start(var_args, ${arguments[varArgsIndex! - 1].name});
 $varArgUnpackArguments
@@ -1117,10 +1121,9 @@ $varArgUnpackArguments
 """;
     }
 
-    final docs =
-        testType == TestType.compoundSizeOf
-            ? "// Used for testing the size of $reason."
-            : "// Used for testing structs and unions by value.\n${reason.makeCComment()}";
+    final docs = testType == TestType.compoundSizeOf
+        ? "// Used for testing the size of $reason."
+        : "// Used for testing structs and unions by value.\n${reason.makeCComment()}";
     return """
 $docs
 DART_EXPORT ${returnValue.cType} $cName($argumentString) {
@@ -1268,17 +1271,17 @@ const returnNullValue = 84;
 const generatorPath =
     'tests/ffi/generator/structs_by_value_tests_generator.dart';
 
-headerDartCompound({required int copyrightYear}) => """
+headerDartCompound({required int copyrightYear}) =>
+    """
 ${headerCommon(copyrightYear: copyrightYear, generatorPath: generatorPath)}
 
 import 'dart:ffi';
 
 """;
 
-String compoundsPath() =>
-    Platform.script
-        .resolve("../../ffi/function_structs_by_value_generated_compounds.dart")
-        .toFilePath();
+String compoundsPath() => Platform.script
+    .resolve("../../ffi/function_structs_by_value_generated_compounds.dart")
+    .toFilePath();
 
 Future<void> writeDartCompounds() async {
   final StringBuffer buffer = StringBuffer();
@@ -1291,12 +1294,11 @@ Future<void> writeDartCompounds() async {
   await runProcess(Platform.resolvedExecutable, ["format", path]);
 }
 
-String compoundsSizeOfTestPath() =>
-    Platform.script
-        .resolve(
-          "../../ffi/function_structs_by_value_generated_compounds_sizeof_test.dart",
-        )
-        .toFilePath();
+String compoundsSizeOfTestPath() => Platform.script
+    .resolve(
+      "../../ffi/function_structs_by_value_generated_compounds_sizeof_test.dart",
+    )
+    .toFilePath();
 
 Future<void> writeDartCompoundsSizeOfTest(List<FunctionType> functions) async {
   final StringBuffer buffer = StringBuffer();
@@ -1363,21 +1365,19 @@ Future<void> writeDartCallTest(
   final StringBuffer buffer = StringBuffer();
   buffer.write(
     headerDartCallTest(
-      copyrightYear:
-          isVarArgs || isNative
-              ? 2023
-              : isLeaf
-              ? 2021
-              : 2020,
+      copyrightYear: isVarArgs || isNative
+          ? 2023
+          : isLeaf
+          ? 2021
+          : 2020,
     ),
   );
   var suffix = isNative ? 'Native' : '';
   suffix += isLeaf ? 'Leaf' : '';
 
-  final forceDlOpen =
-      !isNative
-          ? ''
-          : '''
+  final forceDlOpen = !isNative
+      ? ''
+      : '''
   // Force dlopen so @Native lookups in DynamicLibrary.process() succeed.
   dlopenGlobalPlatformSpecific('ffi_test_functions');
 ''';
@@ -1551,13 +1551,9 @@ Future<void> writeDartNativeCallableListenerTest(
   if (isAsync) {
     functions = functions.where((f) => !f.arguments.containsPointers).toList();
   }
-  final constructors =
-      functions
-          .map(
-            (e) =>
-                e.dartNativeCallableListenerTestConstructor(isAsync: isAsync),
-          )
-          .join();
+  final constructors = functions
+      .map((e) => e.dartNativeCallableListenerTestConstructor(isAsync: isAsync))
+      .join();
 
   buffer.write("""
 final testCases = [
@@ -1603,17 +1599,15 @@ Future<void> writeC() async {
 
 final sdkRoot = Platform.script.resolve("../../../");
 
-final ccPath =
-    sdkRoot
-        .resolve("runtime/bin/ffi_test/ffi_test_functions_generated.cc")
-        .toFilePath();
+final ccPath = sdkRoot
+    .resolve("runtime/bin/ffi_test/ffi_test_functions_generated.cc")
+    .toFilePath();
 
-final clangFormatPath =
-    sdkRoot
-        .resolve(
-          'buildtools/${buildToolsSubdir[Abi.current()]!}/clang/bin/clang-format',
-        )
-        .toFilePath();
+final clangFormatPath = sdkRoot
+    .resolve(
+      'buildtools/${buildToolsSubdir[Abi.current()]!}/clang/bin/clang-format',
+    )
+    .toFilePath();
 
 const buildToolsSubdir = {
   Abi.linuxArm64: 'linux-arm64',

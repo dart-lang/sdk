@@ -156,7 +156,9 @@ class ContextRootImpl implements ContextRoot {
         // paths, so we shouldn't be able to reach this point.
         for (String includedPath in includedPaths) {
           if (context.isWithin(
-              context.join(includedPath, excludedPath), path)) {
+            context.join(includedPath, excludedPath),
+            path,
+          )) {
             return true;
           }
         }
@@ -181,11 +183,8 @@ class LocatedGlob {
   LocatedGlob(this.parent, this.glob);
 
   bool matches(String path) {
-    if (parent.contains(path)) {
-      var pathContext = parent.provider.pathContext;
-      var relativePath = pathContext.relative(path, from: parent.path);
-      return glob.matches(relativePath);
-    }
-    return false;
+    var relativePath = parent.relativeIfContains(path);
+    if (relativePath == null) return false;
+    return glob.matches(relativePath);
   }
 }

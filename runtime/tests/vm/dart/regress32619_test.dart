@@ -15,8 +15,13 @@ const int _digitMask = (1 << _digitBits) - 1;
 const int _halfDigitBits = _digitBits >> 1;
 const int _halfDigitMask = (1 << _halfDigitBits) - 1;
 
-int _mulAdd(Uint32List multiplicandDigits, int i, Uint32List accumulatorDigits,
-    int j, int n) {
+int _mulAdd(
+  Uint32List multiplicandDigits,
+  int i,
+  Uint32List accumulatorDigits,
+  int j,
+  int n,
+) {
   int carry = 0;
   while (--n >= 0) {
     int ml = multiplicandDigits[i] & _halfDigitMask;

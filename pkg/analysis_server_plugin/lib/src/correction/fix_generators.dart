@@ -28,22 +28,23 @@ class _RegisteredFixGenerators {
 
   final Map<LintCode, List<MultiProducerGenerator>> lintMultiProducers = {};
 
-  /// A map from error codes to a list of generators used to create multiple
-  /// correction producers used to build fixes for those diagnostics.
+  /// A map from diagnostic codes to a list of generators used to create
+  /// multiple correction producers used to build fixes for those diagnostics.
   ///
   /// The generators used for lint rules are in the [lintMultiProducers].
-  final Map<ErrorCode, List<MultiProducerGenerator>> nonLintMultiProducers = {};
+  final Map<DiagnosticCode, List<MultiProducerGenerator>>
+      nonLintMultiProducers = {};
 
   /// A set of generators that are used to create correction producers that
   /// produce corrections that ignore diagnostics locally.
   final Set<ProducerGenerator> ignoreProducerGenerators = {};
 
-  /// A map from error codes to a list of the generators that are used to create
-  /// correction producers.
+  /// A map from diagnostic codes to a list of the generators that are used to
+  /// create correction producers.
   ///
   /// The generators are then used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducers].
-  final Map<ErrorCode, List<ProducerGenerator>> nonLintProducers = {};
+  final Map<DiagnosticCode, List<ProducerGenerator>> nonLintProducers = {};
 
   /// A map from lint codes to a list of fix generators that work with only
   /// parsed results.

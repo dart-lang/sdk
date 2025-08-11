@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -22,7 +24,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
         OwnedFiles;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
@@ -47,8 +48,7 @@ class ContextBuilderImpl {
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
   ContextBuilderImpl({ResourceProvider? resourceProvider})
-      : resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    : resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Return an analysis context corresponding to the given [contextRoot].
   ///
@@ -82,21 +82,18 @@ class ContextBuilderImpl {
     String? sdkSummaryPath,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
       required DartSdk sdk,
-    })? updateAnalysisOptions2,
+    })?
+    updateAnalysisOptions3,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     OwnedFiles? ownedFiles,
     bool enableLintRuleTiming = false,
     LinkedBundleProvider? linkedBundleProvider,
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
-    linkedBundleProvider ??= LinkedBundleProvider(
-      byteStore: byteStore,
-    );
+    linkedBundleProvider ??= LinkedBundleProvider(byteStore: byteStore);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -134,17 +131,29 @@ class ContextBuilderImpl {
     // AnalysisContextCollection), use a shared options map based on it.
     if (definedOptionsFile && optionsFile != null) {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
-          _getAnalysisOptions(contextRoot, optionsFile, sourceFactory, sdk,
-              updateAnalysisOptions2));
+        _getAnalysisOptions(
+          contextRoot,
+          optionsFile,
+          sourceFactory,
+          sdk,
+          updateAnalysisOptions3,
+        ),
+      );
     } else {
       // Otherwise, create one from the options file mappings stored in the
       // context root.
       analysisOptionsMap = _createOptionsMap(
-          contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+        contextRoot,
+        sourceFactory,
+        updateAnalysisOptions3,
+        sdk,
+      );
     }
 
-    var analysisContext =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot);
+    var analysisContext = DriverBasedAnalysisContext(
+      resourceProvider,
+      contextRoot,
+    );
     var driver = AnalysisDriver(
       scheduler: scheduler,
       logger: performanceLog,
@@ -153,16 +162,13 @@ class ContextBuilderImpl {
       linkedBundleProvider: linkedBundleProvider,
       sourceFactory: sourceFactory,
       analysisOptionsMap: analysisOptionsMap,
-      packages: _createPackageMap(
-        contextRoot: contextRoot,
-      ),
+      packages: _createPackageMap(contextRoot: contextRoot),
       analysisContext: analysisContext,
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       unlinkedUnitStore: unlinkedUnitStore,
-      infoDeclarationStore: infoDeclarationStore,
       declaredVariables: declaredVariables,
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,
@@ -172,7 +178,7 @@ class ContextBuilderImpl {
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
     if (drainStreams) {
-      driver.exceptions.drain<void>();
+      unawaited(driver.exceptions.drain<void>());
     }
 
     return analysisContext;
@@ -180,23 +186,20 @@ class ContextBuilderImpl {
 
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
   AnalysisOptionsMap _createOptionsMap(
-      ContextRoot contextRoot,
-      SourceFactory sourceFactory,
-      void Function(
-              {required AnalysisOptionsImpl analysisOptions,
-              required ContextRoot contextRoot,
-              required DartSdk sdk})?
-          updateAnalysisOptions,
-      DartSdk sdk) {
+    ContextRoot contextRoot,
+    SourceFactory sourceFactory,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required DartSdk sdk,
+    })?
+    updateAnalysisOptions,
+    DartSdk sdk,
+  ) {
     var provider = AnalysisOptionsProvider(sourceFactory);
 
     void updateOptions(AnalysisOptionsImpl options) {
       if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(
-          analysisOptions: options,
-          contextRoot: contextRoot,
-          sdk: sdk,
-        );
+        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
       }
     }
 
@@ -220,9 +223,7 @@ class ContextBuilderImpl {
   /// Return [Packages] to analyze the [contextRoot].
   ///
   // TODO(scheglov): Get [Packages] from [Workspace]?
-  Packages _createPackageMap({
-    required ContextRoot contextRoot,
-  }) {
+  Packages _createPackageMap({required ContextRoot contextRoot}) {
     var packagesFile = contextRoot.packagesFile;
     if (packagesFile != null) {
       return parsePackageConfigJsonFile(resourceProvider, packagesFile);
@@ -240,9 +241,7 @@ class ContextBuilderImpl {
     if (sdkSummaryPath != null) {
       var file = resourceProvider.getFile(sdkSummaryPath);
       var bytes = file.readAsBytesSync();
-      return SummaryBasedDartSdk.forBundle(
-        PackageBundleReader(bytes),
-      );
+      return SummaryBasedDartSdk.forBundle(PackageBundleReader(bytes));
     }
 
     var folderSdk = FolderBasedDartSdk(
@@ -283,11 +282,11 @@ class ContextBuilderImpl {
     File? optionsFile,
     SourceFactory sourceFactory,
     DartSdk sdk,
-    void Function(
-            {required AnalysisOptionsImpl analysisOptions,
-            required ContextRoot contextRoot,
-            required DartSdk sdk})?
-        updateAnalysisOptions,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required DartSdk sdk,
+    })?
+    updateAnalysisOptions,
   ) {
     AnalysisOptionsImpl? options;
 
@@ -306,11 +305,7 @@ class ContextBuilderImpl {
     options ??= AnalysisOptionsImpl(file: optionsFile);
 
     if (updateAnalysisOptions != null) {
-      updateAnalysisOptions(
-        analysisOptions: options,
-        contextRoot: contextRoot,
-        sdk: sdk,
-      );
+      updateAnalysisOptions(analysisOptions: options, sdk: sdk);
     }
 
     return options;

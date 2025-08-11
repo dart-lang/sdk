@@ -23,8 +23,8 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1007,33 +1007,33 @@ elementFactory
 
   // TODO(scheglov): Implement `asLibrary` testing.
   test_libraryCycle_part() {
-//     var a_path = convertPath('/aaa/lib/a.dart');
-//     var b_path = convertPath('/aaa/lib/b.dart');
-//
-//     newFile(a_path, r'''
-// part 'b.dart';
-// ''');
-//     newFile(b_path, r'''
-// part of 'a.dart';
-// ''');
-//
-//     var a_file = fileSystemState.getFileForPath(a_path);
-//     var b_file = fileSystemState.getFileForPath(b_path);
-//     _assertFilesWithoutLibraryCycle([a_file, b_file]);
-//
-//     // Compute the library cycle for 'a.dart', the library.
-//     var a_libraryCycle = a_file.libraryCycle;
-//     _assertFilesWithoutLibraryCycle([b_file]);
-//
-//     // The part 'b.dart' has its own library cycle.
-//     // If the user chooses to import a part, it is a compile-time error.
-//     // We could handle this in different ways:
-//     // 1. Completely ignore an import of a file with a `part of` directive.
-//     // 2. Treat such file as a library anyway.
-//     // By giving a part its own library cycle we support (2).
-//     var b_libraryCycle = b_file.libraryCycle;
-//     expect(b_libraryCycle, isNot(same(a_libraryCycle)));
-//     _assertFilesWithoutLibraryCycle([]);
+    //     var a_path = convertPath('/aaa/lib/a.dart');
+    //     var b_path = convertPath('/aaa/lib/b.dart');
+    //
+    //     newFile(a_path, r'''
+    // part 'b.dart';
+    // ''');
+    //     newFile(b_path, r'''
+    // part of 'a.dart';
+    // ''');
+    //
+    //     var a_file = fileSystemState.getFileForPath(a_path);
+    //     var b_file = fileSystemState.getFileForPath(b_path);
+    //     _assertFilesWithoutLibraryCycle([a_file, b_file]);
+    //
+    //     // Compute the library cycle for 'a.dart', the library.
+    //     var a_libraryCycle = a_file.libraryCycle;
+    //     _assertFilesWithoutLibraryCycle([b_file]);
+    //
+    //     // The part 'b.dart' has its own library cycle.
+    //     // If the user chooses to import a part, it is a compile-time error.
+    //     // We could handle this in different ways:
+    //     // 1. Completely ignore an import of a file with a `part of` directive.
+    //     // 2. Treat such file as a library anyway.
+    //     // By giving a part its own library cycle we support (2).
+    //     var b_libraryCycle = b_file.libraryCycle;
+    //     expect(b_libraryCycle, isNot(same(a_libraryCycle)));
+    //     _assertFilesWithoutLibraryCycle([]);
   }
 
   test_newFile_doesNotExist() {
@@ -1095,9 +1095,7 @@ elementFactory
   }
 
   test_newFile_library_dartCore() async {
-    var core = fsStateFor(testFile).getFileForUri(
-      Uri.parse('dart:core'),
-    );
+    var core = fsStateFor(testFile).getFileForUri(Uri.parse('dart:core'));
 
     var coreKind = core.file.kind as LibraryFileKind;
     for (var import in coreKind.libraryImports) {
@@ -1204,9 +1202,7 @@ elementFactory
 
   test_newFile_library_exports_inSummary_library() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': 'class F {}',
-      }),
+      await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -1261,10 +1257,12 @@ elementFactory
 
   test_newFile_library_exports_inSummary_part() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': "part 'foo2.dart';",
-        'lib/foo2.dart': "part of 'foo.dart';",
-      }),
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': "part 'foo2.dart';",
+          'lib/foo2.dart': "part of 'foo.dart';",
+        },
+      ),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -1594,9 +1592,7 @@ elementFactory
 
   test_newFile_library_imports_library_inSummary_library() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': 'class F {}',
-      }),
+      await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -1650,10 +1646,12 @@ elementFactory
 
   test_newFile_library_imports_library_inSummary_part() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': "part 'foo2.dart';",
-        'lib/foo2.dart': "part of 'foo.dart';",
-      }),
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': "part 'foo2.dart';",
+          'lib/foo2.dart': "part of 'foo.dart';",
+        },
+      ),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -2022,9 +2020,7 @@ elementFactory
   }
 
   test_newFile_library_parts_configurations_useDefault() {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
 
     newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
@@ -6324,10 +6320,7 @@ class FileSystemStateTest with ResourceProviderMixin {
     logger = PerformanceLog(logBuffer);
 
     var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
     var packageMap = <String, List<Folder>>{
@@ -6360,12 +6353,13 @@ class FileSystemStateTest with ResourceProviderMixin {
       DartUriResolver(sdk),
       generatedUriResolver,
       PackageMapUriResolver(resourceProvider, packageMap),
-      ResourceUriResolver(resourceProvider)
+      ResourceUriResolver(resourceProvider),
     ]);
 
-    var analysisOptions = AnalysisOptionsImpl()
-      ..contextFeatures = FeatureSet.latestLanguageVersion()
-      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
+    var analysisOptions =
+        AnalysisOptionsImpl()
+          ..contextFeatures = FeatureSet.latestLanguageVersion()
+          ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
@@ -6409,8 +6403,10 @@ class B {
 }
 ''');
     FileState file = fileSystemState.getFileForPath(path);
-    expect(file.definedClassMemberNames,
-        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+    expect(
+      file.definedClassMemberNames,
+      unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']),
+    );
   }
 
   test_definedClassMemberNames_enum() {
@@ -6459,8 +6455,10 @@ set F(_) {}
 var G, H;
 ''');
     FileState file = fileSystemState.getFileForPath(path);
-    expect(file.definedTopLevelNames,
-        unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']));
+    expect(
+      file.definedTopLevelNames,
+      unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']),
+    );
   }
 
   test_getFileForPath_samePath() {

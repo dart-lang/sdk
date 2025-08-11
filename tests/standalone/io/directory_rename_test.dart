@@ -28,13 +28,15 @@ testRenamePath() async {
     final newDir = oldDir.renameSync("${tempDir.path}/dir2");
 
     Expect.isTrue(
-        oldDir.path == "${tempDir.path}/dir1",
-        "${oldDir.path} != '${tempDir.path}/dir1'"
-        "- path should not be updated");
+      oldDir.path == "${tempDir.path}/dir1",
+      "${oldDir.path} != '${tempDir.path}/dir1'"
+      "- path should not be updated",
+    );
     Expect.isTrue(
-        newDir.path == "${tempDir.path}/dir2",
-        "${newDir.path} != '${tempDir.path}/dir2'"
-        "- path should be updated");
+      newDir.path == "${tempDir.path}/dir2",
+      "${newDir.path} != '${tempDir.path}/dir2'"
+      "- path should be updated",
+    );
   });
 }
 
@@ -63,19 +65,24 @@ testRenameToExistingFile() async {
       Expect.fail('Directory.rename should fail to rename a non-directory');
     } on FileSystemException catch (e) {
       if (Platform.isWindows) {
-        Expect.isTrue(e.osError!.message.contains('file already exists'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('file already exists'),
+          'Unexpected error: $e',
+        );
       } else if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError!.message.contains('Not a directory'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('Not a directory'),
+          'Unexpected error: $e',
+        );
       }
     }
   });
 }
 
 testRenameToExistingEmptyDirectory() async {
-  await withTempDir('testRenameToExistingEmptyDirectory',
-      (Directory tempDir) async {
+  await withTempDir('testRenameToExistingEmptyDirectory', (
+    Directory tempDir,
+  ) async {
     final dir1 = Directory("${tempDir.path}/dir1");
     dir1.createSync();
     File("${dir1.path}/file").createSync();
@@ -88,8 +95,9 @@ testRenameToExistingEmptyDirectory() async {
       // Verify that the file contained in dir1 has been moved.
       if (Platform.isWindows) {
         Expect.fail(
-            'Directory.rename should fail to rename over an existing directory '
-            'on Windows');
+          'Directory.rename should fail to rename over an existing directory '
+          'on Windows',
+        );
       } else {
         Expect.isTrue(File("${dir2.path}/file").existsSync());
       }
@@ -104,8 +112,9 @@ testRenameToExistingEmptyDirectory() async {
 }
 
 testRenameToExistingNonEmptyDirectory() async {
-  await withTempDir('testRenameToExistingNonEmptyDirectory',
-      (Directory tempDir) async {
+  await withTempDir('testRenameToExistingNonEmptyDirectory', (
+    Directory tempDir,
+  ) async {
     final dir1 = Directory("${tempDir.path}/dir1");
     dir1.createSync();
     File("${dir1.path}/file1").createSync();
@@ -117,14 +126,19 @@ testRenameToExistingNonEmptyDirectory() async {
     try {
       dir1.renameSync(dir2.path);
       Expect.fail(
-          'Directory.rename should fail to rename a non-empty directory');
+        'Directory.rename should fail to rename a non-empty directory',
+      );
     } on FileSystemException catch (e) {
       if (Platform.isWindows) {
-        Expect.isTrue(e.osError!.message.contains('file already exists'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('file already exists'),
+          'Unexpected error: $e',
+        );
       } else if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError!.message.contains('Directory not empty'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('Directory not empty'),
+          'Unexpected error: $e',
+        );
       }
     }
   });
@@ -140,13 +154,19 @@ testRenameButActuallyFile() async {
       Expect.fail("Expected a failure to rename the file.");
     } on FileSystemException catch (e) {
       Expect.isTrue(
-          e.message.contains('Rename failed'), 'Unexpected error: $e');
+        e.message.contains('Rename failed'),
+        'Unexpected error: $e',
+      );
       if (Platform.isWindows) {
-        Expect.isTrue(e.osError!.message.contains('cannot find the file'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('cannot find the file'),
+          'Unexpected error: $e',
+        );
       } else if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError!.message.contains('Not a directory'),
-            'Unexpected error: $e');
+        Expect.isTrue(
+          e.osError!.message.contains('Not a directory'),
+          'Unexpected error: $e',
+        );
       }
     }
   });

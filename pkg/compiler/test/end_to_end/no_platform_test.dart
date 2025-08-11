@@ -24,21 +24,16 @@ main() {
           explicitExperimentalFlags: experimentalFlags,
           verify: true,
         );
-    ir.Component component =
-        (await fe.compile(
-          initializedCompilerState,
-          false,
-          fe.StandardFileSystem.instance,
-          (fe.DiagnosticMessage message) {
-            message.plainTextFormatted.forEach(print);
-            Expect.notEquals(fe.Severity.error, message.severity);
-          },
-          [
-            Uri.base.resolve(
-              'pkg/compiler/test/end_to_end/data/hello_world.dart',
-            ),
-          ],
-        ))!;
+    ir.Component component = (await fe.compile(
+      initializedCompilerState,
+      false,
+      fe.StandardFileSystem.instance,
+      (fe.DiagnosticMessage message) {
+        message.plainTextFormatted.forEach(print);
+        Expect.notEquals(fe.Severity.error, message.severity);
+      },
+      [Uri.base.resolve('pkg/compiler/test/end_to_end/data/hello_world.dart')],
+    ))!;
     Expect.isNotNull(new ir.CoreTypes(component).futureClass);
   }
 

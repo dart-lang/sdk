@@ -3,52 +3,41 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
-    show DynamicInterfaceSpecification;
+    show DynamicInterfaceLanguageImplPragmas, DynamicInterfaceSpecification;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/target/targets.dart' show Target;
 
 import 'pragma.dart'
     show
-        ConstantPragmaAnnotationParser,
         kDynModuleCanBeOverriddenPragmaName,
         kDynModuleCallablePragmaName,
         kDynModuleExtendablePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
         kDynModuleImplicitlyExtendablePragmaName,
-        kDynModuleCanBeOverriddenImplicitlyPragmaName,
-        ParsedDynModuleLanguageImplCanBeOverriddenPragma,
-        ParsedDynModuleLanguageImplCallablePragma,
-        ParsedDynModuleLanguageImplExtendablePragma;
-
-const bool _debug = false;
-
-void debugPrint(Object? o) {
-  if (!_debug) return;
-  print(o);
-}
+        kDynModuleCanBeOverriddenImplicitlyPragmaName;
 
 void annotateComponent(
   String dynamicInterfaceSpecification,
   Uri baseUri,
   Component component,
-  CoreTypes coreTypes,
-  Target target,
-) {
+  CoreTypes coreTypes, {
+  Map<String, List<Map<String, String>>>? detailedDynamicInterfaceJson,
+}) {
   final spec = DynamicInterfaceSpecification(
     dynamicInterfaceSpecification,
     baseUri,
     component,
   );
 
-  discoverLanguageImplPragmasInCoreLibraries(
-    spec,
-    component,
-    coreTypes,
-    target,
-  );
+  discoverLanguageImplPragmasInCoreLibraries(spec, component, coreTypes);
 
+  final _DetailedDynamicInterfaceLogger? logger =
+      detailedDynamicInterfaceJson != null
+          ? _DetailedDynamicInterfaceLogger(detailedDynamicInterfaceJson)
+          : null;
+
+  logger?.setActiveSection('extendable');
   final extendableAnnotator = annotateNodes(
     spec.extendable,
     kDynModuleExtendablePragmaName,
@@ -58,6 +47,7 @@ void annotateComponent(
     annotateFinalClasses: false,
     annotateStaticMembers: false,
     annotateInstanceMembers: false,
+    logger: logger,
   );
 
   _ImplicitExtendableAnnotator(
@@ -65,6 +55,7 @@ void annotateComponent(
     extendableAnnotator.annotatedClasses,
   ).annotate();
 
+  logger?.setActiveSection('can-be-overridden');
   final canBeOverriddenAnnotator = annotateNodes(
     spec.canBeOverridden,
     kDynModuleCanBeOverriddenPragmaName,
@@ -74,15 +65,25 @@ void annotateComponent(
     annotateFinalClasses: true,
     annotateStaticMembers: false,
     annotateInstanceMembers: true,
+    logger: logger,
   );
 
   final hierarchy = ClassHierarchy(component, coreTypes);
+
+  copyCanBeOverriddenToMixinApplications(
+    canBeOverriddenAnnotator.annotatedMembers,
+    canBeOverriddenAnnotator.pragma,
+    component,
+    hierarchy,
+  );
+
   _ImplicitOverridesAnnotator(
     pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
     hierarchy,
     canBeOverriddenAnnotator.annotatedMembers,
   ).annotate();
 
+  logger?.setActiveSection('callable');
   final callableAnnotator = annotateNodes(
     spec.callable,
     kDynModuleCallablePragmaName,
@@ -92,6 +93,7 @@ void annotateComponent(
     annotateFinalClasses: true,
     annotateStaticMembers: true,
     annotateInstanceMembers: true,
+    logger: logger,
   );
 
   final implicitUsesAnnotator = _ImplicitUsesAnnotator(
@@ -121,6 +123,7 @@ _Annotator annotateNodes(
   required bool annotateFinalClasses,
   required bool annotateStaticMembers,
   required bool annotateInstanceMembers,
+  _DetailedDynamicInterfaceLogger? logger,
 }) {
   final pragma = pragmaConstant(coreTypes, pragmaName);
   final annotator = _Annotator(
@@ -129,6 +132,7 @@ _Annotator annotateNodes(
     annotateFinalClasses: annotateFinalClasses,
     annotateStaticMembers: annotateStaticMembers,
     annotateInstanceMembers: annotateInstanceMembers,
+    logger: logger,
   );
   for (final node in nodes) {
     node.accept(annotator);
@@ -143,6 +147,7 @@ class _Annotator extends RecursiveVisitor {
   final bool annotateFinalClasses;
   final bool annotateStaticMembers;
   final bool annotateInstanceMembers;
+  final _DetailedDynamicInterfaceLogger? logger;
 
   final Set<Class> annotatedClasses = Set<Class>.identity();
   final Set<Member> annotatedMembers = Set<Member>.identity();
@@ -153,6 +158,7 @@ class _Annotator extends RecursiveVisitor {
     required this.annotateFinalClasses,
     required this.annotateStaticMembers,
     required this.annotateInstanceMembers,
+    this.logger,
   });
 
   bool get annotateMembers => annotateStaticMembers || annotateInstanceMembers;
@@ -215,7 +221,7 @@ class _Annotator extends RecursiveVisitor {
     if (annotateClasses &&
         (annotateFinalClasses || !node.isFinal) &&
         annotatedClasses.add(node)) {
-      debugPrint("Annotated $node with $pragma");
+      logger?.logNode(node);
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
@@ -225,7 +231,7 @@ class _Annotator extends RecursiveVisitor {
             ? annotateInstanceMembers
             : annotateStaticMembers) &&
         annotatedMembers.add(node)) {
-      debugPrint("Annotated $node with $pragma");
+      logger?.logNode(node);
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
@@ -380,6 +386,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
     annotateMember(node);
     if (node.isConst) {
       annotateConstantClass(node.enclosingClass);
+      node.visitChildren(this);
     }
   }
 
@@ -415,14 +422,12 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
 
   void annotateClass(Class node) {
     if (annotatedClasses.add(node)) {
-      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
 
   void annotateMember(Member node) {
     if (annotatedMembers.add(node)) {
-      debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
     }
   }
@@ -434,6 +439,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
       for (final f in node.fields) {
         if (f.isInstanceMember) {
           annotateMember(f);
+          f.initializer?.accept(this);
         }
       }
       final superclass = node.superclass;
@@ -598,12 +604,14 @@ void discoverLanguageImplPragmasInCoreLibraries(
   DynamicInterfaceSpecification spec,
   Component component,
   CoreTypes coreTypes,
-  Target target,
 ) {
-  final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
-  final visitor = _DiscoverLanguageImplPragmasVisitor(spec, pragmaParser);
+  final languageImplPragmas = DynamicInterfaceLanguageImplPragmas(coreTypes);
+  final visitor = _DiscoverLanguageImplPragmasVisitor(
+    spec,
+    languageImplPragmas,
+  );
   for (final lib in component.libraries) {
-    if (lib.importUri.isScheme('dart')) {
+    if (languageImplPragmas.isPlatformLibrary(lib)) {
       visitor.visitLibrary(lib);
     }
   }
@@ -611,37 +619,109 @@ void discoverLanguageImplPragmasInCoreLibraries(
 
 class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
   final DynamicInterfaceSpecification spec;
-  final ConstantPragmaAnnotationParser parser;
+  final DynamicInterfaceLanguageImplPragmas languageImplPragmas;
 
-  _DiscoverLanguageImplPragmasVisitor(this.spec, this.parser);
+  _DiscoverLanguageImplPragmasVisitor(this.spec, this.languageImplPragmas);
 
   @override
   void visitClass(Class node) {
-    for (final annotation in node.annotations) {
-      final pragma = parser.parsePragma(annotation);
-      switch (pragma) {
-        case ParsedDynModuleLanguageImplExtendablePragma():
-          spec.extendable.add(node);
-        case ParsedDynModuleLanguageImplCallablePragma():
-          spec.callable.add(node);
-      }
+    if (languageImplPragmas.isExtendable(node)) {
+      spec.extendable.add(node);
+    }
+    if (languageImplPragmas.isCallable(node)) {
+      spec.callable.add(node);
     }
     node.visitChildren(this);
   }
 
   @override
   void defaultMember(Member node) {
-    for (final annotation in node.annotations) {
-      final pragma = parser.parsePragma(annotation);
-      switch (pragma) {
-        case ParsedDynModuleLanguageImplCallablePragma():
-          spec.callable.add(node);
-        case ParsedDynModuleLanguageImplCanBeOverriddenPragma():
-          if (!node.isInstanceMember) {
-            throw 'Expected instance member $node';
-          }
-          spec.canBeOverridden.add(node);
+    if (languageImplPragmas.isCallable(node)) {
+      spec.callable.add(node);
+    }
+    if (languageImplPragmas.canBeOverridden(node)) {
+      if (!node.isInstanceMember) {
+        throw 'Expected instance member $node';
       }
+      spec.canBeOverridden.add(node);
+    }
+  }
+}
+
+// Mixin transformation copies all members of mixins into mixin applications.
+// So we need to copy can-be-overridden pragmas from members of mixins to
+// their copies in the transformed mixin applications.
+void copyCanBeOverriddenToMixinApplications(
+  Set<Member> overriddenMembers,
+  Constant pragma,
+  Component component,
+  ClassHierarchy hierarchy,
+) {
+  void processMember(Member original, Class mixinApplication) {
+    if (!original.isInstanceMember) {
+      return;
+    }
+    if (!overriddenMembers.contains(original)) {
+      return;
+    }
+    final member = ClassHierarchy.findMemberByName(
+      hierarchy.getDeclaredMembers(
+        mixinApplication,
+        setters: original is Procedure && original.isSetter,
+      ),
+      original.name,
+    );
+    if (member == null) {
+      return;
+    }
+    if (overriddenMembers.add(member)) {
+      member.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+
+  for (final library in component.libraries) {
+    for (final cls in library.classes) {
+      if (cls.isEliminatedMixin) {
+        final origin = cls.implementedTypes.last.classNode;
+        for (final proc in origin.procedures) {
+          processMember(proc, cls);
+        }
+        for (final field in origin.fields) {
+          processMember(field, cls);
+        }
+      }
+    }
+  }
+}
+
+class _DetailedDynamicInterfaceLogger {
+  final Map<String, List<Map<String, String>>> json;
+  late List<Map<String, String>> section;
+
+  _DetailedDynamicInterfaceLogger(this.json);
+
+  void setActiveSection(String name) {
+    section = (json[name] ??= <Map<String, String>>[]);
+  }
+
+  void logNode(TreeNode node) {
+    switch (node) {
+      case Class():
+        section.add({
+          'library': node.enclosingLibrary.importUri.toString(),
+          'class': node.name,
+        });
+      case Member() when node.enclosingClass != null:
+        section.add({
+          'library': node.enclosingLibrary.importUri.toString(),
+          'class': node.enclosingClass!.demangledName,
+          'member': node.name.text,
+        });
+      case Member() when node.enclosingClass == null:
+        section.add({
+          'library': node.enclosingLibrary.importUri.toString(),
+          'member': node.name.text,
+        });
     }
   }
 }

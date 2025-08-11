@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/error/error.dart';
+
 import '../../analyzer.dart';
 import '../../utils.dart';
 
@@ -11,10 +14,10 @@ class PackageNames extends LintRule {
   PackageNames() : super(name: LintNames.package_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.package_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.package_names;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
@@ -23,10 +26,10 @@ class Visitor extends PubspecVisitor<void> {
   Visitor(this.rule);
 
   @override
-  void visitPackageName(PSEntry name) {
+  void visitPackageName(PubspecEntry name) {
     var packageName = name.value.text;
     if (packageName != null && !isValidPackageName(packageName)) {
-      rule.reportPubLint(name.value, arguments: [packageName]);
+      rule.reportAtPubNode(name.value, arguments: [packageName]);
     }
   }
 }

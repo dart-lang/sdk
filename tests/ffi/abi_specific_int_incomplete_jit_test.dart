@@ -105,9 +105,6 @@ final class IncompleteArrayArrayStruct extends Struct {
 void testInlineArray2() {
   final p = calloc<Int64>(100).cast<IncompleteArrayArrayStruct>();
   Expect.throws(() {
-    p.elementAt(3);
-  });
-  Expect.throws(() {
     (p + 3);
   });
   calloc.free(p);

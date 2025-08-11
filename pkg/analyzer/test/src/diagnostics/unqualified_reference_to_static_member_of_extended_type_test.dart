@@ -22,7 +22,8 @@ class UnqualifiedReferenceToStaticMemberOfExtendedTypeTest
   }
 
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class MyClass {
   static int get zero => 0;
 }
@@ -31,13 +32,14 @@ extension MyExtension on MyClass {
     zero;
   }
 }
-''', [
-      error(_errorCode, 98, 4),
-    ]);
+''',
+      [error(_errorCode, 98, 4)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class MyClass {
   static void sm() {}
 }
@@ -46,13 +48,14 @@ extension MyExtension on MyClass {
     sm();
   }
 }
-''', [
-      error(_errorCode, 92, 2),
-    ]);
+''',
+      [error(_errorCode, 92, 2)],
+    );
   }
 
   test_methodTearoff() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class MyClass {
   static void sm<T>() {}
 }
@@ -61,13 +64,14 @@ extension MyExtension on MyClass {
     sm<int>;
   }
 }
-''', [
-      error(_errorCode, 95, 2),
-    ]);
+''',
+      [error(_errorCode, 95, 2)],
+    );
   }
 
   test_readWrite() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class MyClass {
   static int get x => 0;
   static set x(int _) {}
@@ -81,11 +85,13 @@ extension MyExtension on MyClass {
     x++;
   }
 }
-''', [
-      error(_errorCode, 121, 1),
-      error(_errorCode, 132, 1),
-      error(_errorCode, 146, 1),
-      error(_errorCode, 153, 1),
-    ]);
+''',
+      [
+        error(_errorCode, 121, 1),
+        error(_errorCode, 132, 1),
+        error(_errorCode, 146, 1),
+        error(_errorCode, 153, 1),
+      ],
+    );
   }
 }

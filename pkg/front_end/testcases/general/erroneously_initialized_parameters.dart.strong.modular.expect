@@ -1,0 +1,246 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:11:33: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   A.optionalPositional([int x = ""]) {}
+//                                 ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:12:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   A.optionalNamed({int x = ""}) {}
+//                            ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:16:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void fooOptionalPositional([int x = ""]) {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:17:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void fooOptionalNamed({int x = ""}) {}
+//                                  ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:39:42: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void foobarOptionalPositional([int x = ""]) {}
+//                                          ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:40:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void foobarOptionalNamed({int x = ""}) {}
+//                                     ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:7:41: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// topLevelOptionalPositionalImplicit([int x]) {}
+//                                         ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:8:36: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// topLevelOptionalNamedImplicit({int x}) {}
+//                                    ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:18:43: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void fooOptionalPositionalImplicit([int x]) {}
+//                                           ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:19:38: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void fooOptionalNamedImplicit({int x}) {}
+//                                      ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:13:37: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.optionalPositionalImplicit([int x]) {}
+//                                     ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:14:32: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.optionalNamedImplicit({int x}) {}
+//                                ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:25:43: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void barOptionalPositionalImplicit([int x]) {}
+//                                           ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:26:38: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void barOptionalNamedImplicit({int x}) {}
+//                                      ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:32:43: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void bazOptionalPositionalImplicit([int x]) {}
+//                                           ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:33:38: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void bazOptionalNamedImplicit({int x}) {}
+//                                      ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:41:46: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void foobarOptionalPositionalImplicit([int x]) {}
+//                                              ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:42:41: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void foobarOptionalNamedImplicit({int x}) {}
+//                                         ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:5:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// topLevelOptionalPositional([int x = ""]) {}
+//                                     ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:6:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// topLevelOptionalNamed({int x = ""}) {}
+//                                ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:23:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void barOptionalPositional([int x = ""]) {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:24:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void barOptionalNamed({int x = ""}) {}
+//                                  ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:30:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void bazOptionalPositional([int x = ""]) {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:31:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void bazOptionalNamed({int x = ""}) {}
+//                                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor optionalPositional([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:11:33: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  A.optionalPositional([int x = \"\"]) {}
+                                ^"]) → self::A
+    : super core::Object::•() {}
+  constructor optionalNamed({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:12:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  A.optionalNamed({int x = \"\"}) {}
+                           ^"}) → self::A
+    : super core::Object::•() {}
+  constructor optionalPositionalImplicit([erroneously-initialized core::int x = #C1]) → self::A
+    : super core::Object::•() {}
+  constructor optionalNamedImplicit({erroneously-initialized core::int x = #C1}) → self::A
+    : super core::Object::•() {}
+  method fooOptionalPositional([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:16:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void fooOptionalPositional([int x = \"\"]) {}
+                                      ^"]) → void {}
+  method fooOptionalNamed({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:17:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void fooOptionalNamed({int x = \"\"}) {}
+                                 ^"}) → void {}
+  method fooOptionalPositionalImplicit([erroneously-initialized core::int x = #C1]) → void {}
+  method fooOptionalNamedImplicit({erroneously-initialized core::int x = #C1}) → void {}
+}
+class EN extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::EN element = #C4;
+  static const field core::List<self::EN> values = #C5;
+  const synthetic constructor •(core::int #index, core::String #name) → self::EN
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "EN.${this.{core::_Enum::_name}{core::String}}";
+  method foobarOptionalPositional([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:39:42: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void foobarOptionalPositional([int x = \"\"]) {}
+                                         ^"]) → void {}
+  method foobarOptionalNamed({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:40:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void foobarOptionalNamed({int x = \"\"}) {}
+                                    ^"}) → void {}
+  method foobarOptionalPositionalImplicit([erroneously-initialized core::int x = #C1]) → void {}
+  method foobarOptionalNamedImplicit({erroneously-initialized core::int x = #C1}) → void {}
+}
+extension E on self::A {
+  method barOptionalPositional = self::E|barOptionalPositional;
+  method tearoff barOptionalPositional = self::E|get#barOptionalPositional;
+  method barOptionalNamed = self::E|barOptionalNamed;
+  method tearoff barOptionalNamed = self::E|get#barOptionalNamed;
+  method barOptionalPositionalImplicit = self::E|barOptionalPositionalImplicit;
+  method tearoff barOptionalPositionalImplicit = self::E|get#barOptionalPositionalImplicit;
+  method barOptionalNamedImplicit = self::E|barOptionalNamedImplicit;
+  method tearoff barOptionalNamedImplicit = self::E|get#barOptionalNamedImplicit;
+}
+extension type ET(self::A it) {
+  abstract extension-type-member representation-field get it() → self::A;
+  method bazOptionalPositional = self::ET|bazOptionalPositional;
+  method tearoff bazOptionalPositional = self::ET|get#bazOptionalPositional;
+  method bazOptionalNamed = self::ET|bazOptionalNamed;
+  method tearoff bazOptionalNamed = self::ET|get#bazOptionalNamed;
+  method bazOptionalPositionalImplicit = self::ET|bazOptionalPositionalImplicit;
+  method tearoff bazOptionalPositionalImplicit = self::ET|get#bazOptionalPositionalImplicit;
+  method bazOptionalNamedImplicit = self::ET|bazOptionalNamedImplicit;
+  method tearoff bazOptionalNamedImplicit = self::ET|get#bazOptionalNamedImplicit;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static method topLevelOptionalPositional([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:5:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+topLevelOptionalPositional([int x = \"\"]) {}
+                                    ^"]) → dynamic {}
+static method topLevelOptionalNamed({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:6:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+topLevelOptionalNamed({int x = \"\"}) {}
+                               ^"}) → dynamic {}
+static method topLevelOptionalPositionalImplicit([erroneously-initialized core::int x = #C1]) → dynamic {}
+static method topLevelOptionalNamedImplicit({erroneously-initialized core::int x = #C1}) → dynamic {}
+static extension-member method E|barOptionalPositional(lowered final self::A #this, [erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:23:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void barOptionalPositional([int x = \"\"]) {}
+                                      ^"]) → void {}
+static extension-member method E|get#barOptionalPositional(lowered final self::A #this) → ([core::int]) → void
+  return ([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:23:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void barOptionalPositional([int x = \"\"]) {}
+                                      ^"]) → void => self::E|barOptionalPositional(#this, x);
+static extension-member method E|barOptionalNamed(lowered final self::A #this, {erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:24:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void barOptionalNamed({int x = \"\"}) {}
+                                 ^"}) → void {}
+static extension-member method E|get#barOptionalNamed(lowered final self::A #this) → ({x: core::int}) → void
+  return ({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:24:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void barOptionalNamed({int x = \"\"}) {}
+                                 ^"}) → void => self::E|barOptionalNamed(#this, x: x);
+static extension-member method E|barOptionalPositionalImplicit(lowered final self::A #this, [erroneously-initialized core::int x = #C1]) → void {}
+static extension-member method E|get#barOptionalPositionalImplicit(lowered final self::A #this) → ([core::int]) → void
+  return ([erroneously-initialized core::int x = #C1]) → void => self::E|barOptionalPositionalImplicit(#this, x);
+static extension-member method E|barOptionalNamedImplicit(lowered final self::A #this, {erroneously-initialized core::int x = #C1}) → void {}
+static extension-member method E|get#barOptionalNamedImplicit(lowered final self::A #this) → ({x: core::int}) → void
+  return ({erroneously-initialized core::int x = #C1}) → void => self::E|barOptionalNamedImplicit(#this, x: x);
+static extension-type-member method ET|constructor#(self::A it) → self::ET% /* erasure=self::A, declared=! */ {
+  lowered final self::ET% /* erasure=self::A, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(self::A it) → self::ET% /* erasure=self::A, declared=! */
+  return self::ET|constructor#(it);
+static extension-type-member method ET|bazOptionalPositional(lowered final self::ET% /* erasure=self::A, declared=! */ #this, [erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:30:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void bazOptionalPositional([int x = \"\"]) {}
+                                      ^"]) → void {}
+static extension-type-member method ET|get#bazOptionalPositional(lowered final self::ET% /* erasure=self::A, declared=! */ #this) → ([core::int]) → void
+  return ([erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:30:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void bazOptionalPositional([int x = \"\"]) {}
+                                      ^"]) → void => self::ET|bazOptionalPositional(#this, x);
+static extension-type-member method ET|bazOptionalNamed(lowered final self::ET% /* erasure=self::A, declared=! */ #this, {erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:31:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void bazOptionalNamed({int x = \"\"}) {}
+                                 ^"}) → void {}
+static extension-type-member method ET|get#bazOptionalNamed(lowered final self::ET% /* erasure=self::A, declared=! */ #this) → ({x: core::int}) → void
+  return ({erroneously-initialized core::int x = invalid-expression "pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:31:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  void bazOptionalNamed({int x = \"\"}) {}
+                                 ^"}) → void => self::ET|bazOptionalNamed(#this, x: x);
+static extension-type-member method ET|bazOptionalPositionalImplicit(lowered final self::ET% /* erasure=self::A, declared=! */ #this, [erroneously-initialized core::int x = #C1]) → void {}
+static extension-type-member method ET|get#bazOptionalPositionalImplicit(lowered final self::ET% /* erasure=self::A, declared=! */ #this) → ([core::int]) → void
+  return ([erroneously-initialized core::int x = #C1]) → void => self::ET|bazOptionalPositionalImplicit(#this, x);
+static extension-type-member method ET|bazOptionalNamedImplicit(lowered final self::ET% /* erasure=self::A, declared=! */ #this, {erroneously-initialized core::int x = #C1}) → void {}
+static extension-type-member method ET|get#bazOptionalNamedImplicit(lowered final self::ET% /* erasure=self::A, declared=! */ #this) → ({x: core::int}) → void
+  return ({erroneously-initialized core::int x = #C1}) → void => self::ET|bazOptionalNamedImplicit(#this, x: x);
+
+constants  {
+  #C1 = null
+  #C2 = 0
+  #C3 = "element"
+  #C4 = self::EN {index:#C2, _name:#C3}
+  #C5 = <self::EN>[#C4]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///erroneously_initialized_parameters.dart:
+- EN. (from org-dartlang-testcase:///erroneously_initialized_parameters.dart:36:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

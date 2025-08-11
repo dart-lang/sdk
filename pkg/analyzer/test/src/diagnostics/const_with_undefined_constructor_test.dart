@@ -16,36 +16,51 @@ main() {
 @reflectiveTest
 class ConstWithUndefinedConstructorTest extends PubPackageResolutionTest {
   test_class_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 f() {
   return const A.noSuchConstructor();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 48, 17,
-          messageContains: ["class 'A'", "constructor 'noSuchConstructor'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+          48,
+          17,
+          messageContains: ["class 'A'", "constructor 'noSuchConstructor'"],
+        ),
+      ],
+    );
   }
 
   test_class_named_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async' as a;
 f() {
   return const a.Future.noSuchConstructor();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 56, 17,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+          56,
+          17,
           messageContains: [
             "class 'a.Future'",
-            "constructor 'noSuchConstructor'"
-          ]),
-    ]);
+            "constructor 'noSuchConstructor'",
+          ],
+        ),
+      ],
+    );
   }
 
   test_class_nonFunctionTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A.name();
 }
@@ -53,25 +68,36 @@ typedef B = A;
 f() {
   return const B();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 66, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          66,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A.name();
 }
 f() {
   return const A();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 51, 1,
-          messageContains: ["'A'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          51,
+          1,
+          messageContains: ["'A'"],
+        ),
+      ],
+    );
   }
 
   test_class_unnamed_prefixed() async {
@@ -80,20 +106,27 @@ class A {
   const A.name();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' as lib1;
 f() {
   return const lib1.A();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 49, 6,
-          messageContains: ["'lib1.A'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          49,
+          6,
+          messageContains: ["'lib1.A'"],
+        ),
+      ],
+    );
   }
 
   test_enum_notConstructor_constant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   const E.v();
 }
@@ -101,13 +134,14 @@ void f() {
 enum E {
   v
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 1)],
+    );
   }
 
   test_enum_notConstructor_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   const E.foo();
 }
@@ -117,13 +151,14 @@ enum E {
   
   void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3)],
+    );
   }
 
   test_enum_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   const E.foo();
 }
@@ -131,8 +166,8 @@ void f() {
 enum E {
   v
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3)],
+    );
   }
 }

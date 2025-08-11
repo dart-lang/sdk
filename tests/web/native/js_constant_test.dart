@@ -20,7 +20,9 @@ import 'native_testing.dart';
 @pragma('dart2js:noInline')
 checkString(r) {
   Expect.isTrue(
-      r is String, 'Expected string, found ${r} of type ${r.runtimeType}');
+    r is String,
+    'Expected string, found ${r} of type ${r.runtimeType}',
+  );
 }
 
 test1() {

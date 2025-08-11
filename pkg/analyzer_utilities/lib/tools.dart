@@ -40,13 +40,13 @@ String capitalize(String string) {
 }
 
 /// Type of functions used to compute the contents of a set of generated files.
-/// [pkgPath] is the path to the current package.
-typedef DirectoryContentsComputer = Map<String, FileContentsComputer> Function(
-    String pkgPath);
+/// [pkgRoot] is the path to the SDK's `pkg` directory.
+typedef DirectoryContentsComputer =
+    Map<String, FileContentsComputer> Function(String pkgRoot);
 
 /// Type of functions used to compute the contents of a generated file.
-/// [pkgPath] is the path to the current package.
-typedef FileContentsComputer = Future<String> Function(String pkgPath);
+/// [pkgRoot] is the path to the SDK's `pkg` directory.
+typedef FileContentsComputer = Future<String> Function(String pkgRoot);
 
 /// Mixin class for generating code.
 mixin CodeGenerator {
@@ -61,14 +61,18 @@ mixin CodeGenerator {
 
   /// Execute [callback], collecting any code that is output using [write]
   /// or [writeln], and return the result as a string.
-  String collectCode(void Function() callback,
-      {bool removeTrailingNewLine = false}) {
+  String collectCode(
+    void Function() callback, {
+    bool removeTrailingNewLine = false,
+  }) {
     var oldState = _state;
     try {
       _state = _CodeGeneratorState();
       callback();
-      var text =
-          _state.buffer.toString().replaceAll(trailingSpacesInLineRegExp, '');
+      var text = _state.buffer.toString().replaceAll(
+        trailingSpacesInLineRegExp,
+        '',
+      );
       if (!removeTrailingNewLine) {
         return text;
       } else {
@@ -94,8 +98,14 @@ mixin CodeGenerator {
     var width = codeGeneratorSettings.commentLineLength;
     var javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
-      write(nodesToText(docs, width - _state.indent.length, javadocStyle,
-          removeTrailingNewLine: removeTrailingNewLine));
+      write(
+        nodesToText(
+          docs,
+          width - _state.indent.length,
+          javadocStyle,
+          removeTrailingNewLine: removeTrailingNewLine,
+        ),
+      );
     });
 
     var endMarker = codeGeneratorSettings.docCommentEndMarker;
@@ -107,7 +117,10 @@ mixin CodeGenerator {
   /// Execute [callback], indenting any code it outputs.
   void indent(void Function() callback) {
     indentSpecial(
-        codeGeneratorSettings.indent, codeGeneratorSettings.indent, callback);
+      codeGeneratorSettings.indent,
+      codeGeneratorSettings.indent,
+      callback,
+    );
   }
 
   /// Execute [callback], using [additionalIndent] to indent any code it outputs.
@@ -117,8 +130,11 @@ mixin CodeGenerator {
   /// Execute [callback], using [additionalIndent] to indent any code it outputs.
   /// The first line of output is indented by [firstAdditionalIndent] instead of
   /// [additionalIndent].
-  void indentSpecial(String firstAdditionalIndent, String additionalIndent,
-      void Function() callback) {
+  void indentSpecial(
+    String firstAdditionalIndent,
+    String additionalIndent,
+    void Function() callback,
+  ) {
     var oldNextIndent = _state.nextIndent;
     var oldIndent = _state.indent;
     try {
@@ -214,14 +230,15 @@ class CodeGeneratorSettings {
   /// String used for indenting code.
   String indent;
 
-  CodeGeneratorSettings(
-      {this.languageName = 'java',
-      this.lineCommentLineLeader = '// ',
-      this.docCommentStartMarker = '/**',
-      this.docCommentLineLeader = ' * ',
-      this.docCommentEndMarker = ' */',
-      this.commentLineLength = 99,
-      this.indent = '  '});
+  CodeGeneratorSettings({
+    this.languageName = 'java',
+    this.lineCommentLineLeader = '// ',
+    this.docCommentStartMarker = '/**',
+    this.docCommentLineLeader = ' * ',
+    this.docCommentEndMarker = ' */',
+    this.commentLineLength = 99,
+    this.indent = '  ',
+  });
 }
 
 /// A utility class for invoking 'dart format'.
@@ -233,16 +250,20 @@ class DartFormat {
     _throwIfExitCode(result);
   }
 
-  static Future<String> _formatText(String text,
-      {required String pkgPath}) async {
+  static Future<String> _formatText(
+    String text, {
+    required String pkgPath,
+  }) async {
     var packageConfig = await findPackageConfig(Directory(pkgPath));
     if (packageConfig == null) {
       throw StateError(
-          'Could not find the shared Dart SDK package_config.json file, for '
-          '"$pkgPath"');
+        'Could not find the shared Dart SDK package_config.json file, for '
+        '"$pkgPath"',
+      );
     }
-    var package =
-        packageConfig.packageOf(Uri.file(join(pkgPath, 'pubspec.yaml')));
+    var package = packageConfig.packageOf(
+      Uri.file(join(pkgPath, 'pubspec.yaml')),
+    );
     if (package == null) {
       throw StateError('Could not find the package for "$pkgPath"');
     }
@@ -263,35 +284,43 @@ class DartFormat {
 /// generated directories.
 abstract class GeneratedContent {
   /// Check whether the [output] has the correct contents, and return true if it
-  /// does.  [pkgPath] is the path to the current package.
-  Future<bool> check(String pkgPath);
+  /// does.
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  Future<bool> check(String pkgRoot);
 
-  /// Replace the [output] with the correct contents.  [pkgPath] is the path to
-  /// the current package.
-  Future<void> generate(String pkgPath);
+  /// Replace the [output] with the correct contents.
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  Future<void> generate(String pkgRoot);
 
   /// Get a [FileSystemEntity] representing the output file or directory.
-  /// [pkgPath] is the path to the current package.
-  FileSystemEntity output(String pkgPath);
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
+  FileSystemEntity output(String pkgRoot);
 
   /// Check that all of the [targets] are up to date.  If they are not, print
   /// out a message instructing the user to regenerate them, and exit with a
   /// nonzero error code.
   ///
-  /// [pkgPath] is the path to the current package.  [generatorPath] is the path
-  /// to a .dart script the user may use to regenerate the targets.
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.  [generatorPath] is
+  /// the path to a .dart script the user may use to regenerate the targets.
   ///
   /// To avoid mistakes when run on Windows, [generatorPath] always uses
   /// POSIX directory separators.
   static Future<void> checkAll(
-      String pkgPath, String generatorPath, Iterable<GeneratedContent> targets,
-      {List<String> args = const []}) async {
+    String pkgRoot,
+    String generatorPath,
+    Iterable<GeneratedContent> targets,
+  ) async {
     var generateNeeded = false;
     for (var target in targets) {
-      var ok = await target.check(pkgPath);
+      var ok = await target.check(pkgRoot);
       if (!ok) {
-        print('${normalize(target.output(pkgPath).absolute.path)}'
-            " doesn't have expected contents.");
+        print(
+          '${normalize(target.output(pkgRoot).absolute.path)}'
+          " doesn't have expected contents.",
+        );
         generateNeeded = true;
       }
     }
@@ -299,18 +328,21 @@ abstract class GeneratedContent {
       print('Please regenerate using:');
       var executable = Platform.executable;
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
-      print('  $executable $generateScript ${args.join(" ")}');
+      print('  $executable $generateScript');
       fail('Generated content needs to be regenerated');
     }
   }
 
-  /// Regenerate all of the [targets].  [pkgPath] is the path to the current
-  /// package.
+  /// Regenerate all of the [targets].
+  ///
+  /// [pkgRoot] is the path to the SDK's `pkg` directory.
   static Future<void> generateAll(
-      String pkgPath, Iterable<GeneratedContent> targets) async {
+    String pkgRoot,
+    Iterable<GeneratedContent> targets,
+  ) async {
     print('Generating...');
     for (var target in targets) {
-      await target.generate(pkgPath);
+      await target.generate(pkgRoot);
     }
   }
 }
@@ -318,7 +350,10 @@ abstract class GeneratedContent {
 /// Class representing a single output directory (either generated code or
 /// generated HTML). No other content should exist in the directory.
 class GeneratedDirectory extends GeneratedContent {
-  /// The path to the directory that will have the generated content.
+  /// The path to the directory that will have the generated content, relative
+  /// to the `pkg` directory.
+  ///
+  /// This pathname uses the posix path separator ('/') regardless of the OS.
   final String outputDirPath;
 
   /// Callback function that computes the directory contents.
@@ -327,14 +362,14 @@ class GeneratedDirectory extends GeneratedContent {
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
 
   @override
-  Future<bool> check(String pkgPath) async {
-    var outputDirectory = output(pkgPath);
-    var map = directoryContentsComputer(pkgPath);
+  Future<bool> check(String pkgRoot) async {
+    var outputDirectory = output(pkgRoot);
+    var map = directoryContentsComputer(pkgRoot);
     try {
       for (var entry in map.entries) {
         var file = entry.key;
         var fileContentsComputer = entry.value;
-        var expectedContents = await fileContentsComputer(pkgPath);
+        var expectedContents = await fileContentsComputer(pkgRoot);
         var outputFile = File(posix.join(outputDirectory.path, file));
         var actualContents = outputFile.readAsStringSync();
         // Normalize Windows line endings to Unix line endings so that the
@@ -345,9 +380,9 @@ class GeneratedDirectory extends GeneratedContent {
         }
       }
       var nonHiddenFileCount = 0;
-      outputDirectory
-          .listSync(recursive: false, followLinks: false)
-          .forEach((FileSystemEntity fileSystemEntity) {
+      outputDirectory.listSync(recursive: false, followLinks: false).forEach((
+        FileSystemEntity fileSystemEntity,
+      ) {
         if (fileSystemEntity is File &&
             !basename(fileSystemEntity.path).startsWith('.')) {
           nonHiddenFileCount++;
@@ -368,8 +403,8 @@ class GeneratedDirectory extends GeneratedContent {
   }
 
   @override
-  Future<void> generate(String pkgPath) async {
-    var outputDirectory = output(pkgPath);
+  Future<void> generate(String pkgRoot) async {
+    var outputDirectory = output(pkgRoot);
     try {
       // delete the contents of the directory (and the directory itself)
       outputDirectory.deleteSync(recursive: true);
@@ -381,28 +416,29 @@ class GeneratedDirectory extends GeneratedContent {
     outputDirectory.createSync(recursive: true);
 
     // generate all of the files in the directory
-    var map = directoryContentsComputer(pkgPath);
+    var map = directoryContentsComputer(pkgRoot);
     for (var entry in map.entries) {
       var file = entry.key;
       var fileContentsComputer = entry.value;
       var outputFile = File(posix.join(outputDirectory.path, file));
       print('  ${normalize(outputFile.path)}');
-      var contents = await fileContentsComputer(pkgPath);
+      var contents = await fileContentsComputer(pkgRoot);
       outputFile.writeAsStringSync(contents);
     }
   }
 
   @override
-  Directory output(String pkgPath) =>
-      Directory(join(pkgPath, joinAll(posix.split(outputDirPath))));
+  Directory output(String pkgRoot) =>
+      Directory(join(pkgRoot, joinAll(posix.split(outputDirPath))));
 }
 
 /// Class representing a single output file (either generated code or generated
 /// HTML).
 class GeneratedFile extends GeneratedContent {
   /// The output file to which generated output should be written, relative to
-  /// the "tool/spec" directory.  This filename uses the posix path separator
-  /// ('/') regardless of the OS.
+  /// the `pkg` directory.
+  ///
+  /// This filename uses the posix path separator ('/') regardless of the OS.
   final String outputPath;
 
   /// Callback function which computes the file.
@@ -413,12 +449,14 @@ class GeneratedFile extends GeneratedContent {
   bool get isDartFile => outputPath.endsWith('.dart');
 
   @override
-  Future<bool> check(String pkgPath) async {
-    var outputFile = output(pkgPath);
-    var expectedContents = await computeContents(pkgPath);
+  Future<bool> check(String pkgRoot) async {
+    var outputFile = output(pkgRoot);
+    var expectedContents = await computeContents(pkgRoot);
     if (isDartFile) {
-      expectedContents = await DartFormat._formatText(expectedContents,
-          pkgPath: dirname(outputFile.path));
+      expectedContents = await DartFormat._formatText(
+        expectedContents,
+        pkgPath: dirname(outputFile.path),
+      );
     }
     try {
       var actualContents = outputFile.readAsStringSync();
@@ -436,10 +474,10 @@ class GeneratedFile extends GeneratedContent {
   }
 
   @override
-  Future<void> generate(String pkgPath) async {
-    var outputFile = output(pkgPath);
+  Future<void> generate(String pkgRoot) async {
+    var outputFile = output(pkgRoot);
     print('  ${normalize(outputFile.path)}');
-    var contents = await computeContents(pkgPath);
+    var contents = await computeContents(pkgRoot);
     outputFile.writeAsStringSync(contents);
     if (isDartFile) {
       DartFormat.formatFile(outputFile);
@@ -447,8 +485,8 @@ class GeneratedFile extends GeneratedContent {
   }
 
   @override
-  File output(String pkgPath) =>
-      File(normalize(join(pkgPath, joinAll(posix.split(outputPath)))));
+  File output(String pkgRoot) =>
+      File(normalize(join(pkgRoot, joinAll(posix.split(outputPath)))));
 }
 
 /// Mixin class for generating HTML representations of code that are suitable
@@ -486,8 +524,11 @@ mixin HtmlCodeGenerator {
 
   /// Execute [callback], wrapping its output in an element with the given
   /// [name] and [attributes].
-  void element(String name, Map<String, String> attributes,
-      [void Function()? callback]) {
+  void element(
+    String name,
+    Map<String, String> attributes, [
+    void Function()? callback,
+  ]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 

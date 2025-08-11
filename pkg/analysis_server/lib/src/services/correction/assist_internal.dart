@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
+import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -13,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_class_to_mi
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_block.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_field_formal_to_normal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_async_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_final_field.dart';
@@ -61,6 +63,7 @@ import 'package:analysis_server/src/services/correction/dart/join_else_with_if.d
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
@@ -80,6 +83,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   AddDiagnosticPropertyReference.new,
   AddDigitSeparatorEveryThreeDigits.new,
   AddDigitSeparatorEveryTwoDigits.new,
+  AddLate.new,
   AddReturnType.new,
   AddTypeAnnotation.bulkFixable,
   AssignToLocalVariable.new,
@@ -89,6 +93,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertConditionalExpressionToIfElement.new,
   ConvertDocumentationIntoBlock.new,
   ConvertDocumentationIntoLine.new,
+  ConvertFieldFormalToNormal.new,
   ConvertIfStatementToSwitchStatement.new,
   ConvertIntoAsyncBody.new,
   ConvertIntoBlockBody.missingBody,
@@ -138,6 +143,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   JoinIfWithInner.new,
   JoinIfWithOuter.new,
   JoinVariableDeclaration.new,
+  RemoveAsync.new,
   RemoveDigitSeparators.new,
   RemoveTypeAnnotation.other,
   ReplaceConditionalWithIfElse.new,

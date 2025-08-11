@@ -319,9 +319,10 @@ void testVirtualCalls(Base child, int ia, int ib) {
 }
 
 void runTests(
-    List<String> args,
-    List<void Function(String, int, int)> directCallsTests,
-    List<Base Function(String)> childClassFactories) {
+  List<String> args,
+  List<void Function(String, int, int)> directCallsTests,
+  List<Base Function(String)> childClassFactories,
+) {
   final ia = args.length >= 1 ? int.parse(args[0]) : 42;
   final ib = args.length >= 2 ? int.parse(args[1]) : 100;
   final str = args.length >= 3 ? args[2] : 'ok+';
@@ -343,8 +344,11 @@ void main(List<String> args) {
   runTests(args, directCallsTests, childClassFactories);
 }
 
-void _matchIL(FlowGraph graph,
-    {required List<String?> parameters, bool argDesc = false}) {
+void _matchIL(
+  FlowGraph graph, {
+  required List<String?> parameters,
+  bool argDesc = false,
+}) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -353,7 +357,7 @@ void _matchIL(FlowGraph graph,
           match.Parameter(index: i, location: parameters[i]),
       if (argDesc)
         match.Parameter(index: parameters.length, location: 'reg(cpu)'),
-    ])
+    ]),
   ]);
 }
 
@@ -370,19 +374,25 @@ void matchIL$ChildSimple$fNamed(FlowGraph graph) {
 }
 
 void matchIL$ChildSimple$fIntInt(FlowGraph graph) {
-  _matchIL(graph, parameters: [
-    'reg(cpu)',
-    is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
-    'stack(word)',
-  ]);
+  _matchIL(
+    graph,
+    parameters: [
+      'reg(cpu)',
+      is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
+      'stack(word)',
+    ],
+  );
 }
 
 void matchIL$ChildSimple$fIntDouble(FlowGraph graph) {
-  _matchIL(graph, parameters: [
-    'reg(cpu)',
-    is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
-    'stack(word)',
-  ]);
+  _matchIL(
+    graph,
+    parameters: [
+      'reg(cpu)',
+      is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
+      'stack(word)',
+    ],
+  );
 }
 
 void matchIL$ChildSimple$fDoubleDouble(FlowGraph graph) {
@@ -426,42 +436,50 @@ void matchIL$ChildConvertingParametersToOptional$fNamed(FlowGraph graph) {
 }
 
 void matchIL$ChildConvertingParametersToOptional$fIntInt(FlowGraph graph) {
-  _matchIL(graph,
-      parameters: [
-        'reg(cpu)',
-        is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
-        null,
-      ],
-      argDesc: true);
+  _matchIL(
+    graph,
+    parameters: [
+      'reg(cpu)',
+      is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
+      null,
+    ],
+    argDesc: true,
+  );
 }
 
 void matchIL$ChildConvertingParametersToOptional$fIntDouble(FlowGraph graph) {
-  _matchIL(graph,
-      parameters: [
-        'reg(cpu)',
-        is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
-        null,
-      ],
-      argDesc: true);
+  _matchIL(
+    graph,
+    parameters: [
+      'reg(cpu)',
+      is32BitConfiguration ? '(reg(cpu), reg(cpu))' : 'reg(cpu)',
+      null,
+    ],
+    argDesc: true,
+  );
 }
 
 void matchIL$ChildConvertingParametersToOptional$fDoubleDouble(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   _matchIL(graph, parameters: ['reg(cpu)', 'reg(fpu)', null], argDesc: true);
 }
 
 void matchIL$ChildConvertingParametersToOptional$fIntOptionalInt(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   matchIL$ChildSimple$fIntOptionalInt(graph);
 }
 
 void matchIL$ChildConvertingParametersToOptional$fIntOptionalDouble(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   matchIL$ChildSimple$fIntOptionalDouble(graph);
 }
 
 void matchIL$ChildConvertingParametersToOptional$fDoubleOptionalDouble(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   matchIL$ChildSimple$fDoubleOptionalDouble(graph);
 }
 
@@ -470,11 +488,13 @@ void matchIL$ChildConvertingParametersToOptional$fIntNamedInt(FlowGraph graph) {
 }
 
 void matchIL$ChildConvertingParametersToOptional$fIntNamedDouble(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   matchIL$ChildSimple$fIntNamedDouble(graph);
 }
 
 void matchIL$ChildConvertingParametersToOptional$fDoubleNamedDouble(
-    FlowGraph graph) {
+  FlowGraph graph,
+) {
   matchIL$ChildSimple$fDoubleNamedDouble(graph);
 }

@@ -308,10 +308,9 @@ List _parsePackageConfig(bool traceLoading, Uri packageConfig, String data) {
     final String packageName = package['name'];
     final String? packageUri = package['packageUri'];
     final Uri resolvedRootUri = packageConfig.resolve(rootUri);
-    final Uri resolvedPackageUri =
-        packageUri != null
-            ? resolvedRootUri.resolve(packageUri)
-            : resolvedRootUri;
+    final Uri resolvedPackageUri = packageUri != null
+        ? resolvedRootUri.resolve(packageUri)
+        : resolvedRootUri;
     if (packageUri != null &&
         !'$resolvedPackageUri'.contains('$resolvedRootUri')) {
       throw 'The resolved "packageUri" is not a subdirectory of the "rootUri".';

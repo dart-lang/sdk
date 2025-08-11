@@ -7,9 +7,8 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 
 /// A helper class that produces candidate suggestions for overrides of
 /// inherited methods.
@@ -20,36 +19,25 @@ class OverrideHelper {
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
 
-  /// The inheritance manager used to compute the set of methods that can be
-  /// overridden.
-  final InheritanceManager3 inheritanceManager;
-
   /// Initialize a newly created helper to add suggestions to the [collector].
-  OverrideHelper({required this.state, required this.collector})
-    : inheritanceManager = state.request.inheritanceManager;
+  OverrideHelper({required this.state, required this.collector});
 
   void computeOverridesFor({
-    required InterfaceElement2 interfaceElement,
+    required InterfaceElement interfaceElement,
     required SourceRange replacementRange,
     required bool skipAt,
   }) {
-    var interface = inheritanceManager.getInterface2(interfaceElement);
-    var interfaceMap = interface.map2;
-    var namesToOverride = _namesToOverride(
-      interfaceElement.library2.uri,
-      interface,
-    );
+    var namesToOverride = _namesToOverride(interfaceElement);
 
-    // Build suggestions
+    // Build suggestions.
     for (var name in namesToOverride) {
-      var element = interfaceMap[name];
+      var element = interfaceElement.interfaceMembers[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         if (_hasNonVirtualAnnotation(element)) {
           continue;
         }
 
-        var invokeSuper = interface.isSuperImplemented(name);
         var matcherScore = math.max(
           math.max(
             state.matcher.score('override'),
@@ -57,6 +45,8 @@ class OverrideHelper {
           ),
           state.matcher.score(element.displayName),
         );
+        var invokeSuper =
+            interfaceElement.getInheritedConcreteMember(name) != null;
         if (matcherScore != -1) {
           collector.addSuggestion(
             OverrideSuggestion(
@@ -73,21 +63,23 @@ class OverrideHelper {
   }
 
   /// Checks if the [element] has the `@nonVirtual` annotation.
-  bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
+  bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
-      var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasNonVirtual) {
+      var variable = element.variable;
+      if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }
     }
-    return element.metadata2.hasNonVirtual;
+    return element.metadata.hasNonVirtual;
   }
 
-  /// Return the list of names that belong to the [interface] of a class, but
-  /// are not yet declared in the class.
-  List<Name> _namesToOverride(Uri libraryUri, Interface interface) {
+  /// Returns the list of names that belong to [interfaceElement], but are not
+  /// yet declared in the class.
+  List<Name> _namesToOverride(InterfaceElement interfaceElement) {
     var namesToOverride = <Name>[];
-    for (var name in interface.map2.keys) {
+    var libraryUri = interfaceElement.library.uri;
+    var memberNames = interfaceElement.interfaceMembers.keys;
+    for (var name in memberNames) {
       if (name.isAccessibleFor(libraryUri)) {
         // TODO(brianwilkerson): When the user is typing the name of an
         //  inherited member, the map will contain a key matching the current
@@ -95,7 +87,12 @@ class OverrideHelper {
         //  declaration consists of a single identifier), and that identifier
         //  matches the name of an overridden member, then the override should
         //  still be suggested.
-        if (!interface.declared2.containsKey(name)) {
+        var declaredElement =
+            interfaceElement.getGetter(name.name) ??
+            interfaceElement.getMethod(name.name) ??
+            // `getSetter` accepts names without trailing `=` characters.
+            interfaceElement.getSetter(name.forGetter.name);
+        if (declaredElement == null) {
           namesToOverride.add(name);
         }
       }

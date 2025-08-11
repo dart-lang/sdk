@@ -77,10 +77,18 @@ List<dynamic> testAllVariants(dynamic Function(bool, bool) f) {
 void main(List<String> args) {
   shouldPrint = args.contains("shouldPrint");
 
-  Expect.listEquals(
-      [10, 10, null, null], testAllVariants(testDelayAllocationsUnsunk));
-  Expect.listEquals(
-      [10, 10, 42, null], testAllVariants(testDelayAllocationsSunk));
+  Expect.listEquals([
+    10,
+    10,
+    null,
+    null,
+  ], testAllVariants(testDelayAllocationsUnsunk));
+  Expect.listEquals([
+    10,
+    10,
+    42,
+    null,
+  ], testAllVariants(testDelayAllocationsSunk));
 }
 
 void matchIL$testDelayAllocationsUnsunk(FlowGraph afterDelayAllocations) {
@@ -89,8 +97,8 @@ void matchIL$testDelayAllocationsUnsunk(FlowGraph afterDelayAllocations) {
     match.block('Graph'),
     match.block('Function', [
       // Allocation must stay unsunk
-      match.AllocateObject()
-    ])
+      match.AllocateObject(),
+    ]),
   ]);
 }
 
@@ -100,20 +108,14 @@ void matchIL$testDelayAllocationsSunk(FlowGraph afterDelayAllocations) {
     match.block('Graph'),
     match.block('Function', [
       // Allocation must be sunk from this block.
-      match.Branch(match.StrictCompare(match.any, match.any, kind: '==='),
-          ifTrue: 'B3', ifFalse: 'B4'),
+      match.Branch(
+        match.StrictCompare(match.any, match.any, kind: '==='),
+        ifTrue: 'B3',
+        ifFalse: 'B4',
+      ),
     ]),
-    'B3' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.AllocateObject(),
-        ]),
+    'B3' << match.block('Target', [match.Goto('B5')]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
+    'B5' << match.block('Join', [match.AllocateObject()]),
   ]);
 }

@@ -262,25 +262,25 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagator_Regress35371) {
     return op;
   };
 
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*lhs=*/2, make_int64_add,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*rhs=*/2, make_int64_add,
                                   FoldingResult::FoldsTo(3));
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt64, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt64, /*rhs=*/1,
                                   make_int64_add,
                                   FoldingResult::FoldsTo(kMinInt64));
 
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*lhs=*/2, make_int32_add,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/1, /*rhs=*/2, make_int32_add,
                                   FoldingResult::FoldsTo(3));
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32 - 1, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32 - 1, /*rhs=*/1,
                                   make_int32_add,
                                   FoldingResult::FoldsTo(kMaxInt32));
 
   // Overflow of int32 representation and operation is not marked as
   // truncating.
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*rhs=*/1,
                                   make_int32_add, FoldingResult::NoFold());
 
   // Overflow of int32 representation and operation is marked as truncating.
-  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*lhs=*/1,
+  ConstantPropagatorUnboxedOpTest(thread, /*lhs=*/kMaxInt32, /*rhs=*/1,
                                   make_int32_truncating_add,
                                   FoldingResult::FoldsTo(kMinInt32));
 }
@@ -307,8 +307,8 @@ void StrictCompareSentinel(Thread* thread,
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto v_load = builder.AddDefinition(new LoadStaticFieldInstr(
-        field_x, {},
-        /*calls_initializer=*/true, S.GetNextDeoptId()));
+        field_x, {}, SlowPathOnSentinelValue::kCallInitializer,
+        S.GetNextDeoptId()));
     auto v_sentinel = H.flow_graph()->GetConstant(Object::sentinel());
     Value* const left_value =
         non_sentinel_on_left ? new Value(v_load) : new Value(v_sentinel);

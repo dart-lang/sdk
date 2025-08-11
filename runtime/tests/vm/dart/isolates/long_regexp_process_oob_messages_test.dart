@@ -17,8 +17,12 @@ main() async {
   asyncStart();
   ReceivePort onExit = ReceivePort();
   ReceivePort workerStarted = ReceivePort();
-  final isolate = await Isolate.spawn(worker, workerStarted.sendPort,
-      onExit: onExit.sendPort, errorsAreFatal: true);
+  final isolate = await Isolate.spawn(
+    worker,
+    workerStarted.sendPort,
+    onExit: onExit.sendPort,
+    errorsAreFatal: true,
+  );
   await workerStarted.first;
   print('worker started, now killing worker');
   isolate.kill(priority: Isolate.immediate);

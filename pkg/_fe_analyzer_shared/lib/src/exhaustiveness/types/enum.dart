@@ -5,8 +5,12 @@
 part of '../types.dart';
 
 /// Interface implemented by analyzer/CFE to support [StaticType]s for enums.
-abstract class EnumOperations<Type extends Object, EnumClass extends Object,
-    EnumElement extends Object, EnumElementValue extends Object> {
+abstract class EnumOperations<
+  Type extends Object,
+  EnumClass extends Object,
+  EnumElement extends Object,
+  EnumElementValue extends Object
+> {
   /// Returns the enum class declaration for the [type] or `null` if
   /// [type] is not an enum type.
   EnumClass? getEnumClass(Type type);
@@ -28,44 +32,54 @@ abstract class EnumOperations<Type extends Object, EnumClass extends Object,
 
 /// [EnumInfo] stores information to compute the static type for and the type
 /// of and enum class and its enum elements.
-class EnumInfo<Type extends Object, EnumClass extends Object,
-    EnumElement extends Object, EnumElementValue extends Object> {
+class EnumInfo<
+  Type extends Object,
+  EnumClass extends Object,
+  EnumElement extends Object,
+  EnumElementValue extends Object
+> {
   final TypeOperations<Type> _typeOperations;
   final FieldLookup<Type> _fieldLookup;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
-      _enumOperations;
+  _enumOperations;
   final EnumClass _enumClass;
   Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>?
-      _enumElements;
+  _enumElements;
 
-  EnumInfo(this._typeOperations, this._fieldLookup, this._enumOperations,
-      this._enumClass);
+  EnumInfo(
+    this._typeOperations,
+    this._fieldLookup,
+    this._enumOperations,
+    this._enumClass,
+  );
 
   /// Returns a map of the enum elements and their corresponding [StaticType]s
   /// declared by [_enumClass].
   Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>
-      get enumElements => _enumElements ??= _createEnumElements();
+  get enumElements => _enumElements ??= _createEnumElements();
 
   /// Returns the [StaticType] corresponding to [enumElementValue].
   EnumElementStaticType<Type, EnumElement> getEnumElement(
-      EnumElementValue enumElementValue) {
+    EnumElementValue enumElementValue,
+  ) {
     return enumElements[enumElementValue]!;
   }
 
   Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>
-      _createEnumElements() {
+  _createEnumElements() {
     Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>> elements =
         {};
     for (EnumElement element in _enumOperations.getEnumElements(_enumClass)) {
       EnumElementValue? value = _enumOperations.getEnumElementValue(element);
       if (value != null) {
         elements[value] = new EnumElementStaticType<Type, EnumElement>(
-            _typeOperations,
-            _fieldLookup,
-            _enumOperations.getEnumElementType(element),
-            new IdentityRestriction<EnumElement>(element),
-            _enumOperations.getEnumElementName(element),
-            element);
+          _typeOperations,
+          _fieldLookup,
+          _enumOperations.getEnumElementType(element),
+          new IdentityRestriction<EnumElement>(element),
+          _enumOperations.getEnumElementName(element),
+          element,
+        );
       }
     }
     return elements;
@@ -80,8 +94,11 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   List<StaticType>? _enumElements;
 
   EnumStaticType(
-      super.typeOperations, super.fieldLookup, super.type, this._enumInfo)
-      : super(isImplicitlyNullable: false);
+    super.typeOperations,
+    super.fieldLookup,
+    super.type,
+    this._enumInfo,
+  ) : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
@@ -118,7 +135,9 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
       // Since all type arguments on enum values are fixed, we don't have to
       // avoid the trivial subtype instantiation `E<Never>`.
       if (_typeOperations.isSubtypeOf(
-          enumElement._type, _typeOperations.overapproximate(_type))) {
+        enumElement._type,
+        _typeOperations.overapproximate(_type),
+      )) {
         // Since the type of the enum element might not itself be a subtype of
         // [_type], for instance in the example above the type of `Enum.a`,
         // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the static type
@@ -139,8 +158,14 @@ class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     extends ValueStaticType<Type, EnumElement> {
   final EnumElement _value;
 
-  EnumElementStaticType(super.typeOperations, super.fieldLookup, super.type,
-      super.restriction, super.name, this._value);
+  EnumElementStaticType(
+    super.typeOperations,
+    super.fieldLookup,
+    super.type,
+    super.restriction,
+    super.name,
+    this._value,
+  );
 
   @override
   void valueToDart(DartTemplateBuffer buffer) {

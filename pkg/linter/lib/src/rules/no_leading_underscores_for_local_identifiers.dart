@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,14 +22,11 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.no_leading_underscores_for_local_identifiers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
     registry.addDeclaredIdentifier(this, visitor);
@@ -49,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!id.lexeme.hasLeadingUnderscore) return;
     if (id.lexeme.isJustUnderscores) return;
 
-    rule.reportLintForToken(id, arguments: [id.lexeme]);
+    rule.reportAtToken(id, arguments: [id.lexeme]);
   }
 
   @override

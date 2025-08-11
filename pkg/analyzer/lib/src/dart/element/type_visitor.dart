@@ -34,31 +34,48 @@ abstract class LinkingTypeVisitor<R> {
 
 /// Recursively visits a DartType tree until any visit method returns `false`.
 class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
+  final bool includeTypeAliasArguments;
+
+  /// If [includeTypeAliasArguments], also visits type arguments of
+  /// [InstantiatedTypeAliasElement]s associated with types.
+  RecursiveTypeVisitor({required this.includeTypeAliasArguments});
+
   /// Visit each item in the list until one returns `false`, in which case, this
   /// will also return `false`.
   bool visitChildren(Iterable<DartType> types) =>
       types.every((type) => type.accept(this));
 
   @override
-  bool visitDartType(DartType type) => true;
+  bool visitDartType(DartType type) {
+    visitChildren(_maybeTypeAliasArguments(type));
+    return true;
+  }
 
   @override
-  bool visitFunctionType(FunctionType type) => visitChildren([
-        type.returnType,
-        ...type.typeParameters
-            .map((typeParameter) => typeParameter.bound)
-            .where((type) => type != null)
-            .map((type) => type!),
-        ...type.formalParameters.map((formalParameter) => formalParameter.type),
-      ]);
+  bool visitFunctionType(FunctionType type) {
+    return visitChildren([
+      ..._maybeTypeAliasArguments(type),
+      type.returnType,
+      ...type.typeParameters
+          .map((typeParameter) => typeParameter.bound)
+          .where((type) => type != null)
+          .map((type) => type!),
+      ...type.formalParameters.map((formalParameter) => formalParameter.type),
+    ]);
+  }
 
   @override
-  bool visitInterfaceType(InterfaceType type) =>
-      visitChildren(type.typeArguments);
+  bool visitInterfaceType(InterfaceType type) {
+    return visitChildren([
+      ..._maybeTypeAliasArguments(type),
+      ...type.typeArguments,
+    ]);
+  }
 
   @override
   bool visitRecordType(covariant RecordTypeImpl type) {
     return visitChildren([
+      ..._maybeTypeAliasArguments(type),
       ...type.positionalFields.map((field) => field.type),
       ...type.namedFields.map((field) => field.type),
     ]);
@@ -66,7 +83,17 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {
+    visitChildren(_maybeTypeAliasArguments(type));
     // TODO(scheglov): Should we visit the bound here?
     return true;
+  }
+
+  List<DartType> _maybeTypeAliasArguments(DartType type) {
+    if (includeTypeAliasArguments) {
+      if (type.alias case var alias?) {
+        return alias.typeArguments;
+      }
+    }
+    return const [];
   }
 }

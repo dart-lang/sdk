@@ -169,6 +169,7 @@ class WasmTarget extends Target {
         'dart:_boxed_double',
         'dart:_boxed_int',
         'dart:_compact_hash',
+        'dart:_error_utils',
         'dart:_js_helper',
         'dart:_js_types',
         'dart:_list',
@@ -281,15 +282,15 @@ class WasmTarget extends Target {
 
     Set<Library> transitiveImportingJSInterop = {
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("package:js/js.dart")),
+          component.libraries, Uri.parse("package:js/js.dart")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_js_annotations")),
+          component.libraries, Uri.parse("dart:_js_annotations")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:js_interop")),
+          component.libraries, Uri.parse("dart:js_interop")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:convert")),
+          component.libraries, Uri.parse("dart:convert")),
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-          component, Uri.parse("dart:_string")),
+          component.libraries, Uri.parse("dart:_string")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");

@@ -36,8 +36,13 @@ class AnnotationsListener extends StackListener {
 
   final bool delayLookup;
 
-  AnnotationsListener(this.uri, this._initialScope, this._references,
-      {required this.delayLookup, required this.isDartLibrary});
+  AnnotationsListener(
+    this.uri,
+    this._initialScope,
+    this._references, {
+    required this.delayLookup,
+    required this.isDartLibrary,
+  });
 
   final List<FunctionTypeParameterScope> _typeParameterScopes = [];
 
@@ -49,23 +54,27 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
-    assert(checkState(beginToken, [
-      /*arguments*/ _ValueKinds._ArgumentsOrNull,
-      /*suffix*/ if (periodBeforeName != null) _ValueKinds._IdentifierProto,
-      /*type arguments*/ _ValueKinds._TypeAnnotationsOrNull,
-      /*type*/ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(beginToken, [
+        /*arguments*/ _ValueKinds._ArgumentsOrNull,
+        /*suffix*/ if (periodBeforeName != null) _ValueKinds._IdentifierProto,
+        /*type arguments*/ _ValueKinds._TypeAnnotationsOrNull,
+        /*type*/ _ValueKinds._Proto,
+      ]),
+    );
     List<Argument>? arguments = pop(_NullValues.Arguments) as List<Argument>?;
     IdentifierProto? identifier =
         periodBeforeName != null ? pop() as IdentifierProto : null;
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto proto = pop() as Proto;
-    push(proto
-        .instantiate(typeArguments)
-        .apply(identifier)
-        .invoke(arguments)
-        .toExpression());
+    push(
+      proto
+          .instantiate(typeArguments)
+          .apply(identifier)
+          .invoke(arguments)
+          .toExpression(),
+    );
   }
 
   @override
@@ -113,14 +122,20 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
-  void endConstructorReference(Token start, Token? periodBeforeName,
-      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
-    assert(checkState(start, [
-      if (periodBeforeName != null)
-        /* constructor name */ _ValueKinds._IdentifierProto,
-      /* type arguments */ _ValueKinds._TypeAnnotationsOrNull,
-      /* (qualified) name before type arguments */ _ValueKinds._Proto,
-    ]));
+  void endConstructorReference(
+    Token start,
+    Token? periodBeforeName,
+    Token endToken,
+    ConstructorReferenceContext constructorReferenceContext,
+  ) {
+    assert(
+      checkState(start, [
+        if (periodBeforeName != null)
+          /* constructor name */ _ValueKinds._IdentifierProto,
+        /* type arguments */ _ValueKinds._TypeAnnotationsOrNull,
+        /* (qualified) name before type arguments */ _ValueKinds._Proto,
+      ]),
+    );
     IdentifierProto? constructorName =
         periodBeforeName != null ? pop() as IdentifierProto : null;
     List<TypeAnnotation>? typeArguments =
@@ -131,10 +146,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endConstExpression(Token token) {
-    assert(checkState(token, [
-      /* arguments */ _ValueKinds._Arguments,
-      /* constructor reference */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(token, [
+        /* arguments */ _ValueKinds._Arguments,
+        /* constructor reference */ _ValueKinds._Proto,
+      ]),
+    );
     List<Argument> arguments = pop() as List<Argument>;
     Proto constructorReference = pop() as Proto;
     push(constructorReference.invoke(arguments));
@@ -142,19 +159,26 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
-    assert(checkState(leftBracket, [
-      ...repeatedKind(_ValueKinds._ElementOrProto, count),
-      _ValueKinds._TypeAnnotationsOrNull,
-    ]));
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
+    assert(
+      checkState(leftBracket, [
+        ...repeatedKind(_ValueKinds._ElementOrProto, count),
+        _ValueKinds._TypeAnnotationsOrNull,
+      ]),
+    );
     List<Element> elements = new List.filled(count, _dummyElement);
     while (--count >= 0) {
       elements[count] = _popElementOrProto();
     }
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
-    push(new ExpressionProto(
-        new ListLiteral(typeArguments ?? const [], elements)));
+    push(
+      new ExpressionProto(new ListLiteral(typeArguments ?? const [], elements)),
+    );
   }
 
   Element _popElementOrProto() {
@@ -162,8 +186,10 @@ class AnnotationsListener extends StackListener {
     if (element is Element) {
       return element;
     } else {
-      return new ExpressionElement((element as Proto).toExpression(),
-          isNullAware: false);
+      return new ExpressionElement(
+        (element as Proto).toExpression(),
+        isNullAware: false,
+      );
     }
   }
 
@@ -197,49 +223,65 @@ class AnnotationsListener extends StackListener {
     Token rightBrace,
     bool hasSetEntry,
   ) {
-    assert(checkState(leftBrace, [
-      ...repeatedKind(_ValueKinds._ElementOrProto, count),
-      _ValueKinds._TypeAnnotationsOrNull,
-    ]));
+    assert(
+      checkState(leftBrace, [
+        ...repeatedKind(_ValueKinds._ElementOrProto, count),
+        _ValueKinds._TypeAnnotationsOrNull,
+      ]),
+    );
     List<Element> elements = new List.filled(count, _dummyElement);
     while (--count >= 0) {
       elements[count] = _popElementOrProto();
     }
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
-    push(new ExpressionProto(
-        new SetOrMapLiteral(typeArguments ?? const [], elements)));
+    push(
+      new ExpressionProto(
+        new SetOrMapLiteral(typeArguments ?? const [], elements),
+      ),
+    );
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken,
-      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
-    assert(checkState(colon, [
-      /* value */ _ValueKinds._Proto,
-      /* key */ _ValueKinds._Proto,
-    ]));
+  void handleLiteralMapEntry(
+    Token colon,
+    Token endToken, {
+    Token? nullAwareKeyToken,
+    Token? nullAwareValueToken,
+  }) {
+    assert(
+      checkState(colon, [
+        /* value */ _ValueKinds._Proto,
+        /* key */ _ValueKinds._Proto,
+      ]),
+    );
     Expression value = _popExpression();
     Expression key = _popExpression();
-    push(new MapEntryElement(key, value,
+    push(
+      new MapEntryElement(
+        key,
+        value,
         isNullAwareKey: nullAwareKeyToken != null,
-        isNullAwareValue: nullAwareValueToken != null));
+        isNullAwareValue: nullAwareValueToken != null,
+      ),
+    );
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    assert(checkState(spreadToken, [
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(checkState(spreadToken, [/* expression */ _ValueKinds._Proto]));
     Proto expression = pop() as Proto;
-    push(new SpreadElement(expression.toExpression(),
-        isNullAware: spreadToken.lexeme == '...?'));
+    push(
+      new SpreadElement(
+        expression.toExpression(),
+        isNullAware: spreadToken.lexeme == '...?',
+      ),
+    );
   }
 
   @override
   void handleNullAwareElement(Token nullAwareToken) {
-    assert(checkState(nullAwareToken, [
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(checkState(nullAwareToken, [/* expression */ _ValueKinds._Proto]));
     Proto expression = pop() as Proto;
     push(new ExpressionElement(expression.toExpression(), isNullAware: true));
   }
@@ -248,7 +290,8 @@ class AnnotationsListener extends StackListener {
   void handleParenthesizedCondition(Token token, Token? case_, Token? when) {
     if (case_ != null) {
       throw new UnsupportedError(
-          "handleParenthesizedCondition($token,$case_,$when");
+        "handleParenthesizedCondition($token,$case_,$when",
+      );
     } else {
       assert(checkState(token, [_ValueKinds._Proto]));
     }
@@ -256,10 +299,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endIfControlFlow(Token token) {
-    assert(checkState(token, [
-      /* then */ _ValueKinds._ElementOrProto,
-      /* condition */ _ValueKinds._Proto
-    ]));
+    assert(
+      checkState(token, [
+        /* then */ _ValueKinds._ElementOrProto,
+        /* condition */ _ValueKinds._Proto,
+      ]),
+    );
     Element then = _popElementOrProto();
     Expression condition = _popExpression();
     push(new IfElement(condition, then));
@@ -267,18 +312,28 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleElseControlFlow(Token elseToken) {
-    assert(checkState(elseToken, [
-      /* otherwise */ unionOfKinds([_ValueKinds._Element, _ValueKinds._Proto]),
-    ]));
+    assert(
+      checkState(elseToken, [
+        /* otherwise */ unionOfKinds([
+          _ValueKinds._Element,
+          _ValueKinds._Proto,
+        ]),
+      ]),
+    );
   }
 
   @override
   void endIfElseControlFlow(Token token) {
-    assert(checkState(token, [
-      /* otherwise */ unionOfKinds([_ValueKinds._Element, _ValueKinds._Proto]),
-      /* then */ unionOfKinds([_ValueKinds._Element, _ValueKinds._Proto]),
-      /* condition */ _ValueKinds._Proto
-    ]));
+    assert(
+      checkState(token, [
+        /* otherwise */ unionOfKinds([
+          _ValueKinds._Element,
+          _ValueKinds._Proto,
+        ]),
+        /* then */ unionOfKinds([_ValueKinds._Element, _ValueKinds._Proto]),
+        /* condition */ _ValueKinds._Proto,
+      ]),
+    );
     Element otherwise = _popElementOrProto();
     Element then = _popElementOrProto();
     Expression condition = _popExpression();
@@ -292,10 +347,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleNamedRecordField(Token colon) {
-    assert(checkState(colon, [
-      /* expression */ _ValueKinds._Proto,
-      /* name */ _ValueKinds._IdentifierProto,
-    ]));
+    assert(
+      checkState(colon, [
+        /* expression */ _ValueKinds._Proto,
+        /* name */ _ValueKinds._IdentifierProto,
+      ]),
+    );
     Expression expression = _popExpression();
     IdentifierProto name = pop() as IdentifierProto;
     push(new RecordNamedField(name.text, expression));
@@ -303,10 +360,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
-    assert(checkState(
-      token,
-      /* fields */ repeatedKind(_ValueKinds._RecordFieldOrProto, count),
-    ));
+    assert(
+      checkState(
+        token,
+        /* fields */ repeatedKind(_ValueKinds._RecordFieldOrProto, count),
+      ),
+    );
     List<RecordField> fields = new List.filled(count, _dummyRecordField);
     while (--count >= 0) {
       fields[count] = _popRecordField();
@@ -321,10 +380,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endBinaryExpression(Token token, Token endToken) {
-    assert(checkState(token, [
-      /* right */ _ValueKinds._Proto,
-      /* left */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(token, [
+        /* right */ _ValueKinds._Proto,
+        /* left */ _ValueKinds._Proto,
+      ]),
+    );
     Proto right = pop() as Proto;
     Proto left = pop() as Proto;
     switch (token.lexeme) {
@@ -335,70 +396,211 @@ class AnnotationsListener extends StackListener {
         IdentifierProto identifierProto = right as IdentifierProto;
         push(left.apply(identifierProto, isNullAware: true));
       case '??':
-        push(new ExpressionProto(
-            new IfNull(left.toExpression(), right.toExpression())));
+        push(
+          new ExpressionProto(
+            new IfNull(left.toExpression(), right.toExpression()),
+          ),
+        );
       case '||':
-        push(new ExpressionProto(new LogicalExpression(
-            left.toExpression(), LogicalOperator.or, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new LogicalExpression(
+              left.toExpression(),
+              LogicalOperator.or,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '&&':
-        push(new ExpressionProto(new LogicalExpression(
-            left.toExpression(), LogicalOperator.and, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new LogicalExpression(
+              left.toExpression(),
+              LogicalOperator.and,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '==':
-        push(new ExpressionProto(new EqualityExpression(
-            left.toExpression(), right.toExpression(),
-            isNotEquals: false)));
+        push(
+          new ExpressionProto(
+            new EqualityExpression(
+              left.toExpression(),
+              right.toExpression(),
+              isNotEquals: false,
+            ),
+          ),
+        );
       case '!=':
-        push(new ExpressionProto(new EqualityExpression(
-            left.toExpression(), right.toExpression(),
-            isNotEquals: true)));
+        push(
+          new ExpressionProto(
+            new EqualityExpression(
+              left.toExpression(),
+              right.toExpression(),
+              isNotEquals: true,
+            ),
+          ),
+        );
       case '>':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.greaterThan, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.greaterThan,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '>=':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.greaterThanOrEqual, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.greaterThanOrEqual,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '<':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.lessThan, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.lessThan,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '<=':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.lessThanOrEqual, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.lessThanOrEqual,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '<<':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.shiftLeft, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.shiftLeft,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '>>':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.signedShiftRight, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.signedShiftRight,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '>>>':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.unsignedShiftRight, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.unsignedShiftRight,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '+':
-        push(new ExpressionProto(new BinaryExpression(
-            left.toExpression(), BinaryOperator.plus, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.plus,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '-':
-        push(new ExpressionProto(new BinaryExpression(
-            left.toExpression(), BinaryOperator.minus, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.minus,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '*':
-        push(new ExpressionProto(new BinaryExpression(
-            left.toExpression(), BinaryOperator.times, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.times,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '/':
-        push(new ExpressionProto(new BinaryExpression(
-            left.toExpression(), BinaryOperator.divide, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.divide,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '~/':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.integerDivide, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.integerDivide,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '%':
-        push(new ExpressionProto(new BinaryExpression(
-            left.toExpression(), BinaryOperator.modulo, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.modulo,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '|':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.bitwiseOr, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.bitwiseOr,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '&':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.bitwiseAnd, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.bitwiseAnd,
+              right.toExpression(),
+            ),
+          ),
+        );
       case '^':
-        push(new ExpressionProto(new BinaryExpression(left.toExpression(),
-            BinaryOperator.bitwiseXor, right.toExpression())));
+        push(
+          new ExpressionProto(
+            new BinaryExpression(
+              left.toExpression(),
+              BinaryOperator.bitwiseXor,
+              right.toExpression(),
+            ),
+          ),
+        );
       default:
         throw new UnimplementedError("Binary operator '${token.lexeme}'.");
     }
@@ -406,10 +608,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleIsOperator(Token isOperator, Token? not) {
-    assert(checkState(isOperator, [
-      /* type */ _ValueKinds._TypeAnnotation,
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(isOperator, [
+        /* type */ _ValueKinds._TypeAnnotation,
+        /* expression */ _ValueKinds._Proto,
+      ]),
+    );
     TypeAnnotation type = pop() as TypeAnnotation;
     Expression expression = _popExpression();
     push(new ExpressionProto(new IsTest(expression, type, isNot: not != null)));
@@ -417,10 +621,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleAsOperator(Token operator) {
-    assert(checkState(operator, [
-      /* type */ _ValueKinds._TypeAnnotation,
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(operator, [
+        /* type */ _ValueKinds._TypeAnnotation,
+        /* expression */ _ValueKinds._Proto,
+      ]),
+    );
     TypeAnnotation type = pop() as TypeAnnotation;
     Expression expression = _popExpression();
     push(new ExpressionProto(new AsExpression(expression, type)));
@@ -438,20 +644,27 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleUnaryPrefixExpression(Token token) {
-    assert(checkState(token, [
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(checkState(token, [/* expression */ _ValueKinds._Proto]));
     Expression expression = _popExpression();
     switch (token.lexeme) {
       case '-':
-        push(new ExpressionProto(
-            new UnaryExpression(UnaryOperator.minus, expression)));
+        push(
+          new ExpressionProto(
+            new UnaryExpression(UnaryOperator.minus, expression),
+          ),
+        );
       case '!':
-        push(new ExpressionProto(
-            new UnaryExpression(UnaryOperator.bang, expression)));
+        push(
+          new ExpressionProto(
+            new UnaryExpression(UnaryOperator.bang, expression),
+          ),
+        );
       case '~':
-        push(new ExpressionProto(
-            new UnaryExpression(UnaryOperator.tilde, expression)));
+        push(
+          new ExpressionProto(
+            new UnaryExpression(UnaryOperator.tilde, expression),
+          ),
+        );
       default:
         throw new UnimplementedError("Unary operator '${token.lexeme}'.");
     }
@@ -459,19 +672,19 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleNonNullAssertExpression(Token bang) {
-    assert(checkState(bang, [
-      /* expression */ _ValueKinds._Proto,
-    ]));
+    assert(checkState(bang, [/* expression */ _ValueKinds._Proto]));
     Expression expression = _popExpression();
     push(new ExpressionProto(new NullCheck(expression)));
   }
 
   @override
   void handleQualified(Token period) {
-    assert(checkState(period, [
-      /* suffix */ _ValueKinds._IdentifierProto,
-      /* prefix */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(period, [
+        /* suffix */ _ValueKinds._IdentifierProto,
+        /* prefix */ _ValueKinds._Proto,
+      ]),
+    );
     IdentifierProto suffix = pop() as IdentifierProto;
     Proto prefix = pop() as Proto;
     push(prefix.apply(suffix));
@@ -479,17 +692,21 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleSend(Token beginToken, Token endToken) {
-    assert(checkState(beginToken, [
-      _ValueKinds._ArgumentsOrNull,
-      _ValueKinds._TypeAnnotationsOrNull,
-      _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(beginToken, [
+        _ValueKinds._ArgumentsOrNull,
+        _ValueKinds._TypeAnnotationsOrNull,
+        _ValueKinds._Proto,
+      ]),
+    );
     List<Argument>? arguments = pop(_NullValues.Arguments) as List<Argument>?;
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto proto = pop() as Proto;
-    assert(typeArguments == null || arguments != null,
-        'Unexpected type argument application as send.');
+    assert(
+      typeArguments == null || arguments != null,
+      'Unexpected type argument application as send.',
+    );
     push(proto.instantiate(typeArguments).invoke(arguments));
   }
 
@@ -500,10 +717,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleNamedArgument(Token colon) {
-    assert(checkState(colon, [
-      /* expression */ _ValueKinds._Proto,
-      /* name */ _ValueKinds._IdentifierProto,
-    ]));
+    assert(
+      checkState(colon, [
+        /* expression */ _ValueKinds._Proto,
+        /* name */ _ValueKinds._IdentifierProto,
+      ]),
+    );
     Expression expression = _popExpression();
     IdentifierProto name = pop() as IdentifierProto;
     push(new NamedArgument(name.text, expression));
@@ -511,10 +730,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
-    assert(checkState(
-      beginToken,
-      /* arguments */ repeatedKind(_ValueKinds._ArgumentOrProto, count),
-    ));
+    assert(
+      checkState(
+        beginToken,
+        /* arguments */ repeatedKind(_ValueKinds._ArgumentOrProto, count),
+      ),
+    );
     List<Argument> arguments = new List.filled(count, _dummyArgument);
     while (--count >= 0) {
       arguments[count] = _popArgument();
@@ -529,12 +750,16 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
-    assert(checkState(
-      beginToken,
-      /* type arguments */ repeatedKind(_ValueKinds._TypeAnnotation, count),
-    ));
-    List<TypeAnnotation> typeArguments =
-        new List.filled(count, _dummyTypeAnnotation);
+    assert(
+      checkState(
+        beginToken,
+        /* type arguments */ repeatedKind(_ValueKinds._TypeAnnotation, count),
+      ),
+    );
+    List<TypeAnnotation> typeArguments = new List.filled(
+      count,
+      _dummyTypeAnnotation,
+    );
     while (--count >= 0) {
       typeArguments[count] = pop() as TypeAnnotation;
     }
@@ -543,10 +768,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleType(Token beginToken, Token? questionMark) {
-    assert(checkState(beginToken, [
-      _ValueKinds._TypeAnnotationsOrNull,
-      _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(beginToken, [
+        _ValueKinds._TypeAnnotationsOrNull,
+        _ValueKinds._Proto,
+      ]),
+    );
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto type = pop() as Proto;
@@ -560,14 +787,14 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleVoidKeywordWithTypeArguments(Token token) {
-    assert(checkState(token, [
-      _ValueKinds._TypeAnnotationsOrNull,
-    ]));
+    assert(checkState(token, [_ValueKinds._TypeAnnotationsOrNull]));
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
-    push(new VoidProto(_references.voidReference)
-        .instantiate(typeArguments)
-        .toTypeAnnotation());
+    push(
+      new VoidProto(
+        _references.voidReference,
+      ).instantiate(typeArguments).toTypeAnnotation(),
+    );
   }
 
   @override
@@ -589,14 +816,26 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleLiteralDouble(Token token) {
-    push(new ExpressionProto(new DoubleLiteral(
-        token.lexeme, doubleFromToken(token, hasSeparators: false))));
+    push(
+      new ExpressionProto(
+        new DoubleLiteral(
+          token.lexeme,
+          doubleFromToken(token, hasSeparators: false),
+        ),
+      ),
+    );
   }
 
   @override
   void handleLiteralDoubleWithSeparators(Token token) {
-    push(new ExpressionProto(new DoubleLiteral(
-        token.lexeme, doubleFromToken(token, hasSeparators: true))));
+    push(
+      new ExpressionProto(
+        new DoubleLiteral(
+          token.lexeme,
+          doubleFromToken(token, hasSeparators: true),
+        ),
+      ),
+    );
   }
 
   @override
@@ -622,11 +861,15 @@ class AnnotationsListener extends StackListener {
   @override
   void endLiteralString(int interpolationCount, Token endToken) {
     int count = 1 + interpolationCount * 2;
-    assert(checkState(
+    assert(
+      checkState(
         endToken,
         repeatedKind(
-            unionOfKinds([_ValueKinds._StringPart, _ValueKinds._Proto]),
-            count)));
+          unionOfKinds([_ValueKinds._StringPart, _ValueKinds._Proto]),
+          count,
+        ),
+      ),
+    );
     if (interpolationCount == 0) {
       // TODO(johnniwinther): Use the token corresponding to [part].
       Token token = endToken;
@@ -670,7 +913,12 @@ class AnnotationsListener extends StackListener {
         // TODO(johnniwinther): Use the token corresponding to [last].
         Token token = endToken;
         String value = unescapeLastStringPart(
-            last.text, quote, token, token.isSynthetic, this);
+          last.text,
+          quote,
+          token,
+          token.isSynthetic,
+          this,
+        );
         if (value.isNotEmpty) {
           parts.add(new StringPart(value));
         }
@@ -682,9 +930,12 @@ class AnnotationsListener extends StackListener {
   @override
   void handleAdjacentStringLiterals(Token startToken, int literalCount) {
     assert(
-        checkState(startToken, repeatedKind(_ValueKinds._Proto, literalCount)));
-    List<Expression> expressions =
-        new List.filled(literalCount, _dummyExpression);
+      checkState(startToken, repeatedKind(_ValueKinds._Proto, literalCount)),
+    );
+    List<Expression> expressions = new List.filled(
+      literalCount,
+      _dummyExpression,
+    );
     while (--literalCount >= 0) {
       expressions[literalCount] = _popExpression();
     }
@@ -693,10 +944,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
-    assert(checkState(
-      hashToken,
-      repeatedKind(_ValueKinds._IdentifierProto, identifierCount),
-    ));
+    assert(
+      checkState(
+        hashToken,
+        repeatedKind(_ValueKinds._IdentifierProto, identifierCount),
+      ),
+    );
     List<String> parts = new List.filled(identifierCount, /* dummy value */ '');
     while (--identifierCount >= 0) {
       parts[identifierCount] = (pop() as IdentifierProto).text;
@@ -706,10 +959,12 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
-    assert(checkState(openAngleBracket, [
-      _ValueKinds._TypeAnnotations,
-      _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(openAngleBracket, [
+        _ValueKinds._TypeAnnotations,
+        _ValueKinds._Proto,
+      ]),
+    );
     List<TypeAnnotation> typeArguments = pop() as List<TypeAnnotation>;
     Proto receiver = pop() as Proto;
     push(receiver.instantiate(typeArguments));
@@ -717,33 +972,37 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endParenthesizedExpression(Token token) {
-    assert(checkState(token, [
-      _ValueKinds._Proto,
-    ]));
+    assert(checkState(token, [_ValueKinds._Proto]));
     Expression expression = _popExpression();
     push(new ExpressionProto(new ParenthesizedExpression(expression)));
   }
 
   @override
   void endConditionalExpression(Token question, Token colon, Token endToken) {
-    assert(checkState(question, [
-      /* otherwise */ _ValueKinds._Proto,
-      /* then */ _ValueKinds._Proto,
-      /* condition */ _ValueKinds._Proto,
-    ]));
+    assert(
+      checkState(question, [
+        /* otherwise */ _ValueKinds._Proto,
+        /* then */ _ValueKinds._Proto,
+        /* condition */ _ValueKinds._Proto,
+      ]),
+    );
     Expression otherwise = _popExpression();
     Expression then = _popExpression();
     Expression condition = _popExpression();
-    push(new ExpressionProto(
-        new ConditionalExpression(condition, then, otherwise)));
+    push(
+      new ExpressionProto(
+        new ConditionalExpression(condition, then, otherwise),
+      ),
+    );
   }
 
   @override
   void handleValuedFormalParameter(
-      Token equals, Token token, FormalParameterKind kind) {
-    assert(checkState(token, [
-      _ValueKinds._Proto,
-    ]));
+    Token equals,
+    Token token,
+    FormalParameterKind kind,
+  ) {
+    assert(checkState(token, [_ValueKinds._Proto]));
     push(_popExpression());
   }
 
@@ -754,26 +1013,37 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
-    assert(checkState(nameToken, [
-      _ValueKinds._ExpressionOrNull,
-      _ValueKinds._IdentifierProtoOrNull,
-      _ValueKinds._TypeAnnotationOrNull,
-      _ValueKinds._Expressions,
-    ]));
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
+    assert(
+      checkState(nameToken, [
+        _ValueKinds._ExpressionOrNull,
+        _ValueKinds._IdentifierProtoOrNull,
+        _ValueKinds._TypeAnnotationOrNull,
+        _ValueKinds._Expressions,
+      ]),
+    );
     Expression? defaultValue = pop() as Expression?;
     IdentifierProto? name = pop() as IdentifierProto?;
     TypeAnnotation? typeAnnotation = pop() as TypeAnnotation?;
     List<Expression> metadata = pop() as List<Expression>;
-    push(new FormalParameter(metadata, typeAnnotation, name?.text, defaultValue,
-        isNamed: kind.isNamed, isRequired: kind.isRequired));
+    push(
+      new FormalParameter(
+        metadata,
+        typeAnnotation,
+        name?.text,
+        defaultValue,
+        isNamed: kind.isNamed,
+        isRequired: kind.isRequired,
+      ),
+    );
   }
 
   @override
@@ -783,11 +1053,18 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
-    assert(checkState(
-        beginToken, repeatedKind(_ValueKinds._FormalParameter, count)));
-    List<FormalParameter> formalParameters =
-        new List.filled(count, _dummyFormalParameter);
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
+    assert(
+      checkState(beginToken, repeatedKind(_ValueKinds._FormalParameter, count)),
+    );
+    List<FormalParameter> formalParameters = new List.filled(
+      count,
+      _dummyFormalParameter,
+    );
     while (--count >= 0) {
       formalParameters[count] = pop() as FormalParameter;
     }
@@ -796,15 +1073,23 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
-    assert(checkState(
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
+    assert(
+      checkState(
         beginToken,
         repeatedKind(
-            unionOfKinds([
-              _ValueKinds._FormalParameter,
-              _ValueKinds._FormalParameterGroup
-            ]),
-            count)));
+          unionOfKinds([
+            _ValueKinds._FormalParameter,
+            _ValueKinds._FormalParameterGroup,
+          ]),
+          count,
+        ),
+      ),
+    );
     List<Object?> objects = new List.filled(count, /* dummy value */ null);
     while (--count >= 0) {
       objects[count] = pop();
@@ -814,8 +1099,9 @@ class AnnotationsListener extends StackListener {
       if (object is FormalParameter) {
         formalParameters.add(object);
       } else {
-        formalParameters
-            .addAll((object as FormalParameterGroup).formalParameters);
+        formalParameters.addAll(
+          (object as FormalParameterGroup).formalParameters,
+        );
       }
     }
     push(formalParameters);
@@ -823,11 +1109,17 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endTypeVariable(
-      Token token, int index, Token? extendsOrSuper, Token? variance) {
-    assert(checkState(token, [
-      _ValueKinds._TypeAnnotationOrNull,
-      _ValueKinds._FunctionTypeParameters,
-    ]));
+    Token token,
+    int index,
+    Token? extendsOrSuper,
+    Token? variance,
+  ) {
+    assert(
+      checkState(token, [
+        _ValueKinds._TypeAnnotationOrNull,
+        _ValueKinds._FunctionTypeParameters,
+      ]),
+    );
     TypeAnnotation? bound = pop(_NullValues.TypeAnnotation) as TypeAnnotation?;
     List<FunctionTypeParameter> functionTypeParameters =
         pop() as List<FunctionTypeParameter>;
@@ -838,14 +1130,19 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleTypeVariablesDefined(Token token, int count) {
-    assert(checkState(
+    assert(
+      checkState(
         token,
         repeatedKinds([
           _ValueKinds._FunctionTypeParameter,
           _ValueKinds._Expressions,
-        ], count)));
-    List<FunctionTypeParameter> functionTypeParameters =
-        new List.filled(count, _dummyFunctionTypeParameter);
+        ], count),
+      ),
+    );
+    List<FunctionTypeParameter> functionTypeParameters = new List.filled(
+      count,
+      _dummyFunctionTypeParameter,
+    );
     while (--count >= 0) {
       FunctionTypeParameter functionTypeParameter =
           functionTypeParameters[count] = pop() as FunctionTypeParameter;
@@ -856,9 +1153,7 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
-    assert(checkState(beginToken, [
-      _ValueKinds._FunctionTypeParameters,
-    ]));
+    assert(checkState(beginToken, [_ValueKinds._FunctionTypeParameters]));
   }
 
   @override
@@ -868,11 +1163,13 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endFunctionType(Token functionToken, Token? questionMark) {
-    assert(checkState(functionToken, [
-      _ValueKinds._FormalParameters,
-      _ValueKinds._TypeAnnotationOrNull,
-      _ValueKinds._FunctionTypeParametersOrNull,
-    ]));
+    assert(
+      checkState(functionToken, [
+        _ValueKinds._FormalParameters,
+        _ValueKinds._TypeAnnotationOrNull,
+        _ValueKinds._FunctionTypeParametersOrNull,
+      ]),
+    );
     _typeParameterScopes.removeLast();
 
     List<FormalParameter> formalParameters = pop() as List<FormalParameter>;
@@ -880,29 +1177,42 @@ class AnnotationsListener extends StackListener {
         pop(_NullValues.TypeAnnotation) as TypeAnnotation?;
     List<FunctionTypeParameter>? typeParameters =
         pop(_NullValues.FunctionTypeParameters) as List<FunctionTypeParameter>?;
-    push(new FunctionTypeAnnotation(
-        returnType, typeParameters ?? const [], formalParameters));
+    push(
+      new FunctionTypeAnnotation(
+        returnType,
+        typeParameters ?? const [],
+        formalParameters,
+      ),
+    );
   }
 
   @override
   void endRecordType(
-      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
-    assert(checkState(
-      leftBracket,
-      hasNamedFields
-          ? [
+    Token leftBracket,
+    Token? questionMark,
+    int count,
+    bool hasNamedFields,
+  ) {
+    assert(
+      checkState(
+        leftBracket,
+        hasNamedFields
+            ? [
               _ValueKinds._RecordTypeEntries,
-              ...repeatedKind(_ValueKinds._RecordTypeEntry, count - 1)
+              ...repeatedKind(_ValueKinds._RecordTypeEntry, count - 1),
             ]
-          : repeatedKind(_ValueKinds._RecordTypeEntry, count),
-    ));
+            : repeatedKind(_ValueKinds._RecordTypeEntry, count),
+      ),
+    );
     List<RecordTypeEntry>? named;
     if (hasNamedFields) {
       named = pop() as List<RecordTypeEntry>;
       count--;
     }
-    List<RecordTypeEntry> positional =
-        new List.filled(count, _dummyRecordTypeEntry);
+    List<RecordTypeEntry> positional = new List.filled(
+      count,
+      _dummyRecordTypeEntry,
+    );
     while (--count >= 0) {
       positional[count] = pop() as RecordTypeEntry;
     }
@@ -911,11 +1221,13 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endRecordTypeEntry() {
-    assert(checkState(null, [
-      _ValueKinds._IdentifierProtoOrNull,
-      _ValueKinds._TypeAnnotation,
-      _ValueKinds._Expressions,
-    ]));
+    assert(
+      checkState(null, [
+        _ValueKinds._IdentifierProtoOrNull,
+        _ValueKinds._TypeAnnotation,
+        _ValueKinds._Expressions,
+      ]),
+    );
     IdentifierProto? name = pop() as IdentifierProto?;
     TypeAnnotation type = pop() as TypeAnnotation;
     List<Expression> metadata = pop() as List<Expression>;
@@ -924,12 +1236,16 @@ class AnnotationsListener extends StackListener {
 
   @override
   void endRecordTypeNamedFields(int count, Token leftBracket) {
-    assert(checkState(
-      leftBracket,
-      repeatedKind(_ValueKinds._RecordTypeEntry, count),
-    ));
-    List<RecordTypeEntry> entries =
-        new List.filled(count, _dummyRecordTypeEntry);
+    assert(
+      checkState(
+        leftBracket,
+        repeatedKind(_ValueKinds._RecordTypeEntry, count),
+      ),
+    );
+    List<RecordTypeEntry> entries = new List.filled(
+      count,
+      _dummyRecordTypeEntry,
+    );
     while (--count >= 0) {
       entries[count] = pop() as RecordTypeEntry;
     }
@@ -947,8 +1263,13 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage> context = const []}) {
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length, {
+    bool wasHandled = false,
+    List<LocatedMessage> context = const [],
+  }) {
     // Don't report errors.
   }
 
@@ -958,37 +1279,51 @@ class AnnotationsListener extends StackListener {
   }
 }
 
-enum _NullValues implements NullValue<Object> {
-  Arguments,
-  Expression,
-  FunctionTypeParameters,
-  Identifier,
-  TypeAnnotation,
-  TypeAnnotations,
+class _NullValues {
+  static const NullValue Arguments = const NullValue("Argument");
+  static const NullValue Expression = const NullValue("Expression");
+  static const NullValue FunctionTypeParameters = const NullValue(
+    "FunctionTypeParameter",
+  );
+  static const NullValue Identifier = const NullValue("Identifier");
+  static const NullValue TypeAnnotation = const NullValue("TypeAnnotation");
+  static const NullValue TypeAnnotations = const NullValue("TypeAnnotations");
 }
 
-final Argument _dummyArgument =
-    new PositionalArgument(new IntegerLiteral.fromText('0'));
+final Argument _dummyArgument = new PositionalArgument(
+  new IntegerLiteral.fromText('0'),
+);
 
-final RecordField _dummyRecordField =
-    new RecordPositionalField(_dummyExpression);
+final RecordField _dummyRecordField = new RecordPositionalField(
+  _dummyExpression,
+);
 
 final TypeAnnotation _dummyTypeAnnotation = new InvalidTypeAnnotation();
 
 final Expression _dummyExpression = new NullLiteral();
 
-final Element _dummyElement =
-    new ExpressionElement(_dummyExpression, isNullAware: false);
+final Element _dummyElement = new ExpressionElement(
+  _dummyExpression,
+  isNullAware: false,
+);
 
 final FormalParameter _dummyFormalParameter = new FormalParameter(
-    const [], null, null, null,
-    isNamed: false, isRequired: false);
+  const [],
+  null,
+  null,
+  null,
+  isNamed: false,
+  isRequired: false,
+);
 
 final FunctionTypeParameter _dummyFunctionTypeParameter =
     new FunctionTypeParameter('');
 
-final RecordTypeEntry _dummyRecordTypeEntry =
-    new RecordTypeEntry(const [], _dummyTypeAnnotation, null);
+final RecordTypeEntry _dummyRecordTypeEntry = new RecordTypeEntry(
+  const [],
+  _dummyTypeAnnotation,
+  null,
+);
 
 class _ValueKinds {
   static const ValueKind _Proto = const SingleValueKind<Proto>();
@@ -997,19 +1332,26 @@ class _ValueKinds {
   static const ValueKind _IdentifierProtoOrNull =
       const SingleValueKind<IdentifierProto>(_NullValues.Identifier);
   static const ValueKind _Expression = const SingleValueKind<Expression>();
-  static const ValueKind _ExpressionOrNull =
-      const SingleValueKind<Expression>(_NullValues.Expression);
+  static const ValueKind _ExpressionOrNull = const SingleValueKind<Expression>(
+    _NullValues.Expression,
+  );
   static const ValueKind _Expressions =
       const SingleValueKind<List<Expression>>();
   static const ValueKind _Element = const SingleValueKind<Element>();
-  static final ValueKind _ElementOrProto =
-      unionOfKinds([_ValueKinds._Element, _ValueKinds._Proto]);
+  static final ValueKind _ElementOrProto = unionOfKinds([
+    _ValueKinds._Element,
+    _ValueKinds._Proto,
+  ]);
   static const ValueKind _Argument = const SingleValueKind<Argument>();
-  static final ValueKind _ArgumentOrProto =
-      unionOfKinds([_ValueKinds._Argument, _ValueKinds._Proto]);
+  static final ValueKind _ArgumentOrProto = unionOfKinds([
+    _ValueKinds._Argument,
+    _ValueKinds._Proto,
+  ]);
   static const ValueKind _RecordField = const SingleValueKind<RecordField>();
-  static final ValueKind _RecordFieldOrProto =
-      unionOfKinds([_ValueKinds._RecordField, _ValueKinds._Proto]);
+  static final ValueKind _RecordFieldOrProto = unionOfKinds([
+    _ValueKinds._RecordField,
+    _ValueKinds._Proto,
+  ]);
   static final ValueKind _RecordTypeEntry =
       const SingleValueKind<RecordTypeEntry>();
   static final ValueKind _RecordTypeEntries =
@@ -1038,16 +1380,26 @@ class _ValueKinds {
       const SingleValueKind<List<FunctionTypeParameter>>();
   static const ValueKind _FunctionTypeParametersOrNull =
       const SingleValueKind<List<FunctionTypeParameter>>(
-          _NullValues.FunctionTypeParameters);
+        _NullValues.FunctionTypeParameters,
+      );
 }
 
 /// Parses the metadata annotation beginning at [atToken].
 Expression parseAnnotation(
-    Token atToken, Uri fileUri, Scope scope, References references,
-    {required bool isDartLibrary, bool delayLookupForTesting = false}) {
+  Token atToken,
+  Uri fileUri,
+  Scope scope,
+  References references, {
+  required bool isDartLibrary,
+  bool delayLookupForTesting = false,
+}) {
   AnnotationsListener listener = new AnnotationsListener(
-      fileUri, scope, references,
-      delayLookup: delayLookupForTesting, isDartLibrary: isDartLibrary);
+    fileUri,
+    scope,
+    references,
+    delayLookup: delayLookupForTesting,
+    isDartLibrary: isDartLibrary,
+  );
   Parser parser = new Parser(listener, useImplicitCreationExpression: false);
   parser.parseMetadata(parser.syntheticPreviousToken(atToken));
   return listener.pop() as Expression;
@@ -1055,11 +1407,20 @@ Expression parseAnnotation(
 
 /// Parses the expression beginning at [initializerToken].
 Expression parseExpression(
-    Token initializerToken, Uri fileUri, Scope scope, References references,
-    {required bool isDartLibrary, bool delayLookupForTesting = false}) {
+  Token initializerToken,
+  Uri fileUri,
+  Scope scope,
+  References references, {
+  required bool isDartLibrary,
+  bool delayLookupForTesting = false,
+}) {
   AnnotationsListener listener = new AnnotationsListener(
-      fileUri, scope, references,
-      delayLookup: delayLookupForTesting, isDartLibrary: isDartLibrary);
+    fileUri,
+    scope,
+    references,
+    delayLookup: delayLookupForTesting,
+    isDartLibrary: isDartLibrary,
+  );
   Parser parser = new Parser(listener, useImplicitCreationExpression: false);
   parser.parseExpression(parser.syntheticPreviousToken(initializerToken));
   return listener._popExpression();

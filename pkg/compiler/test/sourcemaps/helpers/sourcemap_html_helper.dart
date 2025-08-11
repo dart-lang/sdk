@@ -101,8 +101,9 @@ class SourceLocationCollection {
   Map<SourceLocation, int> sourceLocationIndexMap;
 
   SourceLocationCollection([SourceLocationCollection? parent])
-    : sourceLocationIndexMap =
-          parent == null ? {} : parent.sourceLocationIndexMap;
+    : sourceLocationIndexMap = parent == null
+          ? {}
+          : parent.sourceLocationIndexMap;
 
   int registerSourceLocation(SourceLocation sourceLocation) {
     return sourceLocationIndexMap.putIfAbsent(sourceLocation, () {

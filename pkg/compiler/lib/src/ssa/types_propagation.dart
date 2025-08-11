@@ -273,8 +273,9 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     PrimitiveCheckKind kind,
     DartType typeExpression,
   ) {
-    Selector? selector =
-        (kind == PrimitiveCheckKind.receiverType) ? instruction.selector : null;
+    Selector? selector = (kind == PrimitiveCheckKind.receiverType)
+        ? instruction.selector
+        : null;
     HPrimitiveCheck converted = HPrimitiveCheck(
       typeExpression,
       kind,
@@ -373,8 +374,8 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       }
       AbstractValue type =
           right.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue
-              ? abstractValueDomain.excludeNull(right.instructionType)
-              : abstractValueDomain.numType;
+          ? abstractValueDomain.excludeNull(right.instructionType)
+          : abstractValueDomain.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
@@ -437,7 +438,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       pendingOptimizations.putIfAbsent(node, () => checkInputs);
     }
 
-    HInstruction receiver = node.getDartReceiver(closedWorld);
+    HInstruction receiver = node.getDartReceiver();
     AbstractValue receiverType = receiver.instructionType;
     node.updateReceiverType(abstractValueDomain, receiverType);
 
@@ -446,10 +447,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       results,
       closedWorld,
     );
-    if (node.staticType != null) {
-      result = abstractValueDomain.intersection(result, node.staticType!);
-    }
-    return result;
+    return node.computeInstructionType(result, abstractValueDomain);
   }
 
   @override

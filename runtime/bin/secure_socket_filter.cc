@@ -10,6 +10,7 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
+#include "bin/io_service.h"
 #include "bin/lockers.h"
 #include "bin/secure_socket_utils.h"
 #include "bin/security_context.h"
@@ -34,6 +35,7 @@ bool SSLFilter::library_initialized_ = false;
 Mutex* SSLFilter::mutex_ = nullptr;
 int SSLFilter::filter_ssl_index;
 int SSLFilter::ssl_cert_context_index;
+Dart_Port SSLFilter::trust_evaluate_reply_port_ = ILLEGAL_PORT;
 
 void SSLFilter::Init() {
   ASSERT(SSLFilter::mutex_ == nullptr);
@@ -44,6 +46,7 @@ void SSLFilter::Cleanup() {
   ASSERT(SSLFilter::mutex_ != nullptr);
   delete SSLFilter::mutex_;
   SSLFilter::mutex_ = nullptr;
+  trust_evaluate_reply_port_ = ILLEGAL_PORT;
 }
 
 const intptr_t SSLFilter::kInternalBIOSize = 10 * KB;
@@ -162,12 +165,13 @@ void FUNCTION_NAME(SecureSocket_NewX509CertificateWrapper)(
     Dart_NativeArguments args) {
 // This is to be used only in conjunction with certificate trust evaluator
 // running asynchronously, which is only used on mac/ios at the moment.
-#if !defined(DART_HOST_OS_MACOS)
-  FATAL("This is to be used only on mac/ios platforms");
-#endif
+#if defined(DART_HOST_OS_MACOS)
   intptr_t x509_pointer = DartUtils::GetNativeIntptrArgument(args, 0);
   X509* x509 = reinterpret_cast<X509*>(x509_pointer);
   Dart_SetReturnValue(args, X509Helper::WrappedX509Certificate(x509));
+#else
+  FATAL("This is to be used only on mac/ios platforms");
+#endif
 }
 
 void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
@@ -481,6 +485,17 @@ void SSLFilter::InitializeLibrary() {
   }
 }
 
+Dart_Port SSLFilter::TrustEvaluateReplyPort() {
+  MutexLocker locker(mutex_);
+  if (trust_evaluate_reply_port_ == ILLEGAL_PORT) {
+    trust_evaluate_reply_port_ =
+        Dart_NewConcurrentNativePort("SSLCertContextTrustEvaluate",
+                                     SSLCertContext::GetTrustEvaluateHandler(),
+                                     IOService::max_concurrency());
+  }
+  return trust_evaluate_reply_port_;
+}
+
 void SSLFilter::Connect(const char* hostname,
                         SSLCertContext* context,
                         bool is_server,
@@ -513,13 +528,6 @@ void SSLFilter::Connect(const char* hostname,
   context->RegisterCallbacks(ssl_);
   SSL_set_ex_data(ssl_, ssl_cert_context_index, context);
 
-  TrustEvaluateHandlerFunc trust_evaluate_handler =
-      context->GetTrustEvaluateHandler();
-  if (trust_evaluate_handler != nullptr) {
-    trust_evaluate_reply_port_ = Dart_NewNativePort(
-        "SSLCertContextTrustEvaluate", trust_evaluate_handler,
-        /*handle_concurrently=*/false);
-  }
   if (is_server_) {
     int certificate_mode =
         request_client_certificate ? SSL_VERIFY_PEER : SSL_VERIFY_NONE;
@@ -712,10 +720,6 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != nullptr) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
     bad_certificate_callback_ = nullptr;
-  }
-  if (trust_evaluate_reply_port_ != ILLEGAL_PORT) {
-    Dart_CloseNativePort(trust_evaluate_reply_port_);
-    trust_evaluate_reply_port_ = ILLEGAL_PORT;
   }
   FreeResources();
 }

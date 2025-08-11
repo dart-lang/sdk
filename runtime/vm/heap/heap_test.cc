@@ -43,32 +43,6 @@ TEST_CASE(OldGC) {
   GCTestHelper::CollectOldSpace();
 }
 
-#if !defined(PRODUCT)
-TEST_CASE(OldGC_Unsync) {
-  // Finalize any GC in progress as it is unsafe to change FLAG_marker_tasks
-  // when incremental marking is in progress.
-  {
-    TransitionNativeToVM transition(thread);
-    GCTestHelper::CollectAllGarbage();
-  }
-  FLAG_marker_tasks = 0;
-
-  const char* kScriptChars =
-      "main() {\n"
-      "  return [1, 2, 3];\n"
-      "}\n";
-  FLAG_verbose_gc = true;
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-
-  EXPECT_VALID(result);
-  EXPECT(!Dart_IsNull(result));
-  EXPECT(Dart_IsList(result));
-  TransitionNativeToVM transition(thread);
-  GCTestHelper::CollectOldSpace();
-}
-#endif  // !defined(PRODUCT)
-
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
       "main() {\n"

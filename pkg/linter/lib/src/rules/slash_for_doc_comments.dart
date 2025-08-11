@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -26,13 +28,10 @@ class SlashForDocComments extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.slash_for_doc_comments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.slash_for_doc_comments;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
@@ -59,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void checkComment(Comment? comment) {
     if (comment != null && isJavaStyle(comment)) {
-      rule.reportLint(comment);
+      rule.reportAtNode(comment);
     }
   }
 
@@ -115,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     var comment = node.beginToken.precedingComments;
     if (comment != null && comment.lexeme.startsWith('/**')) {
-      rule.reportLintForToken(comment);
+      rule.reportAtToken(comment);
     }
   }
 

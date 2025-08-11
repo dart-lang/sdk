@@ -16,33 +16,45 @@ main() {
 @reflectiveTest
 class DeprecatedFieldTest extends PubspecDiagnosticTest {
   test_deprecated_author() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 author: foo
-''', [PubspecWarningCode.DEPRECATED_FIELD]);
+''',
+      [PubspecWarningCode.DEPRECATED_FIELD],
+    );
   }
 
   test_deprecated_authors() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 authors:
   - foo
   - bar
-''', [PubspecWarningCode.DEPRECATED_FIELD]);
+''',
+      [PubspecWarningCode.DEPRECATED_FIELD],
+    );
   }
 
   test_deprecated_transformers() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 transformers:
   - foo
-''', [PubspecWarningCode.DEPRECATED_FIELD]);
+''',
+      [PubspecWarningCode.DEPRECATED_FIELD],
+    );
   }
 
   test_deprecated_web() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 web: foo
-''', [PubspecWarningCode.DEPRECATED_FIELD]);
+''',
+      [PubspecWarningCode.DEPRECATED_FIELD],
+    );
   }
 }

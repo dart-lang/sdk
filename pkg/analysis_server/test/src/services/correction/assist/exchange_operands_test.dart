@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ExchangeOperandsTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.EXCHANGE_OPERANDS;
+  AssistKind get kind => DartAssistKind.exchangeOperands;
 
   Future<void> test_compare() async {
     const initialOperators = ['<', '<=', '>', '>='];
@@ -27,10 +27,10 @@ class ExchangeOperandsTest extends AssistProcessorTest {
       var resultOperator = resultOperators[i];
       await resolveTestCode('''
 bool f(int a, int b) {
-  return a $initialOperator b;
+  return a ^$initialOperator b;
 }
 ''');
-      await assertHasAssistAt(initialOperator, '''
+      await assertHasAssist('''
 bool f(int a, int b) {
   return b $resultOperator a;
 }
@@ -41,10 +41,10 @@ bool f(int a, int b) {
   Future<void> test_extended_mixOperator_1() async {
     await resolveTestCode('''
 void f() {
-  1 * 2 * 3 + 4;
+  1 ^* 2 * 3 + 4;
 }
 ''');
-    await assertHasAssistAt('* 2', '''
+    await assertHasAssist('''
 void f() {
   2 * 3 * 1 + 4;
 }
@@ -54,10 +54,10 @@ void f() {
   Future<void> test_extended_mixOperator_2() async {
     await resolveTestCode('''
 void f() {
-  1 + 2 - 3 + 4;
+  1 ^+ 2 - 3 + 4;
 }
 ''');
-    await assertHasAssistAt('+ 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 1 - 3 + 4;
 }
@@ -67,10 +67,10 @@ void f() {
   Future<void> test_extended_sameOperator_afterFirst() async {
     await resolveTestCode('''
 void f() {
-  1 + 2 + 3;
+  1 ^+ 2 + 3;
 }
 ''');
-    await assertHasAssistAt('+ 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 3 + 1;
 }
@@ -80,10 +80,10 @@ void f() {
   Future<void> test_extended_sameOperator_afterSecond() async {
     await resolveTestCode('''
 void f() {
-  1 + 2 + 3;
+  1 + 2 ^+ 3;
 }
 ''');
-    await assertHasAssistAt('+ 3', '''
+    await assertHasAssist('''
 void f() {
   3 + 1 + 2;
 }
@@ -93,37 +93,37 @@ void f() {
   Future<void> test_extraLength() async {
     await resolveTestCode('''
 void f() {
-  111 + 222;
+  111 /*[0*/+ 2/*0]*/22;
 }
 ''');
-    await assertNoAssistAt('+ 222', length: 3);
+    await assertNoAssist();
   }
 
   Future<void> test_onOperand() async {
     await resolveTestCode('''
 void f() {
-  111 + 222;
+  1/*[0*/11 +/*0]*/ 222;
 }
 ''');
-    await assertNoAssistAt('11 +', length: 3);
+    await assertNoAssist();
   }
 
   Future<void> test_selectionWithBinary() async {
     await resolveTestCode('''
 void f() {
-  1 + 2 + 3;
+  /*[0*/1 + 2 + 3/*0]*/;
 }
 ''');
-    await assertNoAssistAt('1 + 2 + 3', length: '1 + 2 + 3'.length);
+    await assertNoAssist();
   }
 
   Future<void> test_simple_afterOperator() async {
     await resolveTestCode('''
 void f() {
-  1 + 2;
+  1 +^ 2;
 }
 ''');
-    await assertHasAssistAt(' 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 1;
 }
@@ -133,10 +133,10 @@ void f() {
   Future<void> test_simple_beforeOperator() async {
     await resolveTestCode('''
 void f() {
-  1 + 2;
+  1 ^+ 2;
 }
 ''');
-    await assertHasAssistAt('+ 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 1;
 }
@@ -146,26 +146,26 @@ void f() {
   Future<void> test_simple_fullSelection() async {
     await resolveTestCode('''
 void f() {
-  1 + 2;
+  /*[0*/1 + 2/*0]*/;
 }
 ''');
-    await assertHasAssistAt('1 + 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 1;
 }
-''', length: '1 + 2'.length);
+''');
   }
 
   Future<void> test_simple_withLength() async {
     await resolveTestCode('''
 void f() {
-  1 + 2;
+  1 /*[0*/+ /*0]*/2;
 }
 ''');
-    await assertHasAssistAt('+ 2', '''
+    await assertHasAssist('''
 void f() {
   2 + 1;
 }
-''', length: 2);
+''');
   }
 }

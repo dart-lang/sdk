@@ -12,25 +12,25 @@ FutureOr<void> fov;
 
 void main() async {
   await print('');
-  //    ^
-  // [analyzer] unspecified
+  //    ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   await v;
   //    ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   await vs[0];
-  //    ^
-  // [analyzer] unspecified
+  //    ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //      ^
   // [cfe] This expression has type 'void' and can't be used.
 
   var v2 = vs[0];
   await v2;
-  //    ^
-  // [analyzer] unspecified
+  //    ^^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   // A `FutureOr<void>` can be awaited.

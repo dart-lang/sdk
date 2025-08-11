@@ -68,7 +68,7 @@ abstract class TypeSchemaEnvironmentTestBase {
       {required bool grounded}) {
     expect(
         typeSchemaEnvironment.solveTypeConstraint(parseConstraint(constraint),
-            topType: coreTypes.objectNullableRawType, grounded: grounded),
+            grounded: grounded, operations: _operations),
         parseType(expected));
   }
 
@@ -99,27 +99,16 @@ abstract class TypeSchemaEnvironmentTestBase {
   void checkIsSubtype(String subtype, String supertype) {
     expect(
         typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(
-                parseType(subtype), parseType(supertype))
-            .isSubtypeWhenUsingNullabilities(),
-        isTrue);
-  }
-
-  void checkIsLegacySubtype(String subtype, String supertype) {
-    expect(
-        typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(
-                parseType(subtype), parseType(supertype))
-            .isSubtypeWhenIgnoringNullabilities(),
+            .performSubtypeCheck(parseType(subtype), parseType(supertype))
+            .isSuccess(),
         isTrue);
   }
 
   void checkIsNotSubtype(String subtype, String supertype) {
     expect(
         typeSchemaEnvironment
-            .performNullabilityAwareSubtypeCheck(
-                parseType(subtype), parseType(supertype))
-            .isSubtypeWhenIgnoringNullabilities(),
+            .performSubtypeCheck(parseType(subtype), parseType(supertype))
+            .isSuccess(),
         isFalse);
   }
 

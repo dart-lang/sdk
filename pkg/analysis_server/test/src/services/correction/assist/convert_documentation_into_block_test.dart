@@ -17,29 +17,29 @@ void main() {
 @reflectiveTest
 class ConvertDocumentationIntoBlockTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
+  AssistKind get kind => DartAssistKind.convertDocumentationIntoBlock;
 
   Future<void> test_alreadyBlock() async {
     await resolveTestCode('''
 /**
- * AAAAAAA
+ * A^AAAAAA
  */
 class A {}
 ''');
-    await assertNoAssistAt('AAA');
+    await assertNoAssist();
   }
 
   Future<void> test_noSpaceBeforeText() async {
     await resolveTestCode('''
 class A {
-  /// AAAAA
+  /// ^AAAAA
   ///BBBBB
   ///
   /// CCCCC
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAAAA', '''
+    await assertHasAssist('''
 class A {
   /**
    * AAAAA
@@ -54,18 +54,18 @@ class A {
 
   Future<void> test_notDocumentation() async {
     await resolveTestCode('''
-// AAAA
+// ^AAAA
 class A {}
 ''');
-    await assertNoAssistAt('AAA');
+    await assertNoAssist();
   }
 
   Future<void> test_onReference() async {
     await resolveTestCode('''
-/// AAAAAAA [int] AAAAAAA
+/// AAAAAAA [i^nt] AAAAAAA
 class A {}
 ''');
-    await assertHasAssistAt('nt]', '''
+    await assertHasAssist('''
 /**
  * AAAAAAA [int] AAAAAAA
  */
@@ -76,13 +76,13 @@ class A {}
   Future<void> test_onText() async {
     await resolveTestCode('''
 class A {
-  /// AAAAAAA [int] AAAAAAA
+  /// AAAA^AAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
   /// CCC [A] CCCCCCCCCCC
   mmm() {}
 }
 ''');
-    await assertHasAssistAt('AAA [', '''
+    await assertHasAssist('''
 class A {
   /**
    * AAAAAAA [int] AAAAAAA

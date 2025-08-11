@@ -16,17 +16,19 @@ main() {
 @reflectiveTest
 class NonConstantMapPatternKeyTest extends PubPackageResolutionTest {
   test_formalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, int a) {
   if (x case {a: 0}) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 33, 1)],
+    );
   }
 
   test_instanceCreation_noConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   if (x case {A(): 0}) {}
 }
@@ -34,9 +36,9 @@ void f(x) {
 class A {
   const A();
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 26, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 26, 3)],
+    );
   }
 
   test_integerLiteral() async {

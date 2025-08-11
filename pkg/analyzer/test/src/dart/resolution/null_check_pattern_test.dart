@@ -16,21 +16,24 @@ main() {
 @reflectiveTest
 class NullCheckPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   if (x case var y?) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@34
-      type: int
+    declaredFragment: isPublic y@34
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   operator: ?
   matchedValueType: int?
@@ -38,24 +41,27 @@ NullCheckPattern
   }
 
   test_switchCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   switch (x) {
     case var y?:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@45
-      type: int
+    declaredFragment: isPublic y@45
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   operator: ?
   matchedValueType: int?
@@ -63,15 +69,21 @@ NullCheckPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   var (a?) = x;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          24,
+          2,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -81,8 +93,10 @@ PatternVariableDeclaration
     pattern: NullCheckPattern
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@24
-          type: int
+        declaredFragment: isPublic a@24
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       operator: ?
       matchedValueType: int?
@@ -91,7 +105,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   patternTypeSchema: _
 ''');

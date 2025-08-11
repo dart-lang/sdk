@@ -1,0 +1,1201 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/lookup.dart:6:34: Error: Can't use 'deferred' as a name here.
+// import 'lookup.dart' deferred as deferred;
+//                                  ^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:6:1: Error: Extension 'Extension' cannot be imported through a deferred import.
+// Try adding the `hide Extension` to the import.
+// import 'lookup.dart' deferred as deferred;
+// ^
+//
+// pkg/front_end/testcases/general/lookup.dart:27:3: Error: Undefined name 'unresolved'.
+//   unresolved; // Error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:35:3: Error: Setter not found: 'unresolved'.
+//   unresolved = null; // Error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:39:3: Error: A prefix can't be used as an expression.
+//   prefix; // Error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:40:10: Error: Undefined name 'unresolved'.
+//   prefix.unresolved; // Error
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:46:10: Error: Setter not found: 'unresolved'.
+//   prefix.unresolved = null; // Error
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:50:10: Error: Method not found: 'loadLibrary'.
+//   prefix.loadLibrary(); // Error
+//          ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:101:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:102:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:108:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:122:5: Error: Undefined name 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:127:5: Error: Undefined name 'instanceMember'.
+//     instanceMember; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:128:5: Error: Undefined name 'instanceField'.
+//     instanceField; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:129:5: Error: Undefined name 'superMember'.
+//     superMember; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:130:5: Error: Undefined name 'superField'.
+//     superField; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:136:5: Error: Setter not found: 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:139:5: Error: Setter not found: 'superSetter'.
+//     superSetter = null; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:140:5: Error: Setter not found: 'superField'.
+//     superField = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:141:5: Error: Setter not found: 'instanceSetter'.
+//     instanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:142:5: Error: Setter not found: 'instanceField'.
+//     instanceField = null; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:146:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:147:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:153:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:194:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:195:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:201:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:215:5: Error: Undefined name 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:219:5: Error: Type variables can't be used in static members.
+//     T; // Error
+//     ^
+//
+// pkg/front_end/testcases/general/lookup.dart:221:5: Error: Undefined name 'instanceMember'.
+//     instanceMember; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:222:5: Error: Undefined name 'instanceField'.
+//     instanceField; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:223:5: Error: Undefined name 'superMember'.
+//     superMember; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:224:5: Error: Undefined name 'superField'.
+//     superField; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:230:5: Error: Setter not found: 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:233:5: Error: Setter not found: 'superSetter'.
+//     superSetter = null; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:234:5: Error: Setter not found: 'superField'.
+//     superField = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:235:5: Error: Setter not found: 'instanceSetter'.
+//     instanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:236:5: Error: Setter not found: 'instanceField'.
+//     instanceField = null; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:240:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:241:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:247:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:293:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:294:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:300:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:314:5: Error: Undefined name 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:318:5: Error: Type variables can't be used in static members.
+//     T; // Error
+//     ^
+//
+// pkg/front_end/testcases/general/lookup.dart:320:5: Error: Undefined name 'instanceMember'.
+//     instanceMember; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:321:5: Error: Undefined name 'instanceField'.
+//     instanceField; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:322:5: Error: Undefined name 'superMember'.
+//     superMember; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:323:5: Error: Undefined name 'superField'.
+//     superField; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:324:5: Error: Undefined name 'extensionInstanceMember'.
+//     extensionInstanceMember; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:329:5: Error: Setter not found: 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:332:5: Error: Setter not found: 'instanceSetter'.
+//     instanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:333:5: Error: Setter not found: 'instanceField'.
+//     instanceField = null; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:334:5: Error: Setter not found: 'superSetter'.
+//     superSetter = null; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:335:5: Error: Setter not found: 'superField'.
+//     superField = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:336:5: Error: Setter not found: 'extensionInstanceSetter'.
+//     extensionInstanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:339:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:340:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:346:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:391:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:392:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:398:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:414:5: Error: Undefined name 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:419:5: Error: Undefined name 'instanceMember'.
+//     instanceMember; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:420:5: Error: Undefined name 'instanceField'.
+//     instanceField; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:421:5: Error: Undefined name 'superMember'.
+//     superMember; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:422:5: Error: Undefined name 'superField'.
+//     superField; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:423:5: Error: Undefined name 'extensionTypeInstanceMember'.
+//     extensionTypeInstanceMember; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:428:5: Error: Setter not found: 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:431:5: Error: Setter not found: 'instanceSetter'.
+//     instanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:432:5: Error: Setter not found: 'instanceField'.
+//     instanceField = null; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:433:5: Error: Setter not found: 'superSetter'.
+//     superSetter = null; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:434:5: Error: Setter not found: 'superField'.
+//     superField = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:435:5: Error: Setter not found: 'extensionTypeInstanceSetter'.
+//     extensionTypeInstanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:438:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:439:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:445:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:486:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:487:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:493:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:507:5: Error: Undefined name 'unresolved'.
+//     unresolved; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:511:5: Error: Type variables can't be used in static members.
+//     T; // Error
+//     ^
+//
+// pkg/front_end/testcases/general/lookup.dart:513:5: Error: Undefined name 'instanceMember'.
+//     instanceMember; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:514:5: Error: Undefined name 'instanceField'.
+//     instanceField; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:515:5: Error: Undefined name 'superMember'.
+//     superMember; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:516:5: Error: Undefined name 'superField'.
+//     superField; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:517:5: Error: Undefined name 'extensionTypeInstanceMember'.
+//     extensionTypeInstanceMember; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:522:5: Error: Setter not found: 'unresolved'.
+//     unresolved = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:525:5: Error: Setter not found: 'instanceSetter'.
+//     instanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:526:5: Error: Setter not found: 'instanceField'.
+//     instanceField = null; // Error
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:527:5: Error: Setter not found: 'superSetter'.
+//     superSetter = null; // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:528:5: Error: Setter not found: 'superField'.
+//     superField = null; // Error
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:529:5: Error: Setter not found: 'extensionTypeInstanceSetter'.
+//     extensionTypeInstanceSetter = null; // Error
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:532:5: Error: A prefix can't be used as an expression.
+//     prefix; // Error
+//     ^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:533:12: Error: Undefined name 'unresolved'.
+//     prefix.unresolved; // Error
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/lookup.dart:539:12: Error: Setter not found: 'unresolved'.
+//     prefix.unresolved = null; // Error
+//            ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///lookup.dart" as prefix;
+import "org-dartlang-testcase:///lookup.dart" deferred as deferred;
+
+typedef Typedef<T extends core::Object? = dynamic> = self::Class<T%>;
+class SuperClass extends core::Object {
+  field dynamic superField = null;
+  synthetic constructor •() → self::SuperClass
+    : super core::Object::•()
+    ;
+  method superMember() → void {}
+  set superSetter(wildcard dynamic _#wc1#formal) → void {}
+}
+class Class<T extends core::Object? = dynamic> extends self::SuperClass {
+  field dynamic instanceField = null;
+  static field dynamic staticField = null;
+  constructor •([dynamic parameter = #C1]) → self::Class<self::Class::T%>
+    : super self::SuperClass::•() {
+    dynamic local;
+    parameter;
+    parameter = null;
+    local;
+    local = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:77:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^" in this{<unresolved>}.unresolved;
+    #C2;
+    #C2;
+    #C2;
+    self::Class::T%;
+    this.{self::Class::instanceMember}{() → void};
+    this.{self::Class::instanceField}{dynamic};
+    this.{self::SuperClass::superMember}{() → void};
+    this.{self::SuperClass::superField}{dynamic};
+    #C3;
+    self::Class::staticField;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:91:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^" in this.{<unresolved>}unresolved = null;
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    this.{self::SuperClass::superSetter} = null;
+    this.{self::SuperClass::superField} = null;
+    this.{self::Class::instanceSetter} = null;
+    this.{self::Class::instanceField} = null;
+    self::Class::staticSetter = null;
+    self::Class::staticField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:101:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:102:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:108:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+  }
+  method instanceMember() → void {}
+  set instanceSetter(wildcard dynamic _#wc2#formal) → void {}
+  static method staticMember() → void {}
+  static set staticSetter(wildcard dynamic _#wc3#formal) → void {}
+  static factory factory<T extends core::Object? = dynamic>([dynamic parameter = #C1]) → self::Class<self::Class::factory::T%> {
+    dynamic local;
+    parameter;
+    parameter = null;
+    local;
+    local = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:122:5: Error: Undefined name 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    self::Class::factory::T%;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:127:5: Error: Undefined name 'instanceMember'.
+    instanceMember; // Error
+    ^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:128:5: Error: Undefined name 'instanceField'.
+    instanceField; // Error
+    ^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:129:5: Error: Undefined name 'superMember'.
+    superMember; // Error
+    ^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:130:5: Error: Undefined name 'superField'.
+    superField; // Error
+    ^^^^^^^^^^";
+    #C3;
+    self::Class::staticField;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:136:5: Error: Setter not found: 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:139:5: Error: Setter not found: 'superSetter'.
+    superSetter = null; // Error
+    ^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:140:5: Error: Setter not found: 'superField'.
+    superField = null; // Error
+    ^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:141:5: Error: Setter not found: 'instanceSetter'.
+    instanceSetter = null; // Error
+    ^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:142:5: Error: Setter not found: 'instanceField'.
+    instanceField = null; // Error
+    ^^^^^^^^^^^^^";
+    self::Class::staticSetter = null;
+    self::Class::staticField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:146:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:147:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:153:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    return new self::Class::•<self::Class::factory::T%>();
+  }
+  method instanceTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic {
+    dynamic local;
+    parameter;
+    parameter = null;
+    local;
+    local = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:169:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^" in this{<unresolved>}.unresolved;
+    #C2;
+    #C2;
+    #C2;
+    self::Class::T%;
+    self::Class::instanceTest::S%;
+    this.{self::Class::instanceMember}{() → void};
+    this.{self::Class::instanceField}{dynamic};
+    this.{self::SuperClass::superMember}{() → void};
+    this.{self::SuperClass::superField}{dynamic};
+    #C3;
+    self::Class::staticField;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:184:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^" in this.{<unresolved>}unresolved = null;
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    this.{self::SuperClass::superSetter} = null;
+    this.{self::SuperClass::superField} = null;
+    this.{self::Class::instanceSetter} = null;
+    this.{self::Class::instanceField} = null;
+    self::Class::staticSetter = null;
+    self::Class::staticField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:194:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:195:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:201:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+  }
+  static method staticTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic {
+    dynamic local;
+    parameter;
+    parameter = null;
+    local;
+    local = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:215:5: Error: Undefined name 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C5;
+    self::Class::staticTest::S%;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:221:5: Error: Undefined name 'instanceMember'.
+    instanceMember; // Error
+    ^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:222:5: Error: Undefined name 'instanceField'.
+    instanceField; // Error
+    ^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:223:5: Error: Undefined name 'superMember'.
+    superMember; // Error
+    ^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:224:5: Error: Undefined name 'superField'.
+    superField; // Error
+    ^^^^^^^^^^";
+    #C3;
+    self::Class::staticField;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:230:5: Error: Setter not found: 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:233:5: Error: Setter not found: 'superSetter'.
+    superSetter = null; // Error
+    ^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:234:5: Error: Setter not found: 'superField'.
+    superField = null; // Error
+    ^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:235:5: Error: Setter not found: 'instanceSetter'.
+    instanceSetter = null; // Error
+    ^^^^^^^^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:236:5: Error: Setter not found: 'instanceField'.
+    instanceField = null; // Error
+    ^^^^^^^^^^^^^";
+    self::Class::staticSetter = null;
+    self::Class::staticField = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:240:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:241:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:247:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+  }
+}
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
+  method extensionInstanceMember = self::Extension|extensionInstanceMember;
+  method tearoff extensionInstanceMember = self::Extension|get#extensionInstanceMember;
+  set extensionInstanceSetter = self::Extension|set#extensionInstanceSetter;
+  static method extensionStaticMember = self::Extension|extensionStaticMember;
+  static set extensionStaticSetter = set self::Extension|extensionStaticSetter;
+  method instanceTest = self::Extension|instanceTest;
+  method tearoff instanceTest = self::Extension|get#instanceTest;
+  static method staticTest = self::Extension|staticTest;
+}
+extension type ExtensionType<T extends core::Object? = dynamic>(self::Class<T%> c) implements self::Class<T%> {
+  abstract extension-type-member representation-field get c() → self::Class<T%>;
+  method extensionTypeInstanceMember = self::ExtensionType|extensionTypeInstanceMember;
+  method tearoff extensionTypeInstanceMember = self::ExtensionType|get#extensionTypeInstanceMember;
+  set extensionTypeInstanceSetter = self::ExtensionType|set#extensionTypeInstanceSetter;
+  static method extensionTypeStaticMember = self::ExtensionType|extensionTypeStaticMember;
+  static set extensionTypeStaticSetter = set self::ExtensionType|extensionTypeStaticSetter;
+  method instanceTest = self::ExtensionType|instanceTest;
+  method tearoff instanceTest = self::ExtensionType|get#instanceTest;
+  static method staticTest = self::ExtensionType|staticTest;
+  constructor _ = self::ExtensionType|constructor#_;
+  constructor tearoff _ = self::ExtensionType|constructor#_#_#tearOff;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+  constructor redirect = self::ExtensionType|constructor#redirect;
+  constructor tearoff redirect = self::ExtensionType|constructor#_#redirect#tearOff;
+  static factory factory = self::ExtensionType|constructor#factory;
+  static factory tearoff factory = self::ExtensionType|constructor#_#factory#tearOff;
+}
+static field dynamic topLevelField;
+static method topLevelMember<T extends core::Object? = dynamic>() → self::Class<self::topLevelMember::T%> {
+  return new self::Class::•<self::topLevelMember::T%>();
+}
+static set topLevelSetter(wildcard dynamic _#wc0#formal) → void {}
+static method topLevelTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:27:3: Error: Undefined name 'unresolved'.
+  unresolved; // Error
+  ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  self::topLevelTest::S%;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:35:3: Error: Setter not found: 'unresolved'.
+  unresolved = null; // Error
+  ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:39:3: Error: A prefix can't be used as an expression.
+  prefix; // Error
+  ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:40:10: Error: Undefined name 'unresolved'.
+  prefix.unresolved; // Error
+         ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:46:10: Error: Setter not found: 'unresolved'.
+  prefix.unresolved = null; // Error
+         ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:50:10: Error: Method not found: 'loadLibrary'.
+  prefix.loadLibrary(); // Error
+         ^^^^^^^^^^^";
+  LoadLibrary(deferred);
+}
+static extension-member method Extension|extensionInstanceMember<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|extensionInstanceMember::T%> #this) → void {}
+static extension-member method Extension|get#extensionInstanceMember<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#extensionInstanceMember::T%> #this) → () → void
+  return () → void => self::Extension|extensionInstanceMember<self::Extension|get#extensionInstanceMember::T%>(#this);
+static extension-member method Extension|set#extensionInstanceSetter<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|set#extensionInstanceSetter::T%> #this, wildcard dynamic _#wc4#formal) → void {}
+static extension-member method Extension|extensionStaticMember() → void {}
+static extension-member set Extension|extensionStaticSetter(wildcard dynamic _#wc5#formal) → void {}
+static extension-member method Extension|instanceTest<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::Class<self::Extension|instanceTest::T%> #this, dynamic parameter) → dynamic {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:268:5: Error: The getter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^" in #this{<unresolved>}.unresolved;
+  #C2;
+  #C2;
+  #C2;
+  self::Extension|instanceTest::T%;
+  self::Extension|instanceTest::S%;
+  #this.{self::Class::instanceMember}{() → void};
+  #this.{self::Class::instanceField}{dynamic};
+  #this.{self::SuperClass::superMember}{() → void};
+  #this.{self::SuperClass::superField}{dynamic};
+  self::Extension|get#extensionInstanceMember<self::Extension|instanceTest::T%>(#this);
+  #C6;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:283:5: Error: The setter 'unresolved' isn't defined for the type 'Class<T>'.
+ - 'Class' is from 'pkg/front_end/testcases/general/lookup.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^" in #this.{<unresolved>}unresolved = null;
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  #this.{self::Class::instanceSetter} = null;
+  #this.{self::Class::instanceField} = null;
+  #this.{self::SuperClass::superSetter} = null;
+  #this.{self::SuperClass::superField} = null;
+  self::Extension|set#extensionInstanceSetter<self::Extension|instanceTest::T%>(#this, null);
+  self::Extension|extensionStaticSetter = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:293:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:294:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:300:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+}
+static extension-member method Extension|get#instanceTest<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#instanceTest::T%> #this) → <S extends core::Object? = dynamic>(dynamic) → dynamic
+  return <S extends core::Object? = dynamic>(dynamic parameter) → dynamic => self::Extension|instanceTest<self::Extension|get#instanceTest::T%, S%>(#this, parameter);
+static extension-member method Extension|staticTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:314:5: Error: Undefined name 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C5;
+  self::Extension|staticTest::S%;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:320:5: Error: Undefined name 'instanceMember'.
+    instanceMember; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:321:5: Error: Undefined name 'instanceField'.
+    instanceField; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:322:5: Error: Undefined name 'superMember'.
+    superMember; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:323:5: Error: Undefined name 'superField'.
+    superField; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:324:5: Error: Undefined name 'extensionInstanceMember'.
+    extensionInstanceMember; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^";
+  #C6;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:329:5: Error: Setter not found: 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:332:5: Error: Setter not found: 'instanceSetter'.
+    instanceSetter = null; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:333:5: Error: Setter not found: 'instanceField'.
+    instanceField = null; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:334:5: Error: Setter not found: 'superSetter'.
+    superSetter = null; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:335:5: Error: Setter not found: 'superField'.
+    superField = null; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:336:5: Error: Setter not found: 'extensionInstanceSetter'.
+    extensionInstanceSetter = null; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^";
+  self::Extension|extensionStaticSetter = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:339:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:340:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:346:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+}
+static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */ {
+  lowered final self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */ #this = c;
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_#_#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> */
+  return self::ExtensionType|constructor#_<self::ExtensionType|constructor#_#_#tearOff::T%>(c);
+static extension-type-member method ExtensionType|extensionTypeInstanceMember<T extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|extensionTypeInstanceMember::T%> /* erasure=self::Class<self::ExtensionType|extensionTypeInstanceMember::T%> */ #this) → void {}
+static extension-type-member method ExtensionType|get#extensionTypeInstanceMember<T extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|get#extensionTypeInstanceMember::T%> /* erasure=self::Class<self::ExtensionType|get#extensionTypeInstanceMember::T%> */ #this) → () → void
+  return () → void => self::ExtensionType|extensionTypeInstanceMember<self::ExtensionType|get#extensionTypeInstanceMember::T%>(#this);
+static extension-type-member method ExtensionType|set#extensionTypeInstanceSetter<T extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|set#extensionTypeInstanceSetter::T%> /* erasure=self::Class<self::ExtensionType|set#extensionTypeInstanceSetter::T%> */ #this, wildcard dynamic _#wc6#formal) → void {}
+static extension-type-member method ExtensionType|extensionTypeStaticMember() → void {}
+static extension-type-member set ExtensionType|extensionTypeStaticSetter(wildcard dynamic _#wc7#formal) → void {}
+static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>([dynamic parameter = #C1]) → self::ExtensionType<self::ExtensionType|constructor#::T%> /* erasure=self::Class<self::ExtensionType|constructor#::T%> */ {
+  lowered final self::ExtensionType<self::ExtensionType|constructor#::T%> /* erasure=self::Class<self::ExtensionType|constructor#::T%> */ #this = self::topLevelMember<self::ExtensionType|constructor#::T%>();
+  {
+    dynamic local;
+    parameter;
+    parameter = null;
+    local;
+    local = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:367:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^" in #this{<unresolved>}.unresolved;
+    #C2;
+    #C2;
+    #C2;
+    self::ExtensionType|constructor#::T%;
+    #this.{self::Class::instanceMember}{() → void};
+    #this.{self::Class::instanceField}{dynamic};
+    #this.{self::SuperClass::superMember}{() → void};
+    #this.{self::SuperClass::superField}{dynamic};
+    self::ExtensionType|get#extensionTypeInstanceMember<self::ExtensionType|constructor#::T%>(#this);
+    #C7;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:381:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^" in #this.{<unresolved>}unresolved = null;
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+    #this.{self::Class::instanceSetter} = null;
+    #this.{self::Class::instanceField} = null;
+    #this.{self::SuperClass::superSetter} = null;
+    #this.{self::SuperClass::superField} = null;
+    self::ExtensionType|set#extensionTypeInstanceSetter<self::ExtensionType|constructor#::T%>(#this, null);
+    self::ExtensionType|extensionTypeStaticSetter = null;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:391:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:392:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+    #C2;
+    #C2;
+    #C2;
+    #C4;
+    self::topLevelField;
+    invalid-expression "pkg/front_end/testcases/general/lookup.dart:398:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+    self::topLevelSetter = null;
+    self::topLevelField = null;
+  }
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>([dynamic parameter = #C1]) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#new#tearOff::T%> */
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T%>(parameter);
+static extension-type-member method ExtensionType|constructor#redirect<T extends core::Object? = dynamic>() → self::ExtensionType<self::ExtensionType|constructor#redirect::T%> /* erasure=self::Class<self::ExtensionType|constructor#redirect::T%> */ {
+  lowered final self::ExtensionType<self::ExtensionType|constructor#redirect::T%> /* erasure=self::Class<self::ExtensionType|constructor#redirect::T%> */ #this;
+  #this = self::ExtensionType|constructor#_<self::ExtensionType|constructor#redirect::T%>(self::topLevelMember<self::ExtensionType|constructor#redirect::T%>());
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>() → self::ExtensionType<self::ExtensionType|constructor#_#redirect#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#redirect#tearOff::T%> */
+  return self::ExtensionType|constructor#redirect<self::ExtensionType|constructor#_#redirect#tearOff::T%>();
+static extension-type-member method ExtensionType|constructor#factory<T extends core::Object? = dynamic>(dynamic parameter) → self::ExtensionType<self::ExtensionType|constructor#factory::T%> /* erasure=self::Class<self::ExtensionType|constructor#factory::T%> */ {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:414:5: Error: Undefined name 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  self::ExtensionType|constructor#factory::T%;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:419:5: Error: Undefined name 'instanceMember'.
+    instanceMember; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:420:5: Error: Undefined name 'instanceField'.
+    instanceField; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:421:5: Error: Undefined name 'superMember'.
+    superMember; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:422:5: Error: Undefined name 'superField'.
+    superField; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:423:5: Error: Undefined name 'extensionTypeInstanceMember'.
+    extensionTypeInstanceMember; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  #C7;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:428:5: Error: Setter not found: 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:431:5: Error: Setter not found: 'instanceSetter'.
+    instanceSetter = null; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:432:5: Error: Setter not found: 'instanceField'.
+    instanceField = null; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:433:5: Error: Setter not found: 'superSetter'.
+    superSetter = null; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:434:5: Error: Setter not found: 'superField'.
+    superField = null; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:435:5: Error: Setter not found: 'extensionTypeInstanceSetter'.
+    extensionTypeInstanceSetter = null; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  self::ExtensionType|extensionTypeStaticSetter = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:438:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:439:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:445:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#factory::T%>();
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#factory#tearOff<T extends core::Object? = dynamic>(dynamic parameter) → self::ExtensionType<self::ExtensionType|constructor#_#factory#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#factory#tearOff::T%> */
+  return self::ExtensionType|constructor#factory<self::ExtensionType|constructor#_#factory#tearOff::T%>(parameter);
+static extension-type-member method ExtensionType|instanceTest<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|instanceTest::T%> /* erasure=self::Class<self::ExtensionType|instanceTest::T%> */ #this, dynamic parameter) → dynamic {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:461:5: Error: The getter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^" in #this{<unresolved>}.unresolved;
+  #C2;
+  #C2;
+  #C2;
+  self::ExtensionType|instanceTest::T%;
+  self::ExtensionType|instanceTest::S%;
+  #this.{self::Class::instanceMember}{() → void};
+  #this.{self::Class::instanceField}{dynamic};
+  #this.{self::SuperClass::superMember}{() → void};
+  #this.{self::SuperClass::superField}{dynamic};
+  self::ExtensionType|get#extensionTypeInstanceMember<self::ExtensionType|instanceTest::T%>(#this);
+  #C7;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:476:5: Error: The setter 'unresolved' isn't defined for the type 'ExtensionType<T>'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^" in #this.{<unresolved>}unresolved = null;
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  #this.{self::Class::instanceSetter} = null;
+  #this.{self::Class::instanceField} = null;
+  #this.{self::SuperClass::superSetter} = null;
+  #this.{self::SuperClass::superField} = null;
+  self::ExtensionType|set#extensionTypeInstanceSetter<self::ExtensionType|instanceTest::T%>(#this, null);
+  self::ExtensionType|extensionTypeStaticSetter = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:486:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:487:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:493:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+}
+static extension-type-member method ExtensionType|get#instanceTest<T extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|get#instanceTest::T%> /* erasure=self::Class<self::ExtensionType|get#instanceTest::T%> */ #this) → <S extends core::Object? = dynamic>(dynamic) → dynamic
+  return <S extends core::Object? = dynamic>(dynamic parameter) → dynamic => self::ExtensionType|instanceTest<self::ExtensionType|get#instanceTest::T%, S%>(#this, parameter);
+static extension-type-member method ExtensionType|staticTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic {
+  dynamic local;
+  parameter;
+  parameter = null;
+  local;
+  local = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:507:5: Error: Undefined name 'unresolved'.
+    unresolved; // Error
+    ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C5;
+  self::ExtensionType|staticTest::S%;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:513:5: Error: Undefined name 'instanceMember'.
+    instanceMember; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:514:5: Error: Undefined name 'instanceField'.
+    instanceField; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:515:5: Error: Undefined name 'superMember'.
+    superMember; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:516:5: Error: Undefined name 'superField'.
+    superField; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:517:5: Error: Undefined name 'extensionTypeInstanceMember'.
+    extensionTypeInstanceMember; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  #C7;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:522:5: Error: Setter not found: 'unresolved'.
+    unresolved = null; // Error
+    ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:525:5: Error: Setter not found: 'instanceSetter'.
+    instanceSetter = null; // Error
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:526:5: Error: Setter not found: 'instanceField'.
+    instanceField = null; // Error
+    ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:527:5: Error: Setter not found: 'superSetter'.
+    superSetter = null; // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:528:5: Error: Setter not found: 'superField'.
+    superField = null; // Error
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:529:5: Error: Setter not found: 'extensionTypeInstanceSetter'.
+    extensionTypeInstanceSetter = null; // Error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  self::ExtensionType|extensionTypeStaticSetter = null;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:532:5: Error: A prefix can't be used as an expression.
+    prefix; // Error
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:533:12: Error: Undefined name 'unresolved'.
+    prefix.unresolved; // Error
+           ^^^^^^^^^^";
+  #C2;
+  #C2;
+  #C2;
+  #C4;
+  self::topLevelField;
+  invalid-expression "pkg/front_end/testcases/general/lookup.dart:539:12: Error: Setter not found: 'unresolved'.
+    prefix.unresolved = null; // Error
+           ^^^^^^^^^^";
+  self::topLevelSetter = null;
+  self::topLevelField = null;
+}
+
+constants  {
+  #C1 = null
+  #C2 = TypeLiteralConstant(self::Class<dynamic>)
+  #C3 = static-tearoff self::Class::staticMember
+  #C4 = static-tearoff self::topLevelMember
+  #C5 = TypeLiteralConstant(invalid-type)
+  #C6 = static-tearoff self::Extension|extensionStaticMember
+  #C7 = static-tearoff self::ExtensionType|extensionTypeStaticMember
+}

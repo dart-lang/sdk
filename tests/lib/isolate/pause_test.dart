@@ -22,23 +22,26 @@ main() {
   late Capability resume;
   var completer = new Completer(); // Completed by first reply from isolate.
   reply.handler = completer.complete;
-  Isolate.spawn(isomain1, reply.sendPort).then((Isolate iso) {
-    isolate = iso;
-    return completer.future;
-  }).then((echoPort) {
-    // Isolate has been created, and first response has been returned.
-    resume = isolate.pause();
-    echoPort.send(24);
-    reply.handler = (v) {
-      throw "RESPONSE WHILE PAUSED?!?";
-    };
-    return new Future.delayed(const Duration(milliseconds: 250));
-  }).then((_) {
-    reply.handler = (v) {
-      if (v != 24) throw "WRONG ANSWER!";
-      reply.close();
-      asyncEnd();
-    };
-    isolate.resume(resume);
-  });
+  Isolate.spawn(isomain1, reply.sendPort)
+      .then((Isolate iso) {
+        isolate = iso;
+        return completer.future;
+      })
+      .then((echoPort) {
+        // Isolate has been created, and first response has been returned.
+        resume = isolate.pause();
+        echoPort.send(24);
+        reply.handler = (v) {
+          throw "RESPONSE WHILE PAUSED?!?";
+        };
+        return new Future.delayed(const Duration(milliseconds: 250));
+      })
+      .then((_) {
+        reply.handler = (v) {
+          if (v != 24) throw "WRONG ANSWER!";
+          reply.close();
+          asyncEnd();
+        };
+        isolate.resume(resume);
+      });
 }

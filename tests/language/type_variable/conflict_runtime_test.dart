@@ -10,37 +10,21 @@
 
 import "package:expect/expect.dart";
 
-class G1<T> {
+class G1<T> {}
 
-}
+class G2<T> {}
 
-class G2<T> {
+class G3<T> {}
 
-}
+class G4<T> {}
 
-class G3<T> {
+class G5<T> {}
 
-}
+class G6<T> {}
 
-class G4<T> {
+class G7<T> {}
 
-}
-
-class G5<T> {
-
-}
-
-class G6<T> {
-
-}
-
-class G7<T> {
-
-}
-
-class G8<T> {
-
-}
+class G8<T> {}
 
 main() {
   new G1<int>();

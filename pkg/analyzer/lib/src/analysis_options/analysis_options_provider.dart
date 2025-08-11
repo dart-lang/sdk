@@ -80,10 +80,11 @@ class AnalysisOptionsProvider {
           options = merge(getOptionsFromSource(includeUri), options);
         }
       } else if (includeValue is YamlList) {
-        var includePaths = includeValue.nodes
-            .whereType<YamlScalar>()
-            .map((e) => e.value)
-            .whereType<String>();
+        var includePaths =
+            includeValue.nodes
+                .whereType<YamlScalar>()
+                .map((e) => e.value)
+                .whereType<String>();
         var includeOptions = includePaths.fold(YamlMap(), (options, path) {
           var includeUri = _sourceFactory.resolveUri(source, path);
           if (includeUri == null) {

@@ -8,44 +8,52 @@
 
 import '../dot_shorthand_helper.dart';
 
+extension type IfNullConstructorExt(int x) implements num {
+  IfNullConstructorExt.regular(this.x);
+  IfNullConstructorExt.named({this.x = 1});
+  IfNullConstructorExt.optional([this.x = 1]);
+}
+
 void constructorClassTest() {
   ConstructorClass ctor = ConstructorClass(1);
 
   // Warning when LHS is not able to be `null`.
   ConstructorClass notNullable = .new(1) ?? ctor;
-  // ^
-  // [analyzer] unspecified
+  //                                        ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 
   ConstructorClass notNullableRegular = .regular(1) ?? ctor;
-  // ^
-  // [analyzer] unspecified
+  //                                                   ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 
   ConstructorClass notNullableNamed = .named(x: 1) ?? ctor;
-  // ^
-  // [analyzer] unspecified
+  //                                                  ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 
   ConstructorClass notNullableOptional = .optional(1) ?? ctor;
-  // ^
-  // [analyzer] unspecified
+  //                                                     ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }
 
 void constructorExtTest() {
-  ConstructorExt ctorExt = ConstructorExt(1);
+  IfNullConstructorExt ctorExt = IfNullConstructorExt(1);
 
   // Warning when LHS is not able to be `null`.
-  ConstructorExt notNullableExt = .new(1) ?? ctorExt;
-  // ^
-  // [analyzer] unspecified
+  IfNullConstructorExt notNullableExt = .new(1) ?? ctorExt;
+  //                                               ^^^^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  IfNullConstructorExt notNullableRegularExt = .regular(1) ?? ctorExt;
+  //                                                          ^^^^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  IfNullConstructorExt notNullableNamedExt = .named(x: 1) ?? ctorExt;
+  //                                                         ^^^^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+  IfNullConstructorExt notNullableOptionalExt = .optional(1) ?? ctorExt;
+  //                                                            ^^^^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+}
 
-  ConstructorExt notNullableRegularExt = .regular(1) ?? ctorExt;
-  // ^
-  // [analyzer] unspecified
-
-  ConstructorExt notNullableNamedExt = .named(x: 1) ?? ctorExt;
-  // ^
-  // [analyzer] unspecified
-
-  ConstructorExt notNullableOptionalExt = .optional(1) ?? ctorExt;
-  // ^
-  // [analyzer] unspecified
+void main() {
+  constructorClassTest();
+  constructorExtTest();
 }

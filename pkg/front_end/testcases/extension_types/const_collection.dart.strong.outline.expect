@@ -25,7 +25,7 @@ const f = <int Function(int)>[ET.new]; // Error
                               ^" in self::ET|constructor#_#new#tearOff as{TypeError} (core::int) → core::int];
 static extension-type-member method ET|constructor#(core::int i) → self::ET% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(i);
 
 

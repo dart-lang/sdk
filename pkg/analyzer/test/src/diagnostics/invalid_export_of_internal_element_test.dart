@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidExportOfInternalElement_BlazePackageTest);
     defineReflectiveTests(
-        InvalidExportOfInternalElement_PackageBuildPackageTest);
+      InvalidExportOfInternalElement_PackageBuildPackageTest,
+    );
     defineReflectiveTests(InvalidExportOfInternalElement_PubPackageTest);
   });
 }
@@ -143,11 +144,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:dart.my/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38)],
+    );
   }
 
   void test_internalIsInGenfiles() async {
@@ -156,11 +158,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:dart.my/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38)],
+    );
   }
 
   void test_internalIsInLibSrc() async {
@@ -169,11 +172,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:dart.my/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 38)],
+    );
   }
 }
 
@@ -183,10 +187,12 @@ class InvalidExportOfInternalElement_PackageBuildPackageTest
   String get testPackageDartToolPath =>
       '$testPackageRootPath/.dart_tool/build/generated/test';
 
-  @FailingTest(reason: r'''
+  @FailingTest(
+    reason: r'''
 We try to analyze a file in .dart_tool, which is implicitly excluded from
 analysis. So, there is no context to analyze it.
-''')
+''',
+  )
   void test_exporterInGeneratedLib() async {
     newFile('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
@@ -202,10 +208,12 @@ export 'package:test/src/foo.dart';
     ]);
   }
 
-  @FailingTest(reason: r'''
+  @FailingTest(
+    reason: r'''
 We try to analyze a file in .dart_tool, which is implicitly excluded from
 analysis. So, there is no context to analyze it.
-''')
+''',
+  )
   void test_exporterInGeneratedLibSrc() async {
     newFile('$testPackageRootPath/lib/src/foo.dart', r'''
 import 'package:meta/meta.dart';
@@ -253,11 +261,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:test/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35)],
+    );
   }
 
   @override
@@ -267,17 +276,19 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:test/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35)],
+    );
   }
 }
 
 @reflectiveTest
 class InvalidExportOfInternalElement_PubPackageTest
-    extends PubPackageResolutionTest with InvalidExportOfInternalElementTest {
+    extends PubPackageResolutionTest
+    with InvalidExportOfInternalElementTest {
   @override
   void setUp() {
     super.setUp();
@@ -335,11 +346,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:test/src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35)],
+    );
   }
 }
 
@@ -368,11 +380,12 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' hide Two;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31)],
+    );
   }
 
   void test_indirectlyViaFunction_parameter() async {
@@ -382,11 +395,12 @@ import 'package:meta/meta.dart';
 int func(IntFunc f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show func;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32)],
+    );
   }
 
   void test_indirectlyViaFunction_parameter_generic() async {
@@ -396,11 +410,12 @@ import 'package:meta/meta.dart';
 int func(IntFunc f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show func;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32)],
+    );
   }
 
   void test_indirectlyViaFunction_parameter_generic_typeArg() async {
@@ -410,11 +425,12 @@ import 'package:meta/meta.dart';
 int func(IntFunc<num> f, int x) => f(x);
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show func;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32)],
+    );
   }
 
   void test_indirectlyViaFunction_returnType() async {
@@ -424,11 +440,12 @@ import 'package:meta/meta.dart';
 IntFunc func() => (int x) => x;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show func;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32)],
+    );
   }
 
   void test_indirectlyViaFunction_typeArgument_bounded() async {
@@ -438,11 +455,12 @@ import 'package:meta/meta.dart';
 void func<T extends IntFunc>() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show func;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32)],
+    );
   }
 
   void test_indirectlyViaFunction_typeArgument_unbounded() async {
@@ -463,11 +481,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22)],
+    );
   }
 
   void test_noCombinators_indirectExport() async {
@@ -480,11 +499,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22)],
+    );
   }
 
   void test_noCombinators_library() async {
@@ -495,11 +515,12 @@ library foo;
 import 'package:meta/meta.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart';
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22)],
+    );
   }
 
   void test_noCombinators_library_notInternal() async {
@@ -541,10 +562,11 @@ import 'package:meta/meta.dart';
 class Two {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'src/foo.dart' show One;
-''', [
-      error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31),
-    ]);
+''',
+      [error(WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 31)],
+    );
   }
 }

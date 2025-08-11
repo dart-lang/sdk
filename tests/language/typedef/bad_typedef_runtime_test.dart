@@ -8,10 +8,7 @@
 
 import "package:expect/expect.dart";
 
-typedef int H(
-    Function
-
-        x);
+typedef int H(Function x);
 
 main() {
   bool b = true;

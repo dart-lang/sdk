@@ -23,24 +23,25 @@ Future<void> test(String header, value) async {
   client
       .open(connect, "127.0.0.1", server.port, "/")
       .then((HttpClientRequest request) {
-    return request.close();
-  }).then((HttpClientResponse response) {
-    Expect.equals(200, response.statusCode);
-    // Headers except Content-Length and Transfer-Encoding header will be read.
-    if (header == HttpHeaders.contentLengthHeader ||
-        header == HttpHeaders.transferEncodingHeader) {
-      Expect.isNull(response.headers[header]);
-    } else {
-      final list = response.headers[header];
-      Expect.isNotNull(list);
-      Expect.equals(1, list!.length);
-      Expect.equals(value, list[0]);
-    }
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        Expect.equals(200, response.statusCode);
+        // Headers except Content-Length and Transfer-Encoding header will be read.
+        if (header == HttpHeaders.contentLengthHeader ||
+            header == HttpHeaders.transferEncodingHeader) {
+          Expect.isNull(response.headers[header]);
+        } else {
+          final list = response.headers[header];
+          Expect.isNotNull(list);
+          Expect.equals(1, list!.length);
+          Expect.equals(value, list[0]);
+        }
 
-    client.close(force: true);
-    server.close();
-    completer.complete();
-  });
+        client.close(force: true);
+        server.close();
+        completer.complete();
+      });
 
   await completer.future;
 }

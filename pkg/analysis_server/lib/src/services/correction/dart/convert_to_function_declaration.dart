@@ -4,8 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -54,7 +57,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
           if (before != null) {
             builder.write(before);
           }
-          builder.write(utils.endOfLine);
+          builder.write(eol);
           builder.write(utils.getLinePrefix(range.offset));
           if (after != null) {
             builder.write(after);
@@ -77,7 +80,62 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
         replaceWithNewLine(r, before: ';');
       }
 
+      DartType? returnType;
+      List<FormalParameterElement?>? parameterList;
+      if (type case NamedType(
+        element: TypeAliasElement(:GenericFunctionTypeElement aliasedElement),
+      )) {
+        returnType = aliasedElement.returnType;
+        parameterList = aliasedElement.formalParameters;
+      } else if (type is GenericFunctionType) {
+        returnType = type.returnType?.type;
+        parameterList =
+            type.parameters.parameters
+                .map((node) => node.declaredFragment!.element)
+                .toList();
+      } else if (initializer case FunctionExpression(
+        declaredFragment: ExecutableFragment(:var element),
+        :var body,
+      )) {
+        returnType = element.returnType;
+        var visitor = _ReturnVisitor();
+        body.accept(visitor);
+        if (visitor.noReturnFounds) {
+          if (typeProvider.nullType == element.returnType) {
+            returnType = typeProvider.voidType;
+          } else if (typeProvider.futureNullType == element.returnType) {
+            returnType = typeProvider.futureType(typeProvider.voidType);
+          }
+        }
+      }
+
+      if (builder.canWriteType(returnType)) {
+        builder.addInsertion(node.offset, (builder) {
+          builder.writeType(returnType);
+          builder.write(' ');
+        });
+      }
+
       builder.addDeletion(range.endStart(equals.previous!, equals.next!));
+
+      if (parameterList != null) {
+        var staticParameters = parameterList;
+        if (initializer case FunctionExpression(:var parameters?)) {
+          for (var (index, parameter) in parameters.parameters.indexed) {
+            if (parameter.isExplicitlyTyped) {
+              continue;
+            }
+            var staticParameterType = staticParameters[index]?.type;
+            if (!builder.canWriteType(staticParameterType)) {
+              continue;
+            }
+            builder.addInsertion(parameter.offset, (builder) {
+              builder.writeType(staticParameterType);
+              builder.write(' ');
+            });
+          }
+        }
+      }
 
       if (next != null) {
         var r = range.endStart(node.endToken, node.endToken.next!.next!);
@@ -114,5 +172,28 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
   ) {
     var i = variables.indexOf(variable);
     return i > 0 ? variables[i - 1] : null;
+  }
+}
+
+class _ReturnVisitor extends RecursiveAstVisitor<void> {
+  int _count = 0;
+
+  bool get noReturnFounds => _count == 0;
+
+  @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _count++;
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // Inner function expressions are not counted.
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    _count++;
+    super.visitReturnStatement(node);
   }
 }

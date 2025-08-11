@@ -487,7 +487,7 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
     date: DateTime.now(),
     element: ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKindUtilities.fromName(_kind)!,
+      kind: ElementKind.fromName(_kind)!,
       isStatic: isStatic,
       components: components ?? ['m', 'C'],
     ),

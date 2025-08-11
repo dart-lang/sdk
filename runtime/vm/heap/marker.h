@@ -18,8 +18,7 @@ class Heap;
 class IsolateGroup;
 class ObjectPointerVisitor;
 class PageSpace;
-template <bool sync>
-class MarkingVisitorBase;
+class MarkingVisitor;
 class Page;
 class Thread;
 
@@ -64,8 +63,7 @@ class GCMarker {
   void ProcessRememberedSet(Thread* thread);
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
-  template <class MarkingVisitorType>
-  void FinalizeResultsFrom(MarkingVisitorType* visitor);
+  void FinalizeResultsFrom(MarkingVisitor* visitor);
 
   IsolateGroup* const isolate_group_;
   Heap* const heap_;
@@ -86,7 +84,7 @@ class GCMarker {
   // need to be scanned even if they are already marked.
   MarkingStack deferred_marking_stack_;
   GCLinkedLists global_list_;
-  MarkingVisitorBase<true>** visitors_;
+  MarkingVisitor** visitors_;
 
   Monitor root_slices_monitor_;
   RelaxedAtomic<intptr_t> root_slices_started_;
@@ -100,8 +98,7 @@ class GCMarker {
   friend class ConcurrentMarkTask;
   friend class ParallelMarkTask;
   friend class Scavenger;
-  template <bool sync>
-  friend class MarkingVisitorBase;
+  friend class MarkingVisitor;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

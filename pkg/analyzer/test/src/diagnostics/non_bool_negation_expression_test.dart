@@ -17,56 +17,62 @@ main() {
 @reflectiveTest
 class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
   test_nonBool() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   !42;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2)],
+    );
   }
 
   test_nonBool_fromLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   ![1, 2, 3];
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 9)],
+    );
   }
 
   test_nonBool_fromSupertype() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Object o) {
   !o;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 17, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 17, 1)],
+    );
   }
 
   test_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void m(Null x) {
   !x;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1)],
+    );
   }
 }
 
 @reflectiveTest
 class NonBoolNegationExpressionWithStrictCastsTest
-    extends PubPackageResolutionTest with WithStrictCastsMixin {
+    extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
   test_negation() async {
-    await assertErrorsWithStrictCasts(r'''
+    await assertErrorsWithStrictCasts(
+      r'''
 void f(dynamic a) {
   !a;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 23, 1)],
+    );
   }
 }

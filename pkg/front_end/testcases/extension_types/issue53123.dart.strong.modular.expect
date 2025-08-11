@@ -19,7 +19,7 @@ static extension-type-member method V|constructor#<T extends invalid-type = self
   lowered final self::V<self::V|constructor#::T%>% /* erasure=self::V|constructor#::T%, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method V|constructor#_#new#tearOff<T extends invalid-type = self::V<dynamic>% /* erasure=dynamic, declared=! */>(self::V|constructor#_#new#tearOff::T% id) → self::V<self::V|constructor#_#new#tearOff::T%>% /* erasure=self::V|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method V|constructor#_#new#tearOff<T extends invalid-type = self::V<dynamic>% /* erasure=dynamic, declared=! */>(self::V|constructor#_#new#tearOff::T% id) → self::V<self::V|constructor#_#new#tearOff::T%>% /* erasure=self::V|constructor#_#new#tearOff::T%, declared=! */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::T%>(id);
 static method test(self::V<self::V<dynamic>% /* erasure=dynamic, declared=! */>% /* erasure=dynamic, declared=! */ v) → dynamic {
   core::List<self::V<self::V<dynamic>% /* erasure=dynamic, declared=! */>% /* erasure=dynamic, declared=! */> l = <self::V<self::V<dynamic>% /* erasure=dynamic, declared=! */>% /* erasure=dynamic, declared=! */>[v];

@@ -337,67 +337,73 @@ class _Class {
 }
 
 extension on int? {
-  /*member: _#_extension#1|a:
+  /*member: _#_extension#0|a:
    lateField,
-   lateFieldName=_extension#1|a,
-   lateFieldTarget=_#_extension#1|a
+   lateFieldName=_extension#0|a,
+   lateFieldTarget=_#_extension#0|a
   */
-  /*is-null.member: _#_extension#1|a#isSet:
-   lateFieldName=_extension#1|a,
-   lateFieldTarget=_#_extension#1|a,
+  /*is-null.member: _#_extension#0|a#isSet:
+   lateFieldName=_extension#0|a,
+   lateFieldTarget=_#_extension#0|a,
    lateIsSetField
   */
-  /*member: _extension#1|a:
+  /*member: _extension#0|a:
+   extensionName=<unnamed extension>.a,
    lateFieldGetter,
-   lateFieldName=_extension#1|a,
-   lateFieldTarget=_#_extension#1|a
+   lateFieldName=_extension#0|a,
+   lateFieldTarget=_#_extension#0|a
   */
-  /*member: _extension#1|a=:
-   lateFieldName=_extension#1|a,
+  /*member: _extension#0|a=:
+   extensionName=<unnamed extension>.a,
+   lateFieldName=_extension#0|a,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#1|a
+   lateFieldTarget=_#_extension#0|a
   */
   static late int? a;
-  /*member: _#_extension#1|aa:
+  /*member: _#_extension#0|aa:
    lateField,
-   lateFieldName=_extension#1|aa,
-   lateFieldTarget=_#_extension#1|aa
+   lateFieldName=_extension#0|aa,
+   lateFieldTarget=_#_extension#0|aa
   */
-  /*is-null.member: _#_extension#1|aa#isSet:
-   lateFieldName=_extension#1|aa,
-   lateFieldTarget=_#_extension#1|aa,
+  /*is-null.member: _#_extension#0|aa#isSet:
+   lateFieldName=_extension#0|aa,
+   lateFieldTarget=_#_extension#0|aa,
    lateIsSetField
   */
-  /*member: _extension#1|aa:
+  /*member: _extension#0|aa:
+   extensionName=<unnamed extension>.aa,
    lateFieldGetter,
-   lateFieldName=_extension#1|aa,
-   lateFieldTarget=_#_extension#1|aa
+   lateFieldName=_extension#0|aa,
+   lateFieldTarget=_#_extension#0|aa
   */
-  /*member: _extension#1|aa=:
-   lateFieldName=_extension#1|aa,
+  /*member: _extension#0|aa=:
+   extensionName=<unnamed extension>.aa,
+   lateFieldName=_extension#0|aa,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#1|aa
+   lateFieldTarget=_#_extension#0|aa
   */
   static late int? aa;
-  /*member: _#_extension#1|_b:
+  /*member: _#_extension#0|_b:
    lateField,
-   lateFieldName=_extension#1|_b,
-   lateFieldTarget=_#_extension#1|_b
+   lateFieldName=_extension#0|_b,
+   lateFieldTarget=_#_extension#0|_b
   */
-  /*is-null.member: _#_extension#1|_b#isSet:
-   lateFieldName=_extension#1|_b,
-   lateFieldTarget=_#_extension#1|_b,
+  /*is-null.member: _#_extension#0|_b#isSet:
+   lateFieldName=_extension#0|_b,
+   lateFieldTarget=_#_extension#0|_b,
    lateIsSetField
   */
-  /*member: _extension#1|_b:
+  /*member: _extension#0|_b:
+   extensionName=<unnamed extension>._b,
    lateFieldGetter,
-   lateFieldName=_extension#1|_b,
-   lateFieldTarget=_#_extension#1|_b
+   lateFieldName=_extension#0|_b,
+   lateFieldTarget=_#_extension#0|_b
   */
-  /*member: _extension#1|_b=:
-   lateFieldName=_extension#1|_b,
+  /*member: _extension#0|_b=:
+   extensionName=<unnamed extension>._b,
+   lateFieldName=_extension#0|_b,
    lateFieldSetter,
-   lateFieldTarget=_#_extension#1|_b
+   lateFieldTarget=_#_extension#0|_b
   */
   static late int? _b;
 }
@@ -414,11 +420,13 @@ extension _Extension on int? {
    lateIsSetField
   */
   /*member: _Extension|a:
+   extensionName=_Extension.a,
    lateFieldGetter,
    lateFieldName=_Extension|a,
    lateFieldTarget=_#_Extension|a
   */
   /*member: _Extension|a=:
+   extensionName=_Extension.a,
    lateFieldName=_Extension|a,
    lateFieldSetter,
    lateFieldTarget=_#_Extension|a
@@ -435,11 +443,13 @@ extension _Extension on int? {
    lateIsSetField
   */
   /*member: _Extension|aa:
+   extensionName=_Extension.aa,
    lateFieldGetter,
    lateFieldName=_Extension|aa,
    lateFieldTarget=_#_Extension|aa
   */
   /*member: _Extension|aa=:
+   extensionName=_Extension.aa,
    lateFieldName=_Extension|aa,
    lateFieldSetter,
    lateFieldTarget=_#_Extension|aa
@@ -456,11 +466,13 @@ extension _Extension on int? {
    lateIsSetField
   */
   /*member: _Extension|_b:
+   extensionName=_Extension._b,
    lateFieldGetter,
    lateFieldName=_Extension|_b,
    lateFieldTarget=_#_Extension|_b
   */
   /*member: _Extension|_b=:
+   extensionName=_Extension._b,
    lateFieldName=_Extension|_b,
    lateFieldSetter,
    lateFieldTarget=_#_Extension|_b

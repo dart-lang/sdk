@@ -644,10 +644,9 @@ class DeferredLoadTask extends CompilerTask {
         unitText.write(' <MAIN UNIT>');
       } else {
         unitText.write(' imports:');
-        var imports =
-            outputUnit.imports
-                .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
-                .toList();
+        var imports = outputUnit.imports
+            .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
+            .toList();
         for (var i in imports..sort()) {
           unitText.write('\n   $i:');
         }

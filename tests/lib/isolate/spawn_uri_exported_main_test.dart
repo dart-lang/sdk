@@ -19,8 +19,11 @@ main() {
     Expect.equals(msg, 50);
     rp.close();
   };
-  Isolate.spawnUri(Uri.parse("spawn_uri_exported_main.dart"), [], rp.sendPort)
-      .then((_) {
+  Isolate.spawnUri(
+    Uri.parse("spawn_uri_exported_main.dart"),
+    [],
+    rp.sendPort,
+  ).then((_) {
     print("Loaded");
     t.cancel();
   });

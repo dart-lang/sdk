@@ -19,6 +19,8 @@ main() {
   ClassMirror m = reflectClass(A);
   var i = m.newInstance(Symbol.empty, []).reflectee;
   var s = i.t.toString();
-  Expect.isTrue(s == 'A' || s == 'A<dynamic>',
-      'mirrors should create the correct reified generic type');
+  Expect.isTrue(
+    s == 'A' || s == 'A<dynamic>',
+    'mirrors should create the correct reified generic type',
+  );
 }

@@ -21,10 +21,10 @@ extension type Foo(core::int _x) {
 }
 static extension-type-member method Foo|constructor#(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#new#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#(_x);
 static abstract extension-type-member method Foo|get#y(lowered core::int #this) → core::int;
 static abstract extension-type-member method Foo|set#y(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
 external static extension-type-member method Foo|constructor#secondConstructor() → self::Foo% /* erasure=core::int, declared=! */;
-static extension-type-member method Foo|constructor#_#secondConstructor#tearOff() → self::Foo% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#secondConstructor#tearOff() → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#secondConstructor();

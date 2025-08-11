@@ -302,10 +302,9 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
           file.getLocationMessage(color(message), begin, end, colorize: color),
         );
       } else {
-        String position =
-            begin != null && end != null && end - begin > 0
-                ? '@$begin+${end - begin}'
-                : '';
+        String position = begin != null && end != null && end - begin > 0
+            ? '@$begin+${end - begin}'
+            : '';
         print(
           '${provider.relativizeUri(uri)}$position:\n'
           '${color(message)}',
@@ -415,8 +414,9 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = (File(uri.toFilePath())
-        ..createSync(recursive: true)).openSync(mode: FileMode.write);
+      output = (File(
+        uri.toFilePath(),
+      )..createSync(recursive: true)).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }
@@ -450,8 +450,9 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = (File(uri.toFilePath())
-        ..createSync(recursive: true)).openSync(mode: FileMode.write);
+      output = (File(
+        uri.toFilePath(),
+      )..createSync(recursive: true)).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }

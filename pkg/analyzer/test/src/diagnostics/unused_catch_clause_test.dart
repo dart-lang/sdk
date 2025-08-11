@@ -16,27 +16,29 @@ main() {
 @reflectiveTest
 class UnusedCatchClauseTest extends PubPackageResolutionTest {
   test_on_unusedException() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   try {
   } on String catch (exception) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_CLAUSE, 35, 9),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_CLAUSE, 35, 9)],
+    );
   }
 
   test_on_unusedStack_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   try {
   } on String catch (exception, __) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 46, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_STACK, 46, 2)],
+    );
   }
 
   test_on_unusedStack_wildcard() async {

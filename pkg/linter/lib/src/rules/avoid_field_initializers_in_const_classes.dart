@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -19,14 +21,11 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_field_initializers_in_const_classes;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
@@ -69,14 +68,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element == null) return;
 
       // no lint if several constructors
-      if (element.constructors2.length > 1) return;
+      if (element.constructors.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
         declaration.parameters.parameterFragments,
       );
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -92,12 +91,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parent.declaredFragment?.element;
       if (declaredElement == null) return;
 
-      if (declaredElement.constructors2.every((e) => !e.isConst)) {
+      if (declaredElement.constructors.every((e) => !e.isConst)) {
         return;
       }
       for (var variable in node.fields.variables) {
         if (variable.initializer != null) {
-          rule.reportLint(variable);
+          rule.reportAtNode(variable);
         }
       }
     }

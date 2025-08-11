@@ -7,11 +7,14 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 void testList() {
-  final startingDir =
-      Directory(path.normalize(path.join(Platform.executable, '../../../')));
+  final startingDir = Directory(
+    path.normalize(path.join(Platform.executable, '../../../')),
+  );
   print("Recursively listing entries in directory ${startingDir.path} ...");
-  List<FileSystemEntity> each =
-      startingDir.listSync(recursive: true, followLinks: false);
+  List<FileSystemEntity> each = startingDir.listSync(
+    recursive: true,
+    followLinks: false,
+  );
   print("Found: ${each.length} entities");
 }
 

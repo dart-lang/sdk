@@ -19,6 +19,9 @@ class AddAwait extends ResolvedCorrectionProducer {
   AddAwait.assignment({required super.context})
     : _correctionKind = _CorrectionKind.invalidAssignment;
 
+  AddAwait.forIn({required super.context})
+    : _correctionKind = _CorrectionKind.forIn;
+
   AddAwait.nonBool({required super.context})
     : _correctionKind = _CorrectionKind.nonBool;
 
@@ -37,31 +40,87 @@ class AddAwait extends ResolvedCorrectionProducer {
   @override
   FixKind get multiFixKind => DartFixKind.ADD_AWAIT_MULTI;
 
+  FunctionBody? get _functionBodyIfNotAsync {
+    var body = node.thisOrAncestorOfType<FunctionBody>();
+    if (body != null && !body.isAsynchronous && body.star == null) {
+      return body;
+    }
+    return null;
+  }
+
   @override
   Future<void> compute(ChangeBuilder builder) async {
     switch (_correctionKind) {
       case _CorrectionKind.argumentType:
-        if (_isValidType(expectedTypeFromExp: (exp) => exp.argumentType)) {
-          await _addAwait(builder);
+        if (_isValidFutureType(
+          expectedTypeFromExp: (exp) => exp.argumentType,
+        )) {
+          await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
       case _CorrectionKind.invalidAssignment:
-        if (_isValidType(expectedTypeFromExp: (exp) => exp.assignmentType)) {
-          await _addAwait(builder);
+        if (_isValidFutureType(
+          expectedTypeFromExp: (exp) => exp.assignmentType,
+        )) {
+          await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
       case _CorrectionKind.nonBool:
-        if (_isValidType(isValid: (type) => type.isDartCoreBool)) {
-          await _addAwait(builder);
+        if (_isValidFutureType(isValid: (type) => type.isDartCoreBool)) {
+          await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
       case _CorrectionKind.unawaited:
-        if (node.parent is! CascadeExpression) {
+        // The reported node may be the `identifier` in a PrefixedIdentifier,
+        // the `propertyName` in a PropertyAccess, or the `methodName` in a
+        // MethodInvocation. Check whether the grandparent is a
+        // CascadeExpression. If it is, we cannot simply add an await
+        // expression; we must also change the cascade(s) into a regular
+        // property access or method call.
+        if (node.parent?.parent is! CascadeExpression) {
           await _addAwait(builder);
+        }
+      case _CorrectionKind.forIn:
+        if (node.parent case ForEachPartsWithDeclaration(
+          :var iterable,
+          :var parent,
+        ) when iterable == node) {
+          var type = iterable.staticType;
+          var isStream =
+              type != null &&
+              typeSystem.isAssignableTo(type, typeProvider.streamDynamicType);
+          if (isStream ||
+              _isValidFutureType(
+                isValid:
+                    (type) => typeSystem.isAssignableTo(
+                      type,
+                      typeProvider.iterableDynamicType,
+                    ),
+              )) {
+            await _addAwait(
+              builder,
+              offset: isStream ? parent.offset : null,
+              convertToAsync: _functionBodyIfNotAsync,
+            );
+          }
         }
     }
   }
 
-  Future<void> _addAwait(ChangeBuilder builder) async {
+  Future<void> _addAwait(
+    ChangeBuilder builder, {
+    int? offset,
+    FunctionBody? convertToAsync,
+  }) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(errorOffset ?? node.offset, 'await ');
+      if (convertToAsync != null) {
+        builder.convertFunctionFromSyncToAsync(
+          body: convertToAsync,
+          typeSystem: typeSystem,
+          typeProvider: typeProvider,
+        );
+      }
+      builder.addSimpleInsertion(
+        offset ?? diagnosticOffset ?? node.offset,
+        'await ',
+      );
     });
   }
 
@@ -74,7 +133,7 @@ class AddAwait extends ResolvedCorrectionProducer {
   /// If [expectedTypeFromExp] is provided the return type should be the
   /// underlying expected type of the expression. The future type will then be
   /// checked if it is assignable to it.
-  bool _isValidType({
+  bool _isValidFutureType({
     DartType? Function(Expression expr)? expectedTypeFromExp,
     bool Function(DartType type)? isValid,
   }) {
@@ -109,7 +168,13 @@ class AddAwait extends ResolvedCorrectionProducer {
 }
 
 /// The kinds of corrections supported by [AddAwait].
-enum _CorrectionKind { argumentType, invalidAssignment, nonBool, unawaited }
+enum _CorrectionKind {
+  argumentType,
+  invalidAssignment,
+  nonBool,
+  unawaited,
+  forIn,
+}
 
 extension on Expression {
   DartType? get argumentType {

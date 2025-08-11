@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -20,11 +20,11 @@ abstract class FixContributorMixin implements FixContributor {
   /// The collector to which fixes should be added.
   FixCollector? collector;
 
-  /// Add a fix for the given [error]. Use the [kind] of the fix to get the
-  /// message and priority, and use the change [builder] to get the edits that
-  /// comprise the fix. If the message has parameters, then use the list of
+  /// Adds a fix for the given [diagnostic]. Use the [kind] of the fix to get
+  /// the message and priority, and use the change [builder] to get the edits
+  /// that comprise the fix. If the message has parameters, then use the list of
   /// [args] to populate the message.
-  void addFix(AnalysisError error, FixKind kind, ChangeBuilder builder,
+  void addFix(Diagnostic diagnostic, FixKind kind, ChangeBuilder builder,
       {List<Object>? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
@@ -32,7 +32,8 @@ abstract class FixContributorMixin implements FixContributor {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    collector?.addFix(error, PrioritizedSourceChange(kind.priority, change));
+    collector?.addFix(
+        diagnostic, PrioritizedSourceChange(kind.priority, change));
   }
 
   @override
@@ -50,7 +51,7 @@ abstract class FixContributorMixin implements FixContributor {
     }
   }
 
-  /// Compute the fixes that are appropriate for the given [error] and add them
-  /// to the fix [collector].
-  Future<void> computeFixesForError(AnalysisError error);
+  /// Computes the fixes that are appropriate for the given [diagnostic] and add
+  /// them to the fix [collector].
+  Future<void> computeFixesForError(Diagnostic diagnostic);
 }

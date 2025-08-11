@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +18,12 @@ void main() {
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
   LibraryFragment get testUnitFragment => testUnit.declaredFragment!;
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 
   Future<void> test_class() async {
     await resolveTestCode(r'''
@@ -63,6 +69,6 @@ int? ccc;
   void _assertElement(int nameOffset, ElementKind kind, String name) {
     var fragment = findFragmentByNameOffset(testUnitFragment, nameOffset)!;
     expect(fragment.element.kind, kind);
-    expect(fragment.name2, name);
+    expect(fragment.name, name);
   }
 }

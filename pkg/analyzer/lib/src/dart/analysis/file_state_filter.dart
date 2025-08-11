@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 
 abstract class FileStateFilter {
@@ -36,7 +36,7 @@ abstract class FileStateFilter {
       'dart:js_util',
       'dart:svg',
       'dart:web_audio',
-      'dart:web_gl'
+      'dart:web_gl',
     }.contains(file.uriStr)) {
       return false;
     }
@@ -67,11 +67,11 @@ class _PubFilter implements FileStateFilter {
   final Set<String> dependencies;
 
   factory _PubFilter(PubPackage package, String path) {
-    var packageRootFolder = package.workspace.provider.getFolder(package.root);
+    var packageRootFolder = package.root;
     var inLibOrEntryPoint =
         packageRootFolder.getChildAssumingFolder('lib').contains(path) ||
-            packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
-            packageRootFolder.getChildAssumingFolder('web').contains(path);
+        packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
+        packageRootFolder.getChildAssumingFolder('web').contains(path);
 
     var dependencies = <String>{};
     var pubspec = package.pubspec;
@@ -141,7 +141,7 @@ class _PubFilter implements FileStateFilter {
   }
 }
 
-extension on PSDependencyList? {
+extension on PubspecDependencyList? {
   List<String> get names {
     var self = this;
     if (self == null) {

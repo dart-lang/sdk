@@ -7,7 +7,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -46,7 +46,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration),
     ];
     // Sort by name, getters before setters.
-    signatures.sort((ExecutableElement2 a, ExecutableElement2 b) {
+    signatures.sort((ExecutableElement a, ExecutableElement b) {
       var names = compareStrings(a.displayName, b.displayName);
       if (names != 0) {
         return names;
@@ -101,7 +101,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               }
               builder.writeType(element.returnType, required: true);
               builder.write(' ');
-              builder.write(element.name3 ?? '');
+              builder.write(element.name ?? '');
               builder.write(';');
             }
           }

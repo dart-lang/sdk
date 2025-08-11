@@ -4,7 +4,8 @@
 
 import '../language_server_benchmark.dart';
 import '../legacy_messages.dart';
-import 'utils.dart';
+import '../run_utils.dart';
+import 'benchmark_utils.dart';
 
 /// Hovering over an import with ctrl down in IntelliJ sends getHover requests
 /// for the import uri at position 0 every ~8 ms and never cancels old requests.
@@ -15,9 +16,11 @@ Future<void> main(List<String> args) async {
   await runHelper(
     args,
     LegacyManyHoverRequestsBenchmark.new,
+    copyData,
+    extraIterations: getExtraIterations,
     runAsLsp: false,
     // The number of files doesn't seem to be important on this one.
-    numberOfFileOptions: [4],
+    sizeOptions: [4],
   );
 }
 

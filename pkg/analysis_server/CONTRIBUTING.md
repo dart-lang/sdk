@@ -61,9 +61,17 @@ To run all analysis server tests:
 To run just the analysis server integration tests:
 
 ```
-./tools/test.py -mrelease pkg/analysis_server/test/integration/
+./tools/test.py -mrelease pkg/analysis_server/integration_test/
 ```
 
+To run a single test:
+
+```
+dart test pkg/analysis_server/test/some_test.dart
+```
+
+> Note: `dart` may need to point to a Dart SDK built from source
+depending on the changes you are testing.
 
 [building]: https://github.com/dart-lang/sdk/wiki/Building
 [contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md

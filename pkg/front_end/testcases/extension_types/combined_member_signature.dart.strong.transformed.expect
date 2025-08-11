@@ -12,13 +12,13 @@ library;
 // (Object?, int) testMethod2(E e) => e.method(); // Error
 //                                      ^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:28:35: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:28:35: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testMethod3(E e) => e.method().$1.unresolved(); // Error
 //                                   ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:29:35: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:29:35: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testMethod4(E e) => e.method().$2.unresolved(); // Error
@@ -54,13 +54,13 @@ library;
 // (int, Object?) f3 = f; // Error
 //                     ^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testMethod5(E e) => f.$1.unresolved(); // Error
 //                          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testMethod6(E e) => f.$2.unresolved(); // Error
@@ -76,13 +76,13 @@ library;
 // (int, Object?) g3 = g; // Error
 //                     ^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testGetter5(E e) => g.$1.unresolved(); // Error
 //                          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
 //  - 'Object' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 // testGetter6(E e) => g.$2.unresolved(); // Error
@@ -119,9 +119,9 @@ class C extends core::Object implements self::A, self::B {
 }
 extension type E(self::C c) implements self::A, self::B {
   abstract extension-type-member representation-field get c() → self::C;
-  abstract member-signature method method() → (core::Object?, core::Object?); -> self::A::method
-  abstract member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
-  abstract member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
+  abstract synthetic member-signature method method() → (core::Object?, core::Object?); -> self::A::method
+  abstract synthetic member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
+  abstract synthetic member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
@@ -150,7 +150,7 @@ static extension-type-member method E|constructor#(self::C c) → self::E /* era
   lowered final self::E /* erasure=self::C */ #this = c;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
   return self::E|constructor#(c);
 static method testMethod0(self::E /* erasure=self::C */ e) → (core::Object?, core::Object?)
   return e.{self::A::method}(){() → (core::Object?, core::Object?)};
@@ -165,13 +165,13 @@ static method testMethod2(self::E /* erasure=self::C */ e) → (core::Object?, c
 (Object?, int) testMethod2(E e) => e.method(); // Error
                                      ^" in e.{self::A::method}(){() → (core::Object?, core::Object?)} as{TypeError} (core::Object?, core::int);
 static method testMethod3(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:28:35: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:28:35: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testMethod3(E e) => e.method().\$1.unresolved(); // Error
                                   ^^^^^^^^^^" in e.{self::A::method}(){() → (core::Object?, core::Object?)}.$1{core::Object?}{<unresolved>}.unresolved();
 static method testMethod4(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:29:35: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:29:35: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testMethod4(E e) => e.method().\$2.unresolved(); // Error
@@ -200,25 +200,25 @@ static method testSetter(self::E /* erasure=self::C */ e) → void {
                        ^" in (a as core::int, b) as{TypeError} (core::int, core::int);
 }
 static method testMethod5(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testMethod5(E e) => f.\$1.unresolved(); // Error
                          ^^^^^^^^^^" in self::f.$1{core::Object?}{<unresolved>}.unresolved();
 static method testMethod6(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testMethod6(E e) => f.\$2.unresolved(); // Error
                          ^^^^^^^^^^" in self::f.$2{core::Object?}{<unresolved>}.unresolved();
 static method testGetter5(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testGetter5(E e) => g.\$1.unresolved(); // Error
                          ^^^^^^^^^^" in self::g.$1{core::Object?}{<unresolved>}.unresolved();
 static method testGetter6(self::E /* erasure=self::C */ e) → dynamic
-  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the type 'Object?'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 testGetter6(E e) => g.\$2.unresolved(); // Error

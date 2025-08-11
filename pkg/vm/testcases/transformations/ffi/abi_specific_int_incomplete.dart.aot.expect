@@ -37,7 +37,7 @@ final class IncompleteStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get a0#offsetOf() → core::int
+  static synthetic get a0#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
@@ -61,7 +61,7 @@ final class IncompleteArrayStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get a0#offsetOf() → core::int
+  static synthetic get a0#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 400)]

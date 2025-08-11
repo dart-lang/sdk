@@ -16,6 +16,7 @@ resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  collection: any
   path: any
   pub_semver: any
 

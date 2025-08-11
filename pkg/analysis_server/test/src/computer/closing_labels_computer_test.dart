@@ -21,6 +21,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
+    useLineEndingsForPlatform = false;
     super.setUp();
     sourcePath = convertPath('$testPackageLibPath/test.dart');
   }

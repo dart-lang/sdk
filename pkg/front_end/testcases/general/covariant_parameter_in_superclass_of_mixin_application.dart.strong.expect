@@ -27,7 +27,7 @@ abstract class _D&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&A&B
     : super self::A::•()
     ;
-  forwarding-stub method foo(covariant-by-declaration core::num x) → void
+  forwarding-stub synthetic method foo(covariant-by-declaration core::num x) → void
     return super.{self::B::foo}(x);
 }
 static method main() → dynamic {}

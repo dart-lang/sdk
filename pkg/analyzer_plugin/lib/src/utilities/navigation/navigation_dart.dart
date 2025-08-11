@@ -6,12 +6,11 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -82,7 +81,7 @@ AstNode _getNavigationTargetNode(AstNode node) {
 }
 
 AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
-  var node = NodeLocator(offset, offset + length).searchWithin(unit);
+  var node = unit.nodeCovering(offset: offset, length: length);
   for (var n = node; n != null; n = n.parent) {
     if (n is Directive) {
       return n;
@@ -126,8 +125,8 @@ class _DartNavigationCollector {
     );
   }
 
-  void _addRegionForElement(SyntacticEntity? nodeOrToken, Element2? element) {
-    _addRegionForFragment(nodeOrToken, element?.nonSynthetic2.firstFragment);
+  void _addRegionForElement(SyntacticEntity? nodeOrToken, Element? element) {
+    _addRegionForFragment(nodeOrToken, element?.nonSynthetic.firstFragment);
   }
 
   void _addRegionForFragment(SyntacticEntity? nodeOrToken, Fragment? fragment) {
@@ -146,13 +145,13 @@ class _DartNavigationCollector {
     // If this fragment is for a synthetic element, use the first fragment for
     // the non-synthetic element.
     if (fragment.element.isSynthetic) {
-      fragment = fragment.element.nonSynthetic2.firstFragment;
+      fragment = fragment.element.nonSynthetic.firstFragment;
     }
 
-    if (fragment.element == DynamicElementImpl2.instance) {
+    if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
-    if (fragment.element is MultiplyDefinedElement2) {
+    if (fragment.element is MultiplyDefinedElement) {
       return;
     }
 
@@ -230,15 +229,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element2;
-    if (element is ConstructorElement2 && element.isSynthetic) {
-      element = element.enclosingElement2;
+    var element = node.element;
+    if (element is ConstructorElement && element.isSynthetic) {
+      element = element.enclosingElement;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
       // use constructor in: @PrefixClass.constructorName
       var prefixElement = name.prefix.element;
-      if (prefixElement is ClassElement2) {
+      if (prefixElement is ClassElement) {
         prefixElement = element;
       }
       computer._addRegionForElement(name.prefix, prefixElement);
@@ -335,7 +334,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element == null) {
       return;
     }
@@ -345,12 +344,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     {
       var importPrefix = namedType.importPrefix;
       if (importPrefix != null) {
-        computer._addRegionForElement(importPrefix.name, importPrefix.element2);
+        computer._addRegionForElement(importPrefix.name, importPrefix.element);
       }
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
-          node.name != null ? namedType.element2 : element;
-      computer._addRegionForElement(namedType.name2, classNameTargetElement);
+          node.name != null ? namedType.element : element;
+      computer._addRegionForElement(namedType.name, classNameTargetElement);
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
@@ -367,7 +366,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       if (token != null && token.keyword == Keyword.VAR) {
         var inferredType = node.declaredFragment?.element.type;
         if (inferredType is InterfaceType) {
-          computer._addRegionForElement(token, inferredType.element3);
+          computer._addRegionForElement(token, inferredType.element);
         }
       }
     }
@@ -376,25 +375,25 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
-      for (var variable in join2.variables2) {
+    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+      for (var variable in join.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
-      computer._addRegionForElement(node.name, node.declaredElement2);
+      computer._addRegionForElement(node.name, node.declaredElement);
     }
     super.visitDeclaredVariablePattern(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForElement(node.name, node.constructorElement2);
+    computer._addRegionForElement(node.name, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
       computer._addRegionForElement(
         arguments.constructorSelector?.name,
-        node.constructorElement2,
+        node.constructorElement,
       );
       arguments.typeArguments?.accept(this);
       arguments.argumentList.accept(this);
@@ -417,8 +416,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
-      computer._addRegionForElement(node.thisKeyword, element.field2);
-      computer._addRegionForElement(node.name, element.field2);
+      computer._addRegionForElement(node.thisKeyword, element.field);
+      computer._addRegionForElement(node.name, element.field);
     }
 
     node.type?.accept(this);
@@ -440,7 +439,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) return;
     for (var fragment in element.fragments) {
       computer._addRegionForFragment(node.name, fragment);
@@ -450,14 +449,25 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     computer._addRegionForElement(node.leftBracket, element);
     computer._addRegionForElement(node.rightBracket, element);
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.constructorName.element == null) {
+      computer._addRegionForElement(
+        node.constructorName,
+        node.constructorName.type.element,
+      );
+    }
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForElement(node.name2, node.element2);
+    computer._addRegionForElement(node.name, node.element);
     super.visitLibraryDirective(node);
   }
 
@@ -470,7 +480,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    computer._addRegionForElement(node.name2, node.element2);
+    computer._addRegionForElement(node.name, node.element);
     node.typeArguments?.accept(this);
   }
 
@@ -522,7 +532,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (nameNode != null) {
       var nameToken = nameNode.name ?? node.pattern.variablePattern?.name;
       if (nameToken != null) {
-        computer._addRegionForElement(nameToken, node.element2);
+        computer._addRegionForElement(nameToken, node.element);
       }
     }
 
@@ -545,9 +555,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.thisKeyword, element);
@@ -578,17 +588,17 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
-    if (element case PrefixElement2(:var fragments, :var name3)) {
+    var element = node.writeOrReadElement;
+    if (element case PrefixElement(:var fragments, :var name)) {
       for (var fragment in fragments) {
         computer._addRegionForFragmentRange(
           node.offset,
-          name3?.length,
+          name?.length,
           fragment,
         );
       }
-    } else if (element case JoinPatternVariableElement2(:var variables2)) {
-      for (var variable in variables2) {
+    } else if (element case JoinPatternVariableElement(:var variables)) {
+      for (var variable in variables) {
         computer._addRegionForElement(node, variable);
       }
     } else {
@@ -598,9 +608,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     // add region
     computer._addRegionForElement(node.superKeyword, element);
@@ -612,8 +622,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element case SuperFormalParameterElementImpl2 element) {
-      var superParameter = element.superConstructorParameter2;
+    if (element case SuperFormalParameterElementImpl element) {
+      var superParameter = element.superConstructorParameter;
       computer._addRegionForElement(node.superKeyword, superParameter);
       computer._addRegionForElement(node.name, superParameter);
     }
@@ -640,19 +650,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
-    Element2? getCommonElement(List<VariableDeclaration> variables) {
+    Element? getCommonElement(List<VariableDeclaration> variables) {
       var firstType = variables[0].declaredFragment?.element.type;
       if (firstType is! InterfaceType) {
         return null;
       }
 
-      var firstElement = firstType.element3;
+      var firstElement = firstType.element;
       for (var i = 1; i < variables.length; i++) {
         var type = variables[i].declaredFragment?.element.type;
         if (type is! InterfaceType) {
           return null;
         }
-        if (type.element3 != firstElement) {
+        if (type.element != firstElement) {
           return null;
         }
       }
@@ -703,7 +713,7 @@ extension on Fragment {
     }
 
     var nameOffset = nameOffset2;
-    var nameLength = name2?.length;
+    var nameLength = name?.length;
 
     if (nameOffset == null) {
       // For unnamed constructors, use the type name as the target location.

@@ -16,30 +16,33 @@ main() {
 @reflectiveTest
 class NativeFunctionBodyInNonSdkCodeTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int m(a) native 'string';
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 9, 16),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 9, 16)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int m(a) native 'string';
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16)],
+    );
   }
 
   test_mixinMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {
   static int m(a) native 'string';
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16)],
+    );
   }
 }

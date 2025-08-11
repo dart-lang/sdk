@@ -15,7 +15,9 @@ void test(int i, String expected) {
   // Many nested closures with shadowing variables.
   int c = 0;
   final r = List.generate(
-      i, (i) => List.generate(i + 1, (i) => List.generate(i + 1, (i) => ++c)));
+    i,
+    (i) => List.generate(i + 1, (i) => List.generate(i + 1, (i) => ++c)),
+  );
 
   Expect.equals(expected, '$r');
 }

@@ -33,16 +33,14 @@ main() {
     Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ClassEntity cls =
-        elementEnvironment.lookupClass(
-          elementEnvironment.mainLibrary!,
-          'Class',
-        )!;
-    ClassEntity mixin =
-        elementEnvironment.lookupClass(
-          elementEnvironment.mainLibrary!,
-          'Mixin',
-        )!;
+    ClassEntity cls = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      'Class',
+    )!;
+    ClassEntity mixin = elementEnvironment.lookupClass(
+      elementEnvironment.mainLibrary!,
+      'Mixin',
+    )!;
     final method = elementEnvironment.lookupClassMember(
       cls,
       PublicName('method'),

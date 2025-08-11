@@ -7,7 +7,7 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -37,7 +37,7 @@ Expression climbPropertyAccess(Expression node) {
 /// Return references to the [element] inside the [root] node.
 List<AstNode> findImportPrefixElementReferences(
   AstNode root,
-  PrefixElement2 element,
+  PrefixElement element,
 ) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
@@ -45,7 +45,7 @@ List<AstNode> findImportPrefixElementReferences(
 }
 
 /// Return references to the [element] inside the [root] node.
-List<AstNode> findLocalElementReferences(AstNode root, LocalElement2 element) {
+List<AstNode> findLocalElementReferences(AstNode root, LocalElement element) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
@@ -68,29 +68,29 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
 
 // TODO(scheglov): replace with nodes once there will be
 // [CompilationUnit.getComments].
-/// Return all [LocalElement2]s defined in the given [node].
-List<LocalElement2> getDefinedLocalElements(AstNode node) {
+/// Return all [LocalElement]s defined in the given [node].
+List<LocalElement> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
   node.accept(collector);
   return collector.elements;
 }
 
 /// Return the name of the kind of the [element].
-String getElementKindName(Element2 element) {
+String getElementKindName(Element element) {
   return element.kind.displayName;
 }
 
 /// Returns the name to display in the UI for the given [element].
-String getElementQualifiedName(Element2 element) {
+String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement2!.displayName}.${element.displayName}';
+    return '${element.enclosingElement!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     var session = element.session!;
     var pathContext = session.resourceProvider.pathContext;
     var rootPath = session.analysisContext.contextRoot.root.path;
-    var library = element as LibraryElement2;
+    var library = element as LibraryElement;
 
     return pathContext.relative(
       library.firstFragment.source.fullName,
@@ -104,7 +104,7 @@ String getElementQualifiedName(Element2 element) {
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     switch (node) {
       case ClassDeclaration _:
       case CompilationUnit _:
@@ -121,7 +121,7 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 
 /// Return the enclosing executable [AstNode].
 AstNode? getEnclosingExecutableNode(AstNode input) {
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     if (node is FunctionDeclaration) {
       return node;
     }
@@ -179,14 +179,14 @@ FormalParameterElement? getFormalParameterElement(SimpleIdentifier node) {
 }
 
 /// Returns the namespace of the given [LibraryImport].
-Map<String, Element2> getImportNamespace(LibraryImport imp) {
+Map<String, Element> getImportNamespace(LibraryImport imp) {
   return imp.namespace.definedNames2;
 }
 
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
   path.Context pathContext,
-  LibraryElement2 from,
+  LibraryElement from,
   Uri what,
 ) {
   if (what.isScheme('file')) {
@@ -200,9 +200,9 @@ String getLibrarySourceUri(
 /// Return the variable's element if [node] is a reference to a local variable.
 ///
 /// Returns `null` if it isn't a reference to a local variable.
-LocalVariableElement2? getLocalVariableElement(SimpleIdentifier node) {
+LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
   var element = node.element;
-  if (element is LocalVariableElement2) {
+  if (element is LocalVariableElement) {
     return element;
   }
   return null;
@@ -253,27 +253,16 @@ Expression? getNodeQualifier(SimpleIdentifier node) {
 /// Return parent [AstNode]s from compilation unit (at index "0") to the given
 /// [node].
 List<AstNode> getParents(AstNode node) {
-  return node.withParents.toList().reversed.toList();
+  return node.withAncestors.toList().reversed.toList();
 }
 
 /// If given [node] is name of qualified property extraction, returns target
 /// from which this property is extracted, otherwise `null`.
-Expression? getQualifiedPropertyTarget(AstNode node) {
-  var parent = node.parent;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
-    if (prefixed.identifier == node) {
-      return parent.prefix;
-    }
-  }
-  if (parent is PropertyAccess) {
-    var access = parent;
-    if (access.propertyName == node) {
-      return access.realTarget;
-    }
-  }
-  return null;
-}
+Expression? getQualifiedPropertyTarget(AstNode node) => switch (node.parent) {
+  PrefixedIdentifier parent when parent.identifier == node => parent.prefix,
+  PropertyAccess parent when parent.propertyName == node => parent.realTarget,
+  _ => null,
+};
 
 /// Returns the given [statement] if not a block, or the first child statement
 /// if a block, or `null` if more than one child.
@@ -298,7 +287,7 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /// Checks if the given [element]'s display name equals to the given [name].
-bool hasDisplayName(Element2? element, String name) {
+bool hasDisplayName(Element? element, String name) {
   return element?.displayName == name;
 }
 
@@ -440,15 +429,15 @@ class _DeclarationCollector extends RecursiveAstVisitor<void> {
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element2 element;
+  final Element element;
   final List<AstNode> references = [];
 
   _ElementReferenceCollector(this.element);
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element2 == element) {
-      references.add(SimpleIdentifierImpl(node.name));
+    if (node.element == element) {
+      references.add(SimpleIdentifierImpl(token: node.name));
     }
   }
 
@@ -456,7 +445,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   void visitListPattern(ListPattern node) {
     for (var item in node.elements) {
       if (item is AssignedVariablePattern) {
-        if (item.element2 == element) {
+        if (item.element == element) {
           references.add(item);
         }
       }
@@ -468,7 +457,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
     for (var field in node.fields) {
       var pattern = field.pattern.unparenthesized;
       if (pattern is AssignedVariablePattern) {
-        if (pattern.element2 == element) {
+        if (pattern.element == element) {
           references.add(field.pattern);
         }
       }
@@ -483,14 +472,14 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-/// Visitor that collects defined [LocalElement2]s.
+/// Visitor that collects defined [LocalElement]s.
 class _LocalElementsCollector extends RecursiveAstVisitor<void> {
-  final elements = <LocalElement2>[];
+  final elements = <LocalElement>[];
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var element = node.declaredFragment?.element;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       elements.add(element);
     }
 

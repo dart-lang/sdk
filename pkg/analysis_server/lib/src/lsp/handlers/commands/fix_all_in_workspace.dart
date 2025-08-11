@@ -7,6 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -14,7 +15,7 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
-    extends SimpleEditCommandHandler {
+    extends SimpleEditCommandHandler<LspAnalysisServer> {
   AbstractFixAllInWorkspaceCommandHandler(super.server);
 
   /// Whether to require confirmation from the user to apply these changes.
@@ -22,6 +23,9 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
   /// In VS Code, this will result in a preview/diff view being shown and the
   /// user can choose which changes to apply.
   bool get requireConfirmation;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<void>> handle(

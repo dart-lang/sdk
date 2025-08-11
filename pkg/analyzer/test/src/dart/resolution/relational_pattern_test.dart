@@ -35,7 +35,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::==#element
+  element2: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -58,7 +58,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: dart:core::<fragment>::@class::Object::@method::==#element
+  element2: dart:core::@class::Object::@method::==
   matchedValueType: A
 ''');
   }
@@ -83,7 +83,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::>#element
+  element2: <testLibrary>::@class::A::@method::>
   matchedValueType: A
 ''');
   }
@@ -110,13 +110,14 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@extension::E::@method::>#element
+  element2: <testLibrary>::@extension::E::@method::>
   matchedValueType: A
 ''');
   }
 
   test_greaterThan_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -125,9 +126,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -160,7 +161,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::>=#element
+  element2: <testLibrary>::@class::A::@method::>=
   matchedValueType: A
 ''');
   }
@@ -187,13 +188,14 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@extension::E::@method::>=#element
+  element2: <testLibrary>::@extension::E::@method::>=
   matchedValueType: A
 ''');
   }
 
   test_greaterThanOrEqualTo_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -202,9 +204,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -234,7 +236,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::==#element
+  element2: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -259,7 +261,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::<#element
+  element2: <testLibrary>::@class::A::@method::<
   matchedValueType: A
 ''');
   }
@@ -286,13 +288,14 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@extension::E::@method::<#element
+  element2: <testLibrary>::@extension::E::@method::<
   matchedValueType: A
 ''');
   }
 
   test_lessThan_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -301,9 +304,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -336,7 +339,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::<=#element
+  element2: <testLibrary>::@class::A::@method::<=
   matchedValueType: A
 ''');
   }
@@ -363,13 +366,14 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@extension::E::@method::<=#element
+  element2: <testLibrary>::@extension::E::@method::<=
   matchedValueType: A
 ''');
   }
 
   test_lessThanOrEqualTo_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -378,9 +382,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -413,7 +417,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::==#element
+  element2: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -436,23 +440,29 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: dart:core::<fragment>::@class::Object::@method::==#element
+  element2: dart:core::@class::Object::@method::==
   matchedValueType: A
 ''');
   }
 
   test_rewrite_operand() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, int Function() a) {
   switch (x) {
     case == a():
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          57,
+          3,
+        ),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -460,7 +470,7 @@ RelationalPattern
   operand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -468,7 +478,7 @@ RelationalPattern
     element: <null>
     staticInvokeType: int Function()
     staticType: int
-  element2: dart:core::<fragment>::@class::Object::@method::==#element
+  element2: dart:core::@class::Object::@method::==
   matchedValueType: dynamic
 ''');
   }
@@ -493,7 +503,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibraryFragment>::@class::A::@method::==#element
+  element2: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }

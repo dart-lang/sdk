@@ -13,16 +13,6 @@ js/*: Skip # TODO(ahe): Make dart:js available.
 [ $arch == ia32 && $mode == debug ]
 *: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
-[ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm ]
-mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
-
-[ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
-mirrors/invocation_fuzz_test/emptyarray: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/false: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/none: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/smi: Crash # Crashes on opt counter builder (#31838)
-mirrors/invocation_fuzz_test/string: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-
 [ $compiler == app_jitk && ($mode == product || $mode == release) ]
 isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
 
@@ -36,7 +26,6 @@ isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel iss
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
-mirrors/invocation_fuzz_test/smi: Crash
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]

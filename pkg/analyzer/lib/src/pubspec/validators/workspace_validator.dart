@@ -35,7 +35,9 @@ void workspaceValidator(PubspecValidationContext ctx) {
       _validateDirectoryPath(ctx, entry, directoryField);
     } else {
       ctx.reportErrorForNode(
-          directoryField, PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING);
+        directoryField,
+        PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING,
+      );
     }
   }
 }
@@ -44,7 +46,10 @@ void workspaceValidator(PubspecValidationContext ctx) {
 /// the pubspec.yaml file, and that it exists, reporting any error on
 /// [errorField].
 void _validateDirectoryPath(
-    PubspecValidationContext ctx, String pathValue, YamlScalar errorField) {
+  PubspecValidationContext ctx,
+  String pathValue,
+  YamlScalar errorField,
+) {
   var context = ctx.provider.pathContext;
   var packageRoot = context.dirname(ctx.source.fullName);
   var packageRootFolder = ctx.provider.getFolder(packageRoot);
@@ -52,13 +57,17 @@ void _validateDirectoryPath(
   var dirPath = context.join(packageRoot, normalizedEntry);
   // Check if given path is a sub directory of the package root.
   if (!packageRootFolder.contains(dirPath)) {
-    ctx.reportErrorForNode(errorField,
-        PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY, [packageRoot]);
+    ctx.reportErrorForNode(
+      errorField,
+      PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY,
+      [packageRoot],
+    );
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
   if (!subDirectory.exists) {
-    ctx.reportErrorForNode(
-        errorField, PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathValue]);
+    ctx.reportErrorForNode(errorField, PubspecWarningCode.PATH_DOES_NOT_EXIST, [
+      pathValue,
+    ]);
   }
 }

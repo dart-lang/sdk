@@ -13,12 +13,13 @@ import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -27,7 +28,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -42,7 +42,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
 typedef _ErrorAndProtocolError = ({
-  AnalysisError error,
+  Diagnostic diagnostic,
   protocol.AnalysisError protocolError,
 });
 
@@ -180,13 +180,14 @@ class PluginServer {
       return protocol.EditGetFixesResult(const []);
     }
 
-    var lintAtOffset = errors.where((error) => error.error.offset == offset);
+    var lintAtOffset =
+        errors.where((error) => error.diagnostic.offset == offset);
     if (lintAtOffset.isEmpty) return protocol.EditGetFixesResult(const []);
 
     var errorFixesList = <protocol.AnalysisErrorFixes>[];
 
     var workspace = DartChangeWorkspace([analysisContext.currentSession]);
-    for (var (:error, :protocolError) in lintAtOffset) {
+    for (var (:diagnostic, :protocolError) in lintAtOffset) {
       var context = DartFixContext(
         // TODO(srawlins): Use a real instrumentation service. Other
         // implementations get InstrumentationService from AnalysisServer.
@@ -194,7 +195,7 @@ class PluginServer {
         workspace: workspace,
         libraryResult: libraryResult,
         unitResult: unitResult,
-        error: error,
+        error: diagnostic,
       );
 
       List<Fix> fixes;
@@ -317,37 +318,35 @@ class PluginServer {
     if (unitResult is! ResolvedUnitResult) {
       return const [];
     }
-    var listener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(
+    var listener = RecordingDiagnosticListener();
+    var diagnosticReporter = DiagnosticReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
-    var currentUnit = LintRuleUnitContext(
+    var currentUnit = RuleContextUnit(
       file: unitResult.file,
       content: unitResult.content,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       unit: unitResult.unit,
     );
     var allUnits = [
       for (var unitResult in libraryResult.units)
-        LintRuleUnitContext(
+        RuleContextUnit(
           file: unitResult.file,
           content: unitResult.content,
-          errorReporter: errorReporter,
+          diagnosticReporter: diagnosticReporter,
           unit: unitResult.unit,
         ),
     ];
 
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchhmark.dart` script does.
-    var nodeRegistry = NodeLintRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
 
-    var context = LinterContextWithResolvedResults(
+    var context = RuleContextWithResolvedResults(
       allUnits,
       currentUnit,
       libraryResult.element2.typeProvider,
       libraryResult.element2.typeSystem as TypeSystemImpl,
-      (analysisContext.currentSession as AnalysisSessionImpl)
-          .inheritanceManager,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
@@ -361,12 +360,12 @@ class PluginServer {
       var rules =
           Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
       for (var rule in rules) {
-        rule.reporter = errorReporter;
+        rule.reporter = diagnosticReporter;
         // TODO(srawlins): Enable timing similar to what the linter package's
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
-      for (var code in rules.expand((r) => r.lintCodes)) {
+      for (var code in rules.expand((r) => r.diagnosticCodes)) {
         var existingPlugin = pluginCodeMapping[code.name];
         if (existingPlugin == null) {
           pluginCodeMapping[code.name] = configuration.name;
@@ -379,8 +378,8 @@ class PluginServer {
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var errors = listener.errors.where((e) {
-      var pluginName = pluginCodeMapping[e.errorCode.name];
+    var diagnostics = listener.diagnostics.where((e) {
+      var pluginName = pluginCodeMapping[e.diagnosticCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
         // as ignored.
@@ -391,17 +390,17 @@ class PluginServer {
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
-    var errorsAndProtocolErrors = [
-      for (var e in errors)
+    var diagnosticsAndProtocolErrors = [
+      for (var diagnostic in diagnostics)
         (
-          error: e,
+          diagnostic: diagnostic,
           protocolError: protocol.AnalysisError(
-            protocol.AnalysisErrorSeverity.INFO,
+            _severityOf(diagnostic),
             protocol.AnalysisErrorType.STATIC_WARNING,
-            _locationFor(currentUnit.unit, path, e),
-            e.message,
-            e.errorCode.name,
-            correction: e.correction,
+            _locationFor(currentUnit.unit, path, diagnostic),
+            diagnostic.message,
+            diagnostic.diagnosticCode.name,
+            correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           )
@@ -409,9 +408,22 @@ class PluginServer {
     ];
     _recentState[path] = (
       analysisContext: analysisContext,
-      errors: [...errorsAndProtocolErrors],
+      errors: [...diagnosticsAndProtocolErrors],
     );
-    return errorsAndProtocolErrors.map((e) => e.protocolError).toList();
+    return diagnosticsAndProtocolErrors.map((e) => e.protocolError).toList();
+  }
+
+  /// Converts the severity of [diagnostic] into a
+  /// [protocol.AnalysisErrorSeverity].
+  protocol.AnalysisErrorSeverity _severityOf(Diagnostic diagnostic) {
+    try {
+      return protocol.AnalysisErrorSeverity.values
+          .byName(diagnostic.severity.name.toUpperCase());
+    } catch (_) {
+      assert(false, 'Invalid severity: ${diagnostic.severity}');
+      // Return the default severity of `LintCode`.
+      return protocol.AnalysisErrorSeverity.INFO;
+    }
   }
 
   /// Invokes [fn] first for priority analysis contexts, then for the rest.
@@ -638,14 +650,15 @@ class PluginServer {
       _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
 
   static protocol.Location _locationFor(
-      CompilationUnit unit, String path, AnalysisError error) {
+      CompilationUnit unit, String path, Diagnostic diagnostic) {
     var lineInfo = unit.lineInfo;
-    var startLocation = lineInfo.getLocation(error.offset);
-    var endLocation = lineInfo.getLocation(error.offset + error.length);
+    var startLocation = lineInfo.getLocation(diagnostic.offset);
+    var endLocation =
+        lineInfo.getLocation(diagnostic.offset + diagnostic.length);
     return protocol.Location(
       path,
-      error.offset,
-      error.length,
+      diagnostic.offset,
+      diagnostic.length,
       startLocation.lineNumber,
       startLocation.columnNumber,
       endLine: endLocation.lineNumber,

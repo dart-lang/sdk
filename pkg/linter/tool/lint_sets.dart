@@ -10,13 +10,11 @@ import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
 Future<List<String>> get dartCoreLints =>
-    _fetchRulesFromGitHub('/dart-lang/lints/blob/main/lib/core.yaml');
+    _fetchRulesFromGitHub('/dart-lang/core/main/pkgs/lints/lib/core.yaml');
 
-Future<List<String>> get dartRecommendedLints =>
-    _fetchRulesFromGitHub('/dart-lang/lints/blob/main/lib/recommended.yaml');
-
-Future<List<String>> get flutterRepoLints =>
-    _fetchRulesFromGitHub('/flutter/flutter/main/analysis_options.yaml');
+Future<List<String>> get dartRecommendedLints => _fetchRulesFromGitHub(
+  '/dart-lang/core/main/pkgs/lints/lib/recommended.yaml',
+);
 
 Future<List<String>> get flutterUserLints => _fetchRulesFromGitHub(
   '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml',

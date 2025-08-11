@@ -4,7 +4,8 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 abstract class YamlGeneratorTest with ResourceProviderMixin {
@@ -52,13 +53,10 @@ abstract class YamlGeneratorTest with ResourceProviderMixin {
   /// completion request is encoded in the content as a caret (`^`).
   void getCompletions(String content) {
     // Extract the completion location from the [content].
-    var completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    content =
-        content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1);
+    var code = TestCode.parse(content);
+    var completionOffset = code.position.offset;
+
+    content = code.code;
     // Add the file to the file system.
     var file = newFile('/home/test/$fileName', content);
     // Generate completions.

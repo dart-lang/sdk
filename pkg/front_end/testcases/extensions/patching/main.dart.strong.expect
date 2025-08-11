@@ -27,7 +27,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension Extension on core::String {
   method instanceMethod = test::Extension|instanceMethod;
   method tearoff instanceMethod = test::Extension|get#instanceMethod;
@@ -36,11 +36,11 @@ extension Extension on core::String {
   static method staticMethod = test::Extension|staticMethod;
   static method genericStaticMethod = test::Extension|genericStaticMethod;
   get instanceProperty = test::Extension|get#instanceProperty;
-  static get staticProperty = get test::Extension|staticProperty;
   set instanceProperty = test::Extension|set#instanceProperty;
+  static get staticProperty = get test::Extension|staticProperty;
   static set staticProperty = set test::Extension|staticProperty;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension GenericExtension<T extends core::Object? = dynamic> on T% {
   method instanceMethod = test::GenericExtension|instanceMethod;
   method tearoff instanceMethod = test::GenericExtension|get#instanceMethod;
@@ -49,8 +49,8 @@ extension GenericExtension<T extends core::Object? = dynamic> on T% {
   static method staticMethod = test::GenericExtension|staticMethod;
   static method genericStaticMethod = test::GenericExtension|genericStaticMethod;
   get instanceProperty = test::GenericExtension|get#instanceProperty;
-  static get staticProperty = get test::GenericExtension|staticProperty;
   set instanceProperty = test::GenericExtension|set#instanceProperty;
+  static get staticProperty = get test::GenericExtension|staticProperty;
   static set staticProperty = set test::GenericExtension|staticProperty;
 }
 @#C1

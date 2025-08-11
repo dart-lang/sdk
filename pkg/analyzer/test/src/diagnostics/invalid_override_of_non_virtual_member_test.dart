@@ -22,7 +22,8 @@ class InvalidOverrideOfNonVirtualMemberTest extends PubPackageResolutionTest {
   }
 
   test_class_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -34,14 +35,21 @@ class B extends C  {
   @override
   int g = 0;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1,
-          messageContains: ["member 'g'", "in 'C'"]),
-    ]);
+''',
+      [
+        error(
+          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          113,
+          1,
+          messageContains: ["member 'g'", "in 'C'"],
+        ),
+      ],
+    );
   }
 
   test_class_field_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -52,13 +60,14 @@ class C {
 class B extends C  {
   int g = 0, h = 1;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 101, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 101, 1)],
+    );
   }
 
   test_class_field_overriddenByGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -70,14 +79,21 @@ class B extends C  {
   @override
   int get g => 0;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 117, 1,
-          messageContains: ["member 'g'", "in 'C'"]),
-    ]);
+''',
+      [
+        error(
+          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          117,
+          1,
+          messageContains: ["member 'g'", "in 'C'"],
+        ),
+      ],
+    );
   }
 
   test_class_field_overriddenBySetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -89,13 +105,14 @@ class B extends C  {
   @override
   set g(int v) {}
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1)],
+    );
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -107,13 +124,14 @@ class B extends C  {
   @override
   int get g => 0;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 122, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 122, 1)],
+    );
   }
 
   test_class_getter_overriddenByField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -125,9 +143,9 @@ class B extends C  {
   @override
   int g = 0;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+    );
   }
 
   test_class_implements_getter() async {
@@ -163,7 +181,8 @@ class B implements C  {
   }
 
   test_class_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -175,13 +194,14 @@ class B extends C  {
   @override
   void f() {}
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 115, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 115, 1)],
+    );
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -193,13 +213,14 @@ class B extends C  {
   @override
   set g(int v) {}
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+    );
   }
 
   test_class_setter_overriddenByField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -211,13 +232,14 @@ class B extends C  {
   @override
   int g = 0;
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+    );
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -229,14 +251,21 @@ class B with M {
   @override
   void f() {}
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 111, 1,
-          messageContains: ["member 'f'", "in 'M'"]),
-    ]);
+''',
+      [
+        error(
+          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          111,
+          1,
+          messageContains: ["member 'f'", "in 'M'"],
+        ),
+      ],
+    );
   }
 
   test_mixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -248,8 +277,8 @@ class B with M {
   @override
   set g(int v) {}
 }
-''', [
-      error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 114, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 114, 1)],
+    );
   }
 }

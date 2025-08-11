@@ -2,6 +2,16 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:46:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   get E5 => null;
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:51:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   set E6(_) {}
+//       ^^
+//
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:10:6: Error: Conflicts with type variable 'values'.
 // enum E2<values> {
 //      ^^^^^^
@@ -20,6 +30,22 @@ library;
 // enum values { // Error.
 //      ^^^^^^
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:41:3: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   E4
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:56:3: Error: Generative enum constructors must be marked as 'const'.
+//   E7() {}
+//   ^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:61:11: Error: The factory conflicts with member 'values'.
+//   factory E8.values() => a;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:59:6: Context: Conflicting member 'values'.
+// enum E8 {
+//      ^
+//
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:34:16: Error: A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
 // abstract class A1 extends SuperclassWithEquals implements Enum {} // Error.
 //                ^
@@ -36,6 +62,23 @@ library;
 //   element;
 //   ^
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:41:3: Error: Couldn't find constructor 'E4'.
+//   E4
+//   ^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:45:3: Error: Couldn't find constructor 'E5'.
+//   a;
+//   ^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:50:3: Error: Couldn't find constructor 'E6'.
+//   a;
+//   ^
+//
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   a;
+//   ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -45,7 +88,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
@@ -54,7 +97,7 @@ class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/ 
   const synthetic constructor •(core::int #index, core::String #name) → self::E2<self::E2::values%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
@@ -63,7 +106,7 @@ class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/
   const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::element%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class values extends core::_Enum /*isEnum*/  {
@@ -72,7 +115,7 @@ class values extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::values
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "values.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class SuperclassWithEquals extends core::Object {
@@ -111,6 +154,61 @@ abstract class A3 extends self::SuperclassWithValues implements core::Enum {
     : super self::SuperclassWithValues::•()
     ;
 }
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 E4 = #C12;
+  static const field core::List<self::E4> values = #C13;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = #C15;
+  static const field core::List<self::E5> values = #C16;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+  get E5() → dynamic
+    return null;
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = #C17;
+  static const field core::List<self::E6> values = #C18;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E6
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+  set E6(wildcard dynamic _#wc0#formal) → void {}
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  enum-element static const field invalid-type a = invalid-expression "pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  a;
+  ^";
+  static const field core::List<self::E7> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  a;
+  ^";
+  constructor •(core::int #index, core::String #name) → self::E7
+    : super core::_Enum::•(#index, #name) {}
+  method core::_enumToString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+}
+class E8 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E8 a = #C19;
+  static const field core::List<self::E8> values = #C20;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E8
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+  static factory values() → self::E8
+    return #C19;
+}
 static method main() → dynamic {}
 
 constants  {
@@ -124,6 +222,16 @@ constants  {
   #C8 = <self::E3<dynamic>>[#C7]
   #C9 = self::values {index:#C1, _name:#C2}
   #C10 = <self::values>[#C9]
+  #C11 = "E4"
+  #C12 = self::E4 {index:#C1, _name:#C11}
+  #C13 = <self::E4>[#C12]
+  #C14 = "a"
+  #C15 = self::E5 {index:#C1, _name:#C14}
+  #C16 = <self::E5>[#C15]
+  #C17 = self::E6 {index:#C1, _name:#C14}
+  #C18 = <self::E6>[#C17]
+  #C19 = self::E8 {index:#C1, _name:#C14}
+  #C20 = <self::E8>[#C19]
 }
 
 
@@ -135,3 +243,7 @@ org-dartlang-testcase:///missed_checks.dart:
 - E2. (from org-dartlang-testcase:///missed_checks.dart:10:6)
 - E3. (from org-dartlang-testcase:///missed_checks.dart:14:6)
 - values. (from org-dartlang-testcase:///missed_checks.dart:18:6)
+- E4. (from org-dartlang-testcase:///missed_checks.dart:40:6)
+- E5. (from org-dartlang-testcase:///missed_checks.dart:44:6)
+- E6. (from org-dartlang-testcase:///missed_checks.dart:49:6)
+- E8. (from org-dartlang-testcase:///missed_checks.dart:59:6)

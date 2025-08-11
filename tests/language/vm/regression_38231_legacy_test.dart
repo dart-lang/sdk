@@ -26,7 +26,10 @@ import 'dart:typed_data';
 Map<int, String> var0 = {
   41: 'V\u2665Y\u2665#Xs',
   for (int loc0 in {
-    if (true) for (int loc0 in {-2147483649}) -4294967167 else if (false) -1,
+    if (true)
+      for (int loc0 in {-2147483649}) -4294967167
+    else if (false)
+      -1,
     -60,
     -82,
     -21,
@@ -40,7 +43,8 @@ Map<int, String> var0 = {
   })
     95: '',
   5: 'z2\u2665e',
-  if (false) for (int loc0 in [-87, -2147483649, 0, 97, -53, 95]) 10: '#synP3',
+  if (false)
+    for (int loc0 in [-87, -2147483649, 0, 97, -53, 95]) 10: '#synP3',
   22: ''
 };
 String var1 = ')LIpwG';

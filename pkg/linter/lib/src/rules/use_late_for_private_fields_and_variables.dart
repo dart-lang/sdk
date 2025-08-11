@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -26,18 +29,15 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
     : super(
         name: LintNames.use_late_for_private_fields_and_variables,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.use_late_for_private_fields_and_variables;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.afterLibrary(this, () => visitor.afterLibrary());
@@ -48,10 +48,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
   final Map<LibraryFragment, List<VariableDeclaration>> lateables =
       <LibraryFragment, List<VariableDeclaration>>{};
 
-  final Set<Element2> nullableAccess = <Element2>{};
+  final Set<Element> nullableAccess = <Element>{};
 
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   /// The "current" [LibraryFragment], which is set by
   /// [visitCompilationUnit].
@@ -71,7 +71,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
             (u) => u.unit.declaredFragment == libraryFragment,
           );
           if (contextUnit == null) continue;
-          contextUnit.errorReporter.atNode(variable, rule.lintCode);
+          contextUnit.diagnosticReporter.atNode(variable, rule.diagnosticCode);
         }
       }
     }
@@ -79,7 +79,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var element = node.writeElement2?.canonicalElement2;
+    var element = node.writeElement?.canonicalElement2;
     if (element != null) {
       var assignee = node.leftHandSide;
       var rhsType = node.rightHandSide.staticType;
@@ -190,7 +190,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
   void _visitIdentifierOrPropertyAccess(
     Expression expression,
-    Element2? canonicalElement,
+    Element? canonicalElement,
   ) {
     assert(expression is Identifier || expression is PropertyAccess);
     if (canonicalElement == null) return;

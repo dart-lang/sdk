@@ -21,32 +21,42 @@ class InvalidAnnotationFromDeferredLibraryTest
 library lib1;
 class C { const C(); }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+          49,
+          3,
+        ),
+      ],
+    );
   }
 
   test_constructor_argument() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 const x = 0;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class C { const C(int i); }
 @C(a.x) main () {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
           81,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_from_deferred_library() async {
@@ -55,14 +65,20 @@ library lib1;
 class V { const V(); }
 const v = const V();
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 @a.v main () {}
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+          49,
+          3,
+        ),
+      ],
+    );
   }
 
   test_namedConstructor() async {
@@ -70,13 +86,19 @@ import 'lib1.dart' deferred as a;
 library lib1;
 class C { const C.name(); }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+          49,
+          3,
+        ),
+      ],
+    );
   }
 }

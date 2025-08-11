@@ -34,8 +34,10 @@ main() {
 
   test('get Array from JS', () {
     context['a'] = new JsObject(context['Array'], [1, 2, 3]);
-    expect(context.callMethod('isPropertyInstanceOf', ['a', context['Array']]),
-        isTrue);
+    expect(
+      context.callMethod('isPropertyInstanceOf', ['a', context['Array']]),
+      isTrue,
+    );
     var a = context['a'];
     expect(a is JsArray, isTrue);
     expect(a, [1, 2, 3]);

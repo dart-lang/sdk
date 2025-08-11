@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,14 +26,17 @@ class UtilitiesTest with ResourceProviderMixin {
 void main() => print('Hello, world!');
     ''';
     ParseStringResult result = _withTemporaryFile(
-        content,
-        (path) => parseFile(
-            path: path, featureSet: FeatureSet.latestLanguageVersion()));
+      content,
+      (path) =>
+          parseFile(path: path, featureSet: FeatureSet.latestLanguageVersion()),
+    );
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(),
-        equals("void main() => print('Hello, world!');"));
+    expect(
+      result.unit.toString(),
+      equals("void main() => print('Hello, world!');"),
+    );
   }
 
   test_parseFile_errors_noThrow() {
@@ -41,17 +44,21 @@ void main() => print('Hello, world!');
 void main() => print('Hello, world!')
 ''';
     ParseStringResult result = _withMemoryFile(
-        content,
-        (resourceProvider, path) => parseFile(
-            path: path,
-            featureSet: FeatureSet.latestLanguageVersion(),
-            resourceProvider: resourceProvider,
-            throwIfDiagnostics: false));
+      content,
+      (resourceProvider, path) => parseFile(
+        path: path,
+        featureSet: FeatureSet.latestLanguageVersion(),
+        resourceProvider: resourceProvider,
+        throwIfDiagnostics: false,
+      ),
+    );
     expect(result.content, content);
     expect(result.errors, hasLength(1));
     expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(),
-        equals("void main() => print('Hello, world!');"));
+    expect(
+      result.unit.toString(),
+      equals("void main() => print('Hello, world!');"),
+    );
   }
 
   test_parseFile_errors_path() {
@@ -59,14 +66,17 @@ void main() => print('Hello, world!')
 void main() => print('Hello, world!')
 ''';
     late String expectedPath;
-    ParseStringResult result =
-        _withMemoryFile(content, (resourceProvider, path) {
+    ParseStringResult result = _withMemoryFile(content, (
+      resourceProvider,
+      path,
+    ) {
       expectedPath = path;
       return parseFile(
-          path: path,
-          featureSet: FeatureSet.latestLanguageVersion(),
-          resourceProvider: resourceProvider,
-          throwIfDiagnostics: false);
+        path: path,
+        featureSet: FeatureSet.latestLanguageVersion(),
+        resourceProvider: resourceProvider,
+        throwIfDiagnostics: false,
+      );
     });
     expect(result.errors, hasLength(1));
     expect(result.errors[0].source.fullName, expectedPath);
@@ -77,13 +87,16 @@ void main() => print('Hello, world!')
 void main() => print('Hello, world!')
 ''';
     expect(
-        () => _withMemoryFile(
-            content,
-            (resourceProvider, path) => parseFile(
-                path: path,
-                featureSet: FeatureSet.latestLanguageVersion(),
-                resourceProvider: resourceProvider)),
-        throwsA(const TypeMatcher<ArgumentError>()));
+      () => _withMemoryFile(
+        content,
+        (resourceProvider, path) => parseFile(
+          path: path,
+          featureSet: FeatureSet.latestLanguageVersion(),
+          resourceProvider: resourceProvider,
+        ),
+      ),
+      throwsA(const TypeMatcher<ArgumentError>()),
+    );
   }
 
   test_parseFile_featureSet_language_latest() {
@@ -91,12 +104,14 @@ void main() => print('Hello, world!')
 int? f() => 1;
 ''';
     ParseStringResult result = _withMemoryFile(
-        content,
-        (resourceProvider, path) => parseFile(
-            path: path,
-            resourceProvider: resourceProvider,
-            throwIfDiagnostics: false,
-            featureSet: FeatureSet.latestLanguageVersion()));
+      content,
+      (resourceProvider, path) => parseFile(
+        path: path,
+        resourceProvider: resourceProvider,
+        throwIfDiagnostics: false,
+        featureSet: FeatureSet.latestLanguageVersion(),
+      ),
+    );
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
@@ -108,29 +123,37 @@ int? f() => 1;
 void main() => print('Hello, world!');
 ''';
     ParseStringResult result = _withMemoryFile(
-        content,
-        (resourceProvider, path) => parseFile(
-            path: path,
-            featureSet: FeatureSet.latestLanguageVersion(),
-            resourceProvider: resourceProvider));
+      content,
+      (resourceProvider, path) => parseFile(
+        path: path,
+        featureSet: FeatureSet.latestLanguageVersion(),
+        resourceProvider: resourceProvider,
+      ),
+    );
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(),
-        equals("void main() => print('Hello, world!');"));
+    expect(
+      result.unit.toString(),
+      equals("void main() => print('Hello, world!');"),
+    );
   }
 
   test_parseString_errors_noThrow() {
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    ParseStringResult result =
-        parseString(content: content, throwIfDiagnostics: false);
+    ParseStringResult result = parseString(
+      content: content,
+      throwIfDiagnostics: false,
+    );
     expect(result.content, content);
     expect(result.errors, hasLength(1));
     expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(),
-        equals("void main() => print('Hello, world!');"));
+    expect(
+      result.unit.toString(),
+      equals("void main() => print('Hello, world!');"),
+    );
   }
 
   test_parseString_errors_path() {
@@ -139,7 +162,10 @@ void main() => print('Hello, world!')
 ''';
     var path = 'foo/bar';
     ParseStringResult result = parseString(
-        content: content, path: 'foo/bar', throwIfDiagnostics: false);
+      content: content,
+      path: 'foo/bar',
+      throwIfDiagnostics: false,
+    );
     expect(result.errors, hasLength(1));
     var error = result.errors[0];
     expect(error.source.fullName, path);
@@ -149,8 +175,10 @@ void main() => print('Hello, world!')
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    expect(() => parseString(content: content),
-        throwsA(const TypeMatcher<ArgumentError>()));
+    expect(
+      () => parseString(content: content),
+      throwsA(const TypeMatcher<ArgumentError>()),
+    );
   }
 
   test_parseString_featureSet_nnbd_on() {
@@ -216,14 +244,16 @@ void main() => print('Hello, world!');
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
-    expect(result.unit.toString(),
-        equals("void main() => print('Hello, world!');"));
+    expect(
+      result.unit.toString(),
+      equals("void main() => print('Hello, world!');"),
+    );
   }
 
   T _withMemoryFile<T>(
-      String content,
-      T Function(MemoryResourceProvider resourceProvider, String path)
-          callback) {
+    String content,
+    T Function(MemoryResourceProvider resourceProvider, String path) callback,
+  ) {
     var resourceProvider = MemoryResourceProvider();
     var path = fromUri(Uri.parse('file:///test.dart'));
     resourceProvider.newFile(path, content);

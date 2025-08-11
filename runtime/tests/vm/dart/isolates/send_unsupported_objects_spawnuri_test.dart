@@ -23,8 +23,11 @@ Future<void> main(args, message) async {
   if (message == null) {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawnUri(
-        Platform.script, <String>['worker'], <SendPort>[receivePort.sendPort],
-        errorsAreFatal: true);
+      Platform.script,
+      <String>['worker'],
+      <SendPort>[receivePort.sendPort],
+      errorsAreFatal: true,
+    );
     final result = await receivePort.first;
     Expect.equals('done', result);
     return;
@@ -32,19 +35,25 @@ Future<void> main(args, message) async {
 
   Expect.equals('worker', args[0]);
   final SendPort sendPort = message[0] as SendPort;
-  Expect.throws(() {
-    sendPort.send(<dynamic>[
-      <dynamic>[
-        <dynamic>[const ConstFoo("42")],
-      ],
-    ]);
-  }, (e) {
-    print(e);
-    Expect.isTrue(checkForRetainingPath(e, <String>['ConstFoo']));
+  Expect.throws(
+    () {
+      sendPort.send(<dynamic>[
+        <dynamic>[
+          <dynamic>[const ConstFoo("42")],
+        ],
+      ]);
+    },
+    (e) {
+      print(e);
+      Expect.isTrue(checkForRetainingPath(e, <String>['ConstFoo']));
 
-    final msg = e.toString();
-    Expect.equals(3, msg.split('\n').where((s) => s.contains('_List')).length);
-    return true;
-  });
+      final msg = e.toString();
+      Expect.equals(
+        3,
+        msg.split('\n').where((s) => s.contains('_List')).length,
+      );
+      return true;
+    },
+  );
   sendPort.send('done');
 }

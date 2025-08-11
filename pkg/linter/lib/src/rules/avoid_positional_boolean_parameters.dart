@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -21,13 +23,11 @@ class AvoidPositionalBooleanParameters extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -38,14 +38,14 @@ class AvoidPositionalBooleanParameters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
   void checkParams(List<FormalParameter>? parameters) {
     var parameterToLint = parameters?.firstWhereOrNull(_isBoolean);
     if (parameterToLint != null) {
-      rule.reportLint(parameterToLint);
+      rule.reportAtNode(parameterToLint);
     }
   }
 
@@ -86,25 +86,21 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isSetter &&
         !declaredElement.isPrivate &&
         !node.isOperator &&
-        !node.hasInheritedMethod(context.inheritanceManager) &&
+        !node.hasInheritedMethod &&
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }
   }
 
-  bool _isOverridingMember(Element2 member) {
-    var classElement = member.thisOrAncestorOfType2<ClassElement2>();
+  bool _isOverridingMember(Element member) {
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) return false;
 
-    var name = member.name3;
+    var name = member.name;
     if (name == null) return false;
 
-    var libraryUri = classElement.library2.uri;
-    return context.inheritanceManager.getInherited3(
-          classElement.thisType,
-          Name(libraryUri, name),
-        ) !=
-        null;
+    var libraryUri = classElement.library.uri;
+    return classElement.getInheritedMember(Name(libraryUri, name)) != null;
   }
 
   static bool _isBoolean(FormalParameter node) {

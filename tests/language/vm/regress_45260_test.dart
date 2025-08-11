@@ -15,10 +15,10 @@ List<List<List<List<int>>>> toNestedList() {
             for (var i2 = 0; i2 < 2; i2++)
               [
                 for (var i3 = 0; i3 < 2; i3++)
-                  1000 * i0 + 100 * i1 + 10 * i2 + i3
-              ]
-          ]
-      ]
+                  1000 * i0 + 100 * i1 + 10 * i2 + i3,
+              ],
+          ],
+      ],
   ];
   return list;
 }
@@ -32,7 +32,7 @@ const expectedList = [
     [
       [0100, 0101],
       [0110, 0111],
-    ]
+    ],
   ],
   [
     [
@@ -42,8 +42,8 @@ const expectedList = [
     [
       [1100, 1101],
       [1110, 1111],
-    ]
-  ]
+    ],
+  ],
 ];
 
 void main() {

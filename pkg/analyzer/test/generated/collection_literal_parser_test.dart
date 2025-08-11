@@ -18,11 +18,13 @@ main() {
 
 @reflectiveTest
 class CollectionLiteralParserTest extends FastaParserTestCase {
-  Expression parseCollectionLiteral(String source,
-      {List<ErrorCode>? codes,
-      List<ExpectedError>? errors,
-      int? expectedEndOffset,
-      bool inAsync = false}) {
+  Expression parseCollectionLiteral(
+    String source, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+    int? expectedEndOffset,
+    bool inAsync = false,
+  }) {
     return parseExpression(
       source,
       codes: codes,
@@ -33,10 +35,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_listLiteral_for() {
-    var list = parseCollectionLiteral(
-      '[1, await for (var x in list) 2]',
-      inAsync: true,
-    ) as ListLiteral;
+    var list =
+        parseCollectionLiteral(
+              '[1, await for (var x in list) 2]',
+              inAsync: true,
+            )
+            as ListLiteral;
     expect(list.elements, hasLength(2));
     var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
@@ -55,10 +59,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_listLiteral_forIf() {
-    var list = parseCollectionLiteral(
-      '[1, await for (var x in list) if (c) 2]',
-      inAsync: true,
-    ) as ListLiteral;
+    var list =
+        parseCollectionLiteral(
+              '[1, await for (var x in list) if (c) 2]',
+              inAsync: true,
+            )
+            as ListLiteral;
     expect(list.elements, hasLength(2));
     var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
@@ -136,8 +142,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_listLiteral_ifElseFor() {
-    var list = parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]')
-        as ListLiteral;
+    var list =
+        parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]')
+            as ListLiteral;
     expect(list.elements, hasLength(2));
     var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
@@ -157,8 +164,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_listLiteral_ifElseSpread() {
-    var list = parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]')
-        as ListLiteral;
+    var list =
+        parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]')
+            as ListLiteral;
     expect(list.elements, hasLength(2));
     var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
@@ -231,8 +239,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_for() {
-    var map = parseCollectionLiteral('{1:7, await for (y in list) 2:3}',
-        inAsync: true) as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral(
+              '{1:7, await for (y in list) 2:3}',
+              inAsync: true,
+            )
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -252,8 +264,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_forIf() {
-    var map = parseCollectionLiteral('{1:7, await for (y in list) if (c) 2:3}',
-        inAsync: true) as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral(
+              '{1:7, await for (y in list) if (c) 2:3}',
+              inAsync: true,
+            )
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -280,8 +296,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_forSpread() {
-    var map = parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}')
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -321,8 +338,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifElse() {
-    var map = parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}')
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -365,8 +383,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifElseSpread() {
-    var map = parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}')
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -387,8 +406,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifFor() {
-    var map = parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}')
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -437,8 +457,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_spread2_typed() {
-    var map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}')
+            as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(2));
@@ -475,8 +496,9 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_spreadQ2_typed() {
-    var map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}')
-        as SetOrMapLiteral;
+    var map =
+        parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}')
+            as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(2));

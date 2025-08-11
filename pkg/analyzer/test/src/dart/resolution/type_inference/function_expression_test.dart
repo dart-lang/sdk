@@ -18,26 +18,28 @@ main() {
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1)],
+    );
     _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<void> Function() v = () async {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1)],
+    );
     _assertReturnType('() async {', 'Future<void>');
   }
 
@@ -77,7 +79,7 @@ FunctionExpression
               FutureOr<Object?>
           semicolon: ;
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -129,7 +131,7 @@ FunctionExpression
       staticType: FutureOr<int>
       typeArgumentTypes
         FutureOr<int>
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Future<int> Function()
   staticType: Future<int> Function()
 ''');
@@ -170,7 +172,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -204,7 +206,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -256,7 +258,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Stream<int> Function()
   staticType: Stream<int> Function()
 ''');
@@ -306,20 +308,21 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: int Function()
   staticType: int Function()
 ''');
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void Function() v = () {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1)],
+    );
     _assertReturnType('() {', 'void');
   }
 
@@ -357,7 +360,7 @@ FunctionExpression
       staticType: int
       typeArgumentTypes
         int
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -409,7 +412,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: Iterable<int> Function()
   staticType: Iterable<int> Function()
 ''');
@@ -431,7 +434,7 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: item
-      declaredElement: null@null::@formalParameter::item
+      declaredElement: <testLibraryFragment> item@43
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
@@ -441,13 +444,13 @@ FunctionExpression
         ExpressionStatement
           expression: SimpleIdentifier
             token: item
-            element: @42::@parameter::item#element
+            element: item@43
             staticType: int
           semicolon: ;
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: void Function(int)
-  correspondingParameter: root::@parameter::f#element
+  correspondingParameter: f@null
   staticType: void Function(int)
 ''');
   }
@@ -468,16 +471,16 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: null@null::@formalParameter::x
+      declaredElement: <testLibraryFragment> x@53
         type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: void Function(Object?)
-  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+  correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   staticType: void Function(Object?)
 ''');
   }
@@ -498,28 +501,29 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: null@null::@formalParameter::x
+      declaredElement: <testLibraryFragment> x@52
         type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: void Function(Object?)
-  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+  correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   staticType: void Function(Object?)
 ''');
   }
 
   test_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   final v = <T>(T a) => <T>[a];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
 
     var node = findNode.functionExpression('<T>(');
     assertResolvedNodeText(node, r'''
@@ -529,17 +533,18 @@ FunctionExpression
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@24
+        declaredElement: <testLibraryFragment> T@24
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: T@24
+        element2: #E0 T
         type: T
       name: a
-      declaredElement: null@null::@formalParameter::a
+      declaredElement: <testLibraryFragment> a@29
         type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -550,18 +555,18 @@ FunctionExpression
         arguments
           NamedType
             name: T
-            element2: T@24
+            element2: #E0 T
             type: T
         rightBracket: >
       leftBracket: [
       elements
         SimpleIdentifier
           token: a
-          element: @23::@parameter::a#element
+          element: a@29
           staticType: T
       rightBracket: ]
       staticType: List<T>
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: List<T> Function<T>(T)
   staticType: List<T> Function<T>(T)
 ''');
@@ -585,7 +590,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -607,7 +612,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: null@null
+  declaredElement: <testLibraryFragment> null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -853,20 +858,21 @@ var v = () sync* {
   }
 
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2)],
+    );
 
     var node = findNode.functionExpressionInvocation("('')");
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT
-      element: <testLibraryFragment>::@function::test::@parameter::createT#element
+      element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -898,7 +904,7 @@ int test<T extends int Function(int)>(T Function() createT) {
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT
-      element: <testLibraryFragment>::@function::test::@parameter::createT#element
+      element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -911,7 +917,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>

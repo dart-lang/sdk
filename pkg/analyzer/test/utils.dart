@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/source.dart';
@@ -44,7 +44,10 @@ class AstFinder {
   /// in the class with the given [className] in the given compilation [unit].
   /// If constructorName is null, return the default constructor;
   static ConstructorDeclaration getConstructorInClass(
-      CompilationUnit unit, String className, String? constructorName) {
+    CompilationUnit unit,
+    String className,
+    String? constructorName,
+  ) {
     ClassDeclaration unitMember = getClass(unit, className);
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
@@ -60,7 +63,10 @@ class AstFinder {
   /// Return the declaration of the field with the given [fieldName] in the
   /// class with the given [className] in the given compilation [unit].
   static VariableDeclaration getFieldInClass(
-      CompilationUnit unit, String className, String fieldName) {
+    CompilationUnit unit,
+    String className,
+    String fieldName,
+  ) {
     ClassDeclaration unitMember = getClass(unit, className);
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
@@ -79,7 +85,10 @@ class AstFinder {
   /// Return the declaration of the method with the given [methodName] in the
   /// class with the given [className] in the given compilation [unit].
   static MethodDeclaration getMethodInClass(
-      CompilationUnit unit, String className, String methodName) {
+    CompilationUnit unit,
+    String className,
+    String methodName,
+  ) {
     ClassDeclaration unitMember = getClass(unit, className);
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
@@ -95,7 +104,9 @@ class AstFinder {
   /// Return the statements in the body of the top-level function with the given
   /// [functionName] in the given compilation [unit].
   static List<Statement> getStatementsInTopLevelFunction(
-      CompilationUnit unit, String functionName) {
+    CompilationUnit unit,
+    String functionName,
+  ) {
     FunctionDeclaration function = getTopLevelFunction(unit, functionName);
     var body = function.functionExpression.body as BlockFunctionBody;
     return body.block.statements;
@@ -104,7 +115,9 @@ class AstFinder {
   /// Return the declaration of the top-level function with the given
   /// [functionName] in the given compilation [unit].
   static FunctionDeclaration getTopLevelFunction(
-      CompilationUnit unit, String functionName) {
+    CompilationUnit unit,
+    String functionName,
+  ) {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
       if (unitMember is FunctionDeclaration) {
@@ -137,10 +150,10 @@ class TypeAssertions {
   Asserter<DartType> get isInvalidType => isType(InvalidTypeImpl.instance);
 
   /// Primitive assertion for the list type.
-  Asserter<DartType> get isList => hasElement(_typeProvider.listElement2);
+  Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
 
   /// Primitive assertion for the map type.
-  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement2);
+  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
 
   /// Primitive assertion for the Never type.
   Asserter<DartType> get isNever => isType(_typeProvider.neverType);
@@ -158,32 +171,34 @@ class TypeAssertions {
   Asserter<DartType> get isString => isType(_typeProvider.stringType);
 
   /// Assert that a type has the element that is equal to the [expected].
-  Asserter<DartType> hasElement(Element2 expected) =>
-      (DartType type) => expect(expected, (type as InterfaceType).element3);
+  Asserter<DartType> hasElement(Element expected) =>
+      (DartType type) => expect(expected, (type as InterfaceType).element);
 
   /// Given assertions for the argument and return types, produce an
   /// assertion over unary function types.
   Asserter<DartType> isFunction2Of(
-          Asserter<DartType> argType, Asserter<DartType> returnType) =>
-      (DartType type) {
-        FunctionType fType = type as FunctionType;
-        argType(fType.normalParameterTypes[0]);
-        returnType(fType.returnType);
-      };
+    Asserter<DartType> argType,
+    Asserter<DartType> returnType,
+  ) => (DartType type) {
+    FunctionType fType = type as FunctionType;
+    argType(fType.normalParameterTypes[0]);
+    returnType(fType.returnType);
+  };
 
   /// Given an assertion for the base type and assertions over the type
   /// parameters, produce an assertion over instantiations.
   AsserterBuilder<List<Asserter<DartType>>, DartType> isInstantiationOf(
-          Asserter<DartType> baseAssert) =>
+    Asserter<DartType> baseAssert,
+  ) =>
       (List<Asserter<DartType>> argAsserts) => (DartType type) {
-            InterfaceType t = type as InterfaceType;
-            baseAssert(t);
-            List<DartType> typeArguments = t.typeArguments;
-            expect(typeArguments, hasLength(argAsserts.length));
-            for (int i = 0; i < typeArguments.length; i++) {
-              argAsserts[i](typeArguments[i]);
-            }
-          };
+        InterfaceType t = type as InterfaceType;
+        baseAssert(t);
+        List<DartType> typeArguments = t.typeArguments;
+        expect(typeArguments, hasLength(argAsserts.length));
+        for (int i = 0; i < typeArguments.length; i++) {
+          argAsserts[i](typeArguments[i]);
+        }
+      };
 
   /// Assert that a type is the List type, and that the given assertion holds
   /// over the type parameter.
@@ -193,11 +208,12 @@ class TypeAssertions {
   /// Assert that a type is the Map type, and that the given assertions hold
   /// over the type parameters.
   Asserter<InterfaceType> isMapOf(
-          Asserter<DartType> argAssert0, Asserter<DartType> argAssert1) =>
-      isInstantiationOf(isMap)([argAssert0, argAssert1]);
+    Asserter<DartType> argAssert0,
+    Asserter<DartType> argAssert1,
+  ) => isInstantiationOf(isMap)([argAssert0, argAssert1]);
 
   /// Assert that a type is equal to the [expected].
   Asserter<DartType> isType(DartType expected) => (DartType t) {
-        expect(t, expected);
-      };
+    expect(t, expected);
+  };
 }

@@ -9,13 +9,17 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 void checkReadable<T>(
-    List<T> expected, List<T> actual, bool Function(T, T) equals) {
+  List<T> expected,
+  List<T> actual,
+  bool Function(T, T) equals,
+) {
   Expect.equals(expected.length, actual.length);
   for (int i = 0; i < expected.length; i++) {
     Expect.isTrue(
-        equals(expected[i], actual[i]),
-        'At [$i], expected: ${expected[i]} actual: ${actual[i]}, '
-        'which are not equal');
+      equals(expected[i], actual[i]),
+      'At [$i], expected: ${expected[i]} actual: ${actual[i]}, '
+      'which are not equal',
+    );
   }
 }
 

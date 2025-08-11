@@ -42,6 +42,8 @@ void normal_cascades_do_promote_others(C c, int? i, int? j) {
   // don't disappear after the cascade section.
   c..method(i!);
   c..functionGetter(j!);
-  /*nonNullable*/ i;
-  /*nonNullable*/ j;
+  /*nonNullable*/
+  i;
+  /*nonNullable*/
+  j;
 }

@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,9 +21,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 class ForResolver {
   final ResolverVisitor _resolver;
 
-  ForResolver({
-    required ResolverVisitor resolver,
-  }) : _resolver = resolver;
+  ForResolver({required ResolverVisitor resolver}) : _resolver = resolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -107,11 +105,12 @@ class ForResolver {
       return DynamicTypeImpl.instance;
     }
 
-    ClassElement2 iteratedElement = isAsync
-        ? _resolver.typeProvider.streamElement2
-        : _resolver.typeProvider.iterableElement2;
+    ClassElement iteratedElement =
+        isAsync
+            ? _resolver.typeProvider.streamElement
+            : _resolver.typeProvider.iterableElement;
 
-    var iteratedType = iterableType.asInstanceOf2(iteratedElement);
+    var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
       return InvalidTypeImpl.instance;
     }
@@ -119,19 +118,25 @@ class ForResolver {
     return iteratedType.typeArguments.single;
   }
 
-  void _forEachParts(AstNodeImpl node, bool isAsync,
-      ForEachPartsImpl forEachParts, void Function() visitBody) {
+  void _forEachParts(
+    AstNodeImpl node,
+    bool isAsync,
+    ForEachPartsImpl forEachParts,
+    void Function() visitBody,
+  ) {
     ExpressionImpl iterable = forEachParts.iterable;
     DeclaredIdentifierImpl? loopVariable;
     SimpleIdentifierImpl? identifier;
-    Element2? identifierElement;
+    Element? identifierElement;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
       identifier = forEachParts.identifier;
       // TODO(scheglov): replace with lexical lookup
       inferenceLogWriter?.setExpressionVisitCodePath(
-          identifier, ExpressionVisitCodePath.forEachIdentifier);
+        identifier,
+        ExpressionVisitCodePath.forEachIdentifier,
+      );
       identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
@@ -145,9 +150,11 @@ class ForResolver {
     }
     if (identifier != null) {
       identifierElement = identifier.element;
-      if (identifierElement is VariableElement2) {
-        valueType = _resolver.localVariableTypeProvider
-            .getType(identifier, isRead: false);
+      if (identifierElement is VariableElement) {
+        valueType = _resolver.localVariableTypeProvider.getType(
+          identifier,
+          isRead: false,
+        );
       } else if (identifierElement is SetterElement2OrMember) {
         var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
@@ -157,13 +164,16 @@ class ForResolver {
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
-      targetType = isAsync
-          ? _resolver.typeProvider.streamType(valueType)
-          : _resolver.typeProvider.iterableType(valueType);
+      targetType =
+          isAsync
+              ? _resolver.typeProvider.streamType(valueType)
+              : _resolver.typeProvider.iterableType(valueType);
     }
 
-    _resolver.analyzeExpression(iterable,
-        SharedTypeSchemaView(targetType ?? UnknownInferredType.instance));
+    _resolver.analyzeExpression(
+      iterable,
+      SharedTypeSchemaView(targetType ?? UnknownInferredType.instance),
+    );
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
@@ -175,22 +185,28 @@ class ForResolver {
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
-          loopVariable.declaredFragment?.element as LocalVariableElementImpl2;
+          loopVariable.declaredFragment?.element as LocalVariableElementImpl;
       loopVariableElement.type = elementType;
     }
 
     if (loopVariable != null) {
-      var declaredElement = loopVariable.declaredElement2!;
+      var declaredElement = loopVariable.declaredElement!;
       _resolver.flowAnalysis.flow?.declare(
-          declaredElement, SharedTypeView(declaredElement.type),
-          initialized: true);
+        declaredElement,
+        SharedTypeView(declaredElement.type),
+        initialized: true,
+      );
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
-    if (identifierElement is PromotableElementImpl2 &&
+    if (identifierElement is PromotableElementImpl &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
-          forEachParts, identifierElement, SharedTypeView(elementType), null);
+        forEachParts,
+        identifierElement,
+        SharedTypeView(elementType),
+        null,
+      );
     }
 
     visitBody();
@@ -199,13 +215,18 @@ class ForResolver {
   }
 
   void _forParts(
-      AstNodeImpl node, ForPartsImpl forParts, void Function() visitBody) {
+    AstNodeImpl node,
+    ForPartsImpl forParts,
+    void Function() visitBody,
+  ) {
     if (forParts is ForPartsWithDeclarationsImpl) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization case var initialization?) {
         _resolver.analyzeExpression(
-            initialization, _resolver.operations.unknownType);
+          initialization,
+          _resolver.operations.unknownType,
+        );
         _resolver.popRewrite();
       }
     } else if (forParts is ForPartsWithPatternImpl) {
@@ -219,18 +240,29 @@ class ForResolver {
     var condition = forParts.condition;
     if (condition != null) {
       _resolver.analyzeExpression(
-          condition, SharedTypeSchemaView(_resolver.typeProvider.boolType));
+        condition,
+        SharedTypeSchemaView(_resolver.typeProvider.boolType),
+      );
       condition = _resolver.popRewrite()!;
-      var whyNotPromoted =
-          _resolver.flowAnalysis.flow?.whyNotPromoted(condition);
-      _resolver.boolExpressionVerifier
-          .checkForNonBoolCondition(condition, whyNotPromoted: whyNotPromoted);
+      var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+        condition,
+      );
+      _resolver.boolExpressionVerifier.checkForNonBoolCondition(
+        condition,
+        whyNotPromoted: whyNotPromoted,
+      );
     }
 
+    var deadCodeForPartsState =
+        _resolver.nullSafetyDeadCodeVerifier.for_conditionEnd();
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
     visitBody();
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
+    _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
+      forParts.updaters,
+      deadCodeForPartsState,
+    );
     for (var updater in forParts.updaters) {
       _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
       _resolver.popRewrite();

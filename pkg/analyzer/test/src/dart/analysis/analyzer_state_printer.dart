@@ -62,8 +62,9 @@ class AnalyzerStatePrinter {
       if (isSdkLibrary) {
         if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
           return 'dart:core';
-        } else if (cycle.libraries
-            .any((e) => e.file.uriStr == 'dart:collection')) {
+        } else if (cycle.libraries.any(
+          (e) => e.file.uriStr == 'dart:collection',
+        )) {
           return 'dart:collection';
         } else if (cycle.libraries.any((e) => e.file.uriStr == 'dart:io')) {
           return 'dart:io';
@@ -130,14 +131,8 @@ class AnalyzerStatePrinter {
     sink.writelnWithIndent('elementFactory');
     sink.withIndent(() {
       var elementFactory = libraryContext.elementFactory;
-      _writeUriList(
-        'hasElement',
-        elementFactory.uriListWithLibraryElements,
-      );
-      _writeUriList(
-        'hasReader',
-        elementFactory.uriListWithLibraryReaders,
-      );
+      _writeUriList('hasElement', elementFactory.uriListWithLibraryElements);
+      _writeUriList('hasReader', elementFactory.uriListWithLibraryReaders);
     });
   }
 
@@ -394,9 +389,10 @@ class AnalyzerStatePrinter {
 
     if (testData.instance case var libraryContext?) {
       var bundleProvider = libraryContext.linkedBundleProvider;
-      var bundleKeys = bundleProvider.map.entries
-          .map((entry) => idProvider.shortKey(entry.key))
-          .sorted();
+      var bundleKeys =
+          bundleProvider.map.entries
+              .map((entry) => idProvider.shortKey(entry.key))
+              .sorted();
       if (bundleKeys.isNotEmpty) {
         sink.writelnWithIndent('linkedBundleProvider: $bundleKeys');
       }
@@ -565,31 +561,29 @@ class AnalyzerStatePrinter {
   }
 
   void _writePartIncludes(FileKind container) {
-    _writeElements<PartIncludeState>(
-      'partIncludes',
-      container.partIncludes,
-      (part) {
-        expect(part.container, same(container));
-        switch (part) {
-          case PartIncludeWithFile():
-            sink.writeIndentedLine(() {
-              var file = part.includedFile;
-              var includedPart = part.includedPart;
-              if (includedPart != null) {
-                expect(includedPart.file, file);
-                sink.write(idProvider.fileKind(includedPart));
-              } else {
-                sink.write('notPart ${idProvider.fileState(file)}');
-              }
-            });
-          case PartIncludeWithUri():
-            var uriStr = _stringOfUriStr(part.selectedUri.relativeUriStr);
-            sink.writelnWithIndent('uri: $uriStr');
-          default:
-            sink.writelnWithIndent('noUri');
-        }
-      },
-    );
+    _writeElements<PartIncludeState>('partIncludes', container.partIncludes, (
+      part,
+    ) {
+      expect(part.container, same(container));
+      switch (part) {
+        case PartIncludeWithFile():
+          sink.writeIndentedLine(() {
+            var file = part.includedFile;
+            var includedPart = part.includedPart;
+            if (includedPart != null) {
+              expect(includedPart.file, file);
+              sink.write(idProvider.fileKind(includedPart));
+            } else {
+              sink.write('notPart ${idProvider.fileState(file)}');
+            }
+          });
+        case PartIncludeWithUri():
+          var uriStr = _stringOfUriStr(part.selectedUri.relativeUriStr);
+          sink.writelnWithIndent('uri: $uriStr');
+        default:
+          sink.writelnWithIndent('noUri');
+      }
+    });
   }
 
   void _writeReferencingFiles(FileState file) {

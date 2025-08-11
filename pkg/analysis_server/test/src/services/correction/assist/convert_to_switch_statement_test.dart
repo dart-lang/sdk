@@ -18,18 +18,18 @@ void main() {
 @reflectiveTest
 class ConvertIfStatementToSwitchStatementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+  AssistKind get kind => DartAssistKind.convertToSwitchStatement;
 
   Future<void> test_chain_case2_blockEmpty() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
   } else if (x case double()) {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -44,13 +44,13 @@ void f(Object? x) {
   Future<void> test_chain_case2_blockEmpty_last() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (x case double()) {
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -64,20 +64,20 @@ void f(Object? x) {
   Future<void> test_chain_case2_differentIdentifier() async {
     await resolveTestCode('''
 void f(Object? x, Object? y) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (y case double()) {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_chain_case2_elseBlock() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (x case double()) {
     1;
@@ -86,7 +86,7 @@ void f(Object? x) {
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -103,14 +103,14 @@ void f(Object? x) {
   Future<void> test_chain_case2_noElse() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (x case double()) {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -125,27 +125,27 @@ void f(Object? x) {
   Future<void> test_chain_case2_notIdentifier() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (x != null case true) {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_chain_case_expression() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else if (x is double) {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -160,14 +160,14 @@ void f(Object? x) {
   Future<void> test_chain_expression2() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x is int) {
+  i^f (x is int) {
     0;
   } else if (x is double) {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -183,25 +183,25 @@ void f(Object? x) {
     await resolveTestCode('''
 // @dart = 2.19
 void f(Object? x) {
-  if (x is int) {
+  i^f (x is int) {
     0;
   } else if (x is double) {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_single_case_thenBlock() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -214,14 +214,14 @@ void f(Object? x) {
   Future<void> test_single_case_thenBlock_elseBlock() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -236,12 +236,12 @@ void f(Object? x) {
   Future<void> test_single_case_thenBlock_elseBlockEmpty() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else {}
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -255,13 +255,13 @@ void f(Object? x) {
   Future<void> test_single_case_thenBlock_elseStatement() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  i^f (x case int()) {
     0;
   } else
     1;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -276,11 +276,11 @@ void f(Object? x) {
   Future<void> test_single_case_thenStatement() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int())
+  i^f (x case int())
     0;
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case int():
@@ -293,12 +293,12 @@ void f(Object? x) {
   Future<void> test_single_expression_greaterOrEqualThan() async {
     await resolveTestCode('''
 void f(int x) {
-  if (x >= 100) {
+  i^f (x >= 100) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(int x) {
   switch (x) {
     case >= 100:
@@ -311,12 +311,12 @@ void f(int x) {
   Future<void> test_single_expression_greaterThan() async {
     await resolveTestCode('''
 void f(int x) {
-  if (x > 100) {
+  i^f (x > 100) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(int x) {
   switch (x) {
     case > 100:
@@ -329,12 +329,12 @@ void f(int x) {
   Future<void> test_single_expression_isType() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x is List<int>) {
+  i^f (x is List<int>) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case List<int>():
@@ -347,12 +347,12 @@ void f(Object? x) {
   Future<void> test_single_expression_isType_functionType() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x is void Function()) {
+  i^f (x is void Function()) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case void Function() _:
@@ -365,12 +365,12 @@ void f(Object? x) {
   Future<void> test_single_expression_isType_recordType() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x is (int, String)) {
+  i^f (x is (int, String)) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case (int, String) _:
@@ -383,12 +383,12 @@ void f(Object? x) {
   Future<void> test_single_expression_lessOrEqualThan() async {
     await resolveTestCode('''
 void f(int x) {
-  if (x <= 100) {
+  i^f (x <= 100) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(int x) {
   switch (x) {
     case <= 100:
@@ -401,12 +401,12 @@ void f(int x) {
   Future<void> test_single_expression_lessThan() async {
     await resolveTestCode('''
 void f(int x) {
-  if (x < 100) {
+  i^f (x < 100) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(int x) {
   switch (x) {
     case < 100:
@@ -419,23 +419,23 @@ void f(int x) {
   Future<void> test_single_expression_lessThan_notLiteral() async {
     await resolveTestCode('''
 void f(int x, int y) {
-  if (x < y) {
+  i^f (x < y) {
     0;
   }
 }
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 
   Future<void> test_single_expression_notEqNull() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x != null) {
+  i^f (x != null) {
     0;
   }
 }
 ''');
-    await assertHasAssistAt('if', '''
+    await assertHasAssist('''
 void f(Object? x) {
   switch (x) {
     case _?:
@@ -448,33 +448,33 @@ void f(Object? x) {
   Future<void> test_single_expression_notSupported() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (validate(x)) {
+  i^f (validate(x)) {
     0;
   }
 }
 
 bool validate(Object? x) => false;
 ''');
-    await assertNoAssistAt('if');
+    await assertNoAssist();
   }
 }
 
 @reflectiveTest
 class ConvertSwitchExpressionToSwitchStatementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+  AssistKind get kind => DartAssistKind.convertToSwitchStatement;
 
   Future<void> test_assignment_toIdentifier() async {
     await resolveTestCode('''
 void f(int x) {
   int v;
-  v = switch (x) {
+  v = swi^tch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(int x) {
   int v;
   switch (x) {
@@ -491,25 +491,25 @@ void f(int x) {
     await resolveTestCode('''
 void f(int x) {
   final v = [0];
-  v[0] = switch (x) {
+  v[0] = swi^tch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_noTrailingComma() async {
     await resolveTestCode('''
 int f(int x) {
-  return switch (x) {
+  return sw^itch (x) {
     0 => 0,
     _ => 1
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 int f(int x) {
   switch (x) {
     case 0:
@@ -521,16 +521,39 @@ int f(int x) {
 ''');
   }
 
-  Future<void> test_returnStatement() async {
+  Future<void> test_operatorAssignment() async {
     await resolveTestCode('''
-int f(int x) {
-  return switch (x) {
+void f(int x) {
+  int v = 0;
+  v += s^witch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
+void f(int x) {
+  int v = 0;
+  switch (x) {
+    case 0:
+      v += 0;
+    default:
+      v += 1;
+  }
+}
+''');
+  }
+
+  Future<void> test_returnStatement() async {
+    await resolveTestCode('''
+int f(int x) {
+  return swi^tch (x) {
+    0 => 0,
+    _ => 1,
+  };
+}
+''');
+    await assertHasAssist('''
 int f(int x) {
   switch (x) {
     case 0:
@@ -545,13 +568,13 @@ int f(int x) {
   Future<void> test_variableDeclarationStatement_typed() async {
     await resolveTestCode('''
 void f(int x) {
-  int v = switch (x) {
+  int v = swi^tch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(int x) {
   int v;
   switch (x) {
@@ -567,13 +590,13 @@ void f(int x) {
   Future<void> test_variableDeclarationStatement_untyped_final() async {
     await resolveTestCode('''
 void f(int x) {
-  final v = switch (x) {
+  final v = swi^tch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(int x) {
   final int v;
   switch (x) {
@@ -589,13 +612,13 @@ void f(int x) {
   Future<void> test_variableDeclarationStatement_untyped_var() async {
     await resolveTestCode('''
 void f(int x) {
-  var v = switch (x) {
+  var v = swi^tch (x) {
     0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(int x) {
   int v;
   switch (x) {
@@ -611,13 +634,13 @@ void f(int x) {
   Future<void> test_wildcardPattern_when() async {
     await resolveTestCode('''
 void f(int x) {
-  int v = switch (x) {
+  int v = swi^tch (x) {
     _ when x > 0 => 0,
     _ => 1,
   };
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 void f(int x) {
   int v;
   switch (x) {

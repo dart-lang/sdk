@@ -57,8 +57,8 @@ class NoAnnotations {
 // considered an error.
 @JSExport()
 abstract class ExportNoneQualify {
-//             ^
-// [web] Class 'ExportNoneQualify' has no exportable members in the class or the inheritance chain.
+  //           ^
+  // [web] Class 'ExportNoneQualify' has no exportable members in the class or the inheritance chain.
   factory ExportNoneQualify() => throw '';
 
   abstract int abstractField;
@@ -100,29 +100,29 @@ void testNumberOfExports() {
   createDartExport(ExportAll());
   createDartExport(ExportSome());
   createDartExport(NoAnnotations());
-//^
-// [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
+  // [error column 3]
+  // [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
   createDartExport(ExportNoneQualify());
   createDartExport(ExportEmpty());
   createDartExport(ExportWithNoExportSuperclass());
   createDartExport(ExportWithEmptyExportSuperclass());
   createDartExport(NoExportWithExportSuperclass());
-//^
-// [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
+  // [error column 3]
+  // [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
 
   // Same method with different name and type.
   createJSInteropWrapper(ExportAll());
   createJSInteropWrapper(ExportSome());
   createJSInteropWrapper(NoAnnotations());
-//^
-// [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
+  // [error column 3]
+  // [web] Class 'NoAnnotations' does not have a `@JSExport` on it or any of its members.
   createJSInteropWrapper(ExportNoneQualify());
   createJSInteropWrapper(ExportEmpty());
   createJSInteropWrapper(ExportWithNoExportSuperclass());
   createJSInteropWrapper(ExportWithEmptyExportSuperclass());
   createJSInteropWrapper(NoExportWithExportSuperclass());
-//^
-// [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
+  // [error column 3]
+  // [web] Class 'NoExportWithExportSuperclass' does not have a `@JSExport` on it or any of its members.
 }
 
 @JS()
@@ -136,29 +136,29 @@ typedef InvalidType = void Function();
 void testUseDartInterface() {
   // Needs to be an interface type.
   createDartExport<InvalidType>(() {});
-//^
-// [web] Type argument 'void Function()' needs to be an interface type.
+  // [error column 3]
+  // [web] Type argument 'void Function()' needs to be an interface type.
 
   // Can't use an interop class.
   createDartExport(StaticInterop());
-//^
-// [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
+  // [error column 3]
+  // [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
 
   createJSInteropWrapper<InvalidType>(() {});
-//^
-// [web] Type argument 'void Function()' needs to be an interface type.
+  // [error column 3]
+  // [web] Type argument 'void Function()' needs to be an interface type.
 
   // Can't use an interop class.
   createJSInteropWrapper(StaticInterop());
-//^
-// [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
+  // [error column 3]
+  // [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
 }
 
 // Incompatible members can't have the same export name using renaming.
 @JSExport()
 class RenameCollision {
-//    ^
-// [web] The following class members collide with the same export 'exportName': RenameCollision.exportName, RenameCollision.finalField, RenameCollision.getSet, RenameCollision.getSet, RenameCollision.method.
+  //  ^
+  // [web] The following class members collide with the same export 'exportName': RenameCollision.exportName, RenameCollision.finalField, RenameCollision.getSet, RenameCollision.getSet, RenameCollision.method.
   int exportName = throw '';
   @JSExport('exportName')
   final int finalField = throw '';
@@ -213,8 +213,8 @@ void testClassExportWithValue() {
 // parameters are okay, however.
 @JSExport()
 class GenericAll {
-//    ^
-// [web] Class 'GenericAll' has no exportable members in the class or the inheritance chain.
+  //  ^
+  // [web] Class 'GenericAll' has no exportable members in the class or the inheritance chain.
   void defineTypeParam<T extends int>() {}
   T useTypeParam<T extends Object>(T t) => t;
 }
@@ -227,6 +227,41 @@ class GenericSome<U> {
   T useTypeParam<T extends Object>(T t) => t;
   @JSExport()
   U useClassParam(U u) => u;
+}
+
+@JSExport()
+class ExportUnexportableMembers {
+  //  ^
+  // [web] Class 'ExportUnexportableMembers' has no exportable members in the class or the inheritance chain.
+  @JSExport()
+  ExportUnexportableMembers();
+  // [error column 3]
+  // [web] Member '<unnamed>' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  factory ExportUnexportableMembers.named() => ExportUnexportableMembers();
+  //      ^
+  // [web] Member 'named' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int staticField = 0;
+  //         ^
+  // [web] Member 'staticField' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int get staticGetSet => 0;
+  //             ^
+  // [web] Member 'staticGetSet' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static set staticGetSet(int _) {}
+  //         ^
+  // [web] Member 'staticGetSet' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int staticMethod() => 0;
+  //         ^
+  // [web] Member 'staticMethod' is not a concrete instance member or declares type parameters, and therefore can't be exported.
 }
 
 void testClassWithGenerics() {

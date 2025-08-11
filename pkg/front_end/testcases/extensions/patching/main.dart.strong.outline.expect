@@ -13,7 +13,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension Extension on core::String {
   method instanceMethod = self2::Extension|instanceMethod;
   method tearoff instanceMethod = self2::Extension|get#instanceMethod;
@@ -22,11 +22,11 @@ extension Extension on core::String {
   static method staticMethod = self2::Extension|staticMethod;
   static method genericStaticMethod = self2::Extension|genericStaticMethod;
   get instanceProperty = self2::Extension|get#instanceProperty;
-  static get staticProperty = get self2::Extension|staticProperty;
   set instanceProperty = self2::Extension|set#instanceProperty;
+  static get staticProperty = get self2::Extension|staticProperty;
   static set staticProperty = set self2::Extension|staticProperty;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension GenericExtension<T extends core::Object? = dynamic> on T% {
   method instanceMethod = self2::GenericExtension|instanceMethod;
   method tearoff instanceMethod = self2::GenericExtension|get#instanceMethod;
@@ -35,8 +35,8 @@ extension GenericExtension<T extends core::Object? = dynamic> on T% {
   static method staticMethod = self2::GenericExtension|staticMethod;
   static method genericStaticMethod = self2::GenericExtension|genericStaticMethod;
   get instanceProperty = self2::GenericExtension|get#instanceProperty;
-  static get staticProperty = get self2::GenericExtension|staticProperty;
   set instanceProperty = self2::GenericExtension|set#instanceProperty;
+  static get staticProperty = get self2::GenericExtension|staticProperty;
   static set staticProperty = set self2::GenericExtension|staticProperty;
 }
 @_in::patch
@@ -98,8 +98,8 @@ static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ G
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:31 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:26:39 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:35:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const _Patch{})

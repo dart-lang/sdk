@@ -229,10 +229,9 @@ String getClassName(Object? cls) {
 /// Returns the class of the instance [obj].
 ///
 /// The passed [obj] is expected to have a Dart class representation.
-Object getClass(obj) =>
-    _jsInstanceOf(obj, Object)
-        ? JS('', '#.constructor', obj)
-        : JS('', '#[#]', obj, _extensionType);
+Object getClass(obj) => _jsInstanceOf(obj, Object)
+    ? JS('', '#.constructor', obj)
+    : JS('', '#[#]', obj, _extensionType);
 
 bool isJsInterop(obj) {
   if (obj == null) return false;

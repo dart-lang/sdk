@@ -48,6 +48,9 @@ declare_args() {
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
 
+  # Whether to disable support for secure sockets in the Dart IO library.
+  dart_disable_secure_socket = false
+
   # Whether to link Crashpad library for crash handling. Only supported on
   # Windows for now.
   dart_use_crashpad = false
@@ -72,11 +75,14 @@ declare_args() {
   # Whether the sampling heap profiler should be included in product mode.
   dart_include_sampling_heap_profiler = false
 
-  # Whether features that depend on Perfetto should be built. We temporarily
-  # need to define this to allow excluding code that depends on Perfetto from
-  # being built on platforms which have a problem linking in the Perfetto
-  # library.
-  dart_support_perfetto = true
+  # Whether features that depend on Perfetto should be built. We need
+  # to define this to allow excluding code that depends on Perfetto
+  # from being built on platforms which have a problem linking in the
+  # Perfetto library, e.g. watchOS.
+  #
+  # is_watchos may be undefined when Dart SDK is built from the Flutter
+  # engine tree.
+  dart_support_perfetto = !defined(is_watchos) || !is_watchos
 
   # Whether to support dynamic loading and interpretation of Dart bytecode.
   dart_dynamic_modules = false
@@ -86,7 +92,7 @@ declare_args() {
   # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
   # ELF.
   build_analyze_snapshot =
-      (target_os == "linux" || target_os == "android" ||
+      (target_os == "linux" || target_os == "mac" || target_os == "android" ||
        target_os == "fuchsia") &&
       (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
        dart_target_arch == "riscv64")

@@ -16,12 +16,15 @@ main() {
 @reflectiveTest
 class AssetNotStringOrMapTest extends PubspecDiagnosticTest {
   test_assetNotString_error_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - 23
-''', [PubspecWarningCode.ASSET_NOT_STRING_OR_MAP]);
+''',
+      [PubspecWarningCode.ASSET_NOT_STRING_OR_MAP],
+    );
   }
 
   test_assetNotString_error_map() {

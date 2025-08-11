@@ -197,11 +197,10 @@ testNonTrivialSubstitutions() async {
       instantiate(types, A, [D1_T]),
     ],
   });
-  DartType D1_superclass_T =
-      env.elementEnvironment
-          .getThisType(env.elementEnvironment.getSuperClass(D1)!)
-          .typeArguments
-          .first;
+  DartType D1_superclass_T = env.elementEnvironment
+      .getThisType(env.elementEnvironment.getSuperClass(D1)!)
+      .typeArguments
+      .first;
   testSupertypes(env.elementEnvironment.getSuperClass(D1)!, {
     A: [D1_superclass_T],
     B: [
@@ -248,11 +247,10 @@ testNonTrivialSubstitutions() async {
       instantiate(types, B, [F1_T, X]),
     ],
   });
-  DartType F1_superclass_T =
-      env.elementEnvironment
-          .getThisType(env.elementEnvironment.getSuperClass(F1)!)
-          .typeArguments
-          .first;
+  DartType F1_superclass_T = env.elementEnvironment
+      .getThisType(env.elementEnvironment.getSuperClass(F1)!)
+      .typeArguments
+      .first;
   testSupertypes(env.elementEnvironment.getSuperClass(F1)!, {
     A: [X],
     B: [

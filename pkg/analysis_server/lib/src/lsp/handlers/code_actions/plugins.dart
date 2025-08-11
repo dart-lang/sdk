@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 
-/// Produces [CodeAction]s from Plugin fixes and assists.
+/// Produces [CodeActionLiteral]s from Plugin fixes and assists.
 class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   final AnalysisDriver? driver;
 
@@ -25,8 +25,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
     required super.analysisOptions,
+    required super.allowSnippets,
   }) : driver = server.getAnalysisDriver(file.path);
 
   @override
@@ -37,7 +41,10 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   }) async {
     // These assists are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
+      //  this will require plugins to create stable IDs/kinds so we can look
+      //  them back up in `applyCodeAction`.
       return [];
     }
 
@@ -48,6 +55,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         .map((response) => plugin.EditGetAssistsResult.fromResponse(response))
         .expand((response) => response.assists)
         .map(_convertAssist)
+        .nonNulls
         .toList();
   }
 
@@ -56,7 +64,10 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   ) async {
     // These fixes are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
+      //  this will require plugins to create stable IDs/kinds so we can look
+      //  them back up in `applyCodeAction`.
       return [];
     }
 
@@ -71,20 +82,32 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
+  Future<List<CodeAction>> getSourceActions() async => [];
 
-  CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
+  CodeActionWithPriority? _convertAssist(
+    plugin.PrioritizedSourceChange assist,
+  ) {
+    var kind = toCodeActionKind(assist.change.id, CodeActionKind.Refactor);
+    // TODO(dantup): Find a way to filter these earlier, so we don't
+    //  compute fixes we will filter out.
+    if (!shouldIncludeKind(kind)) {
+      return null;
+    }
+
     return (
-      action: createAssistAction(
-        assist.change,
-        'assist from plugin',
-        path,
-        lineInfo,
+      action: CodeAction.t1(
+        createCodeActionLiteral(
+          assist.change,
+          kind,
+          'assist from plugin',
+          path,
+          lineInfo,
+        ),
       ),
       priority: assist.priority,
     );
@@ -97,21 +120,30 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       server.uriConverter,
       (_) => lineInfo,
       fixes.error,
-      supportedTags: supportedDiagnosticTags,
-      clientSupportsCodeDescription: supportsCodeDescription,
+      supportedTags: callerSupportedDiagnosticTags,
+      clientSupportsCodeDescription: callerSupportsCodeDescription,
     );
-    return fixes.fixes.map(
-      (fix) => (
-        action: createFixAction(
-          fix.change,
-          'fix from plugin',
-          diagnostic,
-          path,
-          lineInfo,
+    return fixes.fixes.map((fix) {
+      var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);
+      // TODO(dantup): Find a way to filter these earlier, so we don't
+      //  compute fixes we will filter out.
+      if (!shouldIncludeKind(kind)) {
+        return null;
+      }
+      return (
+        action: CodeAction.t1(
+          createCodeActionLiteral(
+            fix.change,
+            kind,
+            'fix from plugin',
+            path,
+            lineInfo,
+            diagnostic: diagnostic,
+          ),
         ),
         priority: fix.priority,
-      ),
-    );
+      );
+    }).nonNulls;
   }
 
   Future<List<plugin.Response>> _sendPluginRequest(

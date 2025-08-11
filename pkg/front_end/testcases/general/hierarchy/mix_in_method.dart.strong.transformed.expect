@@ -133,10 +133,10 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
     : super self::Super::•()
     ;
   method mixedInConcreteMethod() → void {}
+  abstract method mixedInAbstractMethod() → void;
   method extendedConcreteMixedInConcreteMethod() → void {}
   method extendedAbstractMixedInConcreteMethod() → void {}
   abstract method extendedConcreteMixedInAbstractMethod() → void;
-  abstract method mixedInAbstractMethod() → void;
   abstract method extendedAbstractMixedInAbstractMethod() → void;
 }
 abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
@@ -144,10 +144,10 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
     : super self::Super::•()
     ;
   method mixedInConcreteMethod() → void {}
+  abstract method mixedInAbstractMethod() → void;
   method extendedConcreteMixedInConcreteMethod() → void {}
   method extendedAbstractMixedInConcreteMethod() → void {}
   abstract method extendedConcreteMixedInAbstractMethod() → void;
-  abstract method mixedInAbstractMethod() → void;
   abstract method extendedAbstractMixedInAbstractMethod() → void;
 }
 static method main() → dynamic {}

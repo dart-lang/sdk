@@ -36,21 +36,16 @@ import 'package:front_end/src/kernel/dynamic_module_validator.dart';
 Future<void> createTrimmedCopy(TrimOptions options) async {
   Component component = loadComponentFromBinary(options.inputPlatformPath);
   loadComponentFromBinary(options.inputAppPath, component);
-  Set<Library> included = {};
-
-  // Validate version and clear method bodies.
-  component.accept(new Trimmer(options.librariesToClear));
-
+  bool Function(Library) isExtendable;
+  bool Function(Library) isRoot;
   if (options.dynamicInterfaceContents == null) {
-    // Transitively include all libraries from a set of user libraries.
-    addReachable(
-        component.libraries,
-        (Library lib) =>
-            _isRootFromPatterns(lib, options.requiredUserLibraries),
-        included);
+    // Include all libraries from a set of user libraries.
+    isExtendable = (lib) => true;
+    isRoot = (Library lib) =>
+        _isRootFromPatterns(lib, options.requiredUserLibraries);
   } else {
-    // Transitively include all libraries declared as accessible from the
-    // dynamic_interface specification.
+    // Include all libraries declared as accessible from the dynamic_interface
+    // specification.
     DynamicInterfaceSpecification spec = new DynamicInterfaceSpecification(
         options.dynamicInterfaceContents!,
         options.dynamicInterfaceUri!,
@@ -61,15 +56,24 @@ Future<void> createTrimmedCopy(TrimOptions options) async {
           Library() => node,
           _ => throw 'Unexpected node ${node.runtimeType} $node'
         };
+    Set<Library> extendableLibraries =
+        spec.extendable.map(enclosingLibrary).toSet();
     Set<Library> roots = {
       ...spec.callable.map(enclosingLibrary),
-      ...spec.extendable.map(enclosingLibrary),
+      ...extendableLibraries,
       ...spec.canBeOverridden.map(enclosingLibrary),
     };
-    addReachable(component.libraries, roots.contains, included);
+    isExtendable = extendableLibraries.contains;
+    isRoot = roots.contains;
   }
+  Set<Library> included = {};
+  // Validate version and clear method bodies.
+  component.accept(new Trimmer(options.librariesToClear, isExtendable));
 
-  // Transitively include libraries needed by the required platform libraries.
+  // Include all root libraries according to flags or dynamic interface.
+  addReachable(component.libraries, isRoot, included);
+
+  // Also include libraries needed by the required platform libraries.
   addReachable(
       component.libraries,
       (Library lib) => _isRootFromPatterns(lib, options.requiredDartLibraries),
@@ -115,8 +119,9 @@ bool _isRootFromPatterns(Library lib, Set<String> patterns) {
   return false;
 }
 
-/// Validates that all libraries are 3.0 or higher, then trims contents
-/// as much as possible, while enabling modular compilation later on.
+/// Validates that all libraries with extendable classes are 3.0 or higher, then
+/// trims contents as much as possible, while enabling modular compilation later
+/// on.
 ///
 /// Currently we:
 ///   * deletes bodies of constructors and procedures, except when deemed
@@ -134,19 +139,27 @@ class Trimmer extends RecursiveVisitor {
   /// the library node itself.
   final Set<String> librariesToClear;
 
-  /// Whether we are within a mixin declaration, and hence method bodies need to
-  /// be preserved.
-  bool withinMixin = false;
+  /// Subset of libraries that may contain extendable classes according to the
+  /// dynamic interface (defaults to all libraries if the dynamic interface is
+  /// not provided).
+  ///
+  /// Used by the trimmer to determine whether legacy mixins may be at play in
+  /// the dynamic interface.
+  final bool Function(Library) isExtendable;
 
-  Trimmer(this.librariesToClear);
+  /// Whether we are within a mixin declaration in an extendable library, and
+  /// hence member bodies need to be preserved.
+  bool preserveMemberBodies = false;
+
+  Trimmer(this.librariesToClear, this.isExtendable);
 
   @override
   void visitLibrary(Library node) {
     Uri uri = node.importUri;
-    if (node.languageVersion.major < 3) {
-      print(
-          'Error: Library "$uri" has version ${node.languageVersion.toText()}, '
-          'which is older than 3.0');
+    if (isExtendable(node) && node.languageVersion.major < 3) {
+      print('Error: Only libraries 3.0 or newer may be used for extendable '
+          'classes. The library `"$uri" includes extendable classes, but has '
+          'version ${node.languageVersion.toText()}, which is older than 3.0.');
       exit(1);
     }
 
@@ -168,9 +181,10 @@ class Trimmer extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    withinMixin = node.isMixinClass || node.isMixinDeclaration;
+    preserveMemberBodies = isExtendable(node.enclosingLibrary) &&
+        (node.isMixinClass || node.isMixinDeclaration);
     super.visitClass(node);
-    withinMixin = false;
+    preserveMemberBodies = false;
   }
 
   @override
@@ -190,7 +204,7 @@ class Trimmer extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     // Preserve method bodies of mixin declarations, these are copied when
     // mixins are applied in subtypes.
-    if (!withinMixin) {
+    if (!preserveMemberBodies) {
       node.function.body = null;
     }
   }
@@ -199,6 +213,7 @@ class Trimmer extends RecursiveVisitor {
   void visitField(Field node) {
     // Constant initializers are necessary for constant evaluation
     if (node.isConst) return;
+    if (!node.isStatic && node.enclosingClass!.hasConstConstructor) return;
 
     // Unfortunately a `null` initializer may be misinterpreted by the CFE or
     // the compiler. Ideally the kernel representation should have a sentinel
@@ -210,7 +225,11 @@ class Trimmer extends RecursiveVisitor {
     if (node.isLate && node.isFinal) return;
     if (node.isStatic) return;
 
-    node.initializer = null;
+    // Preserve field initializers in mixin declarations, these are copied when
+    // mixins are applied in subtypes.
+    if (!preserveMemberBodies) {
+      node.initializer = null;
+    }
   }
 }
 

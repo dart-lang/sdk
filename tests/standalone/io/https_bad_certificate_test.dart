@@ -19,8 +19,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 class CustomException {}
 
@@ -28,9 +30,12 @@ main() async {
   var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
   var server = await HttpServer.bindSecure(HOST, 0, serverContext, backlog: 5);
   server.listen((request) {
-    request.listen((_) {}, onDone: () {
-      request.response.close();
-    });
+    request.listen(
+      (_) {},
+      onDone: () {
+        request.response.close();
+      },
+    );
   });
 
   SecurityContext goodContext = new SecurityContext()
@@ -54,7 +59,11 @@ main() async {
 }
 
 Future runClient(
-    int port, SecurityContext context, callbackReturns, result) async {
+  int port,
+  SecurityContext context,
+  callbackReturns,
+  result,
+) async {
   HttpClient client = new HttpClient(context: context);
   client.badCertificateCallback = (X509Certificate certificate, host, port) {
     Expect.isTrue(certificate.subject.contains('rootauthority'));
@@ -71,8 +80,10 @@ Future runClient(
   } catch (error) {
     Expect.notEquals(result, 'pass');
     if (result == 'fail') {
-      Expect.isTrue(error is HandshakeException ||
-          (callbackReturns is! bool && error is TypeError));
+      Expect.isTrue(
+        error is HandshakeException ||
+            (callbackReturns is! bool && error is TypeError),
+      );
     } else if (result == 'throw') {
       Expect.isTrue(error is CustomException);
     } else {

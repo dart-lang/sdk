@@ -88,23 +88,29 @@ LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@27
-        type: int
+      declaredFragment: isPublic a@27
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@36
-        type: int
+      declaredFragment: isPublic a@36
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
-    declaredElement: hasImplicitType a@45
-      type: int
+    declaredFragment: isPublic a@45
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');

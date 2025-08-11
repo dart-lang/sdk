@@ -9,8 +9,8 @@ import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,10 +38,7 @@ name: test
     newPackageConfigJsonFileFromBuilder(
       testPackageRootPath,
       PackageConfigFileBuilder()
-        ..add(
-          name: 'test',
-          rootPath: testPackageRootPath,
-        ),
+        ..add(name: 'test', rootPath: testPackageRootPath),
     );
   }
 
@@ -90,10 +87,7 @@ class A {}
   Future<AnalysisDriverForPackageBuild> _createAnalysisDriver() async {
     var sdkRoot = getFolder('/sdk');
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,

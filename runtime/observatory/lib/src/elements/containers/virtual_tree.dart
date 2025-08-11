@@ -3,26 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:collection';
 import 'dart:math' as Math;
-import 'package:observatory/src/elements/containers/virtual_collection.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 
-typedef HtmlElement VirtualTreeCreateCallback(
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+
+typedef HTMLElement VirtualTreeCreateCallback(
     toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}));
-typedef void VirtualTreeUpdateCallback(HtmlElement el, dynamic item, int depth);
+typedef void VirtualTreeUpdateCallback(HTMLElement el, dynamic item, int depth);
 typedef Iterable<dynamic> VirtualTreeGetChildrenCallback(dynamic value);
 typedef bool VirtualTreeSearchCallback(Pattern pattern, dynamic item);
 
-void virtualTreeUpdateLines(SpanElement element, int n) {
+void virtualTreeUpdateLines(HTMLSpanElement element, int n) {
   n = Math.max(0, n);
   while (element.children.length > n) {
-    element.children.removeLast();
+    element.removeChild(element.lastChild!);
   }
   while (element.children.length < n) {
-    element.children.add(new SpanElement());
+    element.appendChild(HTMLSpanElement());
   }
 }
 
@@ -68,7 +70,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
               autoExpandSingleChildNodes: autoToggleSingleChildNodes);
         }
       });
-    }, (HtmlElement el, dynamic item, int index) {
+    }, (HTMLElement el, dynamic item, int index) {
       update(el, item, e._depths[index]);
     }, search: search, queue: queue);
     e._items = new List.unmodifiable(items);
@@ -144,7 +146,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
 
   void render() {
     if (children.length == 0) {
-      children = <Element>[_collection!.element];
+      children = <HTMLElement>[_collection!.element];
     }
 
     final items = [];

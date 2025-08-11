@@ -19,11 +19,11 @@ void list_if_notNull_thenExit_right(int? x) {
 }
 
 void list_if_null_then_else_left(int? x) {
-  [if (null == x) x else /*nonNullable*/ x ];
+  [if (null == x) x else /*nonNullable*/ x];
 }
 
 void list_if_null_then_else_right(int? x) {
-  [if (x == null) x else /*nonNullable*/ x ];
+  [if (x == null) x else /*nonNullable*/ x];
 }
 
 void list_if_null_thenExit_left(int? x) {
@@ -51,19 +51,19 @@ map_if_notNull_thenExit_right(int? x) {
 }
 
 map_if_null_then_else_left(int? x) {
-  return {if (null == x) x: x else /*nonNullable*/ x: /*nonNullable*/ x };
+  return {if (null == x) x: x else /*nonNullable*/ x: /*nonNullable*/ x};
 }
 
 map_if_null_then_else_right(int? x) {
-  return {if (x == null) x: x else /*nonNullable*/ x: /*nonNullable*/ x };
+  return {if (x == null) x: x else /*nonNullable*/ x: /*nonNullable*/ x};
 }
 
 map_if_null_thenExit_left(int? x) {
-  return {if (null == x) throw 42: 0, /*nonNullable*/ x: /*nonNullable*/ x };
+  return {if (null == x) throw 42: 0, /*nonNullable*/ x: /*nonNullable*/ x};
 }
 
 map_if_null_thenExit_right(int? x) {
-  return {if (x == null) throw 42: 0, /*nonNullable*/ x: /*nonNullable*/ x };
+  return {if (x == null) throw 42: 0, /*nonNullable*/ x: /*nonNullable*/ x};
 }
 
 set_if_notNull_then_else_left(int? x) {
@@ -83,11 +83,11 @@ set_if_notNull_thenExit_right(int? x) {
 }
 
 set_if_null_then_else_left(int? x) {
-  return {if (null == x) x else /*nonNullable*/ x };
+  return {if (null == x) x else /*nonNullable*/ x};
 }
 
 set_if_null_then_else_right(int? x) {
-  return {if (x == null) x else /*nonNullable*/ x };
+  return {if (x == null) x else /*nonNullable*/ x};
 }
 
 set_if_null_thenExit_left(int? x) {
@@ -100,10 +100,10 @@ set_if_null_thenExit_right(int? x) {
 
 class C {
   C.constructor_if_then_else(int? x) {
-    [if (x == null) x else /*nonNullable*/ x ];
+    [if (x == null) x else /*nonNullable*/ x];
   }
 
   void method_if_then_else(int? x) {
-    [if (x == null) x else /*nonNullable*/ x ];
+    [if (x == null) x else /*nonNullable*/ x];
   }
 }

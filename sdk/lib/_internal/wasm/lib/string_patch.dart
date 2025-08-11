@@ -56,10 +56,9 @@ class String {
     int? optionalEnd,
   ) {
     final length = charCodes.length;
-    int end =
-        optionalEnd != null
-            ? (optionalEnd < length ? optionalEnd : length)
-            : length;
+    int end = optionalEnd != null
+        ? (optionalEnd < length ? optionalEnd : length)
+        : length;
     if (end <= start) return '';
     final count = end - start;
 
@@ -68,14 +67,13 @@ class String {
     end += offset;
 
     final src = charCodes.data;
-    final dst =
-        count < _stringFromCharCodesSize
-            ? _stringFromCharCodes
-            : WasmArray<WasmI16>(count);
+    final dst = count < _stringFromCharCodesSize
+        ? _stringFromCharCodes
+        : WasmArray<WasmI16>(count);
     for (int i = 0; i < count; ++i) {
       dst.write(i, src.readUnsigned(start + i));
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -86,21 +84,19 @@ class String {
     int? optionalEnd,
   ) {
     final length = charCodes.length;
-    final int end =
-        optionalEnd != null
-            ? (optionalEnd < length ? optionalEnd : length)
-            : length;
+    final int end = optionalEnd != null
+        ? (optionalEnd < length ? optionalEnd : length)
+        : length;
     if (end <= start) return '';
     final count = end - start;
 
-    final dst =
-        count < _stringFromCharCodesSize
-            ? _stringFromCharCodes
-            : WasmArray<WasmI16>(count);
+    final dst = count < _stringFromCharCodesSize
+        ? _stringFromCharCodes
+        : WasmArray<WasmI16>(count);
     for (int i = 0; i < count; ++i) {
       dst.write(i, charCodes[start + i]);
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -111,10 +107,9 @@ class String {
     int? optionalEnd,
   ) {
     final length = charCodes.length;
-    int end =
-        optionalEnd != null
-            ? (optionalEnd < length ? optionalEnd : length)
-            : length;
+    int end = optionalEnd != null
+        ? (optionalEnd < length ? optionalEnd : length)
+        : length;
     if (end <= start) return '';
     final count = end - start;
 
@@ -123,7 +118,7 @@ class String {
     end += offset;
 
     final data = charCodes.data;
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(data, start.toWasmI32(), end.toWasmI32()),
     );
   }
@@ -134,18 +129,16 @@ class String {
     int? optionalEnd,
   ) {
     final length = charCodes.length;
-    final int end =
-        optionalEnd != null
-            ? (optionalEnd < length ? optionalEnd : length)
-            : length;
+    final int end = optionalEnd != null
+        ? (optionalEnd < length ? optionalEnd : length)
+        : length;
     if (end <= start) return '';
     final count = end - start;
 
     final src = charCodes.data;
-    final dst =
-        count < _stringFromCharCodesSize
-            ? _stringFromCharCodes
-            : WasmArray<WasmI16>(count);
+    final dst = count < _stringFromCharCodesSize
+        ? _stringFromCharCodes
+        : WasmArray<WasmI16>(count);
     for (int i = 0; i < count; ++i) {
       final charCode = unsafeCast<BoxedInt>(src[start + i]);
       if (charCode.gtU(0xffff)) {
@@ -153,7 +146,7 @@ class String {
       }
       dst.write(i, charCode);
     }
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(dst, 0.toWasmI32(), count.toWasmI32()),
     );
   }
@@ -203,7 +196,7 @@ class String {
       }
     }
 
-    return JSStringImpl(
+    return JSStringImpl.fromRefUnchecked(
       jsStringFromCharCodeArray(list, const WasmI32(0), WasmI32.fromInt(index)),
     );
   }

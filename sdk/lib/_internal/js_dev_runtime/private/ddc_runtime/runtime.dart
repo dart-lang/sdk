@@ -245,6 +245,9 @@ final List<void Function()> resetFields = JS('', '[]');
 @notNull
 final JSArray<Object?> moduleConstCaches = JS('!', 'new Map()');
 
+/// Returns the current hot restart generation number.
+external int hotRestartGeneration();
+
 /// A counter to track each time [hotRestart] is invoked. This is used to ensure
 /// that pending callbacks that were created on a previous iteration (e.g. a
 /// timer callback or a DOM callback) will not execute when they get invoked.

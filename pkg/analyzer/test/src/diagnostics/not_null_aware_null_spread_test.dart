@@ -16,22 +16,28 @@ main() {
 @reflectiveTest
 class NotNullAwareNullSpreadTest extends PubPackageResolutionTest {
   test_listLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = [...null];
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 12, 4),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 12, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 12, 4),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 12, 4),
+      ],
+    );
   }
 
   test_listLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Null a = null;
 var v = [...a];
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 27, 1),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 27, 1),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 27, 1),
+      ],
+    );
   }
 
   test_listLiteral_nullAware_nullLiteral() async {
@@ -48,22 +54,28 @@ var v = [...?a];
   }
 
   test_mapLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = <int, int>{...null};
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 4),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 22, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 4),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 22, 4),
+      ],
+    );
   }
 
   test_mapLiteral_notNullAware_nullType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Null a = null;
 var v = <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 37, 1),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 37, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 37, 1),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 37, 1),
+      ],
+    );
   }
 
   test_mapLiteral_nullAware_nullLiteral() async {
@@ -80,22 +92,28 @@ var v = <int, int>{...?a};
   }
 
   test_setLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = <int>{...null};
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 17, 4),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 17, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 17, 4),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 17, 4),
+      ],
+    );
   }
 
   test_setLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Null a = null;
 var v = <int>{...a};
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
-      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 32, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
+        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 32, 1),
+      ],
+    );
   }
 
   test_setLiteral_nullAware_nullLiteral() async {

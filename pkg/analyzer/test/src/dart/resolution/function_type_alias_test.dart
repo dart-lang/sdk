@@ -40,4 +40,10 @@ NamedType
         int
 ''');
   }
+
+  test_type_missing_type_parameter_name() async {
+    await resolveTestCode(r'''
+typedef F = void Function< extends int>();
+''');
+  }
 }

@@ -9,7 +9,6 @@ import "package:expect/expect.dart";
 
 var topLevelClosure;
 
-
 get topLevel => topLevelClosure;
 
 set topLevel(var value) {}

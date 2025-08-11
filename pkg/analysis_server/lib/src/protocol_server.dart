@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
@@ -32,9 +32,13 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
 ) {
-  return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
+  return mapEngineErrors(
+    result,
+    result.diagnostics,
+    newAnalysisError_fromEngine,
+  );
 }
 
 /// Adds [edit] to the file containing the given [fragment].
@@ -58,8 +62,8 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString(engine.Element2 element) {
-  if (element is engine.TypeAliasElement2) {
+String? getAliasedTypeString(engine.Element element) {
+  if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
   }
@@ -68,8 +72,8 @@ String? getAliasedTypeString(engine.Element2 element) {
 
 /// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
 /// a color.
-String? getColorHexString(engine.Element2? element) {
-  if (element is engine.VariableElement2) {
+String? getColorHexString(engine.Element? element) {
+  if (element is engine.VariableElement) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
       var color = ColorComputer.getColorForObject(dartValue);
@@ -85,17 +89,17 @@ String? getColorHexString(engine.Element2? element) {
   return null;
 }
 
-String? getReturnTypeString(engine.Element2 element) {
-  if (element is engine.ExecutableElement2) {
+String? getReturnTypeString(engine.Element element) {
+  if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
       return element.returnType.getDisplayString();
     }
-  } else if (element is engine.VariableElement2) {
+  } else if (element is engine.VariableElement) {
     var type = element.type;
     return type.getDisplayString();
-  } else if (element is engine.TypeAliasElement2) {
+  } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
@@ -107,29 +111,29 @@ String? getReturnTypeString(engine.Element2 element) {
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
-  engine.AnalysisResultWithErrors result,
-  List<engine.AnalysisError> errors,
+  engine.AnalysisResultWithDiagnostics result,
+  List<engine.Diagnostic> diagnostics,
   T Function(
-    engine.AnalysisResultWithErrors result,
-    engine.AnalysisError error, [
-    engine.ErrorSeverity errorSeverity,
+    engine.AnalysisResultWithDiagnostics result,
+    engine.Diagnostic diagnostic, [
+    engine.DiagnosticSeverity severity,
   ])
   constructor,
 ) {
   var analysisOptions = result.session.analysisContext
       .getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
-  for (var error in errors) {
-    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+  for (var diagnostic in diagnostics) {
+    var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
     if (processor != null) {
       var severity = processor.severity;
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
-        serverErrors.add(constructor(result, error, severity));
+        serverErrors.add(constructor(result, diagnostic, severity));
       }
     } else {
-      serverErrors.add(constructor(result, error));
+      serverErrors.add(constructor(result, diagnostic));
     }
   }
   return serverErrors;
@@ -137,19 +141,20 @@ List<T> mapEngineErrors<T>(
 
 /// Construct based on error information from the analyzer engine.
 ///
-/// If an [errorSeverity] is specified, it will override the one in [error].
+/// If an [diagnosticSeverity] is specified, it will override the one in
+/// [diagnostic].
 AnalysisError newAnalysisError_fromEngine(
-  engine.AnalysisResultWithErrors result,
-  engine.AnalysisError error, [
-  engine.ErrorSeverity? errorSeverity,
+  engine.AnalysisResultWithDiagnostics result,
+  engine.Diagnostic diagnostic, [
+  engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
-  var errorCode = error.errorCode;
-  // prepare location
+  var diagnosticCode = diagnostic.diagnosticCode;
+  // Prepare location.
   Location location;
   {
-    var file = error.source.fullName;
-    var offset = error.offset;
-    var length = error.length;
+    var file = diagnostic.source.fullName;
+    var offset = diagnostic.offset;
+    var length = diagnostic.length;
     var lineInfo = result.lineInfo;
 
     var startLocation = lineInfo.getLocation(offset);
@@ -171,23 +176,23 @@ AnalysisError newAnalysisError_fromEngine(
     );
   }
 
-  // Default to the error's severity if none is specified.
-  errorSeverity ??= errorCode.errorSeverity;
+  // Default to the diagnostic's severity if none is specified.
+  diagnosticSeverity ??= diagnosticCode.severity;
 
   // done
-  var severity = AnalysisErrorSeverity.values.byName(errorSeverity.name);
-  var type = AnalysisErrorType.values.byName(errorCode.type.name);
-  var message = error.message;
-  var code = errorCode.name.toLowerCase();
+  var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
+  var type = AnalysisErrorType.values.byName(diagnosticCode.type.name);
+  var message = diagnostic.message;
+  var code = diagnosticCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
-  if (error.contextMessages.isNotEmpty) {
+  if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages =
-        error.contextMessages
+        diagnostic.contextMessages
             .map((message) => newDiagnosticMessage(result, message))
             .toList();
   }
-  var correction = error.correction;
-  var url = errorCode.url;
+  var correction = diagnostic.correctionMessage;
+  var url = diagnosticCode.url;
   return AnalysisError(
     severity,
     type,
@@ -207,18 +212,29 @@ AnalysisError newAnalysisError_fromEngine(
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   engine.DiagnosticMessage message,
 ) {
   var file = message.filePath;
   var offset = message.offset;
   var length = message.length;
 
-  var startLocation = result.lineInfo.getLocation(offset);
+  var lineInfo = result.lineInfo;
+  if (result.path != message.filePath) {
+    var messageResult = result.session.getFile(message.filePath);
+    // If we can't get a result for the file then we will return bogus start and
+    // end positions, but that's probably better than not returning the
+    // diagnostic.
+    if (messageResult is engine.FileResult) {
+      lineInfo = messageResult.lineInfo;
+    }
+  }
+
+  var startLocation = lineInfo.getLocation(offset);
   var startLine = startLocation.lineNumber;
   var startColumn = startLocation.columnNumber;
 
-  var endLocation = result.lineInfo.getLocation(offset + length);
+  var endLocation = lineInfo.getLocation(offset + length);
   var endLine = endLocation.lineNumber;
   var endColumn = endLocation.columnNumber;
 
@@ -236,13 +252,13 @@ DiagnosticMessage newDiagnosticMessage(
   );
 }
 
-/// Create a Location based on an [engine.Element2].
-Location? newLocation_fromElement(engine.Element2? element) {
+/// Create a Location based on an [engine.Element].
+Location? newLocation_fromElement(engine.Element? element) {
   if (element == null) {
     return null;
   }
   if (element is engine.FormalParameterElement &&
-      element.enclosingElement2 == null) {
+      element.enclosingElement == null) {
     return null;
   }
   var fragment = element.firstFragment;
@@ -251,9 +267,9 @@ Location? newLocation_fromElement(engine.Element2? element) {
     // instead of using 0,0.
     engine.ConstructorFragment(:var typeNameOffset, :var typeName) =>
       fragment.nameOffset2 != null
-          ? (fragment.nameOffset2 ?? 0, fragment.name2.length)
+          ? (fragment.nameOffset2 ?? 0, fragment.name.length)
           : (typeNameOffset ?? 0, typeName?.length ?? 0),
-    _ => (fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0),
+    _ => (fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0),
   };
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
@@ -269,7 +285,7 @@ Location? newLocation_fromFragment(engine.Fragment? fragment) {
     return null;
   }
   var offset = fragment.nameOffset2 ?? 0;
-  var length = fragment.name2?.length ?? 0;
+  var length = fragment.name?.length ?? 0;
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
 }
@@ -297,9 +313,9 @@ Location newLocation_fromUnit(
 }
 
 /// Construct based on an element from the analyzer engine.
-OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
+OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
-  var className = member.enclosingElement2!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -344,19 +360,19 @@ SourceEdit newSourceEdit_range(
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
-List<Element> _computePath(engine.Element2 element) {
+List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
   for (var fragment in element.firstFragment.withAncestors) {
     if (fragment is engine.LibraryFragment) {
-      path.add(convertLibraryFragment(fragment as CompilationUnitElementImpl));
+      path.add(convertLibraryFragment(fragment as LibraryFragmentImpl));
     }
     path.add(convertElement(fragment.element));
   }
   return path;
 }
 
-engine.LibraryFragment _getUnitElement(engine.Element2 element) {
-  if (element is engine.LibraryElement2) {
+engine.LibraryFragment _getUnitElement(engine.Element element) {
+  if (element is engine.LibraryElement) {
     return element.firstFragment;
   }
   var fragment = element.firstFragment.libraryFragment;

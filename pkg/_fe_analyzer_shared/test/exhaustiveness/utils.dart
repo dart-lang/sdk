@@ -11,36 +11,50 @@ import 'package:test/test.dart';
 
 /// Test that [spaces] is exhaustive over [value].
 void expectExhaustive(
-    ObjectPropertyLookup fieldLookup, Space value, List<Space> spaces) {
+  ObjectPropertyLookup fieldLookup,
+  Space value,
+  List<Space> spaces,
+) {
   _expectExhaustive(fieldLookup, value, spaces, true);
 }
 
 /// Test that [cases] are exhaustive over [type] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
 void expectExhaustiveOnlyAll(
-    ObjectPropertyLookup fieldLookup, StaticType type, List<Object> cases) {
+  ObjectPropertyLookup fieldLookup,
+  StaticType type,
+  List<Object> cases,
+) {
   _testCases(fieldLookup, type, cases, true);
 }
 
 /// Test that [cases] are not exhaustive over [type]. Also test that omitting
 /// each case is still not exhaustive.
 void expectNeverExhaustive(
-    ObjectPropertyLookup fieldLookup, StaticType type, List<Object> cases) {
+  ObjectPropertyLookup fieldLookup,
+  StaticType type,
+  List<Object> cases,
+) {
   _testCases(fieldLookup, type, cases, false);
 }
 
 /// Test that [spaces] is not exhaustive over [value].
 void expectNotExhaustive(
-    ObjectPropertyLookup fieldLookup, Space value, List<Space> spaces) {
+  ObjectPropertyLookup fieldLookup,
+  Space value,
+  List<Space> spaces,
+) {
   _expectExhaustive(fieldLookup, value, spaces, false);
 }
 
-Map<Key, Space> fieldsToSpace(Map<String, Object> fields, Path path,
-        {required bool asRecordNames}) =>
-    fields.map((String name, Object value) {
-      Key key = asRecordNames ? new RecordNameKey(name) : new NameKey(name);
-      return MapEntry(key, parseSpace(value, path.add(key)));
-    });
+Map<Key, Space> fieldsToSpace(
+  Map<String, Object> fields,
+  Path path, {
+  required bool asRecordNames,
+}) => fields.map((String name, Object value) {
+  Key key = asRecordNames ? new RecordNameKey(name) : new NameKey(name);
+  return MapEntry(key, parseSpace(value, path.add(key)));
+});
 
 Space parseSpace(Object object, [Path path = const Path.root()]) {
   if (object is Space) return object;
@@ -65,13 +79,22 @@ List<Space> parseSpaces(List<Object> objects) =>
     objects.map(parseSpace).toList();
 
 /// Make a [Space] with [type] and [fields].
-Space ty(StaticType type, Map<String, Object> fields,
-        [Path path = const Path.root()]) =>
-    Space(path, type,
-        properties: fieldsToSpace(fields, path, asRecordNames: type.isRecord));
+Space ty(
+  StaticType type,
+  Map<String, Object> fields, [
+  Path path = const Path.root(),
+]) => Space(
+  path,
+  type,
+  properties: fieldsToSpace(fields, path, asRecordNames: type.isRecord),
+);
 
-void _checkExhaustive(ObjectPropertyLookup fieldLookup, Space value,
-    List<Space> spaces, bool expectation) {
+void _checkExhaustive(
+  ObjectPropertyLookup fieldLookup,
+  Space value,
+  List<Space> spaces,
+  bool expectation,
+) {
   var actual = isExhaustive(fieldLookup, value, spaces);
   if (expectation != actual) {
     if (expectation) {
@@ -82,18 +105,25 @@ void _checkExhaustive(ObjectPropertyLookup fieldLookup, Space value,
   }
 }
 
-void _expectExhaustive(ObjectPropertyLookup fieldLookup, Space value,
-    List<Space> spaces, bool expectation) {
-  test(
-      '$value - ${spaces.join(' - ')} ${expectation ? 'is' : 'is not'} '
+void _expectExhaustive(
+  ObjectPropertyLookup fieldLookup,
+  Space value,
+  List<Space> spaces,
+  bool expectation,
+) {
+  test('$value - ${spaces.join(' - ')} ${expectation ? 'is' : 'is not'} '
       'exhaustive', () {
     _checkExhaustive(fieldLookup, value, spaces, expectation);
   });
 }
 
 /// Test that [cases] are not exhaustive over [type].
-void _testCases(ObjectPropertyLookup fieldLookup, StaticType type,
-    List<Object> cases, bool expectation) {
+void _testCases(
+  ObjectPropertyLookup fieldLookup,
+  StaticType type,
+  List<Object> cases,
+  bool expectation,
+) {
   var valueSpace = Space(const Path.root(), type);
   var spaces = parseSpaces(cases);
 

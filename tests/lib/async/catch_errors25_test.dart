@@ -22,11 +22,14 @@ main() {
     stream.listen(events.add);
     stream.listen(events.add);
     done.complete(stream.listen(null).asFuture());
-  }).listen((x) {
-    events.add("outer: $x");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to run.

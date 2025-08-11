@@ -17,24 +17,26 @@ main() {
 class ConstWithNonTypeTest extends PubPackageResolutionTest {
   test_fromLibrary() async {
     newFile('$testPackageLibPath/lib1.dart', '');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' as lib;
 void f() {
   const lib.A();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1)],
+    );
   }
 
   test_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int A = 0;
 f() {
   return const A();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 32, 1)],
+    );
   }
 }

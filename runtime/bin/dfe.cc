@@ -19,13 +19,13 @@ extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
-extern const uint8_t kPlatformStrongDill[];
-extern intptr_t kPlatformStrongDillSize;
+extern const uint8_t kPlatformDill[];
+extern intptr_t kPlatformDillSize;
 #else
 const uint8_t* kKernelServiceDill = nullptr;
 intptr_t kKernelServiceDillSize = 0;
-const uint8_t* kPlatformStrongDill = nullptr;
-intptr_t kPlatformStrongDillSize = 0;
+const uint8_t* kPlatformDill = nullptr;
+intptr_t kPlatformDillSize = 0;
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 }
 
@@ -47,11 +47,11 @@ const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
 #endif
 
 #if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
-const uint8_t* platform_strong_dill = nullptr;
-const intptr_t platform_strong_dill_size = 0;
+const uint8_t* platform_dill = nullptr;
+const intptr_t platform_dill_size = 0;
 #else
-const uint8_t* platform_strong_dill = kPlatformStrongDill;
-const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
+const uint8_t* platform_dill = kPlatformDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -80,13 +80,12 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  if (platform_strong_dill == nullptr) {
+  if (platform_dill == nullptr) {
     return;
   }
 
   InitKernelServiceAndPlatformDills();
-  Dart_SetDartLibrarySourcesKernel(platform_strong_dill,
-                                   platform_strong_dill_size);
+  Dart_SetDartLibrarySourcesKernel(platform_dill, platform_dill_size);
 }
 
 void DFE::InitKernelServiceAndPlatformDills() {
@@ -130,12 +129,12 @@ void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
                        intptr_t* kernel_buffer_size) {
-  *kernel_buffer = platform_strong_dill;
-  *kernel_buffer_size = platform_strong_dill_size;
+  *kernel_buffer = platform_dill;
+  *kernel_buffer_size = platform_dill_size;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_strong_dill != nullptr) &&
+  return (platform_dill != nullptr) &&
          (KernelServiceDillAvailable() || (frontend_filename() != nullptr));
 }
 
@@ -190,9 +189,9 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
   PathSanitizer path_sanitizer(script_uri);
   const char* sanitized_uri = path_sanitizer.sanitized_uri();
 
-  return Dart_CompileToKernel(
-      sanitized_uri, platform_strong_dill, platform_strong_dill_size,
-      incremental, for_snapshot, embed_sources, package_config, verbosity());
+  return Dart_CompileToKernel(sanitized_uri, platform_dill, platform_dill_size,
+                              incremental, for_snapshot, embed_sources,
+                              package_config, verbosity());
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,
@@ -214,18 +213,15 @@ void DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = 0;
       break;
     case Dart_KernelCompilationStatus_Error:
-      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Crash:
-      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kDartFrontendErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Unknown:
     case Dart_KernelCompilationStatus_MsgFailed:
-      free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kErrorExitCode;
       break;
@@ -242,7 +238,8 @@ void DFE::ReadScript(const char* script_uri,
                          kernel_buffer_size, decode_uri)) {
     return;
   }
-  if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size)) {
+  if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size) &&
+      !Dart_IsBytecode(*kernel_buffer, *kernel_buffer_size)) {
     free(*kernel_buffer);
     *kernel_buffer = nullptr;
     *kernel_buffer_size = -1;
@@ -263,7 +260,8 @@ static bool TryReadSimpleKernelBuffer(uint8_t* buffer,
                                       intptr_t* p_kernel_ir_size) {
   DartUtils::MagicNumber magic_number =
       DartUtils::SniffForMagicNumber(buffer, *p_kernel_ir_size);
-  if (magic_number == DartUtils::kKernelMagicNumber) {
+  if ((magic_number == DartUtils::kKernelMagicNumber) ||
+      (magic_number == DartUtils::kBytecodeMagicNumber)) {
     // Do not free buffer if this is a kernel file - kernel_file will be
     // backed by the same memory as the buffer and caller will own it.
     // Caller is responsible for freeing the buffer when this function
@@ -432,7 +430,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   *kernel_ir_size = -1;
 
   if (app_snapshot == nullptr || app_snapshot->IsKernel() ||
-      app_snapshot->IsKernelList()) {
+      app_snapshot->IsKernelList() || app_snapshot->IsBytecode()) {
     uint8_t* buffer;
     if (!TryReadFile(script_uri, &buffer, kernel_ir_size, decode_uri)) {
       return false;
@@ -444,6 +442,10 @@ bool DFE::TryReadKernelFile(const char* script_uri,
       magic_number = DartUtils::kKernelMagicNumber;
       ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==
              DartUtils::kKernelMagicNumber);
+    } else if (app_snapshot->IsBytecode()) {
+      magic_number = DartUtils::kBytecodeMagicNumber;
+      ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==
+             DartUtils::kBytecodeMagicNumber);
     } else {
       magic_number = DartUtils::kKernelListMagicNumber;
       ASSERT(DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) ==

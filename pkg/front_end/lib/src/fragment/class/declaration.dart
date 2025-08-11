@@ -20,6 +20,7 @@ abstract class ClassDeclaration {
 
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
@@ -69,18 +70,18 @@ class RegularClassDeclaration implements ClassDeclaration {
   @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
-        _fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.enclosingScope,
-        createFileUriExpression: createFileUriExpression);
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope);
   }
 
   @override
@@ -133,18 +134,18 @@ class EnumDeclaration implements ClassDeclaration {
   @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
-        _fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.enclosingScope,
-        createFileUriExpression: createFileUriExpression);
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope);
   }
 
   @override
@@ -198,18 +199,18 @@ class NamedMixinApplication implements ClassDeclaration {
   @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
-        _fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.enclosingScope,
-        createFileUriExpression: createFileUriExpression);
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope);
   }
 
   @override
@@ -266,6 +267,7 @@ class AnonymousMixinApplication implements ClassDeclaration {
   @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
@@ -319,18 +321,18 @@ class MixinDeclaration implements ClassDeclaration {
   @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
+      required Uri annotatableFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
-        _fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.enclosingScope,
-        createFileUriExpression: createFileUriExpression);
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope);
   }
 
   @override

@@ -69,53 +69,58 @@ class OptionsParser {
     ..addMultiOption('compiler',
         abbr: 'c',
         allowed: Compiler.names,
-        help: '''How the Dart code should be compiled or statically processed.
-dart2js:              Compile to JavaScript using dart2js.
-dart2analyzer:        Perform static analysis on Dart code using the analyzer.
-compare_analyzer_cfe: Compare analyzer and common front end representations.
-ddc:                  Compile to JavaScript using dartdevc.
-app_jitk:             Compile the Dart code into Kernel and then into an app
-                      snapshot.
-dartk:                Compile the Dart code into Kernel before running test.
-dartkp:               Compile the Dart code into Kernel and then Kernel into
-                      AOT snapshot before running the test.
-spec_parser:          Parse Dart code using the specification parser.
-fasta:                Compile using CFE for errors, but do not run.
-''')
+        allowedHelp: {
+          'dart2js': 'Compile to JavaScript using dart2js.',
+          'dart2analyzer':
+              'Perform static analysis on Dart code using the analyzer.',
+          'compare_analyzer_cfe':
+              'Compare analyzer and common front end representations.',
+          'ddc': 'Compile to JavaScript using dartdevc.',
+          'app_jitk': 'Compile the Dart code into Kernel and then into '
+              'an app snapshot.',
+          'dartk': 'Compile the Dart code into Kernel before running test.',
+          'dartkp': 'Compile the Dart code into Kernel and then Kernel into '
+              'AOT snapshot before running the test.',
+          'spec_parser': 'Parse Dart code using the specification parser.',
+          'fasta': 'Compile using CFE for errors, but do not run.',
+        },
+        help: 'How the Dart code should be compiled or statically processed.')
     ..addMultiOption('runtime',
         abbr: 'r',
         allowed: Runtime.names,
-        help: '''Where the tests should be run.
-vm:               Run Dart code on the standalone Dart VM.
-dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
-d8:               Run JavaScript from the command line using Chrome's v8.
-jsc:              Run JavaScript from the command line using Safari/WebKit's jsc.
-jsshell:          Run JavaScript from the command line using Firefox's js-shell.
-
-firefox:
-chrome:
-safari:
-chromeOnAndroid:  Run JavaScript in the specified browser.
-
-none:             No runtime, compile only.''')
+        allowedHelp: {
+          'vm': 'Run Dart code on the standalone Dart VM.',
+          'dart_precompiled':
+              'Run a precompiled snapshot on the VM without a JIT.',
+          'd8': "Run JavaScript from the command line using Chrome's v8.",
+          'jsc':
+              "Run JavaScript from the command line using Safari/WebKit's jsc.",
+          'jsshell':
+              "Run JavaScript from the command line using Firefox's js-shell.",
+          'firefox': 'Run JavaScript in Firefox.',
+          'chrome': 'Run JavaScript in Chrome.',
+          'safari': 'Run JavaScript in Safari.',
+          'chromeOnAndroid': 'Run JavaScript in Chrome on Android.',
+          'none': 'No runtime, compile only.',
+        },
+        help: 'Where the tests should be run.')
     ..addMultiOption('arch',
         abbr: 'a',
         allowed: ['all', ...Architecture.names],
         defaultsTo: [Architecture.host.name],
         hide: true,
-        help: '''The architecture to run tests for.
-
-Allowed values are:
-all
-ia32, x64
-arm, arm64, simarm, simarm64, arm_x64
-riscv32, riscv64, simriscv32, simriscv64''')
+        help: 'The architecture to run tests for.')
     ..addOption('system',
         abbr: 's',
         allowed: ['all', ...System.names],
         defaultsTo: Platform.operatingSystem,
         hide: true,
         help: 'The operating system to run tests on.')
+    ..addMultiOption('gen-snapshot-format',
+        allowed: ['all', ...GenSnapshotFormat.names],
+        defaultsTo: [GenSnapshotFormat.assembly.name],
+        hide: true,
+        help: 'The output format used by gen_snapshot.')
     ..addMultiOption('sanitizer',
         allowed: ['all', ...Sanitizer.names],
         defaultsTo: [Sanitizer.none.name],
@@ -165,12 +170,6 @@ test options, specifying how tests should be run.''')
         aliases: ['use_blobs'],
         hide: true,
         help: 'Use mmap instead of shared libraries for precompilation.')
-    ..addFlag(
-      'use-elf',
-      aliases: ['use_elf'],
-      hide: true,
-      help: 'Directly generate an ELF shared libraries for precompilation.',
-    )
     ..addFlag('use-qemu',
         aliases: ['use_qemu'],
         hide: true,
@@ -181,11 +180,10 @@ test options, specifying how tests should be run.''')
     ..addOption('progress',
         abbr: 'p',
         allowed: Progress.names,
-        defaultsTo: Progress.compact.name,
-        help: '''Progress indication mode.
-
-Allowed values are:
-compact, color, line, verbose, silent, status''')
+        defaultsTo: stdioType(stdout) == StdioType.terminal
+            ? Progress.compact.name
+            : Progress.line.name,
+        help: 'Progress indication mode.')
     ..addFlag('report',
         hide: true,
         help: 'Print a summary report of the number of tests, by expectation.')
@@ -252,12 +250,6 @@ compact, color, line, verbose, silent, status''')
         hide: true, help: 'Path to safari browser executable.')
     ..addFlag('use-sdk',
         aliases: ['use_sdk'], help: 'Use compiler or runtime from the SDK.')
-    ..addOption('nnbd',
-        allowed: NnbdMode.names,
-        defaultsTo: NnbdMode.strong.name,
-        help: '''Which set of non-nullable type features to use.
-
-Allowed values are: legacy, weak, strong''')
     ..addOption('output-directory',
         aliases: ['output_directory'],
         defaultsTo: "logs",
@@ -412,12 +404,11 @@ has been specified on the command line.''')
     'compiler',
     'runtime',
     'timeout',
-    'nnbd',
     'sanitizer',
     'enable-asserts',
     'use-cfe',
     'analyzer-use-fasta-parser',
-    'use-elf',
+    'gen-snapshot-format',
     'use-sdk',
     'hot-reload',
     'hot-reload-rollback',
@@ -612,6 +603,10 @@ has been specified on the command line.''')
     var system = System.find(systemName);
     var runtimes = [...(data["runtime"] as List<String>).map(Runtime.find)];
     var compilers = [...(data["compiler"] as List<String>).map(Compiler.find)];
+    var formats = [
+      ...(data["gen-snapshot-format"] as List<String>)
+          .map(GenSnapshotFormat.find)
+    ];
 
     // Pick default compilers or runtimes if only one or the other is provided.
     if (runtimes.isEmpty) {
@@ -628,14 +623,13 @@ has been specified on the command line.''')
     }
 
     var progress = Progress.find(data["progress"] as String);
-    var nnbdMode = NnbdMode.find(data["nnbd"] as String);
 
     void addConfiguration(Configuration innerConfiguration,
         [String? namedConfiguration]) {
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
-          selectors: _expandSelectors(data, innerConfiguration.nnbdMode),
+          selectors: _expandSelectors(data),
           build: data["build"] as bool,
           testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
@@ -772,37 +766,39 @@ has been specified on the command line.''')
             }
             for (var sanitizerName in sanitizers) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var timeout = data["timeout"] != null
-                  ? int.parse(data["timeout"] as String)
-                  : null;
-              var configuration = Configuration(
-                  "custom-configuration-${configurationNumber++}",
-                  architecture,
-                  compiler,
-                  mode,
-                  runtime,
-                  system,
-                  nnbdMode: nnbdMode,
-                  sanitizer: sanitizer,
-                  timeout: timeout,
-                  enableAsserts: data['enable-asserts'] as bool,
-                  useAnalyzerCfe: data["use-cfe"] as bool,
-                  useAnalyzerFastaParser:
-                      data["analyzer-use-fasta-parser"] as bool,
-                  useElf: data["use-elf"] as bool,
-                  useSdk: data["use-sdk"] as bool,
-                  useHotReload: data["hot-reload"] as bool,
-                  useHotReloadRollback: data["hot-reload-rollback"] as bool,
-                  enableHostAsserts: data["host-asserts"] as bool,
-                  isCsp: data["csp"] as bool,
-                  isMinified: data["minified"] as bool,
-                  vmOptions: vmOptions,
-                  dart2jsOptions: dart2jsOptions,
-                  ddcOptions: ddcOptions,
-                  experiments: experiments,
-                  builderTag: data["builder-tag"] as String?,
-                  useQemu: data["use-qemu"] as bool);
-              addConfiguration(configuration);
+              // Expand formats.
+              for (final format in formats) {
+                var timeout = data["timeout"] != null
+                    ? int.parse(data["timeout"] as String)
+                    : null;
+                var configuration = Configuration(
+                    "custom-configuration-${configurationNumber++}",
+                    architecture,
+                    compiler,
+                    mode,
+                    runtime,
+                    system,
+                    sanitizer: sanitizer,
+                    timeout: timeout,
+                    enableAsserts: data['enable-asserts'] as bool,
+                    useAnalyzerCfe: data["use-cfe"] as bool,
+                    useAnalyzerFastaParser:
+                        data["analyzer-use-fasta-parser"] as bool,
+                    useSdk: data["use-sdk"] as bool,
+                    useHotReload: data["hot-reload"] as bool,
+                    useHotReloadRollback: data["hot-reload-rollback"] as bool,
+                    enableHostAsserts: data["host-asserts"] as bool,
+                    isCsp: data["csp"] as bool,
+                    isMinified: data["minified"] as bool,
+                    genSnapshotFormat: format,
+                    vmOptions: vmOptions,
+                    dart2jsOptions: dart2jsOptions,
+                    ddcOptions: ddcOptions,
+                    experiments: experiments,
+                    builderTag: data["builder-tag"] as String?,
+                    useQemu: data["use-qemu"] as bool);
+                addConfiguration(configuration);
+              }
             }
           }
         }
@@ -816,7 +812,7 @@ has been specified on the command line.''')
   ///
   /// If no selectors are explicitly given, uses the default suite patterns.
   Map<String, RegExp> _expandSelectors(
-      Map<String, dynamic> configuration, NnbdMode nnbdMode) {
+      Map<String, dynamic> configuration) {
     var selectors = configuration['selectors'] as List<String>? ?? [];
 
     if (selectors.isEmpty || configuration['default-suites'] as bool) {
@@ -901,7 +897,7 @@ class OptionParseException implements Exception {
 /// given filter options.
 ///
 /// If any of the options `--system`, `--arch`, `--mode`, `--compiler`,
-/// `--nnbd`, or `--runtime` (or their abbreviations) are passed, then only
+/// or `--runtime` (or their abbreviations) are passed, then only
 /// configurations matching those are shown.
 void findConfigurations(Map<String, dynamic> options) {
   var testMatrix = TestMatrix.fromPath('tools/bots/test_matrix.json');
@@ -932,11 +928,6 @@ void findConfigurations(Map<String, dynamic> options) {
   var compilers = [...(options['compiler'] as List<String>).map(Compiler.find)];
   var runtimes = [...(options['runtime'] as List<String>).map(Runtime.find)];
 
-  NnbdMode? nnbdMode;
-  if (options.containsKey('nnbd')) {
-    nnbdMode = NnbdMode.find(options['nnbd'] as String);
-  }
-
   var names = SplayTreeSet<String>();
   for (var configuration in testMatrix.configurations) {
     if (system != null && configuration.system != system) continue;
@@ -951,7 +942,6 @@ void findConfigurations(Map<String, dynamic> options) {
     if (runtimes.isNotEmpty && !runtimes.contains(configuration.runtime)) {
       continue;
     }
-    if (nnbdMode != null && configuration.nnbdMode != nnbdMode) continue;
 
     names.add(configuration.name);
   }
@@ -962,7 +952,6 @@ void findConfigurations(Map<String, dynamic> options) {
     if (modes.isNotEmpty) "mode=$modes",
     if (compilers.isNotEmpty) "compiler=$compilers",
     if (runtimes.isNotEmpty) "runtime=$runtimes",
-    if (nnbdMode != null) "nnbd=$nnbdMode",
   ];
 
   if (filters.isEmpty) {

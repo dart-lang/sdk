@@ -14,8 +14,12 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script, [], p.sendPort,
-      automaticPackageResolution: true);
+  Isolate.spawnUri(
+    Platform.script,
+    [],
+    p.sendPort,
+    automaticPackageResolution: true,
+  );
   p.handler = (msg) {
     p.close();
     if (msg is! List) {

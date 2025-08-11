@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
+    as graph
     show DependencyWalker, Node;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -73,7 +74,7 @@ void computeSimplyBounded(Linker linker) {
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
   final Linker linker;
-  final Map<Element2, SimplyBoundedNode> nodeMap = Map.identity();
+  final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
 
   SimplyBoundedDependencyWalker(this.linker);
 
@@ -89,7 +90,7 @@ class SimplyBoundedDependencyWalker
     }
   }
 
-  SimplyBoundedNode getNode(Element2 element) {
+  SimplyBoundedNode getNode(Element element) {
     var graphNode = nodeMap[element];
     if (graphNode == null) {
       var node = linker.getLinkingNode2(element.firstFragment);
@@ -280,12 +281,15 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// If `false` is returned, further visiting is short-circuited.
   ///
   /// Otherwise `true` is returned.
-  bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
-      bool allowTypeParameters) {
+  bool _visitType(
+    List<SimplyBoundedNode> dependencies,
+    TypeAnnotation type,
+    bool allowTypeParameters,
+  ) {
     if (type is NamedType) {
-      var element = type.element2;
+      var element = type.element;
 
-      if (element is TypeParameterElement2) {
+      if (element is TypeParameterElement) {
         return allowTypeParameters;
       }
 
@@ -295,7 +299,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
 
         // If not a node being linked, then the flag is already set.
         if (graphNode == null) {
-          if (element is TypeParameterizedElement2) {
+          if (element is TypeParameterizedElement) {
             return element.isSimplyBounded;
           }
           return true;

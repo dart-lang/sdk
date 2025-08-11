@@ -30,9 +30,7 @@ class Export {
 class ExportedReference {
   final Reference reference;
 
-  ExportedReference({
-    required this.reference,
-  });
+  ExportedReference({required this.reference});
 
   /// We are done updating this object, returns the immutable version.
   ExportedReference toFinalized() => this;
@@ -45,9 +43,7 @@ class ExportedReference {
 
 /// [ExportedReference] for a public element declared in the library.
 class ExportedReferenceDeclared extends ExportedReference {
-  ExportedReferenceDeclared({
-    required super.reference,
-  });
+  ExportedReferenceDeclared({required super.reference});
 }
 
 /// [ExportedReference] for an element that is re-exported.
@@ -81,13 +77,10 @@ class ExportLocation {
   /// library file, a positive value means an included fragment.
   final int fragmentIndex;
 
-  /// The index in [CompilationUnitElementImpl.libraryExports].
+  /// The index in [LibraryFragmentImpl.libraryExports].
   final int exportIndex;
 
-  ExportLocation({
-    required this.fragmentIndex,
-    required this.exportIndex,
-  });
+  ExportLocation({required this.fragmentIndex, required this.exportIndex});
 
   @override
   bool operator ==(Object other) {
@@ -96,7 +89,7 @@ class ExportLocation {
         other.exportIndex == exportIndex;
   }
 
-  LibraryExportElementImpl exportOf(LibraryElementImpl library) {
+  LibraryExportImpl exportOf(LibraryElementImpl library) {
     var fragment = library.units[fragmentIndex];
     return fragment.libraryExports[exportIndex];
   }
@@ -111,9 +104,7 @@ class ExportScope {
   final Map<String, ExportedReference> map = {};
 
   void declare(String name, Reference reference) {
-    map[name] = ExportedReferenceDeclared(
-      reference: reference,
-    );
+    map[name] = ExportedReferenceDeclared(reference: reference);
   }
 
   bool export(

@@ -19,21 +19,23 @@ class ConstSpreadExpectedListOrSetTest extends PubPackageResolutionTest
 
 mixin ConstSpreadExpectedListOrSetTestCases on PubPackageResolutionTest {
   test_const_listInt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 5;
 var b = const <int>[...a];
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1)],
+    );
   }
 
   test_const_listInt_constVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 5;
 const x = <int>[...a];
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1)],
+    );
   }
 
   test_const_listList() async {
@@ -44,21 +46,23 @@ var b = const <int>[...a];
   }
 
   test_const_listMap() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = <int, int>{0: 1};
 var b = const <int>[...a];
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1)],
+    );
   }
 
   test_const_listNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = null;
 var b = const <int>[...a];
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1)],
+    );
   }
 
   test_const_listNull_nullable() async {
@@ -76,12 +80,13 @@ var b = const <int>[...a];
   }
 
   test_const_setInt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 5;
 var b = const <int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1)],
+    );
   }
 
   test_const_setList() async {
@@ -92,21 +97,23 @@ var b = const <int>{...a};
   }
 
   test_const_setMap() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = <int, int>{1: 2};
 var b = const <int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1)],
+    );
   }
 
   test_const_setNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = null;
 var b = const <int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1)],
+    );
   }
 
   test_const_setNull_nullable() async {

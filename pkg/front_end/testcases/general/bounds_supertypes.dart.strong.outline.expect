@@ -914,7 +914,7 @@ class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dy
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isEnum*/  {
@@ -923,7 +923,7 @@ class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isE
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
@@ -932,7 +932,7 @@ class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dy
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
@@ -941,7 +941,7 @@ class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dy
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT5 extends core::_Enum implements self::Class<self::ConcreteClass> /*isEnum*/  {
@@ -950,7 +950,7 @@ class EnumImplementsT5 extends core::_Enum implements self::Class<self::Concrete
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT5
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<self::ConcreteClass>> /*isEnum*/  {
@@ -959,7 +959,7 @@ class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<se
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT6
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> /*isEnum*/  {
@@ -968,7 +968,7 @@ class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> 
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT7
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*isEnum*/  {
@@ -977,7 +977,7 @@ class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*i
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT8
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsT8.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
@@ -986,7 +986,7 @@ class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynami
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*/  {
@@ -995,7 +995,7 @@ class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
@@ -1004,7 +1004,7 @@ class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynami
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
@@ -1013,7 +1013,7 @@ class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynami
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClass> /*isEnum*/  {
@@ -1022,7 +1022,7 @@ class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClas
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS5
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::ConcreteClass>> /*isEnum*/  {
@@ -1031,7 +1031,7 @@ class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS6
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*isEnum*/  {
@@ -1040,7 +1040,7 @@ class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*is
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS7
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsS8 extends core::_Enum implements self::G<core::int> /*isEnum*/  {
@@ -1049,7 +1049,7 @@ class EnumImplementsS8 extends core::_Enum implements self::G<core::int> /*isEnu
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS8
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsS8.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT1 extends self::_EnumWithT1&_Enum&F /*isEnum*/  {
@@ -1058,7 +1058,7 @@ class EnumWithT1 extends self::_EnumWithT1&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT1
     : super self::_EnumWithT1&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT2 extends self::_EnumWithT2&_Enum&F /*isEnum*/  {
@@ -1067,7 +1067,7 @@ class EnumWithT2 extends self::_EnumWithT2&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT2
     : super self::_EnumWithT2&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT3 extends self::_EnumWithT3&_Enum&F /*isEnum*/  {
@@ -1076,7 +1076,7 @@ class EnumWithT3 extends self::_EnumWithT3&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT3
     : super self::_EnumWithT3&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT4 extends self::_EnumWithT4&_Enum&F /*isEnum*/  {
@@ -1085,7 +1085,7 @@ class EnumWithT4 extends self::_EnumWithT4&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT4
     : super self::_EnumWithT4&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT5 extends self::_EnumWithT5&_Enum&F /*isEnum*/  {
@@ -1094,7 +1094,7 @@ class EnumWithT5 extends self::_EnumWithT5&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT5
     : super self::_EnumWithT5&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT6 extends self::_EnumWithT6&_Enum&F /*isEnum*/  {
@@ -1103,7 +1103,7 @@ class EnumWithT6 extends self::_EnumWithT6&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT6
     : super self::_EnumWithT6&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT7 extends self::_EnumWithT7&_Enum&F /*isEnum*/  {
@@ -1112,7 +1112,7 @@ class EnumWithT7 extends self::_EnumWithT7&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT7
     : super self::_EnumWithT7&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithT8 extends self::_EnumWithT8&_Enum&F /*isEnum*/  {
@@ -1121,7 +1121,7 @@ class EnumWithT8 extends self::_EnumWithT8&_Enum&F /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT8
     : super self::_EnumWithT8&_Enum&F::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithT8.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS1 extends self::_EnumWithS1&_Enum&G /*isEnum*/  {
@@ -1130,7 +1130,7 @@ class EnumWithS1 extends self::_EnumWithS1&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS1
     : super self::_EnumWithS1&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS1.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS2 extends self::_EnumWithS2&_Enum&G /*isEnum*/  {
@@ -1139,7 +1139,7 @@ class EnumWithS2 extends self::_EnumWithS2&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS2
     : super self::_EnumWithS2&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS2.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS3 extends self::_EnumWithS3&_Enum&G /*isEnum*/  {
@@ -1148,7 +1148,7 @@ class EnumWithS3 extends self::_EnumWithS3&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS3
     : super self::_EnumWithS3&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS3.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS4 extends self::_EnumWithS4&_Enum&G /*isEnum*/  {
@@ -1157,7 +1157,7 @@ class EnumWithS4 extends self::_EnumWithS4&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS4
     : super self::_EnumWithS4&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS4.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS5 extends self::_EnumWithS5&_Enum&G /*isEnum*/  {
@@ -1166,7 +1166,7 @@ class EnumWithS5 extends self::_EnumWithS5&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS5
     : super self::_EnumWithS5&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS5.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS6 extends self::_EnumWithS6&_Enum&G /*isEnum*/  {
@@ -1175,7 +1175,7 @@ class EnumWithS6 extends self::_EnumWithS6&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS6
     : super self::_EnumWithS6&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS6.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS7 extends self::_EnumWithS7&_Enum&G /*isEnum*/  {
@@ -1184,7 +1184,7 @@ class EnumWithS7 extends self::_EnumWithS7&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS7
     : super self::_EnumWithS7&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS7.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumWithS8 extends self::_EnumWithS8&_Enum&G /*isEnum*/  {
@@ -1193,7 +1193,7 @@ class EnumWithS8 extends self::_EnumWithS8&_Enum&G /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS8
     : super self::_EnumWithS8&_Enum&G::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumWithS8.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class MixinOnT1 extends self::Class<self::Class<dynamic>> /*isMixinDeclaration*/  {
@@ -1422,7 +1422,7 @@ extension ExtensionOnS8 on self::G<core::int> {
 }
 static method main() → dynamic
   ;
-static method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class<self::_#F#new#tearOff::X>
+static synthetic method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class<self::_#F#new#tearOff::X>
   return new self::Class::•<self::_#F#new#tearOff::X>();
 
 

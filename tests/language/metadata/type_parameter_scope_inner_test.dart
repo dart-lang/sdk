@@ -36,7 +36,7 @@ extension Extension<@Annotation(foo) T> on Class<T> {
   //                                                   ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Undefined name 'bar'.
+  // [cfe] Not a constant expression.
 }
 
 class C {
@@ -44,7 +44,7 @@ class C {
     //                    ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] Undefined name 'foo'.
+    // [cfe] Not a constant expression.
     dynamic foo;
   }
 

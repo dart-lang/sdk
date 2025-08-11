@@ -91,7 +91,7 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   void set_trust_builtin(bool trust_builtin) { trust_builtin_ = trust_builtin; }
 
   void RegisterCallbacks(SSL* ssl);
-  TrustEvaluateHandlerFunc GetTrustEvaluateHandler() const;
+  static TrustEvaluateHandlerFunc GetTrustEvaluateHandler();
 
   static bool long_ssl_cert_evaluation() { return long_ssl_cert_evaluation_; }
   static void set_long_ssl_cert_evaluation(bool long_ssl_cert_evaluation) {

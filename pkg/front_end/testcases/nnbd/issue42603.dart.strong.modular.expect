@@ -50,14 +50,14 @@ class E extends core::Object {
   synthetic constructor •() → self::E
     : super core::Object::•()
     ;
-  operator ==() → core::bool
+  erroneous operator ==() → core::bool
     return true;
 }
 class F extends self::E {
   synthetic constructor •() → self::F
     : super self::E::•()
     ;
-  operator ==(core::Object? other) → core::bool
+  erroneous operator ==(core::Object? other) → core::bool
     return invalid-expression "pkg/front_end/testcases/nnbd/issue42603.dart:22:44: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   bool operator ==(Object? other) => super == other;

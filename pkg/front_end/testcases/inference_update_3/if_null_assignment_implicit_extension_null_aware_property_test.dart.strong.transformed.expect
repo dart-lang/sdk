@@ -29,8 +29,8 @@ class C2<T extends core::Object? = dynamic> extends core::Object implements self
 }
 extension Extension on core::String {
   get pC1IntQuestion = self::Extension|get#pC1IntQuestion;
-  get pIterableIntQuestion = self::Extension|get#pIterableIntQuestion;
   set pC1IntQuestion = self::Extension|set#pC1IntQuestion;
+  get pIterableIntQuestion = self::Extension|get#pIterableIntQuestion;
   set pIterableIntQuestion = self::Extension|set#pIterableIntQuestion;
 }
 static method contextIterableQuestion<T extends core::Object? = dynamic>(core::Iterable<self::contextIterableQuestion::T%>? x) → core::Iterable<self::contextIterableQuestion::T%>?

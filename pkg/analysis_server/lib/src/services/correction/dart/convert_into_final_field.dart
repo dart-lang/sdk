@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -21,13 +21,13 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
+  AssistKind get assistKind => DartAssistKind.convertIntoFinalField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing getter.
     MethodDeclaration? getter;
-    for (var n in node.withParents) {
+    for (var n in node.withAncestors) {
       if (n is MethodDeclaration) {
         getter = n;
         break;
@@ -56,19 +56,19 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     // The getter must not be in an extension or extension type unless it is
     // static.
     if (!getterElement.isStatic) {
-      switch (getterElement.enclosingElement2) {
-        case ExtensionElement2() || ExtensionTypeElement2():
+      switch (getterElement.enclosingElement) {
+        case ExtensionElement() || ExtensionTypeElement():
           return;
       }
     }
 
-    var variable = getterElement.variable3;
+    var variable = getterElement.variable;
     if (variable == null) {
       return;
     }
 
     // Check that there is no corresponding setter.
-    if (variable.setter2 != null) {
+    if (variable.setter != null) {
       return;
     }
 

@@ -251,7 +251,8 @@ class KernelLoader : public ValueObject {
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
-  void ReadVMAnnotations(intptr_t annotation_count,
+  void ReadVMAnnotations(const Library& library,
+                         intptr_t annotation_count,
                          uint32_t* pragma_bits,
                          String* native_name = nullptr);
 

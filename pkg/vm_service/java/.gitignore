@@ -35,6 +35,7 @@ src/org/dartlang/vm/service/consumer/PerfettoTimelineConsumer.java
 src/org/dartlang/vm/service/consumer/PortListConsumer.java
 src/org/dartlang/vm/service/consumer/ProcessMemoryUsageConsumer.java
 src/org/dartlang/vm/service/consumer/ProtocolListConsumer.java
+src/org/dartlang/vm/service/consumer/QueuedMicrotasksConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
 src/org/dartlang/vm/service/consumer/RemoveBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/RequestHeapSnapshotConsumer.java
@@ -105,6 +106,7 @@ src/org/dartlang/vm/service/element/LogRecord.java
 src/org/dartlang/vm/service/element/MapAssociation.java
 src/org/dartlang/vm/service/element/MemoryUsage.java
 src/org/dartlang/vm/service/element/Message.java
+src/org/dartlang/vm/service/element/Microtask.java
 src/org/dartlang/vm/service/element/NativeFunction.java
 src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
@@ -119,6 +121,7 @@ src/org/dartlang/vm/service/element/ProcessMemoryUsage.java
 src/org/dartlang/vm/service/element/ProfileFunction.java
 src/org/dartlang/vm/service/element/Protocol.java
 src/org/dartlang/vm/service/element/ProtocolList.java
+src/org/dartlang/vm/service/element/QueuedMicrotasks.java
 src/org/dartlang/vm/service/element/ReloadReport.java
 src/org/dartlang/vm/service/element/Response.java
 src/org/dartlang/vm/service/element/RetainingObject.java

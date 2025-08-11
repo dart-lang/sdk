@@ -28,7 +28,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@getter::x#element
+  element: <testLibrary>::@getter::x
   staticType: int
 ''');
   }

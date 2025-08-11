@@ -60,10 +60,6 @@ class LocalForInVariable implements ForInVariable {
     Expression rhs = visitor.ensureAssignable(
         variableType, rhsType, variableSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
@@ -141,10 +137,6 @@ class PropertyForInVariable implements ForInVariable {
     Expression rhs = visitor.ensureAssignable(
         visitor.computeGreatestClosure(_writeType!), rhsType, _rhs!,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     propertySet.value = rhs..parent = propertySet;
@@ -179,10 +171,6 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
         rhsType,
         superPropertySet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
@@ -218,10 +206,6 @@ class SuperPropertyForInVariable implements ForInVariable {
         rhsType,
         superPropertySet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
@@ -247,10 +231,6 @@ class StaticForInVariable implements ForInVariable {
     Expression rhs = visitor.ensureAssignable(
         setterType, rhsType, staticSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     staticSet.value = rhs..parent = staticSet;
@@ -297,10 +277,6 @@ class ExtensionSetForInVariable implements ForInVariable {
     Expression rhs = visitor.ensureAssignable(
         setterType!, rhsType, extensionSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
-        nullabilityErrorTemplate:
-            templateForInLoopElementTypeNotAssignableNullability,
-        nullabilityPartErrorTemplate:
-            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     extensionSet.value = rhs..parent = extensionSet;

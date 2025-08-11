@@ -21,6 +21,61 @@ mixin ClassMemberTestCases on AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
+  Future<void> test_abstractImplementation_missing() async {
+    await computeSuggestions('''
+class A {
+  A? v1;
+}
+
+class O extends A {}
+
+abstract class A2 implements A {
+  @override
+  O? get v1;
+}
+
+void f(A2 p) {
+  p.^ = null;
+}
+''');
+    assertResponse(r'''
+suggestions
+  v1
+    kind: field
+''');
+  }
+
+  Future<void> test_abstractImplementation_missing2() async {
+    await computeSuggestions('''
+class A {
+  A? get v1;
+}
+
+class O extends A {}
+
+class O2 extends O {}
+
+abstract class A2 implements A {
+  @override
+  O? v1;
+}
+
+abstract class A3 implements A2 {
+  @override
+  O2? get v1;
+}
+
+void f(A3 p) {
+  p.^ = null;
+}
+''');
+    assertResponse(r'''
+suggestions
+  v1
+    kind: field
+''');
+  }
+
   Future<void> test_inheritedFromPrivateClass() async {
     newFile('$testPackageLibPath/b.dart', '''
 library B;

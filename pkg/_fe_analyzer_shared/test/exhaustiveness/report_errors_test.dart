@@ -41,8 +41,9 @@ void main() {
       expectExhaustiveness(env, d, [a]);
 
       // Case matching subtype doesn't cover supertype.
-      expectExhaustiveness(env, a, [b],
-          errors: 'A is not exhaustively matched by B.');
+      expectExhaustiveness(env, a, [
+        b,
+      ], errors: 'A is not exhaustively matched by B.');
       expectExhaustiveness(env, b, [b]);
       expectExhaustiveness(env, d, [b]);
       expectExhaustiveness(env, e, [b]);
@@ -51,10 +52,14 @@ void main() {
       expectExhaustiveness(env, a, [b, c]);
       expectExhaustiveness(env, a, [d, e, f]);
       expectExhaustiveness(env, a, [b, f]);
-      expectExhaustiveness(env, a, [c, d],
-          errors: 'A is not exhaustively matched by C|D.');
-      expectExhaustiveness(env, f, [g, h],
-          errors: 'F is not exhaustively matched by G|H.');
+      expectExhaustiveness(env, a, [
+        c,
+        d,
+      ], errors: 'A is not exhaustively matched by C|D.');
+      expectExhaustiveness(env, f, [
+        g,
+        h,
+      ], errors: 'F is not exhaustively matched by G|H.');
     });
 
     test('unreachable case', () {
@@ -65,25 +70,43 @@ void main() {
       expectExhaustiveness(env, b, [a, b], errors: 'Case #2 B is unreachable.');
 
       // Previous subtype cases cover sealed supertype.
-      expectExhaustiveness(env, a, [b, c, a],
-          errors: 'Case #3 A is unreachable.');
-      expectExhaustiveness(env, a, [d, e, f, a],
-          errors: 'Case #4 A is unreachable.');
-      expectExhaustiveness(env, a, [b, f, a],
-          errors: 'Case #3 A is unreachable.');
+      expectExhaustiveness(env, a, [
+        b,
+        c,
+        a,
+      ], errors: 'Case #3 A is unreachable.');
+      expectExhaustiveness(env, a, [
+        d,
+        e,
+        f,
+        a,
+      ], errors: 'Case #4 A is unreachable.');
+      expectExhaustiveness(env, a, [
+        b,
+        f,
+        a,
+      ], errors: 'Case #3 A is unreachable.');
       expectExhaustiveness(env, a, [c, d, a]);
 
       // Previous subtype cases do not cover unsealed supertype.
       expectExhaustiveness(env, f, [g, h, f]);
 
       // Guarded case is reachable
-      expectExhaustiveness(env, b, [d, e, d],
-          caseIsGuarded: [true, false, false]);
+      expectExhaustiveness(
+        env,
+        b,
+        [d, e, d],
+        caseIsGuarded: [true, false, false],
+      );
 
       // Guarded case is unreachable
-      expectExhaustiveness(env, b, [d, e, d],
-          caseIsGuarded: [false, false, true],
-          errors: 'Case #3 D is unreachable.');
+      expectExhaustiveness(
+        env,
+        b,
+        [d, e, d],
+        caseIsGuarded: [false, false, true],
+        errors: 'Case #3 D is unreachable.',
+      );
     });
 
     test('covered record destructuring |', () {
@@ -96,14 +119,10 @@ void main() {
       ]);
 
       // Narrower field is covered.
-      expectExhaustiveness(
-          env,
-          r,
-          [
-            ty(r, {x: a}),
-            ty(r, {x: b}),
-          ],
-          errors: 'Case #2 (x: B, y: A, z: A) is unreachable.');
+      expectExhaustiveness(env, r, [
+        ty(r, {x: a}),
+        ty(r, {x: b}),
+      ], errors: 'Case #2 (x: B, y: A, z: A) is unreachable.');
     });
 
     test('nullable sealed |', () {
@@ -120,8 +139,11 @@ void main() {
       var e = env.createClass('E', inherits: [c]);
 
       // Must cover null.
-      expectExhaustiveness(env, a.nullable, [b, d, e],
-          errors: 'A? is not exhaustively matched by B|D|E.');
+      expectExhaustiveness(env, a.nullable, [
+        b,
+        d,
+        e,
+      ], errors: 'A? is not exhaustively matched by B|D|E.');
 
       // Can cover null with any nullable subtype.
       expectExhaustiveness(env, a.nullable, [b.nullable, c]);
@@ -134,31 +156,48 @@ void main() {
       expectExhaustiveness(env, a.nullable, [b, d, e, StaticType.nullType]);
 
       // Nullable covers the non-null.
-      expectExhaustiveness(env, a.nullable, [a.nullable, a],
-          errors: 'Case #2 A is unreachable.');
-      expectExhaustiveness(env, b.nullable, [a.nullable, b],
-          errors: 'Case #2 B is unreachable.');
+      expectExhaustiveness(env, a.nullable, [
+        a.nullable,
+        a,
+      ], errors: 'Case #2 A is unreachable.');
+      expectExhaustiveness(env, b.nullable, [
+        a.nullable,
+        b,
+      ], errors: 'Case #2 B is unreachable.');
 
       // Nullable covers null.
-      expectExhaustiveness(env, a.nullable, [a.nullable, StaticType.nullType],
-          errors: 'Case #2 Null is unreachable.');
-      expectExhaustiveness(env, b.nullable, [a.nullable, StaticType.nullType],
-          errors: 'Case #2 Null is unreachable.');
+      expectExhaustiveness(env, a.nullable, [
+        a.nullable,
+        StaticType.nullType,
+      ], errors: 'Case #2 Null is unreachable.');
+      expectExhaustiveness(env, b.nullable, [
+        a.nullable,
+        StaticType.nullType,
+      ], errors: 'Case #2 Null is unreachable.');
     });
   });
 }
 
-void expectExhaustiveness(ObjectPropertyLookup objectFieldLookup,
-    StaticType valueType, List<Object> cases,
-    {List<bool>? caseIsGuarded, String errors = ''}) {
+void expectExhaustiveness(
+  ObjectPropertyLookup objectFieldLookup,
+  StaticType valueType,
+  List<Object> cases, {
+  List<bool>? caseIsGuarded,
+  String errors = '',
+}) {
   List<CaseUnreachability> caseUnreachabilities = [];
-  var nonExhaustiveness = computeExhaustiveness(objectFieldLookup, valueType,
-      caseIsGuarded ?? List.filled(cases.length, false), parseSpaces(cases),
-      caseUnreachabilities: caseUnreachabilities);
+  var nonExhaustiveness = computeExhaustiveness(
+    objectFieldLookup,
+    valueType,
+    caseIsGuarded ?? List.filled(cases.length, false),
+    parseSpaces(cases),
+    caseUnreachabilities: caseUnreachabilities,
+  );
   expect(
-      [
-        ...caseUnreachabilities,
-        if (nonExhaustiveness != null) nonExhaustiveness
-      ].join('\n'),
-      errors);
+    [
+      ...caseUnreachabilities,
+      if (nonExhaustiveness != null) nonExhaustiveness,
+    ].join('\n'),
+    errors,
+  );
 }

@@ -28,7 +28,7 @@ class StatementParserTest extends FastaParserTestCase {
     List<TypeAnnotation> typeArgs = funct1.typeArguments!.arguments;
     expect(typeArgs, hasLength(1));
     var typeName = typeArgs[0] as NamedType;
-    expect(typeName.name2.lexeme, 'int');
+    expect(typeName.name.lexeme, 'int');
     expect(funct1.argumentList.arguments, hasLength(0));
 
     var funct2 = funct1.function as FunctionExpressionInvocation;
@@ -41,11 +41,14 @@ class StatementParserTest extends FastaParserTestCase {
   }
 
   void test_invalid_typeArg_34850() {
-    var unit = parseCompilationUnit('foo Future<List<int>> bar() {}', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 6),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 22, 3),
-    ]);
+    var unit = parseCompilationUnit(
+      'foo Future<List<int>> bar() {}',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 6),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 22, 3),
+      ],
+    );
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
@@ -57,19 +60,26 @@ class StatementParserTest extends FastaParserTestCase {
   }
 
   void test_invalid_typeParamAnnotation() {
-    parseCompilationUnit('main() { C<@Foo T> v; }', errors: [
-      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 4)
-    ]);
+    parseCompilationUnit(
+      'main() { C<@Foo T> v; }',
+      errors: [
+        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 4),
+      ],
+    );
   }
 
   void test_invalid_typeParamAnnotation2() {
-    parseCompilationUnit('main() { C<@Foo.bar(1) T> v; }', errors: [
-      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 11)
-    ]);
+    parseCompilationUnit(
+      'main() { C<@Foo.bar(1) T> v; }',
+      errors: [
+        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 11),
+      ],
+    );
   }
 
   void test_invalid_typeParamAnnotation3() {
-    parseCompilationUnit('''
+    parseCompilationUnit(
+      '''
 main() {
   C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T,
     F Function<G>(int, String, {Bar b}),
@@ -77,9 +87,11 @@ main() {
     A<B<C>>,
     W<X<Y<Z>>>
   > v;
-}''', errors: [
-      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 13, 63)
-    ]);
+}''',
+      errors: [
+        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 13, 63),
+      ],
+    );
   }
 
   void test_parseAssertStatement() {
@@ -187,8 +199,9 @@ main() {
   }
 
   void test_parseContinueStatement_label() {
-    var labeledStatement = parseStatement('foo: while (true) { continue foo; }')
-        as LabeledStatement;
+    var labeledStatement =
+        parseStatement('foo: while (true) { continue foo; }')
+            as LabeledStatement;
     var whileStatement = labeledStatement.statement as WhileStatement;
     var statement =
         (whileStatement.body as Block).statements[0] as ContinueStatement;
@@ -222,11 +235,14 @@ main() {
   }
 
   void test_parseElseAlone() {
-    parseCompilationUnit('main() { else return 0; } ', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
-    ]);
+    parseCompilationUnit(
+      'main() { else return 0; } ',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
+        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+      ],
+    );
   }
 
   void test_parseEmptyStatement() {
@@ -253,10 +269,9 @@ main() {
   }
 
   void test_parseForStatement_each_await2() {
-    var forStatement = parseStatement(
-      'await for (element in list) {}',
-      inAsync: true,
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('await for (element in list) {}', inAsync: true)
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNotNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -270,9 +285,8 @@ main() {
   }
 
   void test_parseForStatement_each_finalExternal() {
-    var forStatement = parseStatement(
-      'for (final external in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (final external in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -286,9 +300,8 @@ main() {
   }
 
   void test_parseForStatement_each_finalRequired() {
-    var forStatement = parseStatement(
-      'for (final required in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (final required in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -320,9 +333,9 @@ main() {
   }
 
   void test_parseForStatement_each_genericFunctionType2() {
-    var forStatement = parseStatement(
-      'for (void Function<T>(T) element in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (void Function<T>(T) element in list) {}')
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -353,9 +366,8 @@ main() {
   }
 
   void test_parseForStatement_each_identifier2() {
-    var forStatement = parseStatement(
-      'for (element in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -387,9 +399,8 @@ main() {
   }
 
   void test_parseForStatement_each_noType_metadata2() {
-    var forStatement = parseStatement(
-      'for (@A var element in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (@A var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -421,9 +432,8 @@ main() {
   }
 
   void test_parseForStatement_each_type2() {
-    var forStatement = parseStatement(
-      'for (A element in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (A element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -454,9 +464,8 @@ main() {
   }
 
   void test_parseForStatement_each_var2() {
-    var forStatement = parseStatement(
-      'for (var element in list) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -487,9 +496,7 @@ main() {
   }
 
   void test_parseForStatement_loop_c2() {
-    var forStatement = parseStatement(
-      'for (; i < count;) {}',
-    ) as ForStatement;
+    var forStatement = parseStatement('for (; i < count;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -522,9 +529,8 @@ main() {
   }
 
   void test_parseForStatement_loop_cu2() {
-    var forStatement = parseStatement(
-      'for (; i < count; i++) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -557,9 +563,8 @@ main() {
   }
 
   void test_parseForStatement_loop_ecu2() {
-    var forStatement = parseStatement(
-      'for (i--; i < count; i++) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (i--; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -594,9 +599,7 @@ main() {
   }
 
   void test_parseForStatement_loop_i2() {
-    var forStatement = parseStatement(
-      'for (var i = 0;;) {}',
-    ) as ForStatement;
+    var forStatement = parseStatement('for (var i = 0;;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -635,9 +638,8 @@ main() {
   }
 
   void test_parseForStatement_loop_i_withMetadata2() {
-    var forStatement = parseStatement(
-      'for (@A var i = 0;;) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (@A var i = 0;;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -675,9 +677,8 @@ main() {
   }
 
   void test_parseForStatement_loop_ic2() {
-    var forStatement = parseStatement(
-      'for (var i = 0; i < count;) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (var i = 0; i < count;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -714,9 +715,8 @@ main() {
   }
 
   void test_parseForStatement_loop_icu2() {
-    var forStatement = parseStatement(
-      'for (var i = 0; i < count; i++) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (var i = 0; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -754,9 +754,9 @@ main() {
   }
 
   void test_parseForStatement_loop_iicuu2() {
-    var forStatement = parseStatement(
-      'for (int i = 0, j = count; i < j; i++, j--) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (int i = 0, j = count; i < j; i++, j--) {}')
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -793,9 +793,8 @@ main() {
   }
 
   void test_parseForStatement_loop_iu2() {
-    var forStatement = parseStatement(
-      'for (var i = 0;; i++) {}',
-    ) as ForStatement;
+    var forStatement =
+        parseStatement('for (var i = 0;; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -829,9 +828,7 @@ main() {
   }
 
   void test_parseForStatement_loop_u2() {
-    var forStatement = parseStatement(
-      'for (;; i++) {}',
-    ) as ForStatement;
+    var forStatement = parseStatement('for (;; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -846,8 +843,9 @@ main() {
   }
 
   void test_parseFunctionDeclarationStatement() {
-    var statement = parseStatement('void f(int p) => p * 2;')
-        as FunctionDeclarationStatement;
+    var statement =
+        parseStatement('void f(int p) => p * 2;')
+            as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
   }
@@ -857,8 +855,10 @@ main() {
         parseStatement('E f<E>(E p) => p * 2;') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
-    expect(statement.functionDeclaration.functionExpression.typeParameters,
-        isNotNull);
+    expect(
+      statement.functionDeclaration.functionExpression.typeParameters,
+      isNotNull,
+    );
   }
 
   void test_parseFunctionDeclarationStatement_typeParameters_noReturnType() {
@@ -866,8 +866,10 @@ main() {
         parseStatement('f<E>(E p) => p * 2;') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
-    expect(statement.functionDeclaration.functionExpression.typeParameters,
-        isNotNull);
+    expect(
+      statement.functionDeclaration.functionExpression.typeParameters,
+      isNotNull,
+    );
   }
 
   void test_parseIfStatement_else_block() {
@@ -932,9 +934,9 @@ main() {
 
   void test_parseLocalVariable_external() {
     parseStatement('external int i;');
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)],
+    );
   }
 
   void test_parseNonLabeledStatement_const_list_empty() {
@@ -1035,8 +1037,9 @@ main() {
   }
 
   void test_parseNonLabeledStatement_localFunction_gftReturnType() {
-    var statement = parseStatement('int Function(int) f(String s) => null;')
-        as FunctionDeclarationStatement;
+    var statement =
+        parseStatement('int Function(int) f(String s) => null;')
+            as FunctionDeclarationStatement;
     assertNoErrors();
     FunctionDeclaration function = statement.functionDeclaration;
     expect(function.returnType, isGenericFunctionType);
@@ -1067,8 +1070,9 @@ main() {
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_final_namedFunction() {
-    var statement = parseStatement('final int Function = 0;')
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('final int Function = 0;')
+            as VariableDeclarationStatement;
     assertNoErrors();
     List<VariableDeclaration> variables = statement.variables.variables;
     expect(variables, hasLength(1));
@@ -1087,10 +1091,12 @@ main() {
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_functionReturnType() {
-    var statement = parseStatement(
-            'Function Function(int x1, {Function x}) Function<B extends core.int>(int x) v;')
-        as VariableDeclarationStatement;
+  test_parseNonLabeledStatement_variableDeclaration_gftType_functionReturnType() {
+    var statement =
+        parseStatement(
+              'Function Function(int x1, {Function x}) Function<B extends core.int>(int x) v;',
+            )
+            as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
@@ -1100,9 +1106,10 @@ main() {
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType() {
-    var statement = parseStatement('Function(int) Function(int) v;')
-        as VariableDeclarationStatement;
+  test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType() {
+    var statement =
+        parseStatement('Function(int) Function(int) v;')
+            as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
@@ -1112,9 +1119,10 @@ main() {
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType2() {
-    var statement = parseStatement('int Function(int) Function(int) v;')
-        as VariableDeclarationStatement;
+  test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType2() {
+    var statement =
+        parseStatement('int Function(int) Function(int) v;')
+            as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
@@ -1124,7 +1132,7 @@ main() {
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_noReturnType() {
+  test_parseNonLabeledStatement_variableDeclaration_gftType_noReturnType() {
     var statement =
         parseStatement('Function(int) v;') as VariableDeclarationStatement;
     assertNoErrors();
@@ -1147,7 +1155,7 @@ main() {
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_voidReturnType() {
+  test_parseNonLabeledStatement_variableDeclaration_gftType_voidReturnType() {
     var statement =
         parseStatement('void Function() v;') as VariableDeclarationStatement;
     assertNoErrors();
@@ -1166,37 +1174,39 @@ main() {
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name2.lexeme, 'C');
+    expect(typeName.name.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
-    expect(typeArgument.name2.lexeme, 'T');
+    expect(typeArgument.name.lexeme, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam2() {
-    var statement = parseStatement('C<T /* ignored comment */ > v;')
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('C<T /* ignored comment */ > v;')
+            as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name2.lexeme, 'C');
+    expect(typeName.name.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
-    expect(typeArgument.name2.lexeme, 'T');
+    expect(typeArgument.name.lexeme, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam3() {
-    var statement = parseStatement('C<T Function(String s)> v;')
-        as VariableDeclarationStatement;
+    var statement =
+        parseStatement('C<T Function(String s)> v;')
+            as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.lexeme, 'v');
     var typeName = variableList.type as NamedType;
-    expect(typeName.name2.lexeme, 'C');
+    expect(typeName.name.lexeme, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     expect(typeName.typeArguments!.arguments[0], isGenericFunctionType);
   }
@@ -1217,8 +1227,10 @@ main() {
     var statement =
         parseStatement('void Function<A>(core.List<core.int> x) m() => null;')
             as FunctionDeclarationStatement;
-    expect(statement.functionDeclaration.functionExpression.body,
-        isExpressionFunctionBody);
+    expect(
+      statement.functionDeclaration.functionExpression.body,
+      isExpressionFunctionBody,
+    );
   }
 
   void test_parseStatement_functionDeclaration_noReturnType() {
@@ -1383,8 +1395,9 @@ main() {
   }
 
   void test_parseSwitchStatement_labeledStatementInCase() {
-    var statement = parseStatement('switch (a) {case 0: f(); l1: g(); break;}')
-        as SwitchStatement;
+    var statement =
+        parseStatement('switch (a) {case 0: f(); l1: g(); break;}')
+            as SwitchStatement;
     assertNoErrors();
     expect(statement.switchKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -1417,8 +1430,9 @@ main() {
 
   void test_parseTryStatement_catch_error_invalidCatchParam() {
     CompilationUnit unit = parseCompilationUnit(
-        'main() { try {} catch (int e) { } }',
-        errors: [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)]);
+      'main() { try {} catch (int e) { } }',
+      errors: [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)],
+    );
     var method = unit.declarations[0] as FunctionDeclaration;
     var body = method.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as TryStatement;
@@ -1577,8 +1591,9 @@ main() {
   }
 
   void test_parseTryStatement_on_catch_finally() {
-    var statement = parseStatement('try {} on Error catch (e, s) {} finally {}')
-        as TryStatement;
+    var statement =
+        parseStatement('try {} on Error catch (e, s) {} finally {}')
+            as TryStatement;
     assertNoErrors();
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
@@ -1720,13 +1735,16 @@ main() {
   }
 
   void test_partial_typeArg1_34850() {
-    var unit = parseCompilationUnit('<bar<', errors: [
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-    ]);
+    var unit = parseCompilationUnit(
+      '<bar<',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      ],
+    );
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
@@ -1738,12 +1756,15 @@ main() {
   }
 
   void test_partial_typeArg2_34850() {
-    var unit = parseCompilationUnit('foo <bar<', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
-    ]);
+    var unit = parseCompilationUnit(
+      'foo <bar<',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
+        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
+      ],
+    );
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
@@ -1756,10 +1777,12 @@ main() {
 
   Statement _parseAsyncStatement(String code, {bool isGenerator = false}) {
     var star = isGenerator ? '*' : '';
-    var localFunction = parseStatement('wrapper() async$star { $code }')
-        as FunctionDeclarationStatement;
-    var localBody = localFunction.functionDeclaration.functionExpression.body
-        as BlockFunctionBody;
+    var localFunction =
+        parseStatement('wrapper() async$star { $code }')
+            as FunctionDeclarationStatement;
+    var localBody =
+        localFunction.functionDeclaration.functionExpression.body
+            as BlockFunctionBody;
     return localBody.block.statements.single;
   }
 }

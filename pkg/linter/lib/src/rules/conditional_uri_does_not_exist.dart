@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +17,11 @@ class ConditionalUriDoesNotExist extends LintRule {
     : super(name: LintNames.conditional_uri_does_not_exist, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.conditional_uri_does_not_exist;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.conditional_uri_does_not_exist;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConfiguration(this, visitor);
   }
@@ -41,7 +41,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // in the analysis server (although running the script when the files
       // don't exist on disk would also fail to find it).
       if (!(source?.exists() ?? false)) {
-        rule.reportLint(configuration.uri, arguments: [uri.relativeUriString]);
+        rule.reportAtNode(
+          configuration.uri,
+          arguments: [uri.relativeUriString],
+        );
       }
     }
   }

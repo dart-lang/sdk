@@ -123,8 +123,9 @@ class MeasureText {
       // Treat the char after the end of the string as whitespace.
       bool whitespace = i == len || isWhitespace(text[i]);
       if (whitespace && !lastWhitespace) {
-        num wordLength =
-            _context.measureText(text.substring(wordStartIndex!, i)).width!;
+        num wordLength = _context
+            .measureText(text.substring(wordStartIndex!, i))
+            .width!;
         // TODO(jimhug): Replace the line above with this one to workaround
         //               dartium bug - error: unimplemented code
         // num wordLength = (i - wordStartIndex) * 17;

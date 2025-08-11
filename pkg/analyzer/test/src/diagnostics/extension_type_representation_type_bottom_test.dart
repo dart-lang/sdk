@@ -17,12 +17,18 @@ main() {
 class ExtensionTypeRepresentationTypeBottomTest
     extends PubPackageResolutionTest {
   test_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(Never it) {}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM, 17,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+          17,
+          5,
+        ),
+      ],
+    );
   }
 
   test_neverQuestion() async {
@@ -32,12 +38,18 @@ extension type A(Never? it) {}
   }
 
   test_typeParameter_never_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A<T extends Never>(T it) {}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM, 34,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+          34,
+          1,
+        ),
+      ],
+    );
   }
 
   test_typeParameter_never_question() async {

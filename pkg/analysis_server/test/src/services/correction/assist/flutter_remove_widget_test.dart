@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class FlutterRemoveWidgetTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
+  AssistKind get kind => DartAssistKind.flutterRemoveWidget;
 
   @override
   void setUp() {

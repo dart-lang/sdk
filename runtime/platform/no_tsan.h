@@ -23,22 +23,21 @@ uintptr_t LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr);
 #if defined(__GNUC__)
 __attribute__((no_sanitize("thread")))
 #endif
-inline uintptr_t
-FetchAndRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr, uintptr_t value) {
+inline uintptr_t FetchAndRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
+                                           uintptr_t value) {
   return ptr->fetch_and(value, std::memory_order_relaxed);
 }
 #if defined(__GNUC__)
 __attribute__((no_sanitize("thread")))
 #endif
-inline uintptr_t
-FetchOrRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr, uintptr_t value) {
+inline uintptr_t FetchOrRelaxedIgnoreRace(std::atomic<uintptr_t>* ptr,
+                                          uintptr_t value) {
   return ptr->fetch_or(value, std::memory_order_relaxed);
 }
 #if defined(__GNUC__)
 __attribute__((no_sanitize("thread")))
 #endif
-inline uintptr_t
-LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr) {
+inline uintptr_t LoadRelaxedIgnoreRace(const std::atomic<uintptr_t>* ptr) {
   return ptr->load(std::memory_order_relaxed);
 }
 #endif

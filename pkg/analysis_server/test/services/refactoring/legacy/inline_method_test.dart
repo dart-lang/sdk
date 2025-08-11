@@ -243,6 +243,49 @@ void f() {
     );
   }
 
+  Future<void> test_bad_inShowCombinator_atDeclaration() async {
+    var referencingFilePath = '$testPackageLibPath/a.dart';
+    newFile(referencingFilePath, '''
+import 'test.dart' show f;
+
+void g() {
+  f();
+}
+''');
+    await indexTestUnit(r'''
+void f() {
+  print(42);
+}
+''');
+    _createRefactoring('f(');
+    await _assertSuccessfulRefactoring('');
+    assertFileChangeResult(referencingFilePath, '''
+import 'test.dart' show f;
+
+void g() {
+  print(42);
+}
+''');
+  }
+
+  Future<void> test_bad_inShowCombinator_atShowCombinator() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void f() {
+  print(42);
+}
+''');
+    await indexTestUnit(r'''
+import 'a.dart' show f;
+
+void g() {
+  f();
+}
+''');
+    _createRefactoring('f;');
+    // error
+    return _assertInvalidSelection();
+  }
+
   Future<void> test_bad_notExecutableElement() async {
     await indexTestUnit(r'''
 void f() {
@@ -2199,6 +2242,12 @@ class _InlineMethodTest extends RefactoringTest {
   late InlineMethodRefactoringImpl refactoring;
   bool? deleteSource;
   bool? inlineAll;
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 
   Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();

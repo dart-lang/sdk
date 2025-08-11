@@ -10,21 +10,21 @@ extension A on self::C {
   method method = self::A|method;
   method tearoff method = self::A|get#method;
   get getter = self::A|get#getter;
+  set setter = self::A|set#setter;
   get property = self::A|get#property;
   operator + = self::A|+;
   operator unary- = self::A|unary-;
   operator [] = self::A|[];
-  set setter = self::A|set#setter;
 }
 extension B on self::C {
   method method = self::B|method;
   method tearoff method = self::B|get#method;
   get getter = self::B|get#getter;
+  set setter = self::B|set#setter;
+  set property = self::B|set#property;
   operator + = self::B|+;
   operator unary- = self::B|unary-;
   operator []= = self::B|[]=;
-  set setter = self::B|set#setter;
-  set property = self::B|set#property;
 }
 static extension-member method A|method(lowered final self::C #this) → void
   ;

@@ -16,44 +16,23 @@ class C<T> {
 
   // This is equivalent to (T).call(). See issue 19725
 
-
   // T is in scope, even in static context. Compile-time error to call this.T().
-
 
   // X is not in scope. NoSuchMethodError.
 
-
   // Class 'C' has no static method 'T': NoSuchMethodError.
-
 
   // Class '_Type' has no instance method 'call': NoSuchMethodError.
 
-
   // Runtime type T not accessible from static context. Compile-time error.
-
 
   // Class '_Type' has no [] operator: NoSuchMethodError.
 
-
   // Runtime type T not accessible from static context. Compile-time error.
-
 
   // Class '_Type' has no member m: NoSuchMethodError.
 
-
   // Runtime type T not accessible from static context. Compile-time error.
-
 }
 
-main() {
-
-
-
-
-
-
-
-
-
-
-}
+main() {}

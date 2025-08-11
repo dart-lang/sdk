@@ -59,22 +59,23 @@ class StaticMethod {
   static int staticMethod2(_, _) => 2;
   static int staticMethod_functionType(void _(), void _()) => 2;
   static int staticMethod_functionTypeNested(
-          void _(_, _), void _(int _, int _)) =>
-      2;
+    void _(_, _),
+    void _(int _, int _),
+  ) => 2;
   static int staticMethod_functionTypeNew(
-          void Function(int _, int _) _, void Function(int _, int _) _) =>
-      2;
+    void Function(int _, int _) _,
+    void Function(int _, int _) _,
+  ) => 2;
   static int staticMethod_functionTypeGeneric(
-          void Function<_, _>(int _, int _) _, void _<_>(_, _)) =>
-      2;
+    void Function<_, _>(int _, int _) _,
+    void _<_>(_, _),
+  ) => 2;
 }
 
 void main() {
   // Function expression
   var list = [true];
-  list.where(
-    (_, [_]) => true,
-  );
+  list.where((_, [_]) => true);
 
   // Abstract methods
   var abstractMethod = AbstractMethodSubclass();

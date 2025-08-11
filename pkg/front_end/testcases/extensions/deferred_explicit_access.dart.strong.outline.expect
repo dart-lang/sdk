@@ -23,12 +23,12 @@ import "dart:core" as core;
 extension Extension on core::int {
   static field staticField = self2::Extension|staticField;
   static get staticProperty = get self2::Extension|staticProperty;
+  static set staticProperty = set self2::Extension|staticProperty;
   static method staticMethod = self2::Extension|staticMethod;
   get property = self2::Extension|get#property;
+  set property = self2::Extension|set#property;
   method method = self2::Extension|method;
   method tearoff method = self2::Extension|get#method;
-  static set staticProperty = set self2::Extension|staticProperty;
-  set property = self2::Extension|set#property;
 }
 static field core::int Extension|staticField;
 static field core::int topLevelField;

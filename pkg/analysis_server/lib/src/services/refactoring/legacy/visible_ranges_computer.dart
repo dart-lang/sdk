@@ -4,18 +4,18 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Computer of local elements and source ranges in which they are visible.
 class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
-  final Map<LocalElement2, SourceRange> _map = {};
+  final Map<LocalElement, SourceRange> _map = {};
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addLocalVariable(node, node.exceptionParameter?.declaredElement2);
-    _addLocalVariable(node, node.stackTraceParameter?.declaredElement2);
+    _addLocalVariable(node, node.exceptionParameter?.declaredElement);
+    _addLocalVariable(node, node.stackTraceParameter?.declaredElement);
     node.body.accept(this);
   }
 
@@ -35,11 +35,9 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     var loop = node.parent;
-    if (loop != null) {
-      for (var variable in node.variables.variables) {
-        _addLocalVariable(loop, variable.declaredElement2);
-        variable.initializer?.accept(this);
-      }
+    for (var variable in node.variables.variables) {
+      _addLocalVariable(loop, variable.declaredElement);
+      variable.initializer?.accept(this);
     }
   }
 
@@ -73,21 +71,21 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var block = node.parent;
     if (block != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(block, variable.declaredElement2);
+        _addLocalVariable(block, variable.declaredElement);
         variable.initializer?.accept(this);
       }
     }
   }
 
-  void _addLocalVariable(AstNode scopeNode, Element2? element) {
+  void _addLocalVariable(AstNode scopeNode, Element? element) {
     // TODO(brianwilkerson): Figure out whether this should be testing for
     //  `PromotableElement`. The test is missing parameter elements.
-    if (element is LocalElement2) {
+    if (element is LocalElement) {
       _map[element] = range.node(scopeNode);
     }
   }
 
-  static Map<LocalElement2, SourceRange> forNode(AstNode unit) {
+  static Map<LocalElement, SourceRange> forNode(AstNode unit) {
     var computer = VisibleRangesComputer();
     unit.accept(computer);
     return computer._map;

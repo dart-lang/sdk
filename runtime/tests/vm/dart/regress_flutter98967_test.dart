@@ -26,8 +26,11 @@ class C {
     Expect.equals(false, compare(mint0));
     val = mint0;
     Expect.equals(true, compare(mint0));
-    Expect.equals(true, compare(mint1),
-        'expected two different mints with the same value compare equal');
+    Expect.equals(
+      true,
+      compare(mint1),
+      'expected two different mints with the same value compare equal',
+    );
   }
 
   @pragma('vm:never-inline')

@@ -37,9 +37,13 @@ main() {
       test('type mismatch', () {
         var crypto = window.crypto!;
         var data = new Float32List(100);
-        expect(() {
-          crypto.getRandomValues(data);
-        }, throws, reason: 'Only typed array views with integer types allowed');
+        expect(
+          () {
+            crypto.getRandomValues(data);
+          },
+          throws,
+          reason: 'Only typed array views with integer types allowed',
+        );
       });
     }
   });

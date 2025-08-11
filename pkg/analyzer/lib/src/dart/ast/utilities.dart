@@ -10,157 +10,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
-
-/// An object used to locate the [AstNode] associated with a source range, given
-/// the AST structure built from the source. More specifically, they will return
-/// the [AstNode] with the shortest length whose source range completely
-/// encompasses the specified range with some exceptions:
-///
-/// - Offsets that fall between the name and type/formal parameter list of a
-///   declaration will return the declaration node and not the parameter list
-///   node.
-class NodeLocator extends UnifyingAstVisitor<void> {
-  /// The start offset of the range used to identify the node.
-  final int _startOffset;
-
-  /// The end offset of the range used to identify the node.
-  final int _endOffset;
-
-  /// The element that was found that corresponds to the given source range, or
-  /// `null` if there is no such element.
-  AstNode? _foundNode;
-
-  /// Initialize a newly created locator to locate an [AstNode] by locating the
-  /// node within an AST structure that corresponds to the given range of
-  /// characters (between the [startOffset] and [endOffset] in the source.
-  NodeLocator(int startOffset, [int? endOffset])
-      : _startOffset = startOffset,
-        _endOffset = endOffset ?? startOffset;
-
-  /// Return the node that was found that corresponds to the given source range
-  /// or `null` if there is no such node.
-  AstNode? get foundNode => _foundNode;
-
-  /// Search within the given AST [node] for an identifier representing an
-  /// element in the specified source range. Return the element that was found,
-  /// or `null` if no element was found.
-  AstNode? searchWithin(AstNode? node) {
-    if (node == null) {
-      return null;
-    }
-    try {
-      node.accept(this);
-    } catch (exception, stackTrace) {
-      // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          SilentException(
-              "Unable to locate element at offset ($_startOffset - $_endOffset)",
-              exception,
-              stackTrace));
-      return null;
-    }
-
-    return _foundNode;
-  }
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    // Names do not have AstNodes but offsets at the end should be treated as
-    // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
-      _foundNode = node;
-      return;
-    }
-
-    super.visitClassDeclaration(node);
-  }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // Names do not have AstNodes but offsets at the end should be treated as
-    // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset &&
-        _startOffset == (node.name ?? node.returnType).end) {
-      _foundNode = node;
-      return;
-    }
-
-    super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    // Names do not have AstNodes but offsets at the end should be treated as
-    // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
-      _foundNode = node;
-      return;
-    }
-
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    // Names do not have AstNodes but offsets at the end should be treated as
-    // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
-      _foundNode = node;
-      return;
-    }
-
-    super.visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitNode(AstNode node) {
-    // Don't visit a new tree if the result has been already found.
-    if (_foundNode != null) {
-      return;
-    }
-    // Check whether the current node covers the selection.
-    Token beginToken = node.beginToken;
-    Token endToken = node.endToken;
-    // Don't include synthetic tokens.
-    while (endToken != beginToken) {
-      // Fasta scanner reports unterminated string literal errors
-      // and generates a synthetic string token with non-zero length.
-      // Because of this, check for length > 0 rather than !isSynthetic.
-      if (endToken.isEof || endToken.length > 0) {
-        break;
-      }
-      endToken = endToken.previous!;
-    }
-    int end = endToken.end;
-    int start = node.offset;
-    if (end < _startOffset || start > _endOffset) {
-      return;
-    }
-    // Check children.
-    try {
-      node.visitChildren(this);
-    } catch (exception, stackTrace) {
-      // Ignore the exception and proceed in order to visit the rest of the
-      // structure.
-      // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          SilentException("Exception caught while traversing an AST structure.",
-              exception, stackTrace));
-    }
-    // Found a child.
-    if (_foundNode != null) {
-      return;
-    }
-    // Check this node.
-    if (start <= _startOffset && _endOffset <= end) {
-      _foundNode = node;
-    }
-  }
-}
 
 /// An object used to locate the [AstNode] associated with a source range.
 /// More specifically, they will return the deepest [AstNode] which completely
@@ -185,8 +37,8 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   /// If [endOffset] is not provided, then it is considered the same as the
   /// given [startOffset].
   NodeLocator2(int startOffset, [int? endOffset])
-      : _startOffset = startOffset,
-        _endOffset = endOffset ?? startOffset;
+    : _startOffset = startOffset,
+      _endOffset = endOffset ?? startOffset;
 
   /// Search within the given AST [node] and return the node that was found,
   /// or `null` if no node was found.
@@ -198,12 +50,14 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       node.accept(this);
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService
-          .logException(SilentException(
-              'Unable to locate element at offset '
-              '($_startOffset - $_endOffset)',
-              exception,
-              stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(
+          'Unable to locate element at offset '
+          '($_startOffset - $_endOffset)',
+          exception,
+          stackTrace,
+        ),
+      );
       return null;
     }
     return _foundNode;
@@ -290,8 +144,12 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // structure.
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          SilentException("Exception caught while traversing an AST structure.",
-              exception, stackTrace));
+        SilentException(
+          "Exception caught while traversing an AST structure.",
+          exception,
+          stackTrace,
+        ),
+      );
     }
     // Found a child.
     if (_foundNode != null) {
@@ -623,7 +481,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitConstructorFieldInitializer(
-      covariant ConstructorFieldInitializerImpl node) {
+    covariant ConstructorFieldInitializerImpl node,
+  ) {
     if (identical(node.fieldName, _oldNode)) {
       node.fieldName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -686,11 +545,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredFragment;
-      if (parameterElement is DefaultParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode;
-      } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
-        parameterElement.constantInitializer = _newNode;
-      }
+      parameterElement?.constantInitializer = _newNode;
       return true;
     }
     return visitNode(node);
@@ -725,7 +580,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool? visitDotShorthandPropertyAccess(
-      covariant DotShorthandPropertyAccessImpl node) {
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     if (identical(node.propertyName, _oldNode)) {
       node.propertyName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -757,7 +613,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitEnumConstantDeclaration(
-      covariant EnumConstantDeclarationImpl node) {
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     return visitAnnotatedNode(node);
   }
 
@@ -911,7 +768,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitForPartsWithDeclarations(
-      covariant ForPartsWithDeclarationsImpl node) {
+    covariant ForPartsWithDeclarationsImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;
@@ -964,7 +822,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionDeclarationStatement(
-      covariant FunctionDeclarationStatementImpl node) {
+    covariant FunctionDeclarationStatementImpl node,
+  ) {
     if (identical(node.functionDeclaration, _oldNode)) {
       node.functionDeclaration = _newNode as FunctionDeclarationImpl;
       return true;
@@ -989,7 +848,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionExpressionInvocation(
-      covariant FunctionExpressionInvocationImpl node) {
+    covariant FunctionExpressionInvocationImpl node,
+  ) {
     if (identical(node.function, _oldNode)) {
       node.function = _newNode as ExpressionImpl;
       return true;
@@ -1032,7 +892,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as TypeAnnotationImpl;
       return true;
@@ -1157,7 +1018,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node) {
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as ConstructorNameImpl;
       return true;
@@ -1173,7 +1035,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitInterpolationExpression(
-      covariant InterpolationExpressionImpl node) {
+    covariant InterpolationExpressionImpl node,
+  ) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
       return true;
@@ -1218,7 +1081,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (identical(node.name2, _oldNode)) {
+    if (identical(node.name, _oldNode)) {
       node.name = _newNode as LibraryIdentifierImpl;
       return true;
     }
@@ -1344,7 +1207,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitParenthesizedExpression(
-      covariant ParenthesizedExpressionImpl node) {
+    covariant ParenthesizedExpressionImpl node,
+  ) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
       return true;
@@ -1448,7 +1312,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
@@ -1460,7 +1325,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     if (_replaceInList(node.fields)) {
       return true;
     }
@@ -1469,7 +1335,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
@@ -1481,7 +1348,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRedirectingConstructorInvocation(
-      covariant RedirectingConstructorInvocationImpl node) {
+    covariant RedirectingConstructorInvocationImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -1566,7 +1434,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitSuperConstructorInvocation(
-      covariant SuperConstructorInvocationImpl node) {
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -1664,7 +1533,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitTopLevelVariableDeclaration(
-      covariant TopLevelVariableDeclarationImpl node) {
+    covariant TopLevelVariableDeclarationImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;
@@ -1705,7 +1575,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitTypeLiteral(covariant TypeLiteralImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.typeName = _newNode as NamedTypeImpl;
+      node.type = _newNode as NamedTypeImpl;
       return true;
     }
     return visitNode(node);
@@ -1750,7 +1620,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitVariableDeclarationList(
-      covariant VariableDeclarationListImpl node) {
+    covariant VariableDeclarationListImpl node,
+  ) {
     if (identical(node.type, _oldNode)) {
       node.type = _newNode as TypeAnnotationImpl;
       return true;
@@ -1762,7 +1633,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitVariableDeclarationStatement(
-      covariant VariableDeclarationStatementImpl node) {
+    covariant VariableDeclarationStatementImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;

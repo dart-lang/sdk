@@ -671,13 +671,15 @@ class JSArray<E> extends JavaScriptObject
 /// 'isGrowable' and 'isMutable' checks into the getInterceptor implementation
 /// so these classes can have specialized implementations. Doing so will
 /// challenge many assumptions in the JS backend.
-class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable<E> {}
+abstract class JSMutableArray<E> extends JSArray<E>
+    implements JSMutableIndexable<E> {}
 
-class JSFixedArray<E> extends JSMutableArray<E> {}
+final class JSFixedArray<E> extends JSMutableArray<E> {}
 
-class JSExtendableArray<E> extends JSMutableArray<E> {}
+final class JSExtendableArray<E> extends JSMutableArray<E> {}
 
-class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.
+final class JSUnmodifiableArray<E>
+    extends JSArray<E> {} // Already is JSIndexable.
 
 /// An [Iterator] that iterates a JSArray.
 ///

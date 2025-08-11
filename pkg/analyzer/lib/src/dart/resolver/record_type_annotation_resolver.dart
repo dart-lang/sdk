@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -13,19 +13,19 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
-  final ErrorReporter errorReporter;
-  final LibraryElement2 libraryElement;
+  final DiagnosticReporter _diagnosticReporter;
+  final LibraryElement libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,
-    required this.errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required this.libraryElement,
-  });
+  }) : _diagnosticReporter = diagnosticReporter;
 
   bool get isWildCardVariablesEnabled =>
       libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
@@ -47,9 +47,13 @@ class RecordTypeAnnotationResolver {
 
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInType(
-                  errorReporter.source, field, previousField));
+          _diagnosticReporter.reportError(
+            DiagnosticFactory().duplicateFieldDefinitionInType(
+              _diagnosticReporter.source,
+              field,
+              previousField,
+            ),
+          );
         } else {
           usedNames[name] = field;
         }
@@ -68,7 +72,7 @@ class RecordTypeAnnotationResolver {
         if (name.startsWith('_')) {
           // Positional record fields named `_` are legal w/ wildcards.
           if (!isPositionalWildCard(field, name)) {
-            errorReporter.atToken(
+            _diagnosticReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
             );
@@ -78,14 +82,15 @@ class RecordTypeAnnotationResolver {
           if (index != null) {
             if (index < positionalCount &&
                 positionalFields.indexOf(field) != index) {
-              errorReporter.atToken(
+              _diagnosticReporter.atToken(
                 nameToken,
                 CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
-              name)) {
-            errorReporter.atToken(
+            name,
+          )) {
+            _diagnosticReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
             );
@@ -102,25 +107,26 @@ class RecordTypeAnnotationResolver {
   }
 
   void _buildType(RecordTypeAnnotationImpl node) {
-    var positionalFields = node.positionalFields.map((field) {
-      return RecordTypePositionalFieldImpl(
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var positionalFields =
+        node.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(type: field.type.typeOrThrow);
+        }).toList();
 
-    var namedFields = node.namedFields?.fields.map((field) {
-      return RecordTypeNamedFieldImpl(
-        name: field.name.lexeme,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var namedFields =
+        node.namedFields?.fields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name.lexeme,
+            type: field.type.typeOrThrow,
+          );
+        }).toList();
 
     node.type = RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields ?? const [],
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
+      nullabilitySuffix:
+          node.question != null
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
     );
   }
 }

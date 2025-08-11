@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/crashes/crash_03/main.dart:7:57: Error: Type 'MouseTrackerAnnotation' not found.
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:11:57: Error: Type 'MouseTrackerAnnotation' not found.
 // mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
 //                                                         ^^^^^^^^^^^^^^^^^^^^^^
 //
@@ -28,7 +28,7 @@ abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin = mai:
   synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
     : super mai::RenderBox::•()
     ;
-  mixin-super-stub method hitTestSelf(self::Offset position) → core::bool
+  synthetic mixin-super-stub method hitTestSelf(self::Offset position) → core::bool
     return super.{self::_PlatformViewGestureMixin::hitTestSelf}(position);
 }
 static method main() → dynamic
@@ -38,7 +38,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/crashes/crash_03/main_lib.dart:2:20: Error: Type 'Offset' not found.
+// pkg/front_end/testcases/general/crashes/crash_03/main_lib.dart:6:20: Error: Type 'Offset' not found.
 //   bool hitTestSelf(Offset position) => false;
 //                    ^^^^^^
 //

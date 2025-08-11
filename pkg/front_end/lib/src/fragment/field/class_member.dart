@@ -16,7 +16,7 @@ class _FieldClassMember implements ClassMember {
   _FieldClassMember(this._builder, this._fragment, {required this.forSetter});
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -25,9 +25,6 @@ class _FieldClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _fragment.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -104,16 +101,6 @@ class _FieldClassMember implements ClassMember {
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
 
   @override
-  bool get isField => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => false;
-
-  @override
-  bool get isInternalImplementation => false;
-
-  @override
   bool get isNoSuchMethodForwarder => false;
 
   @override
@@ -178,11 +165,11 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  _SynthesizedFieldClassMember(
-      this._builder, this._member, this._name, this._kind, this.memberKind);
-
   @override
-  bool get isInternalImplementation => _kind.isInternalImplementation;
+  final UriOffsetLength uriOffset;
+
+  _SynthesizedFieldClassMember(this._builder, this._member, this._name,
+      this._kind, this.memberKind, this.uriOffset);
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
@@ -204,10 +191,11 @@ class _SynthesizedFieldClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
         getMember(membersBuilder), memberKind,
-        isDeclaredAsField: _builder.isField);
+        isDeclaredAsField: isDeclaredAsField(_builder, forSetter: forSetter));
   }
 
   @override
@@ -252,18 +240,9 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isStatic => _builder.isStatic;
 
   @override
-  bool get isField => _member is Field;
-
-  @override
   bool get isSetter {
     Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Setter;
-  }
-
-  @override
-  bool get isGetter {
-    Member procedure = _member;
-    return procedure is Procedure && procedure.kind == ProcedureKind.Getter;
   }
 
   @override
@@ -279,12 +258,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   String get fullNameForErrors => _builder.fullNameForErrors;
-
-  @override
-  Uri get fileUri => _builder.fileUri;
-
-  @override
-  int get charOffset => _builder.fileOffset;
 
   @override
   bool get isAbstract => _member.isAbstract;
@@ -323,23 +296,12 @@ class _SynthesizedFieldClassMember implements ClassMember {
 }
 
 enum _SynthesizedFieldMemberKind {
-  /// A `isSet` field used for late lowering.
-  LateIsSet(isInternalImplementation: true),
-
-  /// A field used for the value of a late lowered field.
-  LateField(isInternalImplementation: true),
-
   /// A getter or setter used for late lowering.
-  LateGetterSetter(isInternalImplementation: false),
+  LateGetterSetter,
 
   /// A getter or setter used for abstract or external fields.
-  AbstractExternalGetterSetter(isInternalImplementation: false),
+  AbstractExternalGetterSetter,
 
   /// A getter for an extension type declaration representation field.
-  RepresentationField(isInternalImplementation: false),
-  ;
-
-  final bool isInternalImplementation;
-
-  const _SynthesizedFieldMemberKind({required this.isInternalImplementation});
+  RepresentationField,
 }

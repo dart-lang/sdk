@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, ClassRef;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class NavClassMenuElement extends CustomElement implements Renderable {
@@ -17,13 +19,13 @@ class NavClassMenuElement extends CustomElement implements Renderable {
 
   late M.IsolateRef _isolate;
   late M.ClassRef _cls;
-  List<Element> _content = const [];
+  List<HTMLElement> _content = const [];
 
   M.IsolateRef get isolate => _isolate;
   M.ClassRef get cls => _cls;
-  List<Element> get content => _content;
+  List<HTMLElement> get content => _content;
 
-  set content(Iterable<Element> value) {
+  set content(Iterable<HTMLElement> value) {
     _content = value.toList();
     _r.dirty();
   }
@@ -48,12 +50,12 @@ class NavClassMenuElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
+    children = <HTMLElement>[
       navMenu(cls.name!,
           content: _content, link: Uris.inspect(isolate, object: cls))
     ];

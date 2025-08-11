@@ -16,7 +16,7 @@ import 'declaration.dart';
 class FactoryBodyBuilderContext extends BodyBuilderContext {
   final SourceFactoryBuilder _builder;
 
-  final FactoryDeclaration _declaration;
+  final FactoryFragmentDeclaration _declaration;
 
   final Member _member;
 
@@ -38,7 +38,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   TypeBuilder get returnType => _declaration.returnType;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override

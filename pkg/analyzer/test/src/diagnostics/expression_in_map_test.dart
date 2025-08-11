@@ -16,18 +16,20 @@ main() {
 @reflectiveTest
 class ExpressionInMapTest extends PubPackageResolutionTest {
   test_map() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var m = <String, int>{'a', 'b' : 2};
-''', [
-      error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3)],
+    );
   }
 
   test_map_const() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const m = <String, int>{'a', 'b' : 2};
-''', [
-      error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 24, 3)],
+    );
   }
 }

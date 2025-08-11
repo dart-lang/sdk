@@ -17,21 +17,28 @@ main() {
 class NoGenerativeConstructorsInSuperclassTest
     extends PubPackageResolutionTest {
   test_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
   B() : super();
 }
-''', [
-      error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_explicit_oneFactory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() => throw '';
 }
@@ -39,10 +46,15 @@ class B extends A {
   B() : super();
   factory B.second() => throw '';
 }
-''', [
-      error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_hasFactories() async {
@@ -69,29 +81,41 @@ class B extends A {
   }
 
   test_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
   B();
 }
-''', [
-      error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_implicit2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
 }
-''', [
-      error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 }

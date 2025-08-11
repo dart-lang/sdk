@@ -473,10 +473,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   _ClassMirror? _trueSuperclassField;
   _ClassMirror? get _trueSuperclass {
     if (_trueSuperclassField == null) {
-      Type? supertype =
-          isOriginalDeclaration
-              ? _supertype(_reflectedType)
-              : _supertypeInstantiated(_reflectedType);
+      Type? supertype = isOriginalDeclaration
+          ? _supertype(_reflectedType)
+          : _supertypeInstantiated(_reflectedType);
       if (supertype == null) {
         // Object has no superclass.
         return null;
@@ -497,10 +496,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     var i = _superinterfaces;
     if (i != null) return i;
 
-    var interfaceTypes =
-        isOriginalDeclaration
-            ? _nativeInterfaces(_reflectedType)
-            : _nativeInterfacesInstantiated(_reflectedType);
+    var interfaceTypes = isOriginalDeclaration
+        ? _nativeInterfaces(_reflectedType)
+        : _nativeInterfacesInstantiated(_reflectedType);
     if (_isTransformedMixinApplication) {
       interfaceTypes = interfaceTypes.sublist(0, interfaceTypes.length - 1);
     }
@@ -950,9 +948,8 @@ class _TypeVariableMirror extends _DeclarationMirror
   DeclarationMirror get owner {
     var o = _owner;
     if (o != null) return o;
-    return _owner =
-        (_TypeVariableMirror_owner(_reflectee) as TypeMirror)
-            .originalDeclaration;
+    return _owner = (_TypeVariableMirror_owner(_reflectee) as TypeMirror)
+        .originalDeclaration;
   }
 
   bool get isStatic => false;

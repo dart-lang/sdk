@@ -37,7 +37,7 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:28: Error: Expected 0 type arguments.
   factory Link.create1() = LinkFactory<T>.create;
                            ^";
-  static method _#create1#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create1#tearOff::T%>
+  static synthetic method _#create1#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create1#tearOff::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:28: Error: Expected 0 type arguments.
   factory Link.create1() = LinkFactory<T>.create;
                            ^";
@@ -45,7 +45,7 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
   factory Link.create2() = LinkFactory<T, T>.create;
                            ^";
-  static method _#create2#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create2#tearOff::T%>
+  static synthetic method _#create2#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create2#tearOff::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
   factory Link.create2() = LinkFactory<T, T>.create;
                            ^";
@@ -55,19 +55,19 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
   factory Link.create3(int i) = LinkFactory.create;
                                 ^";
-  static method _#create3#tearOff<T extends core::Object? = dynamic>(core::int i) → self::Link<self::Link::_#create3#tearOff::T%>
+  static synthetic method _#create3#tearOff<T extends core::Object? = dynamic>(core::int i) → self::Link<self::Link::_#create3#tearOff::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:8:33: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function(int)'.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
   factory Link.create3(int i) = LinkFactory.create;
                                 ^";
-  static factory create4<T extends core::Object? = dynamic>({core::int i = null}) → self::Link<self::Link::create4::T%>
+  static factory create4<T extends core::Object? = dynamic>({erroneously-initialized core::int i = null}) → self::Link<self::Link::create4::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
   factory Link.create4({int i}) = LinkFactory.create;
                                   ^";
-  static method _#create4#tearOff<T extends core::Object? = dynamic>({core::int i}) → self::Link<self::Link::_#create4#tearOff::T%>
+  static synthetic method _#create4#tearOff<T extends core::Object? = dynamic>({core::int i}) → self::Link<self::Link::_#create4#tearOff::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
@@ -77,7 +77,7 @@ abstract class Link<T extends core::Object? = dynamic> extends core::Object {
 class LinkFactory extends core::Object {
   static factory create() → self::LinkFactory
     ;
-  static method _#create#tearOff() → self::LinkFactory
+  static synthetic method _#create#tearOff() → self::LinkFactory
     return self::LinkFactory::create();
 }
 static method main() → dynamic

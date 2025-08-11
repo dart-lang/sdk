@@ -32,10 +32,7 @@ class BlazeFileUriResolver extends ResourceUriResolver {
   @override
   Uri pathToUri(String path) {
     var pathContext = workspace.provider.pathContext;
-    for (var genRoot in [
-      ...workspace.binPaths,
-      workspace.genfiles,
-    ]) {
+    for (var genRoot in [...workspace.binPaths, workspace.genfiles]) {
       if (pathContext.isWithin(genRoot, path)) {
         String relative = pathContext.relative(path, from: genRoot);
         var writablePath = pathContext.join(workspace.root, relative);
@@ -68,8 +65,8 @@ class BlazePackageUriResolver extends UriResolver {
   final Map<Uri, Source?> _sourceCache = HashMap();
 
   BlazePackageUriResolver(BlazeWorkspace workspace)
-      : _workspace = workspace,
-        _context = workspace.provider.pathContext;
+    : _workspace = workspace,
+      _context = workspace.provider.pathContext;
 
   @override
   Uri? pathToUri(String path) {
@@ -77,7 +74,7 @@ class BlazePackageUriResolver extends UriResolver {
     for (var root in [
       ..._workspace.binPaths,
       _workspace.genfiles,
-      _workspace.root
+      _workspace.root,
     ]) {
       var uriParts = _restoreUriParts(root, path);
       if (uriParts != null) {
@@ -138,7 +135,13 @@ class BlazePackageUriResolver extends UriResolver {
 
     if (!packageName.contains('.')) {
       return _context.join(
-          _workspace.root, 'third_party', 'dart', packageName, 'lib', filePath);
+        _workspace.root,
+        'third_party',
+        'dart',
+        packageName,
+        'lib',
+        filePath,
+      );
     } else {
       String packagePath = packageName.replaceAll('.', _context.separator);
       return _context.join(_workspace.root, packagePath, 'lib', filePath);
@@ -230,11 +233,10 @@ class BlazeWorkspace extends Workspace
     this.genfiles, {
     required bool lookForBuildFileSubstitutes,
     required bool provideLanguageVersion,
-  })  : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
-        _provideLanguageVersion = provideLanguageVersion,
-        _languageVersion = provideLanguageVersion
-            ? _readLanguageVersion(provider, root)
-            : null;
+  }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
+       _provideLanguageVersion = provideLanguageVersion,
+       _languageVersion =
+           provideLanguageVersion ? _readLanguageVersion(provider, root) : null;
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.
@@ -281,13 +283,16 @@ class BlazeWorkspace extends Workspace
       // symlinks and not the [binPaths] or [genfiles] to make sure we use the
       // files corresponding to the most recent build configuration and get
       // consistent view of all the generated files.
-      var generatedCandidates = ['blaze-genfiles', 'blaze-bin']
-          .map((prefix) => context.join(root, context.join(prefix, relative)));
+      var generatedCandidates = [
+        'blaze-genfiles',
+        'blaze-bin',
+      ].map((prefix) => context.join(root, context.join(prefix, relative)));
       for (var path in generatedCandidates) {
         File file = provider.getFile(path);
         if (file.exists) {
-          _blazeCandidateFiles
-              .add(BlazeSearchInfo(relative, generatedCandidates.toList()));
+          _blazeCandidateFiles.add(
+            BlazeSearchInfo(relative, generatedCandidates.toList()),
+          );
           return file;
         }
       }
@@ -298,8 +303,9 @@ class BlazeWorkspace extends Workspace
       }
       // If we couldn't find the file, assume that it has not yet been
       // generated, so send an event with all the paths that we tried.
-      _blazeCandidateFiles
-          .add(BlazeSearchInfo(relative, generatedCandidates.toList()));
+      _blazeCandidateFiles.add(
+        BlazeSearchInfo(relative, generatedCandidates.toList()),
+      );
       // Not generated, return the default one.
       return writableFile;
     } catch (_) {
@@ -327,14 +333,17 @@ class BlazeWorkspace extends Workspace
     for (var binPath in [genfiles, ...binPaths]) {
       if (context.isWithin(binPath, directoryPath)) {
         return findPackageFor(
-            context.join(root, context.relative(filePath, from: binPath)));
+          context.join(root, context.relative(filePath, from: binPath)),
+        );
       }
     }
 
     /// Return the package rooted at [folder].
     BlazeWorkspacePackage? packageRootedAt(Folder folder) {
       var uriParts = packageUriResolver._restoreUriParts(
-          root, '${folder.path}/lib/__fake__.dart');
+        root,
+        '${folder.path}/lib/__fake__.dart',
+      );
       String? packageName;
       if (uriParts != null && uriParts.isNotEmpty) {
         packageName = uriParts[0];
@@ -344,7 +353,7 @@ class BlazeWorkspace extends Workspace
       if (packageName == null) {
         return null;
       }
-      var package = BlazeWorkspacePackage(packageName, folder.path, this);
+      var package = BlazeWorkspacePackage(packageName, folder, this);
       _directoryToPackage[directoryPath] = package;
       return package;
     }
@@ -394,8 +403,9 @@ class BlazeWorkspace extends Workspace
     String relative = context.relative(folder.path, from: root);
 
     for (String bin in binPaths) {
-      Folder binChild =
-          provider.getFolder(context.normalize(context.join(bin, relative)));
+      Folder binChild = provider.getFolder(
+        context.normalize(context.join(bin, relative)),
+      );
       if (binChild.exists &&
           binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
         // [folder]'s sister folder within [bin] contains a ".packages" file.
@@ -458,9 +468,13 @@ class BlazeWorkspace extends Workspace
         var binPaths = _findBinFolderPaths(parent);
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
         return BlazeWorkspace._(
-            provider, root, binPaths, context.join(root, 'blaze-genfiles'),
-            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
-            provideLanguageVersion: provideLanguageVersion);
+          provider,
+          root,
+          binPaths,
+          context.join(root, 'blaze-genfiles'),
+          lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
+          provideLanguageVersion: provideLanguageVersion,
+        );
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
@@ -469,9 +483,13 @@ class BlazeWorkspace extends Workspace
         var binPaths = _findBinFolderPaths(folder);
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
         return BlazeWorkspace._(
-            provider, root, binPaths, context.join(root, 'blaze-genfiles'),
-            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
-            provideLanguageVersion: provideLanguageVersion);
+          provider,
+          root,
+          binPaths,
+          context.join(root, 'blaze-genfiles'),
+          lookForBuildFileSubstitutes: lookForBuildFileSubstitutes,
+          provideLanguageVersion: provideLanguageVersion,
+        );
       }
     }
 
@@ -483,9 +501,7 @@ class BlazeWorkspace extends Workspace
   /// This method should be used during build in google3, when we know for
   /// sure the workspace root, but [file_paths.blazeWorkspaceMarker] is not
   /// available.
-  static BlazeWorkspace forBuild({
-    required Folder root,
-  }) {
+  static BlazeWorkspace forBuild({required Folder root}) {
     var provider = root.provider;
     var blazeBin = root.getChildAssumingFolder('blaze-bin');
     var blazeGenfiles = root.getChildAssumingFolder('blaze-genfiles');
@@ -493,8 +509,14 @@ class BlazeWorkspace extends Workspace
     var binPaths = _findBinFolderPaths(root);
     binPaths.add(blazeBin.path);
 
-    return BlazeWorkspace._(provider, root.path, binPaths, blazeGenfiles.path,
-        lookForBuildFileSubstitutes: true, provideLanguageVersion: true);
+    return BlazeWorkspace._(
+      provider,
+      root.path,
+      binPaths,
+      blazeGenfiles.path,
+      lookForBuildFileSubstitutes: true,
+      provideLanguageVersion: true,
+    );
   }
 
   /// Find the "bin" folder path, by searching for it.
@@ -534,9 +556,13 @@ class BlazeWorkspace extends Workspace
     String rootPath,
   ) {
     var file = resourceProvider.getFile(
-      resourceProvider.pathContext.joinAll(
-        [rootPath, 'dart', 'build_defs', 'bzl', 'language.bzl'],
-      ),
+      resourceProvider.pathContext.joinAll([
+        rootPath,
+        'dart',
+        'build_defs',
+        'bzl',
+        'language.bzl',
+      ]),
     );
 
     String content;
@@ -560,12 +586,12 @@ class BlazeWorkspace extends Workspace
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [BlazeWorkspace].
-class BlazeWorkspacePackage extends WorkspacePackage {
+class BlazeWorkspacePackage extends WorkspacePackageImpl {
   /// A prefix for any URI of a path in this package.
   final String _uriPrefix;
 
   @override
-  final String root;
+  final Folder root;
 
   @override
   final BlazeWorkspace workspace;
@@ -574,7 +600,7 @@ class BlazeWorkspacePackage extends WorkspacePackage {
   Version? _languageVersion;
 
   BlazeWorkspacePackage(String packageName, this.root, this.workspace)
-      : _uriPrefix = 'package:$packageName/';
+    : _uriPrefix = 'package:$packageName/';
 
   @override
   List<String>? get enabledExperiments {
@@ -602,9 +628,11 @@ class BlazeWorkspacePackage extends WorkspacePackage {
 
   @override
   bool isInTestDirectory(File file) {
-    var resourceProvider = workspace.provider;
-    var packageRoot = resourceProvider.getFolder(root);
-    return packageRoot.getChildAssumingFolder('test').contains(file.path);
+    // If the package itself is a "testing" package, then [file] counts as being
+    // "in a test directory."
+    return root.shortName == 'testing' ||
+        root.path.contains('/testing/') ||
+        root.getChildAssumingFolder('test').contains(file.path);
   }
 
   @override
@@ -617,33 +645,38 @@ class BlazeWorkspacePackage extends WorkspacePackage {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
 
-    var libFolder = workspace.provider.pathContext.join(root, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    var libFolder = root.getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
 
-    var relativeRoot =
-        workspace.provider.pathContext.relative(root, from: workspace.root);
+    var relativeRoot = workspace.provider.pathContext.relative(
+      root.path,
+      from: workspace.root,
+    );
     for (var binPath in workspace.binPaths) {
-      libFolder =
-          workspace.provider.pathContext.join(binPath, relativeRoot, 'lib');
-      if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      Folder bin = workspace.provider.getFolder(binPath);
+      libFolder = bin
+          .getChildAssumingFolder(relativeRoot)
+          .getChildAssumingFolder('lib');
+      if (libFolder.contains(filePath)) {
         // A file in "$bin/lib" is public iff it is not in "$bin/lib/src".
-        var libSrcFolder =
-            workspace.provider.pathContext.join(libFolder, 'src');
-        return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+        var libSrcFolder = libFolder.getChildAssumingFolder('src');
+        return !libSrcFolder.contains(filePath);
       }
     }
 
-    libFolder = workspace.provider.pathContext
-        .join(workspace.genfiles, relativeRoot, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+    libFolder = workspace.provider
+        .getFolder(workspace.genfiles)
+        .getChildAssumingFolder(relativeRoot)
+        .getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
       // A file in "$genfiles/lib" is public iff it is not in
       // "$genfiles/lib/src".
-      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
 
     return false;

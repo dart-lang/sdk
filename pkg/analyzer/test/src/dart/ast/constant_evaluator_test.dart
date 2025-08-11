@@ -270,8 +270,9 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_literal_map() {
-    var value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
-        as Map<Object, Object>;
+    var value =
+        _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
+            as Map<Object, Object>;
     expect(value.length, 3);
     expect(value["a"], "m");
     expect(value["b"], "n");
@@ -348,7 +349,7 @@ void f() {
 ''');
 
     var parseResult = parseUnit(path);
-    expect(parseResult.errors, isEmpty);
+    expect(parseResult.diagnostics, isEmpty);
 
     var findNode = FindNode(parseResult.content, parseResult.unit);
     var expression = findNode.parenthesized('); // ref').expression;

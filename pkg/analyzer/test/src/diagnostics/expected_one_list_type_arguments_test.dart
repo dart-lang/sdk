@@ -24,11 +24,12 @@ main() {
   }
 
   test_two_type_arguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   <int, int>[];
-}''', [
-      error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10)],
+    );
   }
 }

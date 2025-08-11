@@ -128,4 +128,82 @@ void main() {
       );
     });
   });
+
+  group('ClientServiceInfo', () {
+    test('toJson and fromJson', () {
+      final serviceInfo = ClientServiceInfo(
+        'testService',
+        {
+          'method1': ClientServiceMethodInfo('method1', {'capability': true}),
+          'method2': ClientServiceMethodInfo('method2'),
+        },
+      );
+
+      final json = serviceInfo.toJson();
+      final deserialized = ClientServiceInfo.fromJson(json);
+
+      expect(deserialized.name, 'testService');
+      expect(deserialized.methods.length, 2);
+      expect(deserialized.methods['method1']?.name, 'method1');
+      expect(
+        deserialized.methods['method1']?.capabilities,
+        {'capability': true},
+      );
+      expect(deserialized.methods['method2']?.name, 'method2');
+      expect(deserialized.methods['method2']?.capabilities, isNull);
+    });
+
+    test('fromJson throws with invalid json', () {
+      expect(
+        () => ClientServiceInfo.fromJson({
+          'name': 'testService',
+          'methods': [
+            {'bad': 'format'}
+          ],
+        }),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(
+        () => ClientServiceInfo.fromJson({
+          'methods': [
+            {'name': 'method1'}
+          ],
+        }),
+        throwsA(isA<ArgumentError>()),
+        reason: 'Missing "name" field in top-level map',
+      );
+    });
+  });
+
+  group('ClientServiceMethodInfo', () {
+    test('toJson and parse', () {
+      final methodInfo =
+          ClientServiceMethodInfo('testMethod', {'capability': 123});
+
+      final json = methodInfo.toJson();
+      final deserialized = ClientServiceMethodInfo.fromJson(json);
+
+      expect(deserialized.name, 'testMethod');
+      expect(deserialized.capabilities, {'capability': 123});
+    });
+
+    test('toJson and parse without capabilities', () {
+      final methodInfo = ClientServiceMethodInfo('testMethod');
+
+      final json = methodInfo.toJson();
+      final deserialized = ClientServiceMethodInfo.fromJson(json);
+
+      expect(deserialized.name, 'testMethod');
+      expect(deserialized.capabilities, isNull);
+    });
+  });
+
+  test('ClientServiceMethodInfo throws with invalid json', () {
+    expect(
+      () => ClientServiceMethodInfo.fromJson({
+        'bad': 'format',
+      }),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
 }

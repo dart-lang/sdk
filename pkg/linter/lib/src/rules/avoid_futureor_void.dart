@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/variance_checker.dart';
@@ -16,17 +19,14 @@ class AvoidFutureOrVoid extends LintRule {
     : super(
         name: LintNames.avoid_futureor_void,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_futureor_void;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_futureor_void;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAsExpression(this, visitor);
     registry.addCastPattern(this, visitor);
@@ -61,7 +61,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
       var typeArguments = staticType.typeArguments;
       if (typeArguments.length != 1) return; // Just to be safe.
       if (typeArguments.first is VoidType) {
-        rule.reportLint(typeAnnotation);
+        rule.reportAtNode(typeAnnotation);
       }
     }
   }
@@ -69,7 +69,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   final VarianceChecker checker;
 
   _Visitor(this.rule, this.context) : checker = _FutureOrVarianceChecker(rule);

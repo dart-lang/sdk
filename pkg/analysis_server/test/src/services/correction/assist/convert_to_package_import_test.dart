@@ -17,16 +17,16 @@ void main() {
 @reflectiveTest
 class ConvertToPackageImportTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
+  AssistKind get kind => DartAssistKind.convertToPackageImport;
 
   Future<void> test_fileName_onImport() async {
     newFile('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
-import 'foo.dart';
+^import 'foo.dart';
 ''');
     // Validate assist is on import keyword too.
-    await assertHasAssistAt('import', '''
+    await assertHasAssist('''
 import 'package:test/foo.dart';
 ''');
   }
@@ -35,9 +35,9 @@ import 'package:test/foo.dart';
     newFile('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
-import 'foo.dart';
+import '^foo.dart';
 ''');
-    await assertHasAssistAt('foo.dart', '''
+    await assertHasAssist('''
 import 'package:test/foo.dart';
 ''');
   }
@@ -45,30 +45,30 @@ import 'package:test/foo.dart';
   Future<void> test_invalidUri() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-import ':[invalidUri]';
+import ':[^invalidUri]';
 ''');
-    await assertNoAssistAt('invalid');
+    await assertNoAssist();
   }
 
   Future<void> test_nonPackage_Uri() async {
     newFile('$testPackageLibPath/foo.dart', '');
     testFilePath = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
-import 'dart:core';
+/*0*/import '/*1*/dart:core';
 ''');
 
-    await assertNoAssistAt('dart:core');
-    await assertNoAssistAt('import');
+    await assertNoAssist();
+    await assertNoAssist(1);
   }
 
   Future<void> test_packageUri() async {
     newFile('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
-import 'package:test/foo.dart';
+/*0*/import 'package:test//*1*/foo.dart';
 ''');
-    await assertNoAssistAt('foo.dart');
-    await assertNoAssistAt('import');
+    await assertNoAssist();
+    await assertNoAssist(1);
   }
 
   Future<void> test_path() async {
@@ -77,9 +77,9 @@ import 'package:test/foo.dart';
     testFilePath = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
-import '../foo/bar.dart';
+import '../foo/^bar.dart';
 ''');
-    await assertHasAssistAt('bar.dart', '''
+    await assertHasAssist('''
 import 'package:test/foo/bar.dart';
 ''');
   }

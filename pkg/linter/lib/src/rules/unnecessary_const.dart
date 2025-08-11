@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,14 +20,12 @@ class UnnecessaryConst extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_const;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_const;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addRecordLiteral(this, visitor);
@@ -38,11 +38,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null) return;
+    if (node.inConstantContext) {
+      rule.reportAtToken(constKeyword);
+    }
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.keyword?.type != Keyword.CONST) return;
+    var keyword = node.keyword;
+    if (keyword == null || keyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.keyword);
+      rule.reportAtToken(keyword);
     }
   }
 
@@ -54,10 +66,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    if (node.constKeyword == null) return;
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.constKeyword);
+      rule.reportAtToken(constKeyword);
     }
   }
 
@@ -68,10 +81,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitTypedLiteral(TypedLiteral node) {
-    if (node.constKeyword?.type != Keyword.CONST) return;
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null || constKeyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.constKeyword);
+      rule.reportAtToken(constKeyword);
     }
   }
 }

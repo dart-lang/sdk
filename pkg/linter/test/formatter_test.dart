@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
-import 'package:linter/src/analyzer.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -24,7 +24,7 @@ void defineTests() {
     });
 
     group('reporter', () {
-      late AnalysisErrorInfo info;
+      late DiagnosticInfo info;
       late StringBuffer out;
       late String sourcePath;
       late ReportFormatter reporter;
@@ -32,9 +32,9 @@ void defineTests() {
       setUp(() async {
         var lineInfo = LineInfo([3, 6, 9]);
 
-        var type = MockErrorType()..displayName = 'test';
+        var type = MockDiagnosticType()..displayName = 'test';
 
-        var code = TestErrorCode('mock_code', 'MSG')..type = type;
+        var code = TestDiagnosticCode('mock_code', 'MSG')..type = type;
 
         await d.dir('project', [
           d.file('foo.dart', '''
@@ -46,14 +46,14 @@ var z = 33;
         sourcePath = '${d.sandbox}/project/foo.dart';
         var source = MockSource(sourcePath);
 
-        var error = AnalysisError.tmp(
+        var error = Diagnostic.tmp(
           source: source,
           offset: 10,
           length: 3,
-          errorCode: code,
+          diagnosticCode: code,
         );
 
-        info = AnalysisErrorInfo([error], lineInfo);
+        info = DiagnosticInfo([error], lineInfo);
         out = StringBuffer();
         reporter = ReportFormatter([info], out)..write();
       });

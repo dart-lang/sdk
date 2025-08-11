@@ -30,8 +30,10 @@ Future<void> main([args, port]) async {
   final exitPort = ReceivePort();
   final replyPort = ReceivePort();
 
-  Isolate.spawn(isolateEntryPoint, ['hi', replyPort.sendPort],
-      onExit: exitPort.sendPort);
+  Isolate.spawn(isolateEntryPoint, [
+    'hi',
+    replyPort.sendPort,
+  ], onExit: exitPort.sendPort);
 
   replyPort.listen((msg) {
     replyPort.close();

@@ -66,13 +66,17 @@ void f() async {
   doSomething()
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 Future doSomething() => Future.value('');
 
 void f() async {
   await doSomething()
 }
-''', errorFilter: (error) => error.errorCode != ParserErrorCode.EXPECTED_TOKEN);
+''',
+      errorFilter:
+          (error) => error.diagnosticCode != ParserErrorCode.EXPECTED_TOKEN,
+    );
   }
 
   Future<void> test_nonBoolCondition_futureBool() async {
@@ -112,6 +116,41 @@ class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_AWAIT;
 
+  Future<void> test_forIn_futureInt() async {
+    await resolveTestCode('''
+void foo(Future<int> future) async {
+  for (var _ in future) {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_forIn_futureIterable() async {
+    await resolveTestCode('''
+void foo(Future<Iterable<String>> iterable) async {
+  for (var _ in iterable) {}
+}
+''');
+    await assertHasFix('''
+void foo(Future<Iterable<String>> iterable) async {
+  for (var _ in await iterable) {}
+}
+''');
+  }
+
+  Future<void> test_forIn_stream() async {
+    await resolveTestCode('''
+void foo(Stream<int> stream) async {
+  for (var _ in stream) {}
+}
+''');
+    await assertHasFix('''
+void foo(Stream<int> stream) async {
+  await for (var _ in stream) {}
+}
+''');
+  }
+
   Future<void> test_stringNamedParameter_futureInt() async {
     await resolveTestCode('''
 void foo({required String s}) {}
@@ -140,7 +179,7 @@ void foo({required String s}) {}
 
 Future<String> bar() async => '';
 
-void baz() {
+Future<void> baz() async {
   foo(s: await bar());
 }
 ''');
@@ -174,7 +213,7 @@ void foo(String s) {}
 
 Future<String> bar() async => '';
 
-void baz() {
+Future<void> baz() async {
   foo(await bar());
 }
 ''');
@@ -193,13 +232,14 @@ void baz() {
       '''
 Future<String> bar() async => '';
 
-void baz() {
+Future<void> baz() async {
   String? variable;
   variable = await bar();
 }
 ''',
       errorFilter:
-          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+          (error) =>
+              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 
@@ -213,7 +253,8 @@ void baz() {
 ''');
     await assertNoFix(
       errorFilter:
-          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+          (error) =>
+              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 
@@ -229,12 +270,13 @@ void baz() {
       '''
 Future<String> bar() async => '';
 
-void baz() {
+Future<void> baz() async {
   String variable = await bar();
 }
 ''',
       errorFilter:
-          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+          (error) =>
+              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 }

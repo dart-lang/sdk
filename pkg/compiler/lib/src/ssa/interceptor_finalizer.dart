@@ -62,8 +62,8 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
   }
 
   /// Returns `true` if [element] is an instance method that uses the
-  /// interceptor calling convention but the instance and interceptor arguments
-  /// will always be the same value.
+  /// interceptor calling convention but the interceptor argument will always be
+  /// the instance.
   bool usesSelfInterceptor(MemberEntity element) {
     if (!_interceptorData.isInterceptedMethod(element)) return false;
     ClassEntity cls = element.enclosingClass!;
@@ -101,6 +101,12 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
     thisParameter!.instructionType = receiverParameter!.instructionType;
     receiverParameter.block!.rewrite(receiverParameter, thisParameter);
     receiverParameter.sourceElement = const _RenameToUnderscore();
+
+    for (final instruction in thisParameter.usedBy) {
+      if (instruction is HInvoke) {
+        instruction.updateIsCallOnInterceptor();
+      }
+    }
   }
 
   @override
@@ -262,7 +268,8 @@ class SsaFinalizeInterceptors extends HBaseVisitor<void>
   }
 
   void _replaceReceiverArgumentWithDummy(HInvoke node, int receiverIndex) {
-    ConstantValue constant = DummyInterceptorConstantValue();
+    assert(!node.isCallOnInterceptor, 'node: $node');
+    ConstantValue constant = DummyConstantValue();
     HConstant dummy = _graph.addConstant(constant, _closedWorld);
     node.replaceInput(receiverIndex, dummy);
   }

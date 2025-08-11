@@ -711,19 +711,17 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   // NOTE: May use the same backing store.
   ModifiableFixedLengthList<E> _toModifiableFixedLengthList() {
-    final fixedData =
-        data.length == length
-            ? data
-            : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    final fixedData = data.length == length
+        ? data
+        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
     return ModifiableFixedLengthList<E>._withData(fixedData);
   }
 
   // NOTE: May use the same backing store.
   ImmutableList<E> _toUnmodifiableList() {
-    final fixedData =
-        data.length == length
-            ? data
-            : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    final fixedData = data.length == length
+        ? data
+        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
     return ImmutableList<E>._withData(fixedData);
   }
 }

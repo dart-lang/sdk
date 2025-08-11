@@ -23,6 +23,9 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
   bool get recordsOwnAnalytics => true;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   FutureOr<ErrorOr<ValidateRefactorResult>> execute(
     String path,
     String kind,

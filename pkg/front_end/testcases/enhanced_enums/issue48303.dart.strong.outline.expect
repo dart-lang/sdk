@@ -14,14 +14,14 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M1::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M1
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub method mixedInMethod1(core::int v) → core::int
+  synthetic mixin-super-stub method mixedInMethod1(core::int v) → core::int
     return super.{self::M1::mixedInMethod1}(v);
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic

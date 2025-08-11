@@ -53,7 +53,8 @@ class CallbackSpecializer {
         type: callExpr.getStaticType(_staticTypeContext),
         isSynthesized: true);
 
-    final jsified = jsifyValue(temp, _util, _staticTypeContext.typeEnvironment);
+    final jsified = jsifyValue(temp, _util.nullableWasmExternRefType, _util,
+        _staticTypeContext.typeEnvironment);
 
     return ReturnStatement(Let(temp, jsified));
   }
@@ -61,7 +62,7 @@ class CallbackSpecializer {
   /// Creates a callback trampoline for the given [function].
   ///
   /// This callback trampoline expects a Dart callback as its first argument,
-  /// then an integer value(double type) indicating the number of arguments
+  /// then an integer value (as `WasmI32`) indicating the number of arguments
   /// passed, then a "cast closure" if needed, followed by all of the arguments
   /// to the Dart callback as JS objects. Depending on [boxExternRef], the
   /// trampoline will `dartifyRaw` or box all incoming JS objects and then cast
@@ -81,8 +82,9 @@ class CallbackSpecializer {
     // needed.
     final callbackVariable = VariableDeclaration('callback',
         type: _util.nonNullableObjectType, isSynthesized: true);
-    final argumentsLength = VariableDeclaration('argumentsLength',
-        type: _util.coreTypes.doubleNonNullableRawType, isSynthesized: true);
+    final argumentsLengthWasmI32 = VariableDeclaration('argumentsLengthWasmI32',
+        type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
+        isSynthesized: true);
     final castClosure = VariableDeclaration('castClosure',
         type: _util.nonNullableObjectType, isSynthesized: true);
 
@@ -104,6 +106,24 @@ class CallbackSpecializer {
     // explicitly passed by the user, and then we dispatch to a Dart function
     // with the right number of arguments.
     List<Statement> body = [];
+
+    // Convert `WasmI32` argument to Dart `int`.
+    final argumentsLength = VariableDeclaration('argumentsLength',
+        type: _util.coreTypes.intNonNullableRawType,
+        isSynthesized: true,
+        initializer: InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(
+              argumentsLengthWasmI32,
+            ),
+            Name('toIntSigned'),
+            Arguments([]),
+            interfaceTarget: _util.wasmI32ToIntSigned,
+            functionType:
+                _util.wasmI32ToIntSigned.computeSignatureOrFunctionType()));
+
+    body.add(argumentsLength);
+
     if (castClosureArguments.isNotEmpty) {
       // Call the cast closure, but only if the arity is okay. In the case where
       // the arity is not sufficient, we end up coercing `undefined` to `null`,
@@ -133,8 +153,7 @@ class CallbackSpecializer {
         i >= function.requiredParameterCount;
         i--) {
       body.add(IfStatement(
-          _util.variableCheckConstant(
-              argumentsLength, DoubleConstant(i.toDouble())),
+          _util.variableCheckConstant(argumentsLength, IntConstant(i)),
           _generateDispatchCase(
               function, callbackVariable, positionalParameters, i,
               boxExternRef: boxExternRef),
@@ -151,7 +170,7 @@ class CallbackSpecializer {
     body.add(ExpressionStatement(Throw(StringConcatenation([
       StringLiteral('Too few arguments passed. '
           'Expected ${function.requiredParameterCount} or more, got '),
-      invokeMethod(argumentsLength, _util.numToIntTarget),
+      VariableGet(argumentsLength),
       StringLiteral(' instead.')
     ]))));
     Statement functionTrampolineBody = Block(body);
@@ -167,7 +186,7 @@ class CallbackSpecializer {
         FunctionNode(functionTrampolineBody,
             positionalParameters: [
               callbackVariable,
-              argumentsLength,
+              argumentsLengthWasmI32,
               if (castClosureArguments.isNotEmpty) castClosure,
               ...positionalParameters
             ],

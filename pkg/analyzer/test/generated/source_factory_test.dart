@@ -9,7 +9,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart'
     show SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,8 +33,9 @@ class AbsoluteUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri) {
     return FileSource(
-        resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
-        uri);
+      resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
+      uri,
+    );
   }
 }
 
@@ -48,8 +49,9 @@ class SourceFactoryTest with ResourceProviderMixin {
     File file1 = getFile("/some/file1.dart");
     File file2 = getFile("/some/file2.dart");
     Uri expected1 = Uri.parse("file:///my_file.dart");
-    SourceFactory factory =
-        SourceFactory([UriResolver_restoreUri(file1.path, expected1)]);
+    SourceFactory factory = SourceFactory([
+      UriResolver_restoreUri(file1.path, expected1),
+    ]);
     expect(factory.pathToUri(file1.path), expected1);
     expect(factory.pathToUri(file2.path), isNull);
   }
@@ -62,8 +64,9 @@ class SourceFactoryTest with ResourceProviderMixin {
   }
 
   void test_resolveUri_nonAbsolute_absolute() {
-    SourceFactory factory =
-        SourceFactory([AbsoluteUriResolver(resourceProvider)]);
+    SourceFactory factory = SourceFactory([
+      AbsoluteUriResolver(resourceProvider),
+    ]);
     String sourcePath = convertPath('/does/not/exist.dart');
     String targetRawPath = '/does/not/matter.dart';
     String targetPath = convertPath(targetRawPath);
@@ -74,8 +77,9 @@ class SourceFactoryTest with ResourceProviderMixin {
   }
 
   void test_resolveUri_nonAbsolute_relative() {
-    SourceFactory factory =
-        SourceFactory([AbsoluteUriResolver(resourceProvider)]);
+    SourceFactory factory = SourceFactory([
+      AbsoluteUriResolver(resourceProvider),
+    ]);
     Source containingSource = FileSource(getFile('/does/not/have.dart'));
     var result = factory.resolveUri(containingSource, 'exist.dart')!;
     expect(result.fullName, convertPath('/does/not/exist.dart'));
@@ -84,8 +88,12 @@ class SourceFactoryTest with ResourceProviderMixin {
   void test_resolveUri_nonAbsolute_relative_package() {
     MemoryResourceProvider provider = MemoryResourceProvider();
     pathos.Context context = provider.pathContext;
-    String packagePath =
-        context.joinAll([context.separator, 'path', 'to', 'package']);
+    String packagePath = context.joinAll([
+      context.separator,
+      'path',
+      'to',
+      'package',
+    ]);
     String libPath = context.joinAll([packagePath, 'lib']);
     String dirPath = context.joinAll([libPath, 'dir']);
     String firstPath = context.joinAll([dirPath, 'first.dart']);
@@ -98,7 +106,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     provider.newFile(secondPath, '');
 
     PackageMapUriResolver resolver = PackageMapUriResolver(provider, {
-      'package': [libFolder]
+      'package': [libFolder],
     });
     SourceFactory factory = SourceFactory([resolver]);
     var uri = Uri.parse('package:package/dir/first.dart');

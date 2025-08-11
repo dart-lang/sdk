@@ -20,7 +20,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
 
   void addSubtypedName(NamedType? type) {
     if (type != null) {
-      subtypedNames.add(type.name2.lexeme);
+      subtypedNames.add(type.name.lexeme);
     }
   }
 
@@ -71,7 +71,9 @@ class _LocalNameScope {
   }
 
   factory _LocalNameScope.forClass(
-      _LocalNameScope enclosing, ClassDeclaration node) {
+    _LocalNameScope enclosing,
+    ClassDeclaration node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     for (ClassMember member in node.members) {
@@ -85,21 +87,27 @@ class _LocalNameScope {
   }
 
   factory _LocalNameScope.forClassTypeAlias(
-      _LocalNameScope enclosing, ClassTypeAlias node) {
+    _LocalNameScope enclosing,
+    ClassTypeAlias node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
   factory _LocalNameScope.forConstructor(
-      _LocalNameScope enclosing, ConstructorDeclaration node) {
+    _LocalNameScope enclosing,
+    ConstructorDeclaration node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addFormalParameters(node.parameters);
     return scope;
   }
 
   factory _LocalNameScope.forExtensionType(
-      _LocalNameScope enclosing, ExtensionTypeDeclaration node) {
+    _LocalNameScope enclosing,
+    ExtensionTypeDeclaration node,
+  ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     for (var member in node.members) {
@@ -113,7 +121,9 @@ class _LocalNameScope {
   }
 
   factory _LocalNameScope.forFunction(
-      _LocalNameScope enclosing, FunctionDeclaration node) {
+    _LocalNameScope enclosing,
+    FunctionDeclaration node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.functionExpression.typeParameters);
     scope.addFormalParameters(node.functionExpression.parameters);
@@ -121,14 +131,18 @@ class _LocalNameScope {
   }
 
   factory _LocalNameScope.forFunctionTypeAlias(
-      _LocalNameScope enclosing, FunctionTypeAlias node) {
+    _LocalNameScope enclosing,
+    FunctionTypeAlias node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
   factory _LocalNameScope.forMethod(
-      _LocalNameScope enclosing, MethodDeclaration node) {
+    _LocalNameScope enclosing,
+    MethodDeclaration node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     scope.addFormalParameters(node.parameters);
@@ -302,10 +316,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _addIfNotShadowed(
-      node.name2,
-      hasImportPrefix: node.importPrefix != null,
-    );
+    _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
   }
 
@@ -338,10 +349,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   /// Adds [token] if it is not shadowed by a local element.
-  void _addIfNotShadowed(
-    Token token, {
-    required bool hasImportPrefix,
-  }) {
+  void _addIfNotShadowed(Token token, {required bool hasImportPrefix}) {
     var name = token.lexeme;
 
     if (localScope.contains(name) && !hasImportPrefix) {

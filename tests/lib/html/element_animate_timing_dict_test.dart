@@ -15,12 +15,13 @@ main() {
       var body = document.body!;
       // Animate different characteristics so the tests can run concurrently.
       var fontSize = body.getComputedStyle().fontSize;
-      var player = body.animate([
-        {"font-size": "500px"},
-        {"font-size": fontSize}
-      ], {
-        "duration": 100
-      });
+      var player = body.animate(
+        [
+          {"font-size": "500px"},
+          {"font-size": fontSize},
+        ],
+        {"duration": 100},
+      );
       var newFontSize = body.getComputedStyle().fontSize;
       // Don't bother to parse to numbers, as long as it's changed that
       // indicates something is happening.

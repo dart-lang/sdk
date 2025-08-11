@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch;
-import "dart:ffi" show Handle, Void, Native;
+import "dart:ffi" show IntPtr, Handle, Native, Void;
 import "dart:nativewrappers" show NativeFieldWrapperClass1;
 
 @patch
@@ -13,8 +13,9 @@ abstract interface class Mutex {
   factory Mutex._() => _MutexImpl();
 }
 
+@pragma("vm:deeply-immutable")
 @pragma("vm:entry-point")
-base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
+final class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
   _MutexImpl() {
     _initialize();
   }
@@ -37,8 +38,9 @@ abstract interface class ConditionVariable {
   factory ConditionVariable._() => _ConditionVariableImpl();
 }
 
-@pragma('vm:entry-point')
-base class _ConditionVariableImpl extends NativeFieldWrapperClass1
+@pragma("vm:deeply-immutable")
+@pragma("vm:entry-point")
+final class _ConditionVariableImpl extends NativeFieldWrapperClass1
     implements ConditionVariable {
   _ConditionVariableImpl() {
     _initialize();
@@ -47,8 +49,17 @@ base class _ConditionVariableImpl extends NativeFieldWrapperClass1
   @Native<Void Function(Handle)>(symbol: "ConditionVariable_Initialize")
   external void _initialize();
 
-  @Native<Void Function(Handle, Handle)>(symbol: "ConditionVariable_Wait")
-  external void wait(Mutex mutex);
+  @Native<Void Function(Handle, Handle, IntPtr)>(
+    symbol: "ConditionVariable_Wait",
+  )
+  external void _wait(Mutex mutex, int timeout);
+
+  void wait(Mutex mutex, [int timeout = 0]) {
+    if (timeout < 0) {
+      throw ArgumentError.value(timeout, "timeout", "must be positive or zero");
+    }
+    _wait(mutex, timeout);
+  }
 
   @Native<Void Function(Handle)>(symbol: "ConditionVariable_Notify")
   external void notify();

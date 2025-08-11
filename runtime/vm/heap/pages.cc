@@ -37,14 +37,6 @@ DEFINE_FLAG(int,
             old_gen_growth_rate,
             280,
             "The max number of pages the old generation can grow at a time");
-DEFINE_FLAG(bool,
-            print_free_list_before_gc,
-            false,
-            "Print free list statistics before a GC");
-DEFINE_FLAG(bool,
-            print_free_list_after_gc,
-            false,
-            "Print free list statistics after a GC");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 // The initial estimate of how many words we can mark per microsecond (usage
@@ -973,14 +965,13 @@ void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
 }
 
 void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
-  ASSERT(!Thread::Current()->force_growth());
+  ASSERT(!thread->force_growth());
+  ASSERT(thread->OwnsGCSafepoint());
 
   if (!finalize) {
     if (!enable_concurrent_mark()) return;  // Disabled.
     if (FLAG_marker_tasks == 0) return;     // Disabled.
   }
-
-  GcSafepointOperationScope safepoint_scope(thread);
 
   // Wait for pending tasks to complete and then account for the driver task.
   {
@@ -1049,15 +1040,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) { isolate->field_table()->FreeOldTables(); },
       /*at_safepoint=*/true);
-
-  NoSafepointScope no_safepoints(thread);
-
-  if (FLAG_print_free_list_before_gc) {
-    for (intptr_t i = 0; i < num_freelists_; i++) {
-      OS::PrintErr("Before GC: Freelist %" Pd "\n", i);
-      freelists_[i].Print();
-    }
-  }
 
   if (FLAG_verify_before_gc) {
     heap_->VerifyGC("Verifying before marking",
@@ -1177,13 +1159,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   // Record signals for growth control. Include size of external allocations.
   page_space_controller_.EvaluateGarbageCollection(
       usage_before, GetCurrentUsage(), start, end);
-
-  if (FLAG_print_free_list_after_gc) {
-    for (intptr_t i = 0; i < num_freelists_; i++) {
-      OS::PrintErr("After GC: Freelist %" Pd "\n", i);
-      freelists_[i].Print();
-    }
-  }
 
   UpdateMaxUsed();
   if (heap_ != nullptr) {
@@ -1559,6 +1534,12 @@ uword PageSpace::AllocateSnapshotLockedSlow(FreeList* freelist, intptr_t size) {
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
+  if (VirtualMemory::ShouldDualMapExecutablePages()) {
+    // See |Instructions::PayloadStart| for more details about this restriction.
+    FATAL(
+        "Dual mapping of executable pages assumes no image pages in the heap");
+  }
+
   // Setup a Page so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). Page
   // expects to find objects at [memory->start() + ObjectStartOffset,

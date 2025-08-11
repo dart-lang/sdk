@@ -11,8 +11,12 @@ import "package:expect/expect.dart";
 import "process_test_util.dart";
 
 testExit() {
-  var future =
-      Process.start(getProcessTestFileName(), const ["0", "0", "1", "1"]);
+  var future = Process.start(getProcessTestFileName(), const [
+    "0",
+    "0",
+    "1",
+    "1",
+  ]);
   future.then((process) {
     process.exitCode.then((int exitCode) {
       Expect.isTrue(exitCode != 0);
@@ -23,8 +27,9 @@ testExit() {
 }
 
 testExitRun() {
-  Process.run(getProcessTestFileName(), const ["0", "0", "1", "1"])
-      .then((result) {
+  Process.run(getProcessTestFileName(), const ["0", "0", "1", "1"]).then((
+    result,
+  ) {
     Expect.isTrue(result.exitCode != 0);
     Expect.equals(result.stdout, '');
     Expect.equals(result.stderr, '');

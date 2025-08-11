@@ -7,11 +7,10 @@ import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analysis_server/src/services/flutter/property.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:dart_style/dart_style.dart';
 
@@ -129,7 +128,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<InterfaceElement2> elementsBeingProcessed = {};
+  final Set<InterfaceElement> elementsBeingProcessed = {};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -137,10 +136,10 @@ class _WidgetDescriptionComputer {
   /// The offset of the widget expression.
   final int widgetOffset;
 
-  ClassElement2? _classAlignment;
-  ClassElement2? _classAlignmentDirectional;
-  ClassElement2? _classContainer;
-  ClassElement2? _classEdgeInsets;
+  ClassElement? _classAlignment;
+  ClassElement? _classAlignmentDirectional;
+  ClassElement? _classContainer;
+  ClassElement? _classEdgeInsets;
 
   _WidgetDescriptionComputer(
     this.classRegistry,
@@ -273,13 +272,13 @@ class _WidgetDescriptionComputer {
     PropertyDescription? parent,
     ClassDescription? classDescription,
     InstanceCreationExpression? instanceCreation,
-    ConstructorElement2? constructorElement,
+    ConstructorElement? constructorElement,
   }) {
     constructorElement ??= instanceCreation?.constructorName.element;
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
-    var enclosingElement = constructorElement.enclosingElement2;
+    var enclosingElement = constructorElement.enclosingElement;
     if (!elementsBeingProcessed.add(enclosingElement)) return;
 
     var existingNamed = <String>{};
@@ -291,7 +290,7 @@ class _WidgetDescriptionComputer {
         Expression valueExpression;
         if (argumentExpression is NamedExpression) {
           valueExpression = argumentExpression.expression;
-          existingNamed.add(parameter.name3!);
+          existingNamed.add(parameter.name!);
         } else {
           valueExpression = argumentExpression;
         }
@@ -310,7 +309,7 @@ class _WidgetDescriptionComputer {
 
     for (var parameter in constructorElement.formalParameters) {
       if (!parameter.isNamed) continue;
-      if (existingNamed.contains(parameter.name3)) continue;
+      if (existingNamed.contains(parameter.name)) continue;
 
       _addProperty(
         properties: properties,
@@ -364,7 +363,7 @@ class _WidgetDescriptionComputer {
         PropertyDescription.nextId(),
         parameter.isRequiredPositional,
         isSafeToUpdate,
-        parameter.name3!,
+        parameter.name!,
         documentation: documentation,
         editor: _getEditor(parameter.type),
         expression: valueExpressionCode,
@@ -389,7 +388,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression == null) {
       var type = parameter.type;
       if (type is InterfaceType) {
-        var classDescription = classRegistry.get(type.element3);
+        var classDescription = classRegistry.get(type.element);
         if (classDescription != null) {
           _addProperties(
             properties: propertyDescription.children,
@@ -402,18 +401,18 @@ class _WidgetDescriptionComputer {
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
-    EnumElement2 element,
+    EnumElement element,
   ) {
-    return element.fields2
+    return element.fields
         .where((field) => field.isStatic && field.isEnumConstant)
         .map(_toEnumItem)
         .toList();
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForStaticFields(
-    ClassElement2 classElement,
+    ClassElement classElement,
   ) {
-    return classElement.fields2
+    return classElement.fields
         .where((f) => f.isStatic)
         .map(_toEnumItem)
         .toList();
@@ -451,8 +450,8 @@ class _WidgetDescriptionComputer {
       );
     }
     if (type is InterfaceType) {
-      var classElement = type.element3;
-      if (classElement is EnumElement2) {
+      var classElement = type.element;
+      if (classElement is EnumElement) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
           enumItems: _enumItemsForEnum(classElement),
@@ -508,15 +507,15 @@ class _WidgetDescriptionComputer {
     }
   }
 
-  protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement2 field) {
-    var interfaceElement = field.enclosingElement2 as InterfaceElement2;
-    var libraryUriStr = '${interfaceElement.enclosingElement2.uri}';
+  protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
+    var interfaceElement = field.enclosingElement as InterfaceElement;
+    var libraryUriStr = '${interfaceElement.enclosingElement.uri}';
     var documentation = getFieldDocumentation(field);
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      interfaceElement.name3!,
-      field.name3!,
+      interfaceElement.name!,
+      field.name!,
       documentation: documentation,
     );
   }
@@ -533,9 +532,9 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression is Identifier) {
       var element = valueExpression.element;
       if (element is GetterElement) {
-        var field = element.variable3!;
-        if (field is FieldElement2 && field.isStatic) {
-          var enclosingClass = field.enclosingElement2 as InterfaceElement2;
+        var field = element.variable!;
+        if (field is FieldElement && field.isStatic) {
+          var enclosingClass = field.enclosingElement as InterfaceElement;
           if (field.isEnumConstant ||
               enclosingClass.isExactAlignment ||
               enclosingClass.isExactAlignmentDirectional) {

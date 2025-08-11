@@ -42,36 +42,39 @@ extension type const E(int i) {
   }
 
   test_extensionType_declaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @literal
 extension type const E(int i) { }
-''', [
-      error(WarningCode.INVALID_LITERAL_ANNOTATION, 34, 7),
-    ]);
+''',
+      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 34, 7)],
+    );
   }
 
   test_nonConstConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
   A() {}
 }
-''', [
-      error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7),
-    ]);
+''',
+      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7)],
+    );
   }
 
   test_nonConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7),
-    ]);
+''',
+      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7)],
+    );
   }
 }

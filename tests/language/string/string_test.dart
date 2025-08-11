@@ -30,9 +30,9 @@ class StringTest {
   static testNoSuchMethod() {
     String a = "Hello";
     a[1] = 12;
-//   ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-// [cfe] The operator '[]=' isn't defined for the class 'String'.
+    // [error column 6, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
+    // [cfe] The operator '[]=' isn't defined for the type 'String'.
   }
 
   static testCharCodes() {

@@ -47,13 +47,13 @@ void matchIL$sumAll(FlowGraph graph) {
             // Not moved out of the loop due to the current pass
             // ordering (LICM is performed before RangeAnalysis).
             'v120' << match.UnboxInt32('v99'),
-          match.Branch(match.RelationalOp('v130', 'v120', kind: '>='),
-              ifTrue: 'B4', ifFalse: 'B3'),
+          match.Branch(
+            match.RelationalOp('v130', 'v120', kind: '>='),
+            ifTrue: 'B4',
+            ifFalse: 'B3',
+          ),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn('v5'),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn('v5')]),
     'B3' <<
         match.block('Target', [
           'v135' << match.LoadIndexed('v114', match.any),

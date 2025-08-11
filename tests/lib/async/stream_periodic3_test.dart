@@ -18,11 +18,18 @@ int get safetyMargin => isWebConfiguration ? 5 : 0;
 main() {
   test("stream-periodic3", () {
     Stopwatch watch = new Stopwatch()..start();
-    Stream stream =
-        new Stream.periodic(const Duration(milliseconds: 1), (x) => x);
-    stream.take(10).listen((_) {}, onDone: expectAsync(() {
-      int millis = watch.elapsedMilliseconds + safetyMargin;
-      expect(millis, greaterThanOrEqualTo(10));
-    }));
+    Stream stream = new Stream.periodic(
+      const Duration(milliseconds: 1),
+      (x) => x,
+    );
+    stream
+        .take(10)
+        .listen(
+          (_) {},
+          onDone: expectAsync(() {
+            int millis = watch.elapsedMilliseconds + safetyMargin;
+            expect(millis, greaterThanOrEqualTo(10));
+          }),
+        );
   });
 }

@@ -138,6 +138,41 @@ void f(bool? b4, bool? b5) {
     );
   }
 
+  Future<void> test_replaceSourceIndent_multipleStrings() async {
+    // Test multiple strings because the issue
+    // https://github.com/dart-lang/sdk/issues/60951 was related to only the
+    // first being processed correctly.
+    await assertReplacedIndentation(
+      includeLeading: true,
+      indentOld: '',
+      indentNew: '  ',
+      r'''
+var i = 0;
+var x = '';
+var y = """
+0 indent
+ 1 indent
+  2 indent
+ 1 indent
+0 indent
+""";
+var j = 1;
+''',
+      r'''
+  var i = 0;
+  var x = '';
+  var y = """
+0 indent
+ 1 indent
+  2 indent
+ 1 indent
+0 indent
+""";
+  var j = 1;
+''',
+    );
+  }
+
   Future<void> test_replaceSourceIndent_noLeading_empty_crlf() async {
     await assertReplacedIndentation(
       indentOld: '',

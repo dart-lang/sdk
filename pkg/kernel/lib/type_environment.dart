@@ -200,37 +200,35 @@ abstract class TypeEnvironment extends Types {
   /// (see [isSpecialCasedBinaryOperator]) given the static type of the
   /// operands.
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2) {
+    // Handle invalid types first, to avoid inconsistent typing of operators
+    // involving invalid expressions.
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
     // type T and T <: num, and where the static type of e2 is S and S is
     // assignable to num. Then:
     if (type1 is! NeverType &&
-            isSubtypeOf(type1, coreTypes.numNonNullableRawType,
-                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type1, coreTypes.numNonNullableRawType) &&
             type2 is DynamicType ||
-        isSubtypeOf(type2, coreTypes.numNonNullableRawType,
-            SubtypeCheckMode.withNullabilities)) {
-      if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-          SubtypeCheckMode.withNullabilities)) {
+        isSubtypeOf(type2, coreTypes.numNonNullableRawType)) {
+      if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType)) {
         // If T <: double then the static type of e is double. This includes S
         // being dynamic or Never.
         return coreTypes.doubleNonNullableRawType;
       } else if (type2 is! NeverType &&
-          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType)) {
         // If S <: double and not S <:Never, then the static type of e is
         // double.
         return coreTypes.doubleNonNullableRawType;
-      } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
+      } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType) &&
           type2 is! NeverType &&
-          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType)) {
         // If T <: int , S <: int and not S <: Never, then the static type of
         // e is int.
         return coreTypes.intNonNullableRawType;
-      } else if (type2 is! NeverType &&
-          isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+      } else if (type2 is! NeverType && isSubtypeOf(type2, type1)) {
         // Otherwise the static type of e is num.
         return coreTypes.numNonNullableRawType;
       }
@@ -248,21 +246,15 @@ abstract class TypeEnvironment extends Types {
         /* We skip the check that all types are subtypes of num because, if
           not, we'll compute the static type to be num, anyway.*/
         ) {
-      if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type3, coreTypes.intNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      if (isSubtypeOf(type1, coreTypes.intNonNullableRawType) &&
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType) &&
+          isSubtypeOf(type3, coreTypes.intNonNullableRawType)) {
         // If T1, T2 and T3 are all subtypes of int, the static type of e is
         // int.
         return coreTypes.intNonNullableRawType;
-      } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
-          isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
+      } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType) &&
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType) &&
+          isSubtypeOf(type3, coreTypes.doubleNonNullableRawType)) {
         // If T1, T2 and T3 are all subtypes of double, the static type of e
         // is double.
         return coreTypes.doubleNonNullableRawType;
@@ -273,14 +265,13 @@ abstract class TypeEnvironment extends Types {
   }
 
   bool _isRawTypeArgumentEquivalent(
-      TypeDeclarationType type, int typeArgumentIndex,
-      {required SubtypeCheckMode subtypeCheckMode}) {
+      TypeDeclarationType type, int typeArgumentIndex) {
     assert(0 <= typeArgumentIndex &&
         typeArgumentIndex < type.typeArguments.length);
     DartType typeArgument = type.typeArguments[typeArgumentIndex];
     DartType defaultType =
         type.typeDeclaration.typeParameters[typeArgumentIndex].defaultType;
-    return areMutualSubtypes(typeArgument, defaultType, subtypeCheckMode);
+    return areMutualSubtypes(typeArgument, defaultType);
   }
 
   /// Computes sufficiency of a shape check for the given types.
@@ -290,8 +281,7 @@ abstract class TypeEnvironment extends Types {
   /// [checkTargetType].
   TypeShapeCheckSufficiency computeTypeShapeCheckSufficiency(
       {required DartType expressionStaticType,
-      required DartType checkTargetType,
-      required SubtypeCheckMode subtypeCheckMode}) {
+      required DartType checkTargetType}) {
     if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
@@ -320,8 +310,8 @@ abstract class TypeEnvironment extends Types {
         // TODO(cstefantsova): Investigate if super-bounded types can appear as
         // [checkTargetType]s. In that case a subtype check should be done
         // instead of the mutual subtype check.
-        if (!_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
-            subtypeCheckMode: subtypeCheckMode)) {
+        if (!_isRawTypeArgumentEquivalent(
+            checkTargetType, typeParameterIndex)) {
           targetTypeArgumentsAreDefaultTypes = false;
           break;
         }
@@ -457,8 +447,8 @@ abstract class TypeEnvironment extends Types {
             typeParameterIndex++) {
           if (!occurrenceCollectorVisitor.occurred.contains(
                   checkTargetTypeOwnTypeParameters[typeParameterIndex]) &&
-              !_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
-                  subtypeCheckMode: subtypeCheckMode)) {
+              !_isRawTypeArgumentEquivalent(
+                  checkTargetType, typeParameterIndex)) {
             allNonOccurringAreDefaultTypes = false;
             break;
           }
@@ -469,8 +459,7 @@ abstract class TypeEnvironment extends Types {
           return isSubtypeOf(
                   expressionStaticType,
                   testedAgainstTypeAsOperandClass
-                      .withDeclaredNullability(Nullability.nullable),
-                  SubtypeCheckMode.withNullabilities)
+                      .withDeclaredNullability(Nullability.nullable))
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;
         } else {
@@ -499,8 +488,7 @@ abstract class TypeEnvironment extends Types {
         return TypeShapeCheckSufficiency.recordShape;
       }
 
-      if (isSubtypeOf(
-          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+      if (isSubtypeOf(expressionStaticType, checkTargetType)) {
         return TypeShapeCheckSufficiency.recordShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -531,8 +519,7 @@ abstract class TypeEnvironment extends Types {
         }
       }
 
-      if (isSubtypeOf(
-          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+      if (isSubtypeOf(expressionStaticType, checkTargetType)) {
         return TypeShapeCheckSufficiency.functionShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -543,8 +530,8 @@ abstract class TypeEnvironment extends Types {
         // TODO(cstefantsova): Investigate if [expressionStaticType] can be of
         // any kind for the following sufficiency check to work.
         return TypeShapeCheckSufficiency.futureOrShape;
-      } else if (isSubtypeOf(expressionStaticType.typeArgument,
-          checkTargetType.typeArgument, subtypeCheckMode)) {
+      } else if (isSubtypeOf(
+          expressionStaticType.typeArgument, checkTargetType.typeArgument)) {
         return TypeShapeCheckSufficiency.futureOrShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -557,73 +544,21 @@ abstract class TypeEnvironment extends Types {
 
 /// Tri-state logical result of a nullability-aware subtype check.
 class IsSubtypeOf {
-  /// Internal value constructed via [IsSubtypeOf.never].
-  ///
-  /// The integer values of [_valueNever], [_valueOnlyIfIgnoringNullabilities],
-  /// and [_valueAlways] are important for the implementations of [_andValues],
-  /// [_all], and [and].  They should be kept in sync.
-  static const int _valueNever = 0;
-
-  /// Internal value constructed via [IsSubtypeOf.onlyIfIgnoringNullabilities].
-  static const int _valueOnlyIfIgnoringNullabilities = 1;
-
-  /// Internal value constructed via [IsSubtypeOf.always].
-  static const int _valueAlways = 3;
-
-  static const List<IsSubtypeOf> _all = const <IsSubtypeOf>[
-    const IsSubtypeOf.never(),
-    const IsSubtypeOf.onlyIfIgnoringNullabilities(),
-    // There's no value for this index so we use `IsSubtypeOf.never()` as a
-    // dummy value.
-    const IsSubtypeOf.never(),
-    const IsSubtypeOf.always()
-  ];
-
-  /// Combines results of subtype checks on parts into the overall result.
-  ///
-  /// It's an implementation detail for [and].  See the comment on [and] for
-  /// more details and examples.  Both [value1] and [value2] should be chosen
-  /// from [_valueNever], [_valueOnlyIfIgnoringNullabilities], and
-  /// [_valueAlways].  The method produces the result which is one of
-  /// [_valueNever], [_valueOnlyIfIgnoringNullabilities], and [_valueAlways].
-  static int _andValues(int value1, int value2) => value1 & value2;
-
-  /// Combines results of the checks on alternatives into the overall result.
-  ///
-  /// It's an implementation detail for [or].  See the comment on [or] for more
-  /// details and examples.  Both [value1] and [value2] should be chosen from
-  /// [_valueNever], [_valueOnlyIfIgnoringNullabilities], and [_valueAlways].
-  /// The method produces the result which is one of [_valueNever],
-  /// [_valueOnlyIfIgnoringNullabilities], and [_valueAlways].
-  static int _orValues(int value1, int value2) => value1 | value2;
-
   /// The only state of an [IsSubtypeOf] object.
-  final int _value;
+  final bool _isSuccess;
 
   final DartType? subtype;
 
   final DartType? supertype;
 
-  const IsSubtypeOf._internal(int value, this.subtype, this.supertype)
-      : _value = value;
+  const IsSubtypeOf._internal(bool isSuccess, this.subtype, this.supertype)
+      : _isSuccess = isSuccess;
 
-  /// Subtype check succeeds in both modes.
-  const IsSubtypeOf.always() : this._internal(_valueAlways, null, null);
+  /// Subtype check succeeds.
+  const IsSubtypeOf.success() : this._internal(true, null, null);
 
-  /// Subtype check succeeds only if the nullability markers are ignored.
-  ///
-  /// It is assumed that if a subtype check succeeds for two types in full-NNBD
-  /// mode, it also succeeds for those two types if the nullability markers on
-  /// the types and all of their sub-terms are ignored (that is, in the pre-NNBD
-  /// mode).  By contraposition, if a subtype check fails for two types when the
-  /// nullability markers are ignored, it should also fail for those types in
-  /// full-NNBD mode.
-  const IsSubtypeOf.onlyIfIgnoringNullabilities(
-      {DartType? subtype, DartType? supertype})
-      : this._internal(_valueOnlyIfIgnoringNullabilities, subtype, supertype);
-
-  /// Subtype check fails in both modes.
-  const IsSubtypeOf.never() : this._internal(_valueNever, null, null);
+  /// Subtype check fails.
+  const IsSubtypeOf.failure() : this._internal(false, null, null);
 
   /// Checks if two types are in relation based solely on their nullabilities.
   ///
@@ -639,14 +574,12 @@ class IsSubtypeOf {
       DartType subtype, DartType supertype) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
-        return const IsSubtypeOf.always();
+        return const IsSubtypeOf.success();
       }
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
     if (supertype is InvalidType) {
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
 
     return _basedSolelyOnNullabilitiesNotInvalidType(subtype, supertype);
@@ -680,131 +613,88 @@ class IsSubtypeOf {
         }
         if (unwrappedSubtype.nullability == unwrappedSupertype.nullability) {
           // The relationship between the types must be established elsewhere.
-          return const IsSubtypeOf.always();
+          return const IsSubtypeOf.success();
         }
       }
-      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-          subtype: subtype, supertype: supertype);
+      return const IsSubtypeOf.failure();
     }
-    return const IsSubtypeOf.always();
+    return const IsSubtypeOf.success();
   }
 
   /// Combines results for the type parts into the overall result for the type.
   ///
   /// For example, the result of `A<B1, C1> <: A<B2, C2>` can be computed from
-  /// the results of the checks `B1 <: B2` and `C1 <: C2`.  Using the binary
-  /// outcome of the checks, the combination of the check results on parts is
-  /// simply done via `&&`, and [and] is the analog to `&&` for the ternary
-  /// outcome.  So, in the example above the overall result is computed as
-  /// `Rb.and(Rc)` where `Rb` is the result of `B1 <: B2`, `Rc` is the result
-  /// of `C1 <: C2`.
+  /// the results of the checks `B1 <: B2` and `C1 <: C2`. So, in the example
+  /// above the overall result is computed as `Rb.and(Rc)` where `Rb` is the
+  /// result of `B1 <: B2`, `Rc` is the result of `C1 <: C2`.
   IsSubtypeOf and(IsSubtypeOf other) {
-    int resultValue = _andValues(_value, other._value);
-    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
-      // If the type mismatch is due to nullabilities, the mismatching parts are
-      // remembered in either 'this' or [other].  In that case we need to return
-      // exactly one of those objects, so that the information about mismatching
-      // parts is propagated upwards.
-      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
-        return this;
-      } else {
-        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
-        return other;
-      }
+    if (_isSuccess && other._isSuccess) {
+      return const IsSubtypeOf.success();
     } else {
-      return _all[resultValue];
+      return const IsSubtypeOf.failure();
     }
   }
 
-  /// Shorts the computation of [and] if `this` is [IsSubtypeOf.never].
+  /// Shorts the computation of [and] if `this` is [IsSubtypeOf.failure].
   ///
   /// Use this instead of [and] for optimization in case the argument to [and]
   /// is, for example, a potentially expensive subtype check.  Unlike [and],
   /// [andSubtypeCheckFor] will immediately return if `this` was constructed as
-  /// [IsSubtypeOf.never] because the right-hand side will not change the
+  /// [IsSubtypeOf.failure] because the right-hand side will not change the
   /// overall result anyway.
   IsSubtypeOf andSubtypeCheckFor(
       DartType subtype, DartType supertype, Types tester) {
-    if (_value == _valueNever) return this;
-    return this
-        .and(tester.performNullabilityAwareSubtypeCheck(subtype, supertype));
+    if (!_isSuccess) {
+      return this;
+    } else {
+      return this
+          .and(tester.performSubtypeCheck(subtype, supertype));
+    }
   }
 
   /// Combines results of the checks on alternatives into the overall result.
   ///
   /// For example, the result of `T <: FutureOr<S>` can be computed from the
-  /// results of the checks `T <: S` and `T <: Future<S>`.  Using the binary
-  /// outcome of the checks, the combination of the check results on parts is
-  /// simply done via logical "or", and [or] is the analog to "or" for the
-  /// ternary outcome.  So, in the example above the overall result is computed
-  /// as `Rs.or(Rf)` where `Rs` is the result of `T <: S`, `Rf` is the result of
-  /// `T <: Future<S>`.
+  /// results of the checks `T <: S` and `T <: Future<S>`. So, in the example
+  /// above the overall result is computed as `Rs.or(Rf)` where `Rs` is the
+  /// result of `T <: S`, `Rf` is the result of `T <: Future<S>`.
   IsSubtypeOf or(IsSubtypeOf other) {
-    int resultValue = _orValues(_value, other._value);
-    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
-      // If the type mismatch is due to nullabilities, the mismatching parts are
-      // remembered in either 'this' or [other].  In that case we need to return
-      // exactly one of those objects, so that the information about mismatching
-      // parts is propagated upwards.
-      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
-        return this;
-      } else {
-        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
-        return other;
-      }
+    if (_isSuccess || other._isSuccess) {
+      return const IsSubtypeOf.success();
     } else {
-      return _all[resultValue];
+      return const IsSubtypeOf.failure();
     }
   }
 
-  /// Shorts the computation of [or] if `this` is [IsSubtypeOf.always].
+  /// Shorts the computation of [or] if `this` is [IsSubtypeOf.success].
   ///
   /// Use this instead of [or] for optimization in case the argument to [or] is,
   /// for example, a potentially expensive subtype check.  Unlike [or],
   /// [orSubtypeCheckFor] will immediately return if `this` was constructed
-  /// as [IsSubtypeOf.always] because the right-hand side will not change the
+  /// as [IsSubtypeOf.success] because the right-hand side will not change the
   /// overall result anyway.
   IsSubtypeOf orSubtypeCheckFor(
       DartType subtype, DartType supertype, Types tester) {
-    if (_value == _valueAlways) return this;
-    return this
-        .or(tester.performNullabilityAwareSubtypeCheck(subtype, supertype));
+    if (_isSuccess) {
+      return this;
+    } else {
+      return this
+          .or(tester.performSubtypeCheck(subtype, supertype));
+    }
   }
 
-  bool isSubtypeWhenIgnoringNullabilities() {
-    return _value != _valueNever;
-  }
-
-  bool isSubtypeWhenUsingNullabilities() {
-    return _value == _valueAlways;
+  bool isSuccess() {
+    return _isSuccess;
   }
 
   @override
   String toString() {
-    switch (_value) {
-      case _valueAlways:
-        return "IsSubtypeOf.always";
-      case _valueNever:
-        return "IsSubtypeOf.never";
-      case _valueOnlyIfIgnoringNullabilities:
-        return "IsSubtypeOf.onlyIfIgnoringNullabilities";
-    }
-    return "IsSubtypeOf.<unknown value '${_value}'>";
-  }
-
-  bool inMode(SubtypeCheckMode subtypeCheckMode) {
-    switch (subtypeCheckMode) {
-      case SubtypeCheckMode.withNullabilities:
-        return isSubtypeWhenUsingNullabilities();
-      case SubtypeCheckMode.ignoringNullabilities:
-        return isSubtypeWhenIgnoringNullabilities();
+    if (_isSuccess) {
+      return "IsSubtypeOf.success";
+    } else {
+      return "IsSubtypeOf.failure";
     }
   }
-}
-
-enum SubtypeCheckMode {
-  withNullabilities,
-  ignoringNullabilities,
 }
 
 abstract class StaticTypeCache {

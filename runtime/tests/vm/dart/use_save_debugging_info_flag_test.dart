@@ -41,8 +41,10 @@ main(List<String> args) async {
 
   await withTempDir('save-debug-info-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -122,15 +124,15 @@ main(List<String> args) async {
     final debugDwarf = Dwarf.fromFile(scriptDebuggingInfo)!;
     final wholeDwarf = Dwarf.fromFile(scriptWholeSnapshot)!;
 
-    final fromDebug = await Stream.fromIterable(strippedTrace)
-        .transform(DwarfStackTraceDecoder(debugDwarf))
-        .toList();
+    final fromDebug = await Stream.fromIterable(
+      strippedTrace,
+    ).transform(DwarfStackTraceDecoder(debugDwarf)).toList();
     print("\nStack trace converted using separate debugging info:");
     print(fromDebug.join('\n'));
 
-    final fromWhole = await Stream.fromIterable(strippedTrace)
-        .transform(DwarfStackTraceDecoder(wholeDwarf))
-        .toList();
+    final fromWhole = await Stream.fromIterable(
+      strippedTrace,
+    ).transform(DwarfStackTraceDecoder(wholeDwarf)).toList();
     print("\nStack trace converted using unstripped ELF file:");
     print(fromWhole.join('\n'));
 
@@ -198,37 +200,55 @@ void checkElf(String filename) {
 
   // Check the dynamic string table information.
   Expect.isTrue(
-      dynamic.containsKey(DynamicTableTag.DT_STRTAB), "no string table entry");
+    dynamic.containsKey(DynamicTableTag.DT_STRTAB),
+    "no string table entry",
+  );
   final dynstr = elf.namedSections(".dynstr").single;
   print(".dynstr address = ${dynamic[DynamicTableTag.DT_STRTAB]}");
-  Expect.isTrue(elf.sectionHasValidSegmentAddresses(dynstr),
-      "string table addresses are invalid");
+  Expect.isTrue(
+    elf.sectionHasValidSegmentAddresses(dynstr),
+    "string table addresses are invalid",
+  );
   Expect.equals(dynamic[DynamicTableTag.DT_STRTAB], dynstr.headerEntry.addr);
-  Expect.isTrue(dynamic.containsKey(DynamicTableTag.DT_STRSZ),
-      "no string table size entry");
+  Expect.isTrue(
+    dynamic.containsKey(DynamicTableTag.DT_STRSZ),
+    "no string table size entry",
+  );
   print(".dynstr size = ${dynamic[DynamicTableTag.DT_STRSZ]}");
   Expect.equals(dynamic[DynamicTableTag.DT_STRSZ], dynstr.headerEntry.size);
 
   // Check the dynamic symbol table information.
   Expect.isTrue(
-      dynamic.containsKey(DynamicTableTag.DT_SYMTAB), "no symbol table entry");
+    dynamic.containsKey(DynamicTableTag.DT_SYMTAB),
+    "no symbol table entry",
+  );
   print(".dynsym address = ${dynamic[DynamicTableTag.DT_SYMTAB]}");
   final dynsym = elf.namedSections(".dynsym").single;
-  Expect.isTrue(elf.sectionHasValidSegmentAddresses(dynsym),
-      "string table addresses are invalid");
+  Expect.isTrue(
+    elf.sectionHasValidSegmentAddresses(dynsym),
+    "string table addresses are invalid",
+  );
   Expect.equals(dynamic[DynamicTableTag.DT_SYMTAB], dynsym.headerEntry.addr);
-  Expect.isTrue(dynamic.containsKey(DynamicTableTag.DT_SYMENT),
-      "no symbol table entry size entry");
+  Expect.isTrue(
+    dynamic.containsKey(DynamicTableTag.DT_SYMENT),
+    "no symbol table entry size entry",
+  );
   print(".dynsym entry size = ${dynamic[DynamicTableTag.DT_SYMENT]}");
   Expect.equals(
-      dynamic[DynamicTableTag.DT_SYMENT], dynsym.headerEntry.entrySize);
+    dynamic[DynamicTableTag.DT_SYMENT],
+    dynsym.headerEntry.entrySize,
+  );
 
   // Check the hash table information.
   Expect.isTrue(
-      dynamic.containsKey(DynamicTableTag.DT_HASH), "no hash table entry");
+    dynamic.containsKey(DynamicTableTag.DT_HASH),
+    "no hash table entry",
+  );
   print(".hash address = ${dynamic[DynamicTableTag.DT_HASH]}");
   final hash = elf.namedSections(".hash").single;
-  Expect.isTrue(elf.sectionHasValidSegmentAddresses(hash),
-      "hash table addresses are invalid");
+  Expect.isTrue(
+    elf.sectionHasValidSegmentAddresses(hash),
+    "hash table addresses are invalid",
+  );
   Expect.equals(dynamic[DynamicTableTag.DT_HASH], hash.headerEntry.addr);
 }

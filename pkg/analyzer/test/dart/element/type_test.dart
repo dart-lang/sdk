@@ -35,13 +35,8 @@ class RecordTypeTest extends AbstractTypeSystemTest {
   void test_mixed() {
     check(
       RecordType(
-        positional: [
-          typeProvider.stringType,
-        ],
-        named: {
-          'a': typeProvider.intType,
-          'b': typeProvider.boolType,
-        },
+        positional: [typeProvider.stringType],
+        named: {'a': typeProvider.intType, 'b': typeProvider.boolType},
         nullabilitySuffix: NullabilitySuffix.none,
       ),
       '(String, {int a, bool b})',
@@ -52,10 +47,7 @@ class RecordTypeTest extends AbstractTypeSystemTest {
     check(
       RecordType(
         positional: const [],
-        named: {
-          'a': typeProvider.intType,
-          'b': typeProvider.boolType,
-        },
+        named: {'a': typeProvider.intType, 'b': typeProvider.boolType},
         nullabilitySuffix: NullabilitySuffix.none,
       ),
       '({int a, bool b})',
@@ -65,10 +57,7 @@ class RecordTypeTest extends AbstractTypeSystemTest {
   void test_onlyPositional() {
     check(
       RecordType(
-        positional: [
-          typeProvider.intType,
-          typeProvider.boolType,
-        ],
+        positional: [typeProvider.intType, typeProvider.boolType],
         named: const {},
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -79,10 +68,7 @@ class RecordTypeTest extends AbstractTypeSystemTest {
   void test_suffix() {
     check(
       RecordType(
-        positional: [
-          typeProvider.intType,
-          typeProvider.boolType,
-        ],
+        positional: [typeProvider.intType, typeProvider.boolType],
         named: const {},
         nullabilitySuffix: NullabilitySuffix.question,
       ),

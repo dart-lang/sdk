@@ -4,32 +4,28 @@
 
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
-/// Computes documentation for an [Element2].
+/// Computes documentation for an [Element].
 class DartDocumentationComputer {
   final DartdocDirectiveInfo dartdocInfo;
 
   DartDocumentationComputer(this.dartdocInfo);
 
   Documentation? compute(
-    Element2 elementBeingDocumented, {
+    Element elementBeingDocumented, {
     bool includeSummary = false,
   }) {
-    var element = switch (elementBeingDocumented) {
-      FieldFormalParameterElement2() => elementBeingDocumented.field2,
-      FormalParameterElement() => elementBeingDocumented.enclosingElement2,
-      _ => elementBeingDocumented,
-    };
+    var element = elementBeingDocumented.elementWithDocumentation;
     if (element == null) {
-      // This can happen when the code is invalid, such as having a field formal
-      // parameter for a field that does not exist.
+      // This can happen when the code is invalid, such as having an
+      // initializing formal parameter for a field that does not exist.
       return null;
     }
 
-    Element2? documentedElement;
-    Element2? documentedGetter;
+    Element? documentedElement;
+    Element? documentedGetter;
 
     // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
@@ -37,8 +33,7 @@ class DartDocumentationComputer {
       element,
       ...overridden.superElements,
       ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement2(variable3: var variable?))
-        variable,
+      if (element case PropertyAccessorElement(:var variable?)) variable,
     ];
     for (var candidate in candidates) {
       if (candidate.documentationCommentOrNull != null) {
@@ -46,7 +41,7 @@ class DartDocumentationComputer {
         break;
       }
       if (documentedGetter == null && candidate is SetterElement) {
-        var getter = candidate.correspondingGetter2;
+        var getter = candidate.correspondingGetter;
         if (getter != null && getter.documentationComment != null) {
           documentedGetter = getter;
         }
@@ -68,9 +63,9 @@ class DartDocumentationComputer {
       includeSummary: includeSummary,
     );
 
-    var documentedElementClass = documentedElement.enclosingElement2;
+    var documentedElementClass = documentedElement.enclosingElement;
     if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement2) {
+        documentedElementClass != element.enclosingElement) {
       var documentedClass = documentedElementClass.displayName;
       result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }
@@ -81,7 +76,7 @@ class DartDocumentationComputer {
   /// Compute documentation for [element] and return either the summary or full
   /// docs (or `null`) depending on `preference`.
   String? computePreferred(
-    Element2 element,
+    Element element,
     DocumentationPreference preference,
   ) {
     if (preference == DocumentationPreference.none) {
@@ -100,3 +95,29 @@ class DartDocumentationComputer {
 /// The type of documentation the user prefers to see in hovers and other
 /// related displays in their editor.
 enum DocumentationPreference { none, summary, full }
+
+extension on Element {
+  /// The element whose documentation should be used when showing documentation
+  /// for this element.
+  Element? get elementWithDocumentation {
+    var self = this;
+    if (self is FieldFormalParameterElement) {
+      return self.field;
+    } else if (self is SuperFormalParameterElement) {
+      // Treat a super formal parameter like a field formal parameter if it's
+      // eventually assigned to a field, but as any other formal parameter if it
+      // isn't.
+      var superParameter = self.superConstructorParameter;
+      while (superParameter is SuperFormalParameterElement) {
+        superParameter = superParameter.superConstructorParameter;
+      }
+      if (superParameter is FieldFormalParameterElement) {
+        return superParameter.field;
+      }
+      return self.enclosingElement;
+    } else if (self is FormalParameterElement) {
+      return self.enclosingElement;
+    }
+    return this;
+  }
+}

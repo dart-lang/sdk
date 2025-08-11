@@ -45,8 +45,8 @@ Uri? getMessageUri(DiagnosticMessage message) {
   return message is FormattedMessage
       ? message.uri
       : message is DiagnosticMessageFromJson
-          ? message.uri
-          : null;
+      ? message.uri
+      : null;
 }
 
 /// This method is subject to change.
@@ -81,6 +81,7 @@ Map<String, dynamic>? getMessageArguments(DiagnosticMessage message) {
 
 /// This method is subject to change.
 Iterable<DiagnosticMessage>? getMessageRelatedInformation(
-    DiagnosticMessage message) {
+  DiagnosticMessage message,
+) {
   return message is FormattedMessage ? message.relatedInformation : null;
 }

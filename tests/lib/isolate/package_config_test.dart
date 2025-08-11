@@ -17,8 +17,12 @@ main([args, msg]) async {
   }
   dynamic error;
   try {
-    await Isolate.spawnUri(Platform.script, [], 'msg',
-        packageConfig: Uri.parse('foobar:///no/such/file/'));
+    await Isolate.spawnUri(
+      Platform.script,
+      [],
+      'msg',
+      packageConfig: Uri.parse('foobar:///no/such/file/'),
+    );
   } catch (e) {
     error = e;
   }

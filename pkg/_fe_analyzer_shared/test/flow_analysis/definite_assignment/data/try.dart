@@ -22,7 +22,8 @@ tryCatch_catch() {
   } catch (_) {
     v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryCatch_try() {
@@ -32,7 +33,8 @@ tryCatch_try() {
   } catch (_) {
     // not assigned
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryCatchFinally_catch() {
@@ -44,7 +46,8 @@ tryCatchFinally_catch() {
   } finally {
     // not assigned
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryCatchFinally_finally() {
@@ -68,7 +71,8 @@ tryCatchFinally_try() {
   } finally {
     // not assigned
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryFinally_finally() {

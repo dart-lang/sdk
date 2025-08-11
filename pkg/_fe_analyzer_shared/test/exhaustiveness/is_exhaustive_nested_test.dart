@@ -27,51 +27,51 @@ void main() {
     expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a}),
-        z: t
+        z: t,
       }),
     ]);
 
     expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a, y: a}),
-        z: ty(t, {x: a, y: a})
+        z: ty(t, {x: a, y: a}),
       }),
     ]);
 
     expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: a, y: b}),
-        z: ty(t, {x: a, y: b})
+        z: ty(t, {x: a, y: b}),
       }),
     ]);
 
     expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: b}),
-        z: t
+        z: t,
       }),
       ty(u, {
         w: ty(t, {x: c}),
-        z: t
+        z: t,
       }),
     ]);
 
     expectExhaustiveOnlyAll(env, u, [
       ty(u, {
         w: ty(t, {x: b, y: b}),
-        z: ty(t, {x: b, y: b})
+        z: ty(t, {x: b, y: b}),
       }),
       ty(u, {
         w: ty(t, {x: b, y: b}),
-        z: ty(t, {x: c, y: b})
+        z: ty(t, {x: c, y: b}),
       }),
       ty(u, {
         w: ty(t, {x: c, y: b}),
-        z: ty(t, {x: b, y: b})
+        z: ty(t, {x: b, y: b}),
       }),
       ty(u, {
         w: ty(t, {x: c, y: b}),
-        z: ty(t, {x: c, y: b})
+        z: ty(t, {x: c, y: b}),
       }),
     ]);
   });
@@ -87,8 +87,8 @@ void main() {
     expectExhaustiveOnlyAll(env, d, [
       ty(d, {
         x: ty(c, {
-          x: ty(b, {x: a})
-        })
+          x: ty(b, {x: a}),
+        }),
       }),
     ]);
   });

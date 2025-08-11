@@ -2664,8 +2664,11 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
+  const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      can_call_to_throw ? LocationSummary::kCallOnSlowPath
+                                        : LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   return locs;
 }
@@ -2674,6 +2677,38 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
 
   compiler->used_static_fields().Add(&field());
+
+  if (FLAG_experimental_shared_data) {
+    if (!field().is_shared()) {
+      ThrowErrorSlowPathCode* slow_path = new FieldAccessErrorSlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ LoadIsolate(TMP);
+      __ BranchIfZero(TMP, slow_path->entry_label());
+    } else {
+      // TODO(dartbug.com/61078): use field static type information to decide
+      // whether the following value check is needed or not.
+      auto throw_if_cant_be_shared_slow_path =
+          new ThrowIfValueCantBeSharedSlowPath(this, value);
+      compiler->AddSlowPathCode(throw_if_cant_be_shared_slow_path);
+
+      compiler::Label allow_store;
+      __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
+      __ lbu(TMP, compiler::FieldAddress(
+                      value, compiler::target::Object::tags_offset()));
+      __ andi(TMP, TMP, 1 << compiler::target::UntaggedObject::kImmutableBit);
+      __ bnez(TMP, &allow_store);
+
+      // Allow TypedData because they contain non-structural mutable state.
+      __ LoadClassId(TMP, value);
+      __ CompareImmediate(TMP, kFirstTypedDataCid);
+      __ BranchIf(LT, throw_if_cant_be_shared_slow_path->entry_label());
+      __ CompareImmediate(TMP, kLastTypedDataCid);
+      __ BranchIf(GT, throw_if_cant_be_shared_slow_path->entry_label());
+
+      __ Bind(&allow_store);
+    }
+  }
 
   __ LoadFromOffset(
       TMP, THR,
@@ -6631,8 +6666,8 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/0, LocationSummary::kNoCall);
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/0, LocationSummary::kNoCall);
   switch (from()) {
     case kUnboxedInt32:
       summary->set_in(0, Location::RequiresRegister());

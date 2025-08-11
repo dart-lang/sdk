@@ -646,8 +646,7 @@ class OperationsCfe
 
   @override
   bool isSubtypeOfInternal(DartType leftType, DartType rightType) {
-    return typeEnvironment.isSubtypeOf(
-        leftType, rightType, SubtypeCheckMode.withNullabilities);
+    return typeEnvironment.isSubtypeOf(leftType, rightType);
   }
 
   @override
@@ -666,14 +665,11 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView variableType(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      // When late variables get lowered, their type is changed, but the
-      // original type is stored in `VariableDeclarationImpl.lateType`, so we
-      // use that if it exists.
-      return new SharedTypeView(variable.lateType ?? variable.type);
-    }
-    return new SharedTypeView(variable.type);
+  SharedTypeView variableType(covariant VariableDeclarationImpl variable) {
+    // When late variables get lowered, their type is changed, but the
+    // original type is stored in `VariableDeclarationImpl.lateType`, so we
+    // use that if it exists.
+    return new SharedTypeView(variable.lateType ?? variable.type);
   }
 
   @override
@@ -723,9 +719,8 @@ class OperationsCfe
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     if (fromType is DynamicType) return true;
     return typeEnvironment
-        .performNullabilityAwareSubtypeCheck(
-            fromType.unwrapTypeView(), toType.unwrapTypeView())
-        .isSubtypeWhenUsingNullabilities();
+        .performSubtypeCheck(fromType.unwrapTypeView(), toType.unwrapTypeView())
+        .isSuccess();
   }
 
   @override
@@ -985,16 +980,14 @@ class OperationsCfe
   @override
   DartType greatestClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new NullabilityAwareFreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToGreatest(type);
   }
 
   @override
   DartType leastClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new NullabilityAwareFreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToLeast(type);
   }
 
@@ -1042,6 +1035,11 @@ class OperationsCfe
         typeOperations: typeAnalyzerOperations,
         inferenceResultForTesting: null,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+  }
+
+  @override
+  bool isKnownType(SharedTypeSchemaView typeSchema) {
+    return isKnown(typeSchema.unwrapTypeSchemaView());
   }
 }
 

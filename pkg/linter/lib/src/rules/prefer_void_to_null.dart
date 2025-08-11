@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,13 +19,10 @@ class PreferVoidToNull extends LintRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_void_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_void_to_null;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addNamedType(this, visitor);
   }
@@ -31,7 +30,7 @@ class PreferVoidToNull extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   bool isFutureOrVoid(DartType type) {
@@ -44,9 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member = context.inheritanceManager.overriddenMember(
-      parent.declaredFragment?.element,
-    );
+    var member = parent.declaredFragment?.element.overriddenMember;
     if (member == null) return false;
 
     var returnType = member.returnType;
@@ -122,6 +119,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaration?.isAugmentation ?? false) return;
     }
 
-    rule.reportLintForToken(node.name2);
+    rule.reportAtToken(node.name);
   }
 }

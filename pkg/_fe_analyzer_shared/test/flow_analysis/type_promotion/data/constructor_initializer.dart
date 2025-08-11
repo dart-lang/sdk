@@ -5,6 +5,7 @@
 class C {
   int y;
   C.normalInitializer(Object x) : y = x is int ? /*int*/ x : throw 'foo' {
-    /*int*/ x;
+    /*int*/
+    x;
   }
 }

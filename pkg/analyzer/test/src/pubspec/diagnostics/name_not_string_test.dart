@@ -16,9 +16,12 @@ main() {
 @reflectiveTest
 class NameNotStringTest extends PubspecDiagnosticTest {
   test_nameNotString_error_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: 42
-''', [PubspecWarningCode.NAME_NOT_STRING]);
+''',
+      [PubspecWarningCode.NAME_NOT_STRING],
+    );
   }
 
   test_nameNotString_noError() {

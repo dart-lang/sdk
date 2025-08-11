@@ -154,7 +154,8 @@ void generatePublicExtension(
 
   final platform = nativeType == "IntPtr" ? platformIntPtr : "";
 
-  final intSignedTruncate = """
+  final intSignedTruncate =
+      """
   ///
   /// A Dart integer is truncated to $bits bits (as if by `.toSigned($bits)`) before
   /// being stored, and the $bits-bit value is sign-extended when it is loaded.
@@ -167,7 +168,8 @@ void generatePublicExtension(
   /// sign-extended when it is loaded.
 """;
 
-  final intUnsignedTruncate = """
+  final intUnsignedTruncate =
+      """
   ///
   /// A Dart integer is truncated to $bits bits (as if by `.toUnsigned($bits)`) before
   /// being stored, and the $bits-bit value is zero-extended when it is loaded.
@@ -188,7 +190,8 @@ void generatePublicExtension(
     truncate = floatTruncate;
   }
 
-  final alignmentDefault = """
+  final alignmentDefault =
+      """
   ///
   /// The [address] must be ${sizeOf(elementSize)}-byte aligned.
 """;
@@ -206,10 +209,9 @@ void generatePublicExtension(
     alignment = alignmentDefault;
   }
 
-  final asTypedList =
-      typedListType == kDoNotEmit
-          ? ""
-          : """
+  final asTypedList = typedListType == kDoNotEmit
+      ? ""
+      : """
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -280,8 +282,9 @@ $asTypedList
 
 """);
     case Container.array:
-      final elementsGetterReturnType =
-          _isBool(nativeType) ? 'List<$dartType>' : typedListType;
+      final elementsGetterReturnType = _isBool(nativeType)
+          ? 'List<$dartType>'
+          : typedListType;
 
       buffer.write("""
 /// Bounds checking indexing methods on [Array]s of [$nativeType].
@@ -356,13 +359,13 @@ void generatePatchExtension(
   final typedListType = config.typedListType;
   final elementSize = config.elementSize;
 
-  final sizeTimes =
-      elementSize != 1 ? '${sizeOfIntPtrSize(elementSize)} * ' : '';
+  final sizeTimes = elementSize != 1
+      ? '${sizeOfIntPtrSize(elementSize)} * '
+      : '';
 
-  final asTypedList =
-      typedListType == kDoNotEmit
-          ? ""
-          : """
+  final asTypedList = typedListType == kDoNotEmit
+      ? ""
+      : """
   @patch
   @pragma("vm:prefer-inline")
   $typedListType asTypedList(
@@ -411,10 +414,12 @@ $asTypedList
       final String elementsGetter;
       final String listHelperClass;
       if (_isBool(nativeType)) {
-        elementsGetter = """
+        elementsGetter =
+            """
   List<$dartType> get elements => _${nativeType}ArrayList(this);
 """;
-        listHelperClass = """
+        listHelperClass =
+            """
 class _${nativeType}ArrayList with ListMixin<$dartType>, FixedLengthListMixin<$dartType> {
   _${nativeType}ArrayList(this._array);
 
@@ -433,7 +438,8 @@ class _${nativeType}ArrayList with ListMixin<$dartType>, FixedLengthListMixin<$d
 }
 """;
       } else {
-        elementsGetter = """
+        elementsGetter =
+            """
   $typedListType get elements {
     assert(_nestedDimensionsFlattened == 1);
     final length = _size;

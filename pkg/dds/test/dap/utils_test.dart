@@ -190,6 +190,17 @@ main() {
           2,
         );
       });
+
+      test('with dots in path', () {
+        expectFrames(
+          [
+            'foo       a.b.c/d.dart',
+            '#1        A.b (a.b.c/d.dart)',
+            'flutter: #1        A.b (a.b.c/d.dart)',
+          ],
+          Uri.file(path.join(Directory.current.path, 'a.b.c/d.dart')),
+        );
+      });
     }, skip: Platform.isWindows);
 
     group('Windows file URIs', () {
@@ -263,6 +274,17 @@ main() {
           Uri.file(path.join(Directory.current.path, 'a/b/c/d.dart')),
           1,
           2,
+        );
+      });
+
+      test('with dots in path', () {
+        expectFrames(
+          [
+            r'foo       a.b.c\d.dart',
+            r'#1        A.b (a.b.c\d.dart)',
+            r'flutter: #1        A.b (a.b.c\d.dart)',
+          ],
+          Uri.file(path.join(Directory.current.path, 'a.b.c/d.dart')),
         );
       });
     }, skip: !Platform.isWindows);

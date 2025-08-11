@@ -51,7 +51,9 @@ testPosixCases() {
   Expect.equals('dir/subdir', FileSystemEntity.parentOf('dir/subdir/file'));
   Expect.equals('dir//subdir', FileSystemEntity.parentOf('dir//subdir//file/'));
   Expect.equals(
-      'dir/sub.dir', FileSystemEntity.parentOf('dir/sub.dir/fi le///'));
+    'dir/sub.dir',
+    FileSystemEntity.parentOf('dir/sub.dir/fi le///'),
+  );
   Expect.equals('dir/..', FileSystemEntity.parentOf('dir/../file/'));
   Expect.equals('dir/..', FileSystemEntity.parentOf('dir/../..'));
   Expect.equals('.', FileSystemEntity.parentOf('./..'));
@@ -70,12 +72,18 @@ testWindowsCases() {
   // FileSystemEntity.isAbsolute returns false for 'C:'.
   Expect.equals(r'.', FileSystemEntity.parentOf(r'C:'));
 
-  Expect.equals(r'\\server\share\dir',
-      FileSystemEntity.parentOf(r'\\server\share\dir\file'));
-  Expect.equals(r'\\server\share\dir',
-      FileSystemEntity.parentOf(r'\\server\share\dir\file\'));
   Expect.equals(
-      r'\\server\share', FileSystemEntity.parentOf(r'\\server\share\file'));
+    r'\\server\share\dir',
+    FileSystemEntity.parentOf(r'\\server\share\dir\file'),
+  );
+  Expect.equals(
+    r'\\server\share\dir',
+    FileSystemEntity.parentOf(r'\\server\share\dir\file\'),
+  );
+  Expect.equals(
+    r'\\server\share',
+    FileSystemEntity.parentOf(r'\\server\share\file'),
+  );
   Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\share'));
   Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\share\'));
   Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\'));
@@ -95,7 +103,9 @@ testWindowsCases() {
   Expect.equals(r'dir', FileSystemEntity.parentOf(r'dir/file/'));
   Expect.equals(r'dir\subdir', FileSystemEntity.parentOf(r'dir\subdir\file'));
   Expect.equals(
-      r'dir\sub.dir', FileSystemEntity.parentOf(r'dir\sub.dir\fi le'));
+    r'dir\sub.dir',
+    FileSystemEntity.parentOf(r'dir\sub.dir\fi le'),
+  );
 }
 
 Future createTempDirectories() {
@@ -115,5 +125,7 @@ testPath(String path) {
   Expect.equals(tempDirectory, new File(join(tempDirectory, path)).parent.path);
   Expect.equals(tempDirectory, new Link(join(tempDirectory, path)).parent.path);
   Expect.equals(
-      tempDirectory, new Directory(join(tempDirectory, path)).parent.path);
+    tempDirectory,
+    new Directory(join(tempDirectory, path)).parent.path,
+  );
 }

@@ -22,11 +22,14 @@ main() {
       done.complete(true);
       throw "timer error";
     });
-  }).listen((x) {
-    events.add(x);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give the handler time to execute.

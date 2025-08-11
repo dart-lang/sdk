@@ -137,8 +137,12 @@ class InstantiateSimple2DUiMatrix extends BenchmarkBase {
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
-      total +=
-          UiMatrix.simple2d(scaleX: 1.2, scaleY: 2.3, dx: 0.4, dy: 3.45).scaleX;
+      total += UiMatrix.simple2d(
+        scaleX: 1.2,
+        scaleY: 2.3,
+        dx: 0.4,
+        dy: 3.45,
+      ).scaleX;
     }
     sink = total;
   }
@@ -170,15 +174,14 @@ class InstantiateComplexUiMatrix extends BenchmarkBase {
     for (int i = 0; i < N; i++) {
       final cosAngle = math.cos(0.1);
       final sinAngle = math.sin(0.1);
-      total +=
-          UiMatrix.transform2d(
-            scaleX: cosAngle,
-            scaleY: cosAngle,
-            k1: -sinAngle,
-            k2: sinAngle,
-            dx: 0.4,
-            dy: 3.45,
-          ).scaleX;
+      total += UiMatrix.transform2d(
+        scaleX: cosAngle,
+        scaleY: cosAngle,
+        k1: -sinAngle,
+        k2: sinAngle,
+        dx: 0.4,
+        dy: 3.45,
+      ).scaleX;
     }
     sink = total;
   }
@@ -226,10 +229,9 @@ class MultiplyIdentityByIdentityUiMatrix extends BenchmarkBase {
 class MultiplySimply2DByIdentityMatrix4 extends BenchmarkBase {
   MultiplySimply2DByIdentityMatrix4()
     : super('UiMatrix.Multiply_Simple2DByIdentity_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
     b4 = Matrix4.identity();
   }
 
@@ -263,14 +265,12 @@ class MultiplySimply2DByIdentityUiMatrix extends BenchmarkBase {
 class MultiplySimple2DBySimple2DMatrix4 extends BenchmarkBase {
   MultiplySimple2DBySimple2DMatrix4()
     : super('UiMatrix.Multiply_Simple2DBySimple2D_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
-    b4 =
-        Matrix4.identity()
-          ..translate(0.5, 3.46)
-          ..scale(1.7, 2.8);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
+    b4 = Matrix4.identity()
+      ..translate(0.5, 3.46)
+      ..scale(1.7, 2.8);
   }
   @override
   void run() {
@@ -301,14 +301,12 @@ class MultiplySimple2DBySimple2DUiMatrix extends BenchmarkBase {
 class MultiplyComplexByComplexMatrix4 extends BenchmarkBase {
   MultiplyComplexByComplexMatrix4()
     : super('UiMatrix.Multiply_ComplexByComplex_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..rotateZ(0.1)
-          ..translate(0.4, 3.45);
-    b4 =
-        Matrix4.identity()
-          ..rotateZ(0.2)
-          ..translate(0.3, 3.44);
+    a4 = Matrix4.identity()
+      ..rotateZ(0.1)
+      ..translate(0.4, 3.45);
+    b4 = Matrix4.identity()
+      ..rotateZ(0.2)
+      ..translate(0.3, 3.44);
   }
   @override
   void run() {
@@ -385,10 +383,9 @@ class AddIdentityPlusIdentityUiMatrix extends BenchmarkBase {
 class AddSimple2DPlusIdentityMatrix4 extends BenchmarkBase {
   AddSimple2DPlusIdentityMatrix4()
     : super('UiMatrix.Add_Simple2DPlusIdentity_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
     b4 = Matrix4.identity();
   }
   @override
@@ -420,14 +417,12 @@ class AddSimple2DPlusIdentityUiMatrix extends BenchmarkBase {
 class AddSimple2DPlusSimple2DMatrix4 extends BenchmarkBase {
   AddSimple2DPlusSimple2DMatrix4()
     : super('UiMatrix.Add_Simple2DPlusSimple2D_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
-    b4 =
-        Matrix4.identity()
-          ..translate(0.5, 3.46)
-          ..scale(1.7, 2.8);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
+    b4 = Matrix4.identity()
+      ..translate(0.5, 3.46)
+      ..scale(1.7, 2.8);
   }
   @override
   void run() {
@@ -458,14 +453,12 @@ class AddSimple2DPlusSimple2DUiMatrix extends BenchmarkBase {
 class AddComplexPlusComplexMatrix4 extends BenchmarkBase {
   AddComplexPlusComplexMatrix4()
     : super('UiMatrix.Add_ComplexPlusComplex_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..rotateZ(0.1)
-          ..translate(0.4, 3.45);
-    b4 =
-        Matrix4.identity()
-          ..rotateZ(0.2)
-          ..translate(0.3, 3.44);
+    a4 = Matrix4.identity()
+      ..rotateZ(0.1)
+      ..translate(0.4, 3.45);
+    b4 = Matrix4.identity()
+      ..rotateZ(0.2)
+      ..translate(0.3, 3.44);
   }
   @override
   void run() {
@@ -540,10 +533,9 @@ class InversionIdentityUiMatrix extends BenchmarkBase {
 
 class InversionSimple2DMatrix4 extends BenchmarkBase {
   InversionSimple2DMatrix4() : super('UiMatrix.Inversion_Simple2D_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
   }
 
   @override
@@ -574,10 +566,9 @@ class InversionSimple2DUiMatrix extends BenchmarkBase {
 
 class InversionComplexMatrix4 extends BenchmarkBase {
   InversionComplexMatrix4() : super('UiMatrix.Inversion_Complex_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..rotateZ(0.1)
-          ..translate(0.4, 3.45);
+    a4 = Matrix4.identity()
+      ..rotateZ(0.1)
+      ..translate(0.4, 3.45);
   }
 
   @override
@@ -646,10 +637,9 @@ class DeterminantIdentityUiMatrix extends BenchmarkBase {
 class DeterminantSimple2DMatrix4 extends BenchmarkBase {
   DeterminantSimple2DMatrix4()
     : super('UiMatrix.Determinant_Simple2D_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..translate(0.4, 3.45)
-          ..scale(1.2, 2.3);
+    a4 = Matrix4.identity()
+      ..translate(0.4, 3.45)
+      ..scale(1.2, 2.3);
   }
   @override
   void run() {
@@ -678,10 +668,9 @@ class DeterminantSimple2DUiMatrix extends BenchmarkBase {
 
 class DeterminantComplexMatrix4 extends BenchmarkBase {
   DeterminantComplexMatrix4() : super('UiMatrix.Determinant_Complex_Matrix4') {
-    a4 =
-        Matrix4.identity()
-          ..rotateZ(0.1)
-          ..translate(0.4, 3.45);
+    a4 = Matrix4.identity()
+      ..rotateZ(0.1)
+      ..translate(0.4, 3.45);
   }
   @override
   void run() {

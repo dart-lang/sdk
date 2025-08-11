@@ -295,9 +295,7 @@ class _LineSplitIterator implements Iterator<String> {
 
   // Creates string lazily on first request.
   // Makes it cheaper to do `LineSplitter.split(input).skip(5)...`.
-  String get current =>
-      _current ??=
-          (_lineEnd >= 0
-              ? _source.substring(_lineStart, _lineEnd)
-              : (throw StateError("No element")));
+  String get current => _current ??= (_lineEnd >= 0
+      ? _source.substring(_lineStart, _lineEnd)
+      : (throw StateError("No element")));
 }

@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -125,7 +126,7 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _containsExcluded(AstNode node) {
-    return {for (var e in excluded) ...e.withParents}.contains(node);
+    return {for (var e in excluded) ...e.withAncestors}.contains(node);
   }
 }
 
@@ -134,19 +135,19 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
 
   /// A map of all the error codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
-  Map<ErrorCode, List<ProducerGenerator>> get _errorCodesWhereThisIsValid {
+  Set<DiagnosticCode> get _codesWhereThisIsValid {
     var constructors = [RemoveUnnecessaryConst.new, RemoveConst.new];
     var nonLintMultiProducers = registeredFixGenerators.nonLintProducers;
     return {
       for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
-        if (value.containsAny(constructors)) key: value,
+        if (value.containsAny(constructors)) key,
     };
   }
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) {
+    if (diagnostic is! Diagnostic) {
       return;
     }
 
@@ -168,49 +169,46 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
         return;
       case ExpressionImpl expression:
         var constantContext = expression.constantContext(includeSelf: true);
-        if (constantContext != null) {
-          var constKeyword = constantContext.$2;
-          if (constKeyword != null) {
-            var validErrors = _errorCodesWhereThisIsValid.keys.toList();
-            var validDiagnostics = unitResult.errors.whereErrorCodeIn(
-              validErrors,
-            );
-            switch (constantContext.$1) {
-              case InstanceCreationExpression contextNode:
-                var (:constNodes, :nodesWithDiagnostic) = contextNode
-                    .argumentList
-                    .arguments
-                    .withErrorCodeIn(validDiagnostics);
-                await builder.addDartFileEdit(file, (builder) async {
-                  _deleteToken(builder, constKeyword);
-                  contextNode.accept(
-                    _PushConstVisitor(builder, nodesWithDiagnostic),
-                  );
-                });
-              case TypedLiteral contextNode:
-                var (:constNodes, :nodesWithDiagnostic) = switch (contextNode) {
-                  ListLiteral list => list.elements,
-                  SetOrMapLiteral set => set.elements,
-                }.withErrorCodeIn(validDiagnostics);
-                await builder.addDartFileEdit(file, (builder) async {
-                  _deleteToken(builder, constKeyword);
-                  contextNode.accept(
-                    _PushConstVisitor(builder, nodesWithDiagnostic),
-                  );
-                });
-              case VariableDeclarationList contextNode:
-                var (:constNodes, :nodesWithDiagnostic) = contextNode.variables
-                    .withErrorCodeIn(validDiagnostics);
-                await builder.addDartFileEdit(file, (builder) {
-                  builder.addSimpleReplacement(
-                    range.token(constKeyword),
-                    Keyword.FINAL.lexeme,
-                  );
-                  contextNode.accept(
-                    _PushConstVisitor(builder, nodesWithDiagnostic),
-                  );
-                });
-            }
+        if (constantContext case (var node, var constKeyword?)) {
+          var validDiagnostics = [
+            for (var e in unitResult.diagnostics)
+              if (_codesWhereThisIsValid.contains(e.diagnosticCode)) e,
+          ];
+          switch (node) {
+            case InstanceCreationExpression contextNode:
+              var (:constNodes, :nodesWithDiagnostic) = contextNode
+                  .argumentList
+                  .arguments
+                  .withDiagnosticCodeIn(validDiagnostics);
+              await builder.addDartFileEdit(file, (builder) {
+                _deleteToken(builder, constKeyword);
+                contextNode.accept(
+                  _PushConstVisitor(builder, nodesWithDiagnostic),
+                );
+              });
+            case TypedLiteral contextNode:
+              var (:constNodes, :nodesWithDiagnostic) = switch (contextNode) {
+                ListLiteral list => list.elements,
+                SetOrMapLiteral set => set.elements,
+              }.withDiagnosticCodeIn(validDiagnostics);
+              await builder.addDartFileEdit(file, (builder) {
+                _deleteToken(builder, constKeyword);
+                contextNode.accept(
+                  _PushConstVisitor(builder, nodesWithDiagnostic),
+                );
+              });
+            case VariableDeclarationList contextNode:
+              var (:constNodes, :nodesWithDiagnostic) = contextNode.variables
+                  .withDiagnosticCodeIn(validDiagnostics);
+              await builder.addDartFileEdit(file, (builder) {
+                builder.addSimpleReplacement(
+                  range.token(constKeyword),
+                  Keyword.FINAL.lexeme,
+                );
+                contextNode.accept(
+                  _PushConstVisitor(builder, nodesWithDiagnostic),
+                );
+              });
           }
         }
     }
@@ -229,7 +227,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
     // In the case of a `const class` declaration, the `const` keyword is
     // not part of the class so we have to use the diagnostic offset.
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) return;
+    if (diagnostic is! Diagnostic) return;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
@@ -244,7 +242,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
   }
 }
 
-extension on AnalysisError {
+extension on Diagnostic {
   int get end => offset + length;
 
   bool isWithin(AstNode node) {
@@ -260,32 +258,25 @@ extension on AstNode {
 
 extension on List<AstNode> {
   ({List<AstNode> nodesWithDiagnostic, List<AstNode> constNodes})
-  withErrorCodeIn(List<AnalysisError> diagnostics) {
+  withDiagnosticCodeIn(List<Diagnostic> diagnostics) {
     if (diagnostics.isEmpty) {
       return (constNodes: toList(), nodesWithDiagnostic: const []);
     }
     var invalidNodes = <AstNode>[];
     var constNodes = <AstNode>[];
     for (var node in this) {
-      // If no error spans this node, it is valid.
-      if (diagnostics.none((error) => error.isWithin(node))) {
+      // If no diagnostic spans this node, it is valid.
+      if (diagnostics.none((d) => d.isWithin(node))) {
         constNodes.add(node);
         continue;
       }
-      var error = diagnostics.firstWhere((error) => error.isWithin(node));
-      var visitor = _ChildrenVisitor(error.offset, error.end);
+      var diagnostic = diagnostics.firstWhere((d) => d.isWithin(node));
+      var visitor = _ChildrenVisitor(diagnostic.offset, diagnostic.end);
       node.accept(visitor);
       invalidNodes.add(visitor.selectedNode);
     }
     return (nodesWithDiagnostic: invalidNodes, constNodes: constNodes);
   }
-}
-
-extension on List<AnalysisError> {
-  List<AnalysisError> whereErrorCodeIn(List<ErrorCode> errors) =>
-      where((error) {
-        return errors.contains(error.errorCode);
-      }).toList();
 }
 
 extension<T> on Iterable<T> {

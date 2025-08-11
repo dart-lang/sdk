@@ -299,6 +299,9 @@ class KeywordHelper {
 
     /// Return `true` if `switch` should be suggested for the given [node].
     bool switchIsValid(AstNode? node) {
+      if (node is SimpleIdentifier && node.parent is DefaultFormalParameter) {
+        return false;
+      }
       if (node is CollectionElement && node is! Expression) {
         node = node.parent;
       }
@@ -421,18 +424,34 @@ class KeywordHelper {
 
   /// Add the keywords that are appropriate when the selection is at the start
   /// of a formal parameter in the given [parameterList].
-  void addFormalParameterKeywords(FormalParameterList parameterList) {
-    addKeyword(Keyword.COVARIANT);
-    addKeyword(Keyword.FINAL);
-    if (parameterList.inNamedGroup(offset)) {
+  void addFormalParameterKeywords(
+    FormalParameterList parameterList, {
+    required bool suggestRequired,
+    required bool suggestVariableName,
+    bool suggestCovariant = true,
+    bool suggestThis = true,
+    bool suggestFinal = true,
+  }) {
+    if (suggestCovariant) {
+      addKeyword(Keyword.COVARIANT);
+    }
+    if (suggestFinal) {
+      addKeyword(Keyword.FINAL);
+    }
+    if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
+    }
+    if (!suggestVariableName) {
+      return;
     }
     var parent = parameterList.parent;
     if (parent is ConstructorDeclaration) {
       if (featureSet.isEnabled(Feature.super_parameters)) {
         addKeyword(Keyword.SUPER);
       }
-      addKeyword(Keyword.THIS);
+      if (suggestThis) {
+        addKeyword(Keyword.THIS);
+      }
     }
   }
 
@@ -572,13 +591,6 @@ class KeywordHelper {
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
   void addStatementKeywords(AstNode node) {
-    if (node.inAsyncMethodOrFunction) {
-      addKeyword(Keyword.AWAIT);
-    } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
-      addKeyword(Keyword.AWAIT);
-      addKeyword(Keyword.YIELD);
-      addKeywordAndText(Keyword.YIELD, '*');
-    }
     if (node.inLoop) {
       addKeyword(Keyword.BREAK);
       addKeyword(Keyword.CONTINUE);

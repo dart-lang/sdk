@@ -54,16 +54,20 @@ void main() async {
     var stream = Stream<int>.error(error, stack);
     int errorCount = 0;
     var onDone = Completer();
-    var sub = stream.listen((v) {
-      Expect.fail("Value event");
-    }, onError: (e, s) {
-      Expect.identical(error, e);
-      Expect.identical(stack, s);
-      errorCount++;
-    }, onDone: () {
-      Expect.equals(1, errorCount);
-      onDone.complete();
-    });
+    var sub = stream.listen(
+      (v) {
+        Expect.fail("Value event");
+      },
+      onError: (e, s) {
+        Expect.identical(error, e);
+        Expect.identical(stack, s);
+        errorCount++;
+      },
+      onDone: () {
+        Expect.equals(1, errorCount);
+        onDone.complete();
+      },
+    );
     sub.pause();
     await Future.delayed(Duration(milliseconds: 10));
     Expect.equals(0, errorCount);

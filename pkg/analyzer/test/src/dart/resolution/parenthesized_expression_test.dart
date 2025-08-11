@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class ParenthesizedExpressionResolutionTest extends PubPackageResolutionTest {
   test_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     (super);
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+    );
 
     var node = findNode.singleParenthesizedExpression;
     assertResolvedNodeText(node, r'''

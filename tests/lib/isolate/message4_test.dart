@@ -58,8 +58,10 @@ main() async {
 
   ReceivePort initialReplyPort = new ReceivePort();
 
-  Isolate i = await Isolate.spawn(
-      echoMain, [initialReplyPort.sendPort, testPort.sendPort]);
+  Isolate i = await Isolate.spawn(echoMain, [
+    initialReplyPort.sendPort,
+    testPort.sendPort,
+  ]);
   SendPort ping = await initialReplyPort.first;
   runTests(ping, checks);
   Expect.isTrue(checks.length > 0);

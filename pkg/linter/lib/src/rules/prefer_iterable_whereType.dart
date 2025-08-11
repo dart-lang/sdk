@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: file_names
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,13 +18,10 @@ class PreferIterableWhereType extends LintRule {
     : super(name: LintNames.prefer_iterable_whereType, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_iterable_whereType;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_iterable_whereType;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
@@ -66,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var target = expression.expression;
         if (target is SimpleIdentifier &&
             target.name == arg.parameters?.parameters.first.name?.lexeme) {
-          rule.reportLint(node.methodName);
+          rule.reportAtNode(node.methodName);
         }
       }
     }

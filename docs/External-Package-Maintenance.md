@@ -121,3 +121,38 @@ at a time and then the old behavior can be removed once everything is migrated.
     "Conversation" view.
 -   The [gh cli tool](https://cli.github.com/) makes it easy to checkout a PR
     in cases where a change may be easier to understand in an IDE.
+
+# Working with Monorepos
+
+## Syncing an individual package update to the SDK
+
+Typical package rolls into the Dart SDK are atomic for all packages in a mono
+repo. If some change in the history of the main branch for the repository is
+blocking the roll and a required fix was committed after the roll became blocked
+there are extra steps to roll only specific changes to the SDK.
+
+The goal is to have a commit with the contents that need to be synced to the
+SDK, and put _exactly_ that commit in the history of the main branch.
+
+-   Create a branch from a commit which is known safe to roll to the SDK, this
+    may be the same commit which is currently rolled, or a forward roll of other
+    changes expected to be safe that are earlier than the known breakage.
+    `git checkout -b <branch name> <SHA>`.
+-   Cherry pick any required fixes for the package that needs the update.
+    Typically this should not involve merge conflicts, but if they occur resolve
+    them in favor of the version that should be synced to the SDK. Do not make
+    any commits that are not cherry picks. Picking a base commit close to the
+    breaking commit reduces risk of conflicts from the commits in between.
+-   Open a PR to merge this branch into the main branch but _do not submit it_.
+    Run CI like normal on this PR.
+-   After a passing CI run sync with an admin for the repo to get help with
+    merging. In most repositories this will require a change to the settings.
+    Do _not_ use a rebase or squash merge. Ask a repo admin to create a _merge_
+    commit, either by temporarily enabling PR merging, or by creating the commit
+    on the CLI and pushing. The merge should not have conflicts and should not
+    be pushed if it did.
+-   Wait for the repository mirror to update and update DEPS to reference the
+    SHA of the commit from the PR.
+
+If there is any confusion, reach out to an admin for the repo early and they
+will be able to help.

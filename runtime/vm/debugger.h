@@ -290,7 +290,8 @@ class ActivationFrame : public ZoneAllocated {
   ActivationFrame(uword pc,
                   uword fp,
                   uword sp,
-                  const Code& code,
+                  const Function& function,
+                  const Object& code_or_bytecode,
                   const Array& deopt_frame,
                   intptr_t deopt_frame_offset);
 
@@ -299,7 +300,10 @@ class ActivationFrame : public ZoneAllocated {
   //
   // |closure| is the listener which will be invoked when awaited
   // computation completes.
-  ActivationFrame(uword pc, const Code& code, const Closure& closure);
+  ActivationFrame(uword pc,
+                  const Function& function,
+                  const Object& code_or_bytecode,
+                  const Closure& closure);
 
   explicit ActivationFrame(Kind kind);
 
@@ -309,17 +313,23 @@ class ActivationFrame : public ZoneAllocated {
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
 
-  uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
-
   // For |kAsyncAwaiter| frames this is the listener which will be invoked
   // when the frame below (callee) completes.
   const Closure& closure() const { return closure_; }
 
   const Function& function() const { return function_; }
+
   const Code& code() const {
-    ASSERT(!code_.IsNull());
-    return code_;
+    ASSERT(!code_or_bytecode_.IsNull());
+    return Code::Cast(code_or_bytecode_);
   }
+
+  const Bytecode& bytecode() const {
+    ASSERT(!code_or_bytecode_.IsNull());
+    return Bytecode::Cast(code_or_bytecode_);
+  }
+
+  bool IsInterpreted() const { return code_or_bytecode_.IsBytecode(); }
 
   enum Relation {
     kCallee,
@@ -427,7 +437,7 @@ class ActivationFrame : public ZoneAllocated {
 
   // The anchor of the context chain for this function.
   Context& ctx_ = Context::ZoneHandle();
-  const Code& code_;
+  const Object& code_or_bytecode_;
   const Function& function_;
   const Closure& closure_;
 
@@ -484,9 +494,15 @@ class DebuggerStackTrace : public ZoneAllocated {
  private:
   void AddActivation(ActivationFrame* frame);
   void AddAsyncSuspension();
-  void AddAsyncAwaiterFrame(uword pc, const Code& code, const Closure& closure);
+  void AddAsyncAwaiterFrame(uword pc,
+                            const Function& function,
+                            const Object& code_or_bytecode,
+                            const Closure& closure);
 
   void AppendCodeFrames(StackFrame* frame, const Code& code);
+  void AppendBytecodeFrame(StackFrame* frame,
+                           const Function& function,
+                           const Bytecode& bytecode);
 
   Thread* thread_;
   Zone* zone_;

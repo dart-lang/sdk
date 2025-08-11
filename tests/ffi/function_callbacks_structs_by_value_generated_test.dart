@@ -951,26 +951,36 @@ typedef PassStruct1ByteIntx10Type =
     );
 
 // Global variables to be able to test inputs after callback returned.
-Struct1ByteInt passStruct1ByteIntx10_a0 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a1 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a2 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a3 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a4 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a5 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a6 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a7 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a8 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
-Struct1ByteInt passStruct1ByteIntx10_a9 =
-    Pointer<Struct1ByteInt>.fromAddress(0).ref;
+Struct1ByteInt passStruct1ByteIntx10_a0 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a1 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a2 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a3 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a4 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a5 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a6 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a7 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a8 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
+Struct1ByteInt passStruct1ByteIntx10_a9 = Pointer<Struct1ByteInt>.fromAddress(
+  0,
+).ref;
 
 // Result variable also global, so we can delete it after the callback.
 int passStruct1ByteIntx10Result = 0;

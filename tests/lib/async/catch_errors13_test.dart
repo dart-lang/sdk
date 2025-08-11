@@ -66,12 +66,15 @@ main() {
       throw "timer outer";
     });
     throw "inner throw";
-  }).listen((x) {
-    events.add(x);
-    if (x == "inner done throw") done.complete(true);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+      if (x == "inner done throw") done.complete(true);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give callbacks time to run.
@@ -86,7 +89,7 @@ main() {
         "timer outer",
         "delayed error",
         "scheduleMicrotask",
-        "inner done throw"
+        "inner done throw",
       ], events);
       asyncEnd();
     });

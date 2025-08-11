@@ -8,7 +8,6 @@ f(Object? objectQuestion) {
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER
   //                     ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  //                     ^
   // [cfe] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
 }
 

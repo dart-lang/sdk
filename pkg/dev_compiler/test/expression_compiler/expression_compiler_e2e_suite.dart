@@ -43,8 +43,12 @@ class ExpressionEvaluationTestDriver {
   final TimeoutTracker tracker = TimeoutTracker();
 
   ExpressionEvaluationTestDriver._(
-      this.chrome, this.chromeDir, this.connection, this.debugger, this.runtime)
-      : executionContext = ExecutionContext(runtime);
+    this.chrome,
+    this.chromeDir,
+    this.connection,
+    this.debugger,
+    this.runtime,
+  ) : executionContext = ExecutionContext(runtime);
 
   /// Initializes a Chrome browser instance, tab connection, and debugger.
   static Future<ExpressionEvaluationTestDriver> init() async {
@@ -62,9 +66,11 @@ class ExpressionEvaluationTestDriver {
     // accidentally start multiple instances.
     while (chrome == null && retries-- > 0) {
       try {
-        chrome = await browser.Chrome.startWithDebugPort(['about:blank'],
-            userDataDir: chromeDir.uri.toFilePath(),
-            headless: !Platform.isWindows);
+        chrome = await browser.Chrome.startWithDebugPort(
+          ['about:blank'],
+          userDataDir: chromeDir.uri.toFilePath(),
+          headless: !Platform.isWindows,
+        );
       } catch (e) {
         if (retries == 0) rethrow;
         await Future.delayed(Duration(seconds: 5));
@@ -76,28 +82,42 @@ class ExpressionEvaluationTestDriver {
 
     // Connect to the first 'normal' tab.
     var tab = await chrome.chromeConnection.getTab(
-        (tab) => !tab.isBackgroundPage && !tab.isChromeExtension,
-        retryFor: Duration(seconds: 5));
+      (tab) => !tab.isBackgroundPage && !tab.isChromeExtension,
+      retryFor: Duration(seconds: 5),
+    );
     if (tab == null) {
       throw Exception('Unable to connect to Chrome tab');
     }
 
-    var connection = await tab.connect().timeout(Duration(seconds: 5),
-        onTimeout: (() => throw Exception('Unable to connect to WIP tab')));
+    var connection = await tab.connect().timeout(
+      Duration(seconds: 5),
+      onTimeout: (() => throw Exception('Unable to connect to WIP tab')),
+    );
 
-    await connection.page.enable().timeout(Duration(seconds: 5),
-        onTimeout: (() => throw Exception('Unable to enable WIP tab page')));
+    await connection.page.enable().timeout(
+      Duration(seconds: 5),
+      onTimeout: (() => throw Exception('Unable to enable WIP tab page')),
+    );
 
     var runtime = connection.runtime;
-    await runtime.enable().timeout(Duration(seconds: 5),
-        onTimeout: (() => throw Exception('Unable to enable WIP runtime')));
+    await runtime.enable().timeout(
+      Duration(seconds: 5),
+      onTimeout: (() => throw Exception('Unable to enable WIP runtime')),
+    );
 
     var debugger = connection.debugger;
-    await debugger.enable().timeout(Duration(seconds: 5),
-        onTimeout: (() => throw Exception('Unable to enable WIP debugger')));
+    await debugger.enable().timeout(
+      Duration(seconds: 5),
+      onTimeout: (() => throw Exception('Unable to enable WIP debugger')),
+    );
 
     return ExpressionEvaluationTestDriver._(
-        chrome, chromeDir, connection, debugger, runtime);
+      chrome,
+      chromeDir,
+      connection,
+      debugger,
+      runtime,
+    );
   }
 
   /// Must be called when testing a new Dart program.
@@ -109,11 +129,15 @@ class ExpressionEvaluationTestDriver {
     String source, {
     Map<String, bool> experiments = const {},
     String? partSource,
-  }) =>
-      tracker._watch(
-          'init-source',
-          () => _initSource(setup, source,
-              experiments: experiments, partSource: partSource));
+  }) => tracker._watch(
+    'init-source',
+    () => _initSource(
+      setup,
+      source,
+      experiments: experiments,
+      partSource: partSource,
+    ),
+  );
 
   Future<void> _initSource(
     SetupCompilerOptions setup,
@@ -164,37 +188,47 @@ class ExpressionEvaluationTestDriver {
       ''');
 
     // Initialize DDC and the incremental compiler, then perform a full compile.
-    compiler = await TestExpressionCompiler.init(setup,
-        input: input,
-        output: output,
-        packages: packagesFile,
-        experiments: experiments);
+    compiler = await TestExpressionCompiler.init(
+      setup,
+      input: input,
+      output: output,
+      packages: packagesFile,
+      experiments: experiments,
+    );
 
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
     var moduleName = compiler.metadata!.name;
     var mainLibraryName = libraryUriToImportName(
-        Uri.parse(compiler.metadataForLibraryUri(input).importUri));
+      Uri.parse(compiler.metadataForLibraryUri(input).importUri),
+    );
     var appName = p.relative(
-        p.withoutExtension(compiler.metadataForLibraryUri(input).importUri));
+      p.withoutExtension(compiler.metadataForLibraryUri(input).importUri),
+    );
 
     switch (setup.moduleFormat) {
       case ModuleFormat.ddc:
-        dartSdkPath = escaped(SetupCompilerOptions.buildRoot
-            .resolve(p.join(
-                'gen',
-                'utils',
-                'ddc',
-                setup.canaryFeatures ? 'canary' : 'stable',
-                'sdk',
-                'ddc',
-                'dart_sdk.js'))
-            .toFilePath());
+        dartSdkPath = escaped(
+          SetupCompilerOptions.buildRoot
+              .resolve(
+                p.join(
+                  'gen',
+                  'utils',
+                  'ddc',
+                  setup.canaryFeatures ? 'canary' : 'stable',
+                  'sdk',
+                  'ddc',
+                  'dart_sdk.js',
+                ),
+              )
+              .toFilePath(),
+        );
         if (!File(dartSdkPath).existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath');
         }
         var dartLibraryPath = escaped(
-            p.join(ddcPath, 'lib', 'js', 'ddc', 'ddc_module_loader.js'));
+          p.join(ddcPath, 'lib', 'js', 'ddc', 'ddc_module_loader.js'),
+        );
         var outputPath = output.toFilePath();
         if (setup.emitLibraryBundle) {
           bootstrapFile.writeAsStringSync('''
@@ -236,25 +270,33 @@ class ExpressionEvaluationTestDriver {
 ''');
         }
       case ModuleFormat.amd:
-        var dartSdkPathNoExtension = escaped(SetupCompilerOptions.buildRoot
-            .resolve(p.join(
-                'gen',
-                'utils',
-                'ddc',
-                setup.canaryFeatures ? 'canary' : 'stable',
-                'sdk',
-                'amd',
-                'dart_sdk'))
-            .toFilePath());
+        var dartSdkPathNoExtension = escaped(
+          SetupCompilerOptions.buildRoot
+              .resolve(
+                p.join(
+                  'gen',
+                  'utils',
+                  'ddc',
+                  setup.canaryFeatures ? 'canary' : 'stable',
+                  'sdk',
+                  'amd',
+                  'dart_sdk',
+                ),
+              )
+              .toFilePath(),
+        );
         dartSdkPath = '$dartSdkPathNoExtension.js';
 
         if (!File(dartSdkPath).existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath');
         }
-        var requirePath = escaped(SetupCompilerOptions.buildRoot
-            .resolve(
-                p.join('dart-sdk', 'lib', 'dev_compiler', 'amd', 'require.js'))
-            .toFilePath());
+        var requirePath = escaped(
+          SetupCompilerOptions.buildRoot
+              .resolve(
+                p.join('dart-sdk', 'lib', 'dev_compiler', 'amd', 'require.js'),
+              )
+              .toFilePath(),
+        );
         var outputPath = escaped(p.withoutExtension(output.toFilePath()));
         bootstrapFile.writeAsStringSync('''
 <script src='$requirePath'></script>
@@ -290,8 +332,10 @@ class ExpressionEvaluationTestDriver {
 ''');
 
       default:
-        throw Exception('Unsupported module format for SDK evaluation tests: '
-            '${setup.moduleFormat}');
+        throw Exception(
+          'Unsupported module format for SDK evaluation tests: '
+          '${setup.moduleFormat}',
+        );
     }
     bootstrapSource = bootstrapFile.readAsStringSync();
     await setBreakpointsActive(debugger, true);
@@ -328,9 +372,11 @@ class ExpressionEvaluationTestDriver {
     required Map<String, String> expectedScope,
   }) async {
     final actualScope = await getScope(breakpointId);
-    actualScope.removeWhere((key, value) =>
-        _ddcTemporaryVariableRegExp.hasMatch(key) ||
-        _ddcTemporaryTypeVariableRegExp.hasMatch(key));
+    actualScope.removeWhere(
+      (key, value) =>
+          _ddcTemporaryVariableRegExp.hasMatch(key) ||
+          _ddcTemporaryTypeVariableRegExp.hasMatch(key),
+    );
     expect(actualScope, expectedScope);
   }
 
@@ -351,8 +397,9 @@ class ExpressionEvaluationTestDriver {
     if (_bootstrapScript != null && _script != null) return;
     final bootstrapController = StreamController<wip.ScriptParsedEvent>();
     final scriptController = StreamController<wip.ScriptParsedEvent>();
-    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
-        .listen((e) => printOnFailure('$e'));
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled.listen(
+      (e) => printOnFailure('$e'),
+    );
 
     // Fail on exceptions in JS code.
     await debugger.setPauseOnExceptions(wip.PauseState.uncaught);
@@ -375,27 +422,36 @@ class ExpressionEvaluationTestDriver {
       // Navigate to the page that will load the application code.
       // Note: the bootstrapper does not invoke the application main, but
       // exposes a function that can be called to do so.
-      await connection.page.navigate('$htmlBootstrapper').timeout(
-          Duration(seconds: 5),
-          onTimeout: (() => throw Exception(
-              'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
+      await connection.page
+          .navigate('$htmlBootstrapper')
+          .timeout(
+            Duration(seconds: 5),
+            onTimeout: (() => throw Exception(
+              'Unable to navigate to page bootstrap script: $htmlBootstrapper',
+            )),
+          );
 
       // Poll until both scripts are found, or timeout after a few seconds.
       _bootstrapScript = (await tracker._watch(
-              'find-bootstrap-script',
-              () => bootstrapController.stream.first.timeout(
-                  Duration(seconds: 10),
-                  onTimeout: (() => throw Exception(
-                      'Unable to find bootstrap script corresponding to '
-                      '$htmlBootstrapper in ${debugger.scripts}.')))))
-          .script;
+        'find-bootstrap-script',
+        () => bootstrapController.stream.first.timeout(
+          Duration(seconds: 10),
+          onTimeout: (() => throw Exception(
+            'Unable to find bootstrap script corresponding to '
+            '$htmlBootstrapper in ${debugger.scripts}.',
+          )),
+        ),
+      )).script;
       _script = (await tracker._watch(
-              'find-input-script',
-              () => scriptController.stream.first.timeout(Duration(seconds: 10),
-                  onTimeout: (() => throw Exception(
-                      'Unable to find JS script corresponding to test file '
-                      '$output in ${debugger.scripts}.')))))
-          .script;
+        'find-input-script',
+        () => scriptController.stream.first.timeout(
+          Duration(seconds: 10),
+          onTimeout: (() => throw Exception(
+            'Unable to find JS script corresponding to test file '
+            '$output in ${debugger.scripts}.',
+          )),
+        ),
+      )).script;
     } finally {
       await scriptSub.cancel();
       await consoleSub.cancel();
@@ -408,12 +464,14 @@ class ExpressionEvaluationTestDriver {
   /// Uses the debugger API to trigger the execution of the app.
   Future<wip.RemoteObject> _scheduleMain() async {
     final context = await executionContext.id;
-    return runtime
-        .evaluate('scheduleMain()', contextId: context)
-        .catchError((Object e) {
-      printOnFailure(e is wip.ExceptionDetails
-          ? 'Exception when calling scheduleMain: ${e.json}!'
-          : 'Uncaught exception during scheduleMain: $e');
+    return runtime.evaluate('scheduleMain()', contextId: context).catchError((
+      Object e,
+    ) {
+      printOnFailure(
+        e is wip.ExceptionDetails
+            ? 'Exception when calling scheduleMain: ${e.json}!'
+            : 'Uncaught exception during scheduleMain: $e',
+      );
       throw e;
     });
   }
@@ -423,20 +481,24 @@ class ExpressionEvaluationTestDriver {
   ///
   /// Internally, this navigates to the bootstrapper page or ensures that the
   /// bootstrapper page has already been loaded. The page only loads code
-  /// without running the DDC app main method. Once the resouces are loaded we
+  /// without running the DDC app main method. Once the resources are loaded we
   /// wait until after the breakpoint is registered before scheduling a call to
   /// the app's main method.
-  Future<T> _onBreakpoint<T>(String breakpointId,
-      {required Future<T> Function(wip.DebuggerPausedEvent) onPause}) async {
-    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
-        .listen((e) => printOnFailure('$e'));
+  Future<T> _onBreakpoint<T>(
+    String breakpointId, {
+    required Future<T> Function(wip.DebuggerPausedEvent) onPause,
+  }) async {
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled.listen(
+      (e) => printOnFailure('$e'),
+    );
 
     // Used to reflect when [breakpointId] is hit.
     final breakpointCompleter = Completer<wip.DebuggerPausedEvent>();
     final pauseSub = debugger.onPaused.listen((e) {
       if (e.reason == 'exception' || e.reason == 'assert') {
-        breakpointCompleter
-            .completeError('Uncaught exception in JS code: ${e.data}');
+        breakpointCompleter.completeError(
+          'Uncaught exception in JS code: ${e.data}',
+        );
         throw Exception('Script failed while waiting for a breakpoint to hit.');
       }
       breakpointCompleter.complete(e);
@@ -449,18 +511,24 @@ class ExpressionEvaluationTestDriver {
     var location = await _locationFromLine(line.value, line.key);
 
     var bp = await tracker._watch(
-        'set-breakpoint', () => debugger.setBreakpoint(location));
+      'set-breakpoint',
+      () => debugger.setBreakpoint(location),
+    );
     final atBreakpoint = breakpointCompleter.future;
     try {
       // Now that the breakpoint is set, the application can start running.
       unawaited(_scheduleMain());
 
       final event = await tracker._watch(
-          'pause-event-for-line',
-          () => atBreakpoint.timeout(Duration(seconds: 10),
-              onTimeout: () => throw Exception(
-                  'Unable to find JS pause event corresponding to line '
-                  '($line -> $location).')));
+        'pause-event-for-line',
+        () => atBreakpoint.timeout(
+          Duration(seconds: 10),
+          onTimeout: () => throw Exception(
+            'Unable to find JS pause event corresponding to line '
+            '($line -> $location).',
+          ),
+        ),
+      );
       return await onPause(event);
     } finally {
       await pauseSub.cancel();
@@ -478,8 +546,9 @@ class ExpressionEvaluationTestDriver {
 
   /// Load the script and run the [body] while the app is running.
   Future<T> _whileRunning<T>({required Future<T> Function() body}) async {
-    final consoleSub = debugger.connection.runtime.onConsoleAPICalled
-        .listen((e) => printOnFailure('$e'));
+    final consoleSub = debugger.connection.runtime.onConsoleAPICalled.listen(
+      (e) => printOnFailure('$e'),
+    );
 
     await _loadScript();
     try {
@@ -491,11 +560,14 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<Map<String, String>> getScope(String breakpointId) async {
-    return await _onBreakpoint(breakpointId, onPause: (event) async {
-      // Retrieve the call frame and its scope variables.
-      var frame = event.getCallFrames().first;
-      return await _collectScopeVariables(frame);
-    });
+    return await _onBreakpoint(
+      breakpointId,
+      onPause: (event) async {
+        // Retrieve the call frame and its scope variables.
+        var frame = event.getCallFrames().first;
+        return await _collectScopeVariables(frame);
+      },
+    );
   }
 
   /// Evaluates a dart [expression] on a breakpoint.
@@ -505,21 +577,23 @@ class ExpressionEvaluationTestDriver {
     required String breakpointId,
     required String expression,
   }) async {
-    return await _onBreakpoint(breakpointId, onPause: (event) async {
-      var result = await _evaluateDartExpressionInFrame(
-        event,
-        expression,
-      );
-      return await stringifyRemoteObject(result);
-    });
+    return await _onBreakpoint(
+      breakpointId,
+      onPause: (event) async {
+        var result = await _evaluateDartExpressionInFrame(event, expression);
+        return await stringifyRemoteObject(result);
+      },
+    );
   }
 
   /// Evaluates a dart [expression] while the app is running.
   Future<String> evaluateDartExpression({required String expression}) async {
-    return await _whileRunning(body: () async {
-      var result = await _evaluateDartExpression(expression);
-      return await stringifyRemoteObject(result);
-    });
+    return await _whileRunning(
+      body: () async {
+        var result = await _evaluateDartExpression(expression);
+        return await stringifyRemoteObject(result);
+      },
+    );
   }
 
   /// Given a [remoteObject] and only one of [expectedError] and
@@ -551,8 +625,10 @@ class ExpressionEvaluationTestDriver {
             'Unexpected expression evaluation success:\n${remoteObject.json}',
       );
       if (stringifyResult) {
-        expect(await stringifyRemoteObject(remoteObject),
-            _matches(expectedResult!));
+        expect(
+          await stringifyRemoteObject(remoteObject),
+          _matches(expectedResult!),
+        );
       } else {
         expect(remoteObject.value, _matches(equals(expectedResult!)));
       }
@@ -576,15 +652,21 @@ class ExpressionEvaluationTestDriver {
     dynamic expectedError,
     dynamic expectedResult,
   }) async {
-    assert(expectedError == null || expectedResult == null,
-        'Cannot expect both an error and result.');
+    assert(
+      expectedError == null || expectedResult == null,
+      'Cannot expect both an error and result.',
+    );
 
-    return await _onBreakpoint(breakpointId, onPause: (event) async {
-      await _matchRemoteObject(
+    return await _onBreakpoint(
+      breakpointId,
+      onPause: (event) async {
+        await _matchRemoteObject(
           remoteObject: await _evaluateJsExpression(event, expression),
           expectedError: expectedError,
-          expectedResult: expectedResult);
-    });
+          expectedResult: expectedResult,
+        );
+      },
+    );
   }
 
   /// Evaluates a dart [expression] on a breakpoint and validates result.
@@ -593,78 +675,91 @@ class ExpressionEvaluationTestDriver {
   /// [expression] is a dart expression.
   /// [expectedResult] is the JSON for the returned remote object.
   /// [expectedError] is the error string if the error is expected.
-  Future<void> checkInFrame(
-          {required String breakpointId,
-          required String expression,
-          dynamic expectedError,
-          dynamic expectedResult}) =>
-      tracker._watch(
-          'check-in-frame',
-          () => _checkInFrame(
-              breakpointId: breakpointId,
-              expression: expression,
-              expectedError: expectedError,
-              expectedResult: expectedResult));
+  Future<void> checkInFrame({
+    required String breakpointId,
+    required String expression,
+    dynamic expectedError,
+    dynamic expectedResult,
+  }) => tracker._watch(
+    'check-in-frame',
+    () => _checkInFrame(
+      breakpointId: breakpointId,
+      expression: expression,
+      expectedError: expectedError,
+      expectedResult: expectedResult,
+    ),
+  );
 
-  Future<void> _checkInFrame(
-      {required String breakpointId,
-      required String expression,
-      dynamic expectedError,
-      dynamic expectedResult}) async {
-    assert(expectedError == null || expectedResult == null,
-        'Cannot expect both an error and result.');
+  Future<void> _checkInFrame({
+    required String breakpointId,
+    required String expression,
+    dynamic expectedError,
+    dynamic expectedResult,
+  }) async {
+    assert(
+      expectedError == null || expectedResult == null,
+      'Cannot expect both an error and result.',
+    );
 
-    return await _onBreakpoint(breakpointId, onPause: (event) async {
-      await _matchRemoteObject(
-          remoteObject: await _evaluateDartExpressionInFrame(
-            event,
-            expression,
-          ),
+    return await _onBreakpoint(
+      breakpointId,
+      onPause: (event) async {
+        await _matchRemoteObject(
+          remoteObject: await _evaluateDartExpressionInFrame(event, expression),
           expectedError: expectedError,
           expectedResult: expectedResult,
-          stringifyResult: true);
-    });
+          stringifyResult: true,
+        );
+      },
+    );
   }
 
   /// Evaluates a dart [expression] under the scope of [libraryUri] without
   /// a breakpoint and validates the result.
   ///
-  /// When [libraryUri] is ommitted, the expression is evaluated in the [input]
+  /// When [libraryUri] is omitted, the expression is evaluated in the [input]
   /// library.
   ///
   /// [expectedResult] is the JSON for the returned remote object.
   /// [expectedError] is the error string if the error is expected.
-  Future<void> check(
-      {required String expression,
-      Uri? libraryUri,
-      dynamic expectedError,
-      dynamic expectedResult}) async {
-    assert(expectedError == null || expectedResult == null,
-        'Cannot expect both an error and result.');
+  Future<void> check({
+    required String expression,
+    Uri? libraryUri,
+    dynamic expectedError,
+    dynamic expectedResult,
+  }) async {
+    assert(
+      expectedError == null || expectedResult == null,
+      'Cannot expect both an error and result.',
+    );
 
-    return await _whileRunning(body: () async {
-      var evalResult =
-          await _evaluateDartExpression(expression, libraryUri: libraryUri);
+    return await _whileRunning(
+      body: () async {
+        var evalResult = await _evaluateDartExpression(
+          expression,
+          libraryUri: libraryUri,
+        );
 
-      var error = evalResult.json['error'];
-      if (error != null) {
-        expect(
-          expectedError,
-          isNotNull,
-          reason: 'Unexpected expression evaluation failure:\n$error',
-        );
-        expect(error, _matches(expectedError!));
-      } else {
-        expect(
-          expectedResult,
-          isNotNull,
-          reason:
-              'Unexpected expression evaluation success:\n${evalResult.json}',
-        );
-        var actual = await stringifyRemoteObject(evalResult);
-        expect(actual, _matches(expectedResult!));
-      }
-    });
+        var error = evalResult.json['error'];
+        if (error != null) {
+          expect(
+            expectedError,
+            isNotNull,
+            reason: 'Unexpected expression evaluation failure:\n$error',
+          );
+          expect(error, _matches(expectedError!));
+        } else {
+          expect(
+            expectedResult,
+            isNotNull,
+            reason:
+                'Unexpected expression evaluation success:\n${evalResult.json}',
+          );
+          var actual = await stringifyRemoteObject(evalResult);
+          expect(actual, _matches(expectedResult!));
+        }
+      },
+    );
   }
 
   Future<wip.RemoteObject> _evaluateJsExpression(
@@ -681,13 +776,15 @@ class ExpressionEvaluationTestDriver {
       var loadModule = setup.moduleFormat == ModuleFormat.amd
           ? 'require'
           : 'dart_library.import';
-      jsExpressionBody = '''
+      jsExpressionBody =
+          '''
         var sdk = $loadModule('dart_sdk');
         var dart = sdk.dart;
       ''';
     }
 
-    var jsExpression = '''
+    var jsExpression =
+        '''
       (function () {
         $jsExpressionBody
         return $expression;
@@ -706,7 +803,9 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<TestCompilationResult> _compileDartExpressionInFrame(
-      wip.WipCallFrame frame, String expression) async {
+    wip.WipCallFrame frame,
+    String expression,
+  ) async {
     // Retrieve the call frame and its scope variables.
     var scope = await _collectScopeVariables(frame);
     var searchLine = frame.location.lineNumber;
@@ -740,8 +839,10 @@ class ExpressionEvaluationTestDriver {
       }
     }
     if (best == null || best.sourceLine == null || best.sourceColumn == null) {
-      throw StateError('Unable to find the matching dart line and column '
-          ' for where the javascript paused.');
+      throw StateError(
+        'Unable to find the matching dart line and column '
+        ' for where the javascript paused.',
+      );
     }
 
     final bestUrl = compiler.sourceMap.urls[best.sourceUrlId!];
@@ -766,7 +867,9 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<TestCompilationResult> _compileDartExpression(
-      String expression, Uri? libraryUri) async {
+    String expression,
+    Uri? libraryUri,
+  ) async {
     // Perform an incremental compile.
     return await compiler.compileExpression(
       libraryUri: libraryUri ?? input,
@@ -783,10 +886,7 @@ class ExpressionEvaluationTestDriver {
     bool returnByValue = false,
   }) async {
     var frame = event.getCallFrames().first;
-    var result = await _compileDartExpressionInFrame(
-      frame,
-      expression,
-    );
+    var result = await _compileDartExpressionInFrame(frame, expression);
 
     if (!result.isSuccess) {
       return _createCompilationError(result);
@@ -858,13 +958,16 @@ class ExpressionEvaluationTestDriver {
           return 'null';
         }
         try {
-          var properties =
-              await connection.runtime.getProperties(obj, ownProperties: true);
+          var properties = await connection.runtime.getProperties(
+            obj,
+            ownProperties: true,
+          );
           var filteredProps = <String, String?>{};
           for (var prop in properties) {
             if (prop.value != null && prop.name != '__proto__') {
-              filteredProps[prop.name] =
-                  await stringifyRemoteObject(prop.value!);
+              filteredProps[prop.name] = await stringifyRemoteObject(
+                prop.value!,
+              );
             }
           }
           str = '${obj.description} $filteredProps';
@@ -881,12 +984,15 @@ class ExpressionEvaluationTestDriver {
   ///
   /// Adapted from webdev/dwds/lib/src/services/expression_evaluator.dart.
   Future<Map<String, String>> _collectScopeVariables(
-      wip.WipCallFrame frame) async {
+    wip.WipCallFrame frame,
+  ) async {
     var jsScope = <String, String>{};
 
     for (var scope in filterScopes(frame)) {
-      var response = await connection.runtime
-          .getProperties(scope.object, ownProperties: true);
+      var response = await connection.runtime.getProperties(
+        scope.object,
+        ownProperties: true,
+      );
       for (var prop in response) {
         var propKey = prop.name;
         var propValue = '${prop.value?.value}';
@@ -941,7 +1047,8 @@ class ExpressionEvaluationTestDriver {
       return MapEntry(htmlBootstrapper, lineNumber + 1);
     }
     throw StateError(
-        'Unable to find breakpoint in $input with id: $breakpointId');
+      'Unable to find breakpoint in $input with id: $breakpointId',
+    );
   }
 
   /// Finds the 0-indexed line number in [source] for the given breakpoint id.
@@ -973,7 +1080,8 @@ class ExpressionEvaluationTestDriver {
       }
     }
     throw StateError(
-        'Unable to extract WIP Location from ${script.url} for line $line.');
+      'Unable to extract WIP Location from ${script.url} for line $line.',
+    );
   }
 }
 
@@ -1024,8 +1132,9 @@ class ExecutionContext {
     final contextController = StreamController<int>();
     _runtime.onExecutionContextsCleared.listen((_) => _id = null);
     _runtime.onExecutionContextDestroyed.listen((_) => _id = null);
-    _runtime.onExecutionContextCreated
-        .listen((e) => contextController.add(e.id));
+    _runtime.onExecutionContextCreated.listen(
+      (e) => contextController.add(e.id),
+    );
     _contexts = StreamQueue(contextController.stream);
   }
 }
@@ -1037,8 +1146,8 @@ class ExecutionContext {
 List<wip.WipScope> filterScopes(wip.WipCallFrame frame) {
   var scopes = frame.getScopeChain().toList();
   // Remove outer scopes up to and including the Dart SDK.
-  while (
-      scopes.isNotEmpty && !(scopes.last.name?.startsWith('load__') ?? false)) {
+  while (scopes.isNotEmpty &&
+      !(scopes.last.name?.startsWith('load__') ?? false)) {
     scopes.removeLast();
   }
   if (scopes.isNotEmpty) scopes.removeLast();
@@ -1048,10 +1157,12 @@ List<wip.WipScope> filterScopes(wip.WipCallFrame frame) {
 String escaped(String path) => path.replaceAll('\\', '\\\\');
 
 Future setBreakpointsActive(wip.WipDebugger debugger, bool active) async {
-  await debugger.sendCommand('Debugger.setBreakpointsActive', params: {
-    'active': active
-  }).timeout(Duration(seconds: 5),
-      onTimeout: (() => throw Exception('Unable to set breakpoint activity')));
+  await debugger
+      .sendCommand('Debugger.setBreakpointsActive', params: {'active': active})
+      .timeout(
+        Duration(seconds: 5),
+        onTimeout: (() => throw Exception('Unable to set breakpoint activity')),
+      );
 }
 
 /// The regexes used in dwds to filter out temp variables.
@@ -1067,7 +1178,7 @@ final _ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
 ///
 /// A few steps in the test driver need to wait for a response from the browser.
 /// These are set up with a timeout of usually 5 seconds, but the total time may
-/// vary by machine and architecture. Occationally tests fail with flaky
+/// vary by machine and architecture. Occasionally tests fail with flaky
 /// failures due to a timeout that is too short.
 ///
 /// We use this class to help log information from flaky failures that can
@@ -1091,7 +1202,7 @@ class TimeoutTracker {
 
   /// Record under [key] a single event that took [milliseconds].
   ///
-  /// This makes an incremental update to the aggreagate average, max, and count
+  /// This makes an incremental update to the aggregate average, max, and count
   /// values in [_data].
   void _addOneRecord(String key, int milliseconds) {
     (_data[key] ??= []).add(milliseconds);
@@ -1108,12 +1219,14 @@ class TimeoutTracker {
       final p50 = values[(values.length * 0.5).toInt()];
       final p90 = values[(values.length * 0.9).toInt()];
       final average = sum ~/ total;
-      print('$key: '
-          '${average}ms (avg), '
-          '${p50}ms (p50), '
-          '${p90}ms (p90), '
-          '${max}ms (max), '
-          '$total (total)');
+      print(
+        '$key: '
+        '${average}ms (avg), '
+        '${p50}ms (p50), '
+        '${p90}ms (p90), '
+        '${max}ms (max), '
+        '$total (total)',
+      );
     });
   }
 }

@@ -30,7 +30,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -64,7 +64,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@getter::x#element
+    element: <testLibrary>::@getter::x
     staticType: int
   caseClause: CaseClause
     caseKeyword: case
@@ -72,8 +72,10 @@ IfElement
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@40
-          type: int
+        declaredFragment: isPublic a@40
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightParenthesis: )
   thenElement: SimpleIdentifier
@@ -90,7 +92,8 @@ IfElement
     // but they are considered initialized after the entire case pattern,
     // before the guard expression if there is one. However, all pattern
     // variables are in scope in the entire pattern.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object x) {
   [
@@ -100,12 +103,21 @@ void f(Object x) {
       a
   ];
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 62,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message(testFile, 56, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          62,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          62,
+          1,
+          contextMessages: [message(testFile, 56, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
@@ -114,7 +126,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -128,8 +140,10 @@ IfElement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@56
+            declaredFragment: isPublic a@56
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           RelationalPattern
             operator: ==
@@ -137,7 +151,7 @@ IfElement
               token: a
               element: a@56
               staticType: int
-            element2: dart:core::<fragment>::@class::Object::@method::==#element
+            element2: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object
@@ -152,9 +166,9 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
-          element: dart:core::<fragment>::@class::num::@method::>#element
+          element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -165,13 +179,14 @@ IfElement
   elseKeyword: else
   elseElement: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
 
   test_caseClause_variables_single() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   [
     if (x case int a when a > 0)
@@ -180,9 +195,9 @@ void f(Object x) {
       a // error
   ];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1)],
+    );
 
     var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
@@ -191,7 +206,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -202,8 +217,10 @@ IfElement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@42
+        declaredFragment: isPublic a@42
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
@@ -215,9 +232,9 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
-          element: dart:core::<fragment>::@class::num::@method::>#element
+          element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -234,16 +251,19 @@ IfElement
   }
 
   test_expression_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     [if (super) 0 else 1];
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
+      ],
+    );
 
     var node = findNode.singleIfElement;
     assertResolvedNodeText(node, r'''
@@ -282,20 +302,20 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        const: const
+        constKeyword: const
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
               element2: <testLibrary>::@class::A
               type: A
-            element: <testLibraryFragment>::@class::A::@constructor::new#element
+            element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -323,7 +343,7 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -353,7 +373,7 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -390,7 +410,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -405,7 +425,7 @@ IfElement
         expression: FunctionExpressionInvocation
           function: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -434,7 +454,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case

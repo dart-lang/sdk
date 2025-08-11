@@ -26,13 +26,15 @@ sealed class Proto {
     if (send == null) {
       return this;
     } else if (isNullAware) {
-      return new InstanceAccessProto(this, send.text, isNullAware: true)
-          .instantiate(send.typeArguments)
-          .invoke(send.arguments);
+      return new InstanceAccessProto(
+        this,
+        send.text,
+        isNullAware: true,
+      ).instantiate(send.typeArguments).invoke(send.arguments);
     } else {
-      return access(send.text)
-          .instantiate(send.typeArguments)
-          .invoke(send.arguments);
+      return access(
+        send.text,
+      ).instantiate(send.typeArguments).invoke(send.arguments);
     }
   }
 
@@ -282,8 +284,9 @@ class UnresolvedInstantiate extends Proto implements Unresolved {
   @override
   Proto? resolve() {
     Proto? newPrefix = prefix.resolve();
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
 
     return newPrefix == null && newTypeArguments == null
         ? null
@@ -458,8 +461,9 @@ class GenericClassProto extends Proto {
 
   @override
   Proto? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(),
+    );
     return newTypeArguments == null
         ? null
         : new GenericClassProto(reference, scope, newTypeArguments);
@@ -614,8 +618,9 @@ class GenericEnumProto extends Proto {
 
   @override
   Proto? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(),
+    );
     return newTypeArguments == null
         ? null
         : new GenericEnumProto(reference, scope, newTypeArguments);
@@ -720,8 +725,9 @@ class GenericMixinProto extends Proto {
 
   @override
   Proto? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(),
+    );
     return newTypeArguments == null
         ? null
         : new GenericMixinProto(reference, scope, newTypeArguments);
@@ -824,8 +830,9 @@ class GenericExtensionTypeProto extends Proto {
 
   @override
   Proto? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(),
+    );
     return newTypeArguments == null
         ? null
         : new GenericExtensionTypeProto(reference, scope, newTypeArguments);
@@ -928,8 +935,9 @@ class GenericTypedefProto extends Proto {
 
   @override
   Proto? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(),
+    );
     return newTypeArguments == null
         ? null
         : new GenericTypedefProto(reference, scope, newTypeArguments);
@@ -1043,15 +1051,22 @@ class ConstructorProto extends Proto {
   @override
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
-        ? new ExpressionProto(new ConstructorInvocation(
-            new NamedTypeAnnotation(type, typeArguments), reference, arguments))
+        ? new ExpressionProto(
+          new ConstructorInvocation(
+            new NamedTypeAnnotation(type, typeArguments),
+            reference,
+            arguments,
+          ),
+        )
         : this;
   }
 
   @override
   Expression toExpression() {
     return new ConstructorTearOff(
-        new NamedTypeAnnotation(type, typeArguments), reference);
+      new NamedTypeAnnotation(type, typeArguments),
+      reference,
+    );
   }
 
   @override
@@ -1126,7 +1141,8 @@ class FunctionProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-            new StaticInvocation(reference, const [], arguments))
+          new StaticInvocation(reference, const [], arguments),
+        )
         : this;
   }
 
@@ -1169,7 +1185,8 @@ class FunctionInstantiationProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-            new StaticInvocation(reference, typeArguments, arguments))
+          new StaticInvocation(reference, typeArguments, arguments),
+        )
         : this;
   }
 
@@ -1365,8 +1382,9 @@ class ExpressionInstantiationProto extends Proto {
   @override
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
-        ? new ExpressionProto(new ImplicitInvocation(
-            receiver.toExpression(), const [], arguments))
+        ? new ExpressionProto(
+          new ImplicitInvocation(receiver.toExpression(), const [], arguments),
+        )
         : this;
   }
 
@@ -1412,7 +1430,10 @@ class InstanceInvocationProto extends Proto {
   @override
   Expression toExpression() {
     return new ImplicitInvocation(
-        receiver.toExpression(), typeArguments, arguments);
+      receiver.toExpression(),
+      typeArguments,
+      arguments,
+    );
   }
 
   @override
@@ -1570,7 +1591,8 @@ class ExpressionProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-            new ImplicitInvocation(expression, const [], arguments))
+          new ImplicitInvocation(expression, const [], arguments),
+        )
         : this;
   }
 
@@ -1611,7 +1633,8 @@ class FunctionTypeParameterProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-            new ImplicitInvocation(toExpression(), const [], arguments))
+          new ImplicitInvocation(toExpression(), const [], arguments),
+        )
         : this;
   }
 

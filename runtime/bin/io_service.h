@@ -9,6 +9,8 @@
 #error "io_service.h can only be included on builds with IO and SSL enabled"
 #endif
 
+#include <atomic>
+
 #include "bin/builtin.h"
 #include "bin/utils.h"
 
@@ -69,12 +71,14 @@ class IOService {
   enum { IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST) };
 
   static Dart_Port GetServicePort();
+  static void Cleanup() { port_ = ILLEGAL_PORT; }
 
   static intptr_t max_concurrency() { return max_concurrency_; }
   static void set_max_concurrency(intptr_t value) { max_concurrency_ = value; }
 
  private:
   static intptr_t max_concurrency_;
+  static std::atomic<Dart_Port> port_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(IOService);

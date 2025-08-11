@@ -126,7 +126,17 @@ class ArgumentsDescriptor : public ValueObject {
   // Clear the preallocated fixed length arguments descriptors cache.
   static void Cleanup();
 
-  enum { kCachedDescriptorCount = 32 };
+  static constexpr intptr_t kMaxTypeArgsForCachedDescriptor = 1;
+  static constexpr intptr_t
+      kMaxNumArgumentsForCachedDescriptor[kMaxTypeArgsForCachedDescriptor + 1] =
+          {31, 2};
+  static constexpr intptr_t kCachedDescriptorCount = []() -> intptr_t {
+    intptr_t result = 0;
+    for (intptr_t i = 0; i <= kMaxTypeArgsForCachedDescriptor; ++i) {
+      result += kMaxNumArgumentsForCachedDescriptor[i] + 1;
+    }
+    return result;
+  }();
 
   // For creating ArgumentDescriptor Slots.
   static constexpr bool ContainsCompressedPointers() {
@@ -180,6 +190,10 @@ class ArgumentsDescriptor : public ValueObject {
   }
 
   bool IsCached() const;
+
+  static intptr_t CacheIndexFor(intptr_t type_args_len, intptr_t num_arguments);
+  static bool CanUseCachedDescriptor(intptr_t type_args_len,
+                                     intptr_t num_arguments);
 
   const Array& array_;
 

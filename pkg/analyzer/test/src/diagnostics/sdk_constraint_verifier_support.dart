@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/utilities/utilities.dart';
+
 import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
@@ -10,8 +12,11 @@ import '../dart/resolution/context_collection_resolution.dart';
 class SdkConstraintVerifierTest extends PubPackageResolutionTest {
   /// Verify that the [expectedErrors] are produced if the [source] is analyzed
   /// in a context that uses given SDK [constraints].
-  Future<void> verifyVersion(String constraints, String source,
-      {List<ExpectedError> expectedErrors = const []}) async {
+  Future<void> verifyVersion(
+    String constraints,
+    String source, {
+    List<ExpectedError> expectedErrors = const [],
+  }) async {
     writeTestPackagePubspecYamlFile(
       pubspecYamlContent(sdkVersion: constraints),
     );

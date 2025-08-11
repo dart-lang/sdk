@@ -6,11 +6,10 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// A computer for the signature at the specified offset of a Dart
 /// [CompilationUnit].
@@ -38,23 +37,23 @@ class DartUnitSignatureComputer {
     }
     var (argumentList, argument) = argumentAndList;
     String? name;
-    Element2? element;
+    Element? element;
     List<FormalParameterElement>? parameters;
     var parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
-      element = ElementLocator.locate2(parent);
+      element = ElementLocator.locate(parent);
       parameters =
-          element is FunctionTypedElement2 ? element.formalParameters : null;
+          element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
       if (constructorName != null) {
         name += '.${constructorName.name}';
       }
-      element = ElementLocator.locate2(parent);
+      element = ElementLocator.locate(parent);
       parameters =
-          element is FunctionTypedElement2 ? element.formalParameters : null;
+          element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent case FunctionExpressionInvocation(
       function: Identifier function,
     )) {
@@ -64,7 +63,7 @@ class DartUnitSignatureComputer {
         // Standard function expression.
         element = function.element;
         parameters = functionType.formalParameters;
-      } else if (parent.element case ExecutableElement2 executableElement) {
+      } else if (parent.element case ExecutableElement executableElement) {
         // Callable class instance (where we'll look at the `call` method).
         element = executableElement;
         parameters = executableElement.formalParameters;

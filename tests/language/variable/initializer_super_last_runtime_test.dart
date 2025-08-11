@@ -17,119 +17,67 @@ class S {
 
 class C extends S {
   final int x;
-  C.cc01(int x)
-      : x = x,
-        super();
-  C.cc02(int x)
-      : x = x,
-        super.named();
+  C.cc01(int x) : x = x, super();
+  C.cc02(int x) : x = x, super.named();
   C.cc03(this.x) : super();
   C.cc04(this.x) : super.named();
-  C.cc05(int x)
-      : x = x,
-        assert(x == x),
-        super();
-  C.cc06(int x)
-      : x = x,
-        assert(x == x),
-        super.named();
-  C.cc07(this.x)
-      : assert(x == x),
-        super();
-  C.cc08(this.x)
-      : assert(x == x),
-        super.named();
+  C.cc05(int x) : x = x, assert(x == x), super();
+  C.cc06(int x) : x = x, assert(x == x), super.named();
+  C.cc07(this.x) : assert(x == x), super();
+  C.cc08(this.x) : assert(x == x), super.named();
   C.cc09(int x)
-      : //
-
-        x = x;
+    : //
+      x = x;
   C.cc10(int x)
-      : //
-
-        x = x;
+    : //
+      x = x;
   C.cc11(this.x)
-      : //
-
-        assert(x == x);
+    : //
+      assert(x == x);
   C.cc12(this.x)
-      : //
-
-        assert(x == x);
+    : //
+      assert(x == x);
   C.cc13(int x)
-      : //
-
-        x = x,
-        assert(x == x);
+    : //
+      x = x,
+      assert(x == x);
   C.cc14(int x)
-      : //
+    : //
+      x = x,
+      assert(x == x);
+  C.cc15(int x) : x = x, assert(x == x);
+  C.cc16(int x) : x = x, assert(x == x);
 
-        x = x,
-        assert(x == x);
-  C.cc15(int x)
-      : x = x,
-
-        assert(x == x);
-  C.cc16(int x)
-      : x = x,
-
-        assert(x == x);
-
-  const C.cc17(int x)
-      : x = x,
-        super();
-  const C.cc18(int x)
-      : x = x,
-        super.named();
+  const C.cc17(int x) : x = x, super();
+  const C.cc18(int x) : x = x, super.named();
   const C.cc19(this.x) : super();
   const C.cc20(this.x) : super.named();
-  const C.cc21(int x)
-      : x = x,
-        assert(x == x),
-        super();
-  const C.cc22(int x)
-      : x = x,
-        assert(x == x),
-        super.named();
-  const C.cc23(this.x)
-      : assert(x == x),
-        super();
-  const C.cc24(this.x)
-      : assert(x == x),
-        super.named();
+  const C.cc21(int x) : x = x, assert(x == x), super();
+  const C.cc22(int x) : x = x, assert(x == x), super.named();
+  const C.cc23(this.x) : assert(x == x), super();
+  const C.cc24(this.x) : assert(x == x), super.named();
   const C.cc25(int x)
-      : //
-
-        x = x;
+    : //
+      x = x;
   const C.cc26(int x)
-      : //
-
-        x = x;
+    : //
+      x = x;
   const C.cc27(this.x)
-      : //
-
-        assert(x == x);
+    : //
+      assert(x == x);
   const C.cc28(this.x)
-      : //
-
-        assert(x == x);
+    : //
+      assert(x == x);
   const C.cc29(int x)
-      : //
-
-        x = x,
-        assert(x == x);
+    : //
+      x = x,
+      assert(x == x);
   const C.cc30(int x)
-      : //
-
-        x = x,
-        assert(x == x);
-  const C.cc31(int x)
-      : x = x,
-
-        assert(x == x);
-  const C.cc32(int x)
-      : x = x,
-
-        assert(x == x);
+    : //
+      x = x,
+      assert(x == x);
+  const C.cc31(int x) : x = x, assert(x == x);
+  const C.cc32(int x) : x = x, assert(x == x);
 }
 
 main() {

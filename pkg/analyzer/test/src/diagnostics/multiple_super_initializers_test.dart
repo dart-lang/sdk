@@ -25,13 +25,14 @@ class B extends A {
   }
 
   test_twoSuperInitializers() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B extends A {
   B() : super(), super() {}
 }
-''', [
-      error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7)],
+    );
   }
 }

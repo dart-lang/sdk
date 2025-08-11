@@ -284,8 +284,9 @@ Future testStackTrace(
       }
     }
     if (line.isMapped && !found) {
-      List<LineException> exceptions =
-          expectedIndex == 0 ? beforeExceptions : afterExceptions;
+      List<LineException> exceptions = expectedIndex == 0
+          ? beforeExceptions
+          : afterExceptions;
       for (LineException exception in exceptions) {
         String fileName = exception.fileName;
         if (line.methodName == exception.methodName &&

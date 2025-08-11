@@ -19,7 +19,8 @@ check_true_true(x, y, v) {
 }
 
 check_false_true(x, y, v) {
-  if (x) {} else {
+  if (x) {
+  } else {
     if (y) {
       setGlobal(v);
     }
@@ -28,15 +29,18 @@ check_false_true(x, y, v) {
 
 check_true_false(x, y, v) {
   if (x) {
-    if (y) {} else {
+    if (y) {
+    } else {
       setGlobal(v);
     }
   }
 }
 
 check_false_false(x, y, v) {
-  if (x) {} else {
-    if (y) {} else {
+  if (x) {
+  } else {
+    if (y) {
+    } else {
       setGlobal(v);
     }
   }

@@ -16,22 +16,22 @@ class C {
     print(a);
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'a' isn't defined for the class 'C'.
+    // [cfe] The getter 'a' isn't defined for the type 'C'.
     return a;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'a' isn't defined for the class 'C'.
+    // [cfe] The getter 'a' isn't defined for the type 'C'.
   }
 
   bar() {
     print(b.a);
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'b' isn't defined for the class 'C'.
+    // [cfe] The getter 'b' isn't defined for the type 'C'.
     return b.a;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'b' isn't defined for the class 'C'.
+    // [cfe] The getter 'b' isn't defined for the type 'C'.
   }
 }
 

@@ -16,16 +16,23 @@ main() {
 @reflectiveTest
 class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
   test_block_patternVariable_after() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 0;
 void f() {
   v;
   var [v] = [0];
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 24, 1,
-          contextMessages: [message(testFile, 34, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          24,
+          1,
+          contextMessages: [message(testFile, 34, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -61,47 +68,63 @@ main() {
   }
 
   test_hideInBlock_comment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   /// [v] is a variable.
   var v = 2;
 }
 print(x) {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1)],
+    );
   }
 
   test_hideInBlock_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 1;
 main() {
   print(v);
   v() {}
 }
 print(x) {}
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          contextMessages: [message(testFile, 34, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          28,
+          1,
+          contextMessages: [message(testFile, 34, 1)],
+        ),
+      ],
+    );
   }
 
   test_hideInBlock_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 1;
 main() {
   print(v);
   var v = 2;
 }
 print(x) {}
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          contextMessages: [message(testFile, 38, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          28,
+          1,
+          contextMessages: [message(testFile, 38, 1)],
+        ),
+      ],
+    );
   }
 
   test_hideInBlock_local_subBlock() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 1;
 main() {
   {
@@ -110,14 +133,21 @@ main() {
   var v = 2;
 }
 print(x) {}
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message(testFile, 48, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          34,
+          1,
+          contextMessages: [message(testFile, 48, 1)],
+        ),
+      ],
+    );
   }
 
   test_hideInSwitchCase_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 0;
 
 void f(int a) {
@@ -127,10 +157,16 @@ void f(int a) {
       void v() {}
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
-          contextMessages: [message(testFile, 75, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          61,
+          1,
+          contextMessages: [message(testFile, 75, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -142,7 +178,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_function_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 var v = 0;
 
@@ -153,10 +190,16 @@ void f(int a) {
       void v() {}
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 77, 1,
-          contextMessages: [message(testFile, 91, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          77,
+          1,
+          contextMessages: [message(testFile, 91, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -168,7 +211,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 0;
 
 void f(int a) {
@@ -178,10 +222,16 @@ void f(int a) {
       var v = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
-          contextMessages: [message(testFile, 74, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          61,
+          1,
+          contextMessages: [message(testFile, 74, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -193,7 +243,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 var v = 0;
 
@@ -204,10 +255,16 @@ void f(int a) {
       var v = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 77, 1,
-          contextMessages: [message(testFile, 90, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          77,
+          1,
+          contextMessages: [message(testFile, 90, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -219,7 +276,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 0;
 
 void f(int a) {
@@ -229,10 +287,16 @@ void f(int a) {
       void v() {}
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message(testFile, 76, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          62,
+          1,
+          contextMessages: [message(testFile, 76, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -244,7 +308,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 var v = 0;
 
@@ -255,10 +320,16 @@ void f(int a) {
       void v() {}
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 78, 1,
-          contextMessages: [message(testFile, 92, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          78,
+          1,
+          contextMessages: [message(testFile, 92, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -270,7 +341,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var v = 0;
 
 void f(int a) {
@@ -280,10 +352,16 @@ void f(int a) {
       var v = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message(testFile, 75, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          62,
+          1,
+          contextMessages: [message(testFile, 75, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -295,7 +373,8 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 var v = 0;
 
@@ -306,10 +385,16 @@ void f(int a) {
       var v = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 78, 1,
-          contextMessages: [message(testFile, 91, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          78,
+          1,
+          contextMessages: [message(testFile, 91, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.simple('v;');
     assertResolvedNodeText(node, r'''
@@ -321,25 +406,39 @@ SimpleIdentifier
   }
 
   test_inInitializer_closure() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = () => v;
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          25,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_inInitializer_directly() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = v;
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          19,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_labeledStatement_function() async {
@@ -379,28 +478,42 @@ SimpleIdentifier
   }
 
   test_type_localFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void testTypeRef() {
   String s = '';
   int String(int x) => x + 1;
   print(s + String);
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          contextMessages: [message(testFile, 44, 6)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          23,
+          6,
+          contextMessages: [message(testFile, 44, 6)],
+        ),
+      ],
+    );
   }
 
   test_type_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void testTypeRef() {
   String s = '';
   var String = '';
   print(s + String);
 }
-''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          contextMessages: [message(testFile, 44, 6)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          23,
+          6,
+          contextMessages: [message(testFile, 44, 6)],
+        ),
+      ],
+    );
   }
 }

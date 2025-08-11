@@ -14,13 +14,23 @@ import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Get all of the `@RecordUse` annotations from `package:meta`
 /// that are attached to the specified [node].
-Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) =>
-    node.annotations
-        .whereType<ConstantExpression>()
-        .map((expression) => expression.constant)
-        .whereType<InstanceConstant>()
-        .where((instance) => isRecordUse(instance.classNode))
-        .toList(growable: false);
+Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) {
+  List<InstanceConstant>? result;
+  for (int i = 0; i < node.annotations.length; i++) {
+    Expression annotation = node.annotations[i];
+    if (annotation is! ConstantExpression) continue;
+    Constant constant = annotation.constant;
+    if (constant is! InstanceConstant) continue;
+    if (!isRecordUse(constant.classNode)) continue;
+    // Coverage-ignore-block(suite): Not run.
+    (result ??= []).add(constant);
+  }
+  return result ?? const [];
+}
+
+// Coverage-ignore(suite): Not run.
+bool hasRecordUseAnnotation(Annotatable node) =>
+    findRecordUseAnnotation(node).isNotEmpty;
 
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');

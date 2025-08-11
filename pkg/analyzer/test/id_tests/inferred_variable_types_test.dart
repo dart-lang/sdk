@@ -15,14 +15,20 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/inference/'
-          'inferred_variable_types/data'));
-  return runTests<DartType>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _InferredVariableTypesDataComputer(), [analyzerDefaultConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/inference/'
+      'inferred_variable_types/data',
+    ),
+  );
+  return runTests<DartType>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _InferredVariableTypesDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
@@ -36,8 +42,11 @@ class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
   bool get supportsErrors => true;
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<DartType>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<DartType>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _InferredVariableTypesDataExtractor(unitUri, actualMap).run(unit);
   }

@@ -27,7 +27,10 @@ typedef _ConstantReferenceGenerator =
     js_ast.Expression Function(ConstantValue constant);
 
 typedef _ConstantListGenerator =
-    js_ast.Expression Function(js_ast.Expression array);
+    js_ast.Expression Function(
+      js_ast.Expression array,
+      js_ast.Expression reifiedType,
+    );
 
 /// Visitor that creates [js_ast.Expression]s for constants that are inlined
 /// and therefore can be created during modular code generation.
@@ -159,10 +162,7 @@ class ModularConstantEmitter
   }
 
   @override
-  js_ast.Expression visitDummyInterceptor(
-    DummyInterceptorConstantValue constant, [
-    _,
-  ]) {
+  js_ast.Expression visitDummy(DummyConstantValue constant, [_]) {
     return js_ast.LiteralNumber('0');
   }
 
@@ -232,13 +232,6 @@ class ModularConstantEmitter
 /// (if there are some). It is hence up to that function to decide which
 /// constants should be inlined or not.
 class ConstantEmitter extends ModularConstantEmitter {
-  // Matches blank lines, comment lines and trailing comments that can't be part
-  // of a string.
-  static final RegExp commentRE = RegExp(
-    r'''^ *(//.*)?\n|  *//[^''"\n]*$''',
-    multiLine: true,
-  );
-
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final RuntimeTypesNeed _rtiNeed;
@@ -271,9 +264,13 @@ class ConstantEmitter extends ModularConstantEmitter {
     List<js_ast.Expression> elements = constant.entries
         .map(_constantReferenceGenerator)
         .toList(growable: false);
-    js_ast.ArrayInitializer array = js_ast.ArrayInitializer(elements);
-    js_ast.Expression value = _makeConstantList(array);
-    return maybeAddListTypeArguments(constant, constant.type, value);
+    final array = js_ast.ArrayInitializer(elements);
+    final type = constant.type;
+    assert(constant.type.element == _commonElements.jsArrayClass);
+    final rti = _rtiNeed.classNeedsTypeArguments(type.element)
+        ? _reifiedType(type)
+        : js_ast.LiteralNull();
+    return _makeConstantList(array, rti);
   }
 
   @override
@@ -536,22 +533,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   String stripComments(String rawJavaScript) {
-    return rawJavaScript.replaceAll(commentRE, '');
-  }
-
-  js_ast.Expression maybeAddListTypeArguments(
-    ConstantValue constant,
-    InterfaceType type,
-    js_ast.Expression value,
-  ) {
-    assert(type.element == _commonElements.jsArrayClass);
-    if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return js_ast.Call(getHelperProperty(_commonElements.setArrayType), [
-        value,
-        _reifiedType(type),
-      ]);
-    }
-    return value;
+    return rawJavaScript.replaceAll(_commentRE, '');
   }
 
   js_ast.Expression _reifiedType(DartType type) {
@@ -567,3 +549,10 @@ class ConstantEmitter extends ModularConstantEmitter {
     return _constantReferenceGenerator(constant.referenced);
   }
 }
+
+// Matches blank lines, comment lines and trailing comments that can't be part
+// of a string.
+final RegExp _commentRE = RegExp(
+  r'''^ *(//.*)?\n|  *//[^''"\n]*$''',
+  multiLine: true,
+);

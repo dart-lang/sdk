@@ -19,7 +19,7 @@ class SomeEnum extends self2::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self2::SomeEnum
     : super self2::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
   @core::override
   get someField() → core::String
@@ -29,7 +29,7 @@ abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self2::HasSomeFie
   const synthetic constructor •(core::int index, core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get someField() → core::String; -> self2::HasSomeField::someField
+  abstract synthetic mixin-stub get someField() → core::String; -> self2::HasSomeField::someField
 }
 
 

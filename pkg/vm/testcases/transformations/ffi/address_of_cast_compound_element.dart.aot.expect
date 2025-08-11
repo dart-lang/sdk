@@ -27,25 +27,25 @@ final class MyStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
-  static get a#offsetOf() → core::int
+  static synthetic get a#offsetOf() → core::int
     return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
-  static get b#offsetOf() → core::int
+  static synthetic get b#offsetOf() → core::int
     return #C18.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 2)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
-  static get array2#offsetOf() → core::int
+  static synthetic get array2#offsetOf() → core::int
     return #C23.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]

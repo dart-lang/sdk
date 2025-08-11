@@ -4,14 +4,14 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -59,6 +59,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
+    useLineEndingsForPlatform = false;
     super.setUp();
     path = convertPath('$testPackageLibPath/test.dart');
   }

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -53,12 +53,15 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
           if (declarationStatement is VariableDeclarationStatement) {
             if (declarationList.variables.length == 1) {
               var initializer = declarationList.variables.first.initializer;
-              if (initializer is MethodInvocation) {
+              if (initializer?.unParenthesized
+                  case MethodInvocation() ||
+                      FunctionExpressionInvocation() ||
+                      AwaitExpression()) {
                 _commands.add(
                   _DeleteSourceRangeCommand(
                     sourceRange: SourceRange(
                       declarationStatement.offset,
-                      initializer.offset - declarationStatement.offset,
+                      initializer!.offset - declarationStatement.offset,
                     ),
                   ),
                 );
@@ -228,7 +231,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
 
   bool _deleteReferences() {
     var element = _localVariableElement();
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return false;
     }
 
@@ -280,13 +283,13 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     }
   }
 
-  LocalVariableElement2? _localVariableElement() {
+  LocalVariableElement? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
-      return node.declaredElement2;
+      return node.declaredElement;
     } else if (node is VariableDeclaration) {
       if (node.name == token) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;

@@ -59,8 +59,9 @@ class DateTime {
   )
     // checkBool is manually inlined here because dart2js doesn't inline it
     // and [isUtc] is usually a constant.
-    : this.isUtc =
-          isUtc is bool ? isUtc : throw ArgumentError.value(isUtc, 'isUtc'),
+    : this.isUtc = isUtc is bool
+          ? isUtc
+          : throw ArgumentError.value(isUtc, 'isUtc'),
       _value =
           Primitives.valueFromDecomposedDate(
             year,

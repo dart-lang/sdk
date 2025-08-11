@@ -9,15 +9,8 @@
 
 main() {
   const elems = const [
-    const [
-      1,
-      2.0,
-      true,
-      false,
-      0xffffffffff,
-
-    ],
+    const [1, 2.0, true, false, 0xffffffffff],
     "a",
-    "b"
+    "b",
   ];
 }

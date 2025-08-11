@@ -27,11 +27,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -44,6 +44,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -53,8 +54,7 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -68,20 +68,17 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -89,6 +86,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
@@ -113,6 +111,15 @@ abstract class AnalysisServer {
 
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
+
+  /// The versions of each document known to the server (keyed by path), used to
+  /// send back to the client for server-initiated edits so that the client can
+  /// ensure they have a matching version of the document before applying them.
+  ///
+  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+  /// which will return a null-versioned identifier if the document version is
+  /// not known.
+  final Map<String, int> documentVersions = {};
 
   /// A connection to DTD (the Dart Tooling Daemon) that allows other clients to
   /// call server functionality.
@@ -161,8 +168,6 @@ abstract class AnalysisServer {
   late FileContentCache fileContentCache;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
-
-  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
@@ -266,6 +271,13 @@ abstract class AnalysisServer {
   /// A [TimingByteStore] that records timings for reads from the byte store.
   TimingByteStore? _timingByteStore;
 
+  /// Whether notifications caused by analysis should be suppressed.
+  ///
+  /// This is used when an operation is temporarily modifying overlays and does
+  /// not want the client to be notified of any analysis happening on the
+  /// temporary content.
+  bool suppressAnalysisResults = false;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -283,7 +295,7 @@ abstract class AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,
-    bool retainDataForTesting = false,
+    MessageSchedulerListener? messageSchedulerListener,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
@@ -291,9 +303,11 @@ abstract class AnalysisServer {
          Platform.environment['PUB_HOSTED_URL'],
        ),
        messageScheduler = MessageScheduler(
-         testView: retainDataForTesting ? MessageSchedulerTestView() : null,
+         listener:
+             messageSchedulerListener ??
+             SchedulerTrackingListener(analyticsManager),
        ) {
-    messageScheduler.setServer(this);
+    messageScheduler.server = this;
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
     uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
@@ -371,7 +385,6 @@ abstract class AnalysisServer {
       byteStore,
       fileContentCache,
       unlinkedUnitStore,
-      infoDeclarationStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
@@ -452,6 +465,8 @@ abstract class AnalysisServer {
   /// Returns owners of files.
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
+  path.Context get pathContext => resourceProvider.pathContext;
+
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
   ///
@@ -509,6 +524,20 @@ abstract class AnalysisServer {
     );
   }
 
+  /// Display a message that will allow us to enable analytics on the next run.
+  void checkAnalytics() {
+    var unifiedAnalytics = analyticsManager.analytics;
+    var prompt = userPromptSender;
+    if (!unifiedAnalytics.shouldShowMessage || prompt == null) {
+      return;
+    }
+
+    unawaited(
+      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
+    );
+    unifiedAnalytics.clientShowedMessage();
+  }
+
   /// Checks that all [sessions] are still consistent, throwing
   /// [InconsistentAnalysisException] if not.
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
@@ -562,6 +591,10 @@ abstract class AnalysisServer {
 
     if (providedByteStore case var providedByteStore?) {
       return providedByteStore;
+    }
+
+    if (options.disableFileByteStore ?? false) {
+      return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
     }
 
     if (resourceProvider is OverlayResourceProvider) {
@@ -641,26 +674,21 @@ abstract class AnalysisServer {
     return analysisContext.driver.dartdocDirectiveInfo;
   }
 
-  /// Gets the current version number of a document (if known).
-  int? getDocumentVersion(String path);
+  /// Gets the current version number of a document.
+  int? getDocumentVersion(String path) => documentVersions[path];
 
-  /// Return a [Future] that completes with the [Element2] at the given
+  /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset(String file, int offset) async {
+  Future<Element?> getElementAtOffset(String file, int offset) async {
+    var unitResult = await getResolvedUnit(file);
+    if (unitResult == null) {
+      return null;
+    }
+
     if (!priorityFiles.contains(file)) {
-      var driver = getAnalysisDriver(file);
-      if (driver == null) {
-        return null;
-      }
-
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult is! UnitElementResult) {
-        return null;
-      }
-
       var fragment = findFragmentByNameOffset(
-        unitElementResult.fragment,
+        unitResult.libraryFragment,
         offset,
       );
       if (fragment != null) {
@@ -668,44 +696,8 @@ abstract class AnalysisServer {
       }
     }
 
-    var node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
-  }
-
-  /// Returns the element associated with the [node].
-  ///
-  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
-  /// returned when an import directive or a prefix element is associated with
-  /// the [node]. The rename-prefix refactoring should be updated to not require
-  /// this work-around.
-  ///
-  /// Returns `null` if [node] is `null` or doesn't have an element.
-  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-
-    Element2? element;
-    if (useMockForImport && node is ImportDirective) {
-      element = MockLibraryImportElement(node.libraryImport!);
-    } else {
-      element = ElementLocator.locate2(node);
-    }
-    if (useMockForImport &&
-        node is SimpleIdentifier &&
-        element is PrefixElement2) {
-      element = MockLibraryImportElement(getImportElement(node)!);
-    }
-    return element;
+    var node = unitResult.unit.nodeCovering(offset: offset);
+    return node?.getElement();
   }
 
   /// Return a [LineInfo] for the file with the given [path].
@@ -733,18 +725,6 @@ abstract class AnalysisServer {
 
       return null;
     }
-  }
-
-  /// Return a [Future] that completes with the resolved [AstNode] at the
-  /// given [offset] of the given [file], or with `null` if there is no node as
-  /// the [offset].
-  Future<AstNode?> getNodeAtOffset(String file, int offset) async {
-    var result = await getResolvedUnit(file);
-    var unit = result?.unit;
-    if (unit != null) {
-      return NodeLocator(offset).searchWithin(unit);
-    }
-    return null;
   }
 
   /// Return the unresolved unit for the file with the given [path].
@@ -824,7 +804,7 @@ abstract class AnalysisServer {
     String path,
   ) {
     return lsp.OptionalVersionedTextDocumentIdentifier(
-      uri: resourceProvider.pathContext.toUri(path),
+      uri: uriConverter.toClientUri(path),
       version: getDocumentVersion(path),
     );
   }
@@ -908,6 +888,39 @@ abstract class AnalysisServer {
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
 
+  /// Prevents the scheduler from processing new messages until [operation]
+  /// completes.
+  ///
+  /// This can be used to obtain analysis results/resolved units consistent with
+  /// the state of a file at the time this method was called, preventing
+  /// changes by incoming file modifications.
+  ///
+  /// The contents of [operation] should be kept as short as possible and since
+  /// cancellation requests will also be blocked for the duration of this
+  /// operation, handlers should generally check the cancellation flag
+  /// immediately after this function returns.
+  Future<T> pauseSchedulerWhile<T>(FutureOr<T> Function() operation) async {
+    // TODO(dantup): Prevent this method from locking responses from the client
+    //  because this can lead to deadlocks if called during initialization where
+    //  the server may wait for something (configuration) from the client. This
+    //  might fit in with potential upcoming scheduler changes.
+    //
+    // This is currently used by Completion+FixAll (which are less likely, but
+    // possible to be called during init).
+    //
+    // https://github.com/dart-lang/sdk/issues/56311#issuecomment-2250089185
+
+    messageScheduler.pause();
+    try {
+      // `await` here is important to ensure `finally` doesn't execute until
+      // `operation()` completes (`whenComplete` is not available on
+      // `FutureOr`).
+      return await operation();
+    } finally {
+      messageScheduler.resume();
+    }
+  }
+
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   Future<void> reanalyze() async {
@@ -927,6 +940,7 @@ abstract class AnalysisServer {
     var transitiveFileLineCount = 0;
     var transitiveFilePaths = <String>{};
     var transitiveFileUniqueLineCount = 0;
+    var libraryCycles = <LibraryCycle>{};
     var driverMap = contextManager.driverMap;
     for (var entry in driverMap.entries) {
       var rootPath = entry.key.path;
@@ -936,11 +950,18 @@ abstract class AnalysisServer {
         packagesFileMap[rootPath] = contextRoot.packagesFile;
       }
       var fileSystemState = driver.fsState;
-      for (var fileState in fileSystemState.knownFiles) {
+      // Capture the known files before the loop to prevent a concurrent
+      // modification exception. The reason for the exception is unknown.
+      var knownFiles = fileSystemState.knownFiles.toList();
+      for (var fileState in knownFiles) {
         var isImmediate = fileState.path.startsWith(rootPath);
         if (isImmediate) {
           immediateFileCount++;
           immediateFileLineCount += fileState.lineInfo.lineCount;
+          var libraryKind = fileState.kind.library;
+          if (libraryKind != null) {
+            libraryCycles.add(libraryKind.libraryCycle);
+          }
         } else {
           var lineCount = fileState.lineInfo.lineCount;
           transitiveFileCount++;
@@ -953,8 +974,19 @@ abstract class AnalysisServer {
     }
     var transitiveFileUniqueCount = transitiveFilePaths.length;
 
-    var rootPaths = packagesFileMap.keys.toList();
-    rootPaths.sort((first, second) => first.length.compareTo(second.length));
+    var libraryCycleLibraryCounts = <int>[];
+    var libraryCycleLineCounts = <int>[];
+    for (var libraryCycle in libraryCycles) {
+      var libraries = libraryCycle.libraries;
+      var lineCount = 0;
+      for (var library in libraries) {
+        for (var file in library.files) {
+          lineCount += file.lineInfo.lineCount;
+        }
+      }
+      libraryCycleLibraryCounts.add(libraries.length);
+      libraryCycleLineCounts.add(lineCount);
+    }
 
     analyticsManager.analysisComplete(
       numberOfContexts: driverMap.length,
@@ -964,6 +996,8 @@ abstract class AnalysisServer {
       transitiveFileLineCount: transitiveFileLineCount,
       transitiveFileUniqueCount: transitiveFileUniqueCount,
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+      libraryCycleLibraryCounts: libraryCycleLibraryCounts,
+      libraryCycleLineCounts: libraryCycleLineCounts,
     );
   }
 
@@ -1062,8 +1096,6 @@ abstract class CommonServerContextManagerCallbacks
 
   CommonServerContextManagerCallbacks(this.resourceProvider);
 
-  AnalysisServer get analysisServer;
-
   @override
   @mustCallSuper
   void afterContextsCreated() {
@@ -1113,6 +1145,10 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void handleFileResult(FileResult result) {
+    if (analysisServer.suppressAnalysisResults) {
+      return;
+    }
+
     var path = result.path;
     filesToFlush.add(path);
 
@@ -1133,7 +1169,7 @@ abstract class CommonServerContextManagerCallbacks
       analysisServer.sendLspNotification(message);
     }
 
-    if (result is AnalysisResultWithErrors) {
+    if (result is AnalysisResultWithDiagnostics) {
       if (analysisServer.isAnalyzed(path)) {
         var serverErrors = server.doAnalysisError_listFromEngine(result);
         recordAnalysisErrors(path, serverErrors);

@@ -6,7 +6,7 @@ class C extends core::Object {
   final field core::int? _x;
   constructor •(core::int? _x) → self::C
     ;
-  static method _#new#tearOff(core::int? _x) → self::C
+  static synthetic method _#new#tearOff(core::int? _x) → self::C
     return new self::C::•(_x);
   @core::pragma::_("dart2js:never-inline")
   method manual() → void

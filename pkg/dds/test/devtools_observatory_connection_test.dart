@@ -35,26 +35,18 @@ void main() {
 
   defineTest({required bool authCodesEnabled}) {
     test(
-        'Ensure Observatory and DevTools assets are available with '
+        'Ensure DevTools assets are available with '
         '${authCodesEnabled ? '' : 'no'} auth codes', () async {
       dds = await DartDevelopmentService.startDartDevelopmentService(
         remoteVmServiceUri,
         devToolsConfiguration: DevToolsConfiguration(
           enable: true,
-          customBuildDirectoryPath: devtoolsAppUri(prefix: '../../../'),
+          customBuildDirectoryPath: devtoolsAppUri(),
         ),
       );
       expect(dds!.isRunning, true);
 
       final client = HttpClient();
-
-      // Check that Observatory assets are accessible.
-      final observatoryRequest = await client.getUrl(dds!.uri!);
-      final observatoryResponse = await observatoryRequest.close();
-      expect(observatoryResponse.statusCode, 200);
-      final observatoryContent =
-          await observatoryResponse.transform(utf8.decoder).join();
-      expect(observatoryContent, startsWith('<!DOCTYPE html>'));
 
       // Check that DevTools assets are accessible.
       final devtoolsRequest = await client.getUrl(dds!.devToolsUri!);

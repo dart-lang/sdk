@@ -24,4 +24,9 @@ import 'dart:_js_helper' show Creates, JSName, Native, Returns, convertDartClosu
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 
+// This comment is an extra padding to work around Flutter license script
+// cutting a copyright notice in the middle of this file because it reads
+// only the first kMaxSize bytes of a file.
+// (https://github.com/flutter/flutter/issues/168065)
+
 $!GENERATED_DART_FILES

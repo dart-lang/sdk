@@ -557,20 +557,19 @@ class KFunctionData extends KMemberData {
                 parent.kind == ir.ProcedureKind.Factory)) {
           _typeVariables = const <TypeVariableType>[];
         } else {
-          _typeVariables =
-              functionNode.typeParameters.map<TypeVariableType>((
-                ir.TypeParameter typeParameter,
-              ) {
-                return elementMap
-                        .getDartType(
-                          ir.TypeParameterType(
-                            typeParameter,
-                            ir.Nullability.nonNullable,
-                          ),
-                        )
-                        .withoutNullability
-                    as TypeVariableType;
-              }).toList();
+          _typeVariables = functionNode.typeParameters.map<TypeVariableType>((
+            ir.TypeParameter typeParameter,
+          ) {
+            return elementMap
+                    .getDartType(
+                      ir.TypeParameterType(
+                        typeParameter,
+                        ir.Nullability.nonNullable,
+                      ),
+                    )
+                    .withoutNullability
+                as TypeVariableType;
+          }).toList();
         }
       }
     }

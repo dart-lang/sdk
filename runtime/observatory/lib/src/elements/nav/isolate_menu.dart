@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, EventRepository;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
@@ -19,12 +21,12 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   late M.IsolateRef _isolate;
   late M.EventRepository _events;
   StreamSubscription? _updatesSubscription;
-  late Iterable<Element> _content = const [];
+  late Iterable<HTMLElement> _content = const [];
 
   M.IsolateRef get isolate => _isolate;
-  Iterable<Element> get content => _content;
+  Iterable<HTMLElement> get content => _content;
 
-  set content(Iterable<Element> value) {
+  set content(Iterable<HTMLElement> value) {
     _content = value.toList();
     _r.dirty();
   }
@@ -55,7 +57,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     assert(_updatesSubscription != null);
     _updatesSubscription!.cancel();
@@ -63,7 +65,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final content = <Element>[
+    final content = <HTMLElement>[
       new NavMenuItemElement('debugger',
               queue: _r.queue, link: Uris.debugger(isolate))
           .element,
@@ -98,7 +100,7 @@ class NavIsolateMenuElement extends CustomElement implements Renderable {
               queue: _r.queue, link: Uris.logging(isolate))
           .element,
     ]..addAll(_content);
-    children = <Element>[
+    children = <HTMLElement>[
       navMenu(isolate.name!, content: content, link: Uris.inspect(isolate))
     ];
   }

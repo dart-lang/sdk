@@ -12,10 +12,7 @@ class Annotation {
   const Annotation({this.value});
 }
 
-enum Enum {
-  a,
-  b,
-}
+enum Enum { a, b }
 
 class SubAnno extends Annotation {
   final Enum? e;

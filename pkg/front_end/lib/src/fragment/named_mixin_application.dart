@@ -25,6 +25,10 @@ class NamedMixinApplicationFragment implements Fragment {
 
   SourceClassBuilder? _builder;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   NamedMixinApplicationFragment(
       {required this.name,
       required this.fileUri,

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -18,17 +20,14 @@ class UnnecessaryAsync extends LintRule {
     : super(
         name: LintNames.unnecessary_async,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_async;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionExpression(this, visitor);
@@ -153,21 +152,21 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // If no imposed return type, then any type is OK.
     if (returnType == null) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
     // We don't have to return anything.
     // So, the generated `Future` is not necessary.
     if (returnType is VoidType) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
     // It is OK to return values into `FutureOr`.
     // So, wrapping values into `Future` is not necessary.
     if (returnType.isDartAsyncFutureOr) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
@@ -185,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // If every `return` returns `Future`, we don't need wrapping.
     if (visitor.everyReturnHasValue && visitor.returnsOnlyFuture) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
   }
@@ -193,7 +192,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on InterfaceType {
   bool get isDartAsyncFutureOrSubtype {
-    var typeProvider = element3.library2.typeProvider;
-    return asInstanceOf2(typeProvider.futureElement2) != null;
+    var typeProvider = element.library.typeProvider;
+    return asInstanceOf(typeProvider.futureElement) != null;
   }
 }

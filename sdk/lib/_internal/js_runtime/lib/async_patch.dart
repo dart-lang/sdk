@@ -309,8 +309,8 @@ dynamic _asyncRethrow(dynamic object, Completer completer) {
 /// The [bodyFunction] argument is the continuation that should be invoked
 /// when the future completes.
 void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
-  FutureOr<dynamic> Function(dynamic) thenCallback =
-      (result) => bodyFunction(async_status_codes.SUCCESS, result);
+  FutureOr<dynamic> Function(dynamic) thenCallback = (result) =>
+      bodyFunction(async_status_codes.SUCCESS, result);
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
     ExceptionAndStackTrace wrappedException = ExceptionAndStackTrace(
@@ -465,10 +465,9 @@ void _asyncStarHelper(
         // No need to check for pause because to get here the stream either
         // completed normally or was cancelled. The stream cannot be paused
         // after either of these states.
-        int errorCode =
-            controller.isCanceled
-                ? async_status_codes.STREAM_WAS_CANCELED
-                : async_status_codes.SUCCESS;
+        int errorCode = controller.isCanceled
+            ? async_status_codes.STREAM_WAS_CANCELED
+            : async_status_codes.SUCCESS;
         bodyFunction(errorCode, null);
       });
       return;

@@ -28,9 +28,9 @@ extension type ExtensionType(core::int it) {
   method tearoff instanceMethod = self2::ExtensionType|get#instanceMethod;
   operator + = self2::ExtensionType|+;
   get instanceGetter = self2::ExtensionType|get#instanceGetter;
+  set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static method staticMethod = self2::ExtensionType|staticMethod;
   static get staticGetter = get self2::ExtensionType|staticGetter;
-  set instanceSetter = self2::ExtensionType|set#instanceSetter;
   static set staticSetter = set self2::ExtensionType|staticSetter;
   constructor • = self2::ExtensionType|constructor#;
   constructor tearoff • = self2::ExtensionType|constructor#_#new#tearOff;
@@ -46,23 +46,23 @@ extension type ExtensionType(core::int it) {
 static field core::int ExtensionType|staticField;
 static extension-type-member method ExtensionType|constructor#(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#(it);
 static extension-type-member method ExtensionType|constructor#named(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#named#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#named#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#named(it);
 static extension-type-member method ExtensionType|constructor#redirectingGenerative(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#redirectingGenerative(it);
 static extension-type-member method ExtensionType|constructor#fact(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#fact#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#fact(it);
 static extension-type-member method ExtensionType|constructor#redirectingFactory(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */ /* redirection-target: self2::ExtensionType|constructor# */
   return self2::ExtensionType|constructor#(it);
-static extension-type-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#(it);
 static extension-type-member method ExtensionType|instanceMethod(lowered final self2::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
   ;

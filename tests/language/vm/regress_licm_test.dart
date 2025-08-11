@@ -62,7 +62,7 @@ main() {
     new Member(new BName("a")),
     new Member(new BName("b")),
     new Member(new BName("c")),
-    new Member(new BName("d"))
+    new Member(new BName("d")),
   ];
 
   find(list, new AName());

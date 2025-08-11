@@ -30,26 +30,29 @@ class SlowConsumer implements StreamConsumer {
     bool done = false;
     Completer completer = new Completer();
     var subscription;
-    subscription = stream.listen((dynamic _data) {
-      List data = _data;
-      current = current.then((count) {
-        // Simulated amount of time it takes to handle the data.
-        int ms = data.length * 1000 ~/ bytesPerSecond;
-        Duration duration = new Duration(milliseconds: ms);
-        if (!done) subscription.pause();
-        return new Future.delayed(duration, () {
-          if (!done) subscription.resume();
-          // Make sure we use data here to keep tracking it.
-          return count + data.length;
+    subscription = stream.listen(
+      (dynamic _data) {
+        List data = _data;
+        current = current.then((count) {
+          // Simulated amount of time it takes to handle the data.
+          int ms = data.length * 1000 ~/ bytesPerSecond;
+          Duration duration = new Duration(milliseconds: ms);
+          if (!done) subscription.pause();
+          return new Future.delayed(duration, () {
+            if (!done) subscription.resume();
+            // Make sure we use data here to keep tracking it.
+            return count + data.length;
+          });
         });
-      });
-    }, onDone: () {
-      done = true;
-      current.then((count) {
-        finalCount = count;
-        completer.complete(count);
-      });
-    });
+      },
+      onDone: () {
+        done = true;
+        current.then((count) {
+          finalCount = count;
+          completer.complete(count);
+        });
+      },
+    );
     return completer.future;
   }
 
@@ -68,7 +71,10 @@ class DataProvider {
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(
-        sync: true, onPause: onPauseStateChange, onResume: onPauseStateChange);
+      sync: true,
+      onPause: onPauseStateChange,
+      onResume: onPauseStateChange,
+    );
     Timer.run(send);
   }
 
@@ -115,10 +121,11 @@ main() {
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  new DataProvider(800 * MB, 100 * MB, 1 * MB)
-      .stream
-      .pipe(new SlowConsumer(200 * MB))
-      .then((count) {
+  new DataProvider(
+    800 * MB,
+    100 * MB,
+    1 * MB,
+  ).stream.pipe(new SlowConsumer(200 * MB)).then((count) {
     Expect.equals(100 * MB, count);
     asyncEnd();
   });

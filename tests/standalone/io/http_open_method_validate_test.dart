@@ -8,11 +8,14 @@ import "dart:io";
 import "package:expect/expect.dart";
 
 void testInvalidArgumentException(String method) {
-  Expect.throws(() => HttpClient()..open(method, "127.0.0.1", 8080, "/"),
-      (e) => e is ArgumentError);
   Expect.throws(
-      () => HttpClient()..openUrl(method, Uri.parse("http://127.0.0.1/")),
-      (e) => e is ArgumentError);
+    () => HttpClient()..open(method, "127.0.0.1", 8080, "/"),
+    (e) => e is ArgumentError,
+  );
+  Expect.throws(
+    () => HttpClient()..openUrl(method, Uri.parse("http://127.0.0.1/")),
+    (e) => e is ArgumentError,
+  );
 }
 
 main() {

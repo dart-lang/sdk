@@ -11,9 +11,9 @@ import 'package:meta/meta.dart';
 import 'bitset.dart';
 
 extension<E extends Enum> on E {
-  Bitset mask(int offset) {
-    assert(index + offset < 64);
-    return Bitset(1 << (index + offset));
+  EnumSet<E> get mask {
+    assert(index < 64);
+    return EnumSet.fromRawBits(1 << index);
   }
 }
 
@@ -31,19 +31,19 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
     : this.fromRawBits((1 << values.length) - 1);
 
   /// Creates a singleton set containing [value].
-  EnumSet.fromValue(E value) : this(value.mask(0));
+  factory EnumSet.fromValue(E value) => value.mask;
 
   /// Creates a set containing [values].
-  EnumSet.fromValues(Iterable<E> values)
-    : this(values.fold(Bitset.empty(), (acc, e) => acc.union(e.mask(0))));
+  factory EnumSet.fromValues(Iterable<E> values) =>
+      values.fold(EnumSet.empty(), (acc, e) => acc.union(e.mask));
 
   /// Returns a set containing all enum values in [this] as well as [enumValue].
   @useResult
-  EnumSet<E> add(E enumValue) => EnumSet(mask.union(enumValue.mask(0)));
+  EnumSet<E> add(E enumValue) => union(enumValue.mask);
 
   /// Returns a set containing all enum values in [this] except for [enumValue].
   @useResult
-  EnumSet<E> remove(E enumValue) => EnumSet(mask.setMinus(enumValue.mask(0)));
+  EnumSet<E> remove(E enumValue) => setMinus(enumValue.mask);
 
   /// Returns a set with the bit for [value] enabled or disabled depending on
   /// [state].
@@ -66,7 +66,7 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
   EnumSet<E> setMinus(EnumSet<E> other) => EnumSet(mask.setMinus(other.mask));
 
   /// Returns `true` if [enumValue] is in this set.
-  bool contains(E enumValue) => mask.intersects(enumValue.mask(0));
+  bool contains(E enumValue) => intersects(enumValue.mask);
 
   /// Returns `true` if this and [other] have any values in common.
   bool intersects(EnumSet<E> other) => mask.intersects(other.mask);
@@ -87,10 +87,10 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
   ///     Iterable<EnumClass> iterable = set.iterable(EnumClass.values);
   ///
   Iterable<E> iterable(List<E> values) =>
-  // We may store extra data in the bits unused by the enum values, but that
-  // will result in iteration attempting to look up enum values out of bounds.
-  // We can avoid this by masking off such bits.
-  _EnumSetIterable(mask.bits & ((1 << values.length) - 1), values);
+      // We may store extra data in the bits unused by the enum values, but that
+      // will result in iteration attempting to look up enum values out of bounds.
+      // We can avoid this by masking off such bits.
+      _EnumSetIterable(mask.bits & ((1 << values.length) - 1), values);
 }
 
 class _EnumSetIterable<E extends Enum> extends IterableBase<E> {
@@ -120,7 +120,7 @@ class _EnumSetIterator<E extends Enum> implements Iterator<E> {
       return false;
     }
     final value = _current = _values[_mask.bitLength - 1];
-    _mask &= ~value.mask(0).bits;
+    _mask &= ~value.mask.mask.bits;
     return true;
   }
 }
@@ -136,25 +136,34 @@ class EnumSetDomain<E extends Enum> {
   /// is equivalent to using an [EnumSet] directly.
   final int offset;
 
-  final Iterable<E> values;
+  final List<E> values;
+
+  late final Bitset singletonMask;
+
+  EnumSetDomain(
+    this.offset,
+    this.values, {
+    Iterable<E> singletonBits = const [],
+  }) {
+    assert(values.length + offset <= 64);
+    singletonMask = fromValues(singletonBits);
+  }
 
   /// A bitset containing all enum values in [E].
   late final Bitset allValues = Bitset(((1 << values.length) - 1) << offset);
 
-  EnumSetDomain(this.offset, this.values);
-
   /// When composing [EnumSetDomain]s, the [offset] to use for the next domain.
   int get nextOffset => offset + values.length;
 
+  /// Returns a bitset derived from [values] shifted by the appropriate offset.
+  Bitset fromEnumSet(EnumSet<E> values) => Bitset(values.mask.bits << offset);
+
   /// Returns a singleton bitset containing [value].
-  Bitset fromValue(E value) => value.mask(offset);
+  Bitset fromValue(E value) => fromEnumSet(value.mask);
 
   /// Returns a bitset containing [values].
   Bitset fromValues(Iterable<E> values) =>
-      values.fold(Bitset.empty(), (acc, e) => acc.union(e.mask(offset)));
-
-  /// Returns a bitset derived from [values] shifted by the appropriate offset.
-  Bitset fromEnumSet(EnumSet<E> values) => Bitset(values.mask.bits << offset);
+      values.fold(Bitset.empty(), (acc, e) => acc.union(fromValue(e)));
 
   EnumSet<E> toEnumSet(Bitset bits) =>
       EnumSet.fromRawBits(restrict(bits).bits >> offset);
@@ -166,18 +175,35 @@ class EnumSetDomain<E extends Enum> {
   /// Returns a bitset containing all enum values in [bits] as well as
   /// [enumValue].
   @useResult
-  Bitset add(Bitset bits, E enumValue) => bits.union(enumValue.mask(offset));
+  Bitset add(Bitset bits, E enumValue) => bits.union(fromValue(enumValue));
+
+  /// Returns a bitset containing all enum values in [bits] as well as
+  /// [enumValues].
+  @useResult
+  Bitset addAll(Bitset bits, Iterable<E> enumValues) =>
+      bits.union(fromEnumSet(EnumSet.fromValues(enumValues)));
 
   /// Returns a bitset containing all enum values in [bits] except for
   /// [enumValue].
   @useResult
   Bitset remove(Bitset bits, E enumValue) =>
-      bits.setMinus(enumValue.mask(offset));
+      bits.setMinus(fromValue(enumValue));
 
   /// Returns a bitset containing all enum values in [bits] except for enum
   /// values in [E].
   @useResult
   Bitset clear(Bitset bits) => bits.setMinus(allValues);
+
+  /// Returns [bits] with all bits corresponding to [E] values replaced by the
+  /// bit for [enumValue].
+  @useResult
+  Bitset replace(Bitset bits, E enumValue) => add(clear(bits), enumValue);
+
+  /// Returns [bits] with all bits corresponding to [E] values replaced by bits
+  /// for [enumValues].
+  @useResult
+  Bitset replaceMany(Bitset bits, Iterable<E> enumValues) =>
+      addAll(clear(bits), enumValues);
 
   /// Returns a copy of [bits] with the bit for [value] enabled or disabled
   /// depending on [state].
@@ -187,7 +213,15 @@ class EnumSetDomain<E extends Enum> {
 
   /// Returns `true` if [enumValue] is in [bits].
   bool contains(Bitset bits, E enumValue) =>
-      bits.intersects(enumValue.mask(offset));
+      bits.intersects(fromValue(enumValue));
+
+  /// Returns `true` if [enumValue] is in [bits] and no other [E] is.
+  bool containsSingle(Bitset bits, E enumValue) =>
+      toEnumSet(bits) == enumValue.mask;
+
+  /// Returns `true` if the only [E] values in [bits] are in [enumValues].
+  bool containsOnly(Bitset bits, EnumSet<E> enumValues) =>
+      toEnumSet(bits).union(enumValues) == enumValues;
 
   /// Returns `true` if [bits] contains any [E].
   bool isNotEmpty(Bitset bits) => bits.intersects(allValues);
@@ -201,8 +235,14 @@ class ComposedEnumSetDomains {
   final int bitWidth;
   late final Bitset mask;
   late final Bitset notMask;
+  final Bitset singletonsMask;
 
-  ComposedEnumSetDomains(this.domains) : bitWidth = domains.last.nextOffset {
+  ComposedEnumSetDomains(this.domains)
+    : bitWidth = domains.last.nextOffset,
+      singletonsMask = domains.fold(
+        Bitset.empty(),
+        (mask, domain) => mask.union(domain.singletonMask),
+      ) {
     final maskBits = (1 << bitWidth) - 1;
     mask = Bitset(maskBits);
     notMask = Bitset(~maskBits);

@@ -20,16 +20,22 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/untrusted_server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/untrusted_server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/untrusted_server_key.pem'),
+    password: 'dartdart',
+  );
 
 Future<SecureServerSocket> runServer() {
-  return SecureServerSocket.bind(HOST_NAME, 0, serverContext)
-      .then((SecureServerSocket server) {
+  return SecureServerSocket.bind(HOST_NAME, 0, serverContext).then((
+    SecureServerSocket server,
+  ) {
     server.listen((SecureSocket socket) {
-      socket.listen((_) {}, onDone: () {
-        socket.close();
-      });
+      socket.listen(
+        (_) {},
+        onDone: () {
+          socket.close();
+        },
+      );
     }, onError: (e) => Expect.isTrue(e is HandshakeException));
     return server;
   });

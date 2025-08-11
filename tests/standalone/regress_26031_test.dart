@@ -14,7 +14,10 @@ void checkResolvedExecutable(Object reObj) {
 
 main() {
   var exitPort = new ReceivePort();
-  Isolate.spawn(checkResolvedExecutable, Platform.resolvedExecutable,
-      onExit: exitPort.sendPort);
+  Isolate.spawn(
+    checkResolvedExecutable,
+    Platform.resolvedExecutable,
+    onExit: exitPort.sendPort,
+  );
   exitPort.listen((_) => exitPort.close());
 }

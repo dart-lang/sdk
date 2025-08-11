@@ -22,12 +22,13 @@ import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
@@ -102,7 +103,7 @@ class DartUnitHighlightsComputer {
   void _addIdentifierRegion({
     required AstNode parent,
     required Token nameToken,
-    required Element2? element,
+    required Element? element,
   }) {
     if (_addIdentifierRegion_keyword(nameToken)) {
       return;
@@ -132,7 +133,7 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_importPrefix(nameToken, element)) {
       return;
     }
-    if (_addIdentifierRegion_label(nameToken, element)) {
+    if (_addIdentifierRegion_label(parent, nameToken, element)) {
       return;
     }
     if (_addIdentifierRegion_localVariable(nameToken, element)) {
@@ -177,9 +178,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_class(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return false;
     }
     // prepare type
@@ -194,9 +195,9 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.CONSTRUCTOR;
       semanticType = SemanticTokenTypes.class_;
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
-    } else if (element is EnumElement2) {
+    } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
-    } else if (element is ExtensionTypeElement2) {
+    } else if (element is ExtensionTypeElement) {
       type = HighlightRegionType.EXTENSION_TYPE;
     } else {
       type = HighlightRegionType.CLASS;
@@ -224,9 +225,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_constructor(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! ConstructorElement2) {
+    if (element is! ConstructorElement) {
       return false;
     }
     return _addRegion_token(
@@ -243,8 +244,8 @@ class DartUnitHighlightsComputer {
     );
   }
 
-  bool _addIdentifierRegion_extension(Token nameToken, Element2? element) {
-    if (element is! ExtensionElement2) {
+  bool _addIdentifierRegion_extension(Token nameToken, Element? element) {
+    if (element is! ExtensionElement) {
       return false;
     }
 
@@ -254,11 +255,11 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_field(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // Compute the type of the identifier.
     HighlightRegionType? type;
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       if (element.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
@@ -266,14 +267,14 @@ class DartUnitHighlightsComputer {
       } else {
         type = HighlightRegionType.INSTANCE_FIELD_REFERENCE;
       }
-    } else if (element is TopLevelVariableElement2) {
+    } else if (element is TopLevelVariableElement) {
       type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
     } else if (element is GetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
-      if (variable is TopLevelVariableElement2) {
+      var variable = accessor.variable;
+      if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE;
-      } else if (variable is FieldElement2 && variable.isEnumConstant) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = HighlightRegionType.STATIC_GETTER_REFERENCE;
@@ -282,21 +283,26 @@ class DartUnitHighlightsComputer {
       }
     } else if (element is SetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
-      if (variable is TopLevelVariableElement2) {
+      var variable = accessor.variable;
+      if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
-      } else if (variable is FieldElement2 && variable.isEnumConstant) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = HighlightRegionType.STATIC_SETTER_REFERENCE;
       } else {
         type = HighlightRegionType.INSTANCE_SETTER_REFERENCE;
       }
-    } else if (element == null &&
-        parent is PropertyAccess &&
-        nameToken == parent.propertyName.token) {
+    } else if (element == null) {
+      DartType? staticType;
+      if (parent is PropertyAccess && nameToken == parent.propertyName.token) {
+        staticType = parent.realTarget.staticType;
+      } else if (parent.enclosingInstanceElement case ExtensionElement(
+        :var extendedType,
+      ) when parent is! PrefixedIdentifier) {
+        staticType = extendedType;
+      }
       // Handle tokens that are references to record fields.
-      var staticType = parent.realTarget.staticType;
       if (staticType is RecordType) {
         type =
             staticType.fieldByName(nameToken.lexeme) != null
@@ -321,7 +327,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_function(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     if (element is! TopLevelFunctionElement &&
         element is! LocalFunctionElement) {
@@ -345,7 +351,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_getterSetterDeclaration(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // should be declaration
     if (!(parent is MethodDeclaration || parent is FunctionDeclaration)) {
@@ -376,8 +382,8 @@ class DartUnitHighlightsComputer {
     return _addRegion_token(nameToken, type);
   }
 
-  bool _addIdentifierRegion_importPrefix(Token nameToken, Element2? element) {
-    if (element is! PrefixElement2) {
+  bool _addIdentifierRegion_importPrefix(Token nameToken, Element? element) {
+    if (element is! PrefixElement) {
       return false;
     }
     return _addRegion_token(nameToken, HighlightRegionType.IMPORT_PREFIX);
@@ -395,15 +401,26 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_label(Token nameToken, Element2? element) {
-    if (element is! LabelElement2) {
+  bool _addIdentifierRegion_label(
+    AstNode parent,
+    Token nameToken,
+    Element? element,
+  ) {
+    if (element is! LabelElement) {
       return false;
     }
-    return _addRegion_token(nameToken, HighlightRegionType.LABEL);
+    return _addRegion_token(
+      nameToken,
+      HighlightRegionType.LABEL,
+      semanticTokenModifiers:
+          parent is! BreakStatement
+              ? {SemanticTokenModifiers.declaration}
+              : null,
+    );
   }
 
-  bool _addIdentifierRegion_localVariable(Token nameToken, Element2? element) {
-    if (element is! LocalVariableElement2) {
+  bool _addIdentifierRegion_localVariable(Token nameToken, Element? element) {
+    if (element is! LocalVariableElement) {
       return false;
     }
     // OK
@@ -417,14 +434,16 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_method(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! MethodElement2) {
+    if (element is! MethodElement) {
       return false;
     }
     var isStatic = element.isStatic;
     var isInvocation =
-        parent is MethodInvocation && parent.methodName.token == nameToken;
+        (parent is MethodInvocation && parent.methodName.token == nameToken) ||
+        (parent is DotShorthandInvocation &&
+            parent.memberName.token == nameToken);
     // OK
     HighlightRegionType type;
     if (isStatic) {
@@ -444,7 +463,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_parameter(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     if (element is! FormalParameterElement) {
       return false;
@@ -458,8 +477,8 @@ class DartUnitHighlightsComputer {
     return _addRegion_token(nameToken, type, semanticTokenModifiers: modifiers);
   }
 
-  bool _addIdentifierRegion_typeAlias(Token nameToken, Element2? element) {
-    if (element is TypeAliasElement2) {
+  bool _addIdentifierRegion_typeAlias(Token nameToken, Element? element) {
+    if (element is TypeAliasElement) {
       var type =
           element.aliasedType is FunctionType
               ? HighlightRegionType.FUNCTION_TYPE_ALIAS
@@ -469,8 +488,8 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_typeParameter(Token nameToken, Element2? element) {
-    if (element is! TypeParameterElement2) {
+  bool _addIdentifierRegion_typeParameter(Token nameToken, Element? element) {
+    if (element is! TypeParameterElement) {
       return false;
     }
     return _addRegion_token(
@@ -483,7 +502,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // unresolved
     if (element != null) {
@@ -518,7 +537,7 @@ class DartUnitHighlightsComputer {
   /// Returns a set of additional semantic token modifiers that apply to
   /// [element].
   Set<SemanticTokenModifiers>? _additionalModifiersForElement(
-    Element2? element,
+    Element? element,
   ) {
     return (element?.isWildcardVariable ?? false)
         ? {CustomSemanticTokenModifiers.wildcard}
@@ -701,24 +720,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    computer._addRegion_token(
-      node.augmentedKeyword,
-      HighlightRegionType.KEYWORD,
-    );
-    super.visitAugmentedExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    computer._addRegion_token(
-      node.augmentedKeyword,
-      HighlightRegionType.KEYWORD,
-    );
-    super.visitAugmentedInvocation(node);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(
       node.awaitKeyword,
@@ -786,7 +787,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         exceptionParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          exceptionParameter.declaredElement2,
+          exceptionParameter.declaredElement,
         ),
       );
     }
@@ -796,7 +797,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         stackTraceParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          stackTraceParameter.declaredElement2,
+          stackTraceParameter.declaredElement,
         ),
       );
     }
@@ -901,7 +902,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorSelector(ConstructorSelector node) {
     computer._addRegion_node(node.name, HighlightRegionType.CONSTRUCTOR);
-    node.visitChildren(this);
   }
 
   @override
@@ -922,7 +922,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       node.name,
       HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
       additionalSemanticTokenModifiers: _additionalModifiersForElement(
-        node.declaredElement2,
+        node.declaredElement,
       ),
     );
 
@@ -961,6 +961,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       semanticTokenModifiers: {CustomSemanticTokenModifiers.control},
     );
     super.visitDoStatement(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    var element = node.propertyName.element;
+    if (element is ConstructorElement) {
+      computer._addRegion_node(
+        node.propertyName,
+        HighlightRegionType.CONSTRUCTOR_TEAR_OFF,
+      );
+    } else {
+      computer._addIdentifierRegion(
+        parent: node,
+        nameToken: node.propertyName.token,
+        element: element,
+      );
+    }
   }
 
   @override
@@ -1335,6 +1352,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    if (computer._computeSemanticTokens) {
+      var string = node.contents.lexeme;
+      var parent = node.parent as StringInterpolation;
+      _addRegions_stringEscapes(
+        string,
+        parent.quote,
+        node.offset,
+        0,
+        string.length,
+      );
+    }
     super.visitInterpolationString(node);
   }
 
@@ -1441,11 +1469,11 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     var type = node.type;
     if (type != null) {
-      var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
+      var isDynamic = type is DynamicType && node.name.lexeme == 'dynamic';
       var isNever = type is NeverType;
       if (isDynamic || isNever) {
         computer._addRegion_token(
-          node.name2,
+          node.name,
           isDynamic
               ? HighlightRegionType.TYPE_NAME_DYNAMIC
               : HighlightRegionType.CLASS,
@@ -1457,8 +1485,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addIdentifierRegion(
       parent: node,
-      nameToken: node.name2,
-      element: node.element2,
+      nameToken: node.name,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1506,8 +1534,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (name != null) {
       // Patterns can be method tear-offs as well as getters:
       // https://github.com/dart-lang/sdk/issues/59976#issuecomment-2613558317
-      var type = switch (node.element2) {
-        MethodElement2() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
+      var type = switch (node.element) {
+        MethodElement() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
         _ => HighlightRegionType.INSTANCE_GETTER_REFERENCE,
       };
 
@@ -1642,7 +1670,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       computer._addIdentifierRegion(
         parent: parent,
         nameToken: node.token,
-        element: node.writeOrReadElement2,
+        element: node.writeOrReadElement,
       );
     }
     super.visitSimpleIdentifier(node);
@@ -1652,7 +1680,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
     if (computer._computeSemanticTokens) {
-      _addRegions_stringEscapes(node);
+      var string = node.literal.lexeme;
+      var quote = analyzeQuote(string);
+      var startIndex = firstQuoteLength(string, quote);
+      var endIndex = string.length - lastQuoteLength(quote);
+      _addRegions_stringEscapes(
+        string,
+        quote,
+        node.offset,
+        startIndex,
+        endIndex,
+      );
     }
     super.visitSimpleStringLiteral(node);
   }
@@ -1793,15 +1831,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredFragment?.element ?? node.declaredElement2;
-    if (element is FieldElement2) {
+    var element = node.declaredFragment?.element ?? node.declaredElement;
+    if (element is FieldElement) {
       computer._addRegion_token(
         node.name,
         element.isStatic
             ? HighlightRegionType.STATIC_FIELD_DECLARATION
             : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
       );
-    } else if (element is LocalVariableElement2) {
+    } else if (element is LocalVariableElement) {
       computer._addRegion_token(
         node.name,
         element.type is DynamicType
@@ -1811,7 +1849,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
           element,
         ),
       );
-    } else if (element is TopLevelVariableElement2) {
+    } else if (element is TopLevelVariableElement) {
       computer._addRegion_token(
         node.name,
         HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
@@ -1888,7 +1926,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   /// Returns a set of additional semantic token modifiers that apply to
   /// [element].
   Set<SemanticTokenModifiers>? _additionalModifiersForElement(
-    Element2? element,
+    Element? element,
   ) {
     return computer._additionalModifiersForElement(element);
   }
@@ -1918,47 +1956,48 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _addRegions_stringEscapes(SimpleStringLiteral node) {
-    var string = node.literal.lexeme;
-    var quote = analyzeQuote(string);
-    var startIndex = firstQuoteLength(string, quote);
-    var endIndex = string.length - lastQuoteLength(quote);
+  void _addRegions_stringEscapes(
+    String string,
+    Quote quote,
+    int nodeOffset,
+    int startIndex,
+    int endIndex,
+  ) {
     switch (quote) {
-      case Quote.Single:
-      case Quote.Double:
-      case Quote.MultiLineSingle:
-      case Quote.MultiLineDouble:
+      case Quote.RawSingle ||
+          Quote.RawDouble ||
+          Quote.RawMultiLineSingle ||
+          Quote.RawMultiLineDouble:
+        // Raw strings don't have escape characters.
+        break;
+      case Quote.Single ||
+          Quote.Double ||
+          Quote.MultiLineSingle ||
+          Quote.MultiLineDouble:
         _findEscapes(
-          node,
+          string,
           startIndex: startIndex,
           endIndex: endIndex,
           listener: (offset, end) {
             var length = end - offset;
             computer._addRegion(
-              node.offset + offset,
+              nodeOffset + offset,
               length,
               HighlightRegionType.VALID_STRING_ESCAPE,
             );
           },
         );
-      case Quote.RawSingle:
-      case Quote.RawDouble:
-      case Quote.RawMultiLineSingle:
-      case Quote.RawMultiLineDouble:
-        // Raw strings don't have escape characters.
-        break;
     }
   }
 
   /// Finds escaped regions within a string between [startIndex] and [endIndex],
   /// calling [listener] for each found region.
   void _findEscapes(
-    SimpleStringLiteral node, {
+    String string, {
     required int startIndex,
     required int endIndex,
     required void Function(int offset, int end) listener,
   }) {
-    var string = node.literal.lexeme;
     var codeUnits = string.codeUnits;
     var length = string.length;
 
@@ -2017,4 +2056,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
   }
+}
+
+extension on StringInterpolation {
+  Quote get quote => switch ((isRaw, isMultiline, isSingleQuoted)) {
+    (true, true, true) => Quote.RawMultiLineSingle,
+    (true, true, false) => Quote.RawMultiLineDouble,
+    (true, false, true) => Quote.RawSingle,
+    (true, false, false) => Quote.RawDouble,
+    (false, true, true) => Quote.MultiLineSingle,
+    (false, true, false) => Quote.MultiLineDouble,
+    (false, false, true) => Quote.Single,
+    (false, false, false) => Quote.Double,
+  };
 }

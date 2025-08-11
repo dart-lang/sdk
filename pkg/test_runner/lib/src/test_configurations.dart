@@ -29,8 +29,6 @@ export 'configuration.dart' show TestConfiguration;
 /// here, if possible.
 final testSuiteDirectories = [
   Path('pkg'),
-  Path('runtime/observatory/tests/observatory_ui'),
-  Path('runtime/observatory/tests/service'),
   Path('runtime/tests/vm'),
   Path('samples'),
   Path('tests/corelib'),
@@ -43,8 +41,10 @@ final testSuiteDirectories = [
   Path('tests/web'),
   Path('third_party/pkg/dart_style'),
   Path('third_party/pkg/dartdoc'),
-  Path('third_party/pkg/native/pkgs/native_assets_builder'),
-  Path('third_party/pkg/native/pkgs/native_assets_cli'),
+  Path('third_party/pkg/native/pkgs/code_assets'),
+  Path('third_party/pkg/native/pkgs/data_assets'),
+  Path('third_party/pkg/native/pkgs/hooks_runner'),
+  Path('third_party/pkg/native/pkgs/hooks'),
   Path('third_party/pkg/native/pkgs/native_toolchain_c'),
   Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
@@ -138,7 +138,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       for (var key in configuration.selectors.keys) {
         if (key == 'co19') {
           testSuites.add(Co19TestSuite(configuration, key));
-        } else if (configuration.compiler == Compiler.dartk &&
+        } else if ((configuration.compiler == Compiler.dartk ||
+                configuration.compiler == Compiler.dart2bytecode) &&
             configuration.runtime == Runtime.vm &&
             key == 'vm') {
           // vm tests contain both cc tests (added here) and dart tests (added

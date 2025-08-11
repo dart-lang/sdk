@@ -193,13 +193,6 @@ class Package implements Comparable<Package> {
     var devdeps = devDependencies;
     devdeps.remove(packageName);
 
-    // if (deps.isNotEmpty) {
-    //   print('  deps    : ${deps}');
-    // }
-    // if (devdeps.isNotEmpty) {
-    //   print('  dev deps: ${devdeps}');
-    // }
-
     void out(String message) {
       logger.stdout(logger.ansi.emphasized(message));
     }
@@ -234,7 +227,15 @@ class Package implements Comparable<Package> {
     // Remove package:lints and package:dart_flutter_team_lints -
     // They are often declared as dev dependencies in order
     // to bring in analysis_options configuration files.
-    extraDevDeclarations.removeAll(const ['lints', 'dart_flutter_team_lints']);
+    //
+    // Also remove package:build_runner and package:build_web_compilers as they
+    // are required by projects that are run with webdev.
+    extraDevDeclarations.removeAll(const [
+      'lints',
+      'dart_flutter_team_lints',
+      'build_runner',
+      'build_web_compilers'
+    ]);
     if (extraDevDeclarations.isNotEmpty) {
       out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");
@@ -335,7 +336,7 @@ class Package implements Comparable<Package> {
         final uriPath = entity.uri.path;
         const excludedPaths = {
           'pkg/analyzer_cli/test/data/',
-          'pkg/analyzer_utilities/lib/test/mock_packages/package_content/',
+          'pkg/analyzer_testing/lib/mock_packages/package_content/',
           'pkg/front_end/test/id_testing/data/',
           'pkg/front_end/test/enable_non_nullable/data/',
           'pkg/front_end/test/language_versioning/data/',
@@ -467,22 +468,35 @@ class SdkDeps {
 
   void _findPackages(Directory dir) {
     var pubspec = File(path.join(dir.path, 'pubspec.yaml'));
+
     if (pubspec.existsSync()) {
       var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-      var contents = doc.contents as yaml.YamlMap;
-      var name = contents['name'];
-      var version = contents['version'];
-      var dep = ResolvedDep(
-        packageName: name,
-        relativePath: path.relative(dir.path),
-        version: version == null ? null : Version.parse(version),
-      );
-      _resolvedPackageVersions[name] = dep;
-    } else {
-      // Continue to recurse.
-      for (var subDir in dir.listSync().whereType<Directory>()) {
-        _findPackages(subDir);
+      if (doc.contents is! yaml.YamlMap) {
+        // Stop recursing.
+        return;
       }
+
+      var contents = doc.contents as yaml.YamlMap;
+      final isWorkspace = contents.containsKey('workspace');
+
+      if (!isWorkspace) {
+        var name = contents['name'];
+        var version = contents['version'];
+        var dep = ResolvedDep(
+          packageName: name,
+          relativePath: path.relative(dir.path),
+          version: version == null ? null : Version.parse(version),
+        );
+        _resolvedPackageVersions[name] = dep;
+
+        // We've found a leaf package - stop recursing.
+        return;
+      }
+    }
+
+    // Continue to recurse.
+    for (var subDir in dir.listSync().whereType<Directory>()) {
+      _findPackages(subDir);
     }
   }
 }

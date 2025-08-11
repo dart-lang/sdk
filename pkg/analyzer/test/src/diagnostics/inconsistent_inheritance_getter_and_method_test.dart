@@ -17,7 +17,8 @@ main() {
 class InconsistentInheritanceGetterAndMethodTest
     extends PubPackageResolutionTest {
   test_class_getter_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -25,14 +26,20 @@ abstract class B {
   int foo();
 }
 abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 85,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          85,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_getter_method_inconsistentInheritance() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract interface class I {
   String foo();
 }
@@ -44,14 +51,20 @@ mixin M {
 abstract class C with M implements I {
   String foo() => 'C';
 }
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 97,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          97,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_method_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int foo();
 }
@@ -59,14 +72,20 @@ abstract class B {
   int get foo;
 }
 abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 85,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          85,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinApp() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class S {
   int get foo => 0;
 }
@@ -76,14 +95,20 @@ mixin M {
 }
 
 class C = S with M;
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 70,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          70,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinApp2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class S {
   int get foo => 0;
 }
@@ -97,16 +122,25 @@ mixin M2 {
 }
 
 class C = S with M1, M2;
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
-          105, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
-          105, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          105,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          105,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_implements_getter_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -114,14 +148,20 @@ abstract class B {
   int foo();
 }
 mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 76,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          76,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_implements_method_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int foo();
 }
@@ -129,14 +169,20 @@ abstract class B {
   int get foo;
 }
 mixin M implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 76,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          76,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_on_getter_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -144,14 +190,20 @@ abstract class B {
   int foo();
 }
 mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 76,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          76,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_on_method_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int foo();
 }
@@ -159,9 +211,14 @@ abstract class B {
   int get foo;
 }
 mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 76,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          76,
+          1,
+        ),
+      ],
+    );
   }
 }

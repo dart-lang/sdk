@@ -639,8 +639,9 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
     Null argument,
     bool freshReference,
   ) {
-    DartType? replacement =
-        _lookupCache[variable] ??= _lookupTypeVariableType(variable);
+    DartType? replacement = _lookupCache[variable] ??= _lookupTypeVariableType(
+      variable,
+    );
     if (replacement == null) return variable; // not substituted.
     if (!freshReference) return replacement;
     int count = _counts[variable] = (_counts[variable] ?? 0) + 1;

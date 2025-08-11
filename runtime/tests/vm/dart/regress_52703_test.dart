@@ -52,9 +52,11 @@ int countInstances(String tempDir, String className) {
   NativeRuntime.writeHeapSnapshotToFile(snapshotFile);
   final bytes = File(snapshotFile).readAsBytesSync();
   File(snapshotFile).deleteSync();
-  final graph = HeapSnapshotGraph.fromChunks(
-      [bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length)]);
+  final graph = HeapSnapshotGraph.fromChunks([
+    bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length),
+  ]);
   final analysis = Analysis(graph);
-  return analysis
-      .filterByClassPatterns(analysis.reachableObjects, [className]).length;
+  return analysis.filterByClassPatterns(analysis.reachableObjects, [
+    className,
+  ]).length;
 }

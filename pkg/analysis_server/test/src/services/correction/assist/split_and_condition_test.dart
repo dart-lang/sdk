@@ -17,30 +17,30 @@ void main() {
 @reflectiveTest
 class SplitAndConditionTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SPLIT_AND_CONDITION;
+  AssistKind get kind => DartAssistKind.splitAndCondition;
 
   Future<void> test_hasElse() async {
     await resolveTestCode('''
 void f() {
-  if (1 == 1 && 2 == 2) {
+  if (1 == 1 ^&& 2 == 2) {
     print(1);
   } else {
     print(2);
   }
 }
 ''');
-    await assertNoAssistAt('&& 2');
+    await assertNoAssist();
   }
 
   Future<void> test_innerAndExpression() async {
     await resolveTestCode('''
 void f() {
-  if (1 == 1 && 2 == 2 && 3 == 3) {
+  if (1 == 1 ^&& 2 == 2 && 3 == 3) {
     print(0);
   }
 }
 ''');
-    await assertHasAssistAt('&& 2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1) {
     if (2 == 2 && 3 == 3) {
@@ -54,48 +54,48 @@ void f() {
   Future<void> test_notAnd() async {
     await resolveTestCode('''
 void f() {
-  if (1 == 1 || 2 == 2) {
+  if (1 == 1 ^|| 2 == 2) {
     print(0);
   }
 }
 ''');
-    await assertNoAssistAt('|| 2');
+    await assertNoAssist();
   }
 
   Future<void> test_notOnOperator() async {
     await resolveTestCode('''
-void f() {
+void ^f() {
   if (1 == 1 && 2 == 2) {
     print(0);
   }
   print(3 == 3 && 4 == 4);
 }
 ''');
-    await assertNoAssistAt('f() {');
+    await assertNoAssist();
   }
 
   Future<void> test_notPartOfIf() async {
     await resolveTestCode('''
 void f() {
-  print(1 == 1 && 2 == 2);
+  print(1 == 1 ^&& 2 == 2);
 }
 ''');
-    await assertNoAssistAt('&& 2');
+    await assertNoAssist();
   }
 
   Future<void> test_notTopLevelAnd() async {
     await resolveTestCode('''
 void f() {
-  if (true || (1 == 1 && 2 == 2)) {
+  if (true || (1 == 1 /*0*/&& 2 == 2)) {
     print(0);
   }
-  if (true && (3 == 3 && 4 == 4)) {
+  if (true && (3 == 3 /*1*/&& 4 == 4)) {
     print(0);
   }
 }
 ''');
-    await assertNoAssistAt('&& 2');
-    await assertNoAssistAt('&& 4');
+    await assertNoAssist();
+    await assertNoAssist(1);
   }
 
   Future<void> test_selectionTooLarge() async {
@@ -113,7 +113,7 @@ void f() {
   Future<void> test_thenBlock() async {
     await resolveTestCode('''
 void f() {
-  if (true && false) {
+  if (true ^&& false) {
     print(0);
     if (3 == 3) {
       print(1);
@@ -121,7 +121,7 @@ void f() {
   }
 }
 ''');
-    await assertHasAssistAt('&& false', '''
+    await assertHasAssist('''
 void f() {
   if (true) {
     if (false) {
@@ -138,11 +138,11 @@ void f() {
   Future<void> test_thenStatement() async {
     await resolveTestCode('''
 void f() {
-  if (true && false)
+  if (true ^&& false)
     print(0);
 }
 ''');
-    await assertHasAssistAt('&& false', '''
+    await assertHasAssist('''
 void f() {
   if (true)
     if (false)

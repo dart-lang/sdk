@@ -5,19 +5,20 @@
 library code_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/sample_profile.dart';
 import 'package:observatory/service.dart' as S;
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/app.dart'
-    show SortedTable, SortedTableColumn, SortedTableRow;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -26,6 +27,9 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/objectpool_ref.dart';
 import 'package:observatory/utils.dart';
+
+import 'package:observatory/app.dart'
+    show SortedTable, SortedTableColumn, SortedTableRow;
 
 class DisassemblyTable extends SortedTable {
   DisassemblyTable(columns) : super(columns);
@@ -115,66 +119,60 @@ class CodeViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
-  TableElement? _disassemblyTable;
-  TableElement? _inlineRangeTable;
-  Element? _disassemblyTableBody;
-  Element? _inlineRangeTableBody;
+  HTMLTableElement? _disassemblyTable;
+  HTMLTableElement? _inlineRangeTable;
+  HTMLTableSectionElement? _disassemblyTableBody;
+  HTMLTableSectionElement? _inlineRangeTableBody;
 
   void render() {
     if (_inlineRangeTable == null) {
-      _inlineRangeTable = new TableElement()..classes = ['table'];
-      _inlineRangeTable!.createTHead().children = <Element>[
-        new TableRowElement()
-          ..children = <Element>[
-            document.createElement('th')
-              ..classes = ['address']
-              ..text = 'Address Range',
-            document.createElement('th')
-              ..classes = ['tick']
-              ..text = 'Inclusive',
-            document.createElement('th')
-              ..classes = ['tick']
-              ..text = 'Exclusive',
-            document.createElement('th')..text = 'Functions',
-          ]
-      ];
-      _inlineRangeTableBody = _inlineRangeTable!.createTBody();
-      _inlineRangeTableBody!.classes = ['monospace'];
+      _inlineRangeTable = new HTMLTableElement()..className = 'table';
+      _inlineRangeTable!.createTHead().insertRow().appendChildren(<HTMLElement>[
+        new HTMLTableCellElement.th()
+          ..className = 'address'
+          ..textContent = 'Address Range',
+        new HTMLTableCellElement.th()
+          ..className = 'tick'
+          ..textContent = 'Inclusive',
+        new HTMLTableCellElement.th()
+          ..className = 'tick'
+          ..textContent = 'Exclusive',
+        new HTMLTableCellElement.th()..textContent = 'Functions',
+      ]);
+      _inlineRangeTableBody = _inlineRangeTable!.createTBody()
+        ..className = 'monospace';
     }
     if (_disassemblyTable == null) {
-      _disassemblyTable = new TableElement()..classes = ['table'];
-      _disassemblyTable!.createTHead().children = <Element>[
-        new TableRowElement()
-          ..children = <Element>[
-            document.createElement('th')
-              ..classes = ['address']
-              ..text = 'Address Range',
-            document.createElement('th')
-              ..classes = ['tick']
-              ..title = 'Ticks with PC on the stack'
-              ..text = 'Inclusive',
-            document.createElement('th')
-              ..classes = ['tick']
-              ..title = 'Ticks with PC at top of stack'
-              ..text = 'Exclusive',
-            document.createElement('th')
-              ..classes = ['disassembly']
-              ..text = 'Disassembly',
-            document.createElement('th')
-              ..classes = ['object']
-              ..text = 'Object',
-          ]
-      ];
-      _disassemblyTableBody = _disassemblyTable!.createTBody();
-      _disassemblyTableBody!.classes = ['monospace'];
+      _disassemblyTable = new HTMLTableElement()..className = 'table';
+      _disassemblyTable!.createTHead().insertRow().appendChildren(<HTMLElement>[
+        new HTMLTableCellElement.th()
+          ..className = 'address'
+          ..textContent = 'Address Range',
+        new HTMLTableCellElement.th()
+          ..className = 'tick'
+          ..title = 'Ticks with PC on the stack'
+          ..textContent = 'Inclusive',
+        new HTMLTableCellElement.th()
+          ..className = 'tick'
+          ..title = 'Ticks with PC at top of stack'
+          ..textContent = 'Exclusive',
+        new HTMLTableCellElement.th()
+          ..className = 'disassembly'
+          ..textContent = 'Disassembly',
+        new HTMLTableCellElement.th()
+          ..className = 'object'
+          ..textContent = 'Object',
+      ]);
+      _disassemblyTableBody = _disassemblyTable!.createTBody()
+        ..className = 'monospace';
     }
     final inlinedFunctions = _code.inlinedFunctions!.toList();
     final S.Code code = _code as S.Code;
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -193,127 +191,128 @@ class CodeViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h1()
-            ..text = (M.isDartCode(_code.kind) && _code.isOptimized!)
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = (M.isDartCode(_code.kind) && _code.isOptimized!)
                 ? 'Optimized code for ${_code.name}'
                 : 'Code for ${_code.name}',
-          new HRElement(),
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _code, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new BRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Kind',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _codeKindToString(_code.kind)
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = M.isDartCode(_code.kind)
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Kind',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = _codeKindToString(_code.kind)
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(M.isDartCode(_code.kind)
                     ? const []
                     : [
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text = 'Optimized',
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..text = _code.isOptimized! ? 'Yes' : 'No'
-                      ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Function',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
-                      new FunctionRefElement(_isolate, _code.function!,
-                              queue: _r.queue)
-                          .element
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = code.profile == null
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent = 'Optimized',
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..textContent = _code.isOptimized! ? 'Yes' : 'No'
+                      ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Function',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChild(new FunctionRefElement(
+                            _isolate, _code.function!,
+                            queue: _r.queue)
+                        .element)
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(code.profile == null
                     ? const []
                     : [
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text = 'Inclusive',
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..text = '${code.profile!.formattedInclusiveTicks}'
-                      ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = code.profile == null
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent = 'Inclusive',
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..textContent =
+                              '${code.profile!.formattedInclusiveTicks}'
+                      ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(code.profile == null
                     ? const []
                     : [
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text = 'Exclusive',
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..text = '${code.profile!.formattedExclusiveTicks}'
-                      ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Object pool',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = <Element>[
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent = 'Exclusive',
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..textContent =
+                              '${code.profile!.formattedExclusiveTicks}'
+                      ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Object pool',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(<HTMLElement>[
                       new ObjectPoolRefElement(_isolate, _code.objectPool!,
                               queue: _r.queue)
                           .element
-                    ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = inlinedFunctions.isNotEmpty
+                    ])
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(inlinedFunctions.isNotEmpty
                     ? const []
                     : [
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text =
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent =
                               'inlined functions (${inlinedFunctions.length})',
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..children = <Element>[
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..appendChildren(<HTMLElement>[
                             (new CurlyBlockElement(
                                     expanded: inlinedFunctions.length < 8,
                                     queue: _r.queue)
                                   ..content = inlinedFunctions
-                                      .map<Element>((f) =>
+                                      .map<HTMLElement>((f) =>
                                           new FunctionRefElement(_isolate, f,
                                                   queue: _r.queue)
                                               .element)
                                       .toList())
                                 .element
-                          ]
-                      ]
-            ],
-          new HRElement(),
-          _inlineRangeTable!,
-          new HRElement(),
-          _disassemblyTable!
-        ],
-    ];
+                          ])
+                      ]),
+              new HTMLHRElement(),
+              _inlineRangeTable!,
+              new HTMLHRElement(),
+              _disassemblyTable!
+            ])
+        ])
+    ]);
     _updateDisassembly();
     _updateInline();
   }
@@ -428,51 +427,38 @@ class CodeViewElement extends CustomElement implements Renderable {
   }
 
   void _addDisassemblyDOMRow() {
-    var tableBody = _disassemblyTableBody!;
-    var tr = new TableRowElement();
-
-    var cell;
-
     // Add new space.
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-
-    tableBody.children.add(tr);
+    _disassemblyTableBody!.insertRow()
+      ..insertCell(-1).className = 'monospace'
+      ..insertCell(-1).className = 'monospace'
+      ..insertCell(-1).className = 'monospace'
+      ..insertCell(-1).className = 'monospace'
+      ..insertCell(-1).className = 'monospace';
   }
 
-  void _fillDisassemblyDOMRow(TableRowElement tr, int rowIndex) {
+  void _fillDisassemblyDOMRow(HTMLTableRowElement tr, int rowIndex) {
     final row = disassemblyTable.rows[rowIndex];
     final n = row.values.length;
     for (var i = 0; i < n; i++) {
-      final cell = tr.children[i];
+      HTMLTableCellElement cell = tr.cells.item(i) as HTMLTableCellElement;
       final content = row.values[i];
       if (content is S.HeapObject) {
-        cell.children = <Element>[
-          anyRef(_isolate, content, _objects, queue: _r.queue)
-        ];
+        cell.innerHTML = anyRef(_isolate, content, _objects, queue: _r.queue);
       } else if (content != null) {
         String text = '$content';
         if (i == kDisassemblyColumnIndex) {
           // Disassembly might be a comment. Reduce indentation, change styling,
           // widen to span next column (which should be empty).
           if (text.startsWith('        ;;')) {
-            cell.attributes['colspan'] = '2';
-            cell.classes.add('code-comment');
+            cell.colSpan = 2;
+            cell.className = 'code-comment';
             text = text.substring(6);
           } else {
-            cell.attributes['colspan'] = '1';
-            cell.classes.remove('code-comment');
+            cell.colSpan = 1;
+            cell.className = '';
           }
         }
-        cell.text = text;
+        cell.textContent = text;
       }
     }
   }
@@ -485,7 +471,7 @@ class CodeViewElement extends CustomElement implements Renderable {
       var deadRows =
           tableBody.children.length - disassemblyTable.sortedRows.length;
       for (var i = 0; i < deadRows; i++) {
-        tableBody.children.removeLast();
+        tableBody.deleteRow(tableBody.children.length);
       }
     } else if (tableBody.children.length < disassemblyTable.sortedRows.length) {
       // Grow table.
@@ -499,11 +485,10 @@ class CodeViewElement extends CustomElement implements Renderable {
     assert(tableBody.children.length == disassemblyTable.sortedRows.length);
 
     // Fill table.
-    var i = 0;
-    for (var tr in tableBody.children) {
-      var rowIndex = disassemblyTable.sortedRows[i];
-      _fillDisassemblyDOMRow(tr as TableRowElement, rowIndex);
-      i++;
+    for (int i = 0; i < tableBody.rows.length; i++) {
+      final tr = tableBody.rows.item(i);
+      final rowIndex = disassemblyTable.sortedRows[i];
+      _fillDisassemblyDOMRow(tr as HTMLTableRowElement, rowIndex);
     }
   }
 
@@ -527,65 +512,60 @@ class CodeViewElement extends CustomElement implements Renderable {
   }
 
   void _addInlineDOMRow() {
-    var tableBody = _inlineRangeTableBody!;
-    var tr = new TableRowElement();
-
-    var cell;
-
-    // Add new space.
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-    cell.classes.add('monospace');
-    cell = tr.insertCell(-1);
-
-    tableBody.children.add(tr);
+    _inlineRangeTableBody!.insertRow()
+      ..insertCell(-1)
+      ..className = 'monospace'
+      ..insertCell(-1)
+      ..className = 'monospace'
+      ..insertCell(-1)
+      ..className = 'monospace'
+      ..insertCell(-1)
+      ..className = 'monospace';
   }
 
-  void _fillInlineDOMRow(TableRowElement tr, int rowIndex) {
-    var row = inlineTable.rows[rowIndex];
-    var columns = row.values.length;
-    var addressRangeColumn = 0;
-    var functionsColumn = columns - 1;
+  void _fillInlineDOMRow(HTMLTableRowElement tr, int rowIndex) {
+    final row = inlineTable.rows[rowIndex];
+    final columns = row.values.length;
+    final addressRangeColumn = 0;
+    final functionsColumn = columns - 1;
 
     {
-      var addressRangeCell = tr.children[addressRangeColumn];
-      var interval = row.values[addressRangeColumn];
-      var addressRangeString = _formattedAddressRange(interval);
-      var addressRangeElement = new SpanElement();
-      addressRangeElement.classes.add('monospace');
-      addressRangeElement.text = addressRangeString;
-      addressRangeCell.children.clear();
-      addressRangeCell.children.add(addressRangeElement);
+      final addressRangeCell = tr.cells.item(addressRangeColumn)!;
+      final interval = row.values[addressRangeColumn];
+      final addressRangeString = _formattedAddressRange(interval);
+      final addressRangeElement = new HTMLSpanElement();
+      addressRangeElement.className = 'monospace';
+      addressRangeElement.textContent = addressRangeString;
+      addressRangeCell.removeChildren();
+      addressRangeCell.appendChild(addressRangeElement);
     }
 
     for (var i = addressRangeColumn + 1; i < columns - 1; i++) {
-      var cell = tr.children[i];
-      cell.text = row.values[i].toString();
+      final cell = tr.cells.item(i) as HTMLTableCellElement;
+      cell.textContent = row.values[i].toString();
     }
-    var functions = row.values[functionsColumn];
-    var functionsCell = tr.children[functionsColumn];
-    functionsCell.children.clear();
+    final functions = row.values[functionsColumn];
+    final functionsCell = tr.cells.item(functionsColumn)!;
+    functionsCell.removeChildren();
     for (var func in functions) {
-      functionsCell.children
-          .add(new FunctionRefElement(_isolate, func, queue: _r.queue).element);
-      var gap = new SpanElement();
-      gap.style.minWidth = '1em';
-      gap.text = ' ';
-      functionsCell.children.add(gap);
+      functionsCell
+        ..appendChild(
+            new FunctionRefElement(_isolate, func, queue: _r.queue).element)
+        ..appendChild(HTMLSpanElement()
+          ..style.minWidth = '1em'
+          ..textContent = ' ');
     }
   }
 
   void _updateInlineDOMTable() {
-    var tableBody = _inlineRangeTableBody!;
+    final tableBody = _inlineRangeTableBody!;
     // Resize DOM table.
     if (tableBody.children.length > inlineTable.sortedRows.length) {
       // Shrink the table.
       var deadRows = tableBody.children.length - inlineTable.sortedRows.length;
       for (var i = 0; i < deadRows; i++) {
-        tableBody.children.removeLast();
+        tableBody
+            .removeChild(tableBody.childNodes.item(tableBody.children.length)!);
       }
     } else if (tableBody.children.length < inlineTable.sortedRows.length) {
       // Grow table.
@@ -597,9 +577,9 @@ class CodeViewElement extends CustomElement implements Renderable {
     assert(tableBody.children.length == inlineTable.sortedRows.length);
     // Fill table.
     for (var i = 0; i < inlineTable.sortedRows.length; i++) {
-      var rowIndex = inlineTable.sortedRows[i];
-      var tr = tableBody.children[i];
-      _fillInlineDOMRow(tr as TableRowElement, rowIndex);
+      final rowIndex = inlineTable.sortedRows[i];
+      final tr = tableBody.rows.item(i);
+      _fillInlineDOMRow(tr as HTMLTableRowElement, rowIndex);
     }
   }
 

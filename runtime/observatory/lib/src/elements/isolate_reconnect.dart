@@ -4,12 +4,15 @@
 
 library isolate_reconnect_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -59,45 +62,49 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = <Element>[
-          new HeadingElement.h1()..text = 'Isolate $_missing no longer exists',
-          new HRElement(),
-          new BRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = (_vm.isolates.map<Element>((isolate) {
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = 'Isolate $_missing no longer exists',
+          new HTMLHRElement(),
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren((_vm.isolates.map<HTMLElement>((isolate) {
               final query = new Map<String, dynamic>.from(_uri.queryParameters);
               query['isolateId'] = isolate.id;
               final href = new Uri(path: _uri.path, queryParameters: query);
-              return new DivElement()
-                ..classes = ['memberItem', 'doubleSpaced']
-                ..children = <Element>[
-                  new SpanElement()..text = 'Continue in ',
-                  new AnchorElement(href: '#$href')
-                    ..classes = ['isolate-link']
+              return new HTMLDivElement()
+                ..className = 'memberItem doubleSpaced'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLSpanElement()..textContent = 'Continue in ',
+                  new HTMLAnchorElement()
+                    ..href = '#$href'
+                    ..className = 'isolate-link'
                     ..text = '${isolate.id} (${isolate.name})'
-                ];
+                ]);
             }).toList()
-              ..add(new DivElement()
-                ..classes = ['memberItem', 'doubleSpaced']
-                ..children = <Element>[
-                  new SpanElement()..text = 'Go to ',
-                  new AnchorElement(href: Uris.vm())..text = 'isolates summary',
-                ]))
-        ],
+              ..add(new HTMLDivElement()
+                ..className = 'memberItem doubleSpaced'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLSpanElement()..textContent = 'Go to ',
+                  new HTMLAnchorElement()
+                    ..href = Uris.vm()
+                    ..text = 'isolates summary',
+                ]))))
+        ]),
     ];
   }
 }

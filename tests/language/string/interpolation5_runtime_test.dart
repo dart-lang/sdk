@@ -10,7 +10,6 @@
 class StringInterpolation5NegativeTest {
   static testMain() {
     // Dollar followed by a number.
-
   }
 }
 

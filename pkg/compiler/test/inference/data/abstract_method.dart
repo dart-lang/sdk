@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   abstractEquals();
 }
@@ -11,10 +11,11 @@ main() {
 // Call abstract method implemented by superclass.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset=0]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}{N}]*/
 class Class1 {
   operator ==(_);
 }
 
-/*member: abstractEquals:[exact=JSBool|powerset=0]*/
-abstractEquals() => Class1() /*invoke: [exact=Class1|powerset=0]*/ == Class1();
+/*member: abstractEquals:[exact=JSBool|powerset={I}{O}{N}]*/
+abstractEquals() =>
+    Class1() /*invoke: [exact=Class1|powerset={N}{O}{N}]*/ == Class1();

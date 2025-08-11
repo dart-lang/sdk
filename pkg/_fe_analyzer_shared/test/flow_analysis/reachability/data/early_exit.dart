@@ -17,22 +17,17 @@ void beforeSplitStatement(bool b, int i) {
   /*cfe.iterator: unreachable*/
   /*cfe.current: unreachable*/
   /*cfe.moveNext: unreachable*/
-  for (var _ in /*unreachable*/ [])
-  /*unreachable*/ {}
+  for (var _ in /*unreachable*/ []) /*unreachable*/ {}
 
   /*unreachable*/
-  if (/*unreachable*/ b)
-  /*unreachable*/ {}
+  if (/*unreachable*/ b) /*unreachable*/ {}
 
   /*unreachable*/
-  switch (/*unreachable*/ i) {
-  }
+  switch (/*unreachable*/ i) {}
 
   /*unreachable*/
-  try /*unreachable*/ {} finally
-  /*unreachable*/ {}
+  try /*unreachable*/ {} finally /*unreachable*/ {}
 
   /*unreachable*/
-  while (/*unreachable*/ b)
-  /*unreachable*/ {}
+  while (/*unreachable*/ b) /*unreachable*/ {}
 }

@@ -140,12 +140,12 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
     ;
   get mixedInConcreteGetter() → core::int
     return 0;
+  abstract get mixedInAbstractGetter() → core::int;
   get extendedConcreteMixedInConcreteGetter() → core::int
     return 0;
   get extendedAbstractMixedInConcreteGetter() → core::int
     return 0;
   abstract get extendedConcreteMixedInAbstractGetter() → core::int;
-  abstract get mixedInAbstractGetter() → core::int;
   abstract get extendedAbstractMixedInAbstractGetter() → core::int;
 }
 abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
@@ -154,12 +154,12 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
     ;
   get mixedInConcreteGetter() → core::int
     return 0;
+  abstract get mixedInAbstractGetter() → core::int;
   get extendedConcreteMixedInConcreteGetter() → core::int
     return 0;
   get extendedAbstractMixedInConcreteGetter() → core::int
     return 0;
   abstract get extendedConcreteMixedInAbstractGetter() → core::int;
-  abstract get mixedInAbstractGetter() → core::int;
   abstract get extendedAbstractMixedInAbstractGetter() → core::int;
 }
 static method main() → dynamic {}

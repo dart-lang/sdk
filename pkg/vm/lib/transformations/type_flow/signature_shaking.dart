@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show isExtensionTypeThis;
-import 'package:front_end/src/api_prototype/record_use.dart' as RecordUse;
+import 'package:front_end/src/api_prototype/record_use.dart' as recordUse;
 
 import 'analysis.dart';
 import 'table_selector_assigner.dart';
@@ -223,8 +223,7 @@ class _ParameterInfo {
     /// Disable signature shaking for annotated methods, to prevent removal of
     /// parameters. The consumers of recorded_usages.json expect constant
     /// argument values to be present for all parameters.
-    if (member is Procedure &&
-        RecordUse.findRecordUseAnnotation(member).isNotEmpty) {
+    if (member is Procedure && recordUse.hasRecordUseAnnotation(member)) {
       isChecked = true;
     }
   }
@@ -268,7 +267,8 @@ class _Collect extends RecursiveVisitor {
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
         member.isExternal ||
-        member.name.text == '==') {
+        member.name.text == '==' ||
+        recordUse.hasRecordUseAnnotation(member)) {
       info.eligible = false;
     }
   }

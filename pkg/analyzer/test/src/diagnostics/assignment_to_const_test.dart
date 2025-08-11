@@ -16,60 +16,69 @@ main() {
 @reflectiveTest
 class AssignmentToConstTest extends PubPackageResolutionTest {
   test_instanceVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static const v = 0;
 }
 f() {
   A.v = 1;
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1)],
+    );
   }
 
   test_instanceVariable_plusEq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static const v = 0;
 }
 f() {
   A.v += 1;
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1)],
+    );
   }
 
   test_localVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   const x = 0;
   x = 1;
-}''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
-    ]);
+}''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
+      ],
+    );
   }
 
   test_localVariable_inForEach() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   const x = 0;
   for (x in <int>[1, 2]) {
     print(x);
   }
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 28, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 28, 1)],
+    );
   }
 
   test_localVariable_plusEq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   const x = 0;
   x += 1;
-}''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
-    ]);
+}''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
+      ],
+    );
   }
 }

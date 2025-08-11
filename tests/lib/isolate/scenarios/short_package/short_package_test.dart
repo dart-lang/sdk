@@ -33,7 +33,7 @@ main([args, port]) async {
   if (Flu.value != "Flu") {
     throw "Import of wrong Flu package.";
   }
-//  await testShortResolution(PACKAGE_FLU);
+  //  await testShortResolution(PACKAGE_FLU);
   await testShortResolution(PACKAGE_FLU + "/");
   await testShortResolution(PACKAGE_FLU + "/abc.def");
   print("SUCCESS");

@@ -75,13 +75,13 @@ class InvalidClassTypeParameterCount3<T extends core::Object? = dynamic, S exten
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension InvalidExtensionTypeParameterCount1 on core::int {
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension InvalidExtensionTypeParameterCount2<T extends core::Object? = dynamic> on core::int {
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension InvalidExtensionTypeParameterCount3<T extends core::Object? = dynamic, S extends core::Object? = dynamic> on core::int {
 }
 

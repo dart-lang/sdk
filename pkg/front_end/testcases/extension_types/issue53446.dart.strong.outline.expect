@@ -25,7 +25,7 @@ extension type C(core::num _it2) implements self::A% /* erasure=core::num, decla
 }
 static extension-type-member method A|constructor#(core::num _it) → self::A% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method A|constructor#_#new#tearOff(core::num _it) → self::A% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method A|constructor#_#new#tearOff(core::num _it) → self::A% /* erasure=core::num, declared=! */
   return self::A|constructor#(_it);
 static extension-type-member method A|foo(lowered final self::A% /* erasure=core::num, declared=! */ #this) → void
   ;
@@ -33,7 +33,7 @@ static extension-type-member method A|get#foo(lowered final self::A% /* erasure=
   return () → void => self::A|foo(#this);
 static extension-type-member method B|constructor#(core::num _it) → self::B% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method B|constructor#_#new#tearOff(core::num _it) → self::B% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff(core::num _it) → self::B% /* erasure=core::num, declared=! */
   return self::B|constructor#(_it);
 static extension-type-member method B|foo(lowered final self::B% /* erasure=core::num, declared=! */ #this) → void
   ;
@@ -41,7 +41,7 @@ static extension-type-member method B|get#foo(lowered final self::B% /* erasure=
   return () → void => self::B|foo(#this);
 static extension-type-member method C|constructor#(core::num _it2) → self::C% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method C|constructor#_#new#tearOff(core::num _it2) → self::C% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method C|constructor#_#new#tearOff(core::num _it2) → self::C% /* erasure=core::num, declared=! */
   return self::C|constructor#(_it2);
 static extension-type-member method C|foo(lowered final self::C% /* erasure=core::num, declared=! */ #this) → void
   ;

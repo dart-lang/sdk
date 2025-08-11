@@ -54,11 +54,12 @@ main() {
 
     expect(window.localStorage['key3'], 'val3');
     expect(
-        window.localStorage.putIfAbsent('key3', () {
-          fail('should not be called');
-          return 'unused';
-        }),
-        'val3');
+      window.localStorage.putIfAbsent('key3', () {
+        fail('should not be called');
+        return 'unused';
+      }),
+      'val3',
+    );
     expect(window.localStorage['key3'], 'val3');
   });
 
@@ -82,13 +83,17 @@ main() {
   });
 
   test('getKeys', () {
-    expect(window.localStorage.keys.toList(),
-        unorderedEquals(['key1', 'key2', 'key3']));
+    expect(
+      window.localStorage.keys.toList(),
+      unorderedEquals(['key1', 'key2', 'key3']),
+    );
   });
 
   test('getVals', () {
-    expect(window.localStorage.values.toList(),
-        unorderedEquals(['val1', 'val2', 'val3']));
+    expect(
+      window.localStorage.values.toList(),
+      unorderedEquals(['val1', 'val2', 'val3']),
+    );
   });
 
   test('getEntries', () {

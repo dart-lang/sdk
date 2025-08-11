@@ -184,10 +184,14 @@ var x = a as int;
   }
 
   test_asExpression_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 var x = a as int;
-''', () => _xInitializer(), () => [findNode.simple('a as')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a as')],
+    );
   }
 
   test_asExpression_typeParameter() async {
@@ -221,19 +225,27 @@ var x = a & b;
   }
 
   test_binaryExpression_andEager_const_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = false;
 final b = false;
 var x = a & b;
-''', () => _xInitializer(), () => [findNode.simple('b;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('b;')],
+    );
   }
 
   test_binaryExpression_andEager_notConst_const() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = false;
 const b = false;
 var x = a & b;
-''', () => _xInitializer(), () => [findNode.simple('a &')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a &')],
+    );
   }
 
   test_binaryExpression_andEager_notConst_notConst() async {
@@ -244,10 +256,7 @@ final b = false;
 var x = a & b;
 ''',
       () => _xInitializer(),
-      () => [
-        findNode.simple('a &'),
-        findNode.simple('b;'),
-      ],
+      () => [findNode.simple('a &'), findNode.simple('b;')],
     );
   }
 
@@ -260,19 +269,27 @@ var x = a && b;
   }
 
   test_binaryExpression_andLazy_const_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = false;
 final b = false;
 var x = a && b;
-''', () => _xInitializer(), () => [findNode.simple('b;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('b;')],
+    );
   }
 
   test_binaryExpression_andLazy_notConst_const() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = false;
 const b = false;
 var x = a && b;
-''', () => _xInitializer(), () => [findNode.simple('a &')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a &')],
+    );
   }
 
   test_binaryExpression_andLazy_notConst_notConst() async {
@@ -283,10 +300,7 @@ final b = false;
 var x = a && b;
 ''',
       () => _xInitializer(),
-      () => [
-        findNode.simple('a &'),
-        findNode.simple('b;'),
-      ],
+      () => [findNode.simple('a &'), findNode.simple('b;')],
     );
   }
 
@@ -299,19 +313,27 @@ var x = a ?? b;
   }
 
   test_binaryExpression_ifNull_const_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = 0;
 final b = 1;
 var x = a ?? b;
-''', () => _xInitializer(), () => [findNode.simple('b;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('b;')],
+    );
   }
 
   test_binaryExpression_ifNull_notConst_const() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 const b = 1;
 var x = a ?? b;
-''', () => _xInitializer(), () => [findNode.simple('a ??')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a ??')],
+    );
   }
 
   test_binaryExpression_ifNull_notConst_notConst() async {
@@ -322,10 +344,7 @@ final b = 1;
 var x = a ?? b;
 ''',
       () => _xInitializer(),
-      () => [
-        findNode.simple('a ??'),
-        findNode.simple('b;'),
-      ],
+      () => [findNode.simple('a ??'), findNode.simple('b;')],
     );
   }
 
@@ -338,19 +357,27 @@ var x = a | b;
   }
 
   test_binaryExpression_orEager_const_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = false;
 final b = false;
 var x = a | b;
-''', () => _xInitializer(), () => [findNode.simple('b;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('b;')],
+    );
   }
 
   test_binaryExpression_orEager_notConst_const() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = false;
 const b = false;
 var x = a | b;
-''', () => _xInitializer(), () => [findNode.simple('a |')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a |')],
+    );
   }
 
   test_binaryExpression_orEager_notConst_notConst() async {
@@ -361,10 +388,7 @@ final b = false;
 var x = a | b;
 ''',
       () => _xInitializer(),
-      () => [
-        findNode.simple('a |'),
-        findNode.simple('b;'),
-      ],
+      () => [findNode.simple('a |'), findNode.simple('b;')],
     );
   }
 
@@ -377,19 +401,27 @@ var x = a || b;
   }
 
   test_binaryExpression_orLazy_const_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = false;
 final b = false;
 var x = a || b;
-''', () => _xInitializer(), () => [findNode.simple('b;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('b;')],
+    );
   }
 
   test_binaryExpression_orLazy_notConst_const() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = false;
 const b = false;
 var x = a || b;
-''', () => _xInitializer(), () => [findNode.simple('a |')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a |')],
+    );
   }
 
   test_binaryExpression_orLazy_notConst_notConst() async {
@@ -400,10 +432,7 @@ final b = false;
 var x = a || b;
 ''',
       () => _xInitializer(),
-      () => [
-        findNode.simple('a |'),
-        findNode.simple('b;'),
-      ],
+      () => [findNode.simple('a |'), findNode.simple('b;')],
     );
   }
 
@@ -418,18 +447,19 @@ var x = a ? b : c;
 
   test_conditional_final() async {
     await _assertNotConst(
-        r'''
+      r'''
 final a = 0;
 final b = 0;
 final c = 0;
 var x = a ? b : c;
 ''',
-        () => _xInitializer(),
-        () => [
-              findNode.simple('a ?'),
-              findNode.simple('b :'),
-              findNode.simple('c;')
-            ]);
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a ?'),
+        findNode.simple('b :'),
+        findNode.simple('c;'),
+      ],
+    );
   }
 
   test_constructorReference_explicitTypeArguments() async {
@@ -444,7 +474,8 @@ class B<T> {}
   }
 
   test_constructorReference_explicitTypeArguments_nonConst() async {
-    await _assertNotConst('''
+    await _assertNotConst(
+      '''
 import '' deferred as self;
 class A {
   Object x;
@@ -452,8 +483,10 @@ class A {
 }
 
 class B<T> {}
-''', () => findNode.constructorReference('B<self.A>.new'),
-        () => [findNode.typeAnnotation('self.A')]);
+''',
+      () => findNode.constructorReference('B<self.A>.new'),
+      () => [findNode.typeAnnotation('self.A')],
+    );
   }
 
   test_constructorReference_noTypeArguments() async {
@@ -465,6 +498,55 @@ class A {
 
 class B {}
 ''', () => findNode.constructorReference('B.new'));
+  }
+
+  test_dotShorthandConstructorInvocation_const() async {
+    await _assertConst(r'''
+class A {
+  const A();
+}
+
+const A x = .new();
+''', () => findNode.dotShorthandConstructorInvocation('.new()'));
+  }
+
+  test_dotShorthandConstructorInvocation_nonConst() async {
+    await _assertNotConst(
+      r'''
+class A {
+  const A();
+}
+
+A x = .new();
+''',
+      () => _xInitializer(),
+      () => [findNode.dotShorthandConstructorInvocation('.new()')],
+    );
+  }
+
+  test_dotShorthandPropertyAccess_const() async {
+    await _assertConst(r'''
+class A {
+  static const A a = A();
+  const A();
+}
+
+const A x = .a;
+''', () => findNode.dotShorthandPropertyAccess('.a'));
+  }
+
+  test_dotShorthandPropertyAccess_nonConst() async {
+    await _assertNotConst(
+      r'''
+class A {
+  static A a = A();
+}
+
+A x = .a;
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a;')],
+    );
   }
 
   test_functionReference_explicitTypeArguments() async {
@@ -479,7 +561,8 @@ X id<X>(X x) => x;
   }
 
   test_functionReference_explicitTypeArguments_nonConst() async {
-    await _assertNotConst('''
+    await _assertNotConst(
+      '''
 import '' deferred as self;
 class A {
   final int Function(int) x;
@@ -487,8 +570,10 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', () => findNode.functionReference('id<self.A>'),
-        () => [findNode.typeAnnotation('self.A')]);
+''',
+      () => findNode.functionReference('id<self.A>'),
+      () => [findNode.typeAnnotation('self.A')],
+    );
   }
 
   test_functionReference_noTypeArguments() async {
@@ -511,12 +596,15 @@ var x = const [if (a) b];
   }
 
   test_ifElement_then_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 final b = 0;
 var x = const [if (a) b];
-''', () => _xInitializer(),
-        () => [findNode.simple('a)'), findNode.simple('b]')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a)'), findNode.simple('b]')],
+    );
   }
 
   test_ifElement_thenElse() async {
@@ -529,13 +617,17 @@ var x = const [if (a) b else c];
   }
 
   test_instanceCreation() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A {
   const A();
 }
 
 var x = new A(); // x
-''', () => _xInitializer(), () => [findNode.instanceCreation('A(); // x')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.instanceCreation('A(); // x')],
+    );
   }
 
   test_instanceCreation_const() async {
@@ -556,10 +648,14 @@ var x = a is int;
   }
 
   test_isExpression_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 var x = a is int;
-''', () => _xInitializer(), () => [findNode.simple('a is')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a is')],
+    );
   }
 
   test_isExpression_typeParameter() async {
@@ -591,18 +687,25 @@ var x = const [0, 1, 2];
   }
 
   test_listLiteral_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 var x = [0, 1, 2];
-''', () => _xInitializer(), () => [findNode.listLiteral('0,')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.listLiteral('0,')],
+    );
   }
 
   test_listLiteral_notConst_element() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 final b = 1;
 var x = const [a, b, 2];
-''', () => _xInitializer(),
-        () => [findNode.simple('a,'), findNode.simple('b,')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a,'), findNode.simple('b,')],
+    );
   }
 
   test_listLiteral_ofDynamic() async {
@@ -630,14 +733,18 @@ var x = const <int>[0, 1, 2];
   }
 
   test_listLiteral_typeArgument_notConstType() async {
-    await _assertNotConst('''
+    await _assertNotConst(
+      '''
 import '' deferred as self;
 class A {
   m() {
     var x = const <self.A>[];
   }
 }
-''', () => _xInitializer(), () => [findNode.namedType('A>[')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.namedType('A>[')],
+    );
   }
 
   test_literal_bool() async {
@@ -683,27 +790,37 @@ var x = const {0: 1};
   }
 
   test_mapLiteral_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 var x = {0: 1};
-''', () => _xInitializer(), () => [findNode.setOrMapLiteral('0: 1')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.setOrMapLiteral('0: 1')],
+    );
   }
 
   test_mapLiteral_notConst_key() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 1;
 final b = 2;
 var x = const {0: 0, a: 1, b: 2};
-''', () => _xInitializer(),
-        () => [findNode.simple('a:'), findNode.simple('b:')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a:'), findNode.simple('b:')],
+    );
   }
 
   test_mapLiteral_notConst_value() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 1;
 final b = 2;
 var x = const {0: 0, 1: a, 2: b};
-''', () => _xInitializer(),
-        () => [findNode.simple('a,'), findNode.simple('b}')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a,'), findNode.simple('b}')],
+    );
   }
 
   test_mapLiteral_typeArgument() async {
@@ -713,14 +830,17 @@ var x = const <int, int>{0: 0};
   }
 
   test_mapLiteral_typeArgument_notConstType() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A<T> {
   m() {
     var x = const <T, T>{};
   }
 }
-''', () => _xInitializer(),
-        () => [findNode.namedType('T,'), findNode.namedType('T>{')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.namedType('T,'), findNode.namedType('T>{')],
+    );
   }
 
   test_methodInvocation_identical() async {
@@ -732,26 +852,37 @@ var x = identical(a, b);
   }
 
   test_methodInvocation_identical_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 final b = 0;
 var x = identical(a, b);
-''', () => _xInitializer(),
-        () => [findNode.simple('a,'), findNode.simple('b)')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a,'), findNode.simple('b)')],
+    );
   }
 
   test_methodInvocation_name() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = 0;
 const b = 0;
 var x = foo(a, b);
-''', () => _xInitializer(), () => [findNode.methodInvocation('foo')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.methodInvocation('foo')],
+    );
   }
 
   test_methodInvocation_target() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 var x = a.foo();
-''', () => _xInitializer(), () => [findNode.methodInvocation('a.foo()')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.methodInvocation('a.foo()')],
+    );
   }
 
   test_namedExpression() async {
@@ -770,27 +901,39 @@ var x = (a);
   }
 
   test_parenthesizedExpression_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 var x = (a);
-''', () => _xInitializer(), () => [findNode.simple('a);')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a);')],
+    );
   }
 
   test_postfixExpression() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = 0;
 var x = a++;
-''', () => _xInitializer(), () => [findNode.postfix('a++')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.postfix('a++')],
+    );
   }
 
   test_prefixedIdentifier_importPrefix_deferred() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 import 'a.dart' deferred as p;
 var x = p.a + 1;
-''', () => _xInitializer(), () => [findNode.prefixed('p.a')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.prefixed('p.a')],
+    );
   }
 
   test_prefixedIdentifier_importPrefix_function() async {
@@ -821,14 +964,19 @@ var x = a.length;
   }
 
   test_prefixedIdentifier_length_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 'abc';
 var x = a.length;
-''', () => _xInitializer(), () => [findNode.simple('a.')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a.')],
+    );
   }
 
   test_prefixedIdentifier_method_instance() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A {
   const A();
   m() {};
@@ -837,7 +985,10 @@ class A {
 const a = const A();
 
 var x = a.m;
-''', () => _xInitializer(), () => [findNode.prefixed('a.m')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.prefixed('a.m')],
+    );
   }
 
   test_prefixedIdentifier_method_static() async {
@@ -851,7 +1002,8 @@ var x = A.m;
   }
 
   test_prefixedIdentifier_method_static_viaInstance() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A {
   const A();
   static m() {};
@@ -860,11 +1012,15 @@ class A {
 const a = const A();
 
 var x = a.m;
-''', () => _xInitializer(), () => [findNode.prefixed('a.m')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.prefixed('a.m')],
+    );
   }
 
   test_prefixedIdentifier_prefix_variable() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A {
   final a = 0;
   const A();
@@ -873,7 +1029,10 @@ class A {
 const a = const A();
 
 var x = a.b + 1;
-''', () => _xInitializer(), () => [findNode.prefixed('a.b + 1')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.prefixed('a.b + 1')],
+    );
   }
 
   test_prefixedIdentifier_staticField_const() async {
@@ -923,17 +1082,25 @@ var x = -a;
   }
 
   test_prefixExpression_minus_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 var x = -a;
-''', () => _xInitializer(), () => [findNode.simple('a;')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a;')],
+    );
   }
 
   test_prefixExpression_plusPlus() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 const a = 0;
 var x = ++a;
-''', () => _xInitializer(), () => [findNode.prefix('++a')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.prefix('++a')],
+    );
   }
 
   test_prefixExpression_tilde() async {
@@ -944,10 +1111,14 @@ var x = ~a;
   }
 
   test_propertyAccess_length_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 'abc';
 var x = (a).length;
-''', () => _xInitializer(), () => [findNode.simple('a).')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a).')],
+    );
   }
 
   test_propertyAccess_length_stringLiteral() async {
@@ -974,10 +1145,14 @@ class A {
   static const a = 0;
 }
 ''');
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 import 'a.dart' deferred as p;
 var x = p.A.a + 1;
-''', () => _xInitializer(), () => [findNode.propertyAccess('p.A.a')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.propertyAccess('p.A.a')],
+    );
   }
 
   test_propertyAccess_staticField_withPrefix_final() async {
@@ -986,20 +1161,28 @@ class A {
   static final a = 0;
 }
 ''');
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 import 'a.dart' as p;
 var x = p.A.a + 1;
-''', () => _xInitializer(), () => [findNode.simple('a + 1')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a + 1')],
+    );
   }
 
   test_propertyAccess_target_instanceCreation() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 class A {
   final a = 0;
 }
 
 var x = A().a + 1;
-''', () => _xInitializer(), () => [findNode.propertyAccess('A().a')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.propertyAccess('A().a')],
+    );
   }
 
   test_propertyAccess_target_variable() async {
@@ -1011,11 +1194,15 @@ class A {
 
 const a = const A();
 ''');
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 import 'a.dart' as p;
 
 var x = p.a.b + 1;
-''', () => _xInitializer(), () => [findNode.propertyAccess('p.a.b + 1')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.propertyAccess('p.a.b + 1')],
+    );
   }
 
   test_recordLiteral() async {
@@ -1040,12 +1227,15 @@ var x = (0, 1, 2);
   }
 
   test_recordLiteral_notConst_element() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 final b = 1;
 var x = const (a, b, 2);
-''', () => _xInitializer(),
-        () => [findNode.simple('a,'), findNode.simple('b,')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a,'), findNode.simple('b,')],
+    );
   }
 
   test_setLiteral() async {
@@ -1055,18 +1245,25 @@ var x = const {0, 1, 2};
   }
 
   test_setLiteral_notConst() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 var x = {0, 1, 2};
-''', () => _xInitializer(), () => [findNode.setOrMapLiteral('0,')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.setOrMapLiteral('0,')],
+    );
   }
 
   test_setLiteral_notConst_element() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = 0;
 final b = 1;
 var x = const {a, b, 2};
-''', () => _xInitializer(),
-        () => [findNode.simple('a,'), findNode.simple('b,')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a,'), findNode.simple('b,')],
+    );
   }
 
   test_setLiteral_typeArgument() async {
@@ -1076,14 +1273,18 @@ var x = const <int>{0, 1, 2};
   }
 
   test_setLiteral_typeArgument_notConstType() async {
-    await _assertNotConst('''
+    await _assertNotConst(
+      '''
 import '' deferred as self;
 class A {
   m() {
     var x = const <self.A>{};
   }
 }
-''', () => _xInitializer(), () => [findNode.namedType('A>{')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.namedType('A>{')],
+    );
   }
 
   test_simpleIdentifier_class() async {
@@ -1212,13 +1413,17 @@ class A<T> {
   }
 
   test_simpleIdentifier_typeParameter_class_214() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 // @dart = 2.14
 class A<T> {
   final Object f;
   A() : f = T;
 }
-''', () => findNode.simple('T;'), () => [findNode.simple('T;')]);
+''',
+      () => findNode.simple('T;'),
+      () => [findNode.simple('T;')],
+    );
   }
 
   test_spreadElement() async {
@@ -1229,10 +1434,14 @@ var x = const [...a];
   }
 
   test_spreadElement_final() async {
-    await _assertNotConst(r'''
+    await _assertNotConst(
+      r'''
 final a = [0, 1, 2];
 var x = const [...a];
-''', () => _xInitializer(), () => [findNode.simple('a];')]);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a];')],
+    );
   }
 
   test_stringInterpolation_topVar_const() async {
@@ -1269,34 +1478,34 @@ class A {
   }
 
   test_typeLiteral_nonConst() async {
-    await _assertNotConst('''
+    await _assertNotConst(
+      '''
 import '' deferred as self;
 class A {
   Type x;
   const A(): x = List<self.A>;
 }
-''', () => findNode.typeLiteral('List<self.A>'),
-        () => [findNode.typeAnnotation('self.A')]);
+''',
+      () => findNode.typeLiteral('List<self.A>'),
+      () => [findNode.typeAnnotation('self.A')],
+    );
   }
 
   _assertConst(String code, AstNode Function() getNode) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(
-      node,
-      featureSet: featureSet,
-    );
+    var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
     expect(notConstList, isEmpty);
   }
 
-  _assertNotConst(String code, AstNode Function() getNode,
-      List<AstNode> Function() getNotConstList) async {
+  _assertNotConst(
+    String code,
+    AstNode Function() getNode,
+    List<AstNode> Function() getNotConstList,
+  ) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(
-      node,
-      featureSet: featureSet,
-    );
+    var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
 
     var expectedNotConst = getNotConstList();
     expect(notConstList, unorderedEquals(expectedNotConst));

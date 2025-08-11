@@ -5,31 +5,11 @@
 #include "vm/heap/pointer_block.h"
 
 #include "platform/assert.h"
+#include "vm/isolate.h"
 #include "vm/lockers.h"
-#include "vm/runtime_entry.h"
+#include "vm/thread.h"
 
 namespace dart {
-
-DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
-  thread->StoreBufferBlockProcess(StoreBuffer::kCheckThreshold);
-}
-END_LEAF_RUNTIME_ENTRY
-
-DEFINE_LEAF_RUNTIME_ENTRY(void,
-                          OldMarkingStackBlockProcess,
-                          1,
-                          Thread* thread) {
-  thread->OldMarkingStackBlockProcess();
-}
-END_LEAF_RUNTIME_ENTRY
-
-DEFINE_LEAF_RUNTIME_ENTRY(void,
-                          NewMarkingStackBlockProcess,
-                          1,
-                          Thread* thread) {
-  thread->NewMarkingStackBlockProcess();
-}
-END_LEAF_RUNTIME_ENTRY
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::List* BlockStack<BlockSize>::global_empty_ =

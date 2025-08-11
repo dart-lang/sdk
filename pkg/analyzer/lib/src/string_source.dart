@@ -18,8 +18,8 @@ class StringSource extends Source {
   final Uri uri;
 
   StringSource(this._contents, String? fullName, {Uri? uri})
-      : fullName = fullName ?? '/test.dart',
-        uri = _computeUri(uri, fullName);
+    : fullName = fullName ?? '/test.dart',
+      uri = _computeUri(uri, fullName);
 
   @override
   TimestampedData<String> get contents => TimestampedData(0, _contents);

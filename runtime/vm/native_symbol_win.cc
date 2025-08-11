@@ -95,7 +95,22 @@ void NativeSymbolResolver::FreeSymbolName(const char* name) {
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,
                                               const char** dso_name) {
+#ifdef DART_TARGET_OS_WINDOWS_UWP
   return false;
+#else
+  IMAGEHLP_MODULE64 info = {};
+  info.SizeOfStruct = sizeof(info);
+  if (!SymGetModuleInfo64(GetCurrentProcess(), pc, &info)) {
+    return false;
+  }
+  if (dso_base != nullptr) {
+    *dso_base = info.BaseOfImage;
+  }
+  if (dso_name != nullptr) {
+    *dso_name = Utils::StrDup(info.ImageName);
+  }
+  return true;
+#endif  // ifdef DART_TARGET_OS_WINDOWS_UWP
 }
 
 void NativeSymbolResolver::AddSymbols(const char* dso_name,

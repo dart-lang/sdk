@@ -2,125 +2,114 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:10:5: Error: 'topLevelMethod' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:8:5: Error: 'topLevelMethod' is already declared in this scope.
 // int topLevelMethod() => 2;
 //     ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:9:5: Context: Previous declaration of 'topLevelMethod'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:7:5: Context: Previous declaration of 'topLevelMethod'.
 // int topLevelMethod() => 1;
 //     ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:13:9: Error: 'topLevelGetter' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:11:9: Error: 'topLevelGetter' is already declared in this scope.
 // int get topLevelGetter => 2;
 //         ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:12:9: Context: Previous declaration of 'topLevelGetter'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:10:9: Context: Previous declaration of 'topLevelGetter'.
 // int get topLevelGetter => 1;
 //         ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:19:10: Error: 'topLevelSetter' is already declared in this scope.
-// void set topLevelSetter(value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:15:10: Error: 'topLevelSetter' is already declared in this scope.
+// void set topLevelSetter(value) {}
 //          ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:15:10: Context: Previous declaration of 'topLevelSetter'.
-// void set topLevelSetter(value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:13:10: Context: Previous declaration of 'topLevelSetter'.
+// void set topLevelSetter(value) {}
 //          ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:24:5: Error: 'topLevelField' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:18:5: Error: 'topLevelField' is already declared in this scope.
 // int topLevelField = 2;
 //     ^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:23:5: Context: Previous declaration of 'topLevelField'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:17:5: Context: Previous declaration of 'topLevelField'.
 // int topLevelField = 1;
 //     ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:27:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
-// void set topLevelFieldAndSetter1(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:21:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
+// void set topLevelFieldAndSetter1(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:26:5: Context: Field 'topLevelFieldAndSetter1' with the implicit setter.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:20:5: Context: Field 'topLevelFieldAndSetter1' with the implicit setter.
 // int topLevelFieldAndSetter1 = 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:35:5: Error: Conflicts with setter 'topLevelFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:25:5: Error: The declaration conflicts with setter 'topLevelFieldAndSetter2'.
 // int topLevelFieldAndSetter2 = 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:31:10: Context: Conflicting setter 'topLevelFieldAndSetter2'.
-// void set topLevelFieldAndSetter2(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:23:10: Context: Conflicting setter 'topLevelFieldAndSetter2'.
+// void set topLevelFieldAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:38:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter1'.
-// void set topLevelLateFinalFieldAndSetter1(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:28:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter1'.
+// void set topLevelLateFinalFieldAndSetter1(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:37:16: Context: Field 'topLevelLateFinalFieldAndSetter1' with the implicit setter.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:27:16: Context: Field 'topLevelLateFinalFieldAndSetter1' with the implicit setter.
 // late final int topLevelLateFinalFieldAndSetter1;
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:46:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:32:16: Error: The declaration conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
 // late final int topLevelLateFinalFieldAndSetter2;
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:42:10: Context: Conflicting setter 'topLevelLateFinalFieldAndSetter2'.
-// void set topLevelLateFinalFieldAndSetter2(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:30:10: Context: Conflicting setter 'topLevelLateFinalFieldAndSetter2'.
+// void set topLevelLateFinalFieldAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:49:11: Error: 'topLevelDuplicateFieldAndSetter' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:35:11: Error: 'topLevelDuplicateFieldAndSetter' is already declared in this scope.
 // final int topLevelDuplicateFieldAndSetter = 2;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:48:11: Context: Previous declaration of 'topLevelDuplicateFieldAndSetter'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:34:11: Context: Previous declaration of 'topLevelDuplicateFieldAndSetter'.
 // final int topLevelDuplicateFieldAndSetter = 1;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:59:10: Error: 'topLevelFieldAndDuplicateSetter' is already declared in this scope.
-// void set topLevelFieldAndDuplicateSetter(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:41:10: Error: 'topLevelFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelFieldAndDuplicateSetter(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:55:10: Context: Previous declaration of 'topLevelFieldAndDuplicateSetter'.
-// void set topLevelFieldAndDuplicateSetter(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:39:10: Context: Previous declaration of 'topLevelFieldAndDuplicateSetter'.
+// void set topLevelFieldAndDuplicateSetter(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:64:11: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:44:11: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is already declared in this scope.
 // final int topLevelDuplicateFieldAndDuplicateSetter = 2;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:63:11: Context: Previous declaration of 'topLevelDuplicateFieldAndDuplicateSetter'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:43:11: Context: Previous declaration of 'topLevelDuplicateFieldAndDuplicateSetter'.
 // final int topLevelDuplicateFieldAndDuplicateSetter = 1;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:69:10: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is already declared in this scope.
-// void set topLevelDuplicateFieldAndDuplicateSetter(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:47:10: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+// void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:65:10: Context: Previous declaration of 'topLevelDuplicateFieldAndDuplicateSetter'.
-// void set topLevelDuplicateFieldAndDuplicateSetter(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:45:10: Context: Previous declaration of 'topLevelDuplicateFieldAndDuplicateSetter'.
+// void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:74:10: Error: The setter conflicts with declaration 'topLevelMethodAndSetter1'.
-// void set topLevelMethodAndSetter1(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:50:10: Error: The setter conflicts with declaration 'topLevelMethodAndSetter1'.
+// void set topLevelMethodAndSetter1(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:73:5: Context: Conflicting declaration 'topLevelMethodAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:49:5: Context: Conflicting declaration 'topLevelMethodAndSetter1'.
 // int topLevelMethodAndSetter1() => 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:5: Error: The declaration conflicts with setter 'topLevelMethodAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:54:5: Error: The declaration conflicts with setter 'topLevelMethodAndSetter2'.
 // int topLevelMethodAndSetter2() => 1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:78:10: Context: Conflicting setter 'topLevelMethodAndSetter2'.
-// void set topLevelMethodAndSetter2(int value) {
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:52:10: Context: Conflicting setter 'topLevelMethodAndSetter2'.
+// void set topLevelMethodAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// var field = topLevelMethod;
-//             ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
-// @topLevelMethod
-//  ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @topLevelMethod
 //  ^
 //
 import self as self;
 import "dart:core" as core;
 
-static field dynamic result;
 static field core::int topLevelField;
 static field core::int topLevelFieldAndSetter1;
-static field core::int topLevelFieldAndSetter2;
 late static final [setter] field core::int topLevelLateFinalFieldAndSetter1;
-late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
 static final field core::int topLevelDuplicateFieldAndSetter;
 static final field core::int topLevelFieldAndDuplicateSetter;
 static final field core::int topLevelDuplicateFieldAndDuplicateSetter;
@@ -131,6 +120,10 @@ static get topLevelGetter() → core::int
   ;
 static set topLevelSetter(dynamic value) → void
   ;
+static set topLevelFieldAndSetter2(core::int value) → void
+  ;
+static set topLevelLateFinalFieldAndSetter2(core::int value) → void
+  ;
 static set topLevelDuplicateFieldAndSetter(core::int value) → void
   ;
 static set topLevelFieldAndDuplicateSetter(core::int value) → void
@@ -139,22 +132,12 @@ static set topLevelDuplicateFieldAndDuplicateSetter(core::int value) → void
   ;
 static method topLevelMethodAndSetter1() → core::int
   ;
-static set topLevelMethodAndSetter1(core::int value) → void
-  ;
 static set topLevelMethodAndSetter2(core::int value) → void
   ;
-static method topLevelMethodAndSetter2() → core::int
-  ;
-@invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @topLevelMethod
- ^" in invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
+ ^" in invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
 @topLevelMethod
  ^"
 static method test() → dynamic
-  ;
-static method main() → dynamic
-  ;
-static method expect(dynamic expected, dynamic actual) → dynamic
-  ;
-static method throws(() → dynamic f) → dynamic
   ;

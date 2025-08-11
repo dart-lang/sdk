@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
-import '../analyzer.dart' hide AstNodeNullableExtension;
 import '../ast.dart';
 import '../extensions.dart';
 
@@ -15,10 +15,10 @@ bool argumentsMatchParameters(
   NodeList<Expression> arguments,
   NodeList<FormalParameter> parameters,
 ) {
-  var namedParameters = <String, Element2?>{};
-  var namedArguments = <String, Element2>{};
-  var positionalParameters = <Element2?>[];
-  var positionalArguments = <Element2>[];
+  var namedParameters = <String, Element?>{};
+  var namedArguments = <String, Element>{};
+  var positionalParameters = <Element?>[];
+  var positionalArguments = <Element>[];
   for (var parameter in parameters) {
     var identifier = parameter.name;
     var parameterElement = parameter.declaredFragment?.element;
@@ -66,7 +66,7 @@ bool argumentsMatchParameters(
 
 /// Returns whether the canonical elements of [element1] and [element2] are
 /// equal.
-bool canonicalElementsAreEqual(Element2? element1, Element2? element2) =>
+bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
     element1?.canonicalElement2 == element2?.canonicalElement2;
 
 /// Returns whether the canonical elements from two nodes are equal.
@@ -190,8 +190,8 @@ bool typesAreUnrelated(
       promotedRightType is TypeParameterType) {
     return typesAreUnrelated(
       typeSystem,
-      promotedLeftType.element3.bound,
-      promotedRightType.element3.bound,
+      promotedLeftType.element.bound,
+      promotedRightType.element.bound,
     );
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
@@ -214,11 +214,11 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
     return false;
   }
   if (type2 is InterfaceType) {
-    var element2 = type2.element3;
-    if (element2 is ClassElement2 &&
-        element2.thisType.lookUpMethod3(
+    var element2 = type2.element;
+    if (element2 is ClassElement &&
+        element2.thisType.lookUpMethod(
               'call',
-              element2.library2,
+              element2.library,
               concrete: true,
             ) !=
             null) {
@@ -255,8 +255,8 @@ extension on TypeSystem {
     InterfaceType leftType,
     InterfaceType rightType,
   ) {
-    var leftElement = leftType.element3;
-    var rightElement = rightType.element3;
+    var leftElement = leftType.element;
+    var rightElement = rightType.element;
     if (leftElement == rightElement) {
       // In this case, [leftElement] and [rightElement] represent the same
       // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
@@ -286,7 +286,7 @@ extension on TypeSystem {
 
       // Unrelated Enums have the same supertype, but they are not the same element, so
       // they are unrelated.
-      if (sameSupertypes && leftElement is EnumElement2) {
+      if (sameSupertypes && leftElement is EnumElement) {
         return true;
       }
 

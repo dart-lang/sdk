@@ -37,9 +37,7 @@ class MyIterable<T> extends IterableBase<T> {
 class MyListIterator<T> implements Iterator<T> {
   final List<T> values;
   int index;
-  MyListIterator(List<T> values)
-      : this.values = values,
-        index = -1;
+  MyListIterator(List<T> values) : this.values = values, index = -1;
 
   bool moveNext() => ++index < values.length;
   T get current {
@@ -61,8 +59,8 @@ void main() {
   // Several nested for-in's.
   for (var x in [
     [
-      ["a"]
-    ]
+      ["a"],
+    ],
   ]) {
     for (var y in x) {
       for (var z in y) {
@@ -74,7 +72,7 @@ void main() {
   // Simultaneous iteration of the same iterable.
   for (var iterable in [
     [1, 2, 3],
-    new MyIterable([1, 2, 3])
+    new MyIterable([1, 2, 3]),
   ]) {
     int result = 0;
     for (var x in iterable) {

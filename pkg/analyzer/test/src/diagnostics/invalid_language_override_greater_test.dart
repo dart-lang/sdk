@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,16 +24,14 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
-''', [
-      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
-    ]);
-    _assertUnitLanguageVersion(
-      package: latestVersion,
-      override: null,
+''',
+      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15)],
     );
+    _assertUnitLanguageVersion(package: latestVersion, override: null);
   }
 
   test_greaterThanPackage() async {

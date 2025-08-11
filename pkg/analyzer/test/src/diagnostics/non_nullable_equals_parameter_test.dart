@@ -16,18 +16,20 @@ main() {
 @reflectiveTest
 class NonNullableEqualsParameterTest extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   @override
   bool operator ==(dynamic other) => false;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2)],
+    );
   }
 
   test_inheritedDynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   @override
   bool operator ==(dynamic other) => false;
@@ -36,10 +38,12 @@ class D extends C {
   @override
   bool operator ==(other) => false;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2),
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 116, 2),
-    ]);
+''',
+      [
+        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2),
+        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 116, 2),
+      ],
+    );
   }
 
   test_inheritedFromObject() async {
@@ -61,14 +65,15 @@ class C {
   }
 
   test_nullableObject() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   @override
   bool operator ==(Object? other) => false;
 }
-''', [
-      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2),
-    ]);
+''',
+      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2)],
+    );
   }
 
   test_object() async {

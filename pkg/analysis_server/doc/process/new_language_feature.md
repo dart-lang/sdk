@@ -28,7 +28,7 @@ The features are listed in alphabetical order.
 - [ ] Document Colors (an LSP feature whereby a reference to a color in code can
       be associated with a colored swatch and a color picker)
 - [ ] Hovers
-- Implemented/override markers (a legacy protocol feature, only available to
+- [ ] Implemented/override markers (a legacy protocol feature, only available to
   IntelliJ and Android Studio)
   - [ ] Implemented Markers (allows navigation from a base class method to
         methods that override it, or from a base class to classes that
@@ -38,21 +38,21 @@ The features are listed in alphabetical order.
         extends/implements)
 - [ ] Inlay Hints (an LSP feature allowing extra information to be displayed
       using inline hints)
-- Navigation
+- [ ] Navigation
   - [ ] Go to Definition (LSP feature)
   - [ ] Go to Type Definition (LSP feature)
   - [ ] Go to Super (LSP feature)
   - [ ] Legacy protocol (for IntelliJ and Android Studio)
-- Occurrences
+- [ ] Occurrences
   - [ ] Legacy protocol (for IntelliJ and Android Studio)
   - [ ] Document Highlights (LSP feature)
 - [ ] Organize Imports
-- Outline
+- [ ] Outline
   - [ ] Flutter Outline
   - [ ] Legacy protocol, a.k.a. Document Symbols (for IntelliJ and Android
         Studio)
   - [ ] LSP feature
-- Refactorings and quick assists/fixes (note that in addition to potentially
+- [ ] Refactorings and quick assists/fixes (note that in addition to potentially
   creating new refactorings and/or quick assists/fixes, part of the work
   required to implement a new language feature includes evaluating each existing
   refactoring and quick fix/assist to see whether it needs to be improved or
@@ -63,7 +63,7 @@ The features are listed in alphabetical order.
   - [ ] LSP self-describing refactorings
   - [ ] Quick Assists
   - [ ] Quick Fixes
-- Search
+- [ ] Search
   - [ ] Find References
   - [ ] Implementations - LSP
   - [ ] Member Declarations
@@ -71,7 +71,7 @@ The features are listed in alphabetical order.
   - [ ] Top-level Declarations
 - [ ] Selection Range (an LSP feature allowing a selection to be expanded to
       cover the range of an ancestor AST node)
-- Syntax Highlighting
+- [ ] Syntax Highlighting
   - [ ] Legacy protocol, a.k.a. Semantic Highlights (for IntelliJ and Android
         Studio)
   - [ ] Semantic Tokens (LSP feature)
@@ -79,7 +79,7 @@ The features are listed in alphabetical order.
       for an invocation)
 - [ ] Snippets
 - [ ] Sort Members
-- Type Hierarchy
+- [ ] Type Hierarchy
   - [ ] Legacy protocol (for IntelliJ and Android Studio)
   - [ ] LSP feature
 - [ ] Workspace Symbols (LSP feature)

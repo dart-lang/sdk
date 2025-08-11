@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class UndefinedSetterTest extends PubPackageResolutionTest {
   test_functionAlias_typeInstantiated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -26,9 +27,9 @@ void bar() {
 extension E on Type {
   set foo(int value) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3)],
+    );
   }
 
   test_functionAlias_typeInstantiated_parenthesized() async {
@@ -58,27 +59,36 @@ main() {
   }
 
   test_instance_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class T {}
 f(T e1) { e1.m = 0; }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1,
-          messageContains: ["the type 'T'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_SETTER,
+          24,
+          1,
+          messageContains: ["the type 'T'"],
+        ),
+      ],
+    );
   }
 
   test_instance_undefined_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   f() { this.m = 0; }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1)],
+    );
   }
 
   test_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   set b(x) {}
@@ -88,90 +98,97 @@ f(var a) {
     a.b = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1)],
+    );
   }
 
   test_inType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(var a) {
   if(a is A) {
     a.m = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1)],
+    );
   }
 
   test_new_cascade() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C? c) {
   c..new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+    );
   }
 
   test_new_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(dynamic d) {
   d.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 3)],
+    );
   }
 
   test_new_instance() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C c) {
   c.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 25, 3)],
+    );
   }
 
   test_new_interfaceType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f() {
   C.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 22, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 22, 3)],
+    );
   }
 
   test_new_nullAware() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C? c) {
   c?.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+    );
   }
 
   test_new_typeVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f<T>(T t) {
   t.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 16, 3)],
+    );
   }
 
   test_set_abstract_field_valid() async {
@@ -208,32 +225,41 @@ void f(int x) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2)],
+    );
   }
 
   test_static_definedInSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class S {
   static set s(int i) {}
 }
 class C extends S {}
 f(var p) {
   f(C.s = 1);
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 75, 1,
-          messageContains: ["type 'C'"]),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_SETTER,
+          75,
+          1,
+          messageContains: ["type 'C'"],
+        ),
+      ],
+    );
   }
 
   test_static_extension_instanceAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 extension E on C {
@@ -243,16 +269,16 @@ extension E on C {
 f(C c) {
   c.a = 2;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 72, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 72, 1)],
+    );
 
     assertResolvedNodeText(findNode.assignment('a ='), r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -276,29 +302,32 @@ AssignmentExpression
   }
 
   test_static_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f() { A.B = 0;}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 1)],
+    );
   }
 
   test_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class T {
   static void set foo(_) {}
 }
 main() {
   T..foo = 42;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 54, 3)],
+    );
   }
 
   test_withExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 extension E on C {}
@@ -306,8 +335,8 @@ extension E on C {}
 f(C c) {
   c.a = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1)],
+    );
   }
 }

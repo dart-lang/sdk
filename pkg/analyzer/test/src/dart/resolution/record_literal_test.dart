@@ -38,7 +38,7 @@ RecordLiteral
       expression: PropertyAccess
         target: SimpleIdentifier
           token: r
-          element: <testLibraryFragment>::@function::f::@parameter::r#element
+          element: <testLibrary>::@function::f::@formalParameter::r
           staticType: (int, String)
         operator: .
         propertyName: SimpleIdentifier
@@ -66,7 +66,7 @@ RecordLiteral
     PropertyAccess
       target: SimpleIdentifier
         token: r
-        element: <testLibraryFragment>::@function::f::@parameter::r#element
+        element: <testLibrary>::@function::f::@formalParameter::r
         staticType: (int, String)
       operator: .
       propertyName: SimpleIdentifier
@@ -93,11 +93,11 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
   rightParenthesis: )
   staticType: (List<Object?>, List<Object?>)
@@ -129,9 +129,9 @@ RecordLiteral
       expression: ImplicitCallReference
         expression: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@getter::a#element
+          element: <testLibrary>::@getter::a
           staticType: A
-        element: <testLibraryFragment>::@class::A::@method::call#element
+        element: <testLibrary>::@class::A::@method::call
         staticType: void Function()
   rightParenthesis: )
   staticType: ({void Function() f1})
@@ -156,9 +156,9 @@ RecordLiteral
     ImplicitCallReference
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: A
-      element: <testLibraryFragment>::@class::A::@method::call#element
+      element: <testLibrary>::@class::A::@method::call
       staticType: void Function()
   rightParenthesis: )
   staticType: (void Function(),)
@@ -185,7 +185,7 @@ RecordLiteral
         colon: :
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: dynamic
   rightParenthesis: )
   staticType: ({int f1})
@@ -205,7 +205,7 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: dynamic
   rightParenthesis: )
   staticType: (int,)
@@ -684,7 +684,7 @@ RecordLiteral
         colon: :
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: dynamic
   rightParenthesis: )
   staticType: ({dynamic f1})
@@ -704,7 +704,7 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic,)
@@ -885,11 +885,11 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
     SimpleIdentifier
       token: d
-      element: <testLibraryFragment>::@function::test::@parameter::d#element
+      element: <testLibrary>::@function::test::@formalParameter::d
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic, dynamic)
@@ -914,19 +914,25 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
   test_language219_singleField_noComma_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 final x = const (0);
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
-      error(ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA, 34,
-          1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
+        error(
+          ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          34,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -940,17 +946,18 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
   test_language219_singleField_withComma() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 final x = (0,);
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+    );
 
     var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -964,17 +971,18 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
   test_language219_twoFields() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 final x = (0, 1);
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+    );
 
     var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -988,17 +996,18 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
   test_language219_zeroFields() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 final x = ();
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+    );
 
     var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1013,7 +1022,7 @@ VariableDeclaration
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
-  declaredElement: <testLibraryFragment>::@topLevelVariable::x
+  declaredElement: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1132,13 +1141,14 @@ RecordLiteral
   }
 
   test_void_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {}
 
 g() => (f(),);
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3)],
+    );
 
     var node = findNode.recordLiteral('(f(),');
     assertResolvedNodeText(node, r'''

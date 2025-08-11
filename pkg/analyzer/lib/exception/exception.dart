@@ -45,7 +45,7 @@ class CaughtException implements Exception {
   /// Initialize a newly created caught exception to have the given [exception]
   /// and [stackTrace].
   CaughtException(Object exception, StackTrace stackTrace)
-      : this.withMessage(null, exception, stackTrace);
+    : this.withMessage(null, exception, stackTrace);
 
   /// Initialize a newly created caught exception to have the given [exception],
   /// [stackTrace], and [message].
@@ -97,10 +97,10 @@ class CaughtException implements Exception {
 /// reporting.
 class SilentException extends CaughtException {
   SilentException(String super.message, super.exception, super.stackTrace)
-      : super.withMessage();
+    : super.withMessage();
 
   /// Create a [SilentException] to wrap a [CaughtException], adding a
   /// [message].
   SilentException.wrapInMessage(String message, CaughtException exception)
-      : this(message, exception, StackTrace.current);
+    : this(message, exception, StackTrace.current);
 }

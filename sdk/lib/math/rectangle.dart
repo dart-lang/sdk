@@ -177,16 +177,12 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// **Legacy:** New usages of [Rectangle] are discouraged.
   /// To learn more, check out the [Rectangle] class API docs.
   const Rectangle(this.left, this.top, T width, T height)
-    : width =
-          (width < 0)
-              ? (width == double.negativeInfinity ? 0.0 : (-width * 0))
-                  as dynamic
-              : (width + 0 as dynamic), // Inline _clampToZero<num>.
-      height =
-          (height < 0)
-              ? (height == double.negativeInfinity ? 0.0 : (-height * 0))
-                  as dynamic
-              : (height + 0 as dynamic);
+    : width = (width < 0)
+          ? (width == double.negativeInfinity ? 0.0 : (-width * 0)) as dynamic
+          : (width + 0 as dynamic), // Inline _clampToZero<num>.
+      height = (height < 0)
+          ? (height == double.negativeInfinity ? 0.0 : (-height * 0)) as dynamic
+          : (height + 0 as dynamic);
 
   /// Create a rectangle spanned by the points [a] and [b];
   ///
@@ -293,10 +289,12 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// **Legacy:** New usages of [MutableRectangle] are discouraged.
   /// To learn more, check out the [MutableRectangle] class API docs.
   MutableRectangle(this.left, this.top, T width, T height)
-    : this._width =
-          (width < 0) ? _clampToZero<T>(width) : (width + 0 as dynamic),
-      this._height =
-          (height < 0) ? _clampToZero<T>(height) : (height + 0 as dynamic);
+    : this._width = (width < 0)
+          ? _clampToZero<T>(width)
+          : (width + 0 as dynamic),
+      this._height = (height < 0)
+          ? _clampToZero<T>(height)
+          : (height + 0 as dynamic);
 
   /// Create a mutable rectangle spanned by the points [a] and [b];
   ///

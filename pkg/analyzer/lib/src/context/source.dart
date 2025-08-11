@@ -70,8 +70,9 @@ class SourceFactoryImpl implements SourceFactory {
       try {
         uri = uriCache.parse(absoluteUri);
       } catch (exception, stackTrace) {
-        AnalysisEngine.instance.instrumentationService
-            .logInfo('Could not resolve URI: $absoluteUri $stackTrace');
+        AnalysisEngine.instance.instrumentationService.logInfo(
+          'Could not resolve URI: $absoluteUri $stackTrace',
+        );
         return null;
       }
       if (uri.isAbsolute) {
@@ -80,8 +81,12 @@ class SourceFactoryImpl implements SourceFactory {
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          SilentException(
-              "Could not resolve URI: $absoluteUri", exception, stackTrace));
+        SilentException(
+          "Could not resolve URI: $absoluteUri",
+          exception,
+          stackTrace,
+        ),
+      );
     }
     return null;
   }
@@ -94,8 +99,12 @@ class SourceFactoryImpl implements SourceFactory {
       } on AnalysisException catch (exception, stackTrace) {
         // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            SilentException(
-                "Could not resolve URI: $absoluteUri", exception, stackTrace));
+          SilentException(
+            "Could not resolve URI: $absoluteUri",
+            exception,
+            stackTrace,
+          ),
+        );
       }
     }
     return null;
@@ -123,19 +132,23 @@ class SourceFactoryImpl implements SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(
-          containingSource, uriCache.parse(containedUri));
+        containingSource,
+        uriCache.parse(containedUri),
+      );
     } on FormatException {
       return null;
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
       // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService
-          .logException(SilentException(
-              "Could not resolve URI ($containedUri) "
-              "relative to source ($containingFullName)",
-              exception,
-              stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(
+          "Could not resolve URI ($containedUri) "
+          "relative to source ($containingFullName)",
+          exception,
+          stackTrace,
+        ),
+      );
       return null;
     }
   }
@@ -155,11 +168,14 @@ class SourceFactoryImpl implements SourceFactory {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {
         throw AnalysisException(
-            "Cannot resolve a relative URI without a containing source: "
-            "$containedUri");
+          "Cannot resolve a relative URI without a containing source: "
+          "$containedUri",
+        );
       }
-      containedUri =
-          uriCache.resolveRelative(containingSource.uri, containedUri);
+      containedUri = uriCache.resolveRelative(
+        containingSource.uri,
+        containedUri,
+      );
     }
 
     var result = _absoluteUriToSourceCache[containedUri];

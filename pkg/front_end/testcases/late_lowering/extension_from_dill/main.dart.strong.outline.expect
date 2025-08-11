@@ -1,0 +1,53 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension E on core::int {
+  static impl field field = self2::_#E|field;
+  static get field = get self2::E|field;
+  static set field = set self2::E|field;
+  static impl field nullableField = self2::_#E|nullableField;
+  static impl field nullableField = self2::_#E|nullableField#isSet;
+  static get nullableField = get self2::E|nullableField;
+  static set nullableField = set self2::E|nullableField;
+}
+extension type ET(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  static impl field field = self2::_#ET|field;
+  static get field = get self2::ET|field;
+  static set field = set self2::ET|field;
+  static impl field nullableField = self2::_#ET|nullableField;
+  static impl field nullableField = self2::_#ET|nullableField#isSet;
+  static get nullableField = get self2::ET|nullableField;
+  static set nullableField = set self2::ET|nullableField;
+  constructor • = self2::ET|constructor#;
+  constructor tearoff • = self2::ET|constructor#_#new#tearOff;
+}
+static field core::int? _#E|field;
+static field core::int? _#E|nullableField;
+static field core::bool _#E|nullableField#isSet;
+static field core::int? _#ET|field;
+static field core::int? _#ET|nullableField;
+static field core::bool _#ET|nullableField#isSet;
+static extension-member get E|field() → core::int;
+static extension-member set E|field(core::int field#param) → void;
+static extension-member get E|nullableField() → core::int?;
+static extension-member set E|nullableField(core::int? nullableField#param) → void;
+static extension-type-member method ET|constructor#(core::int i) → self2::ET% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → self2::ET% /* erasure=core::int, declared=! */
+  return self2::ET|constructor#(i);
+static extension-type-member get ET|field() → core::int;
+static extension-type-member set ET|field(core::int field#param) → void;
+static extension-type-member get ET|nullableField() → core::int?;
+static extension-type-member set ET|nullableField(core::int? nullableField#param) → void;

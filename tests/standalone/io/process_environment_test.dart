@@ -10,24 +10,30 @@ import "package:expect/expect.dart";
 import "process_test_util.dart";
 
 runEnvironmentProcess(
-    Map<String, String> environment, name, includeParent, callback) {
+  Map<String, String> environment,
+  name,
+  includeParent,
+  callback,
+) {
   var dartExecutable = Platform.executable;
   var printEnv = 'tests/standalone/io/print_env.dart';
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
   Process.run(
-          dartExecutable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add('--verbosity=warning')
-            ..addAll([printEnv, name]),
-          environment: environment,
-          includeParentEnvironment: includeParent)
-      .then((result) {
+    dartExecutable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..addAll([printEnv, name]),
+    environment: environment,
+    includeParentEnvironment: includeParent,
+  ).then((result) {
     if (result.exitCode != 0) {
-      print('print_env.dart subprocess failed '
-          'with exit code ${result.exitCode}');
+      print(
+        'print_env.dart subprocess failed '
+        'with exit code ${result.exitCode}',
+      );
       print('stdout:');
       print(result.stdout);
       print('stderr:');

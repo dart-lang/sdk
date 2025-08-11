@@ -12,14 +12,14 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -38,6 +38,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   late final AbstractRefactoringContext refactoringContext;
   late final SelectionState selectionState;
   late final ValidSelectionState validSelectionState;
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 
   /// Create [testFile] with [rawCode], analyze availability in it.
   Future<Availability> _analyzeAvailability(String rawCode) async {
@@ -108,13 +114,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     );
   }
 
-  String _elementToReferenceString(Element2 element) {
-    var enclosingElement = element.enclosingElement2;
-    var reference = switch (element) {
-      ElementImpl2() =>
-        element.reference ?? (element.firstFragment as ElementImpl).reference,
-      _ => null,
-    };
+  String _elementToReferenceString(Element element) {
+    var enclosingElement = element.enclosingElement;
+    var reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is FormalParameterElement) {
@@ -122,9 +124,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name3}';
+      return '$enclosingStr::@parameter::${element.name}';
     } else {
-      return '${element.name3}';
+      return '${element.name}';
     }
   }
 
@@ -157,6 +159,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 @reflectiveTest
 class ChangeMethodSignatureTest_analyzeSelection
     extends AbstractChangeMethodSignatureTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_classConstructor_fieldFormal_explicitType() async {
     await _analyzeSelection(r'''
 class A {
@@ -166,7 +174,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -184,7 +192,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -201,7 +209,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -218,7 +226,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -235,7 +243,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -257,7 +265,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalNamed
@@ -279,7 +287,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalPositional
@@ -305,7 +313,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredNamed
@@ -327,7 +335,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -344,7 +352,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -361,7 +369,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@method::test
+element: self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional

@@ -18,7 +18,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class FunctionTypeBuilder extends TypeBuilder {
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
-  final List<TypeParameterElementImpl2> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
   final List<FormalParameterElementImpl> formalParameters;
   final TypeImpl returnType;
 
@@ -36,11 +36,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   FunctionTypeImpl? _type;
 
-  FunctionTypeBuilder(
-    this.typeParameters,
-    this.formalParameters,
-    this.returnType,
-    this.nullabilitySuffix, {
+  FunctionTypeBuilder({
+    required this.typeParameters,
+    required this.formalParameters,
+    required this.returnType,
+    required this.nullabilitySuffix,
     this.node,
   });
 
@@ -49,26 +49,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     NullabilitySuffix nullabilitySuffix,
   ) {
     return FunctionTypeBuilder(
-      _getTypeParameters(node.typeParameters),
-      getParameters(node.parameters),
-      _getNodeType(node.returnType),
-      nullabilitySuffix,
-      node: node,
-    );
-  }
-
-  factory FunctionTypeBuilder.v2({
-    required List<TypeParameterElementImpl2> typeParameters,
-    required List<FormalParameterElementImpl> formalParameters,
-    required TypeImpl returnType,
-    required NullabilitySuffix nullabilitySuffix,
-    GenericFunctionTypeImpl? node,
-  }) {
-    return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      nullabilitySuffix,
+      typeParameters: _getTypeParameters(node.typeParameters),
+      formalParameters: getParameters(node.parameters),
+      returnType: _getNodeType(node.returnType),
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
@@ -109,7 +93,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       nullabilitySuffix: nullabilitySuffix,
     );
 
-    var fresh = getFreshTypeParameters2(typeParameters);
+    var fresh = getFreshTypeParameters(typeParameters);
     type = fresh.applyToFunctionType(type);
 
     _type = type;
@@ -144,10 +128,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     return FunctionTypeBuilder(
-      typeParameters,
-      formalParameters,
-      returnType,
-      nullabilitySuffix,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
@@ -197,17 +181,17 @@ class FunctionTypeBuilder extends TypeBuilder {
       }
 
       return FunctionTypeBuilder(
-        _getTypeParameters(node.typeParameters),
-        getParameters(node.parameters),
-        _getNodeType(node.returnType),
-        nullabilitySuffix,
+        typeParameters: _getTypeParameters(node.typeParameters),
+        formalParameters: getParameters(node.parameters),
+        returnType: _getNodeType(node.returnType),
+        nullabilitySuffix: nullabilitySuffix,
       );
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
-  static List<TypeParameterElementImpl2> _getTypeParameters(
+  static List<TypeParameterElementImpl> _getTypeParameters(
     TypeParameterListImpl? node,
   ) {
     if (node == null) return const [];

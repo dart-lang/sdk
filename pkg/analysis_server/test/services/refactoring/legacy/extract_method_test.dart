@@ -4,14 +4,15 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/extract_method.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_single_unit.dart';
-import '../../../analysis_server_base.dart';
 import 'abstract_refactoring.dart';
 
 void main() {
@@ -27,6 +28,12 @@ void main() {
 
 @reflectiveTest
 class AddLibraryImportsTest extends AbstractSingleUnitTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_dart_doubleQuotes() async {
     registerLintRules();
     newAnalysisOptionsYamlFile(

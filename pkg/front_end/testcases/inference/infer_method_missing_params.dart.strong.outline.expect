@@ -53,7 +53,7 @@ abstract class B extends core::Object {
 abstract class C extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::C
     ;
-  abstract method f(invalid-type x, invalid-type y) → invalid-type;
+  abstract erroneous method f(invalid-type x, invalid-type y) → invalid-type;
   abstract method g(core::int x, [core::int y = null]) → core::int;
   abstract method h(core::int x, {core::int y = null}) → core::int;
   abstract method i(invalid-type x, {invalid-type y = null, invalid-type z = null}) → invalid-type;

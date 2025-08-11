@@ -45,9 +45,11 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   void registerOverrideCheck(SourceClassBuilder classBuilder,
-      ClassMember declaredMember, Set<ClassMember> overriddenMembers) {
+      ClassMember declaredMember, Set<ClassMember> overriddenMembers,
+      {required ClassMember? localMember}) {
     _delayedChecks.add(new DelayedOverrideCheck(
-        classBuilder, declaredMember, overriddenMembers));
+        classBuilder, declaredMember, overriddenMembers,
+        localMember: localMember));
   }
 
   void registerGetterSetterCheck(DelayedGetterSetterCheck check) {

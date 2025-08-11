@@ -20,8 +20,8 @@ import self as self;
 import "dart:core" as core;
 
 static method foo({required core::int parameter = #C1}) → dynamic {}
-static method foo2({core::int parameter = #C2}) → dynamic {}
-static method foo3([core::int parameter = #C2]) → dynamic {}
+static method foo2({erroneously-initialized core::int parameter = #C2}) → dynamic {}
+static method foo3([erroneously-initialized core::int parameter = #C2]) → dynamic {}
 static method bar({required core::int parameter}) → dynamic {}
 static method bar2({core::int parameter = #C1}) → dynamic {}
 static method bar3([core::int parameter = #C1]) → dynamic {}

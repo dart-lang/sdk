@@ -32,26 +32,33 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     return result;
   }
 
-  Future<void> assertSnippet(String content, String expected) async {
-    var code = TestCode.parse(content);
-    var expectedCode = TestCode.parse(expected);
+  /// Verify a snippet is available and that applying it to [content] produces
+  /// [expected].
+  ///
+  /// The marked position (`^`) in [content] is where snippets will be requested
+  /// for.
+  ///
+  /// The marked position (`^`) in [expected] is where the resulting selection
+  /// is expected to be. The marked ranges in [expected] are where linked edit
+  /// groups / placeholders appear.
+  Future<Snippet> assertSnippetResult(String content, String expected) async {
+    var code = TestCode.parse(normalizeSource(content));
+    var expectedCode = TestCode.parse(normalizeSource(expected));
     var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
 
     // Apply the edits and check the results.
-    var codeResult = code.code;
-    for (var edit in snippet.change.edits) {
-      codeResult = SourceEdit.applySequence(codeResult, edit.edits);
-    }
+    var codeResult = applySnippet(code, snippet);
     expect(codeResult, expectedCode.code);
 
     // Check selection/position.
-    expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, expectedCode.position.offset);
+    var selection = snippet.change.selection!;
+    expect(selection.file, testFile.path);
+    expect(selection.offset, expectedCode.position.offset);
 
-    // And linked edits.
+    // Verify all linked edits/placeholders.
     var expectedLinkedGroups =
         expectedCode.ranges
             .map(
@@ -67,6 +74,8 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     var actualLinkedGroups =
         snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
     expect(actualLinkedGroups, equals(expectedLinkedGroups));
+
+    return snippet;
   }
 
   Future<void> expectNotValidSnippet(String content) async {
@@ -95,25 +104,35 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
 }
 
 abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
-  /// Asserts that [change] matches the code in [expected], has a selection
-  /// matching its range and a single linked edit group containing all of its
-  /// positions.
-  void assertFlutterSnippetChange(
-    SourceChange change,
+  /// A version of [assertSnippetResult] that expects all positions in
+  /// [expected] to match a single linked edit group for the text
+  /// [linkedGroupText] and the selection to be at the marked range.
+  Future<void> assertFlutterSnippetResult(
+    String content,
+    String expected,
     String linkedGroupText,
-    TestCode expected,
-  ) {
-    expect(change.edits, hasLength(1));
-    var code = SourceEdit.applySequence('', change.edits.single.edits);
-    expect(code, expected.code);
+  ) async {
+    var code = TestCode.parse(normalizeSource(content));
+    var expectedCode = TestCode.parse(normalizeSource(expected));
+    var expectedSelection = expectedCode.range.sourceRange;
 
+    var snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+
+    // Apply the edits and check the results.
+    var codeResult = applySnippet(code, snippet);
+    expect(codeResult, expectedCode.code);
+
+    var change = snippet.change;
     expect(change.selection!.file, testFile.path);
-    expect(change.selection!.offset, expected.range.sourceRange.offset);
-    expect(change.selectionLength, expected.range.sourceRange.length);
+    expect(change.selection!.offset, expectedSelection.offset);
+    expect(change.selectionLength, expectedSelection.length);
     expect(change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          for (final position in expected.positions)
+          for (final position in expectedCode.positions)
             {'file': testFile.path, 'offset': position.offset},
         ],
         'length': linkedGroupText.length,

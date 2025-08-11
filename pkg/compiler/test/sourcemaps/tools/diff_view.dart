@@ -506,12 +506,11 @@ as mapped through source-maps.">
     allColumns.addAll(block.columns);
   }
 
-  List<DiffColumn> columns =
-      [
-        column_js0,
-        column_js1,
-        column_dart,
-      ].where((c) => allColumns.contains(c)).toList();
+  List<DiffColumn> columns = [
+    column_js0,
+    column_js1,
+    column_dart,
+  ].where((c) => allColumns.contains(c)).toList();
 
   sb.write('''
 </div>
@@ -703,8 +702,8 @@ class CodeSources {
     }
 
     uriCodeSourceMap.forEach((Uri uri, Map<Interval, CodeSource> intervals) {
-      List<Interval> sortedKeys =
-          intervals.keys.toList()..sort((i1, i2) => i1.from.compareTo(i2.from));
+      List<Interval> sortedKeys = intervals.keys.toList()
+        ..sort((i1, i2) => i1.from.compareTo(i2.from));
       Map<Interval, CodeSource> sortedintervals = <Interval, CodeSource>{};
       sortedKeys.forEach((Interval interval) {
         sortedintervals[interval] = intervals[interval]!;
@@ -766,17 +765,15 @@ Future<CodeLinesResult> computeCodeLines(
         annotationType == AnnotationType.unusedSourceInfo) {
       locations = [];
     }
-    List<CodeLocation> codeLocations =
-        locations
-            .where((l) => l.sourceUri != null)
-            .map((l) => CodeLocation(l.sourceUri!, l.sourceName!, l.offset))
-            .toList();
-    List<CodeSource> codeSourceList =
-        locations
-            .where((l) => l.sourceUri != null)
-            .map(codeSources.sourceLocationToCodeSource)
-            .whereType<CodeSource>()
-            .toList();
+    List<CodeLocation> codeLocations = locations
+        .where((l) => l.sourceUri != null)
+        .map((l) => CodeLocation(l.sourceUri!, l.sourceName!, l.offset))
+        .toList();
+    List<CodeSource> codeSourceList = locations
+        .where((l) => l.sourceUri != null)
+        .map(codeSources.sourceLocationToCodeSource)
+        .whereType<CodeSource>()
+        .toList();
     CodeLineAnnotation data = CodeLineAnnotation(
       annotationId: nextAnnotationId++,
       annotationType: annotationType,

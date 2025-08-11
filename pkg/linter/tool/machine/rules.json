@@ -599,7 +599,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "hasFix",
+    "fixStatus": "noFix",
     "details": "**AVOID** using a parameter name that is the same as an existing type.\n\n**BAD:**\n```dart\nm(f(int));\n```\n\n**GOOD:**\n```dart\nm(f(int v));\n```",
     "sinceDartSdk": "2.0"
   },
@@ -1574,7 +1574,8 @@
     ],
     "state": "experimental",
     "incompatible": [
-      "always_specify_types"
+      "always_specify_types",
+      "type_annotate_public_apis"
     ],
     "sets": [],
     "fixStatus": "hasFix",
@@ -1954,7 +1955,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "**DO** use `forEach` if you are only going to apply a function or a method\nto all the elements of an iterable.\n\nUsing `forEach` when you are only going to apply a function or method to all\nelements of an iterable is a good practice because it makes your code more\nterse.\n\n**BAD:**\n```dart\nfor (final key in map.keys.toList()) {\n  map.remove(key);\n}\n```\n\n**GOOD:**\n```dart\nmap.keys.toList().forEach(map.remove);\n```\n\n**NOTE:** Replacing a for each statement with a forEach call may change the\nbehavior in the case where there are side-effects on the iterable itself.\n```dart\nfor (final v in myList) {\n  foo().f(v); // This code invokes foo() many times.\n}\n\nmyList.forEach(foo().f); // But this one invokes foo() just once.\n```",
     "sinceDartSdk": "2.0"
   },
@@ -2448,6 +2449,22 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "switch_on_type",
+    "description": "Avoid switch statements on a 'Type'.",
+    "categories": [
+      "unintentional",
+      "style",
+      "languageFeatureUsage",
+      "errorProne"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**AVOID** using switch on `Type`.\n\nSwitching on `Type` is not type-safe and can lead to bugs if the\nclass hierarchy changes. Prefer to use pattern matching on the variable\ninstead.\n\n**BAD:**\n```dart\nvoid f(Object o) {\n  switch (o.runtimeType) {\n    case int:\n      print('int');\n    case String:\n      print('String');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object o) {\n  switch(o) {\n    case int():\n      print('int');\n    case String _:\n      print('String');\n    default:\n      print('other');\n  }\n}\n```",
+    "sinceDartSdk": "3.9"
+  },
+  {
     "name": "test_types_in_equals",
     "description": "Test type of argument in `operator ==(Object other)`.",
     "categories": [
@@ -2494,7 +2511,9 @@
       "publicInterface"
     ],
     "state": "stable",
-    "incompatible": [],
+    "incompatible": [
+      "omit_obvious_property_types"
+    ],
     "sets": [],
     "fixStatus": "hasFix",
     "details": "From [Effective Dart](https://dart.dev/effective-dart/design#do-type-annotate-fields-and-top-level-variables-if-the-type-isnt-obvious):\n\n**PREFER** type annotating public APIs.\n\nType annotations are important documentation for how a library should be used.\nAnnotating the parameter and return types of public methods and functions helps\nusers understand what the API expects and what it provides.\n\nNote that if a public API accepts a range of values that Dart's type system\ncannot express, then it is acceptable to leave that untyped.  In that case, the\nimplicit `dynamic` is the correct type for the API.\n\nFor code internal to a library (either private, or things like nested functions)\nannotate where you feel it helps, but don't feel that you *must* provide them.\n\n**BAD:**\n```dart\ninstall(id, destination) {\n  // ...\n}\n```\n\nHere, it's unclear what `id` is.  A string? And what is `destination`? A string\nor a `File` object? Is this method synchronous or asynchronous?\n\n**GOOD:**\n```dart\nFuture<bool> install(PackageId id, String destination) {\n  // ...\n}\n```\n\nWith types, all of this is clarified.",
@@ -2562,7 +2581,7 @@
     "state": "experimental",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Functions that don't do `await` don't have to be `async`.\n\nUsually such functions also don't have to return a `Future`, which allows\nan invoker to avoid `await` in its code, etc. Synchronous code in\ngeneral runs faster, and is easier to reason about.\n\n**BAD:**\n```dart\nvoid f() async {\n  // await Future.delayed(const Duration(seconds: 2));\n  print(0);\n}\n```\n\n**GOOD:**\n```dart\nvoid f() {\n  // await Future.delayed(const Duration(seconds: 2));\n  print(0);\n}\n```",
     "sinceDartSdk": "3.7"
   },
@@ -2929,6 +2948,21 @@
     "sinceDartSdk": "2.18"
   },
   {
+    "name": "unnecessary_unawaited",
+    "description": "Unnecessary use of 'unawaited'.",
+    "categories": [
+      "brevity",
+      "unintentional",
+      "unusedCode"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "A call to a function, method, or operator, or a reference to a field,\ngetter, or top-level variable which is annotated with `@awaitNotRequired`\ndoes not need to be wrapped in a call to `unawaited()`.\n\n**BAD:**\n```dart\n@awaitNotRequired\nFuture<LogMessage> log(String message) { ... }\n\nvoid f() {\n  unawaited(log('Message.'));\n}\n```\n\n**GOOD:**\n```dart\n@awaitNotRequired\nFuture<LogMessage> log(String message) { ... }\n\nvoid f() {\n  log('Message.');\n}\n```",
+    "sinceDartSdk": "3.9"
+  },
+  {
     "name": "unnecessary_underscores",
     "description": "Unnecessary underscores can be removed.",
     "categories": [
@@ -3086,7 +3120,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#prefer-using--to-convert-null-to-a-boolean-value):\n\nUse `??` operators to convert `null`s to `bool`s.\n\n**BAD:**\n```dart\nif (nullableBool == true) {\n}\nif (nullableBool != false) {\n}\n```\n\n**GOOD:**\n```dart\nif (nullableBool ?? false) {\n}\nif (nullableBool ?? true) {\n}\n```",
     "sinceDartSdk": "2.13"
   },

@@ -146,10 +146,9 @@ class Setlet<E> extends SetBase<E> {
           _contents[copyTo++] = null;
         }
       } else {
-        _contents =
-            <E>{}
-              ..addAll((_contents as List).cast<E>())
-              ..add(element);
+        _contents = <E>{}
+          ..addAll((_contents as List).cast<E>())
+          ..add(element);
         _extra = _marker;
       }
       return true;
@@ -264,7 +263,7 @@ class Setlet<E> extends SetBase<E> {
   @override
   bool containsAll(Iterable<Object?> other) {
     for (final e in other) {
-      if (!this.contains(e)) return false;
+      if (!contains(e)) return false;
     }
     return true;
   }

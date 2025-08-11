@@ -18,8 +18,12 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script, [], p.sendPort,
-      packageConfig: Uri.parse(CONFIG_URI));
+  Isolate.spawnUri(
+    Platform.script,
+    [],
+    p.sendPort,
+    packageConfig: Uri.parse(CONFIG_URI),
+  );
   p.handler = (msg) {
     p.close();
     if (msg is! List) {
@@ -39,8 +43,10 @@ main([args, port]) async {
   if (Bar.value != "Bar1") {
     throw "Spawning isolate package:bar invalid.";
   }
-  print("Spawned isolate resolved $CONFIG_URI to: "
-      "${await Isolate.resolvePackageUri(Uri.parse(CONFIG_URI))}");
+  print(
+    "Spawned isolate resolved $CONFIG_URI to: "
+    "${await Isolate.resolvePackageUri(Uri.parse(CONFIG_URI))}",
+  );
 }
 
 testCorrectBarPackage(port) async {

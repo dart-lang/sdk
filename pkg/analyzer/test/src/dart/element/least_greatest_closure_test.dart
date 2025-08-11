@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
-  late final TypeParameterElementImpl2 T;
+  late final TypeParameterElementImpl T;
   late final TypeParameterTypeImpl T_none;
   late final TypeParameterTypeImpl T_question;
 
@@ -32,9 +32,10 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
 
   test_contravariant() {
     _check(
-      functionTypeNone(returnType: voidNone, formalParameters: [
-        requiredParameter(type: T_none),
-      ]),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: T_none)],
+      ),
       greatest: 'void Function(Never)',
       least: 'void Function(Object?)',
     );
@@ -43,9 +44,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
       functionTypeNone(
         returnType: functionTypeNone(
           returnType: voidNone,
-          formalParameters: [
-            requiredParameter(type: T_none),
-          ],
+          formalParameters: [requiredParameter(type: T_none)],
         ),
       ),
       greatest: 'void Function(Never) Function()',
@@ -57,31 +56,30 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     _check(T_none, greatest: 'Object?', least: 'Never');
     _check(T_question, greatest: 'Object?', least: 'Never?');
 
-    _check(
-      listNone(T_none),
-      greatest: 'List<Object?>',
-      least: 'List<Never>',
-    );
+    _check(listNone(T_none), greatest: 'List<Object?>', least: 'List<Never>');
 
     _check(
-        functionTypeNone(returnType: voidNone, formalParameters: [
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [
           requiredParameter(
-            type: functionTypeNone(returnType: intNone, formalParameters: [
-              requiredParameter(type: T_none),
-            ]),
+            type: functionTypeNone(
+              returnType: intNone,
+              formalParameters: [requiredParameter(type: T_none)],
+            ),
           ),
-        ]),
-        greatest: 'void Function(int Function(Object?))',
-        least: 'void Function(int Function(Never))');
+        ],
+      ),
+      greatest: 'void Function(int Function(Object?))',
+      least: 'void Function(int Function(Never))',
+    );
   }
 
   test_function() {
     // void Function<U extends T>()
     _check(
       functionTypeNone(
-        typeParameters: [
-          typeParameter('U', bound: T_none),
-        ],
+        typeParameters: [typeParameter('U', bound: T_none)],
         returnType: voidNone,
       ),
       greatest: 'Function',
@@ -105,18 +103,14 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     _check1(dynamicType, 'dynamic');
 
     _check1(
-      functionTypeNone(returnType: stringNone, formalParameters: [
-        requiredParameter(type: intNone),
-      ]),
+      functionTypeNone(
+        returnType: stringNone,
+        formalParameters: [requiredParameter(type: intNone)],
+      ),
       'String Function(int)',
     );
 
-    _check1(
-      typeParameterTypeNone(
-        typeParameter('U'),
-      ),
-      'U',
-    );
+    _check1(typeParameterTypeNone(typeParameter('U')), 'U');
   }
 
   void _check(
@@ -125,16 +119,10 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     required String least,
   }) {
     var greatestResult = typeSystem.greatestClosure(type, [T]);
-    expect(
-      greatestResult.getDisplayString(),
-      greatest,
-    );
+    expect(greatestResult.getDisplayString(), greatest);
 
     var leastResult = typeSystem.leastClosure(type, [T]);
-    expect(
-      leastResult.getDisplayString(),
-      least,
-    );
+    expect(leastResult.getDisplayString(), least);
   }
 
   void _check1(TypeImpl type, String expected) {

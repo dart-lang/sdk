@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -58,7 +58,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// given [variable] that is located in the given [block] or in a surrounding
   /// block. Return `null` if the declaration can't be found.
   VariableDeclarationList? _findDeclaration(
-    LocalVariableElement2 variable,
+    LocalVariableElement variable,
     Block? block,
   ) {
     var currentBlock = block;
@@ -67,7 +67,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         if (statement is VariableDeclarationStatement) {
           var variableList = statement.variables;
           for (var declaration in variableList.variables) {
-            if (declaration.declaredElement2 == variable) {
+            if (declaration.declaredElement == variable) {
               return variableList;
             }
           }
@@ -89,7 +89,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     }
 
     var element = leftHandSide.element;
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return;
     }
 

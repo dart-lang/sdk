@@ -28,6 +28,12 @@ void main() {
 class StatementCompletionTest extends AbstractSingleUnitTest {
   late SourceChange change;
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   int _after(String source, String match) =>
       source.indexOf(match) + match.length;
 

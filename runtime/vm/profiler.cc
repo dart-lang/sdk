@@ -14,6 +14,7 @@
 #include "vm/compiler/compiler_state.h"
 #endif
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
@@ -44,7 +45,7 @@ DEFINE_FLAG(int,
             max_profile_depth,
             Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
 #else
 DEFINE_FLAG(bool, profile_vm, false, "Always collect native stack traces.");
@@ -362,9 +363,9 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   ASSERT(stack_lower != nullptr);
   ASSERT(stack_upper != nullptr);
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      thread != nullptr && thread->IsExecutingDartCode();
+      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -374,7 +375,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   }
 #else
   const bool use_simulator_stack_bounds = false;
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
   if (!use_simulator_stack_bounds) {
     *stack_lower = os_thread->stack_limit();
@@ -458,6 +459,16 @@ void Profiler::DumpStackTrace(void* context) {
 #endif
 }
 
+// We need the call to DumpStackTrace to be a non-tail call and this function to
+// not get the shrink wrap optimization, otherwise the frame from which we start
+// our stack walk may be clobbered before the stack walk begins.
+#ifdef _MSC_VER
+#pragma optimize("", off)
+#elif __clang__
+__attribute__((optnone))
+#elif __GNUC__
+__attribute__((optimize(0)))
+#endif
 void Profiler::DumpStackTrace(bool for_crash) {
   uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
@@ -467,6 +478,9 @@ void Profiler::DumpStackTrace(bool for_crash) {
 
   DumpStackTrace(sp, fp, pc, for_crash);
 }
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
 
 static void DumpCompilerState(Thread* thread) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -513,7 +527,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 #else
   const char kCompressedPointers[] = "no";
 #endif
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   const char kUsingSimulator[] = "yes";
 #else
   const char kUsingSimulator[] = "no";
@@ -606,7 +620,7 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
 };
 
 void Profiler::Cleanup() {
-  if (!FLAG_profiler) {
+  if (!FLAG_profiler && !initialized_) {
     return;
   }
   ASSERT(initialized_);
@@ -1026,7 +1040,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->isolate()->IsDeoptimizing()) {
+    if (thread_->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
     }
@@ -1034,7 +1048,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
-      // Exited from compiled code.
+      // Exited from compiled code or interpreter.
       pc_ = nullptr;
       fp_ = exit_fp;
 
@@ -1046,17 +1060,27 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
+
+#if defined(DART_DYNAMIC_MODULES)
+      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
+        // Running interpreter.
+        pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
+        fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
+        RELEASE_ASSERT(IsInterpretedFrame());
+#endif
       } else {
         // No Dart on the stack; caller shouldn't use this walker.
         UNREACHABLE();
       }
 
+      const bool is_interpreted_frame = IsInterpretedFrame();
       const bool is_entry_frame =
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-          StubCode::InInvocationStub(Stack(0)) ||
-          StubCode::InInvocationStub(Stack(1));
+          StubCode::InInvocationStub(Stack(0), is_interpreted_frame) ||
+          StubCode::InInvocationStub(Stack(1), is_interpreted_frame);
 #else
-          StubCode::InInvocationStub(reinterpret_cast<uword>(lr_));
+          StubCode::InInvocationStub(reinterpret_cast<uword>(lr_),
+                                     is_interpreted_frame);
 #endif
       if (is_entry_frame) {
         // During the prologue of a function, CallerPC will return the caller's
@@ -1074,7 +1098,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
     for (;;) {
       // Skip entry frame.
-      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
+      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                     IsInterpretedFrame())) {
         pc_ = nullptr;
         fp_ = ExitLink();
         if (fp_ == nullptr) {
@@ -1086,8 +1111,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         fp_ = CallerFP();
 
         // At least one frame between exit and next entry frame.
-        RELEASE_ASSERT(
-            !StubCode::InInvocationStub(reinterpret_cast<uword>(pc_)));
+        RELEASE_ASSERT(!StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                                   IsInterpretedFrame()));
       }
 
       if (!Append(reinterpret_cast<uword>(pc_), reinterpret_cast<uword>(fp_))) {
@@ -1100,9 +1125,21 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   }
 
  private:
+  bool IsInterpretedFrame() const {
+#if defined(DART_DYNAMIC_MODULES)
+    Interpreter* interpreter = thread_->interpreter();
+    return (interpreter != nullptr) &&
+           interpreter->HasFrame(reinterpret_cast<uword>(fp_));
+#else
+    return false;
+#endif
+  }
+
   uword* CallerPC() const {
     ASSERT(fp_ != nullptr);
-    uword* caller_pc_ptr = fp_ + kSavedCallerPcSlotFromFp;
+    uword* caller_pc_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCSavedCallerPcSlotFromFp
+                                    : kSavedCallerPcSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
     ASAN_UNPOISON(caller_pc_ptr, kWordSize);
@@ -1111,7 +1148,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   uword* CallerFP() const {
     ASSERT(fp_ != nullptr);
-    uword* caller_fp_ptr = fp_ + kSavedCallerFpSlotFromFp;
+    uword* caller_fp_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCSavedCallerFpSlotFromFp
+                                    : kSavedCallerFpSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
     ASAN_UNPOISON(caller_fp_ptr, kWordSize);
@@ -1120,7 +1159,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   uword* ExitLink() const {
     ASSERT(fp_ != nullptr);
-    uword* exit_link_ptr = fp_ + kExitLinkSlotFromEntryFp;
+    uword* exit_link_ptr =
+        fp_ + (IsInterpretedFrame() ? kKBCExitLinkSlotFromEntryFp
+                                    : kExitLinkSlotFromEntryFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(exit_link_ptr, kWordSize);
     ASAN_UNPOISON(exit_link_ptr, kWordSize);
@@ -1248,13 +1289,15 @@ static Sample* SetupSample(Thread* thread,
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
-  uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
-  if (redirect_vm_tag != 0) {
-    vm_tag = redirect_vm_tag;
+  if (FLAG_use_simulator) {
+    uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
+    if (redirect_vm_tag != 0) {
+      vm_tag = redirect_vm_tag;
+    }
   }
 #endif
   sample->set_vm_tag(vm_tag);
@@ -1387,18 +1430,19 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
   uintptr_t lr = state.lr;
-#if defined(USING_SIMULATOR)
-  Simulator* simulator = nullptr;
-#endif
 
   if (in_dart_code) {
-// If we're in Dart code, use the Dart stack pointer.
-#if defined(USING_SIMULATOR)
-    simulator = isolate->simulator();
-    sp = simulator->get_register(SPREG);
-    fp = simulator->get_register(FPREG);
-    pc = simulator->get_pc();
-    lr = simulator->get_lr();
+    // If we're in Dart code, use the Dart stack pointer.
+#if defined(DART_INCLUDE_SIMULATOR)
+    if (FLAG_use_simulator) {
+      Simulator* simulator = isolate->simulator();
+      sp = simulator->get_register(SPREG);
+      fp = simulator->get_register(FPREG);
+      pc = simulator->get_pc();
+      lr = simulator->get_lr();
+    } else {
+      sp = state.dsp;
+    }
 #else
     sp = state.dsp;
 #endif
@@ -1428,7 +1472,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (isolate->IsDeoptimizing()) {
+    if (thread->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       return;
@@ -1499,6 +1543,8 @@ class CodeLookupTableBuilder : public ObjectVisitor {
   void VisitObject(ObjectPtr raw_obj) override {
     if (raw_obj->IsCode() && !Code::IsUnknownDartCode(Code::RawCast(raw_obj))) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
+    } else if (raw_obj->IsBytecode()) {
+      table_->Add(Bytecode::Handle(Bytecode::RawCast(raw_obj)));
     }
   }
 
@@ -1551,7 +1597,7 @@ void CodeLookupTable::Build(Thread* thread) {
 
 void CodeLookupTable::Add(const Object& code) {
   ASSERT(!code.IsNull());
-  ASSERT(code.IsCode());
+  ASSERT(code.IsCode() || code.IsBytecode());
   CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.ptr()));
   code_objects_.Add(cd);
 }
@@ -1732,6 +1778,11 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                uword pc_marker,
                                                uword* stack_buffer) {
   ASSERT(cd != nullptr);
+  if (cd->code().IsBytecode()) {
+    // Bytecode frame build is atomic from the profiler's perspective,
+    // there are no missing frames.
+    return;
+  }
   const Code& code = Code::Handle(Code::RawCast(cd->code().ptr()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving

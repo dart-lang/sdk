@@ -69,12 +69,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   }
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
-  static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
-  static field lateExtensionField1 = self::_#Extension|lateExtensionField1#isSet;
+  static impl field lateExtensionField1 = self::_#Extension|lateExtensionField1;
+  static impl field lateExtensionField1 = self::_#Extension|lateExtensionField1#isSet;
   static get lateExtensionField1 = get self::Extension|lateExtensionField1;
   static set lateExtensionField1 = set self::Extension|lateExtensionField1;
-  static field lateExtensionField2 = self::_#Extension|lateExtensionField2;
-  static field lateExtensionField2 = self::_#Extension|lateExtensionField2#isSet;
+  static impl field lateExtensionField2 = self::_#Extension|lateExtensionField2;
+  static impl field lateExtensionField2 = self::_#Extension|lateExtensionField2#isSet;
   static get lateExtensionField2 = get self::Extension|lateExtensionField2;
   static set lateExtensionField2 = set self::Extension|lateExtensionField2;
   static method staticMethod = self::Extension|staticMethod;

@@ -13,7 +13,7 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
   FlutterSwapWithParent({required super.context});
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
+  AssistKind get assistKind => DartAssistKind.flutterSwapWithParent;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -19,39 +19,43 @@ class NonConstantListElementTest extends PubPackageResolutionTest
 
 mixin NonConstantListElementTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1)],
+    );
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+    );
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1)],
+    );
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+    );
   }
 
   test_const_ifElement_thenFalse_constThen() async {
@@ -62,12 +66,13 @@ var v = const [if (1 < 0) a];
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+    );
   }
 
   test_const_ifElement_thenTrue_constThen() async {
@@ -78,30 +83,33 @@ var v = const [if (1 > 0) a];
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+    );
   }
 
   test_const_topVar() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final dynamic a = 0;
 var v = const [a];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1)],
+    );
   }
 
   test_const_topVar_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 var v = const [a + 1];
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1)],
+    );
   }
 
   test_nonConst_topVar() async {

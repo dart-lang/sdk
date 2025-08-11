@@ -172,7 +172,7 @@ class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
     return new TypeEnvironment(coreTypes, hierarchy)
-        .performNullabilityAwareSubtypeCheck(subtype, supertype);
+        .performSubtypeCheck(subtype, supertype);
   }
 
   @override

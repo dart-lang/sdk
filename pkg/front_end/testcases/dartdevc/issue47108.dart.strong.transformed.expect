@@ -6,7 +6,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
     return new self::C::•<self::C::_#new#tearOff::T%>();
 }
 static const field <T extends core::Object? = dynamic>() → self::C<T%> constructorTearOff = #C1;

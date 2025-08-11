@@ -16,7 +16,7 @@ import 'dwarf_stack_trace_test.dart' as base;
 bar() {
   // Keep the 'throw' and its argument on separate lines.
   throw // force linebreak with dart format
-      "Hello, Dwarf!";
+  "Hello, Dwarf!";
 }
 
 @pragma("vm:never-inline")
@@ -40,8 +40,16 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile(path.join(
-      Platform.environment['TEST_COMPILATION_DIR']!, "dwarf_obfuscate.so"))!;
+  if (Platform.script.toString().endsWith(".dll")) {
+    return; // DWARF not available in DLLs.
+  }
+
+  final dwarf = Dwarf.fromFile(
+    path.join(
+      Platform.environment['TEST_COMPILATION_DIR']!,
+      "dwarf_obfuscate.so",
+    ),
+  )!;
 
   await base.checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
@@ -51,26 +59,29 @@ final expectedCallsInfo = <List<DartCallInfo>>[
   // into foo (so we'll get information for two calls for that PC address).
   [
     DartCallInfo(
-        function: "bar",
-        filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 18,
-        column: 3,
-        inlined: true),
+      function: "bar",
+      filename: "dwarf_stack_trace_obfuscate_test.dart",
+      line: 18,
+      column: 3,
+      inlined: true,
+    ),
     DartCallInfo(
-        function: "foo",
-        filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 24,
-        column: 3,
-        inlined: false)
+      function: "foo",
+      filename: "dwarf_stack_trace_obfuscate_test.dart",
+      line: 24,
+      column: 3,
+      inlined: false,
+    ),
   ],
   // The second frame corresponds to call to foo in main.
   [
     DartCallInfo(
-        function: "main",
-        filename: "dwarf_stack_trace_obfuscate_test.dart",
-        line: 30,
-        column: 5,
-        inlined: false)
+      function: "main",
+      filename: "dwarf_stack_trace_obfuscate_test.dart",
+      line: 30,
+      column: 5,
+      inlined: false,
+    ),
   ],
   // Don't assume anything about any of the frames below the call to foo
   // in main, as this makes the test too brittle.

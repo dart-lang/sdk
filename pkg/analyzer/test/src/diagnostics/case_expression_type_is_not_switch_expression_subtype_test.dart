@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeIsNotSwitchExpressionSubtypeTest);
     defineReflectiveTests(
-        CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language219);
+      CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language219,
+    );
   });
 }
 
@@ -44,19 +45,27 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
       case _Variant.nullSafe:
         expectedErrors = [
           error(
-              CompileTimeErrorCode
-                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-              180,
-              2),
-          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-              180, 2),
+            CompileTimeErrorCode
+                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            180,
+            2,
+          ),
           error(
-              CompileTimeErrorCode
-                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-              206,
-              10),
-          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-              206, 10),
+            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            180,
+            2,
+          ),
+          error(
+            CompileTimeErrorCode
+                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            206,
+            10,
+          ),
+          error(
+            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            206,
+            10,
+          ),
         ];
       case _Variant.patterns:
         expectedErrors = [];
@@ -92,15 +101,17 @@ void f(A e) {
       case _Variant.nullSafe:
         expectedErrors = [
           error(
-              CompileTimeErrorCode
-                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-              145,
-              2),
+            CompileTimeErrorCode
+                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            145,
+            2,
+          ),
           error(
-              CompileTimeErrorCode
-                  .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-              171,
-              10),
+            CompileTimeErrorCode
+                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            171,
+            10,
+          ),
         ];
       case _Variant.patterns:
         expectedErrors = [

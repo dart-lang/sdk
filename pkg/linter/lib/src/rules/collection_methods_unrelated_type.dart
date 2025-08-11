@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -23,13 +26,11 @@ class CollectionMethodsUnrelatedType extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.collection_methods_unrelated_type;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.collection_methods_unrelated_type;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -71,7 +72,7 @@ abstract class _MethodDefinition {
 
 class _MethodDefinitionForElement extends _MethodDefinition {
   /// The element on which this method is declared.
-  final ClassElement2 element;
+  final ClassElement element;
 
   _MethodDefinitionForElement(
     this.element,
@@ -82,7 +83,7 @@ class _MethodDefinitionForElement extends _MethodDefinition {
 
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) =>
-      targetType.asInstanceOf2(element);
+      targetType.asInstanceOf(element);
 }
 
 class _MethodDefinitionForName extends _MethodDefinition {
@@ -100,10 +101,10 @@ class _MethodDefinitionForName extends _MethodDefinition {
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
-      var element = supertype.element3;
-      if (element.name3 == interfaceName &&
-          element.library2.name3 == libraryName) {
-        return targetType.asInstanceOf2(element);
+      var element = supertype.element;
+      if (element.name == interfaceName &&
+          element.library.name == libraryName) {
+        return targetType.asInstanceOf(element);
       }
     }
     return null;
@@ -120,7 +121,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get indexOperators => [
     // Argument to `Map<K, V>.[]` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       '[]',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -129,32 +130,32 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get methods => [
     // Argument to `Iterable<E>.contains` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'contains',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `List<E>.remove` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.listElement2,
+      typeProvider.listElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Map<K, V>.containsKey` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'containsKey',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Map<K, V>.containsValue` should be assignable to `V`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'containsValue',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
       typeArgumentIndex: 1,
     ),
     // Argument to `Map<K, V>.remove` should be assignable to `K`.
     _MethodDefinitionForElement(
-      typeProvider.mapElement2,
+      typeProvider.mapElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -167,13 +168,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     ),
     // Argument to `Set<E>.lookup` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.setElement2,
+      typeProvider.setElement,
       'lookup',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
     // Argument to `Set<E>.remove` should be assignable to `E`.
     _MethodDefinitionForElement(
-      typeProvider.setElement2,
+      typeProvider.setElement,
       'remove',
       _ExpectedArgumentKind.assignableToCollectionTypeArgument,
     ),
@@ -258,7 +259,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
         if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -269,7 +270,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToCollection:
         if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -279,12 +280,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
-        var iterableType = collectionType.asInstanceOf2(
-          typeProvider.iterableElement2,
+        var iterableType = collectionType.asInstanceOf(
+          typeProvider.iterableElement,
         );
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),

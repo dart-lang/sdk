@@ -14,37 +14,27 @@ final String stdinPipePath = '/dev/fd/0';
 
 startProcess(Directory dir, String fname, String script, String result) async {
   File file = new File(join(dir.path, fname));
-  file.writeAsString(script);
+  file.writeAsStringSync(script);
   StringBuffer output = new StringBuffer();
   Process process = await Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--sound-null-safety')
-        ..add('--verbosity=warning')
-        ..add(file.path));
-  bool stdinWriteFailed = false;
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--sound-null-safety')
+      ..add('--verbosity=warning')
+      ..add(file.path),
+  );
   process.stdout.transform(utf8.decoder).listen(output.write);
   process.stderr.transform(utf8.decoder).listen((data) {
-    if (!stdinWriteFailed) {
-      Expect.fail(data);
-      process.kill();
-    }
+    // No stderr data expected (the subprocess will catch exceptions and print
+    // them to stdout).
+    Expect.fail(data);
   });
-  process.stdin.done.catchError((e) {
-    // If the write to stdin fails, then give up. We can't test the thing we
-    // wanted to test.
-    stdinWriteFailed = true;
-    process.kill();
-  });
-  await process.stdin.flush();
   await process.stdin.close();
 
   int status = await process.exitCode;
-  if (!stdinWriteFailed) {
-    Expect.equals(0, status);
-    Expect.contains(result, output.toString());
-  }
+  Expect.equals(0, status);
+  Expect.contains(result, output.toString());
 }
 
 main() async {
@@ -58,7 +48,8 @@ main() async {
 
   Directory directory = Directory.systemTemp.createTempSync('named_pipe');
 
-  final String delScript = '''
+  final String delScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -72,7 +63,8 @@ main() async {
     }
   ''';
 
-  final String renameScript = '''
+  final String renameScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -86,7 +78,8 @@ main() async {
     }
   ''';
 
-  final String copyScript = '''
+  final String copyScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -110,7 +103,11 @@ main() async {
 
   await startProcess(directory, 'delscript', delScript, "Cannot delete file");
   await startProcess(
-      directory, 'renamescript', renameScript, "Cannot rename file");
+    directory,
+    'renamescript',
+    renameScript,
+    "Cannot rename file",
+  );
   await startProcess(directory, 'copyscript', copyScript, "Cannot copy file");
 
   directory.deleteSync(recursive: true);

@@ -87,10 +87,9 @@ abstract class _NetworkProfiling {
           responseJson = _getHttpEnableTimelineLogging();
           break;
         case _kGetHttpProfileRPC:
-          final updatedSince =
-              parameters.containsKey('updatedSince')
-                  ? int.tryParse(parameters['updatedSince']!)
-                  : null;
+          final updatedSince = parameters.containsKey('updatedSince')
+              ? int.tryParse(parameters['updatedSince']!)
+              : null;
           responseJson = json.encode({
             'type': 'HttpProfile',
             'timestamp': DateTime.now().microsecondsSinceEpoch,
@@ -185,10 +184,9 @@ String _getHttpProfileRequest(Map<String, String> parameters) {
     final profileMap = getHttpClientProfilingData().elementAtOrNull(
       int.parse(id.substring('from_package/'.length)) - 1,
     );
-    request =
-        profileMap == null
-            ? null
-            : _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
+    request = profileMap == null
+        ? null
+        : _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
   } else {
     request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
   }
@@ -249,9 +247,9 @@ abstract class _SocketProfile {
     // `id.toString()`?
     final address =
         (addr.type == InternetAddress.anyIPv6 ||
-                addr.type == InternetAddress.loopbackIPv6)
-            ? '[${addr.address}]'
-            : addr.address;
+            addr.type == InternetAddress.loopbackIPv6)
+        ? '[${addr.address}]'
+        : addr.address;
     _idToSocketStatistic[id.toString()] = _SocketStatistic(
       id.toString(),
       startTime: Timeline.now,
@@ -273,6 +271,7 @@ abstract class _SocketProfile {
     // Skip any socket that started before `_enableSocketProfiling` was turned
     // on.
     final stats = _idToSocketStatistic[idKey];
+    assert(stats != null, '"$idKey" not found in "_idToSocketStatistic" map');
     if (stats == null) return;
     switch (type) {
       case _SocketProfileType.endTime:

@@ -14,12 +14,15 @@ import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
 main() async {
-  final ffiTestDynamicLibrary =
-      dlopenPlatformSpecific("ffi_test_dynamic_library");
+  final ffiTestDynamicLibrary = dlopenPlatformSpecific(
+    "ffi_test_dynamic_library",
+  );
 
-  final MemMove = ffiTestDynamicLibrary.lookupFunction<
-      Void Function(Pointer<Void>, Pointer<Void>, IntPtr),
-      void Function(Pointer<Void>, Pointer<Void>, int)>("MemMove");
+  final MemMove = ffiTestDynamicLibrary
+      .lookupFunction<
+        Void Function(Pointer<Void>, Pointer<Void>, IntPtr),
+        void Function(Pointer<Void>, Pointer<Void>, int)
+      >("MemMove");
 
   // To ensure resources are freed, wrap them in a [using] call.
   using((Arena arena) {
@@ -79,17 +82,23 @@ main() async {
     print(p.contents());
   });
 
-  final allocateResource = ffiTestDynamicLibrary.lookupFunction<
-      Pointer<SomeResource> Function(),
-      Pointer<SomeResource> Function()>("AllocateResource");
+  final allocateResource = ffiTestDynamicLibrary
+      .lookupFunction<
+        Pointer<SomeResource> Function(),
+        Pointer<SomeResource> Function()
+      >("AllocateResource");
 
-  final useResource = ffiTestDynamicLibrary.lookupFunction<
-      Void Function(Pointer<SomeResource>),
-      void Function(Pointer<SomeResource>)>("UseResource");
+  final useResource = ffiTestDynamicLibrary
+      .lookupFunction<
+        Void Function(Pointer<SomeResource>),
+        void Function(Pointer<SomeResource>)
+      >("UseResource");
 
-  final releaseResource = ffiTestDynamicLibrary.lookupFunction<
-      Void Function(Pointer<SomeResource>),
-      void Function(Pointer<SomeResource>)>("ReleaseResource");
+  final releaseResource = ffiTestDynamicLibrary
+      .lookupFunction<
+        Void Function(Pointer<SomeResource>),
+        void Function(Pointer<SomeResource>)
+      >("ReleaseResource");
 
   // Using an FFI call to release a resource.
   using((Arena arena) {

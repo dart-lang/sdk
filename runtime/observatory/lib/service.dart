@@ -6,10 +6,11 @@ library service;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
+
 import 'package:observatory/event.dart' show createEventFromServiceEvent;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';

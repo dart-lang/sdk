@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -59,15 +59,15 @@ class TypeMemberContributor implements CompletionContributor {
   void _computeSuggestions(
       DartCompletionRequest request,
       CompletionCollector collector,
-      LibraryElement2 containingLibrary,
+      LibraryElement containingLibrary,
       Expression expression) {
     if (expression is Identifier) {
       var element = expression.element;
-      if (element is ClassElement2) {
+      if (element is ClassElement) {
         // Suggestions provided by StaticMemberContributor
         return;
       }
-      if (element is PrefixElement2) {
+      if (element is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor
         return;
       }
@@ -80,11 +80,11 @@ class TypeMemberContributor implements CompletionContributor {
       // then attempt to get a better type from the element
       if (expression is Identifier) {
         var elem = expression.element;
-        if (elem is FunctionTypedElement2) {
+        if (elem is FunctionTypedElement) {
           type = elem.returnType;
         } else if (elem is FormalParameterElement) {
           type = elem.type;
-        } else if (elem is LocalVariableElement2) {
+        } else if (elem is LocalVariableElement) {
           type = elem.type;
         }
         if ((type == null || type is DynamicType) &&
@@ -210,7 +210,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   void declaredLocalVar(
     Token name,
     TypeAnnotation? type,
-    LocalVariableElement2 declaredElement,
+    LocalVariableElement declaredElement,
   ) {
     if (name.lexeme == targetName) {
       typeFound = declaredElement.type;
@@ -230,7 +230,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(Token name, Element2? element, TypeAnnotation? type) {
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
     if (name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
@@ -273,7 +273,7 @@ class _SuggestionBuilder {
   final CompletionCollector collector;
 
   /// The library containing the unit in which the completion is requested.
-  final LibraryElement2 containingLibrary;
+  final LibraryElement containingLibrary;
 
   /// Map indicating, for each possible completion identifier, whether we have
   /// already generated completions for a getter, setter, or both. The "both"
@@ -307,13 +307,13 @@ class _SuggestionBuilder {
     // exceptions to handle getter/setter pairs).
     var types = _getTypeOrdering(type);
     for (var targetType in types) {
-      for (var method in targetType.methods2) {
+      for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
           _addSuggestion(method,
-              relevance: method.name3 == containingMethodName
+              relevance: method.name == containingMethodName
                   ? DART_RELEVANCE_HIGH
                   : null);
         }
@@ -326,7 +326,7 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
-              if (propertyAccessor.variable3 case var variable?) {
+              if (propertyAccessor.variable case var variable?) {
                 _addSuggestion(variable);
               }
             }
@@ -343,9 +343,9 @@ class _SuggestionBuilder {
 
   /// Add a suggestion based upon the given element, provided that it is not
   /// shadowed by a previously added suggestion.
-  void _addSuggestion(Element2 element, {int? relevance}) {
+  void _addSuggestion(Element element, {int? relevance}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries
         return;
       }
@@ -364,14 +364,14 @@ class _SuggestionBuilder {
 
     var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
         identifier, () => _COMPLETION_TYPE_NONE);
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       // Anything shadows a method.
       if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
         return;
       }
       _completionTypesGenerated[identifier] =
           _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       if (element is GetterElement) {
         // Getters, fields, and methods shadow a getter.
         if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
@@ -387,7 +387,7 @@ class _SuggestionBuilder {
         _completionTypesGenerated[identifier] =
             _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_SETTER;
       }
-    } else if (element is FieldElement2) {
+    } else if (element is FieldElement) {
       // Fields and methods shadow a field. A getter/setter pair shadows a
       // field, but a getter or setter by itself doesn't.
       if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
@@ -420,11 +420,11 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    var classesSeen = <InterfaceElement2>{};
+    var classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element3)) {
+      if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

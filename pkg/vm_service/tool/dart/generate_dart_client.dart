@@ -134,8 +134,8 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     _services[service] = cb;
   }
 
-  void _processMessage(dynamic message) {
-    // Expect a String, an int[], or a ByteData.
+  void _processMessage(Object? message) {
+    // Expect a String, a List<int>, or a ByteData.
     if (message is String) {
       _processMessageStr(message);
     } else if (message is Uint8List) {
@@ -158,7 +158,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     final dataLength = bytes.lengthInBytes - dataOffset;
     final decoder = (const Utf8Decoder()).fuse(const JsonDecoder());
     final map = decoder.convert(Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as dynamic;
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as Map;
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
     if (map['method'] == 'streamNotify') {
@@ -197,8 +197,8 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     final request = _outstandingRequests.remove(json['id']);
     if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
-    } else if (json['error'] != null) {
-      request.completeError(RPCError.parse(request.method, json['error']));
+    } else if (json['error'] case Map error) {
+      request.completeError(RPCError.parse(request.method, error));
     } else {
       final result = json['result'] as Map<String, dynamic>;
       final type = result['type'];
@@ -213,25 +213,27 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     }
   }
 
-  Future _processRequest(Map<String, dynamic> json) async {
-    final result = await _routeRequest(json['method'], json['params'] ?? <String, dynamic>{});
+  Future<void> _processRequest(Map<String, dynamic> json) async {
+    final result = await _routeRequest(
+        json['method'], json['params'] ?? <String, dynamic>{});
     if (_disposed) {
       // The service has disappeared. Don't try to send the response.
       return;
     }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
-    String message = jsonEncode(result);
+    final message = jsonEncode(result);
     _onSend.add(message);
     _writeMessage(message);
   }
 
-  Future _processNotification(Map<String, dynamic> json) async {
+  Future<void> _processNotification(Map<String, dynamic> json) async {
     final method = json['method'];
     final params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       final streamId = params['streamId'];
-      _getEventController(streamId).add(createServiceObject(params['event'], const ['Event'])! as Event);
+      _getEventController(streamId)
+          .add(createServiceObject(params['event'], const ['Event'])! as Event);
     } else {
       await _routeRequest(method, params);
     }
@@ -248,7 +250,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     try {
       return await service(params);
     } catch (e, st) {
-      RPCError error = RPCError.withDetails(
+      final error = RPCError.withDetails(
         method,
         RPCErrorKind.kServerError.code,
         '$e',
@@ -261,7 +263,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
 
   static const _rpcError = r'''
 
-typedef DisposeHandler = Future Function();
+typedef DisposeHandler = Future<void> Function();
 
 // These error codes must be kept in sync with those in vm/json_stream.h and
 // vmservice.dart.
@@ -334,6 +336,10 @@ enum RPCErrorKind {
   kInvalidTimelineRequest(code: 114,
       message: 'Invalid timeline request for the current timeline configuration'),
 
+  /// Information about the microtasks queued in the specified isolate cannot be
+  /// retrieved.
+  kCannotGetQueuedMicrotasks(code: 115, message: 'Cannot get queued microtasks'),
+
   /// The custom stream does not exist.
   kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),
 
@@ -358,7 +364,7 @@ enum RPCErrorKind {
 }
 
 class RPCError implements Exception {
-  static RPCError parse(String callingMethod, dynamic json) {
+  static RPCError parse(String callingMethod, Map json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
 
@@ -461,7 +467,7 @@ String decodeBase64(String str) => utf8.decode(base64.decode(str));
 bool _isNullInstance(Map json) => ((json['type'] == '@Instance') &&
                                   (json['kind'] == 'Null'));
 
-Object? createServiceObject(dynamic json, List<String> expectedTypes) {
+Object? createServiceObject(Object? json, List<String> expectedTypes) {
   if (json == null) return null;
 
   if (json is List) {
@@ -495,7 +501,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 }
 
 dynamic _createSpecificObject(
-    dynamic json, dynamic Function(Map<String, dynamic> map) creator) {
+    Object? json, dynamic Function(Map<String, dynamic> map) creator) {
   if (json == null) return null;
 
   if (json is List) {
@@ -511,7 +517,19 @@ dynamic _createSpecificObject(
   }
 }
 
-Future<T> extensionCallHelper<T>(VmService service, String method, Map<String, dynamic> args) {
+/// Returns a list of `T` using [createServiceObject] if [json] is non-`null`,
+/// and `null` otherwise.
+List<T>? _createServiceObjectListOrNull<T>(
+    Object? json, List<String> expectedTypes) {
+  if (json == null) return null;
+  final serviceObject = createServiceObject(json, expectedTypes) as List?;
+  if (serviceObject == null) return [];
+  return List<T>.from(serviceObject);
+}
+
+
+Future<T> extensionCallHelper<T>(
+    VmService service, String method, Map<String, dynamic> args) {
   return service._call(method, args);
 }
 
@@ -529,7 +547,7 @@ void addTypeFactory(String name, Function factory) {
     gen.writeln();
     gen.writeln('final _typeFactories = <String, Function>{');
     for (var type in types) {
-      gen.writeln("'${type!.rawName}': ${type.name}.parse,");
+      gen.writeln("'${type.rawName}': ${type.name}.parse,");
     }
     gen.writeln('};');
     gen.writeln();
@@ -668,12 +686,12 @@ typedef VmServiceFactory<T extends VmService> = T Function({
     }
     gen.writeln();
     gen.writeln('// types');
-    types.where((t) => !t!.skip).forEach((t) => t!.generate(gen));
+    types.where((t) => !t.skip).forEach((t) => t.generate(gen));
   }
 
   void setDefaultValue(String typeName, String fieldName, String defaultValue) {
     types
-        .firstWhere((t) => t!.name == typeName)!
+        .firstWhere((t) => t.name == typeName)
         .fields
         .firstWhere((f) => f.name == fieldName)
         .defaultValue = defaultValue;

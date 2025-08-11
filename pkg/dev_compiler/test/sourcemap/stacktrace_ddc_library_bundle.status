@@ -1,0 +1,8 @@
+# Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# TODO(https://github.com/dart-lang/sdk/issues/60627): Get these to pass.
+throw_in_constructor: Crash
+throw_in_constructor_from_async: Crash
+throw_in_instance_method: Crash

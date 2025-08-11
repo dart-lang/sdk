@@ -156,8 +156,12 @@ class CaptureEvents extends Events {
 
   CaptureEvents(Stream stream, {bool cancelOnError = false}) {
     this.cancelOnError = cancelOnError;
-    subscription = stream.listen(add,
-        onError: addError, onDone: close, cancelOnError: cancelOnError);
+    subscription = stream.listen(
+      add,
+      onError: addError,
+      onDone: close,
+      cancelOnError: cancelOnError,
+    );
   }
 
   void addError(error, [StackTrace? stackTrace]) {

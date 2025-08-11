@@ -144,9 +144,7 @@ ExportDirective
     var parseResult = parseStringWithErrors(r'''
 export 'a.dart'
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 7, 8),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 7, 8)]);
 
     var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''

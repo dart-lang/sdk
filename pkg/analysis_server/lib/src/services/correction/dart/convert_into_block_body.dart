@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -35,7 +35,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
       applicability = CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
+  AssistKind get assistKind => DartAssistKind.convertIntoBlockBody;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
@@ -179,7 +179,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     return [returnCode];
   }
 
-  ExecutableElement2? _getFunctionElement(AstNode? node) {
+  ExecutableElement? _getFunctionElement(AstNode? node) {
     if (node is MethodDeclaration) {
       return node.declaredFragment?.element;
     } else if (node is ConstructorDeclaration) {

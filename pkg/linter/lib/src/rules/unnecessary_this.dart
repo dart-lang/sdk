@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,13 +19,10 @@ class UnnecessaryThis extends LintRule {
     : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_this;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_this;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addConstructorFieldInitializer(this, visitor);
     registry.addThisExpression(this, visitor);
@@ -33,14 +32,15 @@ class UnnecessaryThis extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.thisKeyword != null) {
-      rule.reportLintForToken(node.thisKeyword);
+    var thisKeyword = node.thisKeyword;
+    if (thisKeyword != null) {
+      rule.reportAtToken(thisKeyword);
     }
   }
 
@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     var parent = node.parent;
 
-    Element2? element;
+    Element? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
       element = getWriteOrReadElement(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
@@ -57,12 +57,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    element = element?.baseElement;
     if (_canReferenceElementWithoutThisPrefix(element, node)) {
-      rule.reportLintForToken(node.thisKeyword);
+      rule.reportAtToken(node.thisKeyword);
     }
   }
 
-  bool _canReferenceElementWithoutThisPrefix(Element2? element, AstNode node) {
+  bool _canReferenceElementWithoutThisPrefix(Element? element, AstNode node) {
     if (element == null) return false;
 
     var id = element.displayName;
@@ -90,8 +91,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = resultElement?.enclosingElement2;
-      return enclosing is ClassElement2;
+      var enclosing = resultElement?.enclosingElement;
+      return enclosing is ClassElement;
     }
 
     // Should not happen.

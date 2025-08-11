@@ -12,7 +12,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -41,15 +40,17 @@ final class CorrectionUtils {
       return endOfLine;
     }
 
-    if (_buffer.contains('\r\n')) {
+    var indexOfNewline = _buffer.indexOf('\n');
+    if (indexOfNewline < 0) {
+      // No `\n` (and thus no `\r\n` either) found.
+      return Platform.lineTerminator;
+    }
+
+    if (indexOfNewline > 0 &&
+        _buffer.codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
       return _endOfLine = '\r\n';
     }
-
-    if (_buffer.contains('\n')) {
-      return _endOfLine = '\n';
-    }
-
-    return Platform.lineTerminator;
+    return _endOfLine = '\n';
   }
 
   String get oneIndent => _oneIndent;
@@ -57,7 +58,7 @@ final class CorrectionUtils {
   String get twoIndents => _twoIndents;
 
   /// Returns the [AstNode] that encloses the given [offset].
-  AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(_unit);
+  AstNode? findNode(int offset) => _unit.nodeCovering(offset: offset);
 
   /// Skips whitespace characters and single EOL on the right from [index].
   ///
@@ -300,8 +301,11 @@ final class CorrectionUtils {
       for (var lineRange in lineRanges) {
         if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
           inString = true;
+          break;
         }
-        if (lineOffset > lineRange.end) {
+        // We can skip the rest if this line ends before the end of this range
+        // because subsequent ranges are after it.
+        if (lineOffset < lineRange.end) {
           break;
         }
       }
@@ -441,7 +445,7 @@ class TokenUtils {
       var scanner = Scanner(
         _SourceMock(),
         CharSequenceReader(s),
-        AnalysisErrorListener.NULL_LISTENER,
+        DiagnosticListener.nullListener,
       )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

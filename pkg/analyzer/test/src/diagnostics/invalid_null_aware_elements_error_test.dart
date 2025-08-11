@@ -16,38 +16,42 @@ main() {
 @reflectiveTest
 class InvalidNullAwareElementsErrorTest extends PubPackageResolutionTest {
   test_invalid_null_aware_element_in_list() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const stringConst = "";
 const list = [0, ?stringConst];
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 41, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 41, 1)],
+    );
   }
 
   test_invalid_null_aware_element_in_set() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const stringConst = "";
 const set = {0, ?stringConst};
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 40, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 40, 1)],
+    );
   }
 
   test_invalid_null_aware_key_in_map() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const intConst = 0;
 const map = {?0: intConst};
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 33, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 33, 1)],
+    );
   }
 
   test_invalid_null_aware_value_in_map() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const intConst = 0;
 const map = {0: ?intConst};
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 36, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 36, 1)],
+    );
   }
 }

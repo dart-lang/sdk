@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/dartdev.dart';
@@ -26,6 +27,9 @@ const String dartVersionFilePrefix2_9 = '''
 // ignore: illegal_language_version_override
 // @dart = 2.9
 ''';
+
+/// Return the root URI of the SDK by walking up from the pkg/dartdev folder.
+final sdkRootUri = resolveDartDevUri('../../');
 
 void initGlobalState() {
   log = Logger.standard();
@@ -113,6 +117,21 @@ class TestProject {
           ],
         },
       ),
+    );
+    file(
+      '.dart_tool/package_graph.json',
+      JsonEncoder.withIndent('  ').convert({
+        'roots': [name],
+        'packages': [
+          {
+            'name': name,
+            'version': '1.0.0',
+            'dependencies': [],
+            'devDependencies': []
+          },
+        ],
+        'configVersion': 1
+      }),
     );
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
@@ -273,29 +292,8 @@ class TestProject {
     );
   }
 
-  String? _sdkRootPath;
-
-  /// Return the root of the SDK.
-  String get sdkRootPath {
-    if (_sdkRootPath == null) {
-      // Assumes the script importing this one is somewhere under the SDK.
-      String current = path.canonicalize(Platform.script.toFilePath());
-      do {
-        String tryDir = path.dirname(current);
-        if (File(path.join(tryDir, 'pkg', 'dartdev', 'bin', 'dartdev.dart'))
-            .existsSync()) {
-          _sdkRootPath = tryDir;
-          return _sdkRootPath!;
-        }
-        current = tryDir;
-      } while (path.dirname(current) != current);
-      throw StateError('can not find SDK repository root');
-    }
-    return _sdkRootPath!;
-  }
-
   String get absolutePathToDartdevFile =>
-      path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
+      sdkRootUri.resolve('pkg/dartdev/bin/dartdev.dart').toFilePath();
 
   Directory? findDirectory(String name) {
     var directory = Directory(path.join(dir.path, name));
@@ -355,4 +353,11 @@ String replacePathsWithMatchingCase(String input, {required String filePath}) {
     RegExp(RegExp.escape(filePath), caseSensitive: false),
     filePath,
   );
+}
+
+/// Resolves a relative URI from the pkg/dartdev folder.
+Uri resolveDartDevUri(String path) {
+  final dartDevLibUri =
+      Isolate.resolvePackageUriSync(Uri.parse('package:dartdev/'));
+  return dartDevLibUri!.resolve('../$path');
 }

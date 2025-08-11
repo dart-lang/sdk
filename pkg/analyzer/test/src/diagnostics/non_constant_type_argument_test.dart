@@ -17,7 +17,8 @@ main() {
 @reflectiveTest
 class NonConstantTypeArgumentTest extends PubPackageResolutionTest {
   test_asFunction_R() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef T = int Function(int);
 class C<R extends int Function(int)> {
@@ -25,9 +26,9 @@ class C<R extends int Function(int)> {
     p.asFunction<R>();
   }
 }
-''', [
-      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 147, 1),
-    ]);
+''',
+      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 147, 1)],
+    );
   }
 }
 
@@ -67,12 +68,15 @@ void main() {
   }
 
   test_ref_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 T genericRef<T extends Struct>(Pointer<T> p) =>
     p.ref;
-''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)]);
+''',
+      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)],
+    );
   }
 
   test_refWithFinalizer_class() async {
@@ -109,11 +113,14 @@ void main() {
   }
 
   test_refWithFinalizer_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 T genericRefWithFinalizer<T extends Struct>(Pointer<T> p) =>
     p.refWithFinalizer(nullptr);
-''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 85, 27)]);
+''',
+      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 85, 27)],
+    );
   }
 }

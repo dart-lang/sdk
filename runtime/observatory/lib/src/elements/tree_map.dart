@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:math' as Math;
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/utils.dart';
 
 abstract class TreeMap<T> {
@@ -16,19 +19,19 @@ abstract class TreeMap<T> {
   void onSelect(T node);
   void onDetails(T node);
 
-  void showIn(T node, DivElement content) {
+  void showIn(T node, HTMLDivElement content) {
     final w = content.offsetWidth.toDouble();
     final h = content.offsetHeight.toDouble();
     final topTile = _createTreemapTile(node, w, h, 0, content);
     topTile.style.width = "${w}px";
     topTile.style.height = "${h}px";
     topTile.style.border = "none";
-    content.children = [topTile];
+    content.setChildren([topTile]);
   }
 
-  Element _createTreemapTile(
-      T node, double width, double height, int depth, DivElement content) {
-    final div = new DivElement();
+  HTMLElement _createTreemapTile(
+      T node, double width, double height, int depth, HTMLDivElement content) {
+    final div = new HTMLDivElement();
     div.className = "treemapTile";
     div.style.background = getBackground(node);
     div.onDoubleClick.listen((event) {
@@ -62,7 +65,7 @@ abstract class TreeMap<T> {
       return div;
     }
 
-    div.append(new SpanElement()..text = getLabel(node));
+    div.append(new HTMLSpanElement()..textContent = getLabel(node));
     const kLabelHeight = 9.0;
     top += kLabelHeight;
     height -= kLabelHeight;
@@ -145,7 +148,7 @@ abstract class TreeMap<T> {
           childWidth = size / childHeight;
         }
 
-        Element childDiv = _createTreemapTile(
+        HTMLElement childDiv = _createTreemapTile(
             child, childWidth, childHeight, depth + 1, content);
         childDiv.style.left = "${rowLeft}px";
         childDiv.style.top = "${rowTop}px";

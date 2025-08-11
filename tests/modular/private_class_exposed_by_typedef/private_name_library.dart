@@ -12,13 +12,13 @@ const int publicNameSentinel = privateNameSentinel + 1;
 /// A private class that will be exported via a public typedef.
 class _PrivateClass {
   int x;
-  _PrivateClass(): x = privateNameSentinel;
+  _PrivateClass() : x = privateNameSentinel;
   _PrivateClass.named(this.x);
 }
 
 class _PrivateClass2 {
   int x;
-  _PrivateClass2(): x = privateNameSentinel;
+  _PrivateClass2() : x = privateNameSentinel;
   _PrivateClass2.named(this.x);
 }
 

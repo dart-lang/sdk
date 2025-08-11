@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class ConstWithNonConstTest extends PubPackageResolutionTest {
   test_inConstContext() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(x);
 }
@@ -25,9 +26,9 @@ class B {
 main() {
   const A(B());
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 3)],
+    );
   }
 
   test_mixinApplication_constSuperConstructor() async {
@@ -42,7 +43,8 @@ const b = const B();
   }
 
   test_mixinApplication_constSuperConstructor_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int i = 0;
 }
@@ -51,9 +53,9 @@ class A {
 }
 class B = A with M;
 var b = const B();
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 78, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 78, 5)],
+    );
   }
 
   test_mixinApplication_constSuperConstructor_getter() async {
@@ -83,7 +85,8 @@ var b = const B();
   }
 
   test_nonConst_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A(int a) => throw 0;
 }
@@ -91,9 +94,9 @@ class A {
 void f() {
   const A(0);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 5)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -104,13 +107,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@class::A
       type: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -118,7 +121,8 @@ InstanceCreationExpression
   }
 
   test_nonConst_generative() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a);
 }
@@ -126,9 +130,9 @@ class A {
 void f() {
   const A(0);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 38, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 38, 5)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -139,13 +143,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@class::A
       type: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A

@@ -98,7 +98,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisAnalyzedFilesParams) {
       return listEqual(
         directories,
@@ -126,7 +126,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   String file;
 
   /// Closing labels relevant to the file. Each item represents a useful label
-  /// associated with some range with may be useful to display to the user
+  /// associated with some range which may be useful to display to the user
   /// within the editor at the end of the range to indicate what construct is
   /// closed at that location. Closing labels include constructor/method calls
   /// and List arguments that span multiple lines. Note that the ranges that
@@ -220,7 +220,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisClosingLabelsParams) {
       return file == other.file &&
           listEqual(
@@ -314,7 +314,7 @@ class AnalysisErrorFixes implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisErrorFixes) {
       return error == other.error &&
           listEqual(
@@ -427,7 +427,7 @@ class AnalysisErrorsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisErrorsParams) {
       return file == other.file &&
           listEqual(
@@ -528,7 +528,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisFlushResultsParams) {
       return listEqual(files, other.files, (String a, String b) => a == b);
     }
@@ -636,7 +636,7 @@ class AnalysisFoldingParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisFoldingParams) {
       return file == other.file &&
           listEqual(
@@ -726,7 +726,7 @@ class AnalysisGetErrorsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetErrorsParams) {
       return file == other.file;
     }
@@ -818,7 +818,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetErrorsResult) {
       return listEqual(
         errors,
@@ -918,7 +918,7 @@ class AnalysisGetHoverParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetHoverParams) {
       return file == other.file && offset == other.offset;
     }
@@ -1014,7 +1014,7 @@ class AnalysisGetHoverResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetHoverResult) {
       return listEqual(
         hovers,
@@ -1129,7 +1129,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetImportedElementsParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -1228,7 +1228,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetImportedElementsResult) {
       return listEqual(
         elements,
@@ -1261,7 +1261,8 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisGetLibraryDependenciesParams;
+  bool operator ==(Object other) =>
+      other is AnalysisGetLibraryDependenciesParams;
 
   @override
   int get hashCode => 246577680;
@@ -1398,7 +1399,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetLibraryDependenciesResult) {
       return listEqual(
             libraries,
@@ -1529,7 +1530,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetNavigationParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -1680,7 +1681,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetNavigationResult) {
       return listEqual(files, other.files, (String a, String b) => a == b) &&
           listEqual(
@@ -1783,7 +1784,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetReachableSourcesParams) {
       return file == other.file;
     }
@@ -1879,7 +1880,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetReachableSourcesResult) {
       return mapEqual(
         sources,
@@ -1984,7 +1985,7 @@ class AnalysisGetSignatureParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetSignatureParams) {
       return file == other.file && offset == other.offset;
     }
@@ -2111,7 +2112,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisGetSignatureResult) {
       return name == other.name &&
           listEqual(
@@ -2229,7 +2230,7 @@ class AnalysisHighlightsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisHighlightsParams) {
       return file == other.file &&
           listEqual(
@@ -2261,7 +2262,7 @@ class AnalysisImplementedParams implements HasToJson {
   /// The classes defined in the file that are implemented or extended.
   List<ImplementedClass> classes;
 
-  /// The member defined in the file that are implemented or overridden.
+  /// The members defined in the file that are implemented or overridden.
   List<ImplementedMember> members;
 
   AnalysisImplementedParams(this.file, this.classes, this.members);
@@ -2368,7 +2369,7 @@ class AnalysisImplementedParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisImplementedParams) {
       return file == other.file &&
           listEqual(
@@ -2496,7 +2497,7 @@ class AnalysisInvalidateParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisInvalidateParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -2666,7 +2667,7 @@ class AnalysisNavigationParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisNavigationParams) {
       return file == other.file &&
           listEqual(
@@ -2790,7 +2791,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisOccurrencesParams) {
       return file == other.file &&
           listEqual(
@@ -2976,7 +2977,7 @@ class AnalysisOptions implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisOptions) {
       return enableAsync == other.enableAsync &&
           enableDeferredLoading == other.enableDeferredLoading &&
@@ -3128,7 +3129,7 @@ class AnalysisOutlineParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisOutlineParams) {
       return file == other.file &&
           kind == other.kind &&
@@ -3239,7 +3240,7 @@ class AnalysisOverridesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisOverridesParams) {
       return file == other.file &&
           listEqual(
@@ -3273,7 +3274,7 @@ class AnalysisReanalyzeParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisReanalyzeParams;
+  bool operator ==(Object other) => other is AnalysisReanalyzeParams;
 
   @override
   int get hashCode => 613039876;
@@ -3297,7 +3298,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisReanalyzeResult;
+  bool operator ==(Object other) => other is AnalysisReanalyzeResult;
 
   @override
   int get hashCode => 846803925;
@@ -3529,7 +3530,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisSetAnalysisRootsParams) {
       return listEqual(
             included,
@@ -3572,7 +3573,7 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisSetAnalysisRootsResult;
+  bool operator ==(Object other) => other is AnalysisSetAnalysisRootsResult;
 
   @override
   int get hashCode => 866004753;
@@ -3667,7 +3668,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisSetGeneralSubscriptionsParams) {
       return listEqual(
         subscriptions,
@@ -3700,7 +3701,8 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisSetGeneralSubscriptionsResult;
+  bool operator ==(Object other) =>
+      other is AnalysisSetGeneralSubscriptionsResult;
 
   @override
   int get hashCode => 386759562;
@@ -3794,7 +3796,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisSetPriorityFilesParams) {
       return listEqual(files, other.files, (String a, String b) => a == b);
     }
@@ -3823,7 +3825,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisSetPriorityFilesResult;
+  bool operator ==(Object other) => other is AnalysisSetPriorityFilesResult;
 
   @override
   int get hashCode => 330050055;
@@ -3937,7 +3939,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisSetSubscriptionsParams) {
       return mapEqual(
         subscriptions,
@@ -3972,7 +3974,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisSetSubscriptionsResult;
+  bool operator ==(Object other) => other is AnalysisSetSubscriptionsResult;
 
   @override
   int get hashCode => 218088493;
@@ -4043,7 +4045,7 @@ class AnalysisStatus implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisStatus) {
       return isAnalyzing == other.isAnalyzing &&
           analysisTarget == other.analysisTarget;
@@ -4173,7 +4175,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisUpdateContentParams) {
       return mapEqual(files, other.files, (Object a, Object b) => a == b);
     }
@@ -4243,7 +4245,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisUpdateContentResult) {
       return true;
     }
@@ -4333,7 +4335,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalysisUpdateOptionsParams) {
       return options == other.options;
     }
@@ -4362,7 +4364,7 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalysisUpdateOptionsResult;
+  bool operator ==(Object other) => other is AnalysisUpdateOptionsResult;
 
   @override
   int get hashCode => 179689467;
@@ -4438,7 +4440,7 @@ class AnalyticsEnableParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalyticsEnableParams) {
       return value == other.value;
     }
@@ -4467,7 +4469,7 @@ class AnalyticsEnableResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalyticsEnableResult;
+  bool operator ==(Object other) => other is AnalyticsEnableResult;
 
   @override
   int get hashCode => 237990792;
@@ -4491,7 +4493,7 @@ class AnalyticsIsEnabledParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is AnalyticsIsEnabledParams;
+  bool operator ==(Object other) => other is AnalyticsIsEnabledParams;
 
   @override
   int get hashCode => 57215544;
@@ -4563,7 +4565,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalyticsIsEnabledResult) {
       return enabled == other.enabled;
     }
@@ -4644,7 +4646,7 @@ class AnalyticsSendEventParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalyticsSendEventParams) {
       return action == other.action;
     }
@@ -4673,7 +4675,7 @@ class AnalyticsSendEventResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalyticsSendEventResult;
+  bool operator ==(Object other) => other is AnalyticsSendEventResult;
 
   @override
   int get hashCode => 227063188;
@@ -4760,7 +4762,7 @@ class AnalyticsSendTimingParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalyticsSendTimingParams) {
       return event == other.event && millis == other.millis;
     }
@@ -4789,7 +4791,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is AnalyticsSendTimingResult;
+  bool operator ==(Object other) => other is AnalyticsSendTimingResult;
 
   @override
   int get hashCode => 875010924;
@@ -4871,7 +4873,7 @@ class BulkFix implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is BulkFix) {
       return path == other.path &&
           listEqual(
@@ -4948,7 +4950,7 @@ class BulkFixDetail implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is BulkFixDetail) {
       return code == other.code && occurrences == other.occurrences;
     }
@@ -5028,7 +5030,7 @@ class ClosingLabel implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ClosingLabel) {
       return offset == other.offset &&
           length == other.length &&
@@ -5174,7 +5176,7 @@ class CompletionExistingImportsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionExistingImportsParams) {
       return file == other.file && imports == other.imports;
     }
@@ -5203,8 +5205,8 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   int offset;
 
   /// The `completion` from the selected `CompletionSuggestion`. It could be a
-  /// name of a class, or a name of a constructor in form
-  /// "typeName.constructorName()", or an enumeration constant in form
+  /// name of a class, or a name of a constructor in the form
+  /// "typeName.constructorName()", or an enumeration constant in the form
   /// "enumName.constantName", etc.
   String completion;
 
@@ -5316,7 +5318,7 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionGetSuggestionDetails2Params) {
       return file == other.file &&
           offset == other.offset &&
@@ -5423,7 +5425,7 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionGetSuggestionDetails2Result) {
       return completion == other.completion && change == other.change;
     }
@@ -5624,7 +5626,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionGetSuggestions2Params) {
       return file == other.file &&
           offset == other.offset &&
@@ -5802,7 +5804,7 @@ class CompletionGetSuggestions2Result implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionGetSuggestions2Result) {
       return replacementOffset == other.replacementOffset &&
           replacementLength == other.replacementLength &&
@@ -5955,7 +5957,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionRegisterLibraryPathsParams) {
       return listEqual(
         paths,
@@ -5988,7 +5990,8 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is CompletionRegisterLibraryPathsResult;
+  bool operator ==(Object other) =>
+      other is CompletionRegisterLibraryPathsResult;
 
   @override
   int get hashCode => 104675661;
@@ -6109,7 +6112,7 @@ class ContextData implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ContextData) {
       return name == other.name &&
           explicitFileCount == other.explicitFileCount &&
@@ -6140,7 +6143,7 @@ class ContextData implements HasToJson {
 class ConvertGetterToMethodFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
-  bool operator ==(other) => other is ConvertGetterToMethodFeedback;
+  bool operator ==(Object other) => other is ConvertGetterToMethodFeedback;
 
   @override
   int get hashCode => 616032599;
@@ -6152,7 +6155,7 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
 class ConvertGetterToMethodOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) => other is ConvertGetterToMethodOptions;
+  bool operator ==(Object other) => other is ConvertGetterToMethodOptions;
 
   @override
   int get hashCode => 488848400;
@@ -6164,7 +6167,7 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
 class ConvertMethodToGetterFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
-  bool operator ==(other) => other is ConvertMethodToGetterFeedback;
+  bool operator ==(Object other) => other is ConvertMethodToGetterFeedback;
 
   @override
   int get hashCode => 165291526;
@@ -6176,7 +6179,7 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
 class ConvertMethodToGetterOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) => other is ConvertMethodToGetterOptions;
+  bool operator ==(Object other) => other is ConvertMethodToGetterOptions;
 
   @override
   int get hashCode => 27952290;
@@ -6200,7 +6203,7 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is DiagnosticGetDiagnosticsParams;
+  bool operator ==(Object other) => other is DiagnosticGetDiagnosticsParams;
 
   @override
   int get hashCode => 587526202;
@@ -6291,7 +6294,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DiagnosticGetDiagnosticsResult) {
       return listEqual(
         contexts,
@@ -6324,7 +6327,7 @@ class DiagnosticGetServerPortParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is DiagnosticGetServerPortParams;
+  bool operator ==(Object other) => other is DiagnosticGetServerPortParams;
 
   @override
   int get hashCode => 367508704;
@@ -6400,7 +6403,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DiagnosticGetServerPortResult) {
       return port == other.port;
     }
@@ -6569,7 +6572,7 @@ class EditBulkFixesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditBulkFixesParams) {
       return listEqual(
             included,
@@ -6713,7 +6716,7 @@ class EditBulkFixesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditBulkFixesResult) {
       return message == other.message &&
           listEqual(
@@ -6815,7 +6818,7 @@ class EditFormatIfEnabledParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditFormatIfEnabledParams) {
       return listEqual(
         directories,
@@ -6913,7 +6916,7 @@ class EditFormatIfEnabledResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditFormatIfEnabledResult) {
       return listEqual(
         edits,
@@ -7057,7 +7060,7 @@ class EditFormatParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditFormatParams) {
       return file == other.file &&
           selectionOffset == other.selectionOffset &&
@@ -7182,7 +7185,7 @@ class EditFormatResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditFormatResult) {
       return listEqual(
             edits,
@@ -7296,7 +7299,7 @@ class EditGetAssistsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetAssistsParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -7390,7 +7393,7 @@ class EditGetAssistsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetAssistsResult) {
       return listEqual(
         assists,
@@ -7505,7 +7508,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetAvailableRefactoringsParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -7603,7 +7606,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetAvailableRefactoringsResult) {
       return listEqual(
         kinds,
@@ -7703,7 +7706,7 @@ class EditGetFixesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetFixesParams) {
       return file == other.file && offset == other.offset;
     }
@@ -7795,7 +7798,7 @@ class EditGetFixesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetFixesResult) {
       return listEqual(
         fixes,
@@ -7911,7 +7914,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetPostfixCompletionParams) {
       return file == other.file && key == other.key && offset == other.offset;
     }
@@ -7997,7 +8000,7 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetPostfixCompletionResult) {
       return change == other.change;
     }
@@ -8175,7 +8178,7 @@ class EditGetRefactoringParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetRefactoringParams) {
       return kind == other.kind &&
           file == other.file &&
@@ -8410,7 +8413,7 @@ class EditGetRefactoringResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetRefactoringResult) {
       return listEqual(
             initialProblems,
@@ -8538,7 +8541,7 @@ class EditGetStatementCompletionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetStatementCompletionParams) {
       return file == other.file && offset == other.offset;
     }
@@ -8639,7 +8642,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditGetStatementCompletionResult) {
       return change == other.change && whitespaceOnly == other.whitespaceOnly;
     }
@@ -8765,7 +8768,7 @@ class EditImportElementsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditImportElementsParams) {
       return file == other.file &&
           listEqual(
@@ -8859,7 +8862,7 @@ class EditImportElementsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditImportElementsResult) {
       return edit == other.edit;
     }
@@ -8971,7 +8974,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditIsPostfixCompletionApplicableParams) {
       return file == other.file && key == other.key && offset == other.offset;
     }
@@ -9052,7 +9055,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditIsPostfixCompletionApplicableResult) {
       return value == other.value;
     }
@@ -9081,7 +9084,8 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is EditListPostfixCompletionTemplatesParams;
+  bool operator ==(Object other) =>
+      other is EditListPostfixCompletionTemplatesParams;
 
   @override
   int get hashCode => 690713107;
@@ -9172,7 +9176,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditListPostfixCompletionTemplatesResult) {
       return listEqual(
         templates,
@@ -9265,7 +9269,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditOrganizeDirectivesParams) {
       return file == other.file;
     }
@@ -9284,7 +9288,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
-  /// The file edit that is to be applied to the given file to effect the
+  /// The file edit that is to be applied to the given file to affect the
   /// organizing.
   SourceFileEdit edit;
 
@@ -9352,7 +9356,7 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditOrganizeDirectivesResult) {
       return edit == other.edit;
     }
@@ -9437,7 +9441,7 @@ class EditSortMembersParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditSortMembersParams) {
       return file == other.file;
     }
@@ -9456,7 +9460,7 @@ class EditSortMembersParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
-  /// The file edit that is to be applied to the given file to effect the
+  /// The file edit that is to be applied to the given file to affect the
   /// sorting.
   SourceFileEdit edit;
 
@@ -9520,7 +9524,7 @@ class EditSortMembersResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is EditSortMembersResult) {
       return edit == other.edit;
     }
@@ -9744,7 +9748,7 @@ class ElementDeclaration implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ElementDeclaration) {
       return name == other.name &&
           kind == other.kind &&
@@ -9843,7 +9847,7 @@ class ExecutableFile implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutableFile) {
       return file == other.file && kind == other.kind;
     }
@@ -9981,7 +9985,7 @@ class ExecutionCreateContextParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionCreateContextParams) {
       return contextRoot == other.contextRoot;
     }
@@ -10062,7 +10066,7 @@ class ExecutionCreateContextResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionCreateContextResult) {
       return id == other.id;
     }
@@ -10147,7 +10151,7 @@ class ExecutionDeleteContextParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionDeleteContextParams) {
       return id == other.id;
     }
@@ -10176,7 +10180,7 @@ class ExecutionDeleteContextResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ExecutionDeleteContextResult;
+  bool operator ==(Object other) => other is ExecutionDeleteContextResult;
 
   @override
   int get hashCode => 479954425;
@@ -10384,7 +10388,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionGetSuggestionsParams) {
       return code == other.code &&
           offset == other.offset &&
@@ -10426,7 +10430,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
-  /// The completion suggestions. In contrast to usual completion request,
+  /// The completion suggestions. In contrast to usual completion requests,
   /// suggestions for private elements also will be provided.
   ///
   /// If there are sub-expressions that can have different runtime types, and
@@ -10544,7 +10548,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionGetSuggestionsResult) {
       return listEqual(
             suggestions,
@@ -10689,7 +10693,7 @@ class ExecutionLaunchDataParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionLaunchDataParams) {
       return file == other.file &&
           kind == other.kind &&
@@ -10805,7 +10809,7 @@ class ExecutionMapUriParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionMapUriParams) {
       return id == other.id && file == other.file && uri == other.uri;
     }
@@ -10901,7 +10905,7 @@ class ExecutionMapUriResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionMapUriResult) {
       return file == other.file && uri == other.uri;
     }
@@ -11033,7 +11037,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecutionSetSubscriptionsParams) {
       return listEqual(
         subscriptions,
@@ -11066,7 +11070,7 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ExecutionSetSubscriptionsResult;
+  bool operator ==(Object other) => other is ExecutionSetSubscriptionsResult;
 
   @override
   int get hashCode => 287678780;
@@ -11135,7 +11139,7 @@ class ExistingImport implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExistingImport) {
       return uri == other.uri &&
           listEqual(elements, other.elements, (int a, int b) => a == b);
@@ -11226,7 +11230,7 @@ class ExistingImports implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExistingImports) {
       return elements == other.elements &&
           listEqual(
@@ -11376,7 +11380,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractLocalVariableFeedback) {
       return listEqual(
             coveringExpressionOffsets,
@@ -11485,7 +11489,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractLocalVariableOptions) {
       return name == other.name && extractAll == other.extractAll;
     }
@@ -11678,7 +11682,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractMethodFeedback) {
       return offset == other.offset &&
           length == other.length &&
@@ -11862,7 +11866,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractMethodOptions) {
       return returnType == other.returnType &&
           createGetter == other.createGetter &&
@@ -11923,7 +11927,7 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractWidgetFeedback) {
       return true;
     }
@@ -11993,7 +11997,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExtractWidgetOptions) {
       return name == other.name;
     }
@@ -12128,7 +12132,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterGetWidgetDescriptionParams) {
       return file == other.file && offset == other.offset;
     }
@@ -12227,7 +12231,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterGetWidgetDescriptionResult) {
       return listEqual(
         properties,
@@ -12510,7 +12514,7 @@ class FlutterOutline implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterOutline) {
       return kind == other.kind &&
           offset == other.offset &&
@@ -12717,7 +12721,7 @@ class FlutterOutlineAttribute implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterOutlineAttribute) {
       return name == other.name &&
           label == other.label &&
@@ -12884,7 +12888,7 @@ class FlutterOutlineParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterOutlineParams) {
       return file == other.file && outline == other.outline;
     }
@@ -13035,7 +13039,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterSetSubscriptionsParams) {
       return mapEqual(
         subscriptions,
@@ -13070,7 +13074,7 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is FlutterSetSubscriptionsResult;
+  bool operator ==(Object other) => other is FlutterSetSubscriptionsResult;
 
   @override
   int get hashCode => 628296315;
@@ -13179,7 +13183,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterSetWidgetPropertyValueParams) {
       return id == other.id && value == other.value;
     }
@@ -13265,7 +13269,7 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterSetWidgetPropertyValueResult) {
       return change == other.change;
     }
@@ -13487,7 +13491,7 @@ class FlutterWidgetProperty implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterWidgetProperty) {
       return documentation == other.documentation &&
           expression == other.expression &&
@@ -13597,7 +13601,7 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterWidgetPropertyEditor) {
       return kind == other.kind &&
           listEqual(
@@ -13814,7 +13818,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterWidgetPropertyValue) {
       return boolValue == other.boolValue &&
           doubleValue == other.doubleValue &&
@@ -13945,7 +13949,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FlutterWidgetPropertyValueEnumItem) {
       return libraryUri == other.libraryUri &&
           className == other.className &&
@@ -14244,7 +14248,7 @@ class HoverInformation implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is HoverInformation) {
       return offset == other.offset &&
           length == other.length &&
@@ -14336,7 +14340,7 @@ class ImplementedClass implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ImplementedClass) {
       return offset == other.offset && length == other.length;
     }
@@ -14404,7 +14408,7 @@ class ImplementedMember implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ImplementedMember) {
       return offset == other.offset && length == other.length;
     }
@@ -14496,7 +14500,7 @@ class ImportedElementSet implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ImportedElementSet) {
       return listEqual(
             strings,
@@ -14594,7 +14598,7 @@ class ImportedElements implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ImportedElements) {
       return path == other.path &&
           prefix == other.prefix &&
@@ -14671,7 +14675,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InlineLocalVariableFeedback) {
       return name == other.name && occurrences == other.occurrences;
     }
@@ -14688,7 +14692,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 class InlineLocalVariableOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) => other is InlineLocalVariableOptions;
+  bool operator ==(Object other) => other is InlineLocalVariableOptions;
 
   @override
   int get hashCode => 540364977;
@@ -14778,7 +14782,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InlineMethodFeedback) {
       return className == other.className &&
           methodName == other.methodName &&
@@ -14869,7 +14873,7 @@ class InlineMethodOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InlineMethodOptions) {
       return deleteSource == other.deleteSource && inlineAll == other.inlineAll;
     }
@@ -14958,7 +14962,7 @@ class LibraryPathSet implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LibraryPathSet) {
       return scope == other.scope &&
           listEqual(
@@ -15044,7 +15048,7 @@ class LspHandleParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LspHandleParams) {
       return lspMessage == other.lspMessage;
     }
@@ -15121,7 +15125,7 @@ class LspHandleResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LspHandleResult) {
       return lspResponse == other.lspResponse;
     }
@@ -15199,7 +15203,7 @@ class LspNotificationParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LspNotificationParams) {
       return lspNotification == other.lspNotification;
     }
@@ -15257,7 +15261,7 @@ class MessageAction implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MessageAction) {
       return label == other.label;
     }
@@ -15318,7 +15322,7 @@ enum MessageType {
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
-  bool operator ==(other) => other is MoveFileFeedback;
+  bool operator ==(Object other) => other is MoveFileFeedback;
 
   @override
   int get hashCode => 438975893;
@@ -15388,7 +15392,7 @@ class MoveFileOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MoveFileOptions) {
       return newFile == other.newFile;
     }
@@ -15464,7 +15468,7 @@ class OverriddenMember implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is OverriddenMember) {
       return element == other.element && className == other.className;
     }
@@ -15592,7 +15596,7 @@ class Override implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Override) {
       return offset == other.offset &&
           length == other.length &&
@@ -15687,7 +15691,7 @@ class PostfixTemplateDescriptor implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PostfixTemplateDescriptor) {
       return name == other.name && key == other.key && example == other.example;
     }
@@ -15748,7 +15752,7 @@ class PubStatus implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PubStatus) {
       return isListingPackageDirs == other.isListingPackageDirs;
     }
@@ -15796,7 +15800,7 @@ class RefactoringFeedback implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RefactoringFeedback) {
       return true;
     }
@@ -15844,7 +15848,7 @@ class RefactoringOptions implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RefactoringOptions) {
       return true;
     }
@@ -15942,7 +15946,7 @@ class RenameFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFeedback) {
       return offset == other.offset &&
           length == other.length &&
@@ -16018,7 +16022,7 @@ class RenameOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameOptions) {
       return newName == other.newName;
     }
@@ -16110,7 +16114,7 @@ class RequestError implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RequestError) {
       return code == other.code &&
           message == other.message &&
@@ -16394,7 +16398,7 @@ class RuntimeCompletionExpression implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RuntimeCompletionExpression) {
       return offset == other.offset &&
           length == other.length &&
@@ -16613,7 +16617,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RuntimeCompletionExpressionType) {
       return libraryPath == other.libraryPath &&
           kind == other.kind &&
@@ -16762,7 +16766,7 @@ class RuntimeCompletionVariable implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RuntimeCompletionVariable) {
       return name == other.name && type == other.type;
     }
@@ -16882,7 +16886,7 @@ class SearchFindElementReferencesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindElementReferencesParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -16991,7 +16995,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindElementReferencesResult) {
       return id == other.id && element == other.element;
     }
@@ -17076,7 +17080,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindMemberDeclarationsParams) {
       return name == other.name;
     }
@@ -17157,7 +17161,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindMemberDeclarationsResult) {
       return id == other.id;
     }
@@ -17242,7 +17246,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindMemberReferencesParams) {
       return name == other.name;
     }
@@ -17323,7 +17327,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindMemberReferencesResult) {
       return id == other.id;
     }
@@ -17412,7 +17416,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindTopLevelDeclarationsParams) {
       return pattern == other.pattern;
     }
@@ -17493,7 +17497,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchFindTopLevelDeclarationsResult) {
       return id == other.id;
     }
@@ -17624,7 +17628,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchGetElementDeclarationsParams) {
       return file == other.file &&
           pattern == other.pattern &&
@@ -17747,7 +17751,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchGetElementDeclarationsResult) {
       return listEqual(
             declarations,
@@ -17870,7 +17874,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchGetTypeHierarchyParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -17977,7 +17981,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchGetTypeHierarchyResult) {
       return listEqual(
         hierarchyItems,
@@ -18106,7 +18110,7 @@ class SearchResult implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchResult) {
       return location == other.location &&
           kind == other.kind &&
@@ -18284,7 +18288,7 @@ class SearchResultsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SearchResultsParams) {
       return id == other.id &&
           listEqual(
@@ -18371,7 +18375,7 @@ class ServerCancelRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCancelRequestParams) {
       return id == other.id;
     }
@@ -18400,7 +18404,7 @@ class ServerCancelRequestResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ServerCancelRequestResult;
+  bool operator ==(Object other) => other is ServerCancelRequestResult;
 
   @override
   int get hashCode => 183255719;
@@ -18487,7 +18491,7 @@ class ServerConnectedParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerConnectedParams) {
       return version == other.version && pid == other.pid;
     }
@@ -18595,7 +18599,7 @@ class ServerErrorParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerErrorParams) {
       return isFatal == other.isFatal &&
           message == other.message &&
@@ -18626,7 +18630,7 @@ class ServerGetVersionParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is ServerGetVersionParams;
+  bool operator ==(Object other) => other is ServerGetVersionParams;
 
   @override
   int get hashCode => 55877452;
@@ -18701,7 +18705,7 @@ class ServerGetVersionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerGetVersionResult) {
       return version == other.version;
     }
@@ -18788,7 +18792,7 @@ class ServerLogEntry implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerLogEntry) {
       return time == other.time && kind == other.kind && data == other.data;
     }
@@ -18933,7 +18937,7 @@ class ServerLogParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerLogParams) {
       return entry == other.entry;
     }
@@ -19018,7 +19022,7 @@ class ServerOpenUrlRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerOpenUrlRequestParams) {
       return url == other.url;
     }
@@ -19047,7 +19051,7 @@ class ServerOpenUrlRequestResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ServerOpenUrlRequestResult;
+  bool operator ==(Object other) => other is ServerOpenUrlRequestResult;
 
   @override
   int get hashCode => 561630021;
@@ -19123,7 +19127,7 @@ class ServerPluginErrorParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerPluginErrorParams) {
       return message == other.message;
     }
@@ -19311,7 +19315,7 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerSetClientCapabilitiesParams) {
       return listEqual(
             requests,
@@ -19347,7 +19351,7 @@ class ServerSetClientCapabilitiesResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ServerSetClientCapabilitiesResult;
+  bool operator ==(Object other) => other is ServerSetClientCapabilitiesResult;
 
   @override
   int get hashCode => 806805916;
@@ -19442,7 +19446,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerSetSubscriptionsParams) {
       return listEqual(
         subscriptions,
@@ -19475,7 +19479,7 @@ class ServerSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ServerSetSubscriptionsResult;
+  bool operator ==(Object other) => other is ServerSetSubscriptionsResult;
 
   @override
   int get hashCode => 748820900;
@@ -19600,7 +19604,7 @@ class ServerShowMessageRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerShowMessageRequestParams) {
       return type == other.type &&
           message == other.message &&
@@ -19690,7 +19694,7 @@ class ServerShowMessageRequestResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerShowMessageRequestResult) {
       return action == other.action;
     }
@@ -19719,7 +19723,7 @@ class ServerShutdownParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) => other is ServerShutdownParams;
+  bool operator ==(Object other) => other is ServerShutdownParams;
 
   @override
   int get hashCode => 366630911;
@@ -19743,7 +19747,7 @@ class ServerShutdownResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) => other is ServerShutdownResult;
+  bool operator ==(Object other) => other is ServerShutdownResult;
 
   @override
   int get hashCode => 193626532;
@@ -19846,7 +19850,7 @@ class ServerStatusParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerStatusParams) {
       return analysis == other.analysis && pub == other.pub;
     }
@@ -20034,7 +20038,7 @@ class TypeHierarchyItem implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TypeHierarchyItem) {
       return classElement == other.classElement &&
           displayName == other.displayName &&

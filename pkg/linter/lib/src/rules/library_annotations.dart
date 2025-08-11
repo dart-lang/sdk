@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
@@ -18,13 +20,10 @@ class LibraryAnnotations extends LintRule {
     : super(name: LintNames.library_annotations, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.library_annotations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.library_annotations;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -63,9 +62,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (elementAnnotation.targetKinds.length == 1 &&
           elementAnnotation.targetKinds.contains(TargetKind.library) &&
           firstDirective == node) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       } else if (elementAnnotation.isPragmaLateTrust) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }
@@ -88,8 +87,8 @@ extension on ElementAnnotation {
     required String className,
   }) {
     var element = element2;
-    return element is ConstructorElement2 &&
-        element.enclosingElement2.name3 == className &&
-        element.library2.name3 == libraryName;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == className &&
+        element.library.name == libraryName;
   }
 }

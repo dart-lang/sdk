@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide ElementKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -150,7 +150,7 @@ String get foo => '';
 
     await indexTestUnit(''); // Initialize project.
 
-    var element = FindElement2(externalUnit.unit).topVar('foo').getter2!;
+    var element = FindElement2(externalUnit.unit).topVar('foo').getter!;
     _createRefactoringForElement(element);
 
     // check conditions

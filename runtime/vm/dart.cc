@@ -33,6 +33,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_entry.h"
 #include "vm/native_message_handler.h"
 #include "vm/object.h"
@@ -102,68 +103,102 @@ class ReadOnlyHandles {
 
 class DartInitializationState : public AllStatic {
  public:
-  static bool SetInitializing() {
-    ASSERT(in_use_count_.load() == 0);
-    uint8_t expected = kUnInitialized;
-    return state_.compare_exchange_strong(expected, kInitializing);
+  static bool StartInit() {
+    uword expected = PhaseField::encode(kUnInitialized) | CountField::encode(0);
+    uword desired = PhaseField::encode(kInitializing) | CountField::encode(0);
+    return state_.compare_exchange_strong(expected, desired,
+                                          std::memory_order_acquire);
   }
 
-  static void ResetInitializing() {
-    ASSERT(in_use_count_.load() == 0);
-    uint8_t expected = kInitializing;
-    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
+  static void AbandonInit() {
+    uword expected = PhaseField::encode(kInitializing) | CountField::encode(0);
+    uword desired = PhaseField::encode(kUnInitialized) | CountField::encode(0);
+    bool result = state_.compare_exchange_strong(expected, desired,
+                                                 std::memory_order_release);
     ASSERT(result);
   }
 
-  static void SetInitialized() {
-    ASSERT(in_use_count_.load() == 0);
-    uint8_t expected = kInitializing;
-    bool result = state_.compare_exchange_strong(expected, kInitialized);
+  static void FinishInit() {
+    uword expected = PhaseField::encode(kInitializing) | CountField::encode(0);
+    uword desired = PhaseField::encode(kInitialized) | CountField::encode(0);
+    bool result = state_.compare_exchange_strong(expected, desired,
+                                                 std::memory_order_release);
     ASSERT(result);
   }
 
-  static bool IsInitialized() { return state_.load() == kInitialized; }
-  static bool IsShuttingDown() { return state_.load() == kCleaningup; }
-
-  static bool SetCleaningup() {
-    uint8_t expected = kInitialized;
-    return state_.compare_exchange_strong(expected, kCleaningup);
+  static bool IsInitialized() {
+    return PhaseField::decode(state_.load()) == kInitialized;
+  }
+  static bool IsShuttingDown() {
+    return PhaseField::decode(state_.load()) == kCleaningup;
   }
 
-  static void SetUnInitialized() {
-    while (in_use_count_.load() > 0) {
-      OS::Sleep(1);  // Sleep for 1 millis waiting for it to not be in use.
+  static bool StartCleanup() {
+    uword expected = state_.load(std::memory_order_acquire);
+    uword desired;
+    do {
+      if (PhaseField::decode(expected) != kInitialized) {
+        return false;
+      }
+      desired = PhaseField::update(kCleaningup, expected);
+    } while (!state_.compare_exchange_weak(expected, desired,
+                                           std::memory_order_relaxed));
+
+    while (CountField::decode(expected) != 0) {
+      OS::Sleep(1);
+      expected = state_.load(std::memory_order_acquire);
     }
-    uint8_t expected = kCleaningup;
-    bool result = state_.compare_exchange_strong(expected, kUnInitialized);
+    return true;
+  }
+
+  static void FinishCleanup() {
+    uword expected = PhaseField::encode(kCleaningup) | CountField::encode(0);
+    uword desired = PhaseField::encode(kUnInitialized) | CountField::encode(0);
+    bool result = state_.compare_exchange_strong(expected, desired,
+                                                 std::memory_order_release);
     ASSERT(result);
   }
 
   static bool SetInUse() {
-    if (state_.load() != kInitialized) {
-      return false;
-    }
-    in_use_count_ += 1;
+    uword expected = state_.load(std::memory_order_relaxed);
+    uword desired;
+    do {
+      if (PhaseField::decode(expected) != kInitialized) {
+        return false;
+      }
+      desired = PhaseField::encode(kInitialized) |
+                CountField::encode(CountField::decode(expected) + 1);
+    } while (!state_.compare_exchange_weak(expected, desired,
+                                           std::memory_order_relaxed));
     return true;
   }
 
   static void ResetInUse() {
-    uint8_t value = state_.load();
-    ASSERT((value == kInitialized) || (value == kCleaningup));
-    in_use_count_ -= 1;
+    uword expected = state_.load(std::memory_order_relaxed);
+    uword desired;
+    do {
+      ASSERT(PhaseField::decode(expected) == kInitialized ||
+             PhaseField::decode(expected) == kCleaningup);
+      desired = CountField::update(CountField::decode(expected) - 1, expected);
+    } while (!state_.compare_exchange_weak(expected, desired,
+                                           std::memory_order_release));
   }
 
  private:
-  static constexpr uint8_t kUnInitialized = 0;
-  static constexpr uint8_t kInitializing = 1;
-  static constexpr uint8_t kInitialized = 2;
-  static constexpr uint8_t kCleaningup = 3;
+  static constexpr uword kUnInitialized = 0;
+  static constexpr uword kInitializing = 1;
+  static constexpr uword kInitialized = 2;
+  static constexpr uword kCleaningup = 3;
 
-  static std::atomic<uint8_t> state_;
-  static std::atomic<uint64_t> in_use_count_;
+  using PhaseField = BitField<uword, uword, 0, 2>;
+  using CountField =
+      BitField<uword, uword, PhaseField::kNextBit, kBitsPerWord - 2>;
+
+  static std::atomic<uword> state_;
 };
-std::atomic<uint8_t> DartInitializationState::state_ = {kUnInitialized};
-std::atomic<uint64_t> DartInitializationState::in_use_count_ = {0};
+
+std::atomic<uword> DartInitializationState::state_ = {
+    PhaseField::encode(kUnInitialized) | CountField::encode(0)};
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void CheckOffsets() {
@@ -351,7 +386,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   TargetCPUFeatures::Init();
   FfiCallbackMetadata::Init();
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   Simulator::Init();
 #endif
   // Create the read-only handles area.
@@ -504,7 +539,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 }
 
 char* Dart::Init(const Dart_InitializeParams* params) {
-  if (!DartInitializationState::SetInitializing()) {
+  if (!DartInitializationState::StartInit()) {
     return Utils::StrDup(
         "Bad VM initialization state, "
         "already initialized or "
@@ -512,16 +547,15 @@ char* Dart::Init(const Dart_InitializeParams* params) {
   }
   char* retval = DartInit(params);
   if (retval != nullptr) {
-    DartInitializationState::ResetInitializing();
+    DartInitializationState::AbandonInit();
     return retval;
   }
-  DartInitializationState::SetInitialized();
+  DartInitializationState::FinishInit();
 
   // The service and kernel isolates require the VM state to be initialized.
   // The embedder, not the VM, should trigger creation of the service and kernel
   // isolates. https://github.com/dart-lang/sdk/issues/33433
 #if !defined(PRODUCT)
-  Service::SetGetServiceAssetsCallback(params->get_service_assets);
   ServiceIsolate::Run();
 #endif
 
@@ -624,7 +658,7 @@ void Dart::WaitForIsolateShutdown() {
 
 char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == nullptr);
-  if (!DartInitializationState::SetCleaningup()) {
+  if (!DartInitializationState::StartCleanup()) {
     return Utils::StrDup("VM already terminated.");
   }
   ASSERT(vm_isolate_ != nullptr);
@@ -697,7 +731,6 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
-  DartInitializationState::SetUnInitialized();
 
   NativeMessageHandler::Cleanup();
   PortMap::Shutdown();
@@ -764,6 +797,7 @@ char* Dart::Cleanup() {
   }
   Timeline::Cleanup();
 #endif
+  NOT_IN_PRODUCT(MicrotaskMirrorQueues::CleanUp());
   Zone::Cleanup();
   Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
@@ -792,6 +826,8 @@ char* Dart::Cleanup() {
   Service::SetEmbedderStreamCallbacks(nullptr, nullptr);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
+
+  DartInitializationState::FinishCleanup();
   return nullptr;
 }
 
@@ -857,6 +893,15 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
     const Error& error = Error::Handle(reader.ReadProgramSnapshot());
     if (!error.IsNull()) {
       return error.ptr();
+    }
+    {
+      // Initialize sentinel field table, which should have sentinel values for
+      // all fields.
+      auto len = IG->initial_field_table()->Capacity();
+      IG->sentinel_field_table()->AllocateIndex(len);
+      for (intptr_t i = 0; i < len; i++) {
+        IG->sentinel_field_table()->SetAt(i, Object::sentinel().ptr());
+      }
     }
 
     T->SetupDartMutatorStateDependingOnSnapshot(IG);
@@ -1037,6 +1082,7 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 
     ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
     ADD_FLAG(msan, FLAG_target_memory_sanitizer)
+    ADD_FLAG(shared_data, FLAG_experimental_shared_data)
 
     if (kind == Snapshot::kFullJIT) {
       // Enabling assertions affects deopt ids.

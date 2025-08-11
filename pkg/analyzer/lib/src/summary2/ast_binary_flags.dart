@@ -18,21 +18,11 @@ bool enableDebugResolutionMarkers = false;
 class AstBinaryFlags {
   static final Map<Type, int> _typeBits = {};
 
-  static final _hasAwait = _checkBit(
-    0,
-    ForElement,
-    ForStatement,
-  );
+  static final _hasAwait = _checkBit(0, ForElement, ForStatement);
 
-  static final _hasConstConstructor = _checkBit(
-    0,
-    ClassDeclaration,
-  );
+  static final _hasConstConstructor = _checkBit(0, ClassDeclaration);
 
-  static final _hasEqual = _checkBit(
-    0,
-    Configuration,
-  );
+  static final _hasEqual = _checkBit(0, Configuration);
 
   static final _hasInitializer = _checkBit(
     2,
@@ -48,15 +38,9 @@ class AstBinaryFlags {
     SimpleFormalParameter,
   );
 
-  static final _hasNot = _checkBit(
-    0,
-    IsExpression,
-  );
+  static final _hasNot = _checkBit(0, IsExpression);
 
-  static final _hasPrefix = _checkBit(
-    1,
-    ImportDirective,
-  );
+  static final _hasPrefix = _checkBit(1, ImportDirective);
 
   static final _hasPeriod = _checkBit(
     0,
@@ -65,11 +49,7 @@ class AstBinaryFlags {
     PropertyAccess,
   );
 
-  static final _hasPeriod2 = _checkBit(
-    1,
-    MethodInvocation,
-    PropertyAccess,
-  );
+  static final _hasPeriod2 = _checkBit(1, MethodInvocation, PropertyAccess);
 
   static final _hasQuestion = _checkBit(
     2,
@@ -80,15 +60,9 @@ class AstBinaryFlags {
     PropertyAccess,
   );
 
-  static final _hasSeparatorColon = _checkBit(
-    0,
-    ConstructorDeclaration,
-  );
+  static final _hasSeparatorColon = _checkBit(0, ConstructorDeclaration);
 
-  static final _hasSeparatorEquals = _checkBit(
-    2,
-    ConstructorDeclaration,
-  );
+  static final _hasSeparatorEquals = _checkBit(2, ConstructorDeclaration);
 
   static final _hasThis = _checkBit(
     0,
@@ -96,11 +70,7 @@ class AstBinaryFlags {
     RedirectingConstructorInvocation,
   );
 
-  static final _hasTypeArguments = _checkBit(
-    0,
-    NamedType,
-    TypedLiteral,
-  );
+  static final _hasTypeArguments = _checkBit(0, NamedType, TypedLiteral);
 
   static final _isAbstract = _checkBit(
     1,
@@ -134,25 +104,20 @@ class AstBinaryFlags {
     NormalFormalParameter,
   );
 
-  static final _isDeclaration = _checkBit(
+  static final _isDeclaration = _checkBit(0, SimpleIdentifier);
+
+  static final _isDotShorthand = _checkBit(
     0,
-    SimpleIdentifier,
+    DotShorthandConstructorInvocation,
+    DotShorthandInvocation,
+    DotShorthandPropertyAccess,
   );
 
-  static final _isDeferred = _checkBit(
-    0,
-    ImportDirective,
-  );
+  static final _isDeferred = _checkBit(0, ImportDirective);
 
-  static final _isDelimiterCurly = _checkBit(
-    0,
-    FormalParameterList,
-  );
+  static final _isDelimiterCurly = _checkBit(0, FormalParameterList);
 
-  static final _isDelimiterSquare = _checkBit(
-    1,
-    FormalParameterList,
-  );
+  static final _isDelimiterSquare = _checkBit(1, FormalParameterList);
 
   static final _isExternal = _checkBit(
     7,
@@ -161,10 +126,7 @@ class AstBinaryFlags {
     MethodDeclaration,
   );
 
-  static final _isFactory = _checkBit(
-    4,
-    ConstructorDeclaration,
-  );
+  static final _isFactory = _checkBit(4, ConstructorDeclaration);
 
   static final _isFinal = _checkBit(
     4,
@@ -179,36 +141,17 @@ class AstBinaryFlags {
     MethodDeclaration,
   );
 
-  static final _isGet = _checkBit(
-    4,
-    FunctionDeclaration,
-    MethodDeclaration,
-  );
+  static final _isGet = _checkBit(4, FunctionDeclaration, MethodDeclaration);
 
-  static final _isLate = _checkBit(
-    0,
-    VariableDeclarationList,
-  );
+  static final _isLate = _checkBit(0, VariableDeclarationList);
 
-  static final _isNative = _checkBit(
-    8,
-    MethodDeclaration,
-  );
+  static final _isNative = _checkBit(8, MethodDeclaration);
 
-  static final _isNew = _checkBit(
-    0,
-    InstanceCreationExpression,
-  );
+  static final _isNew = _checkBit(0, InstanceCreationExpression);
 
-  static final _isOperator = _checkBit(
-    0,
-    MethodDeclaration,
-  );
+  static final _isOperator = _checkBit(0, MethodDeclaration);
 
-  static final _isPositional = _checkBit(
-    1,
-    DefaultFormalParameter,
-  );
+  static final _isPositional = _checkBit(1, DefaultFormalParameter);
 
   static final _isRequired = _checkBit(
     0,
@@ -223,11 +166,7 @@ class AstBinaryFlags {
     TypedLiteral,
   );
 
-  static final _isStatic = _checkBit(
-    6,
-    FieldDeclaration,
-    MethodDeclaration,
-  );
+  static final _isStatic = _checkBit(6, FieldDeclaration, MethodDeclaration);
 
   static final _isStringInterpolationIdentifier = _checkBit(
     0,
@@ -270,6 +209,7 @@ class AstBinaryFlags {
     bool isDeferred = false,
     bool isDelimiterCurly = false,
     bool isDelimiterSquare = false,
+    bool isDotShorthand = false,
     bool isExternal = false,
     bool isFactory = false,
     bool isFinal = false,
@@ -350,6 +290,9 @@ class AstBinaryFlags {
     }
     if (isDelimiterSquare) {
       result |= _isDelimiterSquare;
+    }
+    if (isDotShorthand) {
+      result |= _isDotShorthand;
     }
     if (isConst) {
       result |= _isConst;
@@ -493,6 +436,10 @@ class AstBinaryFlags {
     return (flags & _isDelimiterSquare) != 0;
   }
 
+  static bool isDotShorthand(int flags) {
+    return (flags & _isDotShorthand) != 0;
+  }
+
   static bool isExternal(int flags) {
     return (flags & _isExternal) != 0;
   }
@@ -558,8 +505,15 @@ class AstBinaryFlags {
   }
 
   /// Check the bit for its uniqueness for the given types.
-  static int _checkBit(int shift, Type type1,
-      [Type? type2, Type? type3, Type? type4, Type? type5, Type? type6]) {
+  static int _checkBit(
+    int shift,
+    Type type1, [
+    Type? type2,
+    Type? type3,
+    Type? type4,
+    Type? type5,
+    Type? type6,
+  ]) {
     _checkBit0(shift, type1);
     _checkBit0(shift, type2);
     _checkBit0(shift, type3);

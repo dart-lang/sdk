@@ -13,9 +13,9 @@ executables:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  code_assets: any
   collection: any
   kernel: any
-  native_assets_cli: any
   path: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

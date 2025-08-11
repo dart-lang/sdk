@@ -289,8 +289,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   }
 
   @override
-  DartType visitInterfaceType(
-      ParsedInterfaceType node, TypeParserEnvironment environment) {
+  DartType visitNamedType(
+      ParsedNamedType node, TypeParserEnvironment environment) {
     String name = node.name;
     DartType? predefined = environment.getPredefinedNamedType(name);
     if (predefined != null) {
@@ -316,6 +316,12 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new InvalidType();
+    } else if (name == "FutureOr") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      DartType typeArgument = _parseType(node.arguments.single, environment);
+      return new FutureOrType(
+          typeArgument, interpretParsedNullability(node.parsedNullability));
     } else if (additionalTypes != null && additionalTypes!.containsKey(name)) {
       return additionalTypes![name]!.call();
     }
@@ -326,10 +332,6 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         new List<DartType>.filled(arguments.length, dummyDartType);
     for (int i = 0; i < arguments.length; i++) {
       kernelArguments[i] = _parseType(arguments[i], environment);
-    }
-    if (name == "FutureOr") {
-      return new FutureOrType(kernelArguments.single,
-          interpretParsedNullability(node.parsedNullability));
     }
     if (declaration is Class) {
       Nullability nullability =

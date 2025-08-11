@@ -565,11 +565,11 @@ abstract final class StringBase extends WasmStringBase
     return (codeUnit <= 0x200A)
         ? ((codeUnit == 0x1680) || (0x2000 <= codeUnit))
         : ((codeUnit == 0x2028) ||
-            (codeUnit == 0x2029) ||
-            (codeUnit == 0x202F) ||
-            (codeUnit == 0x205F) ||
-            (codeUnit == 0x3000) ||
-            (codeUnit == 0xFEFF));
+              (codeUnit == 0x2029) ||
+              (codeUnit == 0x202F) ||
+              (codeUnit == 0x205F) ||
+              (codeUnit == 0x3000) ||
+              (codeUnit == 0xFEFF));
   }
 
   int firstNonWhitespace() {
@@ -698,10 +698,9 @@ abstract final class StringBase extends WasmStringBase
       length,
       "startIndex",
     );
-    Iterator iterator =
-        startIndex == 0
-            ? pattern.allMatches(this).iterator
-            : pattern.allMatches(this, startIndex).iterator;
+    Iterator iterator = startIndex == 0
+        ? pattern.allMatches(this).iterator
+        : pattern.allMatches(this, startIndex).iterator;
     if (!iterator.moveNext()) return this;
     Match match = iterator.current;
     return replaceRange(match.start, match.end, replacement);

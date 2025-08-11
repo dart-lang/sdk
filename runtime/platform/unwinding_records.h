@@ -17,19 +17,27 @@ class UnwindingRecordsPlatform : public AllStatic {
   static void RegisterExecutableMemory(void* start,
                                        intptr_t size,
                                        void** pp_dynamic_table);
+  static void RegisterExecutableMemory(void* start,
+                                       intptr_t size,
+                                       void* records_start,
+                                       void** pp_dynamic_table);
   static void UnregisterDynamicTable(void* p_dynamic_table);
 };
 
-// These definitions are only needed if targeting 64-bit Windows, or if the
-// ELF loader may be used on 64-bit Windows.
-//
-// More specifically, a 64-bit Windows gen_snapshot that does not target
-// 64-bit Windows does not need these definitions, as the generated snapshot
-// should not contain Windows-specific unwinding records and gen_snapshot
-// does not uses the ELF loader.
-#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
-    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&               \
-     (!defined(DART_PRECOMPILER) || defined(TESTING)))
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&                \
+    (!defined(DART_PRECOMPILER) || defined(TESTING))
+#define NEED_WINDOWS_UNWINDING_RECORDS 1
+// Guard for code and definitions that are used when the 64-bit Windows runtime
+// may make calls to the Windows APIs using the unwinding records information.
+#define UNWINDING_RECORDS_WINDOWS_HOST 1
+#elif defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
+#define NEED_WINDOWS_UNWINDING_RECORDS 1
+// Guard for code and definitions that are used when precompiling for
+// a 64-bit Windows target without any runtime use (and thus, no API calls).
+#define UNWINDING_RECORDS_WINDOWS_PRECOMPILER 1
+#endif
+
+#if defined(NEED_WINDOWS_UNWINDING_RECORDS)
 
 #pragma pack(push, 1)
 
@@ -63,14 +71,6 @@ typedef struct _UNWIND_INFO {
   UNWIND_CODE UnwindCode[2];
 } UNWIND_INFO, *PUNWIND_INFO;
 
-#if !defined(DART_HOST_OS_WINDOWS)
-typedef struct _RUNTIME_FUNCTION {
-  ULONG BeginAddress;
-  ULONG EndAddress;
-  ULONG UnwindData;
-} RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
-#endif
-
 static constexpr int kPushRbpInstructionLength = 1;
 static const int kMovRbpRspInstructionLength = 3;
 static constexpr int kRbpPrefixLength =
@@ -102,13 +102,20 @@ struct GeneratedCodeUnwindInfo {
 
 static constexpr uint32_t kUnwindingRecordMagic = 0xAABBCCDD;
 
+struct TargetRuntimeFunction {
+  ULONG BeginAddress;
+  ULONG EndAddress;
+  ULONG UnwindData;
+};
+
 struct CodeRangeUnwindingRecord {
   void* dynamic_table;
   uint32_t magic;
   uint32_t runtime_function_count;
   GeneratedCodeUnwindInfo unwind_info;
   intptr_t exception_handler;
-  RUNTIME_FUNCTION runtime_function[1];
+  // Must be cast to a PRUNTIME_FUNCTION when passed to Windows APIs.
+  TargetRuntimeFunction runtime_function[1];
 };
 
 #elif defined(TARGET_ARCH_ARM64)
@@ -147,13 +154,6 @@ struct UNWIND_INFO {
   uint32_t EpilogCount : 5;
   uint32_t CodeWords : 5;
 };
-
-#if !defined(DART_HOST_OS_WINDOWS) || !defined(HOST_ARCH_ARM64)
-typedef struct _RUNTIME_FUNCTION {
-  ULONG BeginAddress;
-  ULONG UnwindData;
-} RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
-#endif
 
 /**
  * Base on below doc, unwind record has 18 bits (unsigned) to encode function
@@ -218,6 +218,11 @@ struct UnwindData {
 static const uint32_t kDefaultRuntimeFunctionCount = 1;
 static constexpr uint32_t kUnwindingRecordMagic = 0xAABBCCEE;
 
+struct TargetRuntimeFunction {
+  ULONG BeginAddress;
+  ULONG UnwindData;
+};
+
 struct CodeRangeUnwindingRecord {
   void* dynamic_table;
   uint32_t magic;
@@ -231,19 +236,29 @@ struct CodeRangeUnwindingRecord {
   // than full size.
   UnwindData<> unwind_info1;
 
-  // More RUNTIME_FUNCTION structs could follow below array because the number
-  // of RUNTIME_FUNCTION needed to cover given code range is computed at
-  // runtime.
-  RUNTIME_FUNCTION runtime_function[kDefaultRuntimeFunctionCount];
+  // An arbitrary number of runtime function structs follow the initial header
+  // as the number needed to cover the given code range is computed at runtime.
+  // Must be cast to a PRUNTIME_FUNCTION when passed to Windows APIs.
+  TargetRuntimeFunction runtime_function[kDefaultRuntimeFunctionCount];
 };
-
 #else
 #error Unhandled Windows architecture.
 #endif
 
+// Since the definition of the RUNTIME_FUNCTION struct differs on X64
+// and ARM64 Windows and the precompiler may be cross compiling between
+// the two, TargetRuntimeFunction is defined above, which mimics the
+// native RUNTIME_FUNCTION struct of the target.
+//
+// Make sure that the sizes match, so that TargetRuntimeFunction values
+// can be used as RUNTIME_FUNCTION values and vice versa in the runtime.
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
+static_assert(sizeof(TargetRuntimeFunction) == sizeof(RUNTIME_FUNCTION));
+#endif
+
 #pragma pack(pop)
 
-#endif  // (defined(DART_TARGET_OS_WINDOWS) || ...
+#endif  // defined(NEED_WINDOWS_UNWINDING_RECORDS)
 
 }  // namespace dart
 

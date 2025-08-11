@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart_protocol.dart';
@@ -13,19 +12,20 @@ import 'implied_types.dart';
 GeneratedFile clientTarget(bool responseRequiresRequestTime,
         CodegenUriConverterKind uriConverterKind) =>
     GeneratedFile(
-        '../analysis_server_client/lib/src/protocol/protocol_common.dart',
-        (String pkgPath) async {
-      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
-          responseRequiresRequestTime, uriConverterKind, readApi(pkgPath),
+        'analysis_server_client/lib/src/protocol/protocol_common.dart',
+        (pkgRoot) async {
+      var visitor = CodegenCommonVisitor('analyzer_plugin',
+          responseRequiresRequestTime, uriConverterKind, readApi(pkgRoot),
           forClient: true);
       return visitor.collectCode(visitor.visitApi);
     });
 
 GeneratedFile pluginTarget(bool responseRequiresRequestTime,
         CodegenUriConverterKind uriConverterKind) =>
-    GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
-      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
-          responseRequiresRequestTime, uriConverterKind, readApi(pkgPath));
+    GeneratedFile('analyzer_plugin/lib/protocol/protocol_common.dart',
+        (pkgRoot) async {
+      var visitor = CodegenCommonVisitor('analyzer_plugin',
+          responseRequiresRequestTime, uriConverterKind, readApi(pkgRoot));
       return visitor.collectCode(visitor.visitApi);
     });
 
@@ -44,6 +44,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   @override
   void emitImports() {
     writeln("import 'dart:convert' hide JsonDecoder;");
+    writeln();
+    writeln("import 'package:collection/collection.dart' show QueueList;");
     writeln();
     if (forClient) {
       writeln(

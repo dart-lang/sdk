@@ -13,40 +13,39 @@ import 'package:ffi/ffi.dart';
 
 const maxSizeInBytes = 10 * 1024 * 1024;
 
-final argParser =
-    ArgParser()
-      ..addMultiOption(
-        'length',
-        abbr: 'l',
-        help: 'Byte length to benchmark',
-        valueHelp: 'INT',
-        defaultsTo: const [],
-      )
-      ..addFlag(
-        'mebibytes-per-second',
-        abbr: 'm',
-        help: 'Show MiB/s',
-        defaultsTo: false,
-      )
-      ..addFlag(
-        'nanoseconds-per-byte',
-        abbr: 'n',
-        help: 'Show ns/byte',
-        defaultsTo: false,
-      )
-      ..addFlag(
-        'bytes-per-second',
-        abbr: 'b',
-        help: 'Show byte/s',
-        defaultsTo: true,
-      )
-      ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
-      ..addFlag(
-        'aligned',
-        abbr: 'a',
-        help: 'Align results on initial numbers',
-        defaultsTo: false,
-      );
+final argParser = ArgParser()
+  ..addMultiOption(
+    'length',
+    abbr: 'l',
+    help: 'Byte length to benchmark',
+    valueHelp: 'INT',
+    defaultsTo: const [],
+  )
+  ..addFlag(
+    'mebibytes-per-second',
+    abbr: 'm',
+    help: 'Show MiB/s',
+    defaultsTo: false,
+  )
+  ..addFlag(
+    'nanoseconds-per-byte',
+    abbr: 'n',
+    help: 'Show ns/byte',
+    defaultsTo: false,
+  )
+  ..addFlag(
+    'bytes-per-second',
+    abbr: 'b',
+    help: 'Show byte/s',
+    defaultsTo: true,
+  )
+  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false)
+  ..addFlag(
+    'aligned',
+    abbr: 'a',
+    help: 'Align results on initial numbers',
+    defaultsTo: false,
+  );
 
 class Emitter {
   final bool bytesPerSecond;
@@ -118,10 +117,9 @@ abstract class MemoryCopyBenchmark {
     // to avoid discarding results that almost, but not quite, reach the minimum
     // duration requested.
     final allowedJitter = Duration(
-      microseconds:
-          minDuration.inSeconds > 0
-              ? (minDuration.inMicroseconds * 0.1).floor()
-              : 0,
+      microseconds: minDuration.inSeconds > 0
+          ? (minDuration.inMicroseconds * 0.1).floor()
+          : 0,
     );
 
     final watch = Stopwatch()..start();
@@ -475,11 +473,10 @@ void main(List<String> args) {
   List<int> lengthsInBytes = defaultLengthsInBytes;
   final emitter = Emitter(results);
   if (results['length'].isNotEmpty) {
-    lengthsInBytes =
-        (results['length'] as List<String>)
-            .map(int.parse)
-            .where((i) => i <= maxSizeInBytes)
-            .toList();
+    lengthsInBytes = (results['length'] as List<String>)
+        .map(int.parse)
+        .where((i) => i <= maxSizeInBytes)
+        .toList();
   }
   final filter = results.rest.firstOrNull;
   final benchmarks = [

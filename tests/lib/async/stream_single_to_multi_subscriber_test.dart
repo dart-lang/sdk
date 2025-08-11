@@ -28,12 +28,16 @@ main() {
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);
-    actual1.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual1.events);
-    }));
-    actual2.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual2.events);
-    }));
+    actual1.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual1.events);
+      }),
+    );
+    actual2.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual2.events);
+      }),
+    );
     expected.replay(c);
   });
 
@@ -43,12 +47,16 @@ main() {
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);
-    actual1.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual1.events);
-    }));
-    actual2.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual2.events);
-    }));
+    actual1.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual1.events);
+      }),
+    );
+    actual2.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual2.events);
+      }),
+    );
     expected.replay(c);
   });
 }

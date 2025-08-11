@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,6 +19,9 @@ void main() {
     defineReflectiveTests(UnnecessaryNullInIfNullOperatorsTest);
   });
 }
+
+bool _ignoreDeadCode(Diagnostic diagnostic) =>
+    diagnostic.diagnosticCode != WarningCode.DEAD_CODE;
 
 @reflectiveTest
 class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
@@ -46,7 +51,7 @@ void f() {
 }
 
 C g() => C();
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_assignmentExpression_simpleIdentifier_field() async {
@@ -64,7 +69,7 @@ class C {
   void f(int b) {
   }
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_assignmentExpression_simpleIdentifier_parameter() async {
@@ -76,7 +81,7 @@ void f(int a, int b) {
     await assertHasFix('''
 void f(int a, int b) {
 }
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_immediateChild() async {
@@ -85,7 +90,7 @@ void f(int a, int b) => a ??= b;
 ''');
     await assertHasFix('''
 void f(int a, int b) => a;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild() async {
@@ -94,7 +99,7 @@ void f(int a, int b) => a ??= b * 2 + 1;
 ''');
     await assertHasFix('''
 void f(int a, int b) => a;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild_onRight() async {
@@ -103,7 +108,7 @@ void f(int a, int b, int c) => a = b ??= c;
 ''');
     await assertHasFix('''
 void f(int a, int b, int c) => a = b;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 }
 
@@ -118,7 +123,7 @@ int f(int a, int b) => a ?? b;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_nestedChild() async {
@@ -127,7 +132,7 @@ int f(int a, int b) => a ?? b * 2 + 1;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 }
 
@@ -194,6 +199,6 @@ var b = a ?? '';
     await assertHasFix('''
 var a = '';
 var b = a;
-''');
+''', errorFilter: _ignoreDeadCode);
   }
 }

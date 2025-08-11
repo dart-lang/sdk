@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddDigitSeparatorsTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ADD_DIGIT_SEPARATORS;
+  AssistKind get kind => DartAssistKind.addDigitSeparators;
 
   Future<void> test_double_manyDigitsLeftOfDecimal() async {
     await resolveTestCode('var i = ^123456.78;');

@@ -10,7 +10,8 @@
 #include "bin/platform.h"
 
 #if defined(TARGET_ARCH_IS_64_BIT) && defined(DART_PRECOMPILED_RUNTIME) &&     \
-    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX))
+    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX) ||       \
+     defined(DART_TARGET_OS_MACOS))
 #define SUPPORT_ANALYZE_SNAPSHOT
 #endif
 
@@ -212,7 +213,7 @@ int RunAnalyzer(int argc, char** argv) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);

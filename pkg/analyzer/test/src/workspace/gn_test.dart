@@ -4,8 +4,8 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,9 +29,11 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     // A file that is _not_ in this package is not required to have a BUILD.gn
     // file above it, for simplicity and reduced I/O.
     expect(
-        package
-            .contains(TestSource(convertPath('/ws/some/other/code/file.dart'))),
-        isFalse);
+      package.contains(
+        TestSource(convertPath('/ws/some/other/code/file.dart')),
+      ),
+      isFalse,
+    );
   }
 
   void test_contains_differentWorkspace() {
@@ -40,8 +42,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
-    expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
-        isFalse);
+    expect(
+      package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
+      isFalse,
+    );
   }
 
   void test_contains_samePackage() {
@@ -70,9 +74,11 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var package =
         workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
     expect(
-        package.contains(
-            TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
-        isFalse);
+      package.contains(
+        TestSource(convertPath('/ws/some/code/testing/lib/testing.dart')),
+      ),
+      isFalse,
+    );
   }
 
   void test_findPackageFor_buildFileExists() {
@@ -81,7 +87,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
-    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.root.path, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
 
@@ -102,8 +108,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/ws/.fx-build-dir', '$buildDir\n');
     newFile(
-        '/ws/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/ws/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -119,7 +125,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
       "rootUri": ""
     }
   ]
-}''');
+}''',
+    );
     newFolder('/ws/some/code');
     var buildGnFile = newBuildGnFile('/ws/some/code', '');
     var gnWorkspace = GnWorkspace.find(buildGnFile)!;
@@ -162,8 +169,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -173,7 +180,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
@@ -197,8 +205,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -208,7 +216,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
@@ -230,8 +239,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -241,7 +250,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
@@ -264,8 +274,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -275,7 +285,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
@@ -299,8 +310,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -310,13 +321,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageUri"
     }
   ]
-}''');
+}''',
+    );
     String otherPackageLocation = convertPath('/workspace/here/too');
-    Uri otherPackageUri =
-        resourceProvider.pathContext.toUri(otherPackageLocation);
+    Uri otherPackageUri = resourceProvider.pathContext.toUri(
+      otherPackageLocation,
+    );
     newFile(
-        '/workspace/out/release-y22_256/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/release-y22_256/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -326,7 +339,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$otherPackageUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
@@ -351,8 +365,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     String packageOneLocation = convertPath('/workspace/this/is/the/package');
     Uri packageOneUri = resourceProvider.pathContext.toUri(packageOneLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -362,13 +376,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageOneUri"
     }
   ]
-}''');
-    String packageTwoLocation =
-        convertPath('/workspace/this/is/the/other/package');
+}''',
+    );
+    String packageTwoLocation = convertPath(
+      '/workspace/this/is/the/other/package',
+    );
     Uri packageTwoUri = resourceProvider.pathContext.toUri(packageTwoLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test_package_config.json',
-        '''{
+      '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test_package_config.json',
+      '''{
   "configVersion": 2,
   "packages": [
     {
@@ -378,7 +394,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
       "rootUri": "$packageTwoUri"
     }
   ]
-}''');
+}''',
+    );
     var workspace = GnWorkspace.find(buildGnFile)!;
     expect(workspace.root, convertPath('/workspace'));
     expect(

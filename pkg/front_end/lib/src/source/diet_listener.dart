@@ -46,7 +46,6 @@ import 'diet_parser.dart';
 import 'offset_map.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
-import 'type_parameter_scope_builder.dart';
 
 class DietListener extends StackListenerImpl {
   final SourceLibraryBuilder libraryBuilder;
@@ -938,7 +937,8 @@ class DietListener extends StackListenerImpl {
     // for type inference.
     _parseFields(
         _offsetMap,
-        createListener(fragment.createBodyBuilderContext(), _memberScope,
+        createListener(
+            fragment.declaration.createBodyBuilderContext(), _memberScope,
             inferenceDataForTesting: fragment
                 .builder
                 .dataForTesting

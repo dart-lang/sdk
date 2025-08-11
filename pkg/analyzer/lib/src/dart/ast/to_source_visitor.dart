@@ -82,18 +82,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    sink.write('augmented');
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _visitToken(node.augmentedKeyword);
-    _visitNode(node.typeArguments);
-    _visitNode(node.arguments);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     sink.write('await ');
     _visitNode(node.expression);
@@ -227,7 +215,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitComment(Comment node) {}
 
   @override
-  void visitCommentReference(CommentReference node) {}
+  void visitCommentReference(CommentReference node) {
+    sink.write(node.newKeyword?.lexeme ?? '');
+    _visitNode(prefix: '[', node.expression, suffix: ']');
+  }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -346,6 +337,17 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(' while (');
     _visitNode(node.condition);
     sink.write(');');
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitToken(node.period);
+    _visitNode(node.constructorName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -832,7 +834,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('library ');
-    _visitNode(node.name2);
+    _visitNode(node.name);
     sink.write(';');
   }
 
@@ -954,7 +956,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _visitNode(node.importPrefix);
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     if (node.question != null) {
       sink.write('?');
@@ -1068,7 +1070,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     _visitNode(node.declaration);
     sink.write(';');
   }
@@ -1142,7 +1145,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _visitNode(node.type);
     sink.write(' ');
     sink.write(node.name);
@@ -1150,7 +1154,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     sink.write('{');
     _visitNodeList(node.fields, separator: ', ');
     sink.write('}');
@@ -1158,7 +1163,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _visitNode(node.type);
     if (node.name != null) {
       sink.write(' ');
@@ -1168,7 +1174,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     sink.write('this');
     _visitNode(node.constructorName, prefix: '.');
     _visitNode(node.argumentList);
@@ -1502,8 +1509,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   /// Print a list of [nodes], separated by the given [separator]; if the list
   /// is not empty print [prefix] before the first node, and [suffix] after
   /// the last node.
-  void _visitNodeList(List<AstNode> nodes,
-      {String prefix = '', String separator = '', String suffix = ''}) {
+  void _visitNodeList(
+    List<AstNode> nodes, {
+    String prefix = '',
+    String separator = '',
+    String suffix = '',
+  }) {
     var length = nodes.length;
     if (length > 0) {
       sink.write(prefix);

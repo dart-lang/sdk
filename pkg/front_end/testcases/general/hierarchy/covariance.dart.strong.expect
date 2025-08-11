@@ -102,35 +102,35 @@ class Mixed extends self::_Mixed&Superclass&Mixin1&Mixin2 implements self::Inter
   synthetic constructor •() → self::Mixed
     : super self::_Mixed&Superclass&Mixin1&Mixin2::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::int a, covariant-by-declaration core::int b, covariant-by-declaration core::int c, covariant-by-declaration core::int d, covariant-by-declaration core::int e) → void
+  forwarding-stub synthetic method method(covariant-by-declaration core::int a, covariant-by-declaration core::int b, covariant-by-declaration core::int c, covariant-by-declaration core::int d, covariant-by-declaration core::int e) → void
     return super.{self::Mixin2::method}(a, b, c, d, e);
 }
 abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1
     : super core::Object::•()
     ;
-  mixin-super-stub method method(covariant-by-declaration core::int a, core::int b) → dynamic
+  synthetic mixin-super-stub method method(covariant-by-declaration core::int a, core::int b) → dynamic
     return super.{self::M1::method}(a, b);
 }
 abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1&M2
     : super self::_C&Object&M1::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → dynamic
+  forwarding-stub synthetic method method(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → dynamic
     return super.{self::M2::method}(a, b);
 }
 abstract class _Mixed&Superclass&Mixin1 = self::Superclass with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Mixed&Superclass&Mixin1
     : super self::Superclass::•()
     ;
-  forwarding-stub method method(core::int a, core::int b, covariant-by-declaration core::int c, core::int d, covariant-by-declaration core::int e) → void
+  forwarding-stub synthetic method method(core::int a, core::int b, covariant-by-declaration core::int c, core::int d, covariant-by-declaration core::int e) → void
     return super.{self::Mixin1::method}(a, b, c, d, e);
 }
 abstract class _Mixed&Superclass&Mixin1&Mixin2 = self::_Mixed&Superclass&Mixin1 with self::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Mixed&Superclass&Mixin1&Mixin2
     : super self::_Mixed&Superclass&Mixin1::•()
     ;
-  forwarding-stub method method(core::int a, core::int b, covariant-by-declaration core::int c, covariant-by-declaration core::int d, covariant-by-declaration core::int e) → void
+  forwarding-stub synthetic method method(core::int a, core::int b, covariant-by-declaration core::int c, covariant-by-declaration core::int d, covariant-by-declaration core::int e) → void
     return super.{self::Mixin2::method}(a, b, c, d, e);
 }
 static method main() → void {}

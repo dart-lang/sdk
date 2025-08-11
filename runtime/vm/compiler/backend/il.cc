@@ -1246,7 +1246,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
 ConstantInstr* GraphEntryInstr::constant_null() {
   ASSERT(initial_definitions()->length() > 0);
   for (intptr_t i = 0; i < initial_definitions()->length(); ++i) {
-    ConstantInstr* defn = (*initial_definitions())[i]->AsConstant();
+    ConstantInstr* defn = (*initial_definitions())[i] -> AsConstant();
     if (defn != nullptr && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
@@ -4504,27 +4504,28 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
   const bool use_shared_stub = UseSharedSlowPathStub(opt);
-  const intptr_t kNumTemps = calls_initializer() &&
+  const intptr_t kNumTemps = does_throw_access_error_or_call_initializer() &&
                                      throw_exception_on_initialization() &&
                                      use_shared_stub
                                  ? 1
                                  : 0;
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-      calls_initializer()
+      does_throw_access_error_or_call_initializer()
           ? (throw_exception_on_initialization()
                  ? (use_shared_stub ? LocationSummary::kCallOnSharedSlowPath
                                     : LocationSummary::kCallOnSlowPath)
                  : LocationSummary::kCall)
           : LocationSummary::kNoCall);
-  if (calls_initializer() && throw_exception_on_initialization() &&
-      use_shared_stub) {
+  if (does_throw_access_error_or_call_initializer() &&
+      throw_exception_on_initialization() && use_shared_stub) {
     locs->set_temp(
         0, Location::RegisterLocation(LateInitializationErrorABI::kFieldReg));
   }
-  locs->set_out(0, calls_initializer() ? Location::RegisterLocation(
-                                             InitStaticFieldABI::kResultReg)
-                                       : Location::RequiresRegister());
+  locs->set_out(0,
+                does_throw_access_error_or_call_initializer()
+                    ? Location::RegisterLocation(InitStaticFieldABI::kResultReg)
+                    : Location::RequiresRegister());
   return locs;
 }
 
@@ -4543,8 +4544,8 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
   __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
 
-  if (calls_initializer()) {
-    if (throw_exception_on_initialization()) {
+  if (does_throw_access_error_or_call_initializer()) {
+    if (calls_initializer() && throw_exception_on_initialization()) {
       ThrowErrorSlowPathCode* slow_path =
           new LateInitializationErrorSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
@@ -4553,8 +4554,8 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ BranchIf(EQUAL, slow_path->entry_label());
       return;
     }
-    ASSERT(field().has_initializer());
-    ASSERT(field().is_late());
+    ASSERT((FLAG_experimental_shared_data && !field().is_shared()) ||
+           (field().has_initializer() && field().is_late()));
     auto object_store = compiler->isolate_group()->object_store();
     const Field& original_field = Field::ZoneHandle(field().Original());
 
@@ -4563,20 +4564,24 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ BranchIf(NOT_EQUAL, &no_call);
 
     auto& stub = Code::ZoneHandle(compiler->zone());
-    if (field().needs_load_guard()) {
-      stub = object_store->init_static_field_stub();
+    if (calls_initializer()) {
+      if (field().needs_load_guard()) {
+        stub = object_store->init_static_field_stub();
+      } else {
+        // The stubs below call the initializer function directly, so make sure
+        // one is created.
+        if (original_field.has_nontrivial_initializer()) {
+          original_field.EnsureInitializerFunction();
+        }
+        stub = field().is_shared()
+                   ? object_store->init_shared_late_static_field_stub()
+                   : (field().is_final()
+                          ? object_store->init_late_final_static_field_stub()
+                          : object_store->init_late_static_field_stub());
+      }
     } else {
-      // The stubs below call the initializer function directly, so make sure
-      // one is created.
-      original_field.EnsureInitializerFunction();
-      stub =
-          field().is_shared()
-              ? (field().is_final()
-                     ? object_store->init_shared_late_final_static_field_stub()
-                     : object_store->init_shared_late_static_field_stub())
-              : (field().is_final()
-                     ? object_store->init_late_final_static_field_stub()
-                     : object_store->init_late_static_field_stub());
+      ASSERT(FLAG_experimental_shared_data && !field().is_shared());
+      stub = object_store->check_isolate_field_access_stub();
     }
 
     __ LoadObject(InitStaticFieldABI::kFieldReg, original_field);
@@ -4885,7 +4890,7 @@ LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
                  ? Location::RequiresRegister()
                  : Location::RequiresFpuRegister();
   }
-  return LocationSummary::Make(zone, /*num_inputs=*/0, output,
+  return LocationSummary::Make(zone, /*input_count=*/0, output,
                                LocationSummary::kNoCall);
 }
 
@@ -5590,6 +5595,11 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ASSERT(new_target->HasSingleTarget());
   const Function& target = new_target->FirstTarget();
+  if (target.is_declared_in_bytecode()) {
+    // Optimized static calls dispatch via Code object without passing
+    // Function object which is incompatible to the bytecode interpreter.
+    return this;
+  }
   StaticCallInstr* specialized = StaticCallInstr::FromCall(
       flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
@@ -7320,19 +7330,6 @@ void NativeCallInstr::SetupNative() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  // Currently we perform unoptimized compilations only on mutator threads. If
-  // the compiler has to resolve a native to a function pointer it calls out to
-  // the embedder to do so.
-  //
-  // Unfortunately that embedder API was designed by giving it a handle to a
-  // string. So the embedder will have to call back into the VM to convert it to
-  // a C string - which requires an active isolate.
-  //
-  // => To allow this `dart-->jit-compiler-->embedder-->dart api` we set the
-  //    active isolate again.
-  //
-  ActiveIsolateScope active_isolate(thread);
-
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
 
@@ -7404,8 +7401,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
       is_leaf_ ? LocationSummary::kNativeLeafCall : LocationSummary::kCall;
 
   LocationSummary* summary = new (zone) LocationSummary(
-      zone, /*num_inputs=*/InputCount(),
-      /*num_temps=*/Utils::CountOneBitsWord(temps), contains_call);
+      zone, InputCount(),
+      /*temp_count=*/Utils::CountOneBitsWord(temps), contains_call);
 
   intptr_t reg_i = 0;
   for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
@@ -7473,7 +7470,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   // Moves for arguments.
   compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
+                                    /*stack_delta_in_bytes=*/0);
   intptr_t def_index = 0;
   for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();
        arg_index++) {
@@ -8090,8 +8087,8 @@ LocationSummary* LeafRuntimeCallInstr::MakeLocationSummaryInternal(
     Zone* zone,
     const RegList temps) const {
   LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/Utils::CountOneBitsWord(temps),
+      new (zone) LocationSummary(zone, InputCount(),
+                                 /*temp_count=*/Utils::CountOneBitsWord(temps),
                                  LocationSummary::kNativeLeafCall);
 
   intptr_t reg_i = 0;
@@ -8174,7 +8171,7 @@ void LeafRuntimeCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   ConstantTemporaryAllocator temp_alloc(temp0);
   compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
+                                    /*stack_delta_in_bytes=*/0);
 
   __ Comment("EmitParamMoves");
   const auto& argument_locations =

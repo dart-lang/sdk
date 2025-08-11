@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +17,10 @@ class PreferIntLiterals extends LintRule {
     : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_int_literals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_int_literals;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     registry.addDoubleLiteral(this, _Visitor(this));
   }
 }
@@ -99,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Ensure that replacing the double would not change the semantics
     if (canReplaceWithIntLiteral(node)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 

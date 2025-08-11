@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -37,7 +37,7 @@ class ExpectedLocation {
 
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest with _IndexMixin {
-  void assertElementIndexText(Element2 element, String expected) {
+  void assertElementIndexText(Element element, String expected) {
     var actual = _getRelationsText(element);
     if (actual != expected) {
       print(actual);
@@ -47,7 +47,9 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   }
 
   void assertLibraryFragmentIndexText(
-      CompilationUnitElementImpl fragment, String expected) {
+    LibraryFragmentImpl fragment,
+    String expected,
+  ) {
     var actual = _getLibraryFragmentReferenceText(fragment);
     if (actual != expected) {
       print(actual);
@@ -212,7 +214,7 @@ Prefixes: p
 class A {}
 ''');
     var elementA = findElement2.class_('A');
-    var elementObject = elementA.supertype!.element3;
+    var elementObject = elementA.supertype!.element;
     assertElementIndexText(elementObject, r'''
 6 1:7 |A| IS_ANCESTOR_OF
 6 1:7 || IS_EXTENDED_BY qualified
@@ -403,8 +405,8 @@ void f() {
   math.loadLibrary(); // 2
 }
 ''');
-    var mathLib = findElement2.import('dart:math').importedLibrary2!;
-    var element = mathLib.loadLibraryFunction2;
+    var mathLib = findElement2.import('dart:math').importedLibrary!;
+    var element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
 55 3:8 |loadLibrary| IS_INVOKED_BY qualified
 82 4:8 |loadLibrary| IS_INVOKED_BY qualified
@@ -999,7 +1001,7 @@ import 'lib.dart';
 /// An [A].
 void f(A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 28 3:9 |A| IS_REFERENCED_BY
 39 4:8 |A| IS_REFERENCED_BY
@@ -1017,7 +1019,7 @@ import 'lib.dart' as p;
 /// A [p.A] and [A].
 void f(p.A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |A| IS_REFERENCED_BY qualified
 61 4:18 |A| IS_REFERENCED_BY
@@ -1036,7 +1038,7 @@ import 'lib.dart' as p;
 /// A [p.A].
 void f(p.A a) {}
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |A| IS_REFERENCED_BY qualified
 47 4:10 |A| IS_REFERENCED_BY qualified
@@ -1052,7 +1054,7 @@ library lib;
 export 'lib.dart';
 ''');
     var export = findElement2.export('package:test/lib.dart');
-    var fragment = export.exportedLibrary2!.firstFragment;
+    var fragment = export.exportedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
 ''');
@@ -1066,7 +1068,7 @@ library lib;
 import 'lib.dart';
 ''');
     var import = findElement2.import('package:test/lib.dart');
-    var fragment = import.importedLibrary2!.firstFragment;
+    var fragment = import.importedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
 ''');
@@ -1278,6 +1280,21 @@ void f() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  test_isReferencedBy_ConstructorElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {}
+void f() {
+  A a = .new(); // 1
+  A tearOff = .new; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+31 3:10 |new| IS_INVOKED_BY qualified
+58 4:16 |new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
   test_isReferencedBy_ConstructorElement_enum_named() async {
     await _indexTestUnit('''
 /// [new E.foo] 1
@@ -1457,7 +1474,7 @@ void f(E e) {
   f(E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 27 3:8 |E| IS_REFERENCED_BY
 38 4:5 |E| IS_REFERENCED_BY
@@ -1478,7 +1495,7 @@ void f(p.E e) {
   f(E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |E| IS_REFERENCED_BY qualified
 64 5:5 |E| IS_REFERENCED_BY
@@ -1500,7 +1517,7 @@ void f(p.E e) {
   f(q.E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 58 4:10 |E| IS_REFERENCED_BY qualified
 71 5:7 |E| IS_REFERENCED_BY qualified
@@ -1521,7 +1538,7 @@ void f(p.E e) {
   f(p.E.c);
 }
 ''');
-    var element = findElement2.function('f').formalParameters[0].type.element3!;
+    var element = findElement2.function('f').formalParameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |E| IS_REFERENCED_BY qualified
 47 4:7 |E| IS_REFERENCED_BY qualified
@@ -1600,8 +1617,8 @@ void f(A a) {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 33 3:11 |field| IS_WRITTEN_BY qualified
@@ -1635,8 +1652,8 @@ class A {
     // aaa
     {
       var field = findElement2.field('aaa');
-      var getter = field.getter2!;
-      var setter = field.setter2!;
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 41 4:10 |aaa| IS_WRITTEN_BY qualified
 ''');
@@ -1650,8 +1667,8 @@ class A {
     // bbb
     {
       var field = findElement2.field('bbb');
-      var getter = field.getter2!;
-      var setter = field.setter2!;
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 51 4:20 |bbb| IS_WRITTEN_BY qualified
 ''');
@@ -1704,6 +1721,21 @@ class A {
 ''');
   }
 
+  test_isReferencedBy_FieldElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {
+  static A field = A();
+}
+void f() {
+  A a = .field; // 1
+}
+''');
+    var element = findElement2.field('field').getter!;
+    assertElementIndexText(element, r'''
+56 5:10 |field| IS_REFERENCED_BY qualified
+''');
+  }
+
   test_isReferencedBy_FieldElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -1722,8 +1754,8 @@ void f(E e) {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 62 4:11 |field| IS_WRITTEN_BY qualified
@@ -1757,7 +1789,7 @@ void f() {
 52 5:16 |values| IS_REFERENCED_BY qualified
 ''');
 
-    var index = typeProvider.enumElement2!.getGetter2('index')!;
+    var index = typeProvider.enumElement!.getGetter('index')!;
     assertElementIndexText(index, r'''
 78 6:18 |index| IS_REFERENCED_BY qualified
 ''');
@@ -1830,8 +1862,8 @@ void f() {
 }
 ''');
     var field = findElement2.field('field');
-    var getter = field.getter2!;
-    var setter = field.setter2!;
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(getter, r'''
 83 5:5 |field| IS_REFERENCED_BY
@@ -1872,7 +1904,7 @@ void f() {
 
     var importFind = findElement2.importFind('package:test/foo.dart');
     var importedFragment = importFind.importedLibrary.firstFragment;
-    importedFragment as CompilationUnitElementImpl;
+    importedFragment as LibraryFragmentImpl;
     assertLibraryFragmentIndexText(importedFragment, r'''
 7 1:8 |"foo.dart"|
 ''');
@@ -1908,7 +1940,7 @@ int f() => p.A.f;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 38 3:14 |A| IS_REFERENCED_BY qualified
 50 5:7 |B| IS_ANCESTOR_OF
@@ -1951,6 +1983,21 @@ class A {
 ''');
   }
 
+  test_isReferencedBy_MethodElement_dotShorthand() async {
+    await _indexTestUnit('''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .method(); // 1
+}
+''');
+    var element = findElement2.method('method');
+    assertElementIndexText(element, r'''
+60 5:10 |method| IS_INVOKED_BY qualified
+''');
+  }
+
   test_isReferencedBy_MethodElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -1986,7 +2033,7 @@ void f() => p.A.m();
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 39 3:15 |A| IS_REFERENCED_BY qualified
 53 5:7 |B| IS_ANCESTOR_OF
@@ -2286,7 +2333,7 @@ void f(int i) => p.A.f = i;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 44 3:20 |A| IS_REFERENCED_BY qualified
 60 5:7 |B| IS_ANCESTOR_OF
@@ -2308,7 +2355,7 @@ var t = A;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 52 4:9 |A| IS_REFERENCED_BY
 62 6:7 |B| IS_ANCESTOR_OF
@@ -2329,7 +2376,7 @@ var t = p.A;
 
 class B extends p.A {}
 ''');
-    var element = findElement2.class_('B').supertype!.element3;
+    var element = findElement2.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 35 3:11 |A| IS_REFERENCED_BY qualified
 45 5:7 |B| IS_ANCESTOR_OF
@@ -2371,13 +2418,13 @@ void f() {
 23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
 
-    assertElementIndexText(variable.getter2!, r'''
+    assertElementIndexText(variable.getter!, r'''
 103 5:14 |V| IS_REFERENCED_BY qualified
 135 7:9 |V| IS_REFERENCED_BY
 Prefixes: pref,(unprefixed)
 ''');
 
-    assertElementIndexText(variable.setter2!, r'''
+    assertElementIndexText(variable.setter!, r'''
 78 4:8 |V| IS_REFERENCED_BY qualified
 114 6:3 |V| IS_REFERENCED_BY
 ''');
@@ -2502,12 +2549,13 @@ class Z implements E, D {
     expect(index.subtypes, hasLength(6));
 
     _assertSubtype(0, 'dart:core;dart:core;Object', 'Y', ['methodY']);
-    _assertSubtype(
-      1,
-      '$libP;A',
-      'X',
-      ['field1', 'field2', 'getter1', 'method1', 'setter1'],
-    );
+    _assertSubtype(1, '$libP;A', 'X', [
+      'field1',
+      'field2',
+      'getter1',
+      'method1',
+      'setter1',
+    ]);
     _assertSubtype(2, '$libP;B', 'Y', ['methodY']);
     _assertSubtype(3, '$libP;C', 'Y', ['methodY']);
     _assertSubtype(4, '$libP;D', 'Z', ['methodZ']);
@@ -2740,7 +2788,7 @@ void f() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  String _getLibraryFragmentReferenceText(CompilationUnitElementImpl target) {
+  String _getLibraryFragmentReferenceText(LibraryFragmentImpl target) {
     var lineInfo = result.lineInfo;
     var targetId = index.getLibraryFragmentId(target);
 
@@ -2774,7 +2822,7 @@ void f() {
     return buffer.toString();
   }
 
-  String _getRelationsText(Element2 element) {
+  String _getRelationsText(Element element) {
     var lineInfo = result.lineInfo;
     var elementId = _findElementId(element);
 
@@ -2869,15 +2917,23 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   void _assertSubtype(
-      int i, String superEncoded, String subName, List<String> members) {
+    int i,
+    String superEncoded,
+    String subName,
+    List<String> members,
+  ) {
     expect(index.strings[index.supertypes[i]], superEncoded);
     var subtype = index.subtypes[i];
     expect(index.strings[subtype.name], subName);
     expect(_decodeStringList(subtype.members), members);
   }
 
-  void _assertUsedName(String name, IndexRelationKind kind,
-      ExpectedLocation expectedLocation, bool isNot) {
+  void _assertUsedName(
+    String name,
+    IndexRelationKind kind,
+    ExpectedLocation expectedLocation,
+    bool isNot,
+  ) {
     int nameId = index.getStringId(name);
     for (int i = 0; i < index.usedNames.length; i++) {
       if (index.usedNames[i] == nameId &&
@@ -2900,8 +2956,11 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return stringIds.map((i) => index.strings[i]).toList();
   }
 
-  ExpectedLocation _expectedLocation(String search, bool isQualified,
-      {int? length}) {
+  ExpectedLocation _expectedLocation(
+    String search,
+    bool isQualified, {
+    int? length,
+  }) {
     int offset = findNode.offset(search);
     length ??= findNode.simple(search).length;
     return ExpectedLocation(offset, length, isQualified);
@@ -2925,7 +2984,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   /// Return the [element] identifier in [index] or fail.
-  int _findElementId(Element2 element) {
+  int _findElementId(Element element) {
     var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
@@ -2939,9 +2998,11 @@ mixin _IndexMixin on PubPackageResolutionTest {
     var parameterId = index.getStringId(components.parameterName);
 
     // Find the element's id.
-    for (int elementId = 0;
-        elementId < index.elementUnits.length;
-        elementId++) {
+    for (
+      int elementId = 0;
+      elementId < index.elementUnits.length;
+      elementId++
+    ) {
       if (index.elementUnits[elementId] == unitId &&
           index.elementNameUnitMemberIds[elementId] == unitMemberId &&
           index.elementNameClassMemberIds[elementId] == classMemberId &&
@@ -2954,7 +3015,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return 0;
   }
 
-  int _getUnitId(Element2 element) {
+  int _getUnitId(Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }
@@ -2976,22 +3037,38 @@ class _NameIndexAssert {
 
   void isNotUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, false), true);
+      name,
+      kind,
+      test._expectedLocation(search, false),
+      true,
+    );
   }
 
   void isNotUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, true), true);
+      name,
+      kind,
+      test._expectedLocation(search, true),
+      true,
+    );
   }
 
   void isUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, false), false);
+      name,
+      kind,
+      test._expectedLocation(search, false),
+      false,
+    );
   }
 
   void isUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, true), false);
+      name,
+      kind,
+      test._expectedLocation(search, true),
+      false,
+    );
   }
 }
 

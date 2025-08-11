@@ -29,7 +29,7 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -57,7 +57,7 @@ NamedType
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@class::B::@method::bar::@parameter::a#element
+  element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
   staticType: a
 ''');
   }
@@ -76,19 +76,20 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  element: <testLibraryFragment>::@class::A::@getter::_#element
+  element: <testLibrary>::@class::A::@getter::_
   staticType: int
 ''');
   }
 
   test_wildCardMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   _() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 12, 1)],
+    );
 
     var node = findNode.methodDeclaration('_');
     assertResolvedNodeText(node, r'''
@@ -101,22 +102,23 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@class::C::@method::_
+  declaredElement: <testLibraryFragment> _@12
     type: dynamic Function()
 ''');
   }
 
   test_wildCardMethod_preWildCards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class C {
   _() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 56, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 56, 1)],
+    );
 
     var node = findNode.methodDeclaration('_');
     assertResolvedNodeText(node, r'''
@@ -129,7 +131,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@class::C::@method::_
+  declaredElement: <testLibraryFragment> _@56
     type: dynamic Function()
 ''');
   }
@@ -152,10 +154,12 @@ VariableDeclaration
   equals: =
   initializer: SimpleIdentifier
     token: _
-    element: <testLibraryFragment>::@class::C::@getter::_#element
+    element: <testLibrary>::@class::C::@getter::_
     staticType: int
-  declaredElement: _@51
+  declaredFragment: isPrivate _@51
     type: int
+    element: isPrivate
+      type: int
 ''');
   }
 }

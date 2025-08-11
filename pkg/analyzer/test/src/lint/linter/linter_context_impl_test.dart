@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -19,25 +19,24 @@ main() {
     defineReflectiveTests(CanBeConstConstructorTest);
     defineReflectiveTests(CanBeConstInstanceCreationTest);
     defineReflectiveTests(CanBeConstTypedLiteralTest);
-    defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(PubDependencyTest);
   });
 }
 
 @reflectiveTest
 abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
-  late final LinterContextWithResolvedResults context;
+  late final RuleContextWithResolvedResults context;
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
-    var errorReporter = ErrorReporter(
-      RecordingErrorListener(),
+    var diagnosticReporter = DiagnosticReporter(
+      RecordingDiagnosticListener(),
       StringSource(result.content, null),
     );
-    var contextUnit = LintRuleUnitContext(
+    var contextUnit = RuleContextUnit(
       file: result.file,
       content: result.content,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       unit: result.unit,
     );
 
@@ -47,12 +46,11 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     var workspace = analysisContext.contextRoot.workspace;
     var workspacePackage = workspace.findPackageFor(libraryPath);
 
-    context = LinterContextWithResolvedResults(
+    context = RuleContextWithResolvedResults(
       [contextUnit],
       contextUnit,
       result.typeProvider,
       result.typeSystem,
-      InheritanceManager3(),
       // TODO(pq): Use a test package or consider passing in `null`.
       workspacePackage,
     );
@@ -513,91 +511,6 @@ f() => {1, 2, 3};
 }
 
 @reflectiveTest
-class EvaluateExpressionTest extends AbstractLinterContextTest {
-  test_hasError_listLiteral_forElement() async {
-    await resolve('''
-var x = const [for (var i = 0; i < 4; i++) i];
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_mapLiteral_forElement() async {
-    await resolve('''
-var x = const {for (var i = 0; i < 4; i++) i: 0};
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_methodInvocation() async {
-    await resolve('''
-var x = 42.abs();
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasError_setLiteral_forElement() async {
-    await resolve('''
-var x = const {for (var i = 0; i < 4; i++) i};
-''');
-    var result = _evaluateX();
-    expect(result.errors, isNotEmpty);
-    expect(result.value, isNull);
-  }
-
-  test_hasValue_binaryExpression() async {
-    await resolve('''
-var x = 1 + 2;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 3);
-  }
-
-  test_hasValue_constantReference() async {
-    await resolve('''
-const a = 42;
-var x = a;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_constantReference_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 42;
-''');
-    await resolve('''
-import 'a.dart';
-var x = a;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  test_hasValue_intLiteral() async {
-    await resolve('''
-var x = 42;
-''');
-    var result = _evaluateX();
-    expect(result.errors, isEmpty);
-    expect(result.value!.toIntValue(), 42);
-  }
-
-  LinterConstantEvaluationResult _evaluateX() {
-    var node = findNode.topVariableDeclarationByName('x').initializer!;
-    return node.computeConstantValue();
-  }
-}
-
-@reflectiveTest
 class PubDependencyTest extends AbstractLinterContextTest {
   test_dependencies() async {
     newPubspecYamlFile(testPackageRootPath, '''
@@ -616,12 +529,14 @@ class C { }
     var pubPackage = context.package as PubPackage;
     var pubspec = pubPackage.pubspec!;
 
-    var argsDep = pubspec.dependencies!
-        .singleWhere((element) => element.name!.text == 'args');
+    var argsDep = pubspec.dependencies!.singleWhere(
+      (element) => element.name!.text == 'args',
+    );
     expect(argsDep.version!.value.text, '>=0.12.1 <2.0.0');
 
-    var charCodeDep = pubspec.dependencies!
-        .singleWhere((element) => element.name!.text == 'charcode');
+    var charCodeDep = pubspec.dependencies!.singleWhere(
+      (element) => element.name!.text == 'charcode',
+    );
     expect(charCodeDep.version!.value.text, '^1.1.0');
   }
 }

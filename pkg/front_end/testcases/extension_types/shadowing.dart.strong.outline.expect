@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  get getter() → core::int
+    ;
+  set setter(wildcard core::int _#wc1#formal) → void
+    ;
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  get getter = self::ET1|get#getter;
+  set setter = self::ET1|set#setter;
+  method method = self::ET1|method;
+  method tearoff method = self::ET1|get#method;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::Class c) implements self::Class {
+  abstract extension-type-member representation-field get c() → self::Class;
+  get getter = self::ET2|get#getter;
+  set setter = self::ET2|set#setter;
+  method method = self::ET2|method;
+  method tearoff method = self::ET2|get#method;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static field core::int getter;
+static field core::int setter;
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+static extension-type-member method ET1|get#getter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → dynamic
+  ;
+static extension-type-member method ET1|set#setter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void
+  ;
+static extension-type-member method ET1|method(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → dynamic
+  ;
+static extension-type-member method ET1|get#method(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → () → dynamic
+  return () → dynamic => self::ET1|method(#this);
+static extension-type-member method ET2|constructor#(self::Class c) → self::ET2 /* erasure=self::Class */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::Class c) → self::ET2 /* erasure=self::Class */
+  return self::ET2|constructor#(c);
+static extension-type-member method ET2|get#getter(lowered final self::ET2 /* erasure=self::Class */ #this) → core::String
+  ;
+static extension-type-member method ET2|set#setter(lowered final self::ET2 /* erasure=self::Class */ #this, wildcard core::String _#wc2#formal) → void
+  ;
+static extension-type-member method ET2|method(lowered final self::ET2 /* erasure=self::Class */ #this) → void
+  ;
+static extension-type-member method ET2|get#method(lowered final self::ET2 /* erasure=self::Class */ #this) → () → void
+  return () → void => self::ET2|method(#this);

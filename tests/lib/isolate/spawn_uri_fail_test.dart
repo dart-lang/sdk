@@ -10,31 +10,50 @@ main() async {
   var pkgRoot = Uri.parse("file:///no/such/directory/");
   var pkgConfig = Uri.parse("file:///no/such/.packages");
   try {
-    var i = await Isolate.spawnUri(Platform.script, [], null,
-        packageRoot: pkgRoot, packageConfig: pkgConfig);
+    var i = await Isolate.spawnUri(
+      Platform.script,
+      [],
+      null,
+      packageRoot: pkgRoot,
+      packageConfig: pkgConfig,
+    );
   } catch (e) {
     print(e);
     Expect.isTrue(e is ArgumentError);
   }
   try {
-    var i = await Isolate.spawnUri(Platform.script, [], null,
-        packageRoot: pkgRoot, automaticPackageResolution: true);
+    var i = await Isolate.spawnUri(
+      Platform.script,
+      [],
+      null,
+      packageRoot: pkgRoot,
+      automaticPackageResolution: true,
+    );
   } catch (e) {
     print(e);
     Expect.isTrue(e is ArgumentError);
   }
   try {
-    var i = await Isolate.spawnUri(Platform.script, [], null,
-        packageConfig: pkgConfig, automaticPackageResolution: true);
+    var i = await Isolate.spawnUri(
+      Platform.script,
+      [],
+      null,
+      packageConfig: pkgConfig,
+      automaticPackageResolution: true,
+    );
   } catch (e) {
     print(e);
     Expect.isTrue(e is ArgumentError);
   }
   try {
-    var i = await Isolate.spawnUri(Platform.script, [], null,
-        packageRoot: pkgRoot,
-        packageConfig: pkgConfig,
-        automaticPackageResolution: true);
+    var i = await Isolate.spawnUri(
+      Platform.script,
+      [],
+      null,
+      packageRoot: pkgRoot,
+      packageConfig: pkgConfig,
+      automaticPackageResolution: true,
+    );
   } catch (e) {
     print(e);
     Expect.isTrue(e is ArgumentError);

@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class IgnoreDiagnosticTest extends PubspecDiagnosticTest {
   test_comma_separated() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
@@ -25,7 +26,9 @@ dependencies:
     path: doesnt/exist
   bar:
     git: git@github.com:foo/bar.git
-''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+''',
+      [PubspecWarningCode.INVALID_DEPENDENCY],
+    );
   }
 
   test_file() {
@@ -42,7 +45,8 @@ dependencies:
   }
 
   test_line_previous() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
@@ -51,11 +55,14 @@ dependencies:
     git: git@github.com:foo/foo.git
   bar:
     git: git@github.com:foo/bar.git
-''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+''',
+      [PubspecWarningCode.INVALID_DEPENDENCY],
+    );
   }
 
   test_line_same() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
@@ -63,11 +70,14 @@ dependencies:
     git: git@github.com:foo/foo.git
   bar:
     git: git@github.com:foo/bar.git # ignore: invalid_dependency
-''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+''',
+      [PubspecWarningCode.INVALID_DEPENDENCY],
+    );
   }
 
   test_noIgnores() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
@@ -75,9 +85,11 @@ dependencies:
     git: git@github.com:foo/foo.git
   bar:
     git: git@github.com:foo/bar.git
-''', [
-      PubspecWarningCode.INVALID_DEPENDENCY,
-      PubspecWarningCode.INVALID_DEPENDENCY
-    ]);
+''',
+      [
+        PubspecWarningCode.INVALID_DEPENDENCY,
+        PubspecWarningCode.INVALID_DEPENDENCY,
+      ],
+    );
   }
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
@@ -18,7 +18,7 @@ class DartFixesRequestImpl implements DartFixesRequest {
   final int offset;
 
   @override
-  final List<AnalysisError> errorsToFix;
+  final List<Diagnostic> errorsToFix;
 
   @override
   final ResolvedUnitResult result;
@@ -31,8 +31,8 @@ class DartFixesRequestImpl implements DartFixesRequest {
 /// A concrete implementation of [FixCollector].
 class FixCollectorImpl implements FixCollector {
   /// The list of fixes that have been collected.
-  final Map<AnalysisError, List<PrioritizedSourceChange>> fixMap =
-      <AnalysisError, List<PrioritizedSourceChange>>{};
+  final Map<Diagnostic, List<PrioritizedSourceChange>> fixMap =
+      <Diagnostic, List<PrioritizedSourceChange>>{};
 
   /// Return the fixes that have been collected up to this point.
   List<AnalysisErrorFixes> get fixes {
@@ -46,7 +46,9 @@ class FixCollectorImpl implements FixCollector {
   }
 
   @override
-  void addFix(AnalysisError error, PrioritizedSourceChange change) {
-    fixMap.putIfAbsent(error, () => <PrioritizedSourceChange>[]).add(change);
+  void addFix(Diagnostic diagnostic, PrioritizedSourceChange change) {
+    fixMap
+        .putIfAbsent(diagnostic, () => <PrioritizedSourceChange>[])
+        .add(change);
   }
 }

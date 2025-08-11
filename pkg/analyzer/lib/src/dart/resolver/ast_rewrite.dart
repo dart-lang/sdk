@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -24,9 +24,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// The public methods of this class form a complete accounting of possible
 /// node replacements.
 class AstRewriter {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  AstRewriter(this._errorReporter);
+  AstRewriter(this._diagnosticReporter);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -37,7 +37,9 @@ class AstRewriter {
   /// and 'name' of `b`). The [InstanceCreationExpression] is rewritten as a
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
-      Scope nameScope, InstanceCreationExpressionImpl node) {
+    Scope nameScope,
+    InstanceCreationExpressionImpl node,
+  ) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -45,43 +47,43 @@ class AstRewriter {
     var typeNode = node.constructorName.type;
     var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
-      var element = nameScope.lookup(typeNode.name2.lexeme).getter2;
-      if (element is ExecutableElement2) {
+      var element = nameScope.lookup(typeNode.name.lexeme).getter2;
+      if (element is ExecutableElement) {
         return _toMethodInvocationOfFunctionReference(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name2),
+          function: SimpleIdentifierImpl(token: typeNode.name),
         );
-      } else if (element is TypeAliasElementImpl2 &&
-          element.aliasedElement2 is GenericFunctionTypeElement2) {
+      } else if (element is TypeAliasElementImpl &&
+          element.aliasedElement is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name2),
+          function: SimpleIdentifierImpl(token: typeNode.name),
           element: element,
         );
       }
     } else {
       var prefixName = importPrefix.name.lexeme;
       var prefixElement = nameScope.lookup(prefixName).getter2;
-      if (prefixElement is PrefixElement2) {
-        var prefixedName = typeNode.name2.lexeme;
+      if (prefixElement is PrefixElement) {
+        var prefixedName = typeNode.name.lexeme;
         var element = prefixElement.scope.lookup(prefixedName).getter2;
         if (element is TopLevelFunctionElement) {
           return _toMethodInvocationOfFunctionReference(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name2),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
           );
-        } else if (element is TypeAliasElementImpl2 &&
-            element.aliasedElement2 is GenericFunctionTypeElement2) {
+        } else if (element is TypeAliasElementImpl &&
+            element.aliasedElement is GenericFunctionTypeElement) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name2),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
             element: element,
           );
@@ -105,9 +107,9 @@ class AstRewriter {
         return _toMethodInvocationOfFunctionReference(
           node: node,
           function: PrefixedIdentifierImpl(
-            prefix: SimpleIdentifierImpl(importPrefix.name),
+            prefix: SimpleIdentifierImpl(token: importPrefix.name),
             period: importPrefix.period,
-            identifier: SimpleIdentifierImpl(typeNode.name2),
+            identifier: SimpleIdentifierImpl(token: typeNode.name),
           ),
         );
       }
@@ -135,27 +137,21 @@ class AstRewriter {
         return node;
       }
       var element = nameScope.lookup(methodName.name).getter2;
-      if (element is InterfaceElement2) {
-        return _toInstanceCreation_type(
-          node: node,
-          typeIdentifier: methodName,
-        );
-      } else if (element is ExtensionElementImpl2) {
+      if (element is InterfaceElement) {
+        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
+      } else if (element is ExtensionElementImpl) {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
           name: methodName.token,
-          element2: element,
+          element: element,
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
         NodeReplacer.replace(node, extensionOverride);
         return extensionOverride;
-      } else if (element is TypeAliasElement2 &&
+      } else if (element is TypeAliasElement &&
           element.aliasedType is InterfaceType) {
-        return _toInstanceCreation_type(
-          node: node,
-          typeIdentifier: methodName,
-        );
+        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
       }
     } else if (target is SimpleIdentifierImpl && operator != null) {
       // Possible cases: C.n(), p.C() or p.C<>()
@@ -164,7 +160,7 @@ class AstRewriter {
         // being used.
       }
       var element = nameScope.lookup(target.name).getter2;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         // class C { C.named(); }
         // C.named()
         return _toInstanceCreation_type_constructor(
@@ -173,29 +169,29 @@ class AstRewriter {
           constructorIdentifier: methodName,
           classElement: element,
         );
-      } else if (element is PrefixElement2) {
+      } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
         var prefixedElement = element.scope.lookup(methodName.name).getter2;
-        if (prefixedElement is InterfaceElement2) {
+        if (prefixedElement is InterfaceElement) {
           return _toInstanceCreation_prefix_type(
             node: node,
             prefixIdentifier: target,
             typeIdentifier: methodName,
           );
-        } else if (prefixedElement is ExtensionElementImpl2) {
+        } else if (prefixedElement is ExtensionElementImpl) {
           var extensionOverride = ExtensionOverrideImpl(
             importPrefix: ImportPrefixReferenceImpl(
               name: target.token,
               period: operator,
-            )..element2 = element,
+            )..element = element,
             name: node.methodName.token,
-            element2: prefixedElement,
+            element: prefixedElement,
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );
           NodeReplacer.replace(node, extensionOverride);
           return extensionOverride;
-        } else if (prefixedElement is TypeAliasElement2 &&
+        } else if (prefixedElement is TypeAliasElement &&
             prefixedElement.aliasedType is InterfaceType) {
           return _toInstanceCreation_prefix_type(
             node: node,
@@ -203,7 +199,7 @@ class AstRewriter {
             typeIdentifier: methodName,
           );
         }
-      } else if (element is TypeAliasElement2) {
+      } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
           // class C { C.named(); }
@@ -213,7 +209,7 @@ class AstRewriter {
             node: node,
             typeIdentifier: target,
             constructorIdentifier: methodName,
-            classElement: aliasedType.element3,
+            classElement: aliasedType.element,
           );
         }
       }
@@ -221,24 +217,24 @@ class AstRewriter {
       // Possible case: p.C.n()
       var prefixElement = nameScope.lookup(target.prefix.name).getter2;
       target.prefix.element = prefixElement;
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         var prefixedName = target.identifier.name;
         var element = prefixElement.scope.lookup(prefixedName).getter2;
-        if (element is InterfaceElement2) {
+        if (element is InterfaceElement) {
           return _instanceCreation_prefix_type_name(
             node: node,
             typeNameIdentifier: target,
             constructorIdentifier: methodName,
             classElement: element,
           );
-        } else if (element is TypeAliasElement2) {
+        } else if (element is TypeAliasElement) {
           var aliasedType = element.aliasedType;
           if (aliasedType is InterfaceType) {
             return _instanceCreation_prefix_type_name(
               node: node,
               typeNameIdentifier: target,
               constructorIdentifier: methodName,
-              classElement: aliasedType.element3,
+              classElement: aliasedType.element,
             );
           }
         }
@@ -277,19 +273,21 @@ class AstRewriter {
     }
     var prefix = node.prefix;
     var prefixElement = nameScope.lookup(prefix.name).getter2;
-    if (parent is ConstantPattern && prefixElement is PrefixElement2) {
+    if (parent is ConstantPattern && prefixElement is PrefixElement) {
       var element = prefixElement.scope.lookup(node.identifier.name).getter2;
-      if (element is TypeDefiningElement2) {
+      if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
     }
-    if (prefixElement is InterfaceElement2) {
+    if (prefixElement is InterfaceElement) {
       // Example:
       //     class C { C.named(); }
       //     C.named
       return _toConstructorReference_prefixed(
-          node: node, classElement: prefixElement);
-    } else if (prefixElement is TypeAliasElement2) {
+        node: node,
+        classElement: prefixElement,
+      );
+    } else if (prefixElement is TypeAliasElement) {
       var aliasedType = prefixElement.aliasedType;
       if (aliasedType is InterfaceType) {
         // Example:
@@ -298,7 +296,7 @@ class AstRewriter {
         //     X.named
         return _toConstructorReference_prefixed(
           node: node,
-          classElement: aliasedType.element3,
+          classElement: aliasedType.element,
         );
       }
     }
@@ -347,16 +345,17 @@ class AstRewriter {
       return node;
     }
 
-    Element2? element;
+    Element? element;
     if (receiverIdentifier is SimpleIdentifierImpl) {
       element = nameScope.lookup(receiverIdentifier.name).getter2;
     } else if (receiverIdentifier is PrefixedIdentifierImpl) {
       var prefixElement =
           nameScope.lookup(receiverIdentifier.prefix.name).getter2;
-      if (prefixElement is PrefixElement2) {
-        element = prefixElement.scope
-            .lookup(receiverIdentifier.identifier.name)
-            .getter2;
+      if (prefixElement is PrefixElement) {
+        element =
+            prefixElement.scope
+                .lookup(receiverIdentifier.identifier.name)
+                .getter2;
       } else {
         // This expression is something like `foo.List<int>.filled` where `foo`
         // is not an import prefix.
@@ -366,7 +365,7 @@ class AstRewriter {
       }
     }
 
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       // Example:
       //     class C<T> { C.named(); }
       //     C<int>.named
@@ -376,7 +375,7 @@ class AstRewriter {
         typeArguments: typeArguments,
         classElement: element,
       );
-    } else if (element is TypeAliasElement2) {
+    } else if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
         // Example:
@@ -387,7 +386,7 @@ class AstRewriter {
           node: node,
           receiver: receiverIdentifier,
           typeArguments: typeArguments,
-          classElement: aliasedType.element3,
+          classElement: aliasedType.element,
         );
       }
     }
@@ -411,7 +410,7 @@ class AstRewriter {
     var parent = node.parent;
     if (parent is ConstantPattern) {
       var element = nameScope.lookup(node.name).getter2;
-      if (element is TypeDefiningElement2) {
+      if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
     }
@@ -423,9 +422,9 @@ class AstRewriter {
     required MethodInvocationImpl node,
     required PrefixedIdentifierImpl typeNameIdentifier,
     required SimpleIdentifierImpl constructorIdentifier,
-    required InterfaceElement2 classElement,
+    required InterfaceElement classElement,
   }) {
-    var constructorElement = classElement.getNamedConstructor2(
+    var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
     );
     if (constructorElement == null) {
@@ -434,7 +433,7 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
@@ -446,7 +445,7 @@ class AstRewriter {
         name: typeNameIdentifier.prefix.token,
         period: typeNameIdentifier.period,
       ),
-      name2: typeNameIdentifier.identifier.token,
+      name: typeNameIdentifier.identifier.token,
       typeArguments: typeArguments,
       question: null,
     );
@@ -467,19 +466,20 @@ class AstRewriter {
 
   AstNode _toConstructorReference_prefixed({
     required PrefixedIdentifierImpl node,
-    required InterfaceElement2 classElement,
+    required InterfaceElement classElement,
   }) {
     var name = node.identifier.name;
-    var constructorElement = name == 'new'
-        ? classElement.unnamedConstructor2
-        : classElement.getNamedConstructor2(name);
+    var constructorElement =
+        name == 'new'
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
 
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: node.prefix.token,
+      name: node.prefix.token,
       typeArguments: null,
       question: null,
     );
@@ -499,12 +499,13 @@ class AstRewriter {
     required PropertyAccessImpl node,
     required IdentifierImpl receiver,
     required TypeArgumentListImpl? typeArguments,
-    required InterfaceElement2 classElement,
+    required InterfaceElement classElement,
   }) {
     var name = node.propertyName.name;
-    var constructorElement = name == 'new'
-        ? classElement.unnamedConstructor2
-        : classElement.getNamedConstructor2(name);
+    var constructorElement =
+        name == 'new'
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null && typeArguments == null) {
       // If there is no constructor by this name, and no type arguments,
       // do not rewrite the node. If there _are_ type arguments (like
@@ -541,7 +542,7 @@ class AstRewriter {
         name: prefixIdentifier.token,
         period: node.operator!,
       ),
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: node.typeArguments,
       question: null,
     );
@@ -566,7 +567,7 @@ class AstRewriter {
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: node.typeArguments,
       question: null,
     );
@@ -589,17 +590,17 @@ class AstRewriter {
     required MethodInvocationImpl node,
     required SimpleIdentifierImpl typeIdentifier,
     required SimpleIdentifierImpl constructorIdentifier,
-    required InterfaceElement2 classElement,
+    required InterfaceElement classElement,
   }) {
     var name = constructorIdentifier.name;
-    var constructorElement = classElement.getNamedConstructor2(name);
+    var constructorElement = classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeIdentifier.name, constructorIdentifier.name],
@@ -607,7 +608,7 @@ class AstRewriter {
     }
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: null,
       question: null,
     );
@@ -630,18 +631,16 @@ class AstRewriter {
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
     required InstanceCreationExpressionImpl node,
     required Identifier function,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: node.constructorName.type.importPrefix,
-      name2: node.constructorName.type.name2,
+      name: node.constructorName.type.name,
       typeArguments: node.constructorName.type.typeArguments,
       question: null,
     );
     typeName.type = element.aliasedType;
-    var typeLiteral = TypeLiteralImpl(
-      typeName: typeName,
-    );
+    var typeLiteral = TypeLiteralImpl(type: typeName);
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,
       operator: node.constructorName.period,
@@ -683,10 +682,7 @@ class AstRewriter {
     IdentifierImpl node,
   ) {
     var result = TypeLiteralImpl(
-      typeName: node.toNamedType(
-        typeArguments: null,
-        question: null,
-      ),
+      type: node.toNamedType(typeArguments: null, question: null),
     );
     NodeReplacer.replace(node, result, parent: parent);
     return result;

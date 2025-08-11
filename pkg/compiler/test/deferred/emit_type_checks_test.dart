@@ -21,8 +21,10 @@ void main() {
     );
     Compiler compiler = result.compiler!;
     String mainOutput = collector.getOutput('', api.OutputType.js)!;
-    String deferredOutput =
-        collector.getOutput('out_1', api.OutputType.jsPart)!;
+    String deferredOutput = collector.getOutput(
+      'out_1',
+      api.OutputType.jsPart,
+    )!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     String isPrefix =
         backendStrategy.namerForTesting.fixedNames.operatorIsPrefix;

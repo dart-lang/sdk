@@ -16,7 +16,8 @@ import "dart:io";
 
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:native_stack_traces/src/constants.dart' show rootLoadingUnitId;
-import 'package:native_stack_traces/src/macho.dart';
+import 'package:native_stack_traces/src/macho.dart'
+    show emptyMachOForArchitecture, MachO;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -25,16 +26,29 @@ import 'use_dwarf_stack_traces_flag_helper.dart';
 
 Future<void> main() async {
   await runTests(
-      'dwarf-flag-deferred-test',
-      path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-          'use_dwarf_stack_traces_flag_deferred_program.dart'),
-      runNonDwarf,
+    'dwarf-flag-deferred-test',
+    path.join(
+      sdkDir,
+      'runtime',
+      'tests',
+      'vm',
+      'dart',
+      'use_dwarf_stack_traces_flag_deferred_program.dart',
+    ),
+    runNonDwarf,
+    [
       runElf,
-      runAssembly);
+      // Don't run assembly on Windows since DLLs don't contain DWARF.
+      if (!Platform.isWindows) runAssembly,
+    ],
+  );
 }
 
-Manifest useSnapshotForDwarfPath(Manifest original,
-    {String? outputDir, String suffix = ''}) {
+Manifest useSnapshotForDwarfPath(
+  Manifest original, {
+  String? outputDir,
+  String suffix = '',
+}) {
   final entries = <int, ManifestEntry>{};
   for (final id in original.ids) {
     final oldEntry = original[id]!;
@@ -42,8 +56,9 @@ Manifest useSnapshotForDwarfPath(Manifest original,
     if (snapshotBasename == null) {
       entries[id] = oldEntry.replaceDwarf(oldEntry.path);
     } else {
-      entries[id] = oldEntry
-          .replaceDwarf(path.join(outputDir!, snapshotBasename + suffix));
+      entries[id] = oldEntry.replaceDwarf(
+        path.join(outputDir!, snapshotBasename + suffix),
+      );
     }
   }
   return Manifest._(entries);
@@ -76,11 +91,10 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
   }
 
   // Run the resulting non-Dwarf-AOT compiled script.
-  final outputWithOppositeFlag =
-      (await runTestProgram(dartPrecompiledRuntime, <String>[
-    '--dwarf-stack-traces-mode',
-    snapshotPath,
-  ]));
+  final outputWithOppositeFlag = (await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--dwarf-stack-traces-mode', snapshotPath],
+  ));
   final output = (await runTestProgram(dartPrecompiledRuntime, <String>[
     '--no-dwarf-stack-traces-mode',
     snapshotPath,
@@ -93,8 +107,12 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
 typedef DwarfMap = Map<int, Dwarf>;
 
 class DeferredElfState extends ElfState<DwarfMap> {
-  DeferredElfState(super.snapshot, super.debugInfo, super.output,
-      super.outputWithOppositeFlag);
+  DeferredElfState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo,
+  );
 
   @override
   Future<void> check(Trace trace, DwarfMap dwarfMap) =>
@@ -140,32 +158,46 @@ Future<DeferredElfState> runElf(String tempDir, String scriptDill) async {
     '--dwarf-stack-traces-mode',
     snapshotPath,
   ]);
-  final outputWithOppositeFlag =
-      await runTestProgram(dartPrecompiledRuntime, <String>[
-    '--no-dwarf-stack-traces-mode',
-    snapshotPath,
-  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath],
+  );
 
   final debugInfoDwarfMap = pathManifest.dwarfMap;
   final snapshotDwarfMap = useSnapshotForDwarfPath(pathManifest).dwarfMap;
 
   return DeferredElfState(
-      snapshotDwarfMap, debugInfoDwarfMap, output, outputWithOppositeFlag);
+    output,
+    outputWithOppositeFlag,
+    snapshotDwarfMap,
+    debugInfoDwarfMap,
+  );
 }
 
 class DeferredAssemblyState extends AssemblyState<DwarfMap> {
-  DeferredAssemblyState(super.snapshot, super.debugInfo, super.output,
-      super.outputWithOppositeFlag,
-      [super.singleArch, super.multiArch]);
+  DeferredAssemblyState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo, [
+    super.singleArch,
+    super.multiArch,
+  ]);
 
   @override
-  Future<void> check(Trace trace, DwarfMap dwarfMap) =>
-      compareTraces(trace, output, outputWithOppositeFlag, dwarfMap,
-          fromAssembly: true);
+  Future<void> check(Trace trace, DwarfMap dwarfMap) => compareTraces(
+    trace,
+    output,
+    outputWithOppositeFlag,
+    dwarfMap,
+    fromAssembly: true,
+  );
 }
 
 Future<DeferredAssemblyState?> runAssembly(
-    String tempDir, String scriptDill) async {
+  String tempDir,
+  String scriptDill,
+) async {
   if (skipAssembly != false) return null;
 
   final assemblyPath = path.join(tempDir, 'dwarf_assembly' + _asmExt);
@@ -205,8 +237,10 @@ Future<DeferredAssemblyState?> runAssembly(
     final outputPath = path.join(tempDir, entry.snapshotBasename!);
     await assembleSnapshot(entry.path, outputPath, debug: true);
   }
-  final snapshotPath =
-      path.join(tempDir, manifest[rootLoadingUnitId]!.snapshotBasename!);
+  final snapshotPath = path.join(
+    tempDir,
+    manifest[rootLoadingUnitId]!.snapshotBasename!,
+  );
 
   // Run the resulting Dwarf-AOT compiled script.
   final output = await runTestProgram(dartPrecompiledRuntime, <String>[
@@ -214,16 +248,17 @@ Future<DeferredAssemblyState?> runAssembly(
     snapshotPath,
     scriptDill,
   ]);
-  final outputWithOppositeFlag =
-      await runTestProgram(dartPrecompiledRuntime, <String>[
-    '--no-dwarf-stack-traces-mode',
-    snapshotPath,
-    scriptDill,
-  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
 
   final debugInfoDwarfMap = manifest.dwarfMap;
-  final debugManifest = useSnapshotForDwarfPath(manifest,
-      outputDir: tempDir, suffix: Platform.isMacOS ? '.dSYM' : '');
+  final debugManifest = useSnapshotForDwarfPath(
+    manifest,
+    outputDir: tempDir,
+    suffix: Platform.isMacOS ? '.dSYM' : '',
+  );
   final snapshotDwarfMap = debugManifest.dwarfMap;
 
   DwarfMap? singleArchSnapshotDwarfMap;
@@ -249,6 +284,7 @@ Future<DeferredAssemblyState?> runAssembly(
       final entry = debugManifest[id]!;
       final snapshotPath = MachO.handleDSYM(debugManifest[id]!.dwarfPath!);
       final singlePath = path.join(singleDir.path, path.basename(snapshotPath));
+      final lipo = llvmTool('llvm-lipo', verbose: true)!;
       await run(lipo, <String>[snapshotPath, '-create', '-output', singlePath]);
       final multiPath = path.join(multiDir.path, path.basename(snapshotPath));
       await run(lipo, <String>[
@@ -256,7 +292,7 @@ Future<DeferredAssemblyState?> runAssembly(
         snapshotPath,
         '-create',
         '-output',
-        multiPath
+        multiPath,
       ]);
       singleManifest[id] = entry.replaceDwarf(singlePath);
       multiManifest[id] = entry.replaceDwarf(multiPath);
@@ -267,17 +303,22 @@ Future<DeferredAssemblyState?> runAssembly(
   }
 
   return DeferredAssemblyState(
-      snapshotDwarfMap,
-      debugInfoDwarfMap,
-      output,
-      outputWithOppositeFlag,
-      singleArchSnapshotDwarfMap,
-      multiArchSnapshotDwarfMap);
+    output,
+    outputWithOppositeFlag,
+    snapshotDwarfMap,
+    debugInfoDwarfMap,
+    singleArchSnapshotDwarfMap,
+    multiArchSnapshotDwarfMap,
+  );
 }
 
-Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
-    DwarfTestOutput output2, DwarfMap dwarfMap,
-    {bool fromAssembly = false}) async {
+Future<void> compareTraces(
+  List<String> nonDwarfTrace,
+  DwarfTestOutput output1,
+  DwarfTestOutput output2,
+  DwarfMap dwarfMap, {
+  bool fromAssembly = false,
+}) async {
   expect(dwarfMap, contains(rootLoadingUnitId));
 
   final header1 = StackTraceHeader.fromLines(output1.trace);
@@ -316,8 +357,13 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   expect(dwarfByUnitId, contains(rootLoadingUnitId + 2));
   final rootDwarf = dwarfByUnitId[rootLoadingUnitId]!;
 
-  checkRootUnitAssumptions(output1, output2, rootDwarf,
-      sampleOffset: sampleOffset, matchingBuildIds: !fromAssembly);
+  checkRootUnitAssumptions(
+    output1,
+    output2,
+    rootDwarf,
+    sampleOffset: sampleOffset,
+    matchingBuildIds: !fromAssembly,
+  );
 
   // The offsets of absolute addresses from their respective DSO base
   // should be the same for both traces.
@@ -334,24 +380,40 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
     dsoBase1[unit.id] = unit.dsoBase;
   }
   print("DSO bases for trace 1:");
-  printByUnit(dsoBase1.map((id, dso) => MapEntry(id, <int>[dso])),
-      toString: addressString);
+  printByUnit(
+    dsoBase1.map((id, dso) => MapEntry(id, <int>[dso])),
+    toString: addressString,
+  );
 
   final dsoBase2 = <int, int>{};
   for (final unit in header2.units!.values) {
     dsoBase2[unit.id] = unit.dsoBase;
   }
   print("DSO bases for trace 2:");
-  printByUnit(dsoBase2.map((id, dso) => MapEntry(id, <int>[dso])),
-      toString: addressString);
+  printByUnit(
+    dsoBase2.map((id, dso) => MapEntry(id, <int>[dso])),
+    toString: addressString,
+  );
 
-  final relocatedFromDso1 = Map.fromEntries(absTrace1.keys.map((unitId) =>
-      MapEntry(unitId, absTrace1[unitId]!.map((a) => a - dsoBase1[unitId]!))));
+  final relocatedFromDso1 = Map.fromEntries(
+    absTrace1.keys.map(
+      (unitId) => MapEntry(
+        unitId,
+        absTrace1[unitId]!.map((a) => a - dsoBase1[unitId]!),
+      ),
+    ),
+  );
   print("Relocated addresses from trace 1:");
   printByUnit(relocatedFromDso1, toString: addressString);
 
-  final relocatedFromDso2 = Map.fromEntries(absTrace2.keys.map((unitId) =>
-      MapEntry(unitId, absTrace2[unitId]!.map((a) => a - dsoBase2[unitId]!))));
+  final relocatedFromDso2 = Map.fromEntries(
+    absTrace2.keys.map(
+      (unitId) => MapEntry(
+        unitId,
+        absTrace2[unitId]!.map((a) => a - dsoBase2[unitId]!),
+      ),
+    ),
+  );
   print("Relocated addresses from trace 2:");
   printByUnit(relocatedFromDso2, toString: addressString);
 
@@ -378,8 +440,9 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   for (final unitId in tracePCOffsets1.keys) {
     expect(dwarfByUnitId, contains(unitId));
     final dwarf = dwarfByUnitId[unitId]!;
-    fromTracePCOffsets1[unitId] =
-        tracePCOffsets1[unitId]!.map((o) => o.virtualAddressIn(dwarf));
+    fromTracePCOffsets1[unitId] = tracePCOffsets1[unitId]!.map(
+      (o) => o.virtualAddressIn(dwarf),
+    );
   }
   print("Virtual addresses calculated from PCOffsets in trace 1:");
   printByUnit(fromTracePCOffsets1, toString: addressString);
@@ -387,8 +450,9 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   for (final unitId in tracePCOffsets2.keys) {
     expect(dwarfByUnitId, contains(unitId));
     final dwarf = dwarfByUnitId[unitId]!;
-    fromTracePCOffsets2[unitId] =
-        tracePCOffsets2[unitId]!.map((o) => o.virtualAddressIn(dwarf));
+    fromTracePCOffsets2[unitId] = tracePCOffsets2[unitId]!.map(
+      (o) => o.virtualAddressIn(dwarf),
+    );
   }
   print("Virtual addresses calculated from PCOffsets in trace 2:");
   printByUnit(fromTracePCOffsets2, toString: addressString);
@@ -402,23 +466,29 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   // Check that translating the DWARF stack trace (without internal frames)
   // matches the symbolic stack trace, and that for ELF outputs, we can also
   // decode using the build IDs instead of a unit ID to unit map.
-  final decoder =
-      DwarfStackTraceDecoder(rootDwarf, dwarfByUnitId: dwarfByUnitId);
-  final translatedDwarfTrace1 =
-      await Stream.fromIterable(output1.trace).transform(decoder).toList();
+  final decoder = DwarfStackTraceDecoder(
+    rootDwarf,
+    dwarfByUnitId: dwarfByUnitId,
+  );
+  final translatedDwarfTrace1 = await Stream.fromIterable(
+    output1.trace,
+  ).transform(decoder).toList();
   if (!fromAssembly) {
     final unitDwarfs = dwarfByUnitId.values;
     final decoder2 = DwarfStackTraceDecoder(rootDwarf, unitDwarfs: unitDwarfs);
-    final translatedDwarfTrace2 =
-        await Stream.fromIterable(output1.trace).transform(decoder2).toList();
+    final translatedDwarfTrace2 = await Stream.fromIterable(
+      output1.trace,
+    ).transform(decoder2).toList();
     expect(translatedDwarfTrace2, equals(translatedDwarfTrace1));
   }
 
   checkTranslatedTrace(nonDwarfTrace, translatedDwarfTrace1);
 }
 
-void checkHeaderWithUnits(StackTraceHeader header,
-    {bool fromAssembly = false}) {
+void checkHeaderWithUnits(
+  StackTraceHeader header, {
+  bool fromAssembly = false,
+}) {
   checkHeader(header);
   // Additional requirements for the deferred test.
   expect(header.units, isNotNull);
@@ -440,8 +510,10 @@ void checkHeaderWithUnits(StackTraceHeader header,
   // The information for the root loading unit should match the non-loading
   // unit information in the header.
   expect(header.units![rootLoadingUnitId]!.start, equals(header.isolateStart!));
-  expect(header.units![rootLoadingUnitId]!.dsoBase,
-      equals(header.isolateDsoBase!));
+  expect(
+    header.units![rootLoadingUnitId]!.dsoBase,
+    equals(header.isolateDsoBase!),
+  );
   expect(header.units![rootLoadingUnitId]!.buildId!, equals(header.buildId!));
 }
 
@@ -460,7 +532,9 @@ final _unitRE = RegExp(r' unit (\d+)');
 // Unlike in the original, we want to also collect addressed based on the
 // loading unit.
 Map<int, Iterable<int>> parseUsingAddressRegExp(
-    RegExp re, Iterable<String> lines) {
+  RegExp re,
+  Iterable<String> lines,
+) {
   final result = <int, List<int>>{};
   for (final line in lines) {
     var match = re.firstMatch(line);
@@ -488,8 +562,10 @@ final _virtRE = RegExp(r'virt ([a-f\d]+)');
 Map<int, Iterable<int>> explicitVirtualAddresses(Iterable<String> lines) =>
     parseUsingAddressRegExp(_virtRE, lines);
 
-void printByUnit<X>(Map<int, Iterable<X>> valuesByUnit,
-    {String Function(X) toString = objectString}) {
+void printByUnit<X>(
+  Map<int, Iterable<X>> valuesByUnit, {
+  String Function(X) toString = objectString,
+}) {
   final buffer = StringBuffer();
   for (final unitId in valuesByUnit.keys) {
     buffer.writeln("  For unit $unitId:");
@@ -509,8 +585,12 @@ class ManifestEntry {
   final String? dwarfPath;
   final String? snapshotBasename;
 
-  const ManifestEntry._(this.id, this.path,
-      {this.dwarfPath, this.snapshotBasename});
+  const ManifestEntry._(
+    this.id,
+    this.path, {
+    this.dwarfPath,
+    this.snapshotBasename,
+  });
 
   static const _idKey = "id";
   static const _pathKey = "path";
@@ -529,12 +609,19 @@ class ManifestEntry {
     return ManifestEntry._(id, path, dwarfPath: dwarfPath);
   }
 
-  ManifestEntry replaceSnapshotBasename(String basename) =>
-      ManifestEntry._(id, path,
-          dwarfPath: dwarfPath, snapshotBasename: basename);
+  ManifestEntry replaceSnapshotBasename(String basename) => ManifestEntry._(
+    id,
+    path,
+    dwarfPath: dwarfPath,
+    snapshotBasename: basename,
+  );
 
-  ManifestEntry replaceDwarf(String newPath) => ManifestEntry._(id, path,
-      dwarfPath: newPath, snapshotBasename: snapshotBasename);
+  ManifestEntry replaceDwarf(String newPath) => ManifestEntry._(
+    id,
+    path,
+    dwarfPath: newPath,
+    snapshotBasename: snapshotBasename,
+  );
 }
 
 class Manifest {
@@ -556,15 +643,19 @@ class Manifest {
     if (rootEntry.path.endsWith(_asmExt)) {
       // Add the expected basenames for the assembled snapshots.
       var basename = path.basename(rootEntry.path);
-      basename =
-          basename.replaceRange(basename.length - _asmExt.length, null, _soExt);
+      basename = basename.replaceRange(
+        basename.length - _asmExt.length,
+        null,
+        _soExt,
+      );
       entryMap[rootLoadingUnitId] = rootEntry.replaceSnapshotBasename(basename);
       for (final id in entryMap.keys) {
         if (id == rootLoadingUnitId) continue;
         // Note that this must match the suffix added to the snapshot URI
         // in Loader::DeferredLoadHandler.
-        entryMap[id] = entryMap[id]!
-            .replaceSnapshotBasename(basename + '-$id.part' + _soExt);
+        entryMap[id] = entryMap[id]!.replaceSnapshotBasename(
+          basename + '-$id.part' + _soExt,
+        );
       }
     }
     return Manifest._(entryMap);

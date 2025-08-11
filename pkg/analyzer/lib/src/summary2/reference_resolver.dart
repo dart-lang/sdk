@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -51,7 +51,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         var prefixElement = scope.lookup(prefixNode.name).getter2;
         prefixNode.element = prefixElement;
 
-        if (prefixElement is PrefixElement2) {
+        if (prefixElement is PrefixElement) {
           var name = identifier.identifier.name;
           var element = prefixElement.scope.lookup(name).getter2;
           identifier.identifier.element = element;
@@ -127,7 +127,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredFragment!.element;
 
-    scope = TypeParameterScope(scope, element.typeParameters2);
+    scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -138,6 +138,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    LinkingNodeContext(node, scope);
     node.parameter.accept(this);
   }
 
@@ -146,6 +147,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     scope = TypeParameterScope(
       scope,
@@ -157,11 +159,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = InstanceScope(scope, fragment.asElement2);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    for (var field in fragment.fields) {
+      var node = linker.elementNodes[field];
+      if (node != null) {
+        LinkingNodeContext(node, scope);
+      }
+    }
 
     scope = outerScope;
   }
@@ -205,7 +214,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(
-      covariant ExtensionTypeDeclarationImpl node) {
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
@@ -308,7 +318,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
@@ -368,7 +379,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var aliasedType = node.type;
     if (aliasedType is GenericFunctionTypeImpl) {
       fragment.encloseElement(
-        aliasedType.declaredFragment as GenericFunctionTypeElementImpl,
+        aliasedType.declaredFragment as GenericFunctionTypeFragmentImpl,
       );
     }
 
@@ -433,20 +444,20 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    Element2? element;
+    Element? element;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
       var prefixElement = scope.lookup(prefixName).getter2;
-      importPrefix.element2 = prefixElement;
+      importPrefix.element = prefixElement;
 
-      if (prefixElement is PrefixElement2) {
-        var name = node.name2.lexeme;
+      if (prefixElement is PrefixElement) {
+        var name = node.name.lexeme;
         element = prefixElement.scope.lookup(name).getter2;
       }
     } else {
-      var name = node.name2.lexeme;
+      var name = node.name.lexeme;
 
       if (name == 'void') {
         node.type = VoidTypeImpl.instance;
@@ -455,25 +466,25 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
       element = scope.lookup(name).getter2;
     }
-    node.element2 = element;
+    node.element = element;
 
     node.typeArguments?.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
-    } else if (element is TypeParameterElementImpl2) {
+    } else if (element is TypeParameterElementImpl) {
       node.type = TypeParameterTypeImpl(
-        element3: element,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
       var builder = NamedTypeBuilder.of(
-        linker,
-        typeSystem,
-        node,
-        element,
-        nullabilitySuffix,
+        linker: linker,
+        typeSystem: typeSystem,
+        node: node,
+        element: element,
+        nullabilitySuffix: nullabilitySuffix,
       );
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
@@ -569,9 +580,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     node.type?.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    for (var variable in node.variables) {
+      var fragment = variable.declaredFragment!;
+      var node = linker.elementNodes[fragment]!;
+      LinkingNodeContext(node, scope);
+    }
   }
 
   @override

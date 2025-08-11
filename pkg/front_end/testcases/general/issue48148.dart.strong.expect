@@ -58,9 +58,9 @@ abstract class HKindInvalid extends core::Object implements self::HKindValid {
 }
 static const field self::HBase<self::HKindInvalid> invalidExample = #C7;
 static method main() → dynamic {}
-static method _#HInvalidComposite#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(core::List<self::_#HInvalidComposite#new#tearOff::CHILD> children) → self::HBaseComposite<self::HKindInvalid, self::_#HInvalidComposite#new#tearOff::CHILD>
+static synthetic method _#HInvalidComposite#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(core::List<self::_#HInvalidComposite#new#tearOff::CHILD> children) → self::HBaseComposite<self::HKindInvalid, self::_#HInvalidComposite#new#tearOff::CHILD>
   return new self::HBaseComposite::•<self::HKindInvalid, self::_#HInvalidComposite#new#tearOff::CHILD>(children);
-static method _#HInvalidChild#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(self::_#HInvalidChild#new#tearOff::CHILD child) → self::HBaseChild<self::HKindInvalid, self::_#HInvalidChild#new#tearOff::CHILD>
+static synthetic method _#HInvalidChild#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(self::_#HInvalidChild#new#tearOff::CHILD child) → self::HBaseChild<self::HKindInvalid, self::_#HInvalidChild#new#tearOff::CHILD>
   return new self::HBaseChild::•<self::HKindInvalid, self::_#HInvalidChild#new#tearOff::CHILD>(child);
 
 constants  {

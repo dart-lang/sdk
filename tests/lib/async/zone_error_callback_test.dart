@@ -105,18 +105,22 @@ void testProgrammaticErrors(expectError) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream
-        .asBroadcastStream()
-        .listen(null, onError: expectError, cancelOnError: true);
+    controller.stream.asBroadcastStream().listen(
+      null,
+      onError: expectError,
+      cancelOnError: true,
+    );
     controller.addError(error1, stack1);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController(sync: true);
-    controller.stream
-        .asBroadcastStream()
-        .listen(null, onError: expectError, cancelOnError: true);
+    controller.stream.asBroadcastStream().listen(
+      null,
+      onError: expectError,
+      cancelOnError: true,
+    );
     controller.addError(error1, stack1);
   }
 
@@ -229,16 +233,18 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    Future<bool?>.value(controller.stream.every((x) => throw error1))
-        .catchError(expectErrorOnly);
+    Future<bool?>.value(
+      controller.stream.every((x) => throw error1),
+    ).catchError(expectErrorOnly);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    Future<bool?>.value(controller.stream.any((x) => throw error1))
-        .catchError(expectErrorOnly);
+    Future<bool?>.value(
+      controller.stream.any((x) => throw error1),
+    ).catchError(expectErrorOnly);
     controller.add(null);
   }
 
@@ -299,30 +305,45 @@ testNoChange() {
   testTransparent();
 
   // Run in a zone that doesn't change callback.
-  runZoned(testTransparent,
-      zoneSpecification:
-          new ZoneSpecification(handleUncaughtError: (s, p, z, e, t) {}));
+  runZoned(
+    testTransparent,
+    zoneSpecification: new ZoneSpecification(
+      handleUncaughtError: (s, p, z, e, t) {},
+    ),
+  );
 
   // Run in zone that delegates to root zone
-  runZoned(testTransparent,
-      zoneSpecification: new ZoneSpecification(
-          errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t)));
+  runZoned(
+    testTransparent,
+    zoneSpecification: new ZoneSpecification(
+      errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t),
+    ),
+  );
 
   // Run in a zone that returns null from the callback.
-  runZoned(testTransparent,
-      zoneSpecification:
-          new ZoneSpecification(errorCallback: (s, p, z, e, t) => null));
+  runZoned(
+    testTransparent,
+    zoneSpecification: new ZoneSpecification(
+      errorCallback: (s, p, z, e, t) => null,
+    ),
+  );
 
   // Run in zone that returns same values.
-  runZoned(testTransparent,
-      zoneSpecification: new ZoneSpecification(
-          errorCallback: (s, p, z, e, t) => new AsyncError(e, t)));
+  runZoned(
+    testTransparent,
+    zoneSpecification: new ZoneSpecification(
+      errorCallback: (s, p, z, e, t) => new AsyncError(e, t),
+    ),
+  );
 
   // Run in zone that returns null, inside zone that does replacement.
   runZoned(() {
-    runZoned(testTransparent,
-        zoneSpecification:
-            new ZoneSpecification(errorCallback: (s, p, z, e, t) => null));
+    runZoned(
+      testTransparent,
+      zoneSpecification: new ZoneSpecification(
+        errorCallback: (s, p, z, e, t) => null,
+      ),
+    );
   }, zoneSpecification: replaceZoneSpec);
 }
 
@@ -342,8 +363,11 @@ void testWithReplacement() {
 
   // Use delegation to parent which replaces.
   runZoned(() {
-    runZoned(testReplaced,
-        zoneSpecification: new ZoneSpecification(
-            errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t)));
+    runZoned(
+      testReplaced,
+      zoneSpecification: new ZoneSpecification(
+        errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t),
+      ),
+    );
   }, zoneSpecification: replaceZoneSpec);
 }

@@ -22,17 +22,15 @@ mulDivParsed(
   int int_product = int.parse(product);
   int computed_product = int_a * int_b;
   Expect.equals(int_product, computed_product);
-  String str_product =
-      computed_product >= 0
-          ? "0x${computed_product.toRadixString(16)}"
-          : "-0x${(-computed_product).toRadixString(16)}";
+  String str_product = computed_product >= 0
+      ? "0x${computed_product.toRadixString(16)}"
+      : "-0x${(-computed_product).toRadixString(16)}";
   Expect.equals(product.toLowerCase(), str_product);
   int computed_product2 = int_b * int_a;
   Expect.equals(int_product, computed_product2);
-  String str_product2 =
-      computed_product2 >= 0
-          ? "0x${computed_product2.toRadixString(16)}"
-          : "-0x${(-computed_product2).toRadixString(16)}";
+  String str_product2 = computed_product2 >= 0
+      ? "0x${computed_product2.toRadixString(16)}"
+      : "-0x${(-computed_product2).toRadixString(16)}";
   Expect.equals(product.toLowerCase(), str_product2);
 
   if (int_a != 0) {
@@ -40,10 +38,9 @@ mulDivParsed(
     int int_expected_quotient1 = int.parse(expected_quotient1);
     int computed_quotient1 = int_product ~/ int_a;
     Expect.equals(int_expected_quotient1, computed_quotient1);
-    String str_quotient1 =
-        computed_quotient1 >= 0
-            ? "0x${computed_quotient1.toRadixString(16)}"
-            : "-0x${(-computed_quotient1).toRadixString(16)}";
+    String str_quotient1 = computed_quotient1 >= 0
+        ? "0x${computed_quotient1.toRadixString(16)}"
+        : "-0x${(-computed_quotient1).toRadixString(16)}";
     Expect.equals(expected_quotient1.toLowerCase(), str_quotient1);
   }
 
@@ -52,10 +49,9 @@ mulDivParsed(
     int int_expected_quotient2 = int.parse(expected_quotient2);
     int computed_quotient2 = int_product ~/ int_b;
     Expect.equals(int_expected_quotient2, computed_quotient2);
-    String str_quotient2 =
-        computed_quotient2 >= 0
-            ? "0x${computed_quotient2.toRadixString(16)}"
-            : "-0x${(-computed_quotient2).toRadixString(16)}";
+    String str_quotient2 = computed_quotient2 >= 0
+        ? "0x${computed_quotient2.toRadixString(16)}"
+        : "-0x${(-computed_quotient2).toRadixString(16)}";
     Expect.equals(expected_quotient2.toLowerCase(), str_quotient2);
   }
 }

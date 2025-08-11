@@ -27,73 +27,92 @@ platforms:
   }
 
   test_value_for_platform_key_disallowed() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: "chrome" # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_empty_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: []  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_empty_map() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: {}  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_false() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: False  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: 42  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_list_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: [1,2,3]  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_list_string() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
@@ -102,11 +121,14 @@ platforms:
   web:
    - foo
    - bar  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_map() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
@@ -114,17 +136,22 @@ platforms:
   ios:
   web:
     foo: bar  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 
   test_value_for_platform_key_disallowed_true() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: True  # <-- this is not allowed
-''', [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED]);
+''',
+      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+    );
   }
 }

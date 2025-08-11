@@ -15,13 +15,15 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   assert(cascadeExpression.cascadeSections.length == 1);
 
   var newTarget = ParenthesizedExpressionImpl(
-    leftParenthesis: Token(TokenType.OPEN_PAREN, 0)
-      ..previous = expressionStatement.beginToken.previous
-      ..next = cascadeExpression.target.beginToken,
+    leftParenthesis:
+        Token(TokenType.OPEN_PAREN, 0)
+          ..previous = expressionStatement.beginToken.previous
+          ..next = cascadeExpression.target.beginToken,
     expression: cascadeExpression.target,
-    rightParenthesis: Token(TokenType.CLOSE_PAREN, 0)
-      ..previous = cascadeExpression.target.endToken
-      ..next = expressionStatement.semicolon,
+    rightParenthesis:
+        Token(TokenType.CLOSE_PAREN, 0)
+          ..previous = cascadeExpression.target.endToken
+          ..next = expressionStatement.semicolon,
   );
 
   return ExpressionStatementImpl(
@@ -65,11 +67,12 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       question = _synthesizeToken(TokenType.QUESTION, expression.period!);
     }
 
-    return IndexExpressionImpl.forTarget(
+    return IndexExpressionImpl(
       target: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),
+      period: null,
       question: question,
       leftBracket: expression.leftBracket,
       index: expression.index,
@@ -83,9 +86,10 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         cascadeTarget: cascadeTarget,
       ),
       // If we've reached the end, replace the `..` operator with `.`
-      operator: expressionTarget == cascadeTarget
-          ? _synthesizeToken(TokenType.PERIOD, expression.operator!)
-          : expression.operator,
+      operator:
+          expressionTarget == cascadeTarget
+              ? _synthesizeToken(TokenType.PERIOD, expression.operator!)
+              : expression.operator,
       methodName: expression.methodName,
       typeArguments: expression.typeArguments,
       argumentList: expression.argumentList,
@@ -98,14 +102,17 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         cascadeTarget: cascadeTarget,
       ),
       // If we've reached the end, replace the `..` operator with `.`
-      operator: expressionTarget == cascadeTarget
-          ? _synthesizeToken(TokenType.PERIOD, expression.operator)
-          : expression.operator,
+      operator:
+          expressionTarget == cascadeTarget
+              ? _synthesizeToken(TokenType.PERIOD, expression.operator)
+              : expression.operator,
       propertyName: expression.propertyName,
     );
   }
-  throw UnimplementedError('Unhandled ${expression.runtimeType}'
-      '($expression)');
+  throw UnimplementedError(
+    'Unhandled ${expression.runtimeType}'
+    '($expression)',
+  );
 }
 
 /// Synthesize a token with [type] to replace the given [operator].

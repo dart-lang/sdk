@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd
-
 import 'package:expect/expect.dart';
 import 'generic_function_type_equality_null_safe_lib.dart';
 

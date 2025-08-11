@@ -71,7 +71,7 @@ Future<int> f() async {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
       },
     );
@@ -90,7 +90,7 @@ void takeFutureCallback(Future callback()) {}
 void doStuff() => takeFutureCallback(() async => await 1);
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
       },
     );
@@ -467,7 +467,8 @@ Future<int> f() async {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
+        return error.diagnosticCode ==
+            CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
       },
     );
   }
@@ -546,48 +547,6 @@ Future<void> f() async {
 }
 
 Future<void> g() async { }
-''');
-  }
-
-  Future<void> test_discardedFuture_awaited() async {
-    await resolveTestCode('''
-void f() {
-  // ignore: await_in_wrong_context
-  await g();
-}
-
-Future<void> g() async { }
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  // ignore: await_in_wrong_context
-  await g();
-}
-
-Future<void> g() async { }
-''');
-  }
-
-  Future<void> test_discardedFuture_awaited_method() async {
-    await resolveTestCode('''
-class C {
-  void f() {
-    // ignore: await_in_wrong_context
-    await g();
-  }
-
-  Future<void> g() async { }
-}
-''');
-    await assertHasFix('''
-class C {
-  Future<void> f() async {
-    // ignore: await_in_wrong_context
-    await g();
-  }
-
-  Future<void> g() async { }
-}
 ''');
   }
 

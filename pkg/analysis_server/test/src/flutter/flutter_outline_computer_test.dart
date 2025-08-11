@@ -25,6 +25,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
+    useLineEndingsForPlatform = false;
     super.setUp();
     writeTestPackageConfig(flutter: true);
     testPath = convertPath('$testPackageLibPath/test.dart');

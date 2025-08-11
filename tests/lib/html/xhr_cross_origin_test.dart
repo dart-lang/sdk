@@ -21,8 +21,12 @@ int get crossOriginPort {
   var crossOriginStr = 'crossOriginPort=';
   var index = searchUrl.indexOf(crossOriginStr);
   var nextArg = searchUrl.indexOf('&', index);
-  return int.parse(searchUrl.substring(index + crossOriginStr.length,
-      nextArg == -1 ? searchUrl.length : nextArg));
+  return int.parse(
+    searchUrl.substring(
+      index + crossOriginStr.length,
+      nextArg == -1 ? searchUrl.length : nextArg,
+    ),
+  );
 }
 
 var port = crossOriginPort;

@@ -27,19 +27,25 @@ void main() {
 
   dynamic noToString = NoToString();
 
-  Expect.throws<TypeError>(() {
-    wrap(noToString) as int; // Explicit cast should throw
-  }, (e) {
-    e.toString(); // Should not throw.
-    return true;
-  });
-
-  if (assertionsEnabled) {
-    Expect.throws<AssertionError>(() {
-      assert(wrap(false), noToString); // Assertion should throw
-    }, (e) {
+  Expect.throws<TypeError>(
+    () {
+      wrap(noToString) as int; // Explicit cast should throw
+    },
+    (e) {
       e.toString(); // Should not throw.
       return true;
-    });
+    },
+  );
+
+  if (assertionsEnabled) {
+    Expect.throws<AssertionError>(
+      () {
+        assert(wrap(false), noToString); // Assertion should throw
+      },
+      (e) {
+        e.toString(); // Should not throw.
+        return true;
+      },
+    );
   }
 }

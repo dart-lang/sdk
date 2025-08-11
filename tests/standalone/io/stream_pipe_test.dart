@@ -19,8 +19,13 @@ import "package:expect/expect.dart";
 String getDataFilename(String path) =>
     Platform.script.resolve(path).toFilePath();
 
-bool compareFileContent(String fileName1, String fileName2,
-    {int file1Offset = 0, int file2Offset = 0, int? count}) {
+bool compareFileContent(
+  String fileName1,
+  String fileName2, {
+  int file1Offset = 0,
+  int file2Offset = 0,
+  int? count,
+}) {
   var file1 = new File(fileName1).openSync();
   var file2 = new File(fileName2).openSync();
   var length1 = file1.lengthSync();
@@ -102,7 +107,8 @@ testFileToFilePipe2() {
       var dstLength = dst.lengthSync();
       Expect.equals(srcLength + 1, dstLength);
       Expect.isTrue(
-          compareFileContent(srcFileName, dstFileName, count: srcLength));
+        compareFileContent(srcFileName, dstFileName, count: srcLength),
+      );
       dst.setPositionSync(srcLength);
       var data = new List<int>.filled(1, 0);
       var read2 = dst.readIntoSync(data, 0, 1);
@@ -142,9 +148,16 @@ testFileToFilePipe3() {
         var dstLength = dst.lengthSync();
         Expect.equals(srcLength * 2, dstLength);
         Expect.isTrue(
-            compareFileContent(srcFileName, dstFileName, count: srcLength));
-        Expect.isTrue(compareFileContent(srcFileName, dstFileName,
-            file2Offset: srcLength, count: srcLength));
+          compareFileContent(srcFileName, dstFileName, count: srcLength),
+        );
+        Expect.isTrue(
+          compareFileContent(
+            srcFileName,
+            dstFileName,
+            file2Offset: srcLength,
+            count: srcLength,
+          ),
+        );
         src.closeSync();
         dst.closeSync();
         dstFile.deleteSync();

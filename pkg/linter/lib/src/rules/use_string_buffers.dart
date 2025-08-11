@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -26,13 +28,10 @@ class UseStringBuffers extends LintRule {
     : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_string_buffers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_string_buffers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -66,7 +65,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.element == identifier.element) {
-      rule.reportLint(identifier);
+      rule.reportAtNode(identifier);
     }
   }
 
@@ -81,7 +80,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final localElements = <Element2?>{};
+  final localElements = <Element?>{};
 
   _UseStringBufferVisitor(this.rule);
 
@@ -98,8 +97,8 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType is InterfaceType &&
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(node.writeElement2)) {
-        rule.reportLint(node);
+          !localElements.contains(node.writeElement)) {
+        rule.reportAtNode(node);
       }
       if (node.operator.type == TokenType.EQ) {
         var visitor = _IdentifierIsPrefixVisitor(rule, left);
@@ -126,7 +125,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement2);
+      localElements.add(variable.declaredElement);
     }
   }
 }

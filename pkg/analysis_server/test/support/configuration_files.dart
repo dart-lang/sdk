@@ -3,30 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_utilities/package_root.dart' as package_root;
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
 mixin ConfigurationFilesMixin on MockPackagesMixin {
-  String get latestLanguageVersion =>
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}';
+  /// Adds the 'flutter_test' package to the package config file for the
+  /// package-under-test.
+  ///
+  /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
+  bool get addFlutterTestPackageDep => false;
 
-  String get testPackageLanguageVersion => latestLanguageVersion;
+  /// Adds the 'pedantic' package to the package config file for the
+  /// package-under-test.
+  ///
+  /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.
+  bool get addVectorMathPackageDep => false;
+
+  /// The Dart language version of the test package being used for testing.
+  String get testPackageLanguageVersion => _latestLanguageVersion;
 
   /// The path to the test package being used for testing.
   String get testPackageRootPath;
 
-  String convertPath(String fileName) => resourceProvider.convertPath(fileName);
-
-  String toUriStr(String filePath) =>
-      pathContext.toUri(convertPath(filePath)).toString();
+  String get _latestLanguageVersion =>
+      '${ExperimentStatus.currentVersion.major}.'
+      '${ExperimentStatus.currentVersion.minor}';
 
   /// Writes a package_config.json for the package at [projectFolderPath]. If
   /// [packageName] is not supplied, the last segment of [projectFolderPath] is
@@ -39,13 +45,10 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool flutter_test = false,
     bool meta = false,
     bool pedantic = false,
-    bool vector_math = false,
-    bool macro = false,
   }) {
-    projectFolderPath = convertPath(projectFolderPath);
+    projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
     if (config == null) {
       config = PackageConfigFileBuilder();
@@ -66,17 +69,14 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     if (flutter) {
-      {
-        var libFolder = addUI();
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
-      }
-      {
-        var libFolder = addFlutter();
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
-      }
+      var uiLibFolder = addUI();
+      config.add(name: 'ui', rootPath: uiLibFolder.parent.path);
+
+      var flutterLibFolder = addFlutter();
+      config.add(name: 'flutter', rootPath: flutterLibFolder.parent.path);
     }
 
-    if (flutter_test) {
+    if (addFlutterTestPackageDep) {
       var libFolder = addFlutterTest();
       config.add(name: 'flutter_test', rootPath: libFolder.parent.path);
     }
@@ -86,35 +86,20 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       config.add(name: 'pedantic', rootPath: libFolder.parent.path);
     }
 
-    if (vector_math) {
+    if (addVectorMathPackageDep) {
       var libFolder = addVectorMath();
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
     }
 
-    if (macro) {
-      // TODO(dantup): This code may need to change/be removed depending on how
-      //  we ultimately reference the macro packages/libraries.
-      var physical = PhysicalResourceProvider.INSTANCE;
-      var packageRoot = physical.pathContext.normalize(
-        package_root.packageRoot,
-      );
+    var content = config.toContent(pathContext: pathContext);
 
-      for (var package in ['macros', '_macros']) {
-        var destination = resourceProvider.getFolder(
-          convertPath('$packagesRootPath/$package'),
-        );
-        physical
-            .getFolder(packageRoot)
-            .getChildAssumingFolder(package)
-            .copyTo(destination.parent);
-        config.add(name: package, rootPath: destination.path);
-      }
-    }
-
-    _newPackageConfigJsonFile(
-      projectFolderPath,
-      config.toContent(toUriStr: toUriStr),
-    );
+    var projectFolder = resourceProvider.getFolder(projectFolderPath);
+    var dartToolFolder = projectFolder.getChildAssumingFolder(
+      file_paths.dotDartTool,
+    )..create();
+    dartToolFolder
+        .getChildAssumingFile(file_paths.packageConfigJson)
+        .writeAsStringSync(content);
   }
 
   /// Writes a package_config.json for the package under test (considered
@@ -123,11 +108,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool flutter_test = false,
     bool meta = false,
     bool pedantic = false,
-    bool vector_math = false,
-    bool macro = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
@@ -135,24 +117,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       languageVersion: languageVersion,
       packageName: 'test',
       flutter: flutter,
-      flutter_test: flutter_test,
       meta: meta,
       pedantic: pedantic,
-      vector_math: vector_math,
-      macro: macro,
     );
-  }
-
-  File _newPackageConfigJsonFile(String packageRootPath, String content) {
-    var dartToolDirectoryPath = pathContext.join(
-      packageRootPath,
-      file_paths.dotDartTool,
-    );
-    var filePath = pathContext.join(
-      dartToolDirectoryPath,
-      file_paths.packageConfigJson,
-    );
-    resourceProvider.getFolder(dartToolDirectoryPath).create();
-    return resourceProvider.getFile(filePath)..writeAsStringSync(content);
   }
 }

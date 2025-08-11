@@ -17,7 +17,8 @@ main() {
 @reflectiveTest
 class MixinInstantiateTest extends PubPackageResolutionTest {
   test_namedConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   M.named() {}
 }
@@ -25,10 +26,12 @@ mixin M {
 void f() {
   new M.named();
 }
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+        error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
+      ],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -53,15 +56,16 @@ InstanceCreationExpression
   }
 
   test_unnamedConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 
 void f() {
   new M();
 }
-''', [
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''

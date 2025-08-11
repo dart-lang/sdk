@@ -6,7 +6,7 @@
 
 part "script1_part.dart";
 import "script1_lib.dart";
-// [error line 8, column 1, length 6]
+// [error column 1, length 6]
 // [analyzer] SYNTACTIC_ERROR.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
 // [cfe] Import directives must precede part directives.
 

@@ -42,8 +42,11 @@ main() {
     // Draw an image to the canvas from a canvas element.
     otherContext.fillStyle = "blue";
     otherContext.fillRect(5, 5, 5, 5);
-    context.drawImageToRect(otherCanvas, new Rectangle(50, 50, 20, 20),
-        sourceRect: new Rectangle(2, 2, 6, 6));
+    context.drawImageToRect(
+      otherCanvas,
+      new Rectangle(50, 50, 20, 20),
+      sourceRect: new Rectangle(2, 2, 6, 6),
+    );
 
     checkPixel(readPixel(50, 50), [255, 0, 0, 255]);
     checkPixel(readPixel(55, 55), [255, 0, 0, 255]);

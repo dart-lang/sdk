@@ -29,9 +29,9 @@ class C = self::A with self::M1 {
   synthetic constructor •(core::bool v1, {required core::num v2}) → self::C
     : super self::A::•(v1, v2: v2)
     ;
-  mixin-super-stub get v2() → core::num
+  synthetic mixin-super-stub get v2() → core::num
     return super.{self::M1::v2};
-  mixin-super-stub set v2(core::num value) → void
+  synthetic mixin-super-stub set v2(core::num value) → void
     return super.{self::M1::v2} = value;
 }
 static method test() → dynamic {

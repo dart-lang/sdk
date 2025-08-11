@@ -488,6 +488,18 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
 
+uintptr_t OS::CurrentRSS() {
+  zx_info_task_stats_t task_stats;
+  zx_handle_t process = zx_process_self();
+  zx_status_t status =
+      zx_object_get_info(process, ZX_INFO_TASK_STATS, &task_stats,
+                         sizeof(task_stats), nullptr, nullptr);
+  if (status != ZX_OK) {
+    return 0;
+  }
+  return task_stats.mem_private_bytes + task_stats.mem_shared_bytes;
+}
+
 void OS::Sleep(int64_t millis) {
   SleepMicros(millis * kMicrosecondsPerMillisecond);
 }
@@ -548,10 +560,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
+bool OS::ParseInitialInt64(const char* str, int64_t* value, char** end) {
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr &&
+         end != nullptr);
   int32_t base = 10;
-  char* endptr;
   int i = 0;
   if (str[0] == '-') {
     i = 1;
@@ -566,11 +578,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (base == 16) {
     // Unsigned 64-bit hexadecimal integer literals are allowed but
     // immediately interpreted as signed 64-bit integers.
-    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+    *value = static_cast<int64_t>(strtoull(str, end, base));
   } else {
-    *value = strtoll(str, &endptr, base);
+    *value = strtoll(str, end, base);
   }
-  return ((errno == 0) && (endptr != str) && (*endptr == 0));
+  return (errno == 0) && (*end != str);
 }
 
 void OS::RegisterCodeObservers() {

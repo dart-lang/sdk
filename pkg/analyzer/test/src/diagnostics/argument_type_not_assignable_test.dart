@@ -22,54 +22,58 @@ class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib2.dart', '''
 class _A {}
 g(h(_A a)) {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib2.dart';
 class _A {}
 f() {
   g((_A a) {});
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 9),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 9)],
+    );
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
-    String message = result.errors[0].message;
+    String message = result.diagnostics[0].message;
     expect(message.contains("_A"), isTrue);
   }
 
   test_annotation_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type const A(String _) {}
 
 @A(0)
 void f() {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1)],
+    );
   }
 
   test_annotation_namedConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A.fromInt(int p);
 }
 @A.fromInt('0')
 main() {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3)],
+    );
   }
 
   test_annotation_namedConstructor_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   const A.fromInt(T p);
 }
 @A<int>.fromInt('0')
 main() {
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3)],
+    );
   }
 
   test_annotation_type_arguments_inferred() async {
@@ -84,31 +88,34 @@ class C<T> {
   }
 
   test_annotation_unnamedConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int p);
 }
 @A('0')
 main() {
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 33, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 33, 3)],
+    );
   }
 
   test_binary() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   operator +(int p) {}
 }
 f(A a) {
   a + '0';
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 3)],
+    );
   }
 
   test_binary_eqEq_covariantParameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool operator==(covariant A other) => false;
 }
@@ -119,27 +126,31 @@ void f(A a, A? aq) {
   aq == aq;
   aq == null;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
+      ],
+    );
   }
 
   test_call() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef bool Predicate<T>(T object);
 
 Predicate<String> f() => (String s) => false;
 
 void main() {
   f().call(3);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 110, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 110, 1)],
+    );
   }
 
   test_cascadeSecond() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // filler filler filler filler filler filler filler filler filler filler
 class A {
   B ma() { return new B(); }
@@ -151,58 +162,68 @@ class B {
 main() {
   A a = new A();
   a..  ma().mb(0);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1)],
+    );
   }
 
   test_const() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(String p);
 }
 main() {
   const A(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
-    ]);
+}''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          52,
+          2,
+        ),
+      ],
+    );
   }
 
   test_const_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(String p);
 }
 class B extends A {
   const B() : super(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 73, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 73, 2)],
+    );
   }
 
   test_downcast() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   num y = 1;
   n(y);
 }
 n(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1)],
+    );
   }
 
   test_downcast_nullableNonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? y;
   n(y);
 }
 n(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 20, 1)],
+    );
   }
 
   test_dynamicCast() async {
@@ -216,15 +237,22 @@ n(int i) {}
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(0);
   const E(String a);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 13, 1),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 13, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 13, 1),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          13,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enumConstant_implicitDouble() async {
@@ -259,16 +287,17 @@ var x = g(0);
   }
 
   test_expressionFromConstructorTearoff_withTypeArgs_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   C(T a);
 }
 
 var g = C<int>.new;
 var x = g('Hello');
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 56, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 56, 7)],
+    );
   }
 
   test_expressionFromFunctionTearoff_withoutTypeArgs() async {
@@ -290,14 +319,15 @@ var x = g(0);
   }
 
   test_expressionFromFunctionTearoff_withTypeArgs_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T>(T a) {}
 
 var g = f<int>;
 var x = g('Hello');
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7)],
+    );
   }
 
   test_for_element_type_inferred_from_rewritten_node() async {
@@ -323,16 +353,18 @@ void f<T>(Iterable<T> Function() g, void Function(T) h) {
   }
 
   test_functionExpressionInvocation_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   (int x) {} ('');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 2)],
+    );
   }
 
   test_functionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   var a = new A();
   a.n(() => 0);
@@ -340,9 +372,9 @@ m() {
 class A {
   n(void f(int i)) {}
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7)],
+    );
   }
 
   test_implicitCallReference() async {
@@ -396,19 +428,21 @@ class A {
   }
 
   test_index_invalidRead() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int operator [](int index) => 0;
 }
 f(A a) {
   a['0'];
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 60, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 60, 3)],
+    );
   }
 
   test_index_invalidRead_validWrite() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int operator [](int index) => 0;
   operator []=(String index, int value) {}
@@ -417,27 +451,31 @@ f(A a) {
   a['0'] += 0;
   ++a['0'];
   a['0']++;
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
-    ]);
+}''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
+      ],
+    );
   }
 
   test_index_invalidWrite() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   operator []=(int index, int value) {}
 }
 f(A a) {
   a['0'] = 0;
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 3)],
+    );
   }
 
   test_index_validRead_invalidWrite() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int operator [](String index) => 0;
   operator []=(int index, int value) {}
@@ -446,166 +484,182 @@ f(A a) {
   a['0'] += 0;
   ++a['0'];
   a['0']++;
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
-    ]);
+}''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
+      ],
+    );
   }
 
   test_interfaceType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   var i = '';
   n(i);
 }
 n(int i) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1)],
+    );
   }
 
   test_invocation_callParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   call(int p) {}
 }
 f(A a) {
   a('0');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 3)],
+    );
   }
 
   test_invocation_callVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   call(int p) {}
 }
 main() {
   A a = new A();
   a('0');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 3)],
+    );
   }
 
   test_invocation_functionParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 a(b(int p)) {
   b('0');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 18, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 18, 3)],
+    );
   }
 
   test_invocation_functionParameter_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<K, V> {
   m(f(K k), V v) {
     f(v);
   }
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 41, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 41, 1)],
+    );
   }
 
   test_invocation_functionTypes_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void acceptFunOptBool(void funNumOptBool([bool b])) {}
 void funBool(bool b) {}
 main() {
   acceptFunOptBool(funBool);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 7),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 7)],
+    );
   }
 
   test_invocation_functionTypes_optional_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void acceptFunOptBool(void funOptBool([bool b])) {}
 class C {
   static void funBool(bool b) {}
 }
 main() {
   acceptFunOptBool(C.funBool);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9)],
+    );
   }
 
   test_invocation_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   m(T t) {}
 }
 f(A<String> a) {
   a.m(1);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+    );
   }
 
   test_invocation_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f({String p = ''}) {}
 main() {
   f(p: 42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 38, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 38, 2)],
+    );
   }
 
   test_invocation_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f([String p = '']) {}
 main() {
   f(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 2)],
+    );
   }
 
   test_invocation_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(String p) {}
 main() {
   f(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 28, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 28, 2)],
+    );
   }
 
   test_invocation_typedef_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A<T>(T p);
 f(A<int> a) {
   a('1');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 37, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 37, 3)],
+    );
   }
 
   test_invocation_typedef_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A(int p);
 A getA() => throw '';
 main() {
   A a = getA();
   a('1');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 69, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 69, 3)],
+    );
   }
 
   test_invocation_typedef_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A(int p);
 f(A a) {
   a('1');
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 3)],
+    );
   }
 
   test_map_indexGet() async {
@@ -620,81 +674,94 @@ main() {
 
   test_map_indexSet() async {
     // The type passed to Map.operator[]= must match the key type.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   Map<int, int> m = <int, int>{};
   m['x'] = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3)],
+    );
   }
 
   test_map_indexSet_ifNull() async {
     // The type passed to Map.operator[]= must match the key type.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   Map<int, int> m = <int, int>{};
   m['x'] ??= 0;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3)],
+    );
   }
 
   test_new_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A(T p) {}
 }
 main() {
   new A<String>(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2)],
+    );
   }
 
   test_new_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A([String p = '']) {}
 }
 main() {
   new A(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 53, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 53, 2)],
+    );
   }
 
   test_new_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A(String p) {}
 }
 main() {
   new A(42);
-}''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 2),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 2)],
+    );
   }
 
   void test_recordType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f((int a, int b) r) {}
 
 void g() {
   f((a: 1, b: 2));
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12,
+''',
+      [
+        error(
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          44,
+          12,
           messageContains: [
-            'Expected 2 positional arguments, but got 0 instead.'
-          ]),
-    ]);
+            'Expected 2 positional arguments, but got 0 instead.',
+          ],
+        ),
+      ],
+    );
   }
 
   void test_recordType_namedArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A = ({
   int b,
   int c,
@@ -705,18 +772,21 @@ void f(A a){print(a);}
 main() {
  f((bb:2, c:3));
 }
-''', [
-      error(
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        74,
-        11,
-        messageContains: ['Unexpected named argument `bb` with type `int`.'],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          74,
+          11,
+          messageContains: ['Unexpected named argument `bb` with type `int`.'],
+        ),
+      ],
+    );
   }
 
   void test_recordType_namedArguments_missing() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A = ({
   int b,
   int c,
@@ -727,20 +797,21 @@ void f(A a){print(a);}
 main() {
  f((b:2));
 }
-''', [
-      error(
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        74,
-        5,
-        messageContains: [
-          'Expected 2 named arguments, but got 1 instead.',
-        ],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          74,
+          5,
+          messageContains: ['Expected 2 named arguments, but got 1 instead.'],
+        ),
+      ],
+    );
   }
 
   void test_recordType_positionalArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A = (
   int b,
   int c,
@@ -751,17 +822,24 @@ void f(A a){print(a);}
 main() {
  f((3, 2, 1));
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 72, 9,
+''',
+      [
+        error(
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          72,
+          9,
           messageContains: [
-            'Expected 2 positional arguments, but got 3 instead.'
-          ]),
-    ]);
+            'Expected 2 positional arguments, but got 3 instead.',
+          ],
+        ),
+      ],
+    );
   }
 
   @failingTest
   test_tearOff_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
 }
@@ -769,44 +847,48 @@ g(C c) {
   var h = c.f/*<int>*/;
   print(h('s'));
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1)],
+    );
   }
 }
 
 @reflectiveTest
 class ArgumentTypeNotAssignableWithStrictCastsTest
-    extends PubPackageResolutionTest with WithStrictCastsMixin {
+    extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
   test_extensionTypePrimaryConstructor() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 extension type E(int i) {}
 
 dynamic a;
 var e = E(a);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 1)],
+    );
   }
 
   test_functionCall() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(int i) {}
 void foo(dynamic a) {
   f(a);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 43, 1)],
+    );
   }
 
   test_operator() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void foo(int i, dynamic a) {
   i + a;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 1)],
+    );
   }
 }

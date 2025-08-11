@@ -76,6 +76,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_enumConstant() async {
+    allowedIdentifiers = const {'value1'};
+    await computeSuggestions('''
+enum MyEnum {
+  /// This doc should suggest the commented enum constant name [val^].
+  value1
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  value1
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_extension() async {
     allowedIdentifiers = const {'MyExt'};
     await computeSuggestions('''
@@ -306,6 +323,17 @@ suggestions
 ''');
   }
 
+  Future<void> test_notInSquareBraces() async {
+    allowedIdentifiers = const {'MyClass1'};
+    await computeSuggestions('''
+/// This doc should not suggest the commented class name [] outside the braces ^
+class MyClass1 {}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_parameter() async {
     allowedIdentifiers = const {'param1'};
     await computeSuggestions('''
@@ -335,6 +363,18 @@ replacement
 suggestions
   mySetter
     kind: setter
+''');
+  }
+
+  Future<void> test_start() async {
+    // There was a crash because we tried to walk before the (only) token
+    // of the documentation comment.
+    await computeSuggestions('''
+^/// hello
+class A {}
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 

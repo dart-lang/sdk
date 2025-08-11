@@ -308,8 +308,10 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       }
     }
 
-    List<_ReferenceSet> referenceSetsUsingProperties =
-        _referencesByRecipe.values.where((ref) => !ref.generateAtUse).toList();
+    List<_ReferenceSet> referenceSetsUsingProperties = _referencesByRecipe
+        .values
+        .where((ref) => !ref.generateAtUse)
+        .toList();
 
     // Sort by name (which is unique and mostly stable) so that similar recipes
     // are grouped together.
@@ -320,8 +322,9 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     // Doing so saves 2-3 bytes per entry, but with an overhead of 30+ bytes for
     // the IIFE.  So it is smaller to use the IIFE only for over 10 or so types.
     const minUseIIFE = 10;
-    final helperLocal =
-        referenceSetsUsingProperties.length < minUseIIFE ? null : 'findType';
+    final helperLocal = referenceSetsUsingProperties.length < minUseIIFE
+        ? null
+        : 'findType';
 
     List<js.Property> properties = [];
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
@@ -431,15 +434,15 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
 
     // Step 2. Sort by frequency to arrange common entries have shorter property
     // names.
-    List<_ReferenceSet> referencesByFrequency =
-        referencesInTable.toList()..sort((a, b) {
-          assert(a.name != b.name);
-          int r = b.count.compareTo(a.count); // Decreasing frequency.
-          if (r != 0) return r;
-          return a.name!.compareTo(
-            b.name!,
-          ); // Tie-break with characteristic name.
-        });
+    List<_ReferenceSet> referencesByFrequency = referencesInTable.toList()
+      ..sort((a, b) {
+        assert(a.name != b.name);
+        int r = b.count.compareTo(a.count); // Decreasing frequency.
+        if (r != 0) return r;
+        return a.name!.compareTo(
+          b.name!,
+        ); // Tie-break with characteristic name.
+      });
 
     for (var referenceSet in referencesByFrequency) {
       referenceSet.hash = _hashCharacteristicString(referenceSet.name!);

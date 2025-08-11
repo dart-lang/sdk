@@ -9,20 +9,17 @@ analyzer:
     constant_identifier_names: ignore
     implementation_imports: ignore
     non_constant_identifier_names: ignore
-    # Existing violations (3)
-    library_private_types_in_public_api: ignore
     # Existing violations (194)
     unintended_html_in_doc_comment: ignore
 
 linter:
   rules:
     - always_declare_return_types
-    - analyzer_use_new_elements
     - flutter_style_todos
-    - library_annotations
     - omit_local_variable_types
     - prefer_single_quotes
     - unawaited_futures
+    - unnecessary_async
     - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis

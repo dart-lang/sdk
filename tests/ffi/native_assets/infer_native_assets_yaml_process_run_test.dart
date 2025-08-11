@@ -23,7 +23,8 @@ final helperSourceuri = Platform.script.resolve(helperName);
 final packageMetaUri = Platform.script.resolve('../../../pkg/meta');
 
 /// Add an unused import to see that we're using actually the package config.
-final testPackageConfig = '''{
+final testPackageConfig =
+    '''{
   "configVersion": 2,
   "packages": [
     {
@@ -59,7 +60,10 @@ Future<void> invokeHelperWorkingDir() async {
   print('invoke helper in working dir');
   await withTempDir((tempUri) async {
     await createTestFiles(tempUri);
-    await runDart(workingDirectory: tempUri, scriptUri: Uri(path: helperName));
+    await runDart(
+      workingDirectory: tempUri,
+      scriptUri: Uri(path: helperName),
+    );
   });
   print('invoke helper in working dir done');
 }

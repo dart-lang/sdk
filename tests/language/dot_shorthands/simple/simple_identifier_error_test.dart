@@ -11,27 +11,33 @@ import '../dot_shorthand_helper.dart';
 
 void main() {
   var color = .blue;
-  //           ^^^^
-  // [analyzer] unspecified
+  //          ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //           ^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const constColor = .blue;
-  //                  ^^^^
-  // [analyzer] unspecified
+  //                 ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                  ^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   var integer = .one;
-  //             ^^^
-  // [analyzer] unspecified
+  //            ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //             ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
 
   const constInteger = .one;
-  //                    ^^^
-  // [analyzer] unspecified
+  //                   ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                    ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
 
   Integer i = .one();
-  //          ^
-  // [analyzer] unspecified
-  // [cfe] The method 'call' isn't defined for the class 'Integer'.
+  //          ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [cfe] The method 'call' isn't defined for the type 'Integer'.
 }

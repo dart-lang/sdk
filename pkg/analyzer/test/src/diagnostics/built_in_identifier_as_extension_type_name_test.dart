@@ -22,8 +22,11 @@ class BuiltInIdentifierAsExtensionTypeNameTest
 extension type as(int it) {}
 ''',
       [
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
-            15, 2),
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
+          15,
+          2,
+        ),
       ],
     );
   }
@@ -34,8 +37,11 @@ extension type as(int it) {}
 extension type Function(int it) {}
 ''',
       [
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
-            15, 8),
+        error(
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
+          15,
+          8,
+        ),
       ],
     );
   }

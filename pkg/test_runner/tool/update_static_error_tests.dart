@@ -12,7 +12,6 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -299,11 +298,12 @@ Future<List<StaticError>> _runAnalyzerOnFile(
   // Convert the analyzer errors to test_runner [StaticErrors].
   var errors = <StaticError>[];
   if (errorsResult is ErrorsResult) {
-    for (var diagnostic in errorsResult.errors) {
+    for (var diagnostic in errorsResult.diagnostics) {
       switch (diagnostic.severity) {
         case Severity.error:
         case Severity.warning
-            when AnalyzerError.isValidatedWarning(diagnostic.errorCode.name):
+            when AnalyzerError.isValidatedWarning(
+                diagnostic.diagnosticCode.name):
           errors.add(
               _convertAnalysisError(context, errorsResult.path, diagnostic));
         default:
@@ -318,16 +318,16 @@ Future<List<StaticError>> _runAnalyzerOnFile(
   return errors;
 }
 
-/// Convert an [AnalysisError] from the analyzer package to the test runner's
+/// Convert an [Diagnostic] from the analyzer package to the test runner's
 /// [StaticError] type.
-StaticError _convertAnalysisError(AnalysisContext analysisContext,
-    String containingFile, AnalysisError error) {
+StaticError _convertAnalysisError(
+    AnalysisContext analysisContext, String containingFile, Diagnostic error) {
   var fileResult =
       analysisContext.currentSession.getFile(containingFile) as FileResult;
   var errorLocation = fileResult.lineInfo.getLocation(error.offset);
 
   var staticError = StaticError(ErrorSource.analyzer,
-      '${error.errorCode.type.name}.${error.errorCode.name}',
+      '${error.diagnosticCode.type.name}.${error.diagnosticCode.name}',
       path: containingFile,
       line: errorLocation.lineNumber,
       column: errorLocation.columnNumber,

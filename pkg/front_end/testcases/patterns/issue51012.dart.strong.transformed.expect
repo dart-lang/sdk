@@ -16,7 +16,7 @@ static field core::int count = 0;
 static method main() → dynamic {
   {
     final synthesized self::A #0#0 = new self::A::•();
-    if(!(let final core::int #t1 = #0#0.{self::A::bar}{core::int} in true))
+    if(!(let final dynamic #t1 = #0#0.{self::A::bar}{core::int} in true))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   self::expect(1, self::count);

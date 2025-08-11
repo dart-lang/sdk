@@ -18,7 +18,6 @@
 // VMOptions=--concurrent_mark --use_compactor
 // VMOptions=--concurrent_mark --use_compactor --force_evacuation
 // VMOptions=--scavenger_tasks=-1
-// VMOptions=--scavenger_tasks=0
 // VMOptions=--scavenger_tasks=1
 // VMOptions=--scavenger_tasks=2
 // VMOptions=--verify_before_gc

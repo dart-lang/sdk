@@ -45,7 +45,7 @@ const INTER_BYTES = const [
   0xbb,
   0x9d,
   0xc3,
-  0xb1
+  0xb1,
 ];
 const INTER_STRING = "Îñţérñåţîöñåļîžåţîờñ";
 
@@ -63,7 +63,7 @@ const BLUEBERRY_BYTES = const [
   0x72,
   0xc3,
   0xb8,
-  0x64
+  0x64,
 ];
 const BLUEBERRY_STRING = "blåbærgrød";
 
@@ -102,7 +102,7 @@ const SIVA_BYTES1 = const [
   0x88,
   0xe0,
   0xae,
-  0xb2
+  0xb2,
 ];
 const SIVA_STRING1 = "சிவா அணாமாைல";
 
@@ -141,7 +141,7 @@ const SIVA_BYTES2 = const [
   0xb2,
   0xe0,
   0xa5,
-  0x88
+  0x88,
 ];
 const SIVA_STRING2 = "िसवा अणामालै";
 
@@ -179,7 +179,7 @@ const ASCII_BYTES = const [
   0x77,
   0x78,
   0x79,
-  0x7A
+  0x7A,
 ];
 const ASCII_STRING = "abcdefghijklmnopqrstuvwxyz";
 
@@ -226,17 +226,19 @@ List<List> _expandTestPairs() {
   assert(2 == BEE_STRING.length);
   var tests = <List>[];
   tests.addAll(_TEST_PAIRS);
-  tests.addAll(_TEST_PAIRS.map((test) {
-    var bytes = test[0] as List<int>;
-    var string = test[1] as String;
-    var longBytes = <int>[];
-    var longString = "";
-    for (int i = 0; i < 100; i++) {
-      longBytes.addAll(bytes);
-      longString += string;
-    }
-    return [longBytes, longString];
-  }));
+  tests.addAll(
+    _TEST_PAIRS.map((test) {
+      var bytes = test[0] as List<int>;
+      var string = test[1] as String;
+      var longBytes = <int>[];
+      var longString = "";
+      for (int i = 0; i < 100; i++) {
+        longBytes.addAll(bytes);
+        longString += string;
+      }
+      return [longBytes, longString];
+    }),
+  );
   return tests;
 }
 

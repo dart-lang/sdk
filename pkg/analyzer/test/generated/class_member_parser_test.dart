@@ -60,7 +60,7 @@ class ClassMemberParserTest extends FastaParserTestCase
         namedType = asExpression.type as NamedType;
       }
       expect(expression, isSimpleIdentifier);
-      expect(namedType.name2.lexeme, "int");
+      expect(namedType.name.lexeme, "int");
       expect(namedType.question, xIsNullable ? isNotNull : isNull);
     }
 
@@ -79,7 +79,7 @@ class ClassMemberParserTest extends FastaParserTestCase
         namedType = asExpression.type as NamedType;
       }
       expect(expression, isSimpleIdentifier);
-      expect(namedType.name2.lexeme, "int");
+      expect(namedType.name.lexeme, "int");
       expect(namedType.question, yIsNullable ? isNotNull : isNull);
     }
   }
@@ -145,7 +145,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(method, isNotNull);
     listener.assertErrors([
       expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
-      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 23, 5)
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 23, 5),
     ]);
     FunctionBody body = method.body;
     expect(body, isBlockFunctionBody);
@@ -440,15 +440,15 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(list.isLate, isFalse);
     expect(list.lateKeyword, isNull);
     var type = list.type as NamedType;
-    expect(type.name2.lexeme, 'List');
+    expect(type.name.lexeme, 'List');
     List typeArguments = type.typeArguments!.arguments;
     expect(typeArguments, hasLength(1));
     var type2 = typeArguments[0] as NamedType;
-    expect(type2.name2.lexeme, 'List');
+    expect(type2.name.lexeme, 'List');
     NodeList typeArguments2 = type2.typeArguments!.arguments;
     expect(typeArguments2, hasLength(1));
     var type3 = typeArguments2[0] as NamedType;
-    expect(type3.name2.lexeme, 'N');
+    expect(type3.name.lexeme, 'N');
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -608,7 +608,7 @@ Function(int, String) v;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 4, 3)
+      expectedError(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 4, 3),
     ]);
   }
 
@@ -616,16 +616,18 @@ Function(int, String) v;
     createParser('var ;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+    ]);
   }
 
   void test_parseClassMember_field_nameMissing2() {
     createParser('var "";');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 2)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 2),
+    ]);
   }
 
   void test_parseClassMember_field_static() {
@@ -654,14 +656,17 @@ Function(int, String) v;
   }
 
   void test_parseClassMember_finalAndCovariantLateWithInitializer() {
-    createParser(
-      'covariant late final int f = 0;',
-    );
+    createParser('covariant late final int f = 0;');
     parser.parseClassMember('C');
-    assertErrors(errors: [
-      expectedError(
-          ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER, 0, 9)
-    ]);
+    assertErrors(
+      errors: [
+        expectedError(
+          ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER,
+          0,
+          9,
+        ),
+      ],
+    );
   }
 
   void test_parseClassMember_getter_functionType() {
@@ -782,7 +787,7 @@ Function(int, String) v;
     expect(parameters.parameters, hasLength(1));
     var parameter = parameters.parameters[0] as SimpleFormalParameter;
     var parameterType = parameter.type as NamedType;
-    expect(parameterType.name2.lexeme, 'T');
+    expect(parameterType.name.lexeme, 'T');
 
     expect(method.body, isNotNull);
   }
@@ -817,14 +822,14 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters!.typeParameters[0];
     expect(tp.name.lexeme, 'T');
     expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as NamedType).name2.lexeme, 'num');
+    expect((tp.bound as NamedType).name.lexeme, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -844,12 +849,12 @@ Function(int, String) v;
     {
       var returnType = method.returnType as NamedType;
       expect(returnType, isNotNull);
-      expect(returnType.name2.lexeme, 'Map');
+      expect(returnType.name.lexeme, 'Map');
 
       List<TypeAnnotation> typeArguments = returnType.typeArguments!.arguments;
       expect(typeArguments, hasLength(2));
-      expect((typeArguments[0] as NamedType).name2.lexeme, 'int');
-      expect((typeArguments[1] as NamedType).name2.lexeme, 'T');
+      expect((typeArguments[0] as NamedType).name.lexeme, 'int');
+      expect((typeArguments[1] as NamedType).name.lexeme, 'T');
     }
 
     expect(method.name, isNotNull);
@@ -871,7 +876,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
@@ -1028,12 +1033,10 @@ void Function<A>(core.List<core.int> x) m() => null;
     allowNativeClause = true;
     _parseClassMember_method_native_with_body();
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    assertErrorsWithCodes([
-      ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
-    ]);
-//      listener.assertErrors([
-//        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-//      ]);
+    assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
+    //      listener.assertErrors([
+    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
+    //      ]);
   }
 
   void test_parseClassMember_method_native_with_body_not_allowed() {
@@ -1044,10 +1047,10 @@ void Function<A>(core.List<core.int> x) m() => null;
       ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
       ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
     ]);
-//      listener.assertErrors([
-//        expectedError(ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, 4, 6),
-//        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-//      ]);
+    //      listener.assertErrors([
+    //        expectedError(ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, 4, 6),
+    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
+    //      ]);
   }
 
   void test_parseClassMember_method_operator_noType() {
@@ -1295,7 +1298,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<FormalParameter> parameters = method.parameters!.parameters;
     expect(parameters, hasLength(1));
     expect(
-        (parameters[0] as SimpleFormalParameter).type, isGenericFunctionType);
+      (parameters[0] as SimpleFormalParameter).type,
+      isGenericFunctionType,
+    );
     expect(method.body, isNotNull);
   }
 
@@ -1409,9 +1414,11 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.separator!.type, TokenType.EQ);
     expect(constructor.initializers, isEmpty);
     expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.redirectedConstructor!.type.importPrefix!.name.lexeme,
-        'prefix');
-    expect(constructor.redirectedConstructor!.type.name2.lexeme, 'B');
+    expect(
+      constructor.redirectedConstructor!.type.importPrefix!.name.lexeme,
+      'prefix',
+    );
+    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
     expect(constructor.redirectedConstructor!.period!.type, TokenType.PERIOD);
     expect(constructor.redirectedConstructor!.name!.name, 'foo');
     expect(constructor.body, isEmptyFunctionBody);
@@ -1460,7 +1467,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.separator!.type, TokenType.EQ);
     expect(constructor.initializers, isEmpty);
     expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.redirectedConstructor!.type.name2.lexeme, 'B');
+    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
     expect(constructor.redirectedConstructor!.period, isNull);
     expect(constructor.redirectedConstructor!.name, isNull);
     expect(constructor.body, isEmptyFunctionBody);
@@ -1540,9 +1547,10 @@ void Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseConstructor_invalidInitializer() {
     // https://github.com/dart-lang/sdk/issues/37693
-    parseCompilationUnit('class C{ C() : super() * (); }', errors: [
-      expectedError(ParserErrorCode.INVALID_INITIALIZER, 15, 12),
-    ]);
+    parseCompilationUnit(
+      'class C{ C() : super() * (); }',
+      errors: [expectedError(ParserErrorCode.INVALID_INITIALIZER, 15, 12)],
+    );
   }
 
   void test_parseConstructor_named() {
@@ -1566,17 +1574,20 @@ void Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseConstructor_nullSuperArgList_openBrace_37735() {
     // https://github.com/dart-lang/sdk/issues/37735
-    var unit = parseCompilationUnit('class{const():super.{n', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
-      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 11, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
-      expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1),
-      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
-      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
-    ]);
+    var unit = parseCompilationUnit(
+      'class{const():super.{n',
+      errors: [
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+        expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 11, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
+        expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1),
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+      ],
+    );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var constructor = classDeclaration.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
@@ -1584,10 +1595,10 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseConstructor_operator_name() {
-    var unit = parseCompilationUnit('class A { operator/() : super(); }',
-        errors: [
-          expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 10, 8)
-        ]);
+    var unit = parseCompilationUnit(
+      'class A { operator/() : super(); }',
+      errors: [expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 10, 8)],
+    );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var constructor = classDeclaration.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
@@ -1673,14 +1684,17 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(initializers, hasLength(1));
     ConstructorInitializer initializer = initializers[0];
     expect(initializer, isConstructorFieldInitializer);
-    expect((initializer as ConstructorFieldInitializer).expression,
-        isParenthesizedExpression);
+    expect(
+      (initializer as ConstructorFieldInitializer).expression,
+      isParenthesizedExpression,
+    );
     expect(constructor.body, isBlockFunctionBody);
   }
 
   void test_parseConstructorFieldInitializer_qualified() {
-    var initializer = parseConstructorInitializer('this.a = b')
-        as ConstructorFieldInitializer;
+    var initializer =
+        parseConstructorInitializer('this.a = b')
+            as ConstructorFieldInitializer;
     expect(initializer, isNotNull);
     assertNoErrors();
     expect(initializer.equals, isNotNull);
@@ -1716,9 +1730,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('abstract external int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
@@ -1729,9 +1743,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('abstract late int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
@@ -1741,9 +1755,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('abstract late final int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
@@ -1753,9 +1767,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('abstract static int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.ABSTRACT_STATIC_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.ABSTRACT_STATIC_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
@@ -1765,9 +1779,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('const late T f = 0;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 4),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 4)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
@@ -1801,9 +1815,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('external abstract int i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 9, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 9, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
@@ -1814,9 +1828,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('external late int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
@@ -1826,9 +1840,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('external late final int? i;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
@@ -1847,9 +1861,9 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseField_final_late() {
     createParser('final late T f;');
     ClassMember member = parser.parseClassMember('C');
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)],
+    );
     expect(member, isNotNull);
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
@@ -1898,9 +1912,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('late const T f = 0;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 5),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 5)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
@@ -1991,9 +2005,9 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('var late f;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 4),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 4)],
+    );
     expect(member, isFieldDeclaration);
     var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
@@ -2045,7 +2059,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.operatorKeyword, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseGetter_static() {
@@ -2062,7 +2076,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseInitializedIdentifierList_type() {
@@ -2074,7 +2088,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
-    expect((fields.type as NamedType).name2.lexeme, 'T');
+    expect((fields.type as NamedType).name.lexeme, 'T');
     expect(fields.variables, hasLength(3));
     expect(declaration.staticKeyword!.lexeme, 'static');
     expect(declaration.semicolon, isNotNull);
@@ -2109,7 +2123,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseSetter_nonStatic() {
@@ -2126,7 +2140,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseSetter_static() {
@@ -2143,7 +2157,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_simpleFormalParameter_withDocComment() {
@@ -2153,8 +2167,9 @@ int f(
     int x) {}
 ''');
     var function = parseFullCompilationUnitMember() as FunctionDeclaration;
-    var parameter = function.functionExpression.parameters!.parameters[0]
-        as NormalFormalParameter;
+    var parameter =
+        function.functionExpression.parameters!.parameters[0]
+            as NormalFormalParameter;
     expectCommentText(parameter.documentationComment, '/// Doc');
   }
 

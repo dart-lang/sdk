@@ -12,70 +12,72 @@ final _batchSuffix = Platform.isWindows ? '.bat' : '';
 main() {
   final buildDir = path.dirname(Platform.executable);
   final sdkDir = path.dirname(path.dirname(buildDir));
-  final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-  final genKernel =
-      path.join(sdkDir, 'pkg', 'vm', 'tool', 'gen_kernel$_batchSuffix');
-  Expect.isTrue(File(genKernel).existsSync(),
-      "Can't locate gen_kernel$_batchSuffix on this platform");
-  Expect.isTrue(File(genKernel).existsSync(),
-      "Can't locate gen_kernel$_batchSuffix on this platform");
+  final platformDill = path.join(buildDir, 'vm_platform.dill');
+  final genKernel = path.join(
+    sdkDir,
+    'pkg',
+    'vm',
+    'tool',
+    'gen_kernel$_batchSuffix',
+  );
+  Expect.isTrue(
+    File(genKernel).existsSync(),
+    "Can't locate gen_kernel$_batchSuffix on this platform",
+  );
+  Expect.isTrue(
+    File(genKernel).existsSync(),
+    "Can't locate gen_kernel$_batchSuffix on this platform",
+  );
   final genSnapshot = path.join(buildDir, 'gen_snapshot$_execSuffix');
-  Expect.isTrue(File(genSnapshot).existsSync(),
-      "Can't locate gen_snapshot$_execSuffix on this platform");
+  Expect.isTrue(
+    File(genSnapshot).existsSync(),
+    "Can't locate gen_snapshot$_execSuffix on this platform",
+  );
 
   final exePath = path.join(buildDir, 'dart$_execSuffix');
-  Expect.isTrue(File(exePath).existsSync(),
-      "Can't locate dart$_execSuffix on this platform");
+  Expect.isTrue(
+    File(exePath).existsSync(),
+    "Can't locate dart$_execSuffix on this platform",
+  );
   final powTest = path.join(sdkDir, 'tests', 'standalone', 'pow_test.dart');
-  Expect.isTrue(File(powTest).existsSync(),
-      "Can't locate dart$_execSuffix on this platform");
+  Expect.isTrue(
+    File(powTest).existsSync(),
+    "Can't locate dart$_execSuffix on this platform",
+  );
   final d = Directory.systemTemp.createTempSync('aot_tmp');
   final kernelOutput = File.fromUri(d.uri.resolve('pow_test.dill')).path;
   final aotOutput = File.fromUri(d.uri.resolve('pow_test.aot')).path;
 
-  final genKernelResult = runAndPrintOutput(
-    genKernel,
-    [
-      '--aot',
-      '--platform=$platformDill',
-      '-o',
-      kernelOutput,
-      powTest,
-    ],
-  );
+  final genKernelResult = runAndPrintOutput(genKernel, [
+    '--aot',
+    '--platform=$platformDill',
+    '-o',
+    kernelOutput,
+    powTest,
+  ]);
   Expect.equals(genKernelResult.exitCode, 0);
   print("Ran successfully.\n");
 
-  final genAotResult = runAndPrintOutput(
-    genSnapshot,
-    [
-      '--snapshot_kind=app-aot-elf',
-      '--elf=$aotOutput',
-      kernelOutput,
-    ],
-  );
+  final genAotResult = runAndPrintOutput(genSnapshot, [
+    '--snapshot_kind=app-aot-elf',
+    '--elf=$aotOutput',
+    kernelOutput,
+  ]);
   Expect.equals(genAotResult.exitCode, 0);
   print("Ran successfully.\n");
 
-  final runAotDirectlyResult = runAndPrintOutput(
-    exePath,
-    [
-      aotOutput,
-    ],
-  );
+  final runAotDirectlyResult = runAndPrintOutput(exePath, [aotOutput]);
   Expect.equals(runAotDirectlyResult.exitCode, 255);
   Expect.contains(
-      "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
-      runAotDirectlyResult.stderr);
+    "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
+    runAotDirectlyResult.stderr,
+  );
   print('Got expected error result.');
 
-  final runAotUsingCommandResult = runAndPrintOutput(
-    exePath,
-    [
-      'run',
-      aotOutput,
-    ],
-  );
+  final runAotUsingCommandResult = runAndPrintOutput(exePath, [
+    'run',
+    aotOutput,
+  ]);
   Expect.equals(runAotUsingCommandResult.exitCode, 255);
   Expect.containsAny(<String>[
     "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",

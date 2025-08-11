@@ -37,7 +37,7 @@ abstract class Baz extends stu::Qux {
 abstract class Foo extends stu::Baz implements stu::Qux {
   synthetic constructor •() → stu::Foo
     ;
-  abstract member-signature method handleEvent(covariant-by-declaration stu2::EvenFileB entry) → void; -> stu::Qux::handleEvent
+  abstract synthetic member-signature method handleEvent(covariant-by-declaration stu2::EvenFileB entry) → void; -> stu::Qux::handleEvent
 }
 
 library;

@@ -13,16 +13,22 @@ main() {
 class ReturnStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'return_statement',
-        [
-          TestDescriptor(
-              'keyword', 'return', [ParserErrorCode.EXPECTED_TOKEN], "return;",
-              allFailing: true),
-          TestDescriptor('expression', 'return a',
-              [ParserErrorCode.EXPECTED_TOKEN], "return a;"),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'return_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'return',
+          [ParserErrorCode.EXPECTED_TOKEN],
+          "return;",
+          allFailing: true,
+        ),
+        TestDescriptor('expression', 'return a', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "return a;"),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

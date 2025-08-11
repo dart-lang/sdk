@@ -44,5 +44,6 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
 
 main() async {
   await runSplitAOTKernelGenerationTest(
-      Platform.script.resolve('gc/splay_test.dart'));
+    Platform.script.resolve('gc/splay_test.dart'),
+  );
 }

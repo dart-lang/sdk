@@ -16,19 +16,23 @@ class TestingData {
   final Map<Uri, ExhaustivenessDataForTesting> uriToExhaustivenessData = {};
 
   final Map<Uri, TypeConstraintGenerationDataForTesting>
-      uriToTypeConstraintGenerationData = {};
+  uriToTypeConstraintGenerationData = {};
 
   /// Called by the constant verifier, to record exhaustiveness data used in
   /// testing.
   void recordExhaustivenessDataForTesting(
-      Uri uri, ExhaustivenessDataForTesting result) {
+    Uri uri,
+    ExhaustivenessDataForTesting result,
+  ) {
     uriToExhaustivenessData[uri] = result;
   }
 
   /// Called by the analysis driver after performing flow analysis, to record
   /// flow analysis results.
   void recordFlowAnalysisDataForTesting(
-      Uri uri, FlowAnalysisDataForTesting result) {
+    Uri uri,
+    FlowAnalysisDataForTesting result,
+  ) {
     uriToFlowAnalysisData[uri] = result;
   }
 
@@ -37,7 +41,9 @@ class TestingData {
   /// The procedure is destructive to [result] in the sense that it reuses its
   /// internal data structures where possible to avoid extra allocations.
   void recordTypeConstraintGenerationDataForTesting(
-      Uri uri, TypeConstraintGenerationDataForTesting result) {
+    Uri uri,
+    TypeConstraintGenerationDataForTesting result,
+  ) {
     TypeConstraintGenerationDataForTesting? existing =
         uriToTypeConstraintGenerationData[uri];
     if (existing != null) {

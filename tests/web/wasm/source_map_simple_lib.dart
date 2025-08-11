@@ -24,7 +24,9 @@ runtimeFalse() => int.parse('1') == 0;
 // of standard library functions to avoid breaking the test with unrelated
 // changes to the standard library.
 void testMain(
-    String testName, List<(String?, int?, int?, String?)?> expectedFrames) {
+  String testName,
+  List<(String?, int?, int?, String?)?> expectedFrames,
+) {
   // Use `f` and `g` in a few places to make sure wasm-opt won't inline them
   // in the test.
   final fTearOff = f;
@@ -46,8 +48,11 @@ void testMain(
   print(stackTraceString);
   print("-----");
 
-  final actualFrames =
-      parseStack(testName, getSourceMapping(testName), stackTraceString!);
+  final actualFrames = parseStack(
+    testName,
+    getSourceMapping(testName),
+    stackTraceString!,
+  );
   print('Got stack trace:');
   for (final frame in actualFrames) {
     print('  $frame');
@@ -115,7 +120,10 @@ Mapping getSourceMapping(String testName) {
 }
 
 List<(String?, int?, int?, String?)?> parseStack(
-    String testName, Mapping mapping, String stackTraceString) {
+  String testName,
+  Mapping mapping,
+  String stackTraceString,
+) {
   final parsed = <(String?, int?, int?, String?)?>[];
   for (final line in stackTraceString.split('\n')) {
     if (line.contains('.mjs') || line.contains('.js')) {

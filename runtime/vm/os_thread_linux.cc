@@ -9,7 +9,6 @@
 #include "vm/os_thread.h"
 
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <sys/resource.h>
 #include <sys/syscall.h>
@@ -115,39 +114,6 @@ int OSThread::TryStart(const char* name,
 
   pthread_t tid;
   result = pthread_create(&tid, &attr, ThreadStart, data);
-  if (result != 0) {
-    fprintf(stderr, "pthread_create failed\n");
-    const char* const kPaths[] = {
-        "/proc/self/limits",
-        "/proc/sys/kernel/threads-max",
-        "/proc/sys/kernel/pid_max",
-        "/sys/fs/cgroup/user.slice/memory.current",
-        "/sys/fs/cgroup/user.slice/memory.max",
-        "/sys/fs/cgroup/user.slice/memory.peak",
-        "/sys/fs/cgroup/user.slice/pids.current",
-        "/sys/fs/cgroup/user.slice/pids.max",
-        "/sys/fs/cgroup/user.slice/pids.peak",
-    };
-    for (uintptr_t i = 0; i < ARRAY_SIZE(kPaths); i++) {
-      const char* path = kPaths[i];
-
-      int fd = open(path, O_RDONLY | O_CLOEXEC);
-      if (fd < 0) {
-        fprintf(stderr, "%s: Failed to open\n", path);
-        continue;
-      }
-      const intptr_t kBufferSize = 2048;
-      char buffer[kBufferSize];
-      memset(buffer, 0, kBufferSize);
-      ssize_t red = read(fd, buffer, kBufferSize - 1);
-      close(fd);
-      if (red < 0) {
-        fprintf(stderr, "%s: Failed to read\n", path);
-        continue;
-      }
-      fprintf(stderr, "%s: %s\n", path, buffer);
-    }
-  }
   RETURN_ON_PTHREAD_FAILURE(result);
 
   result = pthread_attr_destroy(&attr);

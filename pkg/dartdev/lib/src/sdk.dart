@@ -66,6 +66,10 @@ class Sdk {
           Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
         );
 
+  String get analysisServerAotSnapshot => _snapshotPathFor(
+        'analysis_server_aot.dart.snapshot',
+      );
+
   String get analysisServerSnapshot => _snapshotPathFor(
         'analysis_server.dart.snapshot',
       );
@@ -96,6 +100,10 @@ class Sdk {
 
   String get dart2wasmSnapshot => _snapshotPathFor(
         'dart2wasm_product.snapshot',
+      );
+
+  String get dartMCPServerAotSnapshot => _snapshotPathFor(
+        'dart_mcp_server_aot.dart.snapshot',
       );
 
   String get ddsSnapshot => _snapshotPathFor(
@@ -284,3 +292,5 @@ class Runtime {
     return Runtime._(version, channel);
   }
 }
+
+const useAotSnapshotFlag = 'use-aot-snapshot';

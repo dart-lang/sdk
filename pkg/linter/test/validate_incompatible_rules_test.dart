@@ -11,7 +11,7 @@ void main() {
     registerLintRules();
     for (var rule in Registry.ruleRegistry) {
       for (var incompatibleRule in rule.incompatibleRules) {
-        test(rule.name, () async {
+        test(rule.name, () {
           var referencedRule = Registry.ruleRegistry.firstWhere(
             (r) => r.name == incompatibleRule,
           );

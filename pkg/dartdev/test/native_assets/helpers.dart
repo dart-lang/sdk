@@ -8,11 +8,13 @@ import 'dart:io';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
+import 'package:hooks_runner/src/utils/run_process.dart' as run_process;
 import 'package:logging/logging.dart';
-import 'package:native_assets_builder/src/utils/run_process.dart'
-    as run_process;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
+
+import '../utils.dart';
 
 extension UriExtension on Uri {
   Uri get parent {
@@ -66,8 +68,8 @@ Future<run_process.RunProcessResult> runProcess({
       filesystem: const LocalFileSystem(),
     );
 
-Future<void> copyTestProjects(
-    Uri copyTargetUri, Logger logger, Uri packageLocation) async {
+Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
+    Uri packageLocation, Uri sdkRoot, bool usePubWorkspace) async {
   // Reuse the test projects from `pkg:native`.
   final testProjectsUri = packageLocation.resolve('test_data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
@@ -81,7 +83,7 @@ Future<void> copyTestProjects(
       .where((e) => !(e.pathSegments.last.startsWith('pubspec') &&
           e.pathSegments.last.endsWith('.yaml')))
       .toList();
-  final filesToModify = manifest
+  final pubspecPaths = manifest
       .where((e) =>
           e.pathSegments.last.startsWith('pubspec') &&
           e.pathSegments.last.endsWith('.yaml'))
@@ -97,15 +99,82 @@ Future<void> copyTestProjects(
     }
     await sourceFile.copy(targetUri.toFilePath());
   }
-  for (final pathToModify in filesToModify) {
-    final sourceFile = File.fromUri(testProjectsUri.resolveUri(pathToModify));
-    final targetUri = copyTargetUri.resolveUri(pathToModify);
+  final dependencyOverrides = {
+    for (final package in [
+      'code_assets',
+      'data_assets',
+      'hooks',
+      'native_toolchain_c'
+    ])
+      package: {
+        'path': sdkRoot
+            .resolve('third_party/pkg/native/pkgs/$package/')
+            .toFilePath(),
+      },
+    'meta': {
+      'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
+    },
+    'record_use': {
+      'path': sdkRoot.resolve('pkg/record_use/').toFilePath(),
+    },
+  };
+  final userDefinesWorkspace = {};
+  for (final pubspecPath in pubspecPaths) {
+    final sourceFile = File.fromUri(testProjectsUri.resolveUri(pubspecPath));
+    final targetUri = copyTargetUri.resolveUri(pubspecPath);
     final sourceString = await sourceFile.readAsString();
-    final modifiedString = sourceString.replaceAll(
-      'path: ../../',
-      'path: ${packageLocation.toFilePath().replaceAll('\\', '/')}',
-    );
+    final pubspec = YamlEditor(sourceString);
+    final pubspecRead = loadYamlNode(sourceString) as Map;
+    if (!usePubWorkspace) {
+      if (pubspecRead['resolution'] != null) {
+        pubspec.remove(['resolution']);
+      }
+      pubspec.update(['dependency_overrides'], dependencyOverrides);
+    } else {
+      final userDefines = pubspecRead['hooks']?['user_defines'];
+      if (userDefines is Map) {
+        // Remove the user defines from the root package pubspec.
+        pubspec.remove(['hooks', 'user_defines']);
+
+        // Add the user defines to the workspace pubspec.
+        // But make sure to rewrite relative paths to point to the right place.
+        // Deep-copy the map because the read map is unmodifiable.
+        for (final MapEntry(:key, :value) in userDefines.entries) {
+          final packageName = key;
+          final defines = value as Map;
+          userDefinesWorkspace[packageName] = <String, Object?>{};
+          for (final MapEntry(:key, :value) in defines.entries) {
+            if (value == 'assets/data.json') {
+              // We're constructing a workspace, so the paths in the workspace pubspec must point to the right place.
+              userDefinesWorkspace[packageName]![key] =
+                  '$packageName/assets/data.json';
+            } else {
+              userDefinesWorkspace[packageName]![key] = value;
+            }
+          }
+        }
+      }
+    }
+    final modifiedString = pubspec.toString();
     await File.fromUri(targetUri).writeAsString(modifiedString);
+  }
+  if (usePubWorkspace) {
+    final workspacePubspec = YamlEditor('');
+    workspacePubspec.update([], {
+      'name': 'my_pub_workspace',
+      'environment': {'sdk': '>=3.7.0 <4.0.0'},
+      'workspace': [
+        for (final pubspec in pubspecPaths)
+          if (!pubspec.toFilePath().contains('version_skew'))
+            pubspec.toFilePath().replaceAll('pubspec.yaml', ''),
+      ],
+      'dependency_overrides': dependencyOverrides,
+      'hooks': {
+        'user_defines': userDefinesWorkspace,
+      }
+    });
+    final pubspecUri = copyTargetUri.resolve('pubspec.yaml');
+    await File.fromUri(pubspecUri).writeAsString(workspacePubspec.toString());
   }
 
   // If we're copying `my_native_library/` we need to simulate that its
@@ -176,6 +245,7 @@ Future<void> nativeAssetsTest(
   String packageUnderTest,
   Future<void> Function(Uri) fun, {
   bool skipPubGet = false,
+  bool usePubWorkspace = false,
 }) async =>
     await runPackageTest(
       packageUnderTest,
@@ -184,6 +254,7 @@ Future<void> nativeAssetsTest(
       const [
         'add_asset_link',
         'dart_app',
+        'dev_dependency_with_hook',
         'drop_dylib_link',
         'native_add_duplicate',
         'native_add_version_skew',
@@ -193,8 +264,9 @@ Future<void> nativeAssetsTest(
         'treeshaking_native_libs',
         'user_defines',
       ],
-      Platform.script.resolve(
-          '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),
+      sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks_runner/'),
+      sdkRootUri,
+      usePubWorkspace,
     );
 
 Future<void> recordUseTest(
@@ -207,7 +279,9 @@ Future<void> recordUseTest(
       skipPubGet,
       fun,
       const ['drop_dylib_recording'],
-      Platform.script.resolve('../../../record_use/'),
+      sdkRootUri.resolve('pkg/record_use/'),
+      sdkRootUri,
+      false,
     );
 
 Future<void> runPackageTest(
@@ -216,10 +290,13 @@ Future<void> runPackageTest(
   Future<void> Function(Uri) fun,
   List<String> validPackages,
   Uri packageLocation,
+  Uri sdkRoot,
+  bool usePubWorkspace,
 ) async {
   assert(validPackages.contains(packageUnderTest));
   return await inTempDir((tempUri) async {
-    await copyTestProjects(tempUri, logger, packageLocation);
+    await copyTestProjects(
+        tempUri, logger, packageLocation, sdkRoot, usePubWorkspace);
     final packageUri = tempUri.resolve('$packageUnderTest/');
     if (!skipPubGet) {
       await runPubGet(workingDirectory: packageUri, logger: logger);

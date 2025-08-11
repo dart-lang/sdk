@@ -115,10 +115,9 @@ void main() {
     () => externalDartReferenceF([].toExternalReference),
   );
   Expect.throwsWhen(isJSBackend, () => anyF(''.toJS));
-  jsFunction =
-      ((ExternalDartReference<Set> arg) {
-        arg.toDartObject;
-      }).toJS;
+  jsFunction = ((ExternalDartReference<Set> arg) {
+    arg.toDartObject;
+  }).toJS;
   Expect.throwsWhen(soundNullSafety, () => externalDartReferenceF(null));
   Expect.throws(() => externalDartReferenceF([].toExternalReference));
   // TODO(srujzs): On dart2wasm, this is a `RuntimeError: illegal cast` because
@@ -285,17 +284,19 @@ void main() {
   jsFunction = (getF<JSAny>()).toJS;
   Expect.throwsWhen(soundNullSafety, () => anyF(null));
   anyF(zero);
-  jsFunction = ((<T extends JSAny?>() => (T t) => t)<JSAny>()).toJS;
+  jsFunction =
+      ((<T extends JSAny?>() =>
+              (T t) => t)<JSAny>())
+          .toJS;
   Expect.throwsWhen(soundNullSafety, () => anyF(null));
   anyF(zero);
 
   // Make sure function expression is only evaluated once in lowerings.
   var evalCount = 0;
-  jsFunction =
-      (() {
-        evalCount++;
-        return () {};
-      }()).toJS;
+  jsFunction = (() {
+    evalCount++;
+    return () {};
+  }()).toJS;
   anyF();
   anyF();
   Expect.equals(1, evalCount);

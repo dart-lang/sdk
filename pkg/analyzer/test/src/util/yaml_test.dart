@@ -13,28 +13,34 @@ main() {
     group('merge', () {
       test('map', () {
         expect(
-            merge({
+          merge(
+            {
               'one': true,
               'two': false,
               'three': {
-                'nested': {'four': true, 'six': true}
-              }
-            }, {
+                'nested': {'four': true, 'six': true},
+              },
+            },
+            {
               'three': {
                 'nested': {'four': false, 'five': true},
-                'five': true
+                'five': true,
               },
-              'seven': true
-            }),
-            equals(wrap({
+              'seven': true,
+            },
+          ),
+          equals(
+            wrap({
               'one': true,
               'two': false,
               'three': {
                 'nested': {'four': false, 'five': true, 'six': true},
-                'five': true
+                'five': true,
               },
-              'seven': true
-            })));
+              'seven': true,
+            }),
+          ),
+        );
       });
 
       test('list', () {
@@ -43,48 +49,52 @@ main() {
 
       test('list w/ promotion', () {
         expect(
-            merge(['one', 'two', 'three'], {'three': false, 'four': true}),
-            equals(wrap(
-                {'one': true, 'two': true, 'three': false, 'four': true})));
-        expect(merge({'one': false, 'two': false}, ['one', 'three']),
-            equals(wrap({'one': true, 'two': false, 'three': true})));
+          merge(['one', 'two', 'three'], {'three': false, 'four': true}),
+          equals(
+            wrap({'one': true, 'two': true, 'three': false, 'four': true}),
+          ),
+        );
+        expect(
+          merge({'one': false, 'two': false}, ['one', 'three']),
+          equals(wrap({'one': true, 'two': false, 'three': true})),
+        );
       });
 
       test('map w/ list promotion', () {
         var map1 = {
-          'one': ['a', 'b', 'c']
+          'one': ['a', 'b', 'c'],
         };
         var map2 = {
-          'one': {'a': true, 'b': false}
+          'one': {'a': true, 'b': false},
         };
         var map3 = {
-          'one': {'a': true, 'b': false, 'c': true}
+          'one': {'a': true, 'b': false, 'c': true},
         };
         expect(merge(map1, map2), wrap(map3));
       });
 
       test('map w/ no promotion', () {
         var map1 = {
-          'one': ['a', 'b', 'c']
+          'one': ['a', 'b', 'c'],
         };
         var map2 = {
-          'one': {'a': 'foo', 'b': 'bar'}
+          'one': {'a': 'foo', 'b': 'bar'},
         };
         var map3 = {
-          'one': {'a': 'foo', 'b': 'bar'}
+          'one': {'a': 'foo', 'b': 'bar'},
         };
         expect(merge(map1, map2), wrap(map3));
       });
 
       test('map w/ no promotion (2)', () {
         var map1 = {
-          'one': {'a': 'foo', 'b': 'bar'}
+          'one': {'a': 'foo', 'b': 'bar'},
         };
         var map2 = {
-          'one': ['a', 'b', 'c']
+          'one': ['a', 'b', 'c'],
         };
         var map3 = {
-          'one': ['a', 'b', 'c']
+          'one': ['a', 'b', 'c'],
         };
         expect(merge(map1, map2), wrap(map3));
       });
@@ -105,13 +115,17 @@ main() {
         var bYaml = """foo:
           b: baz""";
 
-        var merge1Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
-            .valueAt("foo")
-            .toString();
+        var merge1Value =
+            mergeYamlMaps(
+              loadYaml(bYaml),
+              loadYaml(aYaml),
+            ).valueAt("foo").toString();
         for (int i = 0; i < 100; i++) {
-          var merge2Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
-              .valueAt("foo")
-              .toString();
+          var merge2Value =
+              mergeYamlMaps(
+                loadYaml(bYaml),
+                loadYaml(aYaml),
+              ).valueAt("foo").toString();
           expect(merge2Value, merge1Value);
         }
       });
@@ -129,13 +143,17 @@ main() {
         var bYaml = """foo:
           b: true""";
 
-        var merge1Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
-            .valueAt("foo")
-            .toString();
+        var merge1Value =
+            mergeYamlMaps(
+              loadYaml(bYaml),
+              loadYaml(aYaml),
+            ).valueAt("foo").toString();
         for (int i = 0; i < 100; i++) {
-          var merge2Value = mergeYamlMaps(loadYaml(bYaml), loadYaml(aYaml))
-              .valueAt("foo")
-              .toString();
+          var merge2Value =
+              mergeYamlMaps(
+                loadYaml(bYaml),
+                loadYaml(aYaml),
+              ).valueAt("foo").toString();
           expect(merge2Value, merge1Value);
         }
       });
@@ -155,17 +173,25 @@ YamlNode wrap(Object? value) {
   if (value is List) {
     var wrappedElements = value.map((e) => wrap(e)).toList();
     return YamlList.internal(
-        wrappedElements, _FileSpanMock.instance, CollectionStyle.BLOCK);
+      wrappedElements,
+      _FileSpanMock.instance,
+      CollectionStyle.BLOCK,
+    );
   } else if (value is Map) {
     Map<dynamic, YamlNode> wrappedEntries = <dynamic, YamlNode>{};
     value.forEach((k, v) {
       wrappedEntries[wrap(k)] = wrap(v);
     });
     return YamlMap.internal(
-        wrappedEntries, _FileSpanMock.instance, CollectionStyle.BLOCK);
+      wrappedEntries,
+      _FileSpanMock.instance,
+      CollectionStyle.BLOCK,
+    );
   } else {
     return YamlScalar.internal(
-        value, ScalarEvent(_FileSpanMock.instance, '', ScalarStyle.PLAIN));
+      value,
+      ScalarEvent(_FileSpanMock.instance, '', ScalarStyle.PLAIN),
+    );
   }
 }
 

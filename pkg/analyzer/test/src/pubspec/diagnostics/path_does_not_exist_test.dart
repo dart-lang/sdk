@@ -16,21 +16,27 @@ main() {
 @reflectiveTest
 class PathDoesNotExistTest extends PubspecDiagnosticTest {
   test_dependencyPathDoesNotExist_path_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   foo:
     path: does/not/exist
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+    );
   }
 
   test_devDependencyPathDoesNotExist_path_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dev_dependencies:
   foo:
     path: does/not/exist
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+    );
   }
 
   test_devDependencyPathExists() {
@@ -47,26 +53,32 @@ dev_dependencies:
   }
 
   test_screenshotPathDoesNotExist_path_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 screenshots:
   - description: '...'
     path: example/screenshots/no.webp
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+    );
   }
 
   test_screenshotPathDoesNotExist_path_error_multiple() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 screenshots:
   - description: '...'
     path: example/screenshots/no.webp
   - description: '...'
     path: example/screenshots/no.webp
-''', [
-      PubspecWarningCode.PATH_DOES_NOT_EXIST,
-      PubspecWarningCode.PATH_DOES_NOT_EXIST,
-    ]);
+''',
+      [
+        PubspecWarningCode.PATH_DOES_NOT_EXIST,
+        PubspecWarningCode.PATH_DOES_NOT_EXIST,
+      ],
+    );
   }
 
   test_screenshotPathExists() {

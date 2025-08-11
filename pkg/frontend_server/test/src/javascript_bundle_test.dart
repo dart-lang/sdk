@@ -69,6 +69,19 @@ final Map<String, List<String>> requiredTopLevels = {
     '_streamOfController',
     '_wrapJsFunctionForAsync',
   ],
+  'dart:_rti': [
+    '_asBool',
+    '_asDouble',
+    '_asInt',
+    '_asNum',
+    '_asObject',
+    '_asString',
+    '_asBoolQ',
+    '_asDoubleQ',
+    '_asIntQ',
+    '_asNumQ',
+    '_asStringQ',
+  ],
 };
 
 void main() {

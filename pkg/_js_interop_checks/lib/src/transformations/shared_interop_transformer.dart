@@ -176,8 +176,9 @@ class SharedInteropTransformer extends Transformer {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 1);
       final interopType = typeArguments[0];
-      final coreInteropType =
-          _extensionIndex.getCoreInteropType(interopType)?.node;
+      final coreInteropType = _extensionIndex
+          .getCoreInteropType(interopType)
+          ?.node;
       if (coreInteropType is ExtensionTypeDeclaration &&
           _extensionIndex.isJSType(coreInteropType)) {
         replacement = _createIsACheck(
@@ -513,13 +514,12 @@ class SharedInteropTransformer extends Transformer {
   ) {
     // In the case where the receiver wasn't a variable to begin with,
     // synthesize a var so that we don't evaluate the receiver multiple times.
-    final any =
-        receiver is VariableGet
-            ? receiver.variable
-            : (VariableDeclaration.forValue(
-              receiver,
-              type: ExtensionType(_jsAny, Nullability.nullable),
-            )..fileOffset = invocation.fileOffset);
+    final any = receiver is VariableGet
+        ? receiver.variable
+        : (VariableDeclaration.forValue(
+            receiver,
+            type: ExtensionType(_jsAny, Nullability.nullable),
+          )..fileOffset = invocation.fileOffset);
 
     Expression? check;
     final interopTypeDecl = interopType.extensionTypeDeclaration;
@@ -620,18 +620,13 @@ class SharedInteropTransformer extends Transformer {
     Expression nullCheck = EqualsNull(VariableGet(any));
     Expression notNullCheck = Not(EqualsNull(VariableGet(any)));
     if (check != null) {
-      check =
-          nullable
-              ? LogicalExpression(
-                nullCheck,
-                LogicalExpressionOperator.OR,
-                check,
-              )
-              : LogicalExpression(
-                notNullCheck,
-                LogicalExpressionOperator.AND,
-                check,
-              );
+      check = nullable
+          ? LogicalExpression(nullCheck, LogicalExpressionOperator.OR, check)
+          : LogicalExpression(
+              notNullCheck,
+              LogicalExpressionOperator.AND,
+              check,
+            );
     } else if (!nullable) {
       // `JSAny`
       check = notNullCheck;

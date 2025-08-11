@@ -370,7 +370,9 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(">[");
     bool first = true;
     for (Constant constant in node.entries) {
-      if (!first) result.add(", ");
+      if (!first) {
+        result.add(", ");
+      }
       constant.accept(this);
       first = false;
     }

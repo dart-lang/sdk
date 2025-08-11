@@ -26,9 +26,13 @@ main() async {
   Future<Null> f = IOOverrides.runZoned(
     () async {
       Expect.equals(
-          await FileSystemEntity.type("file"), FileSystemEntityType.file);
+        await FileSystemEntity.type("file"),
+        FileSystemEntityType.file,
+      );
       Expect.equals(
-          FileSystemEntity.typeSync("file"), FileSystemEntityType.file);
+        FileSystemEntity.typeSync("file"),
+        FileSystemEntityType.file,
+      );
     },
     fseGetType: FileSystemEntityMock.getType,
     fseGetTypeSync: FileSystemEntityMock.getTypeSync,

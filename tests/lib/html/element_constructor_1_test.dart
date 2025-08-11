@@ -11,17 +11,25 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isAnchorElement =
-      predicate((x) => x is AnchorElement, 'is an AnchorElement');
+  var isAnchorElement = predicate(
+    (x) => x is AnchorElement,
+    'is an AnchorElement',
+  );
   var isAreaElement = predicate((x) => x is AreaElement, 'is an AreaElement');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
-  var isCanvasElement =
-      predicate((x) => x is CanvasElement, 'is a CanvasElement');
-  var isParagraphElement =
-      predicate((x) => x is ParagraphElement, 'is a ParagraphElement');
+  var isCanvasElement = predicate(
+    (x) => x is CanvasElement,
+    'is a CanvasElement',
+  );
+  var isParagraphElement = predicate(
+    (x) => x is ParagraphElement,
+    'is a ParagraphElement',
+  );
   var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
-  var isSelectElement =
-      predicate((x) => x is SelectElement, 'is a SelectElement');
+  var isSelectElement = predicate(
+    (x) => x is SelectElement,
+    'is a SelectElement',
+  );
 
   test('anchor1', () {
     var e = new AnchorElement();

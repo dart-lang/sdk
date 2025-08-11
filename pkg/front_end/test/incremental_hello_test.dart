@@ -37,7 +37,7 @@ Future<void> test({required bool sdkFromSource}) async {
   } else {
     optionBuilder.sdkSummary =
         computePlatformBinariesLocation(forceBuildDir: true)
-            .resolve("vm_platform_strong.dill");
+            .resolve("vm_platform.dill");
   }
 
   final Uri helloDart =

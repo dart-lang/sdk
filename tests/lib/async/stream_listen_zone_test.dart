@@ -19,19 +19,33 @@ main() {
       controller = new StreamController.broadcast(sync: sync);
       testStream("BSC$mode", controller, controller.stream, overrideDone);
       controller = new StreamController(sync: sync);
-      testStream("SCAB$mode", controller, controller.stream.asBroadcastStream(),
-          overrideDone, 3);
+      testStream(
+        "SCAB$mode",
+        controller,
+        controller.stream.asBroadcastStream(),
+        overrideDone,
+        3,
+      );
       controller = new StreamController(sync: sync);
-      testStream("SCMap$mode", controller, controller.stream.map((x) => x),
-          overrideDone, 3);
+      testStream(
+        "SCMap$mode",
+        controller,
+        controller.stream.map((x) => x),
+        overrideDone,
+        3,
+      );
     }
   }
   asyncEnd();
 }
 
 void testStream(
-    String name, StreamController controller, Stream stream, bool overrideDone,
-    [int registerExpect = 0]) {
+  String name,
+  StreamController controller,
+  Stream stream,
+  bool overrideDone, [
+  int registerExpect = 0,
+]) {
   asyncStart();
   late StreamSubscription sub;
   late Zone zone;
@@ -43,51 +57,60 @@ void testStream(
     Zone.root.scheduleMicrotask(step);
   }
 
-  runZoned(() {
-    zone = Zone.current;
-    sub = stream.listen((v) {
-      Expect.identical(zone, Zone.current, name);
-      Expect.equals(42, v, name);
-      callbackBits |= 1;
-      nextStep();
-    }, onError: (e, s) {
-      Expect.identical(zone, Zone.current, name);
-      Expect.equals("ERROR", e, name);
-      callbackBits |= 2;
-      nextStep();
-    }, onDone: () {
-      Expect.identical(zone, Zone.current, name);
-      if (overrideDone) throw "RUNNING WRONG ONDONE";
-      callbackBits |= 4;
-      nextStep();
-    });
-    registerExpect += 3;
-    Expect.equals(registerExpect, registerCount, name);
-  },
-      zoneSpecification: new ZoneSpecification(
-          registerCallback: <R>(self, p, z, R callback()) {
+  runZoned(
+    () {
+      zone = Zone.current;
+      sub = stream.listen(
+        (v) {
+          Expect.identical(zone, Zone.current, name);
+          Expect.equals(42, v, name);
+          callbackBits |= 1;
+          nextStep();
+        },
+        onError: (e, s) {
+          Expect.identical(zone, Zone.current, name);
+          Expect.equals("ERROR", e, name);
+          callbackBits |= 2;
+          nextStep();
+        },
+        onDone: () {
+          Expect.identical(zone, Zone.current, name);
+          if (overrideDone) throw "RUNNING WRONG ONDONE";
+          callbackBits |= 4;
+          nextStep();
+        },
+      );
+      registerExpect += 3;
+      Expect.equals(registerExpect, registerCount, name);
+    },
+    zoneSpecification: new ZoneSpecification(
+      registerCallback: <R>(self, p, z, R callback()) {
         Expect.identical(zone, self, name);
         registerCount++;
         return () {
           Expect.identical(zone, Zone.current, name);
           return callback();
         };
-      }, registerUnaryCallback: <R, T>(self, p, z, R callback(T a)) {
+      },
+      registerUnaryCallback: <R, T>(self, p, z, R callback(T a)) {
         Expect.identical(zone, self, name);
         registerCount++;
         return (a) {
           Expect.identical(zone, Zone.current, name);
           return callback(a);
         };
-      }, registerBinaryCallback:
-              <R, T1, T2>(self, package, z, R callback(T1 a, T2 b)) {
-        Expect.identical(zone, self, name);
-        registerCount++;
-        return (a, b) {
-          Expect.identical(zone, Zone.current, name);
-          return callback(a, b);
-        };
-      }));
+      },
+      registerBinaryCallback:
+          <R, T1, T2>(self, package, z, R callback(T1 a, T2 b)) {
+            Expect.identical(zone, self, name);
+            registerCount++;
+            return (a, b) {
+              Expect.identical(zone, Zone.current, name);
+              return callback(a, b);
+            };
+          },
+    ),
+  );
 
   int expectedBits = 0;
   step = () {

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 
 import '../analyzer.dart';
 
@@ -23,13 +26,11 @@ class LinesLongerThan80Chars extends LintRule {
     : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.lines_longer_than_80_chars;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.lines_longer_than_80_chars;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -152,7 +153,7 @@ class _LineInfo {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -203,7 +204,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var line in longLines) {
       if (allowedLines.contains(line.index + 1)) continue;
-      rule.reportLintForOffset(line.offset, line.length);
+      rule.reportAtOffset(line.offset, line.length);
     }
   }
 }

@@ -22,17 +22,20 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 Future<SecureServerSocket> startEchoServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((SecureSocket client) {
-      client.fold<List<int>>(
-          <int>[], (message, data) => message..addAll(data)).then((message) {
-        client.add(message);
-        client.close();
-      });
+      client
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            client.add(message);
+            client.close();
+          });
     });
     return server;
   });
@@ -43,10 +46,14 @@ testSuccess(SecureServerSocket server) async {
   SecurityContext clientContext = new SecurityContext()
     ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
-  await SecureSocket.connect(HOST, server.port, context: clientContext,
-      keyLog: (line) {
-    log += line;
-  }).then((socket) {
+  await SecureSocket.connect(
+    HOST,
+    server.port,
+    context: clientContext,
+    keyLog: (line) {
+      log += line;
+    },
+  ).then((socket) {
     socket.write("Hello server.");
     socket.close();
     return socket.drain().then((value) {
@@ -61,11 +68,15 @@ testExceptionInKeyLogFunction(SecureServerSocket server) async {
     ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
   var numCalls = 0;
-  await SecureSocket.connect(HOST, server.port, context: clientContext,
-      keyLog: (line) {
-    ++numCalls;
-    throw FileSystemException("Something bad happened");
-  }).then((socket) {
+  await SecureSocket.connect(
+    HOST,
+    server.port,
+    context: clientContext,
+    keyLog: (line) {
+      ++numCalls;
+      throw FileSystemException("Something bad happened");
+    },
+  ).then((socket) {
     socket.close();
     return socket.drain().then((value) {
       Expect.notEquals(0, numCalls);

@@ -196,7 +196,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw message;
   }
 
-  static Instantiator same(Node node) => (arguments) => node;
+  static Instantiator same(Node node) =>
+      (arguments) => node;
   static Null makeNull(dynamic arguments) => null;
 
   Instantiator visit(Node node) {
@@ -368,8 +369,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator visitProgram(Program node) {
-    List<Instantiator> instantiators =
-        node.body.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators = node.body
+        .map(visitSplayableStatement)
+        .toList();
     return (arguments) => Program(splayStatements(instantiators, arguments));
   }
 
@@ -393,8 +395,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator visitBlock(Block node) {
-    List<Instantiator> instantiators =
-        node.statements.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators = node.statements
+        .map(visitSplayableStatement)
+        .toList();
     return (arguments) => Block(splayStatements(instantiators, arguments));
   }
 
@@ -507,7 +510,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => Continue(node.targetLabel);
 
   @override
-  Instantiator visitBreak(Break node) => (arguments) => Break(node.targetLabel);
+  Instantiator visitBreak(Break node) =>
+      (arguments) => Break(node.targetLabel);
 
   @override
   Instantiator visitReturn(Return node) {
@@ -598,8 +602,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator visitVariableDeclarationList(VariableDeclarationList node) {
-    List<Instantiator> declarationMakers =
-        node.declarations.map(visit).toList();
+    List<Instantiator> declarationMakers = node.declarations
+        .map(visit)
+        .toList();
     return (arguments) {
       List<VariableInitialization> declarations = [];
       for (Instantiator instantiator in declarationMakers) {
@@ -656,8 +661,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator handleCallOrNew(Call node, Function(dynamic, dynamic) finish) {
     Instantiator makeTarget = visit(node.target);
-    Iterable<Instantiator> argumentMakers =
-        node.arguments.map(visitSplayableExpression).toList();
+    Iterable<Instantiator> argumentMakers = node.arguments
+        .map(visitSplayableExpression)
+        .toList();
 
     // TODO(sra): Avoid copying call arguments if no interpolation or forced
     // copying.
@@ -695,7 +701,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => VariableUse(node.name);
 
   @override
-  Instantiator visitThis(This node) => (arguments) => This();
+  Instantiator visitThis(This node) =>
+      (arguments) => This();
 
   @override
   Instantiator visitVariableDeclaration(VariableDeclaration node) =>
@@ -777,7 +784,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitDeferredNumber(DeferredNumber node) => same(node);
 
   @override
-  Instantiator visitDeferredString(DeferredString node) => (arguments) => node;
+  Instantiator visitDeferredString(DeferredString node) =>
+      (arguments) => node;
 
   @override
   Instantiator visitLiteralBool(LiteralBool node) =>
@@ -844,8 +852,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator visitObjectInitializer(ObjectInitializer node) {
-    List<Instantiator> propertyMakers =
-        node.properties.map(visitSplayable).toList();
+    List<Instantiator> propertyMakers = node.properties
+        .map(visitSplayable)
+        .toList();
     bool isOneLiner = node.isOneLiner;
     return (arguments) {
       List<Property> properties = splay(propertyMakers, arguments);

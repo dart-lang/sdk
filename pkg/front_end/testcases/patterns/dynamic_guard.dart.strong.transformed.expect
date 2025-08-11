@@ -8,7 +8,7 @@ static method main() → dynamic {
   hoisted has-declared-initializer core::int a;
   {
     final synthesized core::List<core::int> #0#0 = core::_GrowableList::_literal1<core::int>(5);
-    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   core::int b;
@@ -21,7 +21,7 @@ static method main() → dynamic {
           #t2.{core::List::add}{Invariant}(5){(core::int) → void};
       }
     } =>#t2;
-    if(!(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t3 = b = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)))
+    if(!(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = b = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
@@ -37,7 +37,7 @@ static method main() → dynamic {
     {
       {
         hoisted core::int d;
-        if(#4#0 is core::int && (let final core::int #t5 = d = #4#0 in true) && self::guard() as{TypeError} core::bool) {
+        if(#4#0 is core::int && (let final dynamic #t5 = d = #4#0 in true) && self::guard() as{TypeError} core::bool) {
           #t4 = d;
           break #L1;
         }
@@ -55,7 +55,7 @@ static method main() → dynamic {
     final synthesized core::int #5#0 = b;
     {
       hoisted core::int e;
-      if(#5#0 is core::int && (let final core::int #t6 = e = #5#0 in true) && self::guard() as{TypeError} core::bool) {
+      if(#5#0 is core::int && (let final dynamic #t6 = e = #5#0 in true) && self::guard() as{TypeError} core::bool) {
         {
           core::print(a);
         }

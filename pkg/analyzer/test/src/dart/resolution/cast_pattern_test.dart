@@ -16,21 +16,24 @@ main() {
 @reflectiveTest
 class CastPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   if (x case var y as int) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@29
-      type: int
+    declaredFragment: isPublic y@29
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   asToken: as
   type: NamedType
@@ -70,13 +73,14 @@ CastPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   var (a as int) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -86,8 +90,10 @@ PatternVariableDeclaration
     pattern: CastPattern
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@19
-          type: int
+        declaredFragment: isPublic a@19
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       asToken: as
       type: NamedType
@@ -100,7 +106,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
   patternTypeSchema: _
 ''');

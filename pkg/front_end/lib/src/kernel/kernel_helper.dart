@@ -175,12 +175,31 @@ class DelayedDefaultValueCloner {
         VariableDeclaration synthesizedParameter =
             _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
-          _cloneInitializer(
-              _original.positionalParameters[i], synthesizedParameter);
+          if (i >= _synthesized.requiredParameterCount) {
+            if (i < _original.requiredParameterCount) {
+              // Coverage-ignore-block(suite): Not run.
+              // Error case: use `null` as initializer.
+              synthesizedParameter.initializer = new NullLiteral()
+                ..parent = synthesizedParameter;
+              if (synthesizedParameter.type.nullability !=
+                  Nullability.nullable) {
+                synthesizedParameter.isErroneouslyInitialized = true;
+              }
+            } else {
+              _cloneInitializer(
+                  _original.positionalParameters[i], synthesizedParameter);
+            }
+          }
         } else {
-          // Error case: use `null` as initializer.
-          synthesizedParameter.initializer = new NullLiteral()
-            ..parent = synthesizedParameter;
+          if (i >= _synthesized.requiredParameterCount) {
+            // Error case: use `null` as initializer.
+            synthesizedParameter.initializer = new NullLiteral()
+              ..parent = synthesizedParameter;
+            if (synthesizedParameter.type.nullability != Nullability.nullable) {
+              // Coverage-ignore-block(suite): Not run.
+              synthesizedParameter.isErroneouslyInitialized = true;
+            }
+          }
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
@@ -195,11 +214,20 @@ class DelayedDefaultValueCloner {
           VariableDeclaration? originalParameter =
               originalParameters[synthesizedParameter.name!];
           if (originalParameter != null) {
-            _cloneInitializer(originalParameter, synthesizedParameter);
+            if (!originalParameter.isRequired &&
+                !synthesizedParameter.isRequired) {
+              _cloneInitializer(originalParameter, synthesizedParameter);
+            }
           } else {
-            // Error case: use `null` as initializer.
-            synthesizedParameter.initializer = new NullLiteral()
-              ..parent = synthesizedParameter;
+            if (!synthesizedParameter.isRequired) {
+              // Error case: use `null` as initializer.
+              synthesizedParameter.initializer = new NullLiteral()
+                ..parent = synthesizedParameter;
+              if (synthesizedParameter.type.nullability !=
+                  Nullability.nullable) {
+                synthesizedParameter.isErroneouslyInitialized = true;
+              }
+            }
           }
         }
       }
@@ -214,6 +242,8 @@ class DelayedDefaultValueCloner {
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
         ..parent = clonedParameter;
     }
+    clonedParameter.isErroneouslyInitialized |=
+        originalParameter.isErroneouslyInitialized;
   }
 
   void _cloneDefaultValueForSuperParameters(
@@ -226,8 +256,8 @@ class DelayedDefaultValueCloner {
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
     if (originalParameterInitializerType != null &&
-        typeEnvironment.isSubtypeOf(originalParameterInitializerType,
-            synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
+        typeEnvironment.isSubtypeOf(
+            originalParameterInitializerType, synthesizedParameterType)) {
       _cloneInitializer(originalParameter, synthesizedParameter);
     } else if (originalParameterInitializer == null && isOptional) {
       synthesizedParameter.initializer = new NullLiteral()
@@ -241,6 +271,7 @@ class DelayedDefaultValueCloner {
             synthesizedParameter.fileOffset,
             synthesizedParameter.name?.length ?? 1,
             _libraryBuilder.fileUri);
+        synthesizedParameter.isErroneouslyInitialized = true;
       }
     }
   }
@@ -296,23 +327,6 @@ class TypeDependency {
   }
 }
 
-/// Removes [FileUriExpression] nodes for annotations whose file URI is
-/// [annotatableFileUri], the file URI of the [annotatable].
-///
-/// This is an optimization to avoid unnecessary [FileUriConstantExpression]
-/// nodes in the generated AST.
-void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
-  List<Expression> annotations = annotatable.annotations;
-  for (int i = 0; i < annotations.length; i++) {
-    Expression annotation = annotations[i];
-    if (annotation is FileUriExpression &&
-        annotation.fileUri == annotatableFileUri) {
-      // Coverage-ignore-block(suite): Not run.
-      annotations[i] = annotation.expression..parent = annotatable;
-    }
-  }
-}
-
 // Coverage-ignore(suite): Not run.
 /// Copies properties, function parameters and body from the [augmentation]
 /// procedure to its [origin].
@@ -326,6 +340,4 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
   origin.isExternal = augmentation.isExternal;
   origin.function = augmentation.function;
   origin.function.parent = origin;
-
-  adjustAnnotationFileUri(origin, origin.fileUri);
 }

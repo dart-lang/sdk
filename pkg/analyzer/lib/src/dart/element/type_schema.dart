@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -24,7 +24,11 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   const UnknownInferredType._();
 
   @override
-  Element2? get element3 => null;
+  Element? get element => null;
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element3 => element;
 
   @override
   int get hashCode => 1;

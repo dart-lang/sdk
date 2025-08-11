@@ -59,10 +59,9 @@ String getRootScheme(Module module) {
 String sourceToImportUri(Module module, Uri relativeUri) {
   if (module.isPackage) {
     var basePath = module.packageBase!.path;
-    var packageRelativePath =
-        basePath == "./"
-            ? relativeUri.path
-            : relativeUri.path.substring(basePath.length);
+    var packageRelativePath = basePath == "./"
+        ? relativeUri.path
+        : relativeUri.path.substring(basePath.length);
     return 'package:${module.name}/$packageRelativePath';
   } else {
     return '${getRootScheme(module)}:/$relativeUri';
@@ -707,13 +706,13 @@ Future<void> resolveScripts(Options options) async {
     String relativeSnapshotPath,
   ) async {
     Uri sourceUri = sdkRoot.resolve(sourceUriOrPath);
-    String result =
-        sourceUri.isScheme('file') ? sourceUri.toFilePath() : sourceUriOrPath;
+    String result = sourceUri.isScheme('file')
+        ? sourceUri.toFilePath()
+        : sourceUriOrPath;
     if (_options.useSdk) {
-      String snapshot =
-          Uri.file(
-            Platform.resolvedExecutable,
-          ).resolve(relativeSnapshotPath).toFilePath();
+      String snapshot = Uri.file(
+        Platform.resolvedExecutable,
+      ).resolve(relativeSnapshotPath).toFilePath();
       if (await File(snapshot).exists()) {
         return snapshot;
       }
@@ -732,7 +731,6 @@ Future<void> resolveScripts(Options options) async {
   );
 }
 
-String _librarySpecForSnapshot =
-    Uri.file(
-      Platform.resolvedExecutable,
-    ).resolve('../lib/libraries.json').toFilePath();
+String _librarySpecForSnapshot = Uri.file(
+  Platform.resolvedExecutable,
+).resolve('../lib/libraries.json').toFilePath();

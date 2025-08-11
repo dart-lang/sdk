@@ -11,7 +11,9 @@ abstract class _DoubleLinkedQueueEntry<E> {
   _DoubleLinkedQueueEntry<E>? _nextLink;
 
   void _link(
-      _DoubleLinkedQueueEntry<E>? previous, _DoubleLinkedQueueEntry<E>? next) {
+    _DoubleLinkedQueueEntry<E>? previous,
+    _DoubleLinkedQueueEntry<E>? next,
+  ) {
     _nextLink = next;
     _previousLink = previous;
     previous?._nextLink = this;

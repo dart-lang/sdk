@@ -57,10 +57,9 @@ final class Latin1Codec extends Encoding {
 
   Latin1Encoder get encoder => const Latin1Encoder();
 
-  Latin1Decoder get decoder =>
-      _allowInvalid
-          ? const Latin1Decoder(allowInvalid: true)
-          : const Latin1Decoder(allowInvalid: false);
+  Latin1Decoder get decoder => _allowInvalid
+      ? const Latin1Decoder(allowInvalid: true)
+      : const Latin1Decoder(allowInvalid: false);
 }
 
 /// This class converts strings of only ISO Latin-1 characters to bytes.

@@ -8,8 +8,10 @@ import 'dart:svg' as svg;
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isSvgSvgElement =
-      predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
+  var isSvgSvgElement = predicate(
+    (x) => x is svg.SvgSvgElement,
+    'is a SvgSvgElement',
+  );
 
   List<String> _nodeStrings(Iterable<Node> input) {
     final List<String> out = [];
@@ -24,52 +26,65 @@ main() {
     return out;
   }
 
-  testConstructor(String tagName, Function isExpectedClass,
-      [bool expectation = true, allowsInnerHtml = true]) {
+  testConstructor(
+    String tagName,
+    Function isExpectedClass, [
+    bool expectation = true,
+    allowsInnerHtml = true,
+  ]) {
     test(tagName, () {
       expect(isExpectedClass(new svg.SvgElement.tag(tagName)), expectation);
       if (allowsInnerHtml) {
-        expect(isExpectedClass(new svg.SvgElement.svg('<$tagName></$tagName>')),
-            expectation && allowsInnerHtml);
+        expect(
+          isExpectedClass(new svg.SvgElement.svg('<$tagName></$tagName>')),
+          expectation && allowsInnerHtml,
+        );
       }
     });
   }
 
   group('additionalConstructors', () {
     test('valid', () {
-      final svgContent = "<svg version=\"1.1\">\n"
+      final svgContent =
+          "<svg version=\"1.1\">\n"
           "  <circle></circle>\n"
           "  <path></path>\n"
           "</svg>";
       final el = new svg.SvgElement.svg(svgContent);
       expect(el, isSvgSvgElement);
       expect(
-          el.innerHtml,
-          anyOf([
-            "<circle></circle><path></path>",
-            '<circle '
-                'xmlns="http://www.w3.org/2000/svg" /><path '
-                'xmlns="http://www.w3.org/2000/svg" />'
-          ]));
+        el.innerHtml,
+        anyOf([
+          "<circle></circle><path></path>",
+          '<circle '
+              'xmlns="http://www.w3.org/2000/svg" /><path '
+              'xmlns="http://www.w3.org/2000/svg" />',
+        ]),
+      );
       expect(
-          el.outerHtml,
-          anyOf([
-            svgContent,
-            '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
-                '<circle />\n  <path />\n</svg>'
-          ]));
+        el.outerHtml,
+        anyOf([
+          svgContent,
+          '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
+              '<circle />\n  <path />\n</svg>',
+        ]),
+      );
     });
 
-    test('has no parent',
-        () => expect(new svg.SvgElement.svg('<circle/>').parent, isNull));
+    test(
+      'has no parent',
+      () => expect(new svg.SvgElement.svg('<circle/>').parent, isNull),
+    );
 
     test('empty', () {
       expect(() => new svg.SvgElement.svg(""), throwsStateError);
     });
 
     test('too many elements', () {
-      expect(() => new svg.SvgElement.svg("<circle></circle><path></path>"),
-          throwsStateError);
+      expect(
+        () => new svg.SvgElement.svg("<circle></circle><path></path>"),
+        throwsStateError,
+      );
     });
   });
 
@@ -275,71 +290,148 @@ main() {
     testConstructor('use', (e) => e is svg.UseElement);
     testConstructor('view', (e) => e is svg.ViewElement);
     // TODO(alanknight): Issue 23144
-    testConstructor('animate', (e) => e is svg.AnimateElement,
-        svg.AnimateElement.supported);
-    testConstructor('animateMotion', (e) => e is svg.AnimateMotionElement,
-        svg.AnimateMotionElement.supported);
-    testConstructor('animateTransform', (e) => e is svg.AnimateTransformElement,
-        svg.AnimateTransformElement.supported);
-    testConstructor('feBlend', (e) => e is svg.FEBlendElement,
-        svg.FEBlendElement.supported);
-    testConstructor('feColorMatrix', (e) => e is svg.FEColorMatrixElement,
-        svg.FEColorMatrixElement.supported);
     testConstructor(
-        'feComponentTransfer',
-        (e) => e is svg.FEComponentTransferElement,
-        svg.FEComponentTransferElement.supported);
-    testConstructor('feConvolveMatrix', (e) => e is svg.FEConvolveMatrixElement,
-        svg.FEConvolveMatrixElement.supported);
+      'animate',
+      (e) => e is svg.AnimateElement,
+      svg.AnimateElement.supported,
+    );
     testConstructor(
-        'feDiffuseLighting',
-        (e) => e is svg.FEDiffuseLightingElement,
-        svg.FEDiffuseLightingElement.supported);
+      'animateMotion',
+      (e) => e is svg.AnimateMotionElement,
+      svg.AnimateMotionElement.supported,
+    );
     testConstructor(
-        'feDisplacementMap',
-        (e) => e is svg.FEDisplacementMapElement,
-        svg.FEDisplacementMapElement.supported);
-    testConstructor('feDistantLight', (e) => e is svg.FEDistantLightElement,
-        svg.FEDistantLightElement.supported);
-    testConstructor('feFlood', (e) => e is svg.FEFloodElement,
-        svg.FEFloodElement.supported);
-    testConstructor('feFuncA', (e) => e is svg.FEFuncAElement,
-        svg.FEFuncAElement.supported);
-    testConstructor('feFuncB', (e) => e is svg.FEFuncBElement,
-        svg.FEFuncBElement.supported);
-    testConstructor('feFuncG', (e) => e is svg.FEFuncGElement,
-        svg.FEFuncGElement.supported);
-    testConstructor('feFuncR', (e) => e is svg.FEFuncRElement,
-        svg.FEFuncRElement.supported);
-    testConstructor('feGaussianBlur', (e) => e is svg.FEGaussianBlurElement,
-        svg.FEGaussianBlurElement.supported);
-    testConstructor('feImage', (e) => e is svg.FEImageElement,
-        svg.FEImageElement.supported);
-    testConstructor('feMerge', (e) => e is svg.FEMergeElement,
-        svg.FEMergeElement.supported);
-    testConstructor('feMergeNode', (e) => e is svg.FEMergeNodeElement,
-        svg.FEMergeNodeElement.supported);
-    testConstructor('feOffset', (e) => e is svg.FEOffsetElement,
-        svg.FEOffsetElement.supported);
-    testConstructor('fePointLight', (e) => e is svg.FEPointLightElement,
-        svg.FEPointLightElement.supported);
+      'animateTransform',
+      (e) => e is svg.AnimateTransformElement,
+      svg.AnimateTransformElement.supported,
+    );
     testConstructor(
-        'feSpecularLighting',
-        (e) => e is svg.FESpecularLightingElement,
-        svg.FESpecularLightingElement.supported);
-    testConstructor('feSpotLight', (e) => e is svg.FESpotLightElement,
-        svg.FESpotLightElement.supported);
+      'feBlend',
+      (e) => e is svg.FEBlendElement,
+      svg.FEBlendElement.supported,
+    );
     testConstructor(
-        'feTile', (e) => e is svg.FETileElement, svg.FETileElement.supported);
-    testConstructor('feTurbulence', (e) => e is svg.FETurbulenceElement,
-        svg.FETurbulenceElement.supported);
+      'feColorMatrix',
+      (e) => e is svg.FEColorMatrixElement,
+      svg.FEColorMatrixElement.supported,
+    );
     testConstructor(
-        'filter', (e) => e is svg.FilterElement, svg.FilterElement.supported);
-    testConstructor('foreignObject', (e) => e is svg.ForeignObjectElement,
-        svg.ForeignObjectElement.supported, false);
+      'feComponentTransfer',
+      (e) => e is svg.FEComponentTransferElement,
+      svg.FEComponentTransferElement.supported,
+    );
+    testConstructor(
+      'feConvolveMatrix',
+      (e) => e is svg.FEConvolveMatrixElement,
+      svg.FEConvolveMatrixElement.supported,
+    );
+    testConstructor(
+      'feDiffuseLighting',
+      (e) => e is svg.FEDiffuseLightingElement,
+      svg.FEDiffuseLightingElement.supported,
+    );
+    testConstructor(
+      'feDisplacementMap',
+      (e) => e is svg.FEDisplacementMapElement,
+      svg.FEDisplacementMapElement.supported,
+    );
+    testConstructor(
+      'feDistantLight',
+      (e) => e is svg.FEDistantLightElement,
+      svg.FEDistantLightElement.supported,
+    );
+    testConstructor(
+      'feFlood',
+      (e) => e is svg.FEFloodElement,
+      svg.FEFloodElement.supported,
+    );
+    testConstructor(
+      'feFuncA',
+      (e) => e is svg.FEFuncAElement,
+      svg.FEFuncAElement.supported,
+    );
+    testConstructor(
+      'feFuncB',
+      (e) => e is svg.FEFuncBElement,
+      svg.FEFuncBElement.supported,
+    );
+    testConstructor(
+      'feFuncG',
+      (e) => e is svg.FEFuncGElement,
+      svg.FEFuncGElement.supported,
+    );
+    testConstructor(
+      'feFuncR',
+      (e) => e is svg.FEFuncRElement,
+      svg.FEFuncRElement.supported,
+    );
+    testConstructor(
+      'feGaussianBlur',
+      (e) => e is svg.FEGaussianBlurElement,
+      svg.FEGaussianBlurElement.supported,
+    );
+    testConstructor(
+      'feImage',
+      (e) => e is svg.FEImageElement,
+      svg.FEImageElement.supported,
+    );
+    testConstructor(
+      'feMerge',
+      (e) => e is svg.FEMergeElement,
+      svg.FEMergeElement.supported,
+    );
+    testConstructor(
+      'feMergeNode',
+      (e) => e is svg.FEMergeNodeElement,
+      svg.FEMergeNodeElement.supported,
+    );
+    testConstructor(
+      'feOffset',
+      (e) => e is svg.FEOffsetElement,
+      svg.FEOffsetElement.supported,
+    );
+    testConstructor(
+      'fePointLight',
+      (e) => e is svg.FEPointLightElement,
+      svg.FEPointLightElement.supported,
+    );
+    testConstructor(
+      'feSpecularLighting',
+      (e) => e is svg.FESpecularLightingElement,
+      svg.FESpecularLightingElement.supported,
+    );
+    testConstructor(
+      'feSpotLight',
+      (e) => e is svg.FESpotLightElement,
+      svg.FESpotLightElement.supported,
+    );
+    testConstructor(
+      'feTile',
+      (e) => e is svg.FETileElement,
+      svg.FETileElement.supported,
+    );
+    testConstructor(
+      'feTurbulence',
+      (e) => e is svg.FETurbulenceElement,
+      svg.FETurbulenceElement.supported,
+    );
+    testConstructor(
+      'filter',
+      (e) => e is svg.FilterElement,
+      svg.FilterElement.supported,
+    );
+    testConstructor(
+      'foreignObject',
+      (e) => e is svg.ForeignObjectElement,
+      svg.ForeignObjectElement.supported,
+      false,
+    );
     testConstructor('metadata', (e) => e is svg.MetadataElement);
     testConstructor(
-        'set', (e) => e is svg.SetElement, svg.SetElement.supported);
+      'set',
+      (e) => e is svg.SetElement,
+      svg.SetElement.supported,
+    );
   });
 
   group('outerHtml', () {
@@ -348,12 +440,13 @@ main() {
       el.children.add(new svg.CircleElement());
       el.children.add(new svg.PathElement());
       expect(
-          [
-            '<svg version="1.1"><circle></circle><path></path></svg>',
-            '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">'
-                '<circle /><path /></svg>',
-          ].contains(el.outerHtml),
-          true);
+        [
+          '<svg version="1.1"><circle></circle><path></path></svg>',
+          '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">'
+              '<circle /><path /></svg>',
+        ].contains(el.outerHtml),
+        true,
+      );
     });
   });
 
@@ -364,12 +457,13 @@ main() {
       el.children.add(new svg.PathElement());
       // Allow for odd IE serialization.
       expect(
-          [
-            '<circle></circle><path></path>',
-            '<circle xmlns="http://www.w3.org/2000/svg" />'
-                '<path xmlns="http://www.w3.org/2000/svg" />'
-          ].contains(el.innerHtml),
-          true);
+        [
+          '<circle></circle><path></path>',
+          '<circle xmlns="http://www.w3.org/2000/svg" />'
+              '<path xmlns="http://www.w3.org/2000/svg" />',
+        ].contains(el.innerHtml),
+        true,
+      );
     });
 
     test('set', () {
@@ -412,7 +506,7 @@ main() {
       final el = new svg.SvgSvgElement();
       el.children = [
         new svg.SvgElement.tag("circle"),
-        new svg.SvgElement.tag("path")
+        new svg.SvgElement.tag("path"),
       ];
       expect(el.nodes.length, 2);
       expect(el.nodes[0] is svg.CircleElement, true);

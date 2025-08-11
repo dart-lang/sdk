@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -23,11 +22,11 @@ import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
-  CompilationUnitElementImpl libraryFragment,
+  LibraryFragmentImpl libraryFragment,
   int offset,
 ) {
   Fragment? visitFragment(Fragment fragment) {
-    var fragmentImpl = fragment as ElementImpl;
+    var fragmentImpl = fragment as FragmentImpl;
     var codeOffset = fragmentImpl.codeOffset;
     var codeLength = fragmentImpl.codeLength;
     if (codeOffset == null || codeLength == null) {
@@ -36,7 +35,7 @@ Fragment _getEnclosingFragment(
 
     var codeEnd = codeOffset + codeLength;
     if (codeOffset <= offset && offset <= codeEnd) {
-      for (var child in fragment.children3) {
+      for (var child in fragment.children) {
         var result = visitFragment(child);
         if (result != null) {
           return result;
@@ -52,35 +51,35 @@ Fragment _getEnclosingFragment(
   return result ?? libraryFragment;
 }
 
-DeclarationKind? _getSearchElementKind(Element2 element) {
-  if (element is EnumElement2) {
+DeclarationKind? _getSearchElementKind(Element element) {
+  if (element is EnumElement) {
     return DeclarationKind.ENUM;
   }
 
-  if (element is ExtensionTypeElement2) {
+  if (element is ExtensionTypeElement) {
     return DeclarationKind.EXTENSION_TYPE;
   }
 
-  if (element is MixinElement2) {
+  if (element is MixinElement) {
     return DeclarationKind.MIXIN;
   }
 
-  if (element is ClassElement2) {
+  if (element is ClassElement) {
     if (element.isMixinApplication) {
       return DeclarationKind.CLASS_TYPE_ALIAS;
     }
     return DeclarationKind.CLASS;
   }
 
-  if (element is ConstructorElement2) {
+  if (element is ConstructorElement) {
     return DeclarationKind.CONSTRUCTOR;
   }
 
-  if (element is ExtensionElement2) {
+  if (element is ExtensionElement) {
     return DeclarationKind.EXTENSION;
   }
 
-  if (element is FieldElement2) {
+  if (element is FieldElement) {
     if (element.isEnumConstant) return DeclarationKind.ENUM_CONSTANT;
     return DeclarationKind.FIELD;
   }
@@ -89,7 +88,7 @@ DeclarationKind? _getSearchElementKind(Element2 element) {
     return DeclarationKind.FUNCTION;
   }
 
-  if (element is MethodElement2) {
+  if (element is MethodElement) {
     return DeclarationKind.METHOD;
   }
 
@@ -101,11 +100,11 @@ DeclarationKind? _getSearchElementKind(Element2 element) {
     return DeclarationKind.SETTER;
   }
 
-  if (element is TypeAliasElement2) {
+  if (element is TypeAliasElement) {
     return DeclarationKind.TYPE_ALIAS;
   }
 
-  if (element is VariableElement2) {
+  if (element is VariableElement) {
     return DeclarationKind.VARIABLE;
   }
 
@@ -160,7 +159,7 @@ enum DeclarationKind {
   MIXIN,
   SETTER,
   TYPE_ALIAS,
-  VARIABLE
+  VARIABLE,
 }
 
 /// Searches through files known to [drivers] for declarations.
@@ -222,13 +221,14 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final LibraryImport import;
-  final CompilationUnitElementImpl enclosingLibraryFragment;
+  final LibraryFragmentImpl enclosingLibraryFragment;
 
-  late final Set<Element2> importedElements;
+  late final Set<Element> importedElements;
 
   ImportElementReferencesVisitor(
-      LibraryImport element, this.enclosingLibraryFragment)
-      : import = element {
+    LibraryImport element,
+    this.enclosingLibraryFragment,
+  ) : import = element {
     importedElements = element.namespace.definedNames2.values.toSet();
   }
 
@@ -240,7 +240,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (importedElements.contains(node.element2)) {
+    if (importedElements.contains(node.element)) {
       var prefixFragment = import.prefix2;
       var importPrefix = node.importPrefix;
       if (prefixFragment == null) {
@@ -249,7 +249,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       } else {
         if (importPrefix != null &&
-            importPrefix.element2 == prefixFragment.element) {
+            importPrefix.element == prefixFragment.element) {
           var offset = importPrefix.offset;
           var end = importPrefix.period.end;
           _addResult(offset, end - offset);
@@ -270,7 +270,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       if (node.element == import.prefix2?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement2?.baseElement;
+          var element = parent.writeOrReadElement?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -283,7 +283,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.writeOrReadElement2?.baseElement;
+      var element = node.writeOrReadElement?.baseElement;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
@@ -291,10 +291,20 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addResult(int offset, int length) {
-    var enclosingFragment =
-        _getEnclosingFragment(enclosingLibraryFragment, offset);
-    results.add(SearchResult._(enclosingFragment, SearchResultKind.REFERENCE,
-        offset, length, true, false));
+    var enclosingFragment = _getEnclosingFragment(
+      enclosingLibraryFragment,
+      offset,
+    );
+    results.add(
+      SearchResult._(
+        enclosingFragment,
+        SearchResultKind.REFERENCE,
+        offset,
+        length,
+        true,
+        false,
+      ),
+    );
   }
 
   void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
@@ -325,21 +335,23 @@ class Search {
   Search(this._driver);
 
   /// Returns class or mixin members with the given [name].
-  Future<List<Element2>> classMembers(
-      String name, SearchedFiles searchedFiles) async {
-    var elements = <Element2>[];
+  Future<List<Element>> classMembers(
+    String name,
+    SearchedFiles searchedFiles,
+  ) async {
+    var elements = <Element>[];
 
-    void addElement(Element2 element) {
+    void addElement(Element element) {
       if (!element.isSynthetic && element.displayName == name) {
         elements.add(element);
       }
     }
 
-    void addElements(InterfaceElement2 element) {
-      element.getters2.forEach(addElement);
-      element.setters2.forEach(addElement);
-      element.fields2.forEach(addElement);
-      element.methods2.forEach(addElement);
+    void addElements(InterfaceElement element) {
+      element.getters.forEach(addElement);
+      element.setters.forEach(addElement);
+      element.fields.forEach(addElement);
+      element.methods.forEach(addElement);
     }
 
     var files = await _driver.getFilesDefiningClassMemberName(name);
@@ -347,7 +359,7 @@ class Search {
       if (searchedFiles.add(file.path, this)) {
         var libraryResult = await _driver.getLibraryByUri(file.uriStr);
         if (libraryResult is LibraryElementResultImpl) {
-          var element = libraryResult.element;
+          var element = libraryResult.element2;
           element.classes.forEach(addElements);
           element.enums.forEach(addElements);
           element.extensionTypes.forEach(addElements);
@@ -362,7 +374,9 @@ class Search {
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
   Future<Set<String>> prefixesUsedInLibrary(
-      LibraryElementImpl library, Element2 element) async {
+    LibraryElementImpl library,
+    Element element,
+  ) async {
     var prefixes = <String>{};
     for (var unit in library.units) {
       var index = await _driver.getIndex(unit.source.fullName);
@@ -380,50 +394,56 @@ class Search {
 
   /// Returns references to the [element].
   Future<List<SearchResult>> references(
-      Element2? element, SearchedFiles searchedFiles) async {
+    Element? element,
+    SearchedFiles searchedFiles,
+  ) async {
     if (element == null) {
       return const <SearchResult>[];
     }
 
     ElementKind kind = element.kind;
-    if (element is ExtensionElement2 ||
-        element is InterfaceElement2 ||
+    if (element is ExtensionElement ||
+        element is InterfaceElement ||
         element is SetterElement ||
-        element is TypeAliasElement2) {
+        element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
-    } else if (element is ConstructorElement2) {
+    } else if (element is ConstructorElement) {
       return await _searchReferences_Constructor(element, searchedFiles);
     } else if (element is GetterElement) {
       return _searchReferences_Getter(element, searchedFiles);
-    } else if (element is PropertyInducingElement2) {
+    } else if (element is PropertyInducingElement) {
       return _searchReferences_Field(element, searchedFiles);
     } else if (element is LocalFunctionElement) {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is PatternVariableElementImpl2) {
+    } else if (element is PatternVariableElementImpl) {
       return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(
-          element,
-          (n) =>
-              n is Block ||
-              n is ForElement ||
-              n is FunctionBody ||
-              n is TopLevelVariableDeclaration ||
-              n is SwitchExpression ||
-              n.parent is CompilationUnit,
-          searchedFiles);
+        element,
+        (n) =>
+            n is Block ||
+            n is ForElement ||
+            n is FunctionBody ||
+            n is TopLevelVariableDeclaration ||
+            n is SwitchExpression ||
+            n.parent is CompilationUnit,
+        searchedFiles,
+      );
     } else if (element is LibraryElementImpl) {
       return _searchReferences_Library(element, searchedFiles);
     } else if (element is FormalParameterElement) {
       return _searchReferences_Parameter(element, searchedFiles);
-    } else if (element is PrefixElementImpl2) {
+    } else if (element is PrefixElementImpl) {
       return _searchReferences_Prefix(element, searchedFiles);
-    } else if (element is TypeParameterElement2) {
+    } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
-          element, (n) => n.parent is CompilationUnit, searchedFiles);
+        element,
+        (n) => n.parent is CompilationUnit,
+        searchedFiles,
+      );
     }
     return const <SearchResult>[];
   }
@@ -431,7 +451,7 @@ class Search {
   Future<List<LibraryFragmentSearchMatch>> referencesLibraryFragment(
     LibraryFragment libraryFragment,
   ) async {
-    var legacyElement = libraryFragment as CompilationUnitElementImpl;
+    var legacyElement = libraryFragment as LibraryFragmentImpl;
     var legacyResults = await _searchReferences_CompilationUnit(legacyElement);
 
     return legacyResults.map((match) {
@@ -446,11 +466,8 @@ class Search {
     LibraryImport import,
     SearchedFiles searchedFiles,
   ) async {
-    var legacyElement = import as LibraryImportElementImpl;
-    var legacyResults = await _searchReferences_Import(
-      legacyElement,
-      searchedFiles,
-    );
+    import as LibraryImportImpl;
+    var legacyResults = await _searchReferences_Import(import, searchedFiles);
 
     return legacyResults.map((match) {
       return LibraryFragmentSearchMatch(
@@ -466,39 +483,38 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      InterfaceElement2? type, SearchedFiles searchedFiles,
-      {List<FileState>? filesToCheck}) async {
+    InterfaceElement? type,
+    SearchedFiles searchedFiles, {
+    List<FileState>? filesToCheck,
+  }) async {
     if (type == null) {
       return const <SearchResult>[];
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(
-      results,
-      type,
-      searchedFiles,
-      const {
-        IndexRelationKind.IS_EXTENDED_BY:
-            SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
-        IndexRelationKind.IS_MIXED_IN_BY:
-            SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
-        IndexRelationKind.IS_IMPLEMENTED_BY:
-            SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
-        IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
-      },
-      filesToCheck: filesToCheck,
-    );
+    await _addResults(results, type, searchedFiles, const {
+      IndexRelationKind.IS_EXTENDED_BY:
+          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
+      IndexRelationKind.IS_MIXED_IN_BY:
+          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
+      IndexRelationKind.IS_IMPLEMENTED_BY:
+          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
+    }, filesToCheck: filesToCheck);
     return results;
   }
 
   /// Return direct [SubtypeResult]s for either the [type] or [subtype].
-  Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
-      {InterfaceElement2? type, SubtypeResult? subtype}) async {
+  Future<List<SubtypeResult>> subtypes(
+    SearchedFiles searchedFiles, {
+    InterfaceElement? type,
+    SubtypeResult? subtype,
+  }) async {
     var type1 = type;
     String name;
     String id;
     if (type1 != null) {
-      name = type1.name3!;
-      var librarySource = type1.library2.firstFragment.source;
+      name = type1.name!;
+      var librarySource = type1.library.firstFragment.source;
       var source = type1.firstFragment.libraryFragment.source;
       id = '${librarySource.uri};${source.uri};$name';
     } else {
@@ -529,10 +545,10 @@ class Search {
   }
 
   /// Returns top-level elements with names matching the given [regExp].
-  Future<List<Element2>> topLevelElements(RegExp regExp) async {
-    var elements = <Element2>[];
+  Future<List<Element>> topLevelElements(RegExp regExp) async {
+    var elements = <Element>[];
 
-    void addElement(Element2 element) {
+    void addElement(Element element) {
       if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
         elements.add(element);
       }
@@ -560,7 +576,9 @@ class Search {
 
   /// Returns unresolved references to the given [name].
   Future<List<SearchResult>> unresolvedMemberReferences(
-      String? name, SearchedFiles searchedFiles) async {
+    String? name,
+    SearchedFiles searchedFiles,
+  ) async {
     if (name == null) {
       return const <SearchResult>[];
     }
@@ -581,7 +599,7 @@ class Search {
               IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
               IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
               IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
-              IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+              IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
             },
             () => _getUnitElement(file.path),
           );
@@ -594,22 +612,27 @@ class Search {
   }
 
   Future<void> _addResults(
-      List<SearchResult> results,
-      Element2 element,
-      SearchedFiles searchedFiles,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      {List<FileState>? filesToCheck}) async {
+    List<SearchResult> results,
+    Element element,
+    SearchedFiles searchedFiles,
+    Map<IndexRelationKind, SearchResultKind> relationToResultKind, {
+    List<FileState>? filesToCheck,
+  }) async {
     // Prepare the element name.
     String name = element.displayName;
     var externalElement = element;
-    if (externalElement case FormalParameterElement(:var enclosingElement2?)) {
-      externalElement = enclosingElement2;
+    if (externalElement case FormalParameterElement(:var enclosingElement?)) {
+      externalElement = enclosingElement;
     }
-    if (externalElement is ConstructorElement2) {
-      name = externalElement.enclosingElement2.displayName;
+    if (externalElement is ConstructorElement) {
+      name = externalElement.enclosingElement.displayName;
     }
 
-    var elementPath = element.firstFragment.libraryFragment!.source.fullName;
+    var elementPath = element.firstFragment.libraryFragment?.source.fullName;
+    if (elementPath == null) {
+      return;
+    }
+
     var elementFile = _driver.fsState.getExistingFromPath(elementPath);
     if (elementFile == null) {
       return;
@@ -618,7 +641,7 @@ class Search {
     // Prepare the list of files that reference the element name.
     var files = <FileState>[];
     if (name.startsWith('_')) {
-      String libraryPath = element.library2!.firstFragment.source.fullName;
+      String libraryPath = element.library!.firstFragment.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         var libraryFile = _driver.fsState.getFileForPath(libraryPath);
         var libraryKind = libraryFile.kind;
@@ -656,44 +679,56 @@ class Search {
     for (var file in files) {
       if (searchedFiles.add(file.path, this)) {
         await _addResultsInFile(
-            results, element, relationToResultKind, file.path);
+          results,
+          element,
+          relationToResultKind,
+          file.path,
+        );
       }
     }
   }
 
   /// Add results for [element] usage in the given [file].
   Future<void> _addResultsInFile(
-      List<SearchResult> results,
-      Element2 element,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      String file) async {
+    List<SearchResult> results,
+    Element element,
+    Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+    String file,
+  ) async {
     var index = await _driver.getIndex(file);
     if (index != null) {
       _IndexRequest request = _IndexRequest(index);
       int elementId = request.findElementId(element);
       if (elementId != -1) {
         List<SearchResult> fileResults = await request.getRelations(
-            elementId, relationToResultKind, () => _getUnitElement(file));
+          elementId,
+          relationToResultKind,
+          () => _getUnitElement(file),
+        );
         results.addAll(fileResults);
       }
     }
   }
 
-  Future<CompilationUnitElementImpl?> _getUnitElement(String file) async {
+  Future<LibraryFragmentImpl?> _getUnitElement(String file) async {
     var result = await _driver.getUnitElement(file);
     return result is UnitElementResultImpl ? result.fragment : null;
   }
 
   Future<List<SearchResult>> _searchReferences(
-      Element2 element, SearchedFiles searchedFiles) async {
+    Element element,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, searchedFiles,
-        const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
+    await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+    });
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
-      CompilationUnitElementImpl element) async {
+    LibraryFragmentImpl element,
+  ) async {
     String path = element.source.fullName;
 
     var file = _driver.resourceProvider.getFile(path);
@@ -731,7 +766,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Constructor(
-      ConstructorElement2 element, SearchedFiles searchedFiles) async {
+    ConstructorElement element,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
@@ -745,58 +782,67 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Field(
-      PropertyInducingElement2 field, SearchedFiles searchedFiles) async {
+    PropertyInducingElement field,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
-    var getter = field.getter2;
-    var setter = field.setter2;
+    var getter = field.getter;
+    var setter = field.setter;
     if (!field.isSynthetic) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       });
     }
     if (getter != null) {
       await _addResults(results, getter, searchedFiles, const {
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
-        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
       });
     }
     if (setter != null) {
-      await _addResults(results, setter, searchedFiles,
-          const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE});
+      await _addResults(results, setter, searchedFiles, const {
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
+      });
     }
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_Function(
-      Element2 element, SearchedFiles searchedFiles) async {
+    Element element,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element.baseElement, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
-      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_Getter(
-      GetterElement getter, SearchedFiles searchedFiles) async {
+    GetterElement getter,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, getter, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
-      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-      LibraryImportElementImpl element, SearchedFiles searchedFiles) async {
-    String path = element.source.fullName;
+    LibraryImportImpl element,
+    SearchedFiles searchedFiles,
+  ) async {
+    String path = element.libraryFragment.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     List<SearchResult> results = <SearchResult>[];
-    LibraryElementImpl libraryElement = element.library;
+    LibraryElementImpl libraryElement = element.libraryFragment.element;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -810,7 +856,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Library(
-      LibraryElementImpl element, SearchedFiles searchedFiles) async {
+    LibraryElementImpl element,
+    SearchedFiles searchedFiles,
+  ) async {
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -823,8 +871,7 @@ class Search {
       if (unitResult is ResolvedUnitResultImpl) {
         var unit = unitResult.unit;
         for (var directive in unit.directives) {
-          if (directive is PartOfDirectiveImpl &&
-              directive.element == element) {
+          if (directive is PartOfDirectiveImpl) {
             var targetEntity = directive.libraryName ?? directive.uri;
             results.add(
               SearchResult._(
@@ -843,10 +890,13 @@ class Search {
     return results;
   }
 
-  Future<List<SearchResult>> _searchReferences_Local(Element2 element,
-      bool Function(AstNode n) isRootNode, SearchedFiles searchedFiles) async {
-    String path = element.firstFragment.libraryFragment!.source.fullName;
-    if (!searchedFiles.add(path, this)) {
+  Future<List<SearchResult>> _searchReferences_Local(
+    Element element,
+    bool Function(AstNode n) isRootNode,
+    SearchedFiles searchedFiles,
+  ) async {
+    String? path = element.firstFragment.libraryFragment?.source.fullName;
+    if (path == null || !searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
@@ -857,19 +907,19 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    // Prepare the node.
-    var node =
-        NodeLocator(element.firstFragment.nameOffset2!).searchWithin(unit);
+    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset2!);
     if (node == null) {
       return const <SearchResult>[];
     }
 
     // Prepare the enclosing node.
-    var enclosingNode = node.thisOrAncestorMatching((node) =>
-        isRootNode(node) || node is ClassMember || node is CompilationUnit);
+    var enclosingNode = node.thisOrAncestorMatching(
+      (node) =>
+          isRootNode(node) || node is ClassMember || node is CompilationUnit,
+    );
     assert(
       enclosingNode != null && enclosingNode is! CompilationUnit,
-      'Did not find enclosing node for local "${element.name3}". '
+      'Did not find enclosing node for local "${element.name}". '
       'Perhaps the isRootNode function is missing a condition to locate the '
       'outermost node where this element is in scope?',
     );
@@ -884,26 +934,26 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Parameter(
-      FormalParameterElement parameter, SearchedFiles searchedFiles) async {
+    FormalParameterElement parameter,
+    SearchedFiles searchedFiles,
+  ) async {
     List<SearchResult> results = <SearchResult>[];
-    results.addAll(await _searchReferences_Local(
-      parameter,
-      (AstNode node) {
+    results.addAll(
+      await _searchReferences_Local(parameter, (AstNode node) {
         var parent = node.parent;
         return parent is ClassDeclaration || parent is CompilationUnit;
-      },
-      searchedFiles,
-    ));
+      }, searchedFiles),
+    );
     if (parameter.isNamed ||
         parameter.isOptionalPositional ||
-        parameter.enclosingElement2 is ConstructorElement2) {
+        parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
   }
 
   Future<List<SearchResult>> _searchReferences_PatternVariable(
-    PatternVariableElementImpl2 element,
+    PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;
@@ -912,14 +962,16 @@ class Search {
     }
 
     var rootVariable = element.rootVariable;
-    var transitiveVariables = rootVariable is JoinPatternVariableElementImpl2
-        ? rootVariable.transitiveVariables
-        : [rootVariable];
+    var transitiveVariables =
+        rootVariable is JoinPatternVariableElementImpl
+            ? rootVariable.transitiveVariables
+            : [rootVariable];
 
     // Prepare a binding element for the variable.
-    var bindElement = transitiveVariables
-        .whereType<BindPatternVariableElementImpl2>()
-        .firstOrNull;
+    var bindElement =
+        transitiveVariables
+            .whereType<BindPatternVariableElementImpl>()
+            .firstOrNull;
     if (bindElement == null) {
       return const <SearchResult>[];
     }
@@ -942,14 +994,16 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Prefix(
-      PrefixElementImpl2 element, SearchedFiles searchedFiles) async {
+    PrefixElementImpl element,
+    SearchedFiles searchedFiles,
+  ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     List<SearchResult> results = <SearchResult>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -1023,8 +1077,14 @@ class SearchResult {
   /// Whether the result is a resolved reference to the element.
   final bool isQualified;
 
-  SearchResult._(this.enclosingFragment, this.kind, this.offset, this.length,
-      this.isResolved, this.isQualified);
+  SearchResult._(
+    this.enclosingFragment,
+    this.kind,
+    this.offset,
+    this.length,
+    this.isResolved,
+    this.isQualified,
+  );
 
   @override
   String toString() {
@@ -1142,16 +1202,15 @@ class _FindDeclarations {
         var uri = entry.key;
         var analysisDriver = entry.value;
 
-        var libraryElement = await performance.runAsync(
-          'getLibraryByUri',
-          (performance) async {
-            var result = await analysisDriver.getLibraryByUri('$uri');
-            if (result is LibraryElementResultImpl) {
-              return result.element;
-            }
-            return null;
-          },
-        );
+        var libraryElement = await performance.runAsync('getLibraryByUri', (
+          performance,
+        ) async {
+          var result = await analysisDriver.getLibraryByUri('$uri');
+          if (result is LibraryElementResultImpl) {
+            return result.element2;
+          }
+          return null;
+        });
 
         if (libraryElement != null) {
           // Check if there is any name that could match the pattern.
@@ -1200,7 +1259,7 @@ class _FindLibraryDeclarations {
   final void Function(Declaration) collect;
 
   _FindLibraryDeclarations(
-    CompilationUnitElementImpl unit,
+    LibraryFragmentImpl unit,
     this.result,
     this.maxResults,
     this.matcher,
@@ -1224,28 +1283,28 @@ class _FindLibraryDeclarations {
     _addTypeAliases(library.typeAliases);
   }
 
-  void _addClasses(List<InterfaceElement2> elements) {
+  void _addClasses(List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
-      _addGetters(element.getters2);
-      _addConstructors(element.constructors2);
-      _addFields(element.fields2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addDeclaration(element, element.name!);
+      _addGetters(element.getters);
+      _addConstructors(element.constructors);
+      _addFields(element.fields);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
-  void _addConstructors(List<ConstructorElement2> elements) {
+  void _addConstructors(List<ConstructorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
 
-  void _addDeclaration(Element2 element, String name) {
+  void _addDeclaration(Element element, String name) {
     if (result.hasMoreDeclarationsThan(maxResults)) {
       throw const _MaxNumberOfDeclarationsError();
     }
@@ -1254,16 +1313,16 @@ class _FindLibraryDeclarations {
       return;
     }
 
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement;
 
     String? className;
     String? mixinName;
-    if (enclosing is EnumElement2) {
+    if (enclosing is EnumElement) {
       // skip
-    } else if (enclosing is MixinElement2) {
-      mixinName = enclosing.name3;
-    } else if (enclosing is InterfaceElement2) {
-      className = enclosing.name3;
+    } else if (enclosing is MixinElement) {
+      mixinName = enclosing.name;
+    } else if (enclosing is InterfaceElement) {
+      className = enclosing.name;
     }
 
     var kind = _getSearchElementKind(element);
@@ -1272,8 +1331,8 @@ class _FindLibraryDeclarations {
     }
 
     String? parameters;
-    if (element is ExecutableElement2) {
-      var displayString = element.displayString2();
+    if (element is ExecutableElement) {
+      var displayString = element.displayString();
       var parameterIndex = displayString.indexOf('(');
       if (parameterIndex > 0) {
         parameters = displayString.substring(parameterIndex);
@@ -1302,7 +1361,7 @@ class _FindLibraryDeclarations {
     var locationStart = lineInfo.getLocation(locationOffset);
 
     var fragmentImpl =
-        firstFragment as ElementImpl; // to access codeOffset/codeLength
+        firstFragment as FragmentImpl; // to access codeOffset/codeLength
 
     collect(
       Declaration(
@@ -1322,25 +1381,25 @@ class _FindLibraryDeclarations {
     );
   }
 
-  void _addExtensions(List<ExtensionElement2> elements) {
+  void _addExtensions(List<ExtensionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      var name = element.name3;
+      var name = element.name;
       if (name != null) {
         _addDeclaration(element, name);
       }
-      _addFields(element.fields2);
-      _addGetters(element.getters2);
-      _addMethods(element.methods2);
-      _addSetters(element.setters2);
+      _addFields(element.fields);
+      _addGetters(element.getters);
+      _addMethods(element.methods);
+      _addSetters(element.setters);
     }
   }
 
-  void _addFields(List<FieldElement2> elements) {
+  void _addFields(List<FieldElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1348,7 +1407,7 @@ class _FindLibraryDeclarations {
   void _addFunctions(List<TopLevelFunctionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1361,10 +1420,10 @@ class _FindLibraryDeclarations {
     }
   }
 
-  void _addMethods(List<MethodElement2> elements) {
+  void _addMethods(List<MethodElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1377,18 +1436,18 @@ class _FindLibraryDeclarations {
     }
   }
 
-  void _addTypeAliases(List<TypeAliasElement2> elements) {
+  void _addTypeAliases(List<TypeAliasElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
-  void _addVariables(List<TopLevelVariableElement2> elements) {
+  void _addVariables(List<TopLevelVariableElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1400,7 +1459,10 @@ class _IndexRequest {
   _IndexRequest(this.index);
 
   void addSubtypes(
-      String superIdString, List<SubtypeResult> results, FileState file) {
+    String superIdString,
+    List<SubtypeResult> results,
+    FileState file,
+  ) {
     var superId = index.getStringId(superIdString);
     if (superId == -1) {
       return;
@@ -1416,25 +1478,29 @@ class _IndexRequest {
       return;
     }
 
-    for (;
-        superIndex < index.supertypes.length &&
-            index.supertypes[superIndex] == superId;
-        superIndex++) {
+    for (
+      ;
+      superIndex < index.supertypes.length &&
+          index.supertypes[superIndex] == superId;
+      superIndex++
+    ) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
       var subId = '${library.file.uriStr};${file.uriStr};$name';
-      results.add(SubtypeResult(
-        library.file.uriStr,
-        subId,
-        name,
-        subtype.members.map((m) => index.strings[m]).toList(),
-      ));
+      results.add(
+        SubtypeResult(
+          library.file.uriStr,
+          subId,
+          name,
+          subtype.members.map((m) => index.strings[m]).toList(),
+        ),
+      );
     }
   }
 
   /// Return the [element]'s identifier in the [index] or `-1` if the
   /// [element] is not referenced in the [index].
-  int findElementId(Element2 element) {
+  int findElementId(Element element) {
     IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Find the id of the element's unit.
@@ -1458,15 +1524,19 @@ class _IndexRequest {
     }
 
     // Try to find the element id using classMemberId, parameterId, and kind.
-    int elementId =
-        _findFirstOccurrence(index.elementNameUnitMemberIds, unitMemberId);
+    int elementId = _findFirstOccurrence(
+      index.elementNameUnitMemberIds,
+      unitMemberId,
+    );
     if (elementId == -1) {
       return -1;
     }
-    for (;
-        elementId < index.elementNameUnitMemberIds.length &&
-            index.elementNameUnitMemberIds[elementId] == unitMemberId;
-        elementId++) {
+    for (
+      ;
+      elementId < index.elementNameUnitMemberIds.length &&
+          index.elementNameUnitMemberIds[elementId] == unitMemberId;
+      elementId++
+    ) {
       if (index.elementUnits[elementId] == unitId &&
           index.elementNameClassMemberIds[elementId] == classMemberId &&
           index.elementNameParameterIds[elementId] == parameterId &&
@@ -1481,13 +1551,13 @@ class _IndexRequest {
   /// a relation with the kind from [relationToResultKind].
   ///
   /// The function [getEnclosingUnitElement] is used to lazily compute the
-  /// enclosing [CompilationUnitElementImpl] if there is a relation of an
+  /// enclosing [LibraryFragmentImpl] if there is a relation of an
   /// interesting kind.
   Future<List<SearchResult>> getRelations(
-      int elementId,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElementImpl?> Function()
-          getEnclosingUnitElement) async {
+    int elementId,
+    Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
+  ) async {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
     if (i == -1) {
@@ -1495,26 +1565,32 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElementImpl? enclosingUnitElement;
-    for (;
-        i < index.usedElements.length && index.usedElements[i] == elementId;
-        i++) {
+    LibraryFragmentImpl? enclosingUnitElement;
+    for (
+      ;
+      i < index.usedElements.length && index.usedElements[i] == elementId;
+      i++
+    ) {
       IndexRelationKind relationKind = index.usedElementKinds[i];
       SearchResultKind? resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
         if (enclosingUnitElement != null) {
-          var enclosingFragment =
-              _getEnclosingFragment(enclosingUnitElement, offset);
-          results.add(SearchResult._(
-            enclosingFragment,
-            resultKind,
+          var enclosingFragment = _getEnclosingFragment(
+            enclosingUnitElement,
             offset,
-            index.usedElementLengths[i],
-            true,
-            index.usedElementIsQualifiedFlags[i],
-          ));
+          );
+          results.add(
+            SearchResult._(
+              enclosingFragment,
+              resultKind,
+              offset,
+              index.usedElementLengths[i],
+              true,
+              index.usedElementIsQualifiedFlags[i],
+            ),
+          );
         }
       }
     }
@@ -1523,7 +1599,7 @@ class _IndexRequest {
 
   /// Return the identifier of the [CompilationUnitElementIml] containing the
   /// [element] in the [index] or `-1` if not found.
-  int getUnitId(Element2 element) {
+  int getUnitId(Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }
@@ -1531,10 +1607,10 @@ class _IndexRequest {
   /// Return a list of results where a class members with the given [name] is
   /// referenced with a qualifier, but is not resolved.
   Future<List<SearchResult>> getUnresolvedMemberReferences(
-      String name,
-      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElementImpl?> Function()
-          getEnclosingUnitElement) async {
+    String name,
+    Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
+  ) async {
     // Find the name identifier.
     int nameId = index.getStringId(name);
     if (nameId == -1) {
@@ -1549,7 +1625,7 @@ class _IndexRequest {
 
     // Create results for every usage of the name.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElementImpl? enclosingUnitElement;
+    LibraryFragmentImpl? enclosingUnitElement;
     for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
       IndexRelationKind relationKind = index.usedNameKinds[i];
       SearchResultKind? resultKind = relationToResultKind[relationKind];
@@ -1557,10 +1633,20 @@ class _IndexRequest {
         int offset = index.usedNameOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
         if (enclosingUnitElement != null) {
-          var enclosingFragment =
-              _getEnclosingFragment(enclosingUnitElement, offset);
-          results.add(SearchResult._(enclosingFragment, resultKind, offset,
-              name.length, false, index.usedNameIsQualifiedFlags[i]));
+          var enclosingFragment = _getEnclosingFragment(
+            enclosingUnitElement,
+            offset,
+          );
+          results.add(
+            SearchResult._(
+              enclosingFragment,
+              resultKind,
+              offset,
+              name.length,
+              false,
+              index.usedNameIsQualifiedFlags[i],
+            ),
+          );
         }
       }
     }
@@ -1590,14 +1676,14 @@ class _IndexRequest {
 class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final Set<Element2> elements;
-  final CompilationUnitElementImpl enclosingLibraryFragment;
+  final Set<Element> elements;
+  final LibraryFragmentImpl enclosingLibraryFragment;
 
   _LocalReferencesVisitor(this.elements, this.enclosingLibraryFragment);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    if (elements.contains(node.element2)) {
+    if (elements.contains(node.element)) {
       _addResult(node, SearchResultKind.WRITE);
     }
 
@@ -1613,7 +1699,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
@@ -1621,9 +1707,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
-      _addResult(node.name2, SearchResultKind.REFERENCE);
+      _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
     node.importPrefix?.accept(this);
@@ -1643,7 +1729,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
         if (parent is MethodInvocation && parent.methodName == node) {
           kind = SearchResultKind.INVOCATION;
         }
-      } else if (element is VariableElement2) {
+      } else if (element is VariableElement) {
         bool isGet = node.inGetterContext();
         bool isSet = node.inSetterContext();
         if (isGet && isSet) {
@@ -1664,10 +1750,20 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
     bool isQualified = entity is AstNode ? entity.parent is Label : false;
-    var enclosingFragment =
-        _getEnclosingFragment(enclosingLibraryFragment, entity.offset);
-    results.add(SearchResult._(enclosingFragment, kind, entity.offset,
-        entity.length, true, isQualified));
+    var enclosingFragment = _getEnclosingFragment(
+      enclosingLibraryFragment,
+      entity.offset,
+    );
+    results.add(
+      SearchResult._(
+        enclosingFragment,
+        kind,
+        entity.offset,
+        entity.length,
+        true,
+        isQualified,
+      ),
+    );
   }
 }
 

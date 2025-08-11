@@ -81,7 +81,7 @@ public interface AnalysisServer {
   /**
    * {@code analysis.getHover}
    *
-   * Return the hover information associate with the given location. If some or all of the hover
+   * Return the hover information associated with the given location. If some or all of the hover
    * information is not available at the time this request is processed the information will be
    * omitted from the response.
    *
@@ -203,12 +203,12 @@ public interface AnalysisServer {
    * analysis roots at any given time is the intersection of this set with the set of files and
    * directories actually present on the filesystem. When the filesystem changes, the actual set of
    * analysis roots is automatically updated, but the set of requested analysis roots is unchanged.
-   * This means that if the client sets an analysis root before the root becomes visible to server in
-   * the filesystem, there is no error; once the server sees the root in the filesystem it will start
-   * analyzing it. Similarly, server will stop analyzing files that are removed from the file system
-   * but they will remain in the set of requested roots.
+   * This means that if the client sets an analysis root before the root becomes visible to the
+   * server in the filesystem, there is no error; once the server sees the root in the filesystem it
+   * will start analyzing it. Similarly, the server will stop analyzing files that are removed from
+   * the file system but they will remain in the set of requested roots.
    *
-   * If an included path represents a file, then server will look in the directory containing the
+   * If an included path represents a file, then the server will look in the directory containing the
    * file for a pubspec.yaml file. If none is found, then the parents of the directory will be
    * searched until such a file is found or the root of the file system is reached. If such a file is
    * found, it will be used to resolve package: URI's within the file.
@@ -297,7 +297,7 @@ public interface AnalysisServer {
    *
    * Update the content of one or more files. Files that were previously updated but not included in
    * this update remain unchanged. This effectively represents an overlay of the filesystem. The
-   * files whose content is overridden are therefore seen by server as being files with the given
+   * files whose content is overridden are therefore seen by the server as being files with the given
    * content, even if the files do not exist on the filesystem or if the file path represents the
    * path to a directory on the filesystem.
    *
@@ -411,8 +411,8 @@ public interface AnalysisServer {
    * @param offset The offset in the file where the completion will be inserted.
    * @param completion The <code>completion</code> from the selected
    *        <code>CompletionSuggestion</code>. It could be a name of a class, or a name of a
-   *        constructor in form "typeName.constructorName()", or an enumeration constant in form
-   *        "enumName.constantName", etc.
+   *        constructor in the form "typeName.constructorName()", or an enumeration constant in the
+   *        form "enumName.constantName", etc.
    * @param libraryUri The URI of the library to import, so that the element referenced in the
    *        <code>completion</code> becomes accessible.
    */

@@ -23,6 +23,10 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
 
   final List<EnumElementFragment> enumElements = [];
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   EnumFragment({
     required this.name,
     required super.fileUri,
@@ -33,9 +37,6 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
     required super.nominalParameterNameSpace,
     required super.enclosingCompilationUnit,
   });
-
-  @override
-  int get fileOffset => nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -56,13 +57,13 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
       modifiers.isAugment;
 
   @override
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
+
+  @override
   void addEnumElement(EnumElementFragment fragment) {
     enumElements.add(fragment);
   }
 
   @override
-  DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }

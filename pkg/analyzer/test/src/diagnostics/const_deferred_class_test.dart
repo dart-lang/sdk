@@ -21,14 +21,15 @@ library lib1;
 class A {
   const A.b();
 }''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
-}''', [
-      error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 5),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 5)],
+    );
   }
 
   test_nonFunctionTypedef() async {
@@ -39,15 +40,16 @@ class A {
 }
 typedef B = A;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.B();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3)],
+    );
   }
 
   test_unnamed() async {
@@ -57,14 +59,15 @@ class A {
   const A();
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 main() {
   const a.A();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3)],
+    );
   }
 }

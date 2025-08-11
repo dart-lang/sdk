@@ -182,12 +182,12 @@ library;
 //   Object foo() {}
 //          ^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+// pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   Object get foo => null;
 //                     ^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+// pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   Object get foo => null;
 //                     ^
@@ -253,21 +253,21 @@ class MyMock1 extends self::B {
     ;
   method noSuchMethod(wildcard core::Invocation _#wc3#formal) → dynamic
     return null;
-  no-such-method-forwarder set property1(dynamic _#wc0#formal) → void
+  synthetic no-such-method-forwarder set property1(dynamic _#wc0#formal) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_#wc0#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method abstractMethod() → dynamic
+  synthetic no-such-method-forwarder method abstractMethod() → dynamic
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 0, #C2, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
-  no-such-method-forwarder method interfaceMethod1() → void
+  synthetic no-such-method-forwarder method interfaceMethod1() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set interfaceMethod1(dynamic value) → void
+  synthetic no-such-method-forwarder set interfaceMethod1(dynamic value) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method interfaceMethod2() → void
+  synthetic no-such-method-forwarder method interfaceMethod2() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C2, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method interfaceMethod3() → void
+  synthetic no-such-method-forwarder method interfaceMethod3() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C2, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property2(dynamic _#wc1#formal) → void
+  synthetic no-such-method-forwarder set property2(dynamic _#wc1#formal) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_#wc1#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property3(dynamic _#wc2#formal) → void
+  synthetic no-such-method-forwarder set property3(dynamic _#wc2#formal) → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_#wc2#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3))){(core::Invocation) → dynamic};
 }
 class MyMock2 extends self::MyMock1 {
@@ -315,7 +315,7 @@ class G extends core::Object {
     : super core::Object::•()
     ;
   get foo() → core::Object
-    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:79:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
  - 'Object' is from 'dart:core'.
   Object get foo => null;
                     ^" in null as{TypeError} core::Object;
@@ -330,7 +330,7 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
   get foo() → core::Object
-    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: The value 'null' can't be returned from a function with return type 'Object' because 'Object' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/general/abstract_members.dart:87:21: Error: A value of type 'Null' can't be returned from a function with return type 'Object'.
  - 'Object' is from 'dart:core'.
   Object get foo => null;
                     ^" in null as{TypeError} core::Object;

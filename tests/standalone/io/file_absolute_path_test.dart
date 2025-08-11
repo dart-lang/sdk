@@ -39,7 +39,7 @@ testWindows() {
     'c:/abd',
     'D:\\rf',
     '\\\\a_share\\folder',
-    '\\\\?\\c:\\prefixed\path\\'
+    '\\\\?\\c:\\prefixed\path\\',
   ]) {
     Expect.isTrue(new File(absolute).absolute.path == absolute);
     Expect.isTrue(new File(absolute).absolute.isAbsolute);
@@ -55,8 +55,10 @@ testPosix() {
       Expect.equals(new File(relative).absolute.path, '$current/$relative');
     }
     Expect.isTrue(new File(relative).absolute.isAbsolute);
-    Expect.equals(new Directory(relative).absolute.path,
-        new Link(relative).absolute.path);
+    Expect.equals(
+      new Directory(relative).absolute.path,
+      new Link(relative).absolute.path,
+    );
     Expect.isTrue(new File(relative).absolute is File);
     Expect.isTrue(new Directory(relative).absolute is Directory);
     Expect.isTrue(new Link(relative).absolute is Link);

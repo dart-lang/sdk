@@ -11,14 +11,13 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
-import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../type_inference/type_schema.dart';
 import 'declaration.dart';
 
 class SetterBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
-  final SetterDeclaration _declaration;
+  final SetterFragmentDeclaration _declaration;
 
   SetterBodyBuilderContext(
       this._builder,
@@ -28,15 +27,6 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
       {required bool isDeclarationInstanceMember})
       : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget {
-    if (_builder.isAugmentation) {
-      return _builder.augmentSuperTarget;
-    }
-    return null;
-  }
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;

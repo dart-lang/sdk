@@ -16,84 +16,93 @@ main() {
 @reflectiveTest
 class ImplementsNonClassTest extends PubPackageResolutionTest {
   test_inClass_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements dynamic {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7)],
+    );
   }
 
   test_inClass_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { ONE }
 class A implements E {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 34, 1)],
+    );
   }
 
   test_inClass_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 class B implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1)],
+    );
   }
 
   test_inClass_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int A = 7;
 class B implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1)],
+    );
   }
 
   test_inClassTypeAlias() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 mixin M {}
 int B = 7;
 class C = A with M implements B;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 63, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 63, 1)],
+    );
   }
 
   test_inEnum_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int A = 7;
 enum E implements A {
   v
 }
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1)],
+    );
   }
 
   test_inMixin_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M implements dynamic {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7)],
+    );
   }
 
   test_inMixin_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 mixin M implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1)],
+    );
   }
 
   test_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements Never {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5)],
+    );
   }
 }

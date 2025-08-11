@@ -46,10 +46,7 @@ class RewriteCascadeTest {
       'a--..method();': '(a--)..method();',
     };
 
-    void assertSingle({
-      required String input,
-      required String expected,
-    }) {
+    void assertSingle({required String input, required String expected}) {
       var statement = _parseStringToFindNode('''
 void f() {
   $input
@@ -64,18 +61,12 @@ void f() {
     }
 
     for (var entry in pairs.entries) {
-      assertSingle(
-        input: entry.key,
-        expected: entry.value,
-      );
+      assertSingle(input: entry.key, expected: entry.value);
     }
   }
 
   test_insertCascadeTargetIntoExpression() {
-    void assertSingle({
-      required String input,
-      required String expected,
-    }) {
+    void assertSingle({required String input, required String expected}) {
       var statement = _parseStringToFindNode('''
 void f() {
   $input;
@@ -104,10 +95,7 @@ void f() {
     };
 
     for (var entry in pairs.entries) {
-      assertSingle(
-        input: entry.key,
-        expected: entry.value,
-      );
+      assertSingle(input: entry.key, expected: entry.value);
     }
   }
 

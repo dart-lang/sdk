@@ -59,8 +59,8 @@ class IdentifierHelper {
     if (candidateName == null) {
       return;
     }
-    for (var childElement in state.libraryElement.children2) {
-      if (childElement.name3 == candidateName) {
+    for (var childElement in state.libraryElement.children) {
+      if (childElement.name == candidateName) {
         // Don't suggest a name that's already declared in the library.
         return;
       }
@@ -80,7 +80,7 @@ class IdentifierHelper {
   /// Adds any suggestions for a variable with the given [type].
   void addVariable(TypeAnnotation? type) {
     if (type is NamedType) {
-      addSuggestionsFromTypeName(type.name2.lexeme);
+      addSuggestionsFromTypeName(type.name.lexeme);
     }
   }
 

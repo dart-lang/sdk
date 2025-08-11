@@ -26,9 +26,9 @@ f() {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 8);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
@@ -46,20 +46,21 @@ MethodInvocation
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   if (1 > 2)
     g() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 23, 1)],
+    );
     var node = findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 23);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
   }
 
   test_element_switchCase() async {
@@ -76,9 +77,9 @@ f(int a) {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 44);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
@@ -110,9 +111,9 @@ f(int a) {
 
     var element = findElement2.localFunction('g');
     var fragment = element.firstFragment;
-    expect(fragment.name2, 'g');
+    expect(fragment.name, 'g');
     expect(fragment.nameOffset2, 60);
-    expect(element.name3, 'g');
+    expect(element.name, 'g');
 
     var node = findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''

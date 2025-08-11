@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -549,6 +550,8 @@ class B extends A {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+    useLineEndingsForPlatform = false;
+
     var libCode = r'''
 class A {
   newName() {} // marker
@@ -1864,6 +1867,8 @@ enum E with M {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+    useLineEndingsForPlatform = false;
+
     var libCode = r'''
 mixin M {
   void newName() {}

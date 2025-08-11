@@ -18,13 +18,18 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
-/// The [MessageScheduler] receives messages from all clients of the
-/// [AnalysisServer]. Clients can include IDE's (LSP and Legacy protocol), DTD,
-/// and the Diagnostic server. The [MessageScheduler] acts as a hub for all
-/// incoming messages and forwards the messages to the appropriate handlers.
+/// The [MessageScheduler] schedules messages received from the clients of the
+/// [AnalysisServer].
+///
+/// Clients include IDE's (LSP and Legacy protocol), DTD, the Diagnostic server
+/// and file watchers. The [MessageScheduler] acts as a hub for all incoming
+/// messages and forwards the messages to the appropriate handlers.
 final class MessageScheduler {
   /// A flag to allow disabling overlapping message handlers.
   static bool allowOverlappingHandlers = true;
+
+  /// A listener that can be used to watch the scheduler as it manages messages.
+  final MessageSchedulerListener? listener;
 
   /// The [AnalysisServer] associated with the scheduler.
   late final AnalysisServer server;
@@ -33,135 +38,119 @@ final class MessageScheduler {
   final ListQueue<ScheduledMessage> _pendingMessages =
       ListQueue<ScheduledMessage>();
 
-  /// Whether the [MessageScheduler] is idle or is processing messages.
-  bool isActive = false;
+  /// The messages that are currently being handled.
+  final ListQueue<ScheduledMessage> _activeMessages =
+      ListQueue<ScheduledMessage>();
+
+  /// Whether the [MessageScheduler] is currently processing messages.
+  bool _processingIsScheduled = false;
+
+  /// The number of times [pause] has been called without matching [resume]s.
+  ///
+  /// If zero, the queue is not paused.
+  int _pauseCount = 0;
 
   /// The completer used to indicate that message handling has been completed.
-  Completer<void> completer = Completer();
+  Completer<void> _completer = Completer();
 
-  /// A view into the [MessageScheduler] used for testing.
-  MessageSchedulerTestView? testView;
-
-  /// The message that is currently being processed, and null when there is
-  /// no message being processed.
-  ScheduledMessage? _currentMessage;
-
-  MessageScheduler({this.testView}) {
-    testView?.messageScheduler = this;
-  }
-
-  /// Add a message to the end of the incoming messages queue.
+  /// Initialize a newly created message scheduler.
   ///
-  /// Some of the incoming messages are used to cancel other messages before
-  /// they are added to the queue.
+  /// The caller is expected to set the [server] immediately after creating the
+  /// instance. The only reason the server isn't initialized by the constructor
+  /// is because the analysis server and the message scheduler can't be created
+  /// atomically and it was decided that it was cleaner for the scheduler to
+  /// have the nullable reference to the server rather than the other way
+  /// around.
+  MessageScheduler({required this.listener});
+
+  /// Whether the queue is currently paused.
+  bool get isPaused => _pauseCount > 0;
+
+  /// Add the [message] to the end of the pending messages queue.
+  ///
+  /// Some incoming messages are handled immediately rather than being added to
+  /// the queue. Specifically, those listed below.
   ///
   /// LSP Messages
   /// - Cancellation notifications are handled by the [MessageScheduler].
-  /// The current message and queued messages are looked through and the
-  /// [CancelableToken] for the request to be canceled is set.
+  ///   The current message and queued messages are looked through and the
+  ///   [CancelableToken] for the request to be canceled is set.
   /// - Document change notifications are used to cancel refactors, renames
-  /// (if any) that are currently in progress or on the queue for the document
-  /// that was changed.
+  ///   (if any) that are currently in progress or on the queue for the document
+  ///   that was changed.
   /// - Incoming completion and refactor requests cancel out current and
-  /// queued requests of the same.
+  ///   queued requests of the same.
   ///
   /// Legacy Messages
   /// - Cancellation requests are sent immediately to the [LegacyAnalysisServer]
-  /// for processing.
+  ///   for processing.
   ///
   /// LSP over Legacy
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
-  /// any rename files request that is in progress.
+  ///   any rename files request that is in progress.
   void add(ScheduledMessage message) {
-    testView?.logAddMessage(message);
+    listener?.addPendingMessage(message);
     if (message is LegacyMessage) {
       var request = message.request;
-      if (request.method == legacy.SERVER_REQUEST_CANCEL_REQUEST) {
+      var method = request.method;
+      if (method == legacy.SERVER_REQUEST_CANCEL_REQUEST) {
         var id =
             legacy.ServerCancelRequestParams.fromRequest(
               request,
               clientUriConverter: server.uriConverter,
             ).id;
+        listener?.addActiveMessage(message);
         (server as LegacyAnalysisServer).cancelRequest(id);
-      }
-      if (request.method == legacy.ANALYSIS_REQUEST_UPDATE_CONTENT) {
-        if (_currentMessage is LegacyMessage) {
-          var current = _currentMessage as LegacyMessage;
-          var request = current.request;
-          if (request.method == legacy.LSP_REQUEST_HANDLE) {
-            var method = _getLspOverLegacyParams(request)?['method'];
-            if (method == lsp.Method.workspace_willRenameFiles.toString()) {
-              current.cancellationToken?.cancel(
-                code: lsp.ErrorCodes.ContentModified.toJson(),
-                reason: 'File content was modified',
-              );
-              testView?.messageLog.add(
-                'Canceled current request ${request.method}',
-              );
-            }
-          }
-        }
-      }
-    }
-    if (message is LspMessage) {
-      var msg = message.message;
-      // Responses do not go on the queue because there might be an active
-      // message that can't complete until the response is received. If the
-      // response was added to the queue then this process could deadlock.
-      if (msg is lsp.ResponseMessage) {
-        (server as LspAnalysisServer).handleMessage(msg, null);
-        return;
-      }
-      // If a cancellation is requested, check to see if the
-      // the current request is cancelled. If not, also check
-      // to see if a cancelled request is on the queue.
-      if (msg is lsp.NotificationMessage) {
-        if (msg.method == lsp.Method.cancelRequest) {
-          lsp.CancelParams? params;
-          try {
-            params = _getCancelParams(msg);
-          } catch (error, stackTrace) {
-            (server as LspAnalysisServer).logException(
-              'An error occured while parsing cancel parameters',
-              error,
-              stackTrace,
-            );
-          }
-          if (params == null) {
-            return;
-          }
-          if (_currentMessage is LspMessage &&
-              (_currentMessage! as LspMessage).isRequest) {
-            var current = _currentMessage as LspMessage;
-            var request = current.message as lsp.RequestMessage;
-            if (request.id == params.id) {
-              current.cancellationToken?.cancel();
-              testView?.messageLog.add(
-                'Canceled current request ${request.method}',
-              );
-              return;
-            }
-          }
-          var lspRequests = _pendingMessages.whereType<LspMessage>().where(
-            (m) => m.isRequest,
-          );
-          if (lspRequests.isNotEmpty) {
-            for (var request in lspRequests) {
-              var req = request.message as lsp.RequestMessage;
-              if (req.id == params.id) {
-                request.cancellationToken?.cancel();
-                testView?.messageLog.add(
-                  'Canceled request on queue ${req.method}',
+        // The message needs to be added to the queue of pending messages, but
+        // it seems like it shouldn't be necessary and that we ought to return
+        // at this point. However, doing so causes some tests to timeout.
+      } else if (method == legacy.ANALYSIS_REQUEST_UPDATE_CONTENT) {
+        for (var activeMessage in _activeMessages) {
+          if (activeMessage is LegacyMessage) {
+            var activeRequest = activeMessage.request;
+            if (activeRequest.method == legacy.LSP_REQUEST_HANDLE) {
+              var method = _getLspOverLegacyParams(activeRequest)?['method'];
+              if (method == lsp.Method.workspace_willRenameFiles.toString()) {
+                activeMessage.cancellationToken?.cancel(
+                  code: lsp.ErrorCodes.ContentModified.toJson(),
+                  reason: 'File content was modified',
                 );
-                return;
+                listener?.cancelActiveMessage(activeMessage);
               }
             }
           }
-        } else if (msg.method == lsp.Method.textDocument_didChange) {
-          _processDocumentChange(msg);
+          // TODO(brianwilkerson): Determine why it isn't appropriate to also
+          //  cancel pending messages of the same kind.
         }
       }
-      if (msg is lsp.RequestMessage) {
+    } else if (message is LspMessage) {
+      var msg = message.message;
+      if (msg is lsp.ResponseMessage) {
+        // Responses don't go on the queue because there might be an active
+        // message that can't complete until the response is received. If the
+        // response was added to the queue then this process could deadlock.
+        listener?.addActiveMessage(message);
+        (server as LspAnalysisServer).handleMessage(msg, null);
+        return;
+      } else if (msg is lsp.NotificationMessage) {
+        var method = msg.method;
+        if (method == lsp.Method.cancelRequest) {
+          // Cancellations are handled immediately in order to minimize the
+          // amount of extra work that has to happen. Note that the request is
+          // canceled by setting the token to the 'cancelled' state rather than
+          // by removing the request from the queue. It's done this way to allow
+          // a response to be sent back to the client saying that the results
+          // aren't provided because the request was cancelled.
+          listener?.addActiveMessage(message);
+          _processCancellation(msg);
+          return;
+        } else if (method == lsp.Method.textDocument_didChange) {
+          // Document change notifications are _not_ handled immediately, but
+          // some active or pending requests can be cancelled before the normal
+          // processing is done.
+          _processDocumentChange(msg);
+        }
+      } else if (msg is lsp.RequestMessage) {
         // Cancel in progress completion and refactoring requests.
         var incomingMsgMethod = msg.method;
         if (_isCancelableRequest(msg)) {
@@ -169,68 +158,90 @@ final class MessageScheduler {
               incomingMsgMethod == lsp.Method.workspace_executeCommand
                   ? 'Another workspace/executeCommand request for a refactor was started'
                   : 'Another textDocument/completion request was started';
-          var current = _currentMessage;
-          if (current is LspMessage && current.isRequest) {
-            var message = current.message as lsp.RequestMessage;
-            if (message.method == incomingMsgMethod) {
-              current.cancellationToken?.cancel(reason: reason);
-              testView?.messageLog.add(
-                'Canceled in progress request ${message.method}',
-              );
+          for (var activeMessage in _activeMessages) {
+            if (activeMessage is LspMessage && activeMessage.isRequest) {
+              var message = activeMessage.message as lsp.RequestMessage;
+              if (message.method == incomingMsgMethod) {
+                activeMessage.cancellationToken?.cancel(reason: reason);
+                listener?.cancelActiveMessage(activeMessage);
+              }
             }
           }
-          // Cancel any other similar requests that are in the queue.
-          var lspRequests = _pendingMessages.whereType<LspMessage>().where(
-            (m) => m.isRequest,
-          );
-          for (var queueMsg in lspRequests) {
-            if ((queueMsg.message as lsp.RequestMessage).method == msg.method) {
-              queueMsg.cancellationToken?.cancel(reason: reason);
-              testView?.messageLog.add(
-                'Canceled request on queue ${msg.method}',
-              );
+          for (var pendingMessage in _pendingMessages) {
+            if (pendingMessage is LspMessage && pendingMessage.isRequest) {
+              var message = pendingMessage.message as lsp.RequestMessage;
+              if (message.method == msg.method) {
+                pendingMessage.cancellationToken?.cancel(reason: reason);
+                listener?.cancelPendingMessage(pendingMessage);
+              }
             }
           }
         }
       }
     }
     _pendingMessages.addLast(message);
-    if (_currentMessage == null) {
-      testView?.messageLog.add('Entering process messages loop');
-      _currentMessage = _pendingMessages.removeFirst();
-      processMessages();
+    if (!_processingIsScheduled) {
+      _processingIsScheduled = true;
+      Future.delayed(Duration.zero, processMessages);
     }
+  }
+
+  /// Pauses processing messages.
+  ///
+  /// Any messages that are already being processed will continue until they
+  /// complete, but no new messages will be processed.
+  ///
+  /// If this method is called multiple times, [resume] will need to be called
+  /// an equal number of times for processing to continue.
+  void pause() {
+    _pauseCount++;
+    listener?.pauseProcessingMessages(_pauseCount);
   }
 
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
+    listener?.startProcessingMessages();
     try {
-      while (_currentMessage != null) {
-        completer = Completer<void>();
-        var message = _currentMessage!;
-        testView?.logHandleMessage(message);
-        switch (message) {
+      while (_pendingMessages.isNotEmpty) {
+        if (isPaused) {
+          break;
+        }
+        var currentMessage = _pendingMessages.removeFirst();
+        _activeMessages.addLast(currentMessage);
+        listener?.addActiveMessage(currentMessage);
+        _completer = Completer<void>();
+        unawaited(
+          _completer.future.then((_) {
+            _activeMessages.remove(currentMessage);
+          }),
+        );
+        switch (currentMessage) {
           case LspMessage():
-            var lspMessage = message.message;
+            var lspMessage = currentMessage.message;
             (server as LspAnalysisServer).handleMessage(
               lspMessage,
-              cancellationToken: message.cancellationToken,
-              completer,
+              cancellationToken: currentMessage.cancellationToken,
+              _completer,
             );
           case LegacyMessage():
-            var request = message.request;
+            var request = currentMessage.request;
             (server as LegacyAnalysisServer).handleRequest(
               request,
-              completer,
-              message.cancellationToken,
+              _completer,
+              currentMessage.cancellationToken,
             );
           case DtdMessage():
             server.dtd!.processMessage(
-              message.message,
-              message.performance,
-              message.responseCompleter,
-              completer,
+              currentMessage.message,
+              currentMessage.performance,
+              currentMessage.responseCompleter,
+              _completer,
             );
+          case WatcherMessage():
+            server.contextManager.handleWatchEvent(currentMessage.event);
+            // Handling a watch event is a synchronous process, so there's
+            // nothing to wait for.
+            _completer.complete();
         }
 
         // Blocking here with an await on the future was intended to prevent
@@ -239,7 +250,7 @@ final class MessageScheduler {
         // https://github.com/dart-lang/sdk/issues/60440. To re-disable
         // interleaving, set [allowOverlappingHandlers] to `false`.
         if (!allowOverlappingHandlers) {
-          await completer.future;
+          await _completer.future;
         }
 
         // This message is not accurate if [allowOverlappingHandlers] is `true`
@@ -248,15 +259,7 @@ final class MessageScheduler {
         // TODO(pq): if not awaited, consider adding a `then` so we can track
         // when the future completes. But note that we may see some flakiness in
         // tests as message handling gets non-deterministically interleaved.
-        testView?.messageLog.add(
-          '  Complete ${message.runtimeType}: ${message.toString()}',
-        );
-        if (_pendingMessages.isEmpty) {
-          _currentMessage = null;
-          testView?.messageLog.add('Exit process messages loop');
-        } else {
-          _currentMessage = _pendingMessages.removeFirst();
-        }
+        listener?.messageCompleted(currentMessage);
       }
     } catch (error, stackTrace) {
       server.instrumentationService.logException(
@@ -265,23 +268,46 @@ final class MessageScheduler {
         server.crashReportingAttachmentsBuilder.forException(error),
       );
     }
+    _processingIsScheduled = false;
+    listener?.endProcessingMessages();
   }
 
-  /// Set the [AnalysisServer].
-  void setServer(AnalysisServer analysisServer) {
-    server = analysisServer;
-  }
-
-  lsp.CancelParams? _getCancelParams(lsp.IncomingMessage message) {
-    var cancelJsonHandler = lsp.CancelParams.jsonHandler;
-    var reporter = LspJsonReporter('params');
-    var paramsJson = message.params as Map<String, Object?>?;
-    if (!cancelJsonHandler.validateParams(paramsJson, reporter)) {
-      return null;
+  /// Resumes processing messages.
+  void resume() {
+    if (!isPaused) {
+      throw StateError('Cannot resume if not paused');
     }
-    return paramsJson != null
-        ? cancelJsonHandler.convertParams(paramsJson)
-        : null;
+    _pauseCount--;
+    listener?.resumeProcessingMessages(_pauseCount);
+    if (!isPaused && !_processingIsScheduled) {
+      // Process on the next tick so that the caller to resume() doesn't get
+      // messages in the queue attributed to their time (or run before they
+      // complete).
+      _processingIsScheduled = true;
+      Future.delayed(Duration.zero, processMessages);
+    }
+  }
+
+  /// Returns the parameters of a cancellation [message].
+  lsp.CancelParams? _getCancelParams(lsp.NotificationMessage message) {
+    try {
+      var cancelJsonHandler = lsp.CancelParams.jsonHandler;
+      var reporter = LspJsonReporter('params');
+      var paramsJson = message.params as Map<String, Object?>?;
+      if (!cancelJsonHandler.validateParams(paramsJson, reporter)) {
+        return null;
+      }
+      return paramsJson != null
+          ? cancelJsonHandler.convertParams(paramsJson)
+          : null;
+    } catch (error, stackTrace) {
+      (server as LspAnalysisServer).logException(
+        'An error occured while parsing cancel parameters',
+        error,
+        stackTrace,
+      );
+    }
+    return null;
   }
 
   lsp.DidChangeTextDocumentParams? _getChangeTextParams(
@@ -344,8 +370,42 @@ final class MessageScheduler {
     return false;
   }
 
-  /// Cancel current refactor, if any, for the document changed.
+  /// Process a cancellation notification.
+  ///
+  /// The notification doesn't need to be placed on the pending messages queue
+  /// after it has been processed.
+  void _processCancellation(lsp.NotificationMessage msg) {
+    var params = _getCancelParams(msg);
+    if (params == null) {
+      return;
+    }
+    for (var activeMessage in _activeMessages) {
+      if (activeMessage is LspMessage && activeMessage.isRequest) {
+        var request = activeMessage.message as lsp.RequestMessage;
+        if (request.id == params.id) {
+          activeMessage.cancellationToken?.cancel();
+          listener?.cancelActiveMessage(activeMessage);
+          return;
+        }
+      }
+    }
+    for (var pendingMessage in _pendingMessages) {
+      if (pendingMessage is LspMessage && pendingMessage.isRequest) {
+        var request = pendingMessage.message as lsp.RequestMessage;
+        if (request.id == params.id) {
+          pendingMessage.cancellationToken?.cancel();
+          listener?.cancelPendingMessage(pendingMessage);
+          return;
+        }
+      }
+    }
+  }
+
+  /// Cancel the current refactor, if any, for the document changed.
   /// Also check for any refactors in the queue.
+  ///
+  /// The notification needs to be placed on the pending messages queue so that
+  /// the state of the document will be updated.
   void _processDocumentChange(lsp.NotificationMessage msg) {
     lsp.DidChangeTextDocumentParams? params;
     params = _getChangeTextParams(msg);
@@ -367,7 +427,10 @@ final class MessageScheduler {
       return path != null ? Uri.file(path) : null;
     }
 
-    void checkAndCancelRefactor(LspMessage lspMessage) {
+    void checkAndCancelRefactor(
+      LspMessage lspMessage, {
+      required bool isActive,
+    }) {
       var request = lspMessage.message as lsp.RequestMessage;
       var execParams = _getCommandParams(request);
       if (execParams != null &&
@@ -378,14 +441,16 @@ final class MessageScheduler {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
-          testView?.messageLog.add(
-            'Canceled in progress request ${request.method}',
-          );
+          if (isActive) {
+            listener?.cancelActiveMessage(lspMessage);
+          } else {
+            listener?.cancelPendingMessage(lspMessage);
+          }
         }
       }
     }
 
-    void checkAndCancelRename(LspMessage lspMessage) {
+    void checkAndCancelRename(LspMessage lspMessage, {required bool isActive}) {
       var request = lspMessage.message as lsp.RequestMessage;
       var renameParams = _getRenameParams(request);
       if (renameParams != null) {
@@ -394,56 +459,71 @@ final class MessageScheduler {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
-          testView?.messageLog.add(
-            'Canceled in progress request ${request.method}',
-          );
+          if (isActive) {
+            listener?.cancelActiveMessage(lspMessage);
+          } else {
+            listener?.cancelPendingMessage(lspMessage);
+          }
         }
       }
     }
 
-    var current = _currentMessage;
-    if (current is LspMessage && current.isRequest) {
-      var request = current.message as lsp.RequestMessage;
-      if (request.method == lsp.Method.workspace_executeCommand) {
-        checkAndCancelRefactor(current);
-      } else if (request.method == lsp.Method.textDocument_rename) {
-        checkAndCancelRename(current);
+    for (var activeMessage in _activeMessages) {
+      if (activeMessage is LspMessage && activeMessage.isRequest) {
+        var request = activeMessage.message as lsp.RequestMessage;
+        if (request.method == lsp.Method.workspace_executeCommand) {
+          checkAndCancelRefactor(activeMessage, isActive: true);
+        } else if (request.method == lsp.Method.textDocument_rename) {
+          checkAndCancelRename(activeMessage, isActive: true);
+        }
       }
     }
-    // Cancel any other refactor requests that are in the queue.
-    var lspRequests = _pendingMessages.whereType<LspMessage>().where(
-      (m) =>
-          m.isRequest &&
-          (m.message as lsp.RequestMessage).method ==
-              lsp.Method.workspace_executeCommand,
-    );
-    for (var queueMsg in lspRequests) {
-      checkAndCancelRefactor(queueMsg);
-    }
-    var renameRequests = _pendingMessages.whereType<LspMessage>().where(
-      (m) =>
-          m.isRequest &&
-          (m.message as lsp.RequestMessage).method ==
-              lsp.Method.textDocument_rename,
-    );
-    for (var queueMsg in renameRequests) {
-      checkAndCancelRename(queueMsg);
+    for (var pendingMessage in _pendingMessages) {
+      if (pendingMessage is LspMessage && pendingMessage.isRequest) {
+        var request = pendingMessage.message as lsp.RequestMessage;
+        if (request.method == lsp.Method.workspace_executeCommand) {
+          checkAndCancelRefactor(pendingMessage, isActive: false);
+        } else if (request.method == lsp.Method.textDocument_rename) {
+          checkAndCancelRename(pendingMessage, isActive: false);
+        }
+      }
     }
   }
 }
 
-class MessageSchedulerTestView {
-  late final MessageScheduler messageScheduler;
+abstract class MessageSchedulerListener {
+  /// Report that the [message] was added to the active message queue.
+  ///
+  /// This implies that the message is no longer on the pending message queue.
+  void addActiveMessage(ScheduledMessage message);
 
-  List<String> messageLog = <String>[];
+  /// Report that the [message] was added to the pending message queue.
+  ///
+  /// This is always the first notification for the [message].
+  void addPendingMessage(ScheduledMessage message);
 
-  void logAddMessage(ScheduledMessage message) {
-    messageLog.add(
-      'Incoming ${message is LspMessage ? message.message.runtimeType : message.runtimeType}: ${message.toString()}',
-    );
-  }
+  /// Report that an active [message] was cancelled.
+  void cancelActiveMessage(ScheduledMessage message);
 
-  void logHandleMessage(ScheduledMessage message) {
-    messageLog.add('  Start ${message.runtimeType}: ${message.toString()}');
-  }
+  /// Report that a pending [message] was cancelled.
+  void cancelPendingMessage(ScheduledMessage message);
+
+  /// Report that the loop that processes messages has stopped running.
+  void endProcessingMessages();
+
+  /// Report that the [message] has been completed.
+  ///
+  /// This implies that the message was active and wasn't cancelled.
+  void messageCompleted(ScheduledMessage message);
+
+  /// Report that the pause counter was increased to [newPauseCount], and that
+  /// processing will be paused.
+  void pauseProcessingMessages(int newPauseCount);
+
+  /// Report that the pause counter was decreased to [newPauseCount] which, if
+  /// zero, indicates processing will resume.
+  void resumeProcessingMessages(int newPauseCount);
+
+  /// Report that the loop that processes messages has started to run.
+  void startProcessingMessages();
 }

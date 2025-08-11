@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class ConflictingFieldAndMethodTest extends PubPackageResolutionTest {
   test_class_inSuper_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   foo() {}
 }
 class B extends A {
   int foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3)],
+    );
   }
 
   test_class_inSuper_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   foo() {}
 }
 class B extends A {
   get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -96,20 +98,22 @@ augment class B extends A {}
   }
 
   test_class_inSuper_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   foo() {}
 }
 class B extends A {
   set foo(_) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3)],
+    );
   }
 
   test_enum_inMixin_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   void foo() {}
 }
@@ -118,13 +122,14 @@ enum E with M {
   v;
   final int foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 62, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 62, 3)],
+    );
   }
 
   test_enum_inMixin_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   void foo() {}
 }
@@ -133,9 +138,9 @@ enum E with M {
   v;
   int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 60, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 60, 3)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -194,7 +199,8 @@ augment enum E with M {}
   }
 
   test_enum_inMixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   void foo() {}
 }
@@ -203,9 +209,9 @@ enum E with M {
   v;
   set foo(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 56, 3)],
+    );
   }
 
   test_extensionType_getter() async {

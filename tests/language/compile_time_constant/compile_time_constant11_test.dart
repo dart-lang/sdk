@@ -9,21 +9,19 @@ import "package:expect/expect.dart";
 const C1 = true;
 const C2 = false;
 
-const nephew =
-    C1
-        ? C2
-            ? "Tick"
-            : "Trick"
-        : "Track";
+const nephew = C1
+    ? C2
+          ? "Tick"
+          : "Trick"
+    : "Track";
 
 main() {
   const a = true ? 5 : 10;
-  const b =
-      C2
-          ? "Track"
-          : C1
-          ? "Trick"
-          : "Tick";
+  const b = C2
+      ? "Track"
+      : C1
+      ? "Trick"
+      : "Tick";
 
   Expect.equals(5, a);
   Expect.equals("Trick", nephew);

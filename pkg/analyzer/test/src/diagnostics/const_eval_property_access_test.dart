@@ -23,25 +23,48 @@ class A<T> {
   const A() : f = T.foo;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart';
 const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        29,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(lib, 46, 5,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          29,
+          9,
+          contextMessages: [
+            ExpectedContextMessage(
+              lib,
+              46,
+              5,
               text:
-                  "The error is in the field initializer of 'A', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the field initializer of 'A', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_length_dynamic_notNull() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d.length;''');
+  }
+
+  test_length_dynamic_null() async {
+    await assertErrorsInCode(
+      r'''
+const dynamic d = null;
+const int? c = d.length;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 39, 8)],
+    );
   }
 
   test_length_invalidTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main() {
   const RequiresNonEmptyList([1]);
 }
@@ -49,30 +72,67 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 }
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        16,
-        31,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 138, 14,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          16,
+          31,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              138,
+              14,
               text:
-                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_nonStaticField_inGenericClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   const C();
   T? get t => null;
 }
 
 const x = const C().t;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11)],
+    );
+  }
+
+  test_nullAware_isEven_null() async {
+    await assertErrorsInCode(
+      r'''
+const int? s = null;
+const bool? c = s?.isEven;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 37, 9)],
+    );
+  }
+
+  test_nullAware_length_dynamic_null() async {
+    await assertNoErrorsInCode(r'''
+const dynamic d = 'foo';
+const int? c = d?.length;''');
+  }
+
+  test_nullAware_length_list_notNull() async {
+    await assertErrorsInCode(
+      r'''
+const List? l = [];
+const int? c = l?.length;''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 35, 9)],
+    );
+  }
+
+  test_nullAware_length_string_notNull() async {
+    await assertNoErrorsInCode(r'''
+const String? s = '';
+const int? c = s?.length;''');
   }
 }

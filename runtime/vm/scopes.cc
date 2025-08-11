@@ -31,7 +31,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       end_token_pos_(TokenPosition::kNoSource),
       variables_(),
       context_variables_(),
-      context_slots_(new(Thread::Current()->zone())
+      context_slots_(new (Thread::Current()->zone())
                          ZoneGrowableArray<const Slot*>()) {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can

@@ -62,10 +62,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         return baseType;
       case ir.Nullability.nullable:
         return _dartTypes.nullableType(baseType);
-      case ir.Nullability.legacy:
-        throw UnsupportedError(
-          'Unexpected legacy nullability on $nullabilitySource',
-        );
       case ir.Nullability.undetermined:
         // Type parameters may have undetermined nullability since it is derived
         // from the intersection of the declared nullability with the

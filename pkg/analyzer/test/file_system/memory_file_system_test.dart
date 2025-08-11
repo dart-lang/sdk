@@ -10,6 +10,7 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -59,6 +60,9 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   MemoryResourceProvider get provider => _provider ??= createProvider();
 
+  String convertPath(String filePath) =>
+      ResourceProviderExtension(provider).convertPath(filePath);
+
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
@@ -69,7 +73,7 @@ abstract class BaseTest extends FileSystemTestSupport {
     if (filePath == null) {
       filePath = defaultFilePath;
     } else {
-      filePath = provider.convertPath(filePath);
+      filePath = convertPath(filePath);
     }
     if (exists) {
       provider.newFile(filePath, content ?? defaultFileContent);
@@ -82,7 +86,7 @@ abstract class BaseTest extends FileSystemTestSupport {
     if (folderPath == null) {
       folderPath = defaultFolderPath;
     } else {
-      folderPath = provider.convertPath(folderPath);
+      folderPath = convertPath(folderPath);
     }
     if (exists) {
       provider.newFolder(folderPath);
@@ -92,9 +96,9 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   @override
   Link getLink({required String linkPath, String? target}) {
-    linkPath = provider.convertPath(linkPath);
+    linkPath = convertPath(linkPath);
     if (target != null) {
-      target = provider.convertPath(target);
+      target = convertPath(target);
 
       provider.newLink(linkPath, target);
     }
@@ -102,7 +106,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   }
 
   setUp() {
-    tempPath = provider.convertPath('/temp');
+    tempPath = convertPath('/temp');
     defaultFolderPath = join(tempPath, 'bar');
     defaultFilePath = join(tempPath, 'bar', 'test.dart');
   }
@@ -114,8 +118,10 @@ class FileSystemExceptionTest {
     var exception = FileSystemException('/my/path', 'my message');
     expect(exception.path, '/my/path');
     expect(exception.message, 'my message');
-    expect(exception.toString(),
-        'FileSystemException(path=/my/path; message=my message)');
+    expect(
+      exception.toString(),
+      'FileSystemException(path=/my/path; message=my message)',
+    );
   }
 }
 
@@ -177,19 +183,20 @@ class MemoryFileSourceExistingTest extends BaseTest {
 
   test_resolveRelative() {
     Uri relative = resolveRelativeUri(
-        source.uri,
-        provider.pathContext
-            .toUri(provider.pathContext.join('bar', 'baz.dart')));
+      source.uri,
+      provider.pathContext.toUri(provider.pathContext.join('bar', 'baz.dart')),
+    );
     expect(
-        relative,
-        provider.pathContext
-            .toUri(provider.convertPath('/temp/bar/bar/baz.dart')));
+      relative,
+      provider.pathContext.toUri(convertPath('/temp/bar/bar/baz.dart')),
+    );
   }
 
   test_resolveRelative_dart() {
     File file = getFile(
-        exists: false,
-        filePath: provider.convertPath('/sdk/lib/core/core.dart'));
+      exists: false,
+      filePath: convertPath('/sdk/lib/core/core.dart'),
+    );
     Source source = FileSource(file, Uri.parse('dart:core'));
 
     Uri resolved = resolveRelativeUri(source.uri, Uri.parse('int.dart'));
@@ -228,13 +235,13 @@ class MemoryFileSourceNotExistingTest extends BaseTest {
 
   test_resolveRelative() {
     Uri relative = resolveRelativeUri(
-        source.uri,
-        provider.pathContext
-            .toUri(provider.pathContext.join('bar', 'baz.dart')));
+      source.uri,
+      provider.pathContext.toUri(provider.pathContext.join('bar', 'baz.dart')),
+    );
     expect(
-        relative,
-        provider.pathContext
-            .toUri(provider.convertPath('/temp/bar/bar/baz.dart')));
+      relative,
+      provider.pathContext.toUri(convertPath('/temp/bar/bar/baz.dart')),
+    );
   }
 
   test_shortName() {
@@ -249,10 +256,7 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
     File file = getFile(exists: false);
     expect(file.exists, isFalse);
 
-    expect(
-      () => file.delete(),
-      throwsFileSystemException,
-    );
+    expect(() => file.delete(), throwsFileSystemException);
   }
 
   @override
@@ -292,12 +296,12 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
 @reflectiveTest
 class MemoryFolderTest extends BaseTest with FolderTestMixin {
   test_isRoot_false() {
-    var path = provider.convertPath('/foo');
+    var path = convertPath('/foo');
     expect(provider.getFolder(path).isRoot, isFalse);
   }
 
   test_isRoot_true() {
-    var path = provider.convertPath('/');
+    var path = convertPath('/');
     expect(provider.getFolder(path).isRoot, isTrue);
   }
 }
@@ -400,19 +404,13 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   test_newLink_folder() {
-    provider.newLink(
-      provider.convertPath('/test/lib/foo'),
-      provider.convertPath('/test/lib'),
-    );
+    provider.newLink(convertPath('/test/lib/foo'), convertPath('/test/lib'));
 
-    provider.newFile(
-      provider.convertPath('/test/lib/a.dart'),
-      'aaa',
-    );
+    provider.newFile(convertPath('/test/lib/a.dart'), 'aaa');
 
     {
       var path = '/test/lib/foo/a.dart';
-      var convertedPath = provider.convertPath(path);
+      var convertedPath = convertPath(path);
       var file = provider.getFile(convertedPath);
       expect(file.exists, true);
       expect(file.modificationStamp, isNonNegative);
@@ -421,7 +419,7 @@ class MemoryResourceProviderTest extends BaseTest
 
     {
       var path = '/test/lib/foo/foo/a.dart';
-      var convertedPath = provider.convertPath(path);
+      var convertedPath = convertPath(path);
       var file = provider.getFile(convertedPath);
       expect(file.exists, true);
       expect(file.modificationStamp, isNonNegative);
@@ -443,7 +441,7 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   test_watch_createFile() {
-    String rootPath = provider.convertPath('/my/path');
+    String rootPath = convertPath('/my/path');
     provider.newFolder(rootPath);
     return _watchingFolder(rootPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -459,7 +457,7 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   test_watch_deleteFile() {
-    String rootPath = provider.convertPath('/my/path');
+    String rootPath = convertPath('/my/path');
     provider.newFolder(rootPath);
     String path = provider.pathContext.join(rootPath, 'foo');
     provider.newFile(path, 'contents 1');
@@ -476,7 +474,7 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   test_watch_modifyFile() {
-    String rootPath = provider.convertPath('/my/path');
+    String rootPath = convertPath('/my/path');
     provider.newFolder(rootPath);
     String path = provider.pathContext.join(rootPath, 'foo');
     provider.newFile(path, 'contents 1');
@@ -493,7 +491,7 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   test_watch_modifyFile_inSubDir() {
-    String rootPath = provider.convertPath('/my/path');
+    String rootPath = convertPath('/my/path');
     provider.newFolder(rootPath);
     String subdirPath = provider.pathContext.join(rootPath, 'foo');
     provider.newFolder(subdirPath);
@@ -516,7 +514,9 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   _watchingFolder(
-      String path, Function(List<WatchEvent> changesReceived) test) {
+    String path,
+    Function(List<WatchEvent> changesReceived) test,
+  ) {
     var folder = provider.getResource(path) as Folder;
     var changesReceived = <WatchEvent>[];
     folder.watch().changes.listen(changesReceived.add);

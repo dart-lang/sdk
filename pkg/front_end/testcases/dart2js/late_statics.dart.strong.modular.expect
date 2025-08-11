@@ -21,7 +21,7 @@ class Statics extends core::Object {
   synthetic constructor •() → self::Statics
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::Statics
+  static synthetic method _#new#tearOff() → self::Statics
     return new self::Statics::•();
 }
 static method main() → void {

@@ -17,36 +17,49 @@ main() {
 class ConstInitializedWithNonConstantValueTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(p) {
   const c = p;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 19,
-          1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          19,
+          1,
+        ),
+      ],
+    );
   }
 
   test_finalField() async {
     // Regression test for bug #25526; previously, two errors were reported.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo {
   final field = 0;
   foo([int x = field]) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 46, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 46, 5)],
+    );
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = () {};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          5,
+        ),
+      ],
+    );
   }
 
   test_missingConstInListLiteral() async {
@@ -62,15 +75,21 @@ const Map M = {'a' : 0};
   }
 
   test_newInstance_constConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 const a = new A();
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          35,
+          7,
+        ),
+      ],
+    );
   }
 
   test_newInstance_externalFactoryConstConstructor() async {
@@ -85,17 +104,23 @@ const x = const A();
   }
 
   test_propertyExtraction_targetNotConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   int m() => 0;
 }
 final a = const A();
 const c = a.m;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          72,
+          1,
+        ),
+      ],
+    );
   }
 
   test_typeLiteral_interfaceType() async {

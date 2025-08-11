@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -18,7 +19,7 @@ class IgnoredDiagnosticComment implements IgnoredElement {
   IgnoredDiagnosticComment(this.text, this.offset);
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) => false;
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) => false;
 }
 
 /// The name and location of a diagnostic name in an ignore comment.
@@ -31,17 +32,17 @@ class IgnoredDiagnosticName implements IgnoredElement {
   final int offset;
 
   IgnoredDiagnosticName(String name, this.offset, {this.pluginName})
-      : name = name.toLowerCase();
+    : name = name.toLowerCase();
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
     if (this.pluginName != pluginName) {
       return false;
     }
-    if (name == errorCode.name.toLowerCase()) {
+    if (name == diagnosticCode.name.toLowerCase()) {
       return true;
     }
-    var uniqueName = errorCode.uniqueName;
+    var uniqueName = diagnosticCode.uniqueName;
     var period = uniqueName.indexOf('.');
     if (period >= 0) {
       uniqueName = uniqueName.substring(period + 1);
@@ -59,15 +60,15 @@ class IgnoredDiagnosticType implements IgnoredElement {
   final int length;
 
   IgnoredDiagnosticType(String type, this.offset, this.length)
-      : type = type.toLowerCase();
+    : type = type.toLowerCase();
 
   @override
-  bool _matches(ErrorCode errorCode, {String? pluginName}) {
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
     // Ignore 'pluginName'; it is irrelevant in an IgnoredDiagnosticType.
-    return switch (errorCode.type) {
-      ErrorType.HINT => type == 'hint',
-      ErrorType.LINT => type == 'lint',
-      ErrorType.STATIC_WARNING => type == 'warning',
+    return switch (diagnosticCode.type) {
+      DiagnosticType.HINT => type == 'hint',
+      DiagnosticType.LINT => type == 'lint',
+      DiagnosticType.STATIC_WARNING => type == 'warning',
       // Only errors with one of the above types can be ignored via the type.
       _ => false,
     };
@@ -75,8 +76,8 @@ class IgnoredDiagnosticType implements IgnoredElement {
 }
 
 sealed class IgnoredElement {
-  /// Returns whether this matches the given [errorCode].
-  bool _matches(ErrorCode errorCode, {String? pluginName});
+  /// Returns whether this matches the given [diagnosticCode].
+  bool _matches(DiagnosticCode diagnosticCode, {String? pluginName});
 }
 
 /// Information about analysis `//ignore:` and `//ignore_for_file:` comments
@@ -95,14 +96,17 @@ class IgnoreInfo {
   /// A regular expression for matching 'ignore' comments in a .yaml file.
   ///
   /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
-  static final RegExp _yamlIgnoreMatcher =
-      RegExp(r'^(?<before>.*)#+[ ]*ignore:(?<ignored>.*)', multiLine: true);
+  static final RegExp _yamlIgnoreMatcher = RegExp(
+    r'^(?<before>.*)#+[ ]*ignore:(?<ignored>.*)',
+    multiLine: true,
+  );
 
   /// A regular expression for matching 'ignore_for_file' comments.
   ///
   /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
-  static final RegExp _yamlIgnoreForFileMatcher =
-      RegExp(r'#[ ]*ignore_for_file:(?<ignored>.*)');
+  static final RegExp _yamlIgnoreForFileMatcher = RegExp(
+    r'#[ ]*ignore_for_file:(?<ignored>.*)',
+  );
 
   static final _trimmedCommaSeparatedMatcher = RegExp(r'[^\s,]([^,]*[^\s,])?');
 
@@ -121,7 +125,7 @@ class IgnoreInfo {
   /// Initializes a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   IgnoreInfo.forDart(CompilationUnit unit, String content)
-      : _lineInfo = unit.lineInfo {
+    : _lineInfo = unit.lineInfo {
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {
@@ -129,7 +133,9 @@ class IgnoreInfo {
         var lineNumber = location.lineNumber;
         var offsetOfLine = _lineInfo.getOffsetOfLine(lineNumber - 1);
         var beforeMatch = content.substring(
-            offsetOfLine, offsetOfLine + location.columnNumber - 1);
+          offsetOfLine,
+          offsetOfLine + location.columnNumber - 1,
+        );
         if (beforeMatch.trim().isEmpty) {
           // The comment is on its own line, so it refers to the next line.
           lineNumber++;
@@ -185,27 +191,33 @@ class IgnoreInfo {
     return ignoredOnLine;
   }
 
-  /// Whether [error] is ignored via an inline "ignore" comment.
-  bool ignored(AnalysisError error, {String? pluginName}) {
-    var line = _lineInfo.getLocation(error.offset).lineNumber;
-    return _ignoredAt(error.errorCode, line, pluginName: pluginName);
+  /// Whether [diagnostic] is ignored via an inline "ignore" comment.
+  bool ignored(Diagnostic diagnostic, {String? pluginName}) {
+    var line = _lineInfo.getLocation(diagnostic.offset).lineNumber;
+    return _ignoredAt(diagnostic.diagnosticCode, line, pluginName: pluginName);
   }
 
-  /// Returns whether the [errorCode] is ignored at the given [line].
-  bool _ignoredAt(ErrorCode errorCode, int line, {String? pluginName}) {
+  /// Returns whether the [diagnosticCode] is ignored at the given [line].
+  bool _ignoredAt(
+    DiagnosticCode diagnosticCode,
+    int line, {
+    String? pluginName,
+  }) {
     var ignoredDiagnostics = _ignoredOnLine[line];
     if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
       return false;
     }
-    if (ignoredForFile
-        .any((name) => name._matches(errorCode, pluginName: pluginName))) {
+    if (ignoredForFile.any(
+      (name) => name._matches(diagnosticCode, pluginName: pluginName),
+    )) {
       return true;
     }
     if (ignoredDiagnostics == null) {
       return false;
     }
-    return ignoredDiagnostics
-        .any((name) => name._matches(errorCode, pluginName: pluginName));
+    return ignoredDiagnostics.any(
+      (name) => name._matches(diagnosticCode, pluginName: pluginName),
+    );
   }
 }
 
@@ -293,7 +305,9 @@ extension CommentTokenExtension on CommentToken {
             // like `ignore: http://google.com`. This is not a diagnostic name.
             if (hasIgnoredElements) {
               yield IgnoredDiagnosticComment(
-                  lexeme.substring(wordOffset), this.offset + wordOffset);
+                lexeme.substring(wordOffset),
+                this.offset + wordOffset,
+              );
             }
             return;
           }
@@ -301,7 +315,10 @@ extension CommentTokenExtension on CommentToken {
         var type = lexeme.substring(typeOffset, offset);
         hasIgnoredElements = true;
         yield IgnoredDiagnosticType(
-            type, this.offset + wordOffset, offset - wordOffset);
+          type,
+          this.offset + wordOffset,
+          offset - wordOffset,
+        );
       } else {
         String? pluginName;
         if (offset < lexeme.length) {
@@ -334,14 +351,19 @@ extension CommentTokenExtension on CommentToken {
             // like `ignore: http://google.com`. This is not a diagnostic name.
             if (hasIgnoredElements) {
               yield IgnoredDiagnosticComment(
-                  lexeme.substring(wordOffset), this.offset + wordOffset);
+                lexeme.substring(wordOffset),
+                this.offset + wordOffset,
+              );
             }
             return;
           }
         }
         hasIgnoredElements = true;
-        yield IgnoredDiagnosticName(word, this.offset + wordOffset,
-            pluginName: pluginName);
+        yield IgnoredDiagnosticName(
+          word,
+          this.offset + wordOffset,
+          pluginName: pluginName,
+        );
       }
 
       if (offset == lexeme.length) return;
@@ -354,7 +376,9 @@ extension CommentTokenExtension on CommentToken {
         // follows is unstructured comment text.
         if (hasIgnoredElements) {
           yield IgnoredDiagnosticComment(
-              lexeme.substring(offset), this.offset + wordOffset);
+            lexeme.substring(offset),
+            this.offset + wordOffset,
+          );
         }
         return;
       }

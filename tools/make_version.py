@@ -15,24 +15,24 @@ import utils
 
 # When these files change, snapshots created by the VM are potentially no longer
 # backwards-compatible.
+# This list must be kept in sync with the inputs to generate_version_cc_file in
+# runtime/BUILD.gn.
 VM_SNAPSHOT_FILES = [
-    # Header files.
-    'app_snapshot.h',
-    'datastream.h',
-    'image_snapshot.h',
-    'object.h',
-    'raw_object.h',
-    'snapshot.h',
-    'symbols.h',
-    # Source files.
     'app_snapshot.cc',
+    'app_snapshot.h',
     'dart.cc',
     'dart_api_impl.cc',
+    'datastream.h',
     'image_snapshot.cc',
+    'image_snapshot.h',
     'object.cc',
+    'object.h',
     'raw_object.cc',
+    'raw_object.h',
     'snapshot.cc',
+    'snapshot.h',
     'symbols.cc',
+    'symbols.h',
 ]
 
 

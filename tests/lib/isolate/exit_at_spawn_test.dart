@@ -43,8 +43,11 @@ void test(mainFunction) {
   };
 
   // Ignore returned Future.
-  Isolate.spawn(mainFunction, null,
-      // Setup handler as part of spawn.
-      errorsAreFatal: false,
-      onExit: exitPort.sendPort);
+  Isolate.spawn(
+    mainFunction,
+    null,
+    // Setup handler as part of spawn.
+    errorsAreFatal: false,
+    onExit: exitPort.sendPort,
+  );
 }

@@ -20,8 +20,7 @@ class SuperB3<T> {}
 
 class InterfaceB<T> {}
 
-mixin MixinB<T>
-    on SuperB1<List<T>>, SuperB2<int>, SuperB3<T>
+mixin MixinB<T> on SuperB1<List<T>>, SuperB2<int>, SuperB3<T>
     implements InterfaceB<Map<int, T>> {}
 
 class C extends SuperA1 with SuperA2 {}

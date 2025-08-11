@@ -87,15 +87,15 @@ class C6 {
 }
 
 class C7 implements C6 {
-//    ^^
-// [context 6] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
-// [context 12] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
-// [context 18] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
-// [context 24] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
-// [context 30] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
-// [context 36] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
-// [context 42] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
-// [context 48] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
+  //  ^^
+  // [context 6] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+  // [context 12] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+  // [context 18] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+  // [context 24] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+  // [context 30] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
+  // [context 36] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
+  // [context 42] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
+  // [context 48] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C7'.
   noSuchMethod(invocation) => 0;
 }
 

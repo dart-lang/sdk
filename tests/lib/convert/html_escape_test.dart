@@ -10,7 +10,8 @@ const _NOOP = 'Nothing_to_escape';
 
 const _TEST_INPUT = """<A </test> of \xA0 "double" & 'single' values>""";
 
-const _OUTPUT_UNKNOWN = '&lt;A &lt;&#47;test&gt; of \xA0 &quot;double&quot; '
+const _OUTPUT_UNKNOWN =
+    '&lt;A &lt;&#47;test&gt; of \xA0 &quot;double&quot; '
     '&amp; &#39;single&#39; values&gt;';
 
 const _OUTPUT_ATTRIBUTE =
@@ -78,12 +79,24 @@ void main() {
   _testMode(htmlEscape, _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(), _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(
-      const HtmlEscape(HtmlEscapeMode.unknown), _TEST_INPUT, _OUTPUT_UNKNOWN);
-  _testMode(const HtmlEscape(HtmlEscapeMode.attribute), _TEST_INPUT,
-      _OUTPUT_ATTRIBUTE);
-  _testMode(const HtmlEscape(HtmlEscapeMode.sqAttribute), _TEST_INPUT,
-      _OUTPUT_SQ_ATTRIBUTE);
+    const HtmlEscape(HtmlEscapeMode.unknown),
+    _TEST_INPUT,
+    _OUTPUT_UNKNOWN,
+  );
   _testMode(
-      const HtmlEscape(HtmlEscapeMode.element), _TEST_INPUT, _OUTPUT_ELEMENT);
+    const HtmlEscape(HtmlEscapeMode.attribute),
+    _TEST_INPUT,
+    _OUTPUT_ATTRIBUTE,
+  );
+  _testMode(
+    const HtmlEscape(HtmlEscapeMode.sqAttribute),
+    _TEST_INPUT,
+    _OUTPUT_SQ_ATTRIBUTE,
+  );
+  _testMode(
+    const HtmlEscape(HtmlEscapeMode.element),
+    _TEST_INPUT,
+    _OUTPUT_ELEMENT,
+  );
   _testMode(htmlEscape, _NOOP, _NOOP);
 }

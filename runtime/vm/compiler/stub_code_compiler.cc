@@ -50,6 +50,38 @@ void StubCodeCompiler::GenerateInitStaticFieldStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateCheckIsolateFieldAccessStub() {
+  const Register kFieldReg = InitStaticFieldABI::kFieldReg;
+  const Register kScratchReg = InitLateStaticFieldInternalRegs::kScratchReg;
+
+  __ EnterStubFrame();
+
+  Label throw_since_no_isolate_is_present;
+  if (!FLAG_experimental_shared_data) {
+    // Should not be invoked
+    __ Breakpoint();
+  }
+  // This stub is also called from mutator thread running without an
+  // isolate and attempts to load value from isolate static field.
+  __ LoadIsolate(kScratchReg);
+  __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
+  __ LeaveStubFrame();
+  __ Ret();
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // We are jumping over LeaveStubFrame so restore LR state to match one
+  // at the jump point.
+  __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // Throw FieldAccessError
+  __ Bind(&throw_since_no_isolate_is_present);
+  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushRegister(kFieldReg);
+  __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                 /*argument_count=*/1);
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
                                                        bool is_shared) {
   const Register kResultReg = InitStaticFieldABI::kResultReg;
@@ -58,6 +90,28 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
   const Register kScratchReg = InitLateStaticFieldInternalRegs::kScratchReg;
 
   __ EnterStubFrame();
+
+  if (FLAG_experimental_shared_data && is_shared) {
+    // Since initialization of shared fields has to be guarded by
+    // a mutex, do the initialization in the runtime.
+    __ PushObject(NullObject());  // Make room for the result
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kInitializeSharedFieldRuntimeEntry, /*argument_count=*/1);
+    __ PopRegister(kFieldReg);
+    __ PopRegister(kResultReg);
+    __ LeaveStubFrame();
+    __ Ret();
+    return;
+  }
+
+  Label throw_since_no_isolate_is_present;
+  if (FLAG_experimental_shared_data) {
+    ASSERT(!is_shared);
+    // This stub is also called from mutator thread running without an
+    // isolate and attempts to load value from isolate static field.
+    __ LoadIsolate(kScratchReg);
+    __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
+  }
 
   __ Comment("Calling initializer function");
   __ PushRegister(kFieldReg);
@@ -99,6 +153,22 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
                    /*argument_count=*/1);
     __ Breakpoint();
   }
+
+  if (FLAG_experimental_shared_data) {
+    ASSERT(!is_shared);
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // Throw FieldAccessError
+    __ Bind(&throw_since_no_isolate_is_present);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
+  }
 }
 
 void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
@@ -106,15 +176,11 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
 }
 
 void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/false);
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*is_shared=*/false);
 }
 
 void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
   GenerateInitLateStaticFieldStub(/*is_final=*/false, /*is_shared=*/true);
-}
-
-void StubCodeCompiler::GenerateInitSharedLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/true);
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub() {
@@ -1306,7 +1372,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
     __ Comment("Inline allocation of GrowableList");
     __ TryAllocateObject(kGrowableObjectArrayCid, instance_size, &slow_case,
                          Assembler::kNearJump, AllocateObjectABI::kResultReg,
-                         /*temp_reg=*/AllocateObjectABI::kTagsReg);
+                         /*temp=*/AllocateObjectABI::kTagsReg);
     __ StoreIntoObjectNoBarrier(
         AllocateObjectABI::kResultReg,
         FieldAddress(AllocateObjectABI::kResultReg,
@@ -1646,6 +1712,30 @@ void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub() {
 
 void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub() {
   GenerateWriteError(/*with_fpu_regs=*/true);
+}
+
+void StubCodeCompiler::GenerateFieldAccessError(bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ PushRegister(FieldAccessErrorABI::kFieldReg);
+    __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                   /*argument_count=*/1);
+  };
+  GenerateSharedStubGeneric(
+      /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::
+                field_access_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::
+                field_access_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
+void StubCodeCompiler::GenerateFieldAccessErrorSharedWithoutFPURegsStub() {
+  GenerateFieldAccessError(/*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateFieldAccessErrorSharedWithFPURegsStub() {
+  GenerateFieldAccessError(/*with_fpu_regs=*/true);
 }
 
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub() {
@@ -2648,7 +2738,7 @@ void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   pc_descriptors_list_->AddDescriptor(
       UntaggedPcDescriptors::kBSSRelocation, pc_offset,
       /*deopt_id=*/DeoptId::kNone,
-      /*root_pos=*/TokenPosition::kNoSource,
+      /*token_pos=*/TokenPosition::kNoSource,
       /*try_index=*/-1,
       /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
 }

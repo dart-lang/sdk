@@ -38,7 +38,7 @@ void main() {
               enableAsserts: true)));
       expect(
           testMatrix.configurations[2],
-          equals(Configuration("ddc-hostasserts-linux-d8", Architecture.x64,
+          equals(Configuration("ddc-hostasserts-linux-d8", Architecture.host,
               Compiler.ddc, Mode.release, Runtime.d8, System.linux,
               enableHostAsserts: true)));
     });

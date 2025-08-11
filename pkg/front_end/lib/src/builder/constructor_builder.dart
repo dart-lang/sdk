@@ -7,6 +7,8 @@ import 'package:kernel/ast.dart';
 import 'function_builder.dart';
 
 abstract class ConstructorBuilder implements FunctionBuilder {
+  bool get isConst;
+
   /// The member target used for tearing of the constructor.
   @override
   Member get readTarget;

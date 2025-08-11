@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,13 +19,11 @@ class AvoidMultipleDeclarationsPerLine extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_multiple_declarations_per_line;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_multiple_declarations_per_line;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var variables = node.variables;
     if (variables.length > 1) {
       var secondVariable = variables[1];
-      rule.reportLintForToken(secondVariable.name);
+      rule.reportAtToken(secondVariable.name);
     }
   }
 }

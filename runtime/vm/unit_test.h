@@ -247,8 +247,8 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
-extern const uint8_t* platform_strong_dill;
-extern const intptr_t platform_strong_dill_size;
+extern const uint8_t* platform_dill;
+extern const intptr_t platform_dill_size;
 
 class TesterState : public AllStatic {
  public:
@@ -330,7 +330,6 @@ class TestCase : TestCaseBase {
       const uint8_t** kernel_buffer,
       intptr_t* kernel_buffer_size,
       bool incrementally = true,
-      bool allow_compile_errors = false,
       const char* multiroot_filepaths = nullptr,
       const char* multiroot_scheme = nullptr);
   static char* CompileTestScriptWithDFE(
@@ -340,18 +339,11 @@ class TestCase : TestCaseBase {
       const uint8_t** kernel_buffer,
       intptr_t* kernel_buffer_size,
       bool incrementally = true,
-      bool allow_compile_errors = false,
       const char* multiroot_filepaths = nullptr,
       const char* multiroot_scheme = nullptr);
   static Dart_Handle LoadTestScript(
       const char* script,
       Dart_NativeEntryResolver resolver,
-      const char* lib_uri = RESOLVED_USER_TEST_URI,
-      bool finalize = true,
-      bool allow_compile_errors = false);
-  static Dart_Handle LoadTestScriptWithErrors(
-      const char* script,
-      Dart_NativeEntryResolver resolver = nullptr,
       const char* lib_uri = RESOLVED_USER_TEST_URI,
       bool finalize = true);
   static Dart_Handle LoadTestLibrary(
@@ -364,7 +356,6 @@ class TestCase : TestCaseBase {
       Dart_NativeEntryResolver resolver = nullptr,
       bool finalize = true,
       bool incrementally = true,
-      bool allow_compile_errors = false,
       const char* entry_script_uri = nullptr,
       const char* multiroot_filepaths = nullptr,
       const char* multiroot_scheme = nullptr);
@@ -434,8 +425,7 @@ class TestCase : TestCaseBase {
   static char* ValidateCompilationResult(Zone* zone,
                                          Dart_KernelCompilationResult result,
                                          const uint8_t** kernel_buffer,
-                                         intptr_t* kernel_buffer_size,
-                                         bool allow_compile_errors);
+                                         intptr_t* kernel_buffer_size);
 
   RunEntry* const run_;
 };
@@ -524,7 +514,7 @@ class AssemblerTest {
 // using the ABI calling convention.
 // ResultType is the return type of the assembler test function.
 // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 
   // Since Simulator::Call always return a int64_t, bit_cast does not work
   // on 32-bit platforms when returning an int32_t. Use static cast on the
@@ -611,7 +601,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType)(Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
   // Assemble test and set code_.
   void Assemble();

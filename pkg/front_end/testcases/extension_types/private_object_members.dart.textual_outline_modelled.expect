@@ -1,0 +1,7 @@
+extension type E(int i) {
+  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type) {}
+  bool _simpleInstanceOf(dynamic type) {}
+  bool _simpleInstanceOfFalse(dynamic type) {}
+  bool _simpleInstanceOfTrue(dynamic type) {}
+  int get _identityHashCode => 42;
+}

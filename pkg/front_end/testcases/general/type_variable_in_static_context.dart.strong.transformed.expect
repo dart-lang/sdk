@@ -421,7 +421,7 @@ library;
 //     void fun<U extends T>() {}
 //                        ^
 //
-// pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: The value 'null' can't be returned from a function with return type 'Mixin<T>' because 'Mixin<T>' is not nullable.
+// pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: A value of type 'Null' can't be returned from a function with return type 'Mixin<T>'.
 //  - 'Mixin' is from 'pkg/front_end/testcases/general/type_variable_in_static_context.dart'.
 //   factory Mixin.fact(T t) => null;
 //                              ^
@@ -550,7 +550,7 @@ abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*i
     : super core::Object::•()
     ;
   static factory fact<T extends core::Object? = dynamic>(self::Mixin::fact::T% t) → self::Mixin<self::Mixin::fact::T%>
-    return invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: The value 'null' can't be returned from a function with return type 'Mixin<T>' because 'Mixin<T>' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: A value of type 'Null' can't be returned from a function with return type 'Mixin<T>'.
  - 'Mixin' is from 'pkg/front_end/testcases/general/type_variable_in_static_context.dart'.
   factory Mixin.fact(T t) => null;
                              ^" in let Null #t1 = null in #t1 == null ?{Never} #t1 as{TypeError} Never : #t1{Never};
@@ -603,7 +603,7 @@ static extension-member method Extension|instanceMethod<T extends core::Object? 
 static extension-member method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
   return <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T% t) → self::Extension|get#instanceMethod::T% => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T%, S%>(#this, t);
 static method main() → dynamic {}
-static method _#B#new#tearOff<T extends core::num>() → self::Class<self::_#B#new#tearOff::T>
+static synthetic method _#B#new#tearOff<T extends core::num>() → self::Class<self::_#B#new#tearOff::T>
   return new self::Class::•<self::_#B#new#tearOff::T>();
 
 constants  {

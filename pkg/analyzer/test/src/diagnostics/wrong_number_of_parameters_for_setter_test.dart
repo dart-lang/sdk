@@ -24,74 +24,106 @@ class A {
   }
 
   test_function_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 set x({p}) {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1)],
+    );
   }
 
   test_function_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 set x([p]) {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1)],
+    );
   }
 
   test_function_tooFew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 set x() {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1)],
+    );
   }
 
   test_function_tooMany() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 set x(a, b) {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 1)],
+    );
   }
 
   test_method_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set x({p}) {}
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_optional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set x([p]) {}
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set x() {}
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set x(a, b) {}
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 }

@@ -297,19 +297,20 @@ class BackendUsageImpl implements BackendUsage {
 
   factory BackendUsageImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Set<FunctionEntity> globalFunctionDependencies =
-        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> globalFunctionDependencies = source
+        .readMembers<FunctionEntity>()
+        .toSet();
     Set<ClassEntity> globalClassDependencies = source.readClasses().toSet();
-    Set<FunctionEntity> helperFunctionsUsed =
-        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> helperFunctionsUsed = source
+        .readMembers<FunctionEntity>()
+        .toSet();
     Set<ClassEntity> helperClassesUsed = source.readClasses().toSet();
-    Set<RuntimeTypeUse> runtimeTypeUses =
-        source.readList(() {
-          RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
-          DartType receiverType = source.readDartType();
-          DartType? argumentType = source.readDartTypeOrNull();
-          return RuntimeTypeUse(kind, receiverType, argumentType);
-        }).toSet();
+    Set<RuntimeTypeUse> runtimeTypeUses = source.readList(() {
+      RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
+      DartType receiverType = source.readDartType();
+      DartType? argumentType = source.readDartTypeOrNull();
+      return RuntimeTypeUse(kind, receiverType, argumentType);
+    }).toSet();
     bool needToInitializeIsolateAffinityTag = source.readBool();
     bool needToInitializeDispatchProperty = source.readBool();
     bool requiresPreamble = source.readBool();

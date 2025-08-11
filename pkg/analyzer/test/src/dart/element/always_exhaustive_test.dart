@@ -41,32 +41,26 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
   test_class_sealed() {
     var A = class_2(name: 'A', isSealed: true);
     isAlwaysExhaustive(interfaceTypeNone(A));
-    isAlwaysExhaustive(interfaceTypeQuestion2(A));
+    isAlwaysExhaustive(interfaceTypeQuestion(A));
   }
 
   test_enum() {
     var E = enum_2(name: 'E', constants: []);
     isAlwaysExhaustive(interfaceTypeNone(E));
-    isAlwaysExhaustive(interfaceTypeQuestion2(E));
+    isAlwaysExhaustive(interfaceTypeQuestion(E));
   }
 
   test_extensionType() {
     isAlwaysExhaustive(
-      interfaceTypeNone(
-        extensionType2('A', representationType: boolNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: boolNone)),
     );
 
     isAlwaysExhaustive(
-      interfaceTypeNone(
-        extensionType2('A', representationType: boolQuestion),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: boolQuestion)),
     );
 
     isNotAlwaysExhaustive(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
   }
 
@@ -82,75 +76,36 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
   }
 
   test_recordType() {
-    isAlwaysExhaustive(
-      recordTypeNone(
-        positionalTypes: [boolNone],
-      ),
-    );
+    isAlwaysExhaustive(recordTypeNone(positionalTypes: [boolNone]));
 
-    isAlwaysExhaustive(
-      recordTypeNone(
-        namedTypes: {
-          'f0': boolNone,
-        },
-      ),
-    );
+    isAlwaysExhaustive(recordTypeNone(namedTypes: {'f0': boolNone}));
+
+    isNotAlwaysExhaustive(recordTypeNone(positionalTypes: [intNone]));
+
+    isNotAlwaysExhaustive(recordTypeNone(positionalTypes: [boolNone, intNone]));
+
+    isNotAlwaysExhaustive(recordTypeNone(namedTypes: {'f0': intNone}));
 
     isNotAlwaysExhaustive(
-      recordTypeNone(
-        positionalTypes: [intNone],
-      ),
-    );
-
-    isNotAlwaysExhaustive(
-      recordTypeNone(
-        positionalTypes: [boolNone, intNone],
-      ),
-    );
-
-    isNotAlwaysExhaustive(
-      recordTypeNone(
-        namedTypes: {
-          'f0': intNone,
-        },
-      ),
-    );
-
-    isNotAlwaysExhaustive(
-      recordTypeNone(
-        namedTypes: {
-          'f0': boolNone,
-          'f1': intNone,
-        },
-      ),
+      recordTypeNone(namedTypes: {'f0': boolNone, 'f1': intNone}),
     );
   }
 
   test_typeParameter() {
     isAlwaysExhaustive(
-      typeParameterTypeNone(
-        typeParameter('T', bound: boolNone),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: boolNone)),
     );
 
     isNotAlwaysExhaustive(
-      typeParameterTypeNone(
-        typeParameter('T', bound: numNone),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: numNone)),
     );
 
     isAlwaysExhaustive(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: boolNone,
-      ),
+      typeParameterTypeNone(typeParameter('T'), promotedBound: boolNone),
     );
 
     isNotAlwaysExhaustive(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: intNone,
-      ),
+      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
     );
   }
 }

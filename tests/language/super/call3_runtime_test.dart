@@ -10,9 +10,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  A(
-
-      );
+  A();
   final foo = 499;
 }
 
@@ -25,9 +23,7 @@ class B2 extends A {
 }
 
 class C {
-  C
-
-  ();
+  C();
   final foo = 499;
 }
 

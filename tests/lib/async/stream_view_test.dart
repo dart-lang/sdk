@@ -29,8 +29,11 @@ Future runTest() async {
   Stream<int> s = const StreamView<int>(const Stream<int>.empty());
 
   Expect.isFalse(s is Stream<String>); // Respects type parameter.
-  StreamSubscription<int> sub =
-      s.listen(unreachable, onError: unreachable, onDone: ticker);
+  StreamSubscription<int> sub = s.listen(
+    unreachable,
+    onError: unreachable,
+    onDone: ticker,
+  );
   Expect.isFalse(sub is StreamSubscription<String>); // Type parameter in sub.
 
   Stream iterableStream = new Stream.fromIterable([1, 2, 3]);

@@ -14,10 +14,8 @@
 class C<T> {
   // This line is supposed to cause the warning; the other commented
   // line just doesn't make sense without this line.
-
 }
 
 main() {
   C<Type> c = new C<Type>();
-
 }

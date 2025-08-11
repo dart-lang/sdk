@@ -26,6 +26,7 @@ void testDriveLetterStat() {
 // converted refer to the same thing.
 void testDriveLetterNoBackslash() {
   final current = Directory.current.path;
+  var allFailed = true;
   for (var e in Directory.systemTemp.listSync()) {
     final path = e.path;
     if (path.length < 3) return;
@@ -40,10 +41,22 @@ void testDriveLetterNoBackslash() {
         }
       }
       noBackslash += path.substring(3);
-      Expect.equals("${Directory(noBackslash).statSync()}",
-          "${Directory(path).statSync()}");
+      final noBackslashStat = Directory(noBackslash).statSync();
+      final pathStat = Directory(path).statSync();
+      if (noBackslashStat.type != pathStat.type) {
+        // Since these are entries in the system temp directory, they may
+        // be removed between the two calls.
+        Expect.notEquals(FileSystemEntityType.notFound, noBackslashStat.type);
+        Expect.equals(FileSystemEntityType.notFound, pathStat.type);
+      } else {
+        Expect.stringEquals(noBackslashStat.toString(), pathStat.toString());
+        if (noBackslashStat.type != FileSystemEntityType.notFound) {
+          allFailed = false;
+        }
+      }
     }
   }
+  Expect.isFalse(allFailed, "no successful statSync() comparisons");
 }
 
 void testDeleteLongPathPrefix() {

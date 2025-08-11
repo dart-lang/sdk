@@ -14,21 +14,21 @@ import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [ConstructorElement2]s.
+/// A [Refactoring] for renaming [ConstructorElement]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RenameConstructorRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    ConstructorElement2 super.element,
+    ConstructorElement super.element,
   ) : super();
 
   @override
-  ConstructorElement2 get element => super.element as ConstructorElement2;
+  ConstructorElement get element => super.element as ConstructorElement;
 
   @override
   String get refactoringName {
@@ -133,9 +133,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element.enclosingElement2;
+    var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name3 == newName) {
+    if (parentClass.name == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
@@ -158,7 +158,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var fragment = element.firstFragment;
     var offset = fragment.periodOffset;
     if (offset != null) {
-      var name = fragment.name2;
+      var name = fragment.name;
       var nameEnd = fragment.nameOffset2! + name.length;
       return range.startOffsetEndOffset(offset, nameEnd);
     } else {
@@ -190,7 +190,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement;
 
     var fragment = classElement.firstFragment;
     var result = await sessionHelper.getFragmentDeclaration(fragment);
@@ -216,7 +216,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       resolvedUnit: resolvedUnit,
       session: sessionHelper.session,
       (builder) => builder.writeConstructorDeclaration(
-        classElement.name3!,
+        classElement.name!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),

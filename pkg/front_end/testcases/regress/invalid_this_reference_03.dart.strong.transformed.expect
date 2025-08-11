@@ -13,11 +13,11 @@ extension /* unnamed */ _extension#0 on core::int {
   method bar = self::_extension#0|bar;
   method tearoff bar = self::_extension#0|get#bar;
 }
-static extension-member method _extension#0|bar(lowered final core::int #this, {core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_03.dart:6:22: Error: Expected identifier, but got 'this'.
+static extension-member method _extension#0|bar(lowered final core::int #this, {erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_03.dart:6:22: Error: Expected identifier, but got 'this'.
   int bar({int baz = this}) => 42;
                      ^^^^"}) → core::int
   return 42;
 static extension-member method _extension#0|get#bar(lowered final core::int #this) → ({baz: core::int}) → core::int
-  return ({core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_03.dart:6:22: Error: Expected identifier, but got 'this'.
+  return ({erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_03.dart:6:22: Error: Expected identifier, but got 'this'.
   int bar({int baz = this}) => 42;
                      ^^^^"}) → core::int => self::_extension#0|bar(#this, baz: baz);

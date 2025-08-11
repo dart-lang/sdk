@@ -73,29 +73,19 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&SimpleHashMap::SamePointerValue, 16) {
   intptr_t result;
-  result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
+  result = NO_RETRY_EXPECTED(pipe2(interrupt_fds_, O_CLOEXEC));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
   if (!FDUtils::SetNonBlocking(interrupt_fds_[0])) {
     FATAL("Failed to set pipe fd non blocking\n");
   }
-  if (!FDUtils::SetCloseOnExec(interrupt_fds_[0])) {
-    FATAL("Failed to set pipe fd close on exec\n");
-  }
-  if (!FDUtils::SetCloseOnExec(interrupt_fds_[1])) {
-    FATAL("Failed to set pipe fd close on exec\n");
-  }
   shutdown_ = false;
   // The initial size passed to epoll_create is ignore on newer (>=
   // 2.6.8) Linux versions
-  const int kEpollInitialSize = 64;
-  epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
+  epoll_fd_ = NO_RETRY_EXPECTED(epoll_create1(O_CLOEXEC));
   if (epoll_fd_ == -1) {
     FATAL("Failed creating epoll file descriptor: %i", errno);
-  }
-  if (!FDUtils::SetCloseOnExec(epoll_fd_)) {
-    FATAL("Failed to set epoll fd close on exec\n");
   }
   // Register the interrupt_fd with the epoll instance.
   struct epoll_event event;

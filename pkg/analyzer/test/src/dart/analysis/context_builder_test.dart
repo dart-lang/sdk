@@ -17,14 +17,13 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -49,15 +48,15 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
-    var workspace =
-        BasicWorkspace.find(resourceProvider, Packages.empty, folder.path);
+    var workspace = BasicWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      folder.path,
+    );
     contextRoot = ContextRootImpl(resourceProvider, folder, workspace);
   }
 
@@ -66,8 +65,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     var optionsFile = newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
+    var analysisOptions = analysisContext.getAnalysisOptionsImplForFile(
+      optionsFile,
+    );
     _expectEqualOptions(analysisOptions, AnalysisOptionsImpl());
   }
 
@@ -79,8 +79,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     );
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
+    var analysisOptions = analysisContext.getAnalysisOptionsImplForFile(
+      optionsFile,
+    );
     _expectEqualOptions(
       analysisOptions,
       (AnalysisOptionsBuilder()..strictRawTypes = true).build(),
@@ -88,8 +89,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_declaredVariables() {
-    DeclaredVariables declaredVariables =
-        DeclaredVariables.fromMap({'foo': 'true'});
+    DeclaredVariables declaredVariables = DeclaredVariables.fromMap({
+      'foo': 'true',
+    });
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
@@ -100,8 +102,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_declaredVariables_sdkPath() {
-    DeclaredVariables declaredVariables =
-        DeclaredVariables.fromMap({'bar': 'true'});
+    DeclaredVariables declaredVariables = DeclaredVariables.fromMap({
+      'bar': 'true',
+    });
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
@@ -137,7 +140,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   test_createContext_sdkRoot() {
     var context = contextBuilder.createContext(
-        contextRoot: contextRoot, sdkPath: sdkRoot.path);
+      contextRoot: contextRoot,
+      sdkPath: sdkRoot.path,
+    );
     expect(context.contextRoot, contextRoot);
     expect(context.sdkRoot, sdkRoot);
   }
@@ -187,10 +192,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
     return ContextBuilderImpl(
       resourceProvider: resourceProvider,
-    ).createContext(
-      contextRoot: roots.single,
-      sdkPath: sdkRoot.path,
-    );
+    ).createContext(contextRoot: roots.single, sdkPath: sdkRoot.path);
   }
 
   static void _expectEqualOptions(
@@ -205,7 +207,9 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
     expect(
-        actual.propagateLinterExceptions, expected.propagateLinterExceptions);
+      actual.propagateLinterExceptions,
+      expected.propagateLinterExceptions,
+    );
     expect(actual.strictInference, expected.strictInference);
     expect(actual.strictRawTypes, expected.strictRawTypes);
   }

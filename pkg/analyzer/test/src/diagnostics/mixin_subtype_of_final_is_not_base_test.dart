@@ -17,41 +17,66 @@ main() {
 @reflectiveTest
 class MixinSubtypeOfFinalIsNotBaseTest extends PubPackageResolutionTest {
   test_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final class A {}
 mixin B implements A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE, 23, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          23,
+          1,
           text:
-              "The mixin 'B' must be 'base' because the supertype 'A' is 'final'."),
-    ]);
+              "The mixin 'B' must be 'base' because the supertype 'A' is 'final'.",
+        ),
+      ],
+    );
   }
 
   test_implements_indirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final class A {}
 sealed class B implements A {}
 mixin C implements B {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE, 54, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          54,
+          1,
           text:
               "The mixin 'C' must be 'base' because the supertype 'A' is 'final'.",
           contextMessages: [
-            ExpectedContextMessage(testFile, 12, 1,
-                text:
-                    "The type 'B' is a subtype of 'A', and 'A' is defined here.")
-          ]),
-    ]);
+            ExpectedContextMessage(
+              testFile,
+              12,
+              1,
+              text:
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_on() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final class A {}
 mixin B on A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE, 23, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          23,
+          1,
           text:
-              "The mixin 'B' must be 'base' because the supertype 'A' is 'final'."),
-    ]);
+              "The mixin 'B' must be 'base' because the supertype 'A' is 'final'.",
+        ),
+      ],
+    );
   }
 }

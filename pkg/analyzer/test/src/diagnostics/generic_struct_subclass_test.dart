@@ -16,25 +16,31 @@ main() {
 @reflectiveTest
 class GenericStructSubclassTest extends PubPackageResolutionTest {
   test_genericStruct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class S<T> extends Struct {
   external Pointer notEmpty;
 }
-''', [
-      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
-    ]);
+''',
+      [
+        error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
+      ],
+    );
   }
 
   test_genericUnion() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class S<T> extends Union {
   external Pointer notEmpty;
 }
-''', [
-      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
-    ]);
+''',
+      [
+        error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
+      ],
+    );
   }
 
   test_validStruct() async {

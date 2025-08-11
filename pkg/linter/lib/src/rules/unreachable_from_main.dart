@@ -4,11 +4,13 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -22,17 +24,14 @@ class UnreachableFromMain extends LintRule {
     : super(
         name: LintNames.unreachable_from_main,
         description: _desc,
-        state: State.stable(since: Version(3, 1, 0)),
+        state: RuleState.stable(since: Version(3, 1, 0)),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -40,7 +39,7 @@ class UnreachableFromMain extends LintRule {
 
 /// This gathers all declarations which we may wish to report on.
 class _DeclarationGatherer {
-  final LinterContext linterContext;
+  final RuleContext linterContext;
 
   /// All declarations which we may wish to report on.
   final Set<Declaration> declarations = {};
@@ -82,11 +81,11 @@ class _DeclarationGatherer {
   }
 
   void _addMembers({
-    required Element2? containerElement,
+    required Element? containerElement,
     required List<ClassMember> members,
   }) {
-    bool isOverride(ExecutableElement2? element) {
-      if (containerElement is! InterfaceElement2) {
+    bool isOverride(ExecutableElement? element) {
+      if (containerElement is! InterfaceElement) {
         return false;
       }
 
@@ -94,13 +93,12 @@ class _DeclarationGatherer {
         return false;
       }
 
-      var nameObj = Name.forElement(element);
-      if (nameObj == null) {
+      var name = Name.forElement(element);
+      if (name == null) {
         return false;
       }
 
-      var inheritance = linterContext.inheritanceManager;
-      return inheritance.getOverridden(containerElement, nameObj) != null;
+      return containerElement.getOverridden(name) != null;
     }
 
     for (var member in members) {
@@ -113,8 +111,8 @@ class _DeclarationGatherer {
         case FieldDeclaration():
           for (var field in member.fields.variables) {
             var element = field.declaredFragment?.element;
-            if (element is FieldElement2 && element.isPublic) {
-              if (!isOverride(element.getter2)) {
+            if (element is FieldElement && element.isPublic) {
+              if (!isOverride(element.getter)) {
                 declarations.add(field);
               }
             }
@@ -142,7 +140,7 @@ class _DeclarationGatherer {
 /// "References" are most often [SimpleIdentifier]s, but can also be other
 /// nodes which refer to a declaration.
 class _ReferenceVisitor extends RecursiveAstVisitor<void> {
-  Map<Element2, Declaration> declarationMap;
+  Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};
 
@@ -153,7 +151,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -184,15 +182,15 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         _addDefaultSuperConstructorDeclaration(node);
       }
 
-      var metadata = element.metadata2;
+      var metadata = element.metadata;
       // This for-loop style is copied from analyzer's `hasX` getters on
       // [Element].
       for (var i = 0; i < metadata.annotations.length; i++) {
         if (metadata.annotations[i].isReflectiveTest) {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
-          var unnamedConstructor = element.constructors2.firstWhereOrNull(
-            (constructor) => constructor.name3 == 'new',
+          var unnamedConstructor = element.constructors.firstWhereOrNull(
+            (constructor) => constructor.name == 'new',
           );
           if (unnamedConstructor != null) {
             _addDeclaration(unnamedConstructor);
@@ -235,7 +233,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var e = node.element;
     if (e != null && _patternLevel == 0) {
       _addDeclaration(e);
-      var type = node.type.element2;
+      var type = node.type.element;
       if (type != null) {
         _addDeclaration(type);
       }
@@ -266,7 +264,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -280,7 +278,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     node.type?.alias != null ||
         // Any reference to an extension type marks it as reachable, since
         // casting can be used to instantiate the type.
-        node.type?.element3 is ExtensionTypeElement2 ||
+        node.type?.element is ExtensionTypeElement ||
         nodeIsInTypeArgument ||
         // A reference to any type in an external variable declaration marks
         // that type as reachable, since the external implementation can
@@ -305,7 +303,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -372,11 +370,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   ///
   /// Also adds the declaration of [element] if it is a public static accessor
   /// or static method on a public top-level element.
-  void _addDeclaration(Element2 element) {
+  void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
-    var enclosingTopLevelElement = element.thisOrAncestorMatching2(
-      (a) =>
-          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement2,
+    var enclosingTopLevelElement = element.thisOrAncestorMatching(
+      (a) => a.enclosingElement == null || a.enclosingElement is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
@@ -388,13 +385,13 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     if (element.isPrivate) {
       return;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }
-    if (enclosingElement is InterfaceElement2 ||
-        enclosingElement is ExtensionElement2 ||
-        enclosingElement is ExtensionTypeElement2) {
+    if (enclosingElement is InterfaceElement ||
+        enclosingElement is ExtensionElement ||
+        enclosingElement is ExtensionTypeElement) {
       var declarationElement = element.baseElement;
       var declaration = declarationMap[declarationElement];
       if (declaration != null) {
@@ -407,8 +404,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var classElement = class_.declaredFragment?.element;
     var supertype = classElement?.supertype;
     if (supertype != null) {
-      var unnamedConstructor = supertype.constructors2.firstWhereOrNull(
-        (e) => e.name3 == 'new',
+      var unnamedConstructor = supertype.constructors.firstWhereOrNull(
+        (e) => e.name == 'new',
       );
       if (unnamedConstructor != null) {
         _addDeclaration(unnamedConstructor);
@@ -421,7 +418,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -439,11 +436,11 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
-    var readElement = node.readElement2;
+    var readElement = node.readElement;
     if (readElement != null) {
       _addDeclaration(readElement);
     }
-    var writeElement = node.writeElement2;
+    var writeElement = node.writeElement;
     if (writeElement != null) {
       _addDeclaration(writeElement);
     }
@@ -452,7 +449,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -467,20 +464,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (entryPoints.isEmpty) return;
 
     // Map each top-level and static element to its declaration.
-    var declarationByElement = <Element2, Declaration>{};
+    var declarationByElement = <Element, Declaration>{};
     for (var declaration in declarations) {
       var element = declaration.declaredFragment?.element;
       if (element != null) {
         declarationByElement[element] = declaration;
-        if (element is TopLevelVariableElement2) {
-          var getter = element.getter2;
+        if (element is TopLevelVariableElement) {
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
-        } else if (element is FieldElement2) {
-          var getter = element.getter2;
+        } else if (element is FieldElement) {
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
         }
       }
@@ -523,28 +520,30 @@ class _Visitor extends SimpleAstVisitor<void> {
           var element = declaration.declaredFragment?.element;
           return element != null &&
               element.isPublic &&
-              !element.hasVisibleForTesting;
+              !element.hasVisibleForTesting &&
+              !element.hasWidgetPreview;
         }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {
-        if (member.name == null) {
-          rule.reportLint(member.returnType, arguments: [member.nameForError]);
-        } else {
-          rule.reportLintForToken(
-            member.name,
+        var name = member.name;
+        if (name == null) {
+          rule.reportAtNode(
+            member.returnType,
             arguments: [member.nameForError],
           );
+        } else {
+          rule.reportAtToken(name, arguments: [member.nameForError]);
         }
       } else if (member is NamedCompilationUnitMember) {
-        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
+        rule.reportAtToken(member.name, arguments: [member.nameForError]);
       } else if (member is MethodDeclaration) {
-        rule.reportLintForToken(member.name, arguments: [member.name.lexeme]);
+        rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
       } else if (member is VariableDeclaration) {
-        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
+        rule.reportAtToken(member.name, arguments: [member.nameForError]);
       } else if (member is ExtensionDeclaration) {
         var name = member.name;
-        rule.reportLintForToken(
+        rule.reportAtToken(
           name ?? member.extensionKeyword,
           arguments: [name?.lexeme ?? '<unnamed>'],
         );
@@ -556,10 +555,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _isEntryPoint(Declaration e) =>
       e is FunctionDeclaration &&
-      (e.name.lexeme == 'main' || e.metadata.any(_isPragmaVmEntry));
+      (e.name.lexeme == 'main' || e.metadata.any(_isExemptingAnnotation));
 
-  bool _isPragmaVmEntry(Annotation annotation) {
-    if (!annotation.isPragma) return false;
+  bool _isExemptingAnnotation(Annotation annotation) {
+    if (annotation.isPragma) {
+      return _isValidVmEntryPoint(annotation);
+    } else if (annotation.isWidgetPreview) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _isValidVmEntryPoint(Annotation annotation) {
     var value = annotation.elementAnnotation?.computeConstantValue();
     if (value == null) return false;
     var name = value.getField('name');
@@ -569,27 +576,91 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on Element2 {
+extension on Metadata {
+  bool get hasWidgetPreview {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isWidgetPreview) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension on ElementAnnotation {
+  /// The URI of the Flutter widget previews library.
+  static final Uri _flutterWidgetPreviewLibraryUri = Uri.parse(
+    'package:flutter/src/widget_previews/widget_previews.dart',
+  );
+
+  bool get isWidgetPreview {
+    var element2 = this.element2;
+    return element2 is ConstructorElement &&
+        element2.enclosingElement.name == 'Preview' &&
+        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+  }
+}
+
+extension on LibraryElement {
+  bool get isWidgetPreviews =>
+      uri ==
+      Uri.parse('package:flutter/src/widget_previews/widget_previews.dart');
+}
+
+extension on Element {
   bool get hasVisibleForTesting => switch (this) {
-    Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
+    Annotatable(:var metadata) => metadata.hasVisibleForTesting,
     _ => false,
   };
-  bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';
+  bool get hasWidgetPreview => switch (this) {
+    Annotatable(:var metadata) =>
+      // Widget previews can be applied to public:
+      //   - Constructors (generative and factory)
+      //   - Top-level functions
+      //   - Static member functions
+      (this is ConstructorElement ||
+              this is TopLevelFunctionElement ||
+              (this is ExecutableElement &&
+                  (this as ExecutableElement).isStatic)) &&
+          !isPrivate &&
+          metadata.hasWidgetPreview,
+    _ => false,
+  };
+  bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
+  bool get isWidgetPreview =>
+      (library?.isWidgetPreviews ?? false) && name == 'Preview';
 }
 
 extension on Annotation {
   bool get isPragma {
-    var element = elementAnnotation?.element2;
-    DartType type;
-    if (element is ConstructorElement2) {
-      type = element.returnType;
-    } else if (element is GetterElement) {
-      type = element.returnType;
-    } else {
+    DartType? type = _elementType;
+    if (type == null) {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element3.isPragma;
+    return type is InterfaceType && type.element.isPragma;
+  }
+
+  bool get isWidgetPreview {
+    DartType? type = _elementType;
+    if (type == null) {
+      // Dunno what this is.
+      return false;
+    }
+    return type is InterfaceType && type.element.isWidgetPreview;
+  }
+
+  DartType? get _elementType {
+    var element = elementAnnotation?.element2;
+    DartType? type;
+    if (element is ConstructorElement) {
+      type = element.returnType;
+    } else if (element is GetterElement) {
+      type = element.returnType;
+    }
+    return type;
   }
 }
 

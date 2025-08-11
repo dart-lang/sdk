@@ -40,7 +40,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     synthetic constructor •() → lib::_Quux&Qux&MyMixin
       : super lib::Qux::•()
       ;
-    abstract member-signature method hello(covariant-by-declaration lib::FooEntry entry) → void; -> lib::Baz::hello
+    abstract synthetic member-signature method hello(covariant-by-declaration lib::FooEntry entry) → void; -> lib::Baz::hello
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

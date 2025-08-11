@@ -17,6 +17,7 @@ extension on int? {
 
   extension_implicit_this() {
     if (this == null) return;
-    /*notPromoted(thisNotPromoted)*/ isEven;
+    /*notPromoted(thisNotPromoted)*/
+    isEven;
   }
 }

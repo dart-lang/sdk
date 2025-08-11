@@ -16,7 +16,7 @@ main() {
       var opacity = num.parse(body.getComputedStyle().opacity);
       body.animate([
         {"opacity": 100},
-        {"opacity": 0}
+        {"opacity": 0},
       ], 100);
       var newOpacity = num.parse(body.getComputedStyle().opacity);
       expect(newOpacity == opacity, isTrue);

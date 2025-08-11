@@ -10,10 +10,13 @@ import 'error_exit_at_spawning_shared.dart';
 
 main() {
   testIsolate((SendPort replyPort, SendPort errorPort, SendPort exitPort) {
-    Isolate.spawn(isomain, replyPort,
-        // Setup handlers as part of spawn.
-        errorsAreFatal: false,
-        onError: errorPort,
-        onExit: exitPort);
+    Isolate.spawn(
+      isomain,
+      replyPort,
+      // Setup handlers as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort,
+      onExit: exitPort,
+    );
   });
 }

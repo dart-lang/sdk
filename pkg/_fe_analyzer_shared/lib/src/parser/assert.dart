@@ -9,8 +9,4 @@ library _fe_analyzer_shared.parser.Assert;
 /// An assertion can legally occur as a statement. However, assertions are also
 /// experimentally allowed in initializers. For improved error recovery, we
 /// also attempt to parse asserts as expressions.
-enum Assert {
-  Expression,
-  Initializer,
-  Statement,
-}
+enum Assert { Expression, Initializer, Statement }

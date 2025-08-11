@@ -16,15 +16,21 @@
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 /// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use package:analyzer/src/manifest/manifest_warning_code.dart instead',
+)
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
-class ManifestWarningCode extends ErrorCode {
+class ManifestWarningCode extends DiagnosticCode {
   ///  A code indicating that the camera permissions is not supported on Chrome
   ///  OS.
-  static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE =
-      ManifestWarningCode(
+  static const ManifestWarningCode
+  CAMERA_PERMISSIONS_INCOMPATIBLE = ManifestWarningCode(
     'CAMERA_PERMISSIONS_INCOMPATIBLE',
     "Camera permissions make app incompatible for Chrome OS, consider adding "
         "optional features \"android.hardware.camera\" and "
@@ -52,7 +58,8 @@ class ManifestWarningCode extends ErrorCode {
     'NO_TOUCHSCREEN_FEATURE',
     "The default \"android.hardware.touchscreen\" needs to be optional for "
         "Chrome OS. ",
-    correctionMessage: "Consider adding <uses-feature "
+    correctionMessage:
+        "Consider adding <uses-feature "
         "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
         "/> to the manifest.",
   );
@@ -62,18 +69,19 @@ class ManifestWarningCode extends ErrorCode {
   ///
   ///  Parameters:
   ///  0: the name of the feature tag
-  static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
-      ManifestWarningCode(
+  static const ManifestWarningCode
+  PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE = ManifestWarningCode(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
     "Permission makes app incompatible for Chrome OS, consider adding optional "
         "{0} feature tag, ",
-    correctionMessage: " Try adding `<uses-feature android:name=\"{0}\"  "
+    correctionMessage:
+        " Try adding `<uses-feature android:name=\"{0}\"  "
         "android:required=\"false\">`.",
   );
 
   ///  A code indicating that the activity is locked to an orientation.
-  static const ManifestWarningCode SETTING_ORIENTATION_ON_ACTIVITY =
-      ManifestWarningCode(
+  static const ManifestWarningCode
+  SETTING_ORIENTATION_ON_ACTIVITY = ManifestWarningCode(
     'SETTING_ORIENTATION_ON_ACTIVITY',
     "The `<activity>` element should not be locked to any orientation so that "
         "users can take advantage of the multi-window environments and larger "
@@ -89,12 +97,12 @@ class ManifestWarningCode extends ErrorCode {
   ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
-    'UNSUPPORTED_CHROME_OS_FEATURE',
-    "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
-    correctionMessage:
-        "Try changing to `android:required=\"false\"` for this feature.",
-  );
+        'UNSUPPORTED_CHROME_OS_FEATURE',
+        "The feature {0} isn't supported on Chrome OS, consider making it "
+            "optional.",
+        correctionMessage:
+            "Try changing to `android:required=\"false\"` for this feature.",
+      );
 
   ///  A code indicating that a specified hardware feature is not supported on
   ///  Chrome OS.
@@ -103,12 +111,12 @@ class ManifestWarningCode extends ErrorCode {
   ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
-    'UNSUPPORTED_CHROME_OS_HARDWARE',
-    "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
-    correctionMessage:
-        "Try adding `android:required=\"false\"` for this feature.",
-  );
+        'UNSUPPORTED_CHROME_OS_HARDWARE',
+        "The feature {0} isn't supported on Chrome OS, consider making it "
+            "optional.",
+        correctionMessage:
+            "Try adding `android:required=\"false\"` for this feature.",
+      );
 
   /// Initialize a newly created error code to have the given [name].
   const ManifestWarningCode(
@@ -119,14 +127,14 @@ class ManifestWarningCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'ManifestWarningCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'ManifestWarningCode.${uniqueName ?? name}',
+       );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
-  ErrorType get type => ErrorType.STATIC_WARNING;
+  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }

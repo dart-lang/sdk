@@ -10,11 +10,12 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -50,7 +51,7 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
 
   Future<void> test_fileSystem_changeFile_buildFile_legacy() async {
     // Make it a Blaze package.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # foo
 ''');
 
@@ -69,7 +70,7 @@ AnalysisErrors
 ''');
 
     // Change BUILD file, nothing interesting.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # bar
 ''');
 
@@ -2170,7 +2171,10 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has plugin2 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments, plugins: [plugin2.name]),
+      analysisOptionsContent(
+        experiments: experiments,
+        legacyPlugins: [plugin2.name],
+      ),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2213,7 +2217,10 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 also has plugin1 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments, plugins: [plugin1.name]),
+      analysisOptionsContent(
+        experiments: experiments,
+        legacyPlugins: [plugin1.name],
+      ),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2256,7 +2263,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // `analysis_options.yaml`.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(include: '../analysis_options.yaml'),
+      analysisOptionsContent(includes: ['../analysis_options.yaml']),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2449,7 +2456,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
       packagePath,
       analysisOptionsContent(
         experiments: experiments,
-        plugins: plugins.map((plugin) => plugin.name).toList(),
+        legacyPlugins: plugins.map((plugin) => plugin.name).toList(),
       ),
     );
 

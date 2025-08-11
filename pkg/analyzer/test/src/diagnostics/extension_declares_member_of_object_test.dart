@@ -16,17 +16,19 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresMemberOfObjectTest extends PubPackageResolutionTest {
   test_instance_differentKind() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void hashCode() {}
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 31, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 31, 8)],
+    );
   }
 
   test_instance_sameKind() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   bool operator==(Object _) => false;
   int get hashCode => 0;
@@ -34,22 +36,33 @@ extension E on String {
   dynamic get runtimeType => null;
   dynamic noSuchMethod(_) => null;
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 39, 2),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 72, 8),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 96, 8),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 128, 11),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 159, 12),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 39, 2),
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 72, 8),
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 96, 8),
+        error(
+          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+          128,
+          11,
+        ),
+        error(
+          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+          159,
+          12,
+        ),
+      ],
+    );
   }
 
   test_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static void hashCode() {}
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 38, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 38, 8)],
+    );
   }
 }

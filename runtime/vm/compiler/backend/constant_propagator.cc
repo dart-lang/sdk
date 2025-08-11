@@ -34,8 +34,8 @@ ConstantPropagator::ConstantPropagator(
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
       constant_value_(Object::Handle(Z)),
-      reachable_(new(Z) BitVector(Z, graph->preorder().length())),
-      unwrapped_phis_(new(Z) BitVector(Z, graph->current_ssa_temp_index())),
+      reachable_(new (Z) BitVector(Z, graph->preorder().length())),
+      unwrapped_phis_(new (Z) BitVector(Z, graph->current_ssa_temp_index())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 

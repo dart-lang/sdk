@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,14 +19,11 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.always_put_required_named_parameters_first;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }
@@ -41,11 +40,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var param in node.parameters.where((p) => p.isNamed)) {
       var element = param.declaredFragment?.element;
       if (element != null &&
-          (element.metadata2.hasRequired || element.isRequiredNamed)) {
+          (element.metadata.hasRequired || element.isRequiredNamed)) {
         if (nonRequiredSeen) {
           var name = param.name;
           if (name != null) {
-            rule.reportLintForToken(name);
+            rule.reportAtToken(name);
           }
         }
       } else {

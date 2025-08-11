@@ -24,7 +24,8 @@ if_thenElse_none(bool c) {
   late int v;
   if (c) {
   } else {}
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 if_thenElse_else(bool c) {

@@ -6,25 +6,31 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $MINUS, $_;
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 void main() async {
-  await GeneratedContent.generateAll(
-      normalize(join(pkg_root.packageRoot, 'analyzer')), allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 }
 
 List<GeneratedContent> get allTargets {
-  var experimentsYaml = loadYaml(File(join(
-          normalize(join(pkg_root.packageRoot, '../tools')),
-          'experimental_features.yaml'))
-      .readAsStringSync()) as Map;
+  var experimentsYaml =
+      loadYaml(
+            File(
+              join(
+                normalize(join(pkg_root.packageRoot, '../tools')),
+                'experimental_features.yaml',
+              ),
+            ).readAsStringSync(),
+          )
+          as Map;
 
   return <GeneratedContent>[
-    GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
-        (String pkgPath) async {
+    GeneratedFile('analyzer/lib/src/dart/analysis/experiments.g.dart', (
+      pkgRoot,
+    ) async {
       var generator = _ExperimentsGenerator(experimentsYaml);
       generator.generateFormatCode();
       return generator.out.toString();
@@ -170,8 +176,9 @@ class ExperimentalFeatures {
     ''');
 
       if (experimentalReleaseVersion != null) {
-        experimentalReleaseVersion =
-            _versionNumberAsString(experimentalReleaseVersion);
+        experimentalReleaseVersion = _versionNumberAsString(
+          experimentalReleaseVersion,
+        );
         out.write("experimentalReleaseVersion: ");
         out.write("Version.parse('$experimentalReleaseVersion'),");
       } else {

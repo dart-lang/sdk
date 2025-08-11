@@ -320,21 +320,17 @@ mixin AbstractValueDomain {
   /// string, array, native HTML list or `null` at runtime.
   AbstractBool isIndexablePrimitive(covariant AbstractValue value);
 
-  /// Returns an [AbstractBool] that describes whether [value] is a fixed-size
-  /// or constant JavaScript array or `null` at runtime.
-  AbstractBool isFixedArray(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a growable
-  /// JavaScript array or `null` at runtime.
-  AbstractBool isExtendableArray(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a mutable
-  /// JavaScript array or `null` at runtime.
-  AbstractBool isMutableArray(covariant AbstractValue value);
-
   /// Returns an [AbstractBool] that describes whether [value] is a mutable
   /// JavaScript array, native HTML list or `null` at runtime.
   AbstractBool isMutableIndexable(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a modifiable
+  /// array.
+  AbstractBool isModifiableArray(covariant AbstractValue value);
+
+  /// Returns an [AbstractBool] that describes whether [value] is a growable
+  /// array.
+  AbstractBool isGrowableArray(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// array or `null` at runtime.

@@ -16,39 +16,9 @@ class Foo {
   Foo() : x = 0;
 
   // fields can't be declared external
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
 
 main() {
   // Ensure Foo class is compiled.
   var foo = new Foo();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

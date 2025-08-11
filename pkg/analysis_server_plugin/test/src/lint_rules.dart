@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -13,11 +15,11 @@ class NoBoolsRule extends AnalysisRule {
   NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _NoBoolsVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -30,11 +32,31 @@ class NoDoublesRule extends AnalysisRule {
       : super(name: 'no_doubles', description: 'No doubles message');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
+    var visitor = _NoDoublesVisitor(this);
+    registry.addDoubleLiteral(this, visitor);
+  }
+}
+
+class NoDoublesWarningRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_doubles_warning',
+    'No doubles message',
+    severity: DiagnosticSeverity.WARNING,
+  );
+
+  NoDoublesWarningRule()
+      : super(name: 'no_doubles_warning', description: 'No doubles message');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _NoDoublesVisitor(this);
     registry.addDoubleLiteral(this, visitor);
   }
@@ -47,7 +69,7 @@ class _NoBoolsVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 
@@ -58,6 +80,6 @@ class _NoDoublesVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }

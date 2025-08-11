@@ -7,14 +7,12 @@
 
 // Test top level field.
 dynamic // Formatter shouldn't join this line.
-
-    x1 = 42;
+x1 = 42;
 
 class Foo {
   // Test class member.
   dynamic // Formatter shouldn't join this line.
-
-      x2 = 42;
+  x2 = 42;
 
   Foo() {
     print(x2);
@@ -28,8 +26,7 @@ main() {
 
   // Test local variable.
   dynamic // Formatter shouldn't join this line.
-
-      x3 = 42;
+  x3 = 42;
   print(x3);
 
   foo(42);
@@ -37,8 +34,8 @@ main() {
 
 // Test parameter.
 void foo(
-    dynamic // Formatter shouldn't join this line.
-
-        x4) {
+  dynamic // Formatter shouldn't join this line.
+  x4,
+) {
   print(x4);
 }

@@ -50,10 +50,11 @@ void main() {
   }
 }
 
-final returnStructArgumentStruct1ByteIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct1ByteInt Function(Struct1ByteInt),
-  Struct1ByteInt Function(Struct1ByteInt)
->("ReturnStructArgumentStruct1ByteInt", isLeaf: true);
+final returnStructArgumentStruct1ByteIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct1ByteInt Function(Struct1ByteInt),
+      Struct1ByteInt Function(Struct1ByteInt)
+    >("ReturnStructArgumentStruct1ByteInt", isLeaf: true);
 
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
@@ -408,10 +409,11 @@ void testReturnStructArgumentStructStruct16BytesMixed3Leaf() {
   calloc.free(a0Pointer);
 }
 
-final returnStructAlignmentInt16Leaf = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt16 Function(Int8, Int16, Int8),
-  StructAlignmentInt16 Function(int, int, int)
->("ReturnStructAlignmentInt16", isLeaf: true);
+final returnStructAlignmentInt16Leaf = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt16 Function(Int8, Int16, Int8),
+      StructAlignmentInt16 Function(int, int, int)
+    >("ReturnStructAlignmentInt16", isLeaf: true);
 
 /// Test alignment and padding of 16 byte int within struct.
 void testReturnStructAlignmentInt16Leaf() {
@@ -432,10 +434,11 @@ void testReturnStructAlignmentInt16Leaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStructAlignmentInt32Leaf = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt32 Function(Int8, Int32, Int8),
-  StructAlignmentInt32 Function(int, int, int)
->("ReturnStructAlignmentInt32", isLeaf: true);
+final returnStructAlignmentInt32Leaf = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt32 Function(Int8, Int32, Int8),
+      StructAlignmentInt32 Function(int, int, int)
+    >("ReturnStructAlignmentInt32", isLeaf: true);
 
 /// Test alignment and padding of 32 byte int within struct.
 void testReturnStructAlignmentInt32Leaf() {
@@ -456,10 +459,11 @@ void testReturnStructAlignmentInt32Leaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStructAlignmentInt64Leaf = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt64 Function(Int8, Int64, Int8),
-  StructAlignmentInt64 Function(int, int, int)
->("ReturnStructAlignmentInt64", isLeaf: true);
+final returnStructAlignmentInt64Leaf = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt64 Function(Int8, Int64, Int8),
+      StructAlignmentInt64 Function(int, int, int)
+    >("ReturnStructAlignmentInt64", isLeaf: true);
 
 /// Test alignment and padding of 64 byte int within struct.
 void testReturnStructAlignmentInt64Leaf() {
@@ -480,16 +484,17 @@ void testReturnStructAlignmentInt64Leaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct8BytesNestedIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedInt Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  ),
-  Struct8BytesNestedInt Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  )
->("ReturnStruct8BytesNestedInt", isLeaf: true);
+final returnStruct8BytesNestedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedInt Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      ),
+      Struct8BytesNestedInt Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      )
+    >("ReturnStruct8BytesNestedInt", isLeaf: true);
 
 /// Simple nested struct.
 void testReturnStruct8BytesNestedIntLeaf() {
@@ -516,10 +521,11 @@ void testReturnStruct8BytesNestedIntLeaf() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct8BytesNestedFloatLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat),
-  Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat)
->("ReturnStruct8BytesNestedFloat", isLeaf: true);
+final returnStruct8BytesNestedFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat),
+      Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat)
+    >("ReturnStruct8BytesNestedFloat", isLeaf: true);
 
 /// Simple nested struct with floats.
 void testReturnStruct8BytesNestedFloatLeaf() {
@@ -542,10 +548,11 @@ void testReturnStruct8BytesNestedFloatLeaf() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct8BytesNestedFloat2Leaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float),
-  Struct8BytesNestedFloat2 Function(Struct4BytesFloat, double)
->("ReturnStruct8BytesNestedFloat2", isLeaf: true);
+final returnStruct8BytesNestedFloat2Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float),
+      Struct8BytesNestedFloat2 Function(Struct4BytesFloat, double)
+    >("ReturnStruct8BytesNestedFloat2", isLeaf: true);
 
 /// The nesting is irregular, testing homogenous float rules on arm and arm64,
 /// and the fpu register usage on x64.
@@ -567,16 +574,17 @@ void testReturnStruct8BytesNestedFloat2Leaf() {
   calloc.free(a0Pointer);
 }
 
-final returnStruct8BytesNestedMixedLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedMixed Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesFloat,
-  ),
-  Struct8BytesNestedMixed Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesFloat,
-  )
->("ReturnStruct8BytesNestedMixed", isLeaf: true);
+final returnStruct8BytesNestedMixedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedMixed Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesFloat,
+      ),
+      Struct8BytesNestedMixed Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesFloat,
+      )
+    >("ReturnStruct8BytesNestedMixed", isLeaf: true);
 
 /// Simple nested struct with mixed members.
 void testReturnStruct8BytesNestedMixedLeaf() {
@@ -601,10 +609,17 @@ void testReturnStruct8BytesNestedMixedLeaf() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct16BytesNestedIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct16BytesNestedInt Function(Struct8BytesNestedInt, Struct8BytesNestedInt),
-  Struct16BytesNestedInt Function(Struct8BytesNestedInt, Struct8BytesNestedInt)
->("ReturnStruct16BytesNestedInt", isLeaf: true);
+final returnStruct16BytesNestedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct16BytesNestedInt Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      ),
+      Struct16BytesNestedInt Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      )
+    >("ReturnStruct16BytesNestedInt", isLeaf: true);
 
 /// Deeper nested struct to test recursive member access.
 void testReturnStruct16BytesNestedIntLeaf() {
@@ -639,16 +654,17 @@ void testReturnStruct16BytesNestedIntLeaf() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct32BytesNestedIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct32BytesNestedInt Function(
-    Struct16BytesNestedInt,
-    Struct16BytesNestedInt,
-  ),
-  Struct32BytesNestedInt Function(
-    Struct16BytesNestedInt,
-    Struct16BytesNestedInt,
-  )
->("ReturnStruct32BytesNestedInt", isLeaf: true);
+final returnStruct32BytesNestedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct32BytesNestedInt Function(
+        Struct16BytesNestedInt,
+        Struct16BytesNestedInt,
+      ),
+      Struct32BytesNestedInt Function(
+        Struct16BytesNestedInt,
+        Struct16BytesNestedInt,
+      )
+    >("ReturnStruct32BytesNestedInt", isLeaf: true);
 
 /// Even deeper nested struct to test recursive member access.
 void testReturnStruct32BytesNestedIntLeaf() {

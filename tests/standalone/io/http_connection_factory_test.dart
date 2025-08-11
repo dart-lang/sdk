@@ -141,17 +141,20 @@ testDifferentAddressFamiliesAndProxySettings(String dir) async {
   Expect.equals("Hello via Proxy", inet6ResponseText);
   // Fetch a URL from the Unix server and verify the results.
   final unixResponse = await client
-      .getUrl(Uri(
+      .getUrl(
+        Uri(
           scheme: "unix",
           // Connection pooling is based on the host/port combination
           // so ensure that the host is unique for unique logical
           // endpoints. Also, the `host` property is converted to
           // lowercase so you cannot use it directly for file paths.
           host: 'dummy',
-          path: "/"))
+          path: "/",
+        ),
+      )
       .then((request) {
-    return request.close();
-  });
+        return request.close();
+      });
   Expect.equals(200, unixResponse.statusCode);
   final unixResponseText = await unixResponse
       .transform(utf8.decoder)

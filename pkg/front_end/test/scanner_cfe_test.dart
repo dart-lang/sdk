@@ -232,7 +232,7 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(token.next!.isEof, isTrue);
     expect(listener.errors, hasLength(1));
     TestError error = listener.errors[0];
-    expect(error.errorCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.diagnosticCode, ScannerErrorCode.MISSING_DIGIT);
     expect(error.offset, source.length - 1);
   }
 
@@ -329,8 +329,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_interpolation_missingIdentifier() {
     Token token = scan("'\$x\$'");
-    expect((token as ErrorToken).errorCode,
-        same(codeUnexpectedDollarInString));
+    expect((token as ErrorToken).errorCode, same(codeUnexpectedDollarInString));
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 1, lexeme: "'");
@@ -447,8 +446,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
-    expect((token as ErrorToken).errorCode,
-        same(codeUnexpectedDollarInString));
+    expect((token as ErrorToken).errorCode, same(codeUnexpectedDollarInString));
 
     token = token.next!;
     expect((token as ErrorToken).errorCode, same(codeUnterminatedString));

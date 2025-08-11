@@ -1,0 +1,81 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/shadowing.dart:13:5: Error: The setter 'getter' isn't defined for the type 'ET1'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
+//     getter = getter;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extension_types/shadowing.dart:14:14: Error: The getter 'setter' isn't defined for the type 'ET1'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
+//     setter = setter;
+//              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get getter() → core::int
+    return 42;
+  set setter(wildcard core::int _#wc1#formal) → void {}
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  get getter = self::ET1|get#getter;
+  set setter = self::ET1|set#setter;
+  method method = self::ET1|method;
+  method tearoff method = self::ET1|get#method;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::Class c) implements self::Class {
+  abstract extension-type-member representation-field get c() → self::Class;
+  get getter = self::ET2|get#getter;
+  set setter = self::ET2|set#setter;
+  method method = self::ET2|method;
+  method tearoff method = self::ET2|get#method;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static field core::int getter = 42;
+static field core::int setter = 42;
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+static extension-type-member method ET1|get#getter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → dynamic
+  return 42;
+static extension-type-member method ET1|set#setter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void {}
+static extension-type-member method ET1|method(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extension_types/shadowing.dart:13:5: Error: The setter 'getter' isn't defined for the type 'ET1'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'getter'.
+    getter = getter;
+    ^^^^^^" in #this.{<unresolved>}getter = self::ET1|get#getter(#this);
+  self::ET1|set#setter(#this, invalid-expression "pkg/front_end/testcases/extension_types/shadowing.dart:14:14: Error: The getter 'setter' isn't defined for the type 'ET1'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
+    setter = setter;
+             ^^^^^^" in #this{<unresolved>}.setter);
+}
+static extension-type-member method ET1|get#method(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → () → dynamic
+  return () → dynamic => self::ET1|method(#this);
+static extension-type-member method ET2|constructor#(self::Class c) → self::ET2 /* erasure=self::Class */ {
+  lowered final self::ET2 /* erasure=self::Class */ #this = c;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::Class c) → self::ET2 /* erasure=self::Class */
+  return self::ET2|constructor#(c);
+static extension-type-member method ET2|get#getter(lowered final self::ET2 /* erasure=self::Class */ #this) → core::String
+  return "42";
+static extension-type-member method ET2|set#setter(lowered final self::ET2 /* erasure=self::Class */ #this, wildcard core::String _#wc2#formal) → void {}
+static extension-type-member method ET2|method(lowered final self::ET2 /* erasure=self::Class */ #this) → void {
+  core::String value = self::ET2|get#getter(#this);
+  self::ET2|set#setter(#this, value);
+}
+static extension-type-member method ET2|get#method(lowered final self::ET2 /* erasure=self::Class */ #this) → () → void
+  return () → void => self::ET2|method(#this);

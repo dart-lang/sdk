@@ -2,34 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 callable:
-  # Mentioned in the code, however core types should be included by default
+  - library: 'dart:core'
   - library: 'package:expect/expect.dart'
     class: 'Expect'
     member: 'equals'
-  - library: 'dart:async'
-    class: 'Future'
-  - library: 'dart:core'
-    class: 'String'
-  - library: 'dart:core'
-    class: 'int'
-  - library: 'dart:core'
-    class: 'bool'
-  - library: 'dart:core'
-    class: 'List'
-  - library: 'dart:core'
-    class: 'Iterable'
-
-  # TODO(sigmund): This should be included by default
-  - library: 'dart:core'
-    class: 'pragma'
-    member: '_'
-
-  # Needed to support for-in loops
-  - library: 'dart:core'
-    class: 'Iterator'
-    member: 'moveNext'
-  - library: 'dart:core'
-    class: 'Iterator'
-    member: 'get:current'
-  - library: 'dart:core'
-    class: 'Iterator'

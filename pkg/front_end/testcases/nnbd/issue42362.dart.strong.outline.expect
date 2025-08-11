@@ -87,13 +87,13 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int i;
-  constructor constructor1([core::int i = null]) → self::A
+  constructor constructor1([erroneously-initialized core::int i = null]) → self::A
     ;
-  constructor constructor2({core::int i = null}) → self::A
+  constructor constructor2({erroneously-initialized core::int i = null}) → self::A
     ;
-  constructor constructor3([core::int i = null]) → self::A
+  constructor constructor3([erroneously-initialized core::int i = null]) → self::A
     ;
-  constructor constructor4({core::int i = null}) → self::A
+  constructor constructor4({erroneously-initialized core::int i = null}) → self::A
     ;
   constructor constructor5([core::int? i = null]) → self::A
     ;
@@ -103,9 +103,9 @@ class A extends core::Object {
     ;
   external constructor constructor8([core::int i = null]) → self::A;
   external constructor constructor9({core::int i = null}) → self::A;
-  static factory factory3([core::int i = null]) → self::A /* redirection-target: self::A::constructor3 */
+  static factory factory3([erroneously-initialized core::int i = null]) → self::A /* redirection-target: self::A::constructor3 */
     return new self::A::constructor3(i);
-  static factory factory4({core::int i = null}) → self::A /* redirection-target: self::A::constructor4 */
+  static factory factory4({erroneously-initialized core::int i = null}) → self::A /* redirection-target: self::A::constructor4 */
     return new self::A::constructor4(i: i);
   static factory factory5([core::int? i = null]) → self::A /* redirection-target: self::A::constructor5 */
     return new self::A::constructor5(i);
@@ -113,13 +113,13 @@ class A extends core::Object {
     return new self::A::constructor6(i: i);
   static factory factory7({required core::int i}) → self::A /* redirection-target: self::A::constructor7 */
     return new self::A::constructor7(i: i);
-  static factory factory8([core::int i = null]) → self::A
+  static factory factory8([erroneously-initialized core::int i = null]) → self::A
     ;
-  static factory factory9({core::int i = null}) → self::A
+  static factory factory9({erroneously-initialized core::int i = null}) → self::A
     ;
-  method method3([core::int i = null]) → dynamic
+  method method3([erroneously-initialized core::int i = null]) → dynamic
     ;
-  method method4({core::int i = null}) → dynamic
+  method method4({erroneously-initialized core::int i = null}) → dynamic
     ;
   method method5([core::int? i = null]) → dynamic
     ;
@@ -142,13 +142,13 @@ abstract class B extends core::Object {
 }
 class C extends core::Object implements self::B {
   field core::int i;
-  constructor constructor1([core::int i = null]) → self::C
+  constructor constructor1([erroneously-initialized core::int i = null]) → self::C
     ;
-  constructor constructor2({core::int i = null}) → self::C
+  constructor constructor2({erroneously-initialized core::int i = null}) → self::C
     ;
-  constructor constructor3([core::int i = null]) → self::C
+  constructor constructor3([erroneously-initialized core::int i = null]) → self::C
     ;
-  constructor constructor4({core::int i = null}) → self::C
+  constructor constructor4({erroneously-initialized core::int i = null}) → self::C
     ;
   constructor constructor5([core::int? i = null]) → self::C
     ;
@@ -156,9 +156,9 @@ class C extends core::Object implements self::B {
     ;
   constructor constructor7({required core::int i}) → self::C
     ;
-  static factory factory3([core::int i = null]) → self::C /* redirection-target: self::C::constructor3 */
+  static factory factory3([erroneously-initialized core::int i = null]) → self::C /* redirection-target: self::C::constructor3 */
     return new self::C::constructor3(i);
-  static factory factory4({core::int i = null}) → self::C /* redirection-target: self::C::constructor4 */
+  static factory factory4({erroneously-initialized core::int i = null}) → self::C /* redirection-target: self::C::constructor4 */
     return new self::C::constructor4(i: i);
   static factory factory5([core::int? i = null]) → self::C /* redirection-target: self::C::constructor5 */
     return new self::C::constructor5(i);
@@ -166,13 +166,13 @@ class C extends core::Object implements self::B {
     return new self::C::constructor6(i: i);
   static factory factory7({required core::int i}) → self::C /* redirection-target: self::C::constructor7 */
     return new self::C::constructor7(i: i);
-  static factory factory8([core::int i = null]) → self::C
+  static factory factory8([erroneously-initialized core::int i = null]) → self::C
     ;
-  static factory factory9({core::int i = null}) → self::C
+  static factory factory9({erroneously-initialized core::int i = null}) → self::C
     ;
-  method method3([core::int i = null]) → dynamic
+  method method3([erroneously-initialized core::int i = null]) → dynamic
     ;
-  method method4({core::int i = null}) → dynamic
+  method method4({erroneously-initialized core::int i = null}) → dynamic
     ;
   method method5([core::int? i = null]) → dynamic
     ;

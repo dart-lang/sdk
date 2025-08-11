@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/type_algorithms.dart';
+import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -95,7 +96,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {Variance variance = Variance.covariant}) {
     return null;
   }

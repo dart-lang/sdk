@@ -21,7 +21,7 @@ class C extends self::B implements self::I {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  forwarding-stub method f(covariant-by-declaration core::Object x) → core::int
+  forwarding-stub synthetic method f(covariant-by-declaration core::Object x) → core::int
     return super.{self::B::f}(x as core::int);
 }
 static method expectTypeError(() → void callback) → void {

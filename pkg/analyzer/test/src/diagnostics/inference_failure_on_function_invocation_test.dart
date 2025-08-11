@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,13 +29,14 @@ class InferenceFailureOnFunctionInvocationTest
   }
 
   test_functionType_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void Function<T>() m) {
   m();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1)],
+    );
   }
 
   test_functionType_notGeneric() async {
@@ -90,7 +92,8 @@ void f(C c) {
   }
 
   test_genericMethod_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class C {
   void m<T>();
 }
@@ -98,9 +101,9 @@ abstract class C {
 void f(C c) {
   c.m();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 55, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 55, 1)],
+    );
   }
 
   test_genericMethod_optionalTypeArgs() async {
@@ -130,7 +133,8 @@ void f(C c) {
   }
 
   test_genericStaticMethod_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static void m<T>() {}
 }
@@ -138,20 +142,21 @@ class C {
 void f() {
   C.m();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 52, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 52, 1)],
+    );
   }
 
   test_genericTypedef_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn = void Function<T>();
 void g(Fn fn) {
   fn();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 51, 2),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 51, 2)],
+    );
   }
 
   test_genericTypedef_optionalTypeArgs() async {
@@ -166,25 +171,27 @@ void g(Fn fn) {
   }
 
   test_localFunction_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   void g<T>() {}
   g();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 30, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 30, 1)],
+    );
   }
 
   test_localFunctionVariable_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   var m = <T>() {};
   m();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1)],
+    );
   }
 
   test_nonGenericMethod() async {
@@ -200,29 +207,31 @@ void f(C c) {
   }
 
   test_topLevelFunction_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T>() {}
 
 void g() {
   f();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 29, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 29, 1)],
+    );
   }
 
   test_topLevelFunction_withImportPrefix_noInference() async {
     newFile('$testPackageLibPath/a.dart', '''
 void f<T>() {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as a;
 void g() {
   a.f();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 37, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 37, 1)],
+    );
   }
 
   test_topLevelFunction_withImportPrefix_optionalTypeArgs() async {

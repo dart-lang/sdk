@@ -53,6 +53,24 @@ class MyState extends State {
 ''');
   }
 
+  test_arrowBody_returnsState_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  MyState createState() => .new();
+}
+
+class MyState extends State {
+  int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+''');
+  }
+
   test_arrowBody_returnsState_passingArguments() async {
     await assertDiagnostics(
       r'''
@@ -75,6 +93,28 @@ class MyState extends State {
     );
   }
 
+  test_arrowBody_returnsState_passingArguments_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  MyState createState() => .new(1);
+}
+
+class MyState extends State {
+  int field;
+  MyState(this.field);
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+''',
+      [lint(119, 7)],
+    );
+  }
+
   test_arrowBody_returnsState_withCascade() async {
     await assertDiagnostics(
       r'''
@@ -93,6 +133,27 @@ class MyState extends State {
 }
 ''',
       [lint(119, 20)],
+    );
+  }
+
+  test_arrowBody_returnsState_withCascade_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  MyState createState() => .new()..field = 0;
+}
+
+class MyState extends State {
+  int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+''',
+      [lint(119, 17)],
     );
   }
 
@@ -140,6 +201,26 @@ class MyState extends State {
 ''');
   }
 
+  test_blockBodyWithSingleStatement_returnsState_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  MyState createState() {
+    return .new();
+  }
+}
+
+class MyState extends State {
+  int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+''');
+  }
+
   test_blockBodyWithSingleStatement_returnsState_withCascade() async {
     await assertDiagnostics(
       r'''
@@ -160,6 +241,29 @@ class MyState extends State {
 }
 ''',
       [lint(129, 20)],
+    );
+  }
+
+  test_blockBodyWithSingleStatement_returnsState_withCascade_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  MyState createState() {
+    return .new()..field = 0;
+  }
+}
+
+class MyState extends State {
+  int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+''',
+      [lint(129, 17)],
     );
   }
 
@@ -186,6 +290,32 @@ class MyState extends State {
 var global = MyState();
 ''',
       [lint(121, 48)],
+    );
+  }
+
+  test_instantiateTopLevel_returnTopLevel_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+
+class MyStatefulBad extends StatefulWidget {
+  @override
+  MyState createState() {
+    global = .new();
+    return global;
+  }
+}
+
+class MyState extends State {
+  int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
+}
+
+var global = MyState();
+''',
+      [lint(121, 45)],
     );
   }
 }

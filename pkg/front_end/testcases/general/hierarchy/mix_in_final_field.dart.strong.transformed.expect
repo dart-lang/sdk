@@ -135,8 +135,8 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
   synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
-  abstract get extendedConcreteMixedInAbstractField() → core::int;
   abstract get mixedInAbstractField() → core::int;
+  abstract get extendedConcreteMixedInAbstractField() → core::int;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
 }
 abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
@@ -146,8 +146,8 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
   synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
-  abstract get extendedConcreteMixedInAbstractField() → core::int;
   abstract get mixedInAbstractField() → core::int;
+  abstract get extendedConcreteMixedInAbstractField() → core::int;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
 }
 static method main() → dynamic {}

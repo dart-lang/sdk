@@ -9,7 +9,8 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
  * which has a location and extent in the source file.
  */
 @AnalyzerPublicApi(
-    message: 'exported by package:analyzer/dart/ast/syntactic_entity.dart')
+  message: 'exported by package:analyzer/dart/ast/syntactic_entity.dart',
+)
 abstract class SyntacticEntity {
   /**
    * Return the offset from the beginning of the file to the character after the

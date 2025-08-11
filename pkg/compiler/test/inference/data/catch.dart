@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   catchUntyped();
   catchTyped();
@@ -13,7 +13,7 @@ main() {
 /// Untyped catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchUntyped:[subclass=Object|powerset=0]*/
+/*member: catchUntyped:[subclass=Object|powerset={IN}{GFUO}{IMN}]*/
 catchUntyped() {
   dynamic local = 0;
   try {} catch (e) {
@@ -26,7 +26,7 @@ catchUntyped() {
 /// Typed catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchTyped:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: catchTyped:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
 catchTyped() {
   dynamic local = 0;
   try {} on String catch (e) {
@@ -39,7 +39,7 @@ catchTyped() {
 /// Catch clause with stack trace.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: catchStackTrace:[null|subclass=Object|powerset=1]*/
+/*member: catchStackTrace:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 catchStackTrace() {
   dynamic local = 0;
   try {} catch (_, s) {

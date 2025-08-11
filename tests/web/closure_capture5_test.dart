@@ -47,12 +47,14 @@ closure2() {
 
 closure3() {
   var fs = [];
-  for (var i = 0;
-      i < 3;
-      (() {
-    fs.add(() => i);
-    i++;
-  })()) {
+  for (
+    var i = 0;
+    i < 3;
+    (() {
+      fs.add(() => i);
+      i++;
+    })()
+  ) {
     i++;
   }
   Expect.equals(2, fs.length);
@@ -62,12 +64,14 @@ closure3() {
 
 closure4() {
   var g;
-  for (var i = 0;
-      (() {
-    g = () => i;
-    return false;
-  })();
-      i++) {
+  for (
+    var i = 0;
+    (() {
+      g = () => i;
+      return false;
+    })();
+    i++
+  ) {
     Expect.equals(false, true);
   }
   Expect.equals(0, g());

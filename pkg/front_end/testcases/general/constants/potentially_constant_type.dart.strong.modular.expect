@@ -278,9 +278,9 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
 static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   return t;
 static method main() → dynamic {}
-static method _#F#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>(dynamic o) → self::Class<self::_#F#new#tearOff::X%>
+static synthetic method _#F#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>(dynamic o) → self::Class<self::_#F#new#tearOff::X%>
   return new self::Class::•<self::_#F#new#tearOff::X%>(o);
-static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic>(dynamic o) → self::Class<core::int>
+static synthetic method _#G#new#tearOff<unrelated X extends core::Object? = dynamic>(dynamic o) → self::Class<core::int>
   return new self::Class::•<core::int>(o);
 
 library;

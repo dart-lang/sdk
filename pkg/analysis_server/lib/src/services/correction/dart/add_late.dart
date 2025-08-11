@@ -2,30 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddLate extends ResolvedCorrectionProducer {
-  AddLate({required super.context});
+  final _Type _type;
+
+  AddLate({required super.context}) : _type = _Type.base;
+
+  AddLate.implicitThis({required super.context}) : _type = _Type.implicitThis;
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
+      // TODO(applicability): not necessarily the right thing to do.
       CorrectionApplicability.singleLocation;
+
+  @override
+  AssistKind? get assistKind => DartAssistKind.addLate;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_LATE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    AstNode? node = this.node;
+    if (_type == _Type.implicitThis) {
+      node = node.thisOrAncestorOfType<VariableDeclaration>();
+    }
     if (node is VariableDeclaration) {
       var variableList = node.parent;
       if (variableList is VariableDeclarationList) {
@@ -34,15 +46,8 @@ class AddLate extends ResolvedCorrectionProducer {
             var keyword = variableList.keyword;
             if (keyword == null) {
               await _insertAt(builder, variableList.variables[0].offset);
-              // TODO(brianwilkerson): Consider converting this into an assist and
-              //  expand it to support converting `var` to `late` as well as
-              //  working anywhere a non-late local variableElement or field is selected.
-              //          } else if (keyword.type == Keyword.VAR) {
-              //            builder.addFileEdit(file, (builder) {
-              //              builder.addSimpleReplacement(range.token(keyword), 'late');
-              //            });
             } else if (keyword.type != Keyword.CONST) {
-              await _insertAt(builder, variableList.variables[0].offset);
+              await _insertAt(builder, variableList.offset);
             }
           } else {
             var keyword = variableList.keyword;
@@ -58,15 +63,21 @@ class AddLate extends ResolvedCorrectionProducer {
         }
       }
     } else if (node is SimpleIdentifier) {
-      var getter = node.writeOrReadElement2;
+      var getter = node.writeOrReadElement;
       if (getter is GetterElement &&
           getter.isSynthetic &&
-          getter.enclosingElement2 is InterfaceElement2) {
-        var variableElement = getter.variable3;
+          getter.enclosingElement is InterfaceElement) {
+        var variableElement = getter.variable;
         if (variableElement != null &&
             !variableElement.isSynthetic &&
             !variableElement.isLate &&
-            variableElement.setter2 == null) {
+            variableElement.setter == null &&
+            // It is currently too expensive to do a `getFragmentDeclaration`
+            // call if we don't already have the resolved library ready.
+            // If it becomes desirable to allow such edits we'll likely need
+            // to do something else to not regress performance.
+            variableElement.firstFragment.libraryFragment.source.fullName ==
+                file) {
           var variableFragment = variableElement.firstFragment;
           var declarationResult = await sessionHelper.getFragmentDeclaration(
             variableFragment,
@@ -105,3 +116,5 @@ class AddLate extends ResolvedCorrectionProducer {
     });
   }
 }
+
+enum _Type { base, implicitThis }

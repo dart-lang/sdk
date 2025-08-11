@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../abstract_single_unit.dart';
+import '../utils/test_code_extensions.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,7 +25,7 @@ class ConvertElementTest extends AbstractSingleUnitTest {
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated
-abstract class _A {}
+abstract class [!_A!] {}
 class B<K, V> {}''');
     {
       var engineElement = findElement2.class_('_A');
@@ -35,10 +37,8 @@ class B<K, V> {}''');
       {
         var location = element.location!;
         expect(location.file, testFile.path);
-        expect(location.offset, 27);
         expect(location.length, '_A'.length);
-        expect(location.startLine, 2);
-        expect(location.startColumn, 16);
+        _expectLocation(location, parsedTestCode.range);
       }
       expect(element.parameters, isNull);
       expect(
@@ -60,7 +60,7 @@ class B<K, V> {}''');
   Future<void> test_CONSTRUCTOR() async {
     await resolveTestCode('''
 class A {
-  const A.myConstructor(int a, [String? b]);
+  const A.[!myConstructor!](int a, [String? b]);
 }''');
     var engineElement = findElement2.constructor('myConstructor');
     // create notification Element
@@ -71,10 +71,8 @@ class A {
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 11);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, '(int a, [String? b])');
     expect(element.returnType, 'A');
@@ -133,7 +131,7 @@ class A {
   }
 
   void test_dynamic() {
-    var engineElement = engine.DynamicElementImpl2.instance;
+    var engineElement = engine.DynamicElementImpl.instance;
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.UNKNOWN);
@@ -147,11 +145,11 @@ class A {
   Future<void> test_ENUM() async {
     await resolveTestCode('''
 @deprecated
-enum _E1 { one, two }
+enum [!_E1!] { one, two }
 enum E2 { three, four }''');
     {
       var engineElement = findElement2.enum_('_E1');
-      expect(engineElement.metadata2.hasDeprecated, isTrue);
+      expect(engineElement.metadata.hasDeprecated, isTrue);
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -160,15 +158,13 @@ enum E2 { three, four }''');
       {
         var location = element.location!;
         expect(location.file, testFile.path);
-        expect(location.offset, 17);
         expect(location.length, '_E1'.length);
-        expect(location.startLine, 2);
-        expect(location.startColumn, 6);
+        _expectLocation(location, parsedTestCode.range);
       }
       expect(element.parameters, isNull);
       expect(
         element.flags,
-        (engineElement.metadata2.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
+        (engineElement.metadata.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
             Element.FLAG_PRIVATE,
       );
     }
@@ -186,8 +182,8 @@ enum E2 { three, four }''');
   Future<void> test_ENUM_CONSTANT() async {
     await resolveTestCode('''
 @deprecated
-enum _E1 { one, two }
-enum E2 { three, four }''');
+enum _E1 { /*[0*/one/*0]*/, two }
+enum E2 { /*[1*/three/*1]*/, four }''');
     {
       var engineElement = findElement2.field('one');
       // create notification Element
@@ -197,15 +193,13 @@ enum E2 { three, four }''');
       {
         var location = element.location!;
         expect(location.file, testFile.path);
-        expect(location.offset, 23);
         expect(location.length, 'one'.length);
-        expect(location.startLine, 2);
-        expect(location.startColumn, 12);
+        _expectLocation(location, parsedTestCode.ranges[0]);
       }
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
-      var classElement = engineElement.enclosingElement2;
-      expect(classElement.metadata2.hasDeprecated, isTrue);
+      var classElement = engineElement.enclosingElement;
+      expect(classElement.metadata.hasDeprecated, isTrue);
       expect(
         element.flags,
         // Element.FLAG_DEPRECATED |
@@ -221,10 +215,8 @@ enum E2 { three, four }''');
       {
         var location = element.location!;
         expect(location.file, testFile.path);
-        expect(location.offset, 44);
         expect(location.length, 'three'.length);
-        expect(location.startLine, 3);
-        expect(location.startColumn, 11);
+        _expectLocation(location, parsedTestCode.ranges[1]);
       }
       expect(element.parameters, isNull);
       expect(element.returnType, 'E2');
@@ -253,7 +245,7 @@ enum E2 { three, four }''');
   Future<void> test_FIELD() async {
     await resolveTestCode('''
 class A {
-  static const myField = 42;
+  static const [!myField!] = 42;
 }''');
     var engineElement = findElement2.field('myField');
     // create notification Element
@@ -263,10 +255,8 @@ class A {
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 25);
       expect(location.length, 'myField'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 16);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, isNull);
     expect(element.returnType, 'int');
@@ -347,7 +337,7 @@ typedef int F<T>(String x);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class A {
-  String get myGetter => 42;
+  String get [!myGetter!] => 42;
 }''');
     var engineElement = findElement2.getter('myGetter');
     // create notification Element
@@ -357,10 +347,8 @@ class A {
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 14);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, isNull);
     expect(element.returnType, 'String');
@@ -370,7 +358,7 @@ class A {
   Future<void> test_LABEL() async {
     await resolveTestCode('''
 void f() {
-myLabel:
+[!myLabel!]:
   while (true) {
     break myLabel;
   }
@@ -383,10 +371,8 @@ myLabel:
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 11);
       expect(location.length, 'myLabel'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 1);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
@@ -396,7 +382,7 @@ myLabel:
   Future<void> test_METHOD() async {
     await resolveTestCode('''
 class A {
-  static List<String> myMethod(int a, {String? b, int? c}) {
+  static List<String> [!myMethod!](int a, {String? b, int? c}) {
     return [];
   }
 }''');
@@ -408,10 +394,8 @@ class A {
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 23);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, '(int a, {String? b, int? c})');
     expect(element.returnType, 'List<String>');
@@ -445,7 +429,7 @@ mixin A {}
   Future<void> test_SETTER() async {
     await resolveTestCode('''
 class A {
-  set mySetter(String x) {}
+  set [!mySetter!](String x) {}
 }''');
     var engineElement = findElement2.setter('mySetter');
     // create notification Element
@@ -455,14 +439,19 @@ class A {
     {
       var location = element.location!;
       expect(location.file, testFile.path);
-      expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 7);
+      _expectLocation(location, parsedTestCode.range);
     }
     expect(element.parameters, '(String x)');
     expect(element.returnType, isNull);
     expect(element.flags, 0);
+  }
+
+  void _expectLocation(Location actual, TestCodeRange expected) {
+    expect(actual.offset, expected.sourceRange.offset);
+    // LSP uses zero-based line/col, but server does uses one-based.
+    expect(actual.startLine, expected.range.start.line + 1);
+    expect(actual.startColumn, expected.range.start.character + 1);
   }
 }
 

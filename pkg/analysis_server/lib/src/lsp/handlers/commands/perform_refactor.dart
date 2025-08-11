@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -28,6 +29,9 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   bool get recordsOwnAnalytics => true;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   FutureOr<ErrorOr<void>> execute(
     String path,
     String kind,
@@ -39,6 +43,12 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
     ProgressReporter reporter,
     int? docVersion,
   ) async {
+    var editorCapabilities = server.editorClientCapabilities;
+    if (editorCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return serverNotInitializedError;
+    }
+
     var actionName = 'dart.refactor.${kind.toLowerCase()}';
     server.analyticsManager.executedCommand(actionName);
 
@@ -74,7 +84,10 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
             // Show the error to the user but don't fail the request, as the
             // LSP Client may show a failed request in a way that looks like a
             // server error.
-            server.showErrorMessageToUser(status.message!);
+            if (server case LspAnalysisServer server) {
+              // Error notifications are not supported for LSP-over-Legacy.
+              server.showErrorMessageToUser(status.message!);
+            }
             return success(null);
           }
 
@@ -98,7 +111,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
             return fileModifiedError;
           }
 
-          var edit = createWorkspaceEdit(server, clientCapabilities, change);
+          var edit = createWorkspaceEdit(server, editorCapabilities, change);
           return await sendWorkspaceEditToClient(edit);
         } finally {
           manager.end(cancelableToken);

@@ -7,7 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -136,7 +136,7 @@ class FlutterOutlineComputer {
     if (type is! InterfaceType || !type.isWidgetType) {
       return null;
     }
-    var className = type.element3.displayName;
+    var className = type.element.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];

@@ -80,5 +80,5 @@ main() {
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'staticMethod' isn't defined for the class 'Type'.
+  // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
 }

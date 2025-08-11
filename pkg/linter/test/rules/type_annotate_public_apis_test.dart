@@ -147,6 +147,7 @@ augment void f(x) { }
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedTopLevelVariable() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

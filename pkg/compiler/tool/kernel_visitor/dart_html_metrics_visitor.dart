@@ -42,12 +42,11 @@ class MetricsVisitor extends RecursiveVisitor {
   @override
   void visitLibrary(Library node) {
     // Check if this is a library we want to visit.
-    var visit =
-        libraryFilter.isNotEmpty
-            ? libraryFilter.contains(
-              "${node.importUri.scheme}:${node.importUri.path}",
-            )
-            : true;
+    var visit = libraryFilter.isNotEmpty
+        ? libraryFilter.contains(
+            "${node.importUri.scheme}:${node.importUri.path}",
+          )
+        : true;
 
     if (visit) {
       super.visitLibrary(node);

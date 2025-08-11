@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,13 +16,16 @@ void main() {
 @reflectiveTest
 class DocImportCannotBeDeferredTest extends PubPackageResolutionTest {
   test_deferred() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// @docImport 'dart:math' deferred as math;
 class C {}
-''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
-    ]);
+''',
+      [
+        error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
+        error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
+      ],
+    );
   }
 
   test_notDeferred() async {

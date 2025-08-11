@@ -5,7 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
@@ -342,7 +342,7 @@ class ImportElementsComputer {
   /// Computes the best URI to import [what] into [from].
   ///
   /// Copied from DartFileEditBuilderImpl.
-  String _getLibrarySourceUri(LibraryElement2 from, Source what) {
+  String _getLibrarySourceUri(LibraryElement from, Source what) {
     var whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
     var whatUri = what.uri;
@@ -362,7 +362,7 @@ class ImportElementsComputer {
 
     if (prefix.isNotEmpty) {
       var prefixElement = scope.lookup(prefix).getter2;
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         scope = prefixElement.scope;
       } else {
         return false;
@@ -381,7 +381,7 @@ class ImportElementsComputer {
     if (libraryImport == null) {
       return false;
     }
-    var library = libraryImport.importedLibrary2;
+    var library = libraryImport.importedLibrary;
     return library != null &&
         library.firstFragment.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

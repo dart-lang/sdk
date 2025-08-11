@@ -71,5 +71,5 @@ static method test(dynamic x) → dynamic {
     }
   }
 }
-static method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A
+static synthetic method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A
   return new self::A::•();

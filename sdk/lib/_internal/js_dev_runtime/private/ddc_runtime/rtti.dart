@@ -71,15 +71,13 @@ lazyFn(closure, Object Function() computeType) {
   defineAccessor(
     closure,
     JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-    get:
-        () => defineValue(
-          closure,
-          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-          computeType(),
-        ),
-    set:
-        (value) =>
-            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
+    get: () => defineValue(
+      closure,
+      JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+      computeType(),
+    ),
+    set: (value) =>
+        defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
     configurable: true,
     enumerable: false,
   );
@@ -97,24 +95,21 @@ lazyGFn(
   defineAccessor(
     closure,
     JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-    get:
-        () => defineValue(
-          closure,
-          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-          computeType(),
-        ),
-    set:
-        (value) =>
-            defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
+    get: () => defineValue(
+      closure,
+      JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+      computeType(),
+    ),
+    set: (value) =>
+        defineValue(closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), value),
     configurable: true,
     enumerable: false,
   );
   defineAccessor(
     closure,
     '_defaultTypeArgs',
-    get:
-        () =>
-            defineValue(closure, '_defaultTypeArgs', computeDefaultTypeArgs()),
+    get: () =>
+        defineValue(closure, '_defaultTypeArgs', computeDefaultTypeArgs()),
     set: (value) => defineValue(closure, '_defaultTypeArgs', value),
     configurable: true,
     enumerable: false,
@@ -153,12 +148,11 @@ Object getInterceptorForRti(obj) {
           obj,
           JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         );
-        classRef =
-            signature != null
-                ? JS_CLASS_REF(Function)
-                // Dart functions should always be tagged with a signature,
-                // assume this must be a JavaScript function.
-                : JS_CLASS_REF(JavaScriptFunction);
+        classRef = signature != null
+            ? JS_CLASS_REF(Function)
+            // Dart functions should always be tagged with a signature,
+            // assume this must be a JavaScript function.
+            : JS_CLASS_REF(JavaScriptFunction);
         break;
       default:
         // The interceptors for native JavaScript types like bool, string, etc.

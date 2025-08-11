@@ -17,15 +17,16 @@ main() {
 @reflectiveTest
 class FunctionDeclarationResolutionTest extends PubPackageResolutionTest {
   test_asyncGenerator_blockBody_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 Stream<int> f() async* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -60,22 +61,23 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@34
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@34
     type: Stream<int> Function()
 ''');
   }
 
   test_asyncGenerator_expressionBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 Stream<int> f() async* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -105,10 +107,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@34
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@34
     type: Stream<int> Function()
 ''');
   }
@@ -125,7 +127,7 @@ void bar([int foo = foo + 1]) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@getter::foo#element
+  element: <testLibrary>::@getter::foo
   staticType: int
 ''');
   }
@@ -151,17 +153,212 @@ NamedType
     assertResolvedNodeText(node_2, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::bar::@parameter::a#element
+  element: <testLibrary>::@function::bar::@formalParameter::a
   staticType: a
 ''');
   }
 
+  test_genericFunction_fBoundedDefaultType() async {
+    await assertNoErrorsInCode('''
+void m<T extends List<T>>() {}
+''');
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+                  element2: #E0 T
+                  type: T
+              rightBracket: >
+            element2: dart:core::@class::List
+            type: List<T>
+          declaredElement: <testLibraryFragment> T@7
+            defaultType: List<dynamic>
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment> m@5
+      type: void Function<T extends List<T>>()
+    staticType: void Function<T extends List<T>>()
+  declaredElement: <testLibraryFragment> m@5
+    type: void Function<T extends List<T>>()
+''');
+  }
+
+  test_genericFunction_simpleDefaultType() async {
+    await assertNoErrorsInCode('''
+void m<T extends num>() {}
+''');
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element2: dart:core::@class::num
+            type: num
+          declaredElement: <testLibraryFragment> T@7
+            defaultType: num
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment> m@5
+      type: void Function<T extends num>()
+    staticType: void Function<T extends num>()
+  declaredElement: <testLibraryFragment> m@5
+    type: void Function<T extends num>()
+''');
+  }
+
+  test_genericLocalFunction_fBoundedDefaultType() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  void m<T extends List<T>>() {}
+}
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
+
+    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+                  element2: #E0 T
+                  type: T
+              rightBracket: >
+            element2: dart:core::@class::List
+            type: List<T>
+          declaredElement: <testLibraryFragment> T@20
+            defaultType: List<dynamic>
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment> m@18
+      type: void Function<T extends List<T>>()
+    staticType: void Function<T extends List<T>>()
+  declaredElement: <testLibraryFragment> m@18
+    type: void Function<T extends List<T>>()
+''');
+  }
+
+  test_genericLocalFunction_simpleDefaultType() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  void m<T extends num>() {}
+}
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
+
+    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+    element2: <null>
+    type: void
+  name: m
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element2: dart:core::@class::num
+            type: num
+          declaredElement: <testLibraryFragment> T@20
+            defaultType: num
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: <testLibraryFragment> m@18
+      type: void Function<T extends num>()
+    staticType: void Function<T extends num>()
+  declaredElement: <testLibraryFragment> m@18
+    type: void Function<T extends num>()
+''');
+  }
+
   test_getter_formalParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get foo(double a) => 0;
-''', [
-      error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1),
-    ]);
+''',
+      [error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -181,7 +378,7 @@ FunctionDeclaration
           element2: dart:core::@class::double
           type: double
         name: a
-        declaredElement: <testLibraryFragment>::@getter::foo::@formalParameter::a
+        declaredElement: <testLibraryFragment> a@19
           type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -190,22 +387,23 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@getter::foo
+    declaredElement: <testLibraryFragment> foo@8
       type: int Function(double)
     staticType: int Function(double)
-  declaredElement: <testLibraryFragment>::@getter::foo
+  declaredElement: <testLibraryFragment> foo@8
     type: int Function(double)
 ''');
   }
 
   test_syncGenerator_blockBody_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<int> f() sync* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -240,20 +438,21 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@14
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@14
     type: Iterable<int> Function()
 ''');
   }
 
   test_syncGenerator_expressionBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<int> f() sync* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -283,20 +482,21 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@14
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@14
     type: Iterable<int> Function()
 ''');
   }
 
   test_wildCardFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 _() {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -310,23 +510,24 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::_
+    declaredElement: <testLibraryFragment> _@0
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment>::@function::_
+  declaredElement: <testLibraryFragment> _@0
     type: dynamic Function()
 ''');
   }
 
   test_wildCardFunction_preWildCards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 _() {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 44, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 44, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -340,10 +541,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::_
+    declaredElement: <testLibraryFragment> _@44
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment>::@function::_
+  declaredElement: <testLibraryFragment> _@44
     type: dynamic Function()
 ''');
   }
@@ -352,12 +553,15 @@ FunctionDeclaration
     // Corresponding language test:
     // language/wildcard_variables/multiple/local_declaration_type_parameter_error_test
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<_ extends void Function<_>(_, _), _>() {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
+      ],
+    );
 
     var node = findNode.typeParameter('<_>');
     assertResolvedNodeText(node, r'''
@@ -375,7 +579,8 @@ TypeParameter
       typeParameters
         TypeParameter
           name: _
-          declaredElement: _@31
+          declaredElement: <testLibraryFragment> _@31
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -384,14 +589,14 @@ TypeParameter
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement
@@ -405,7 +610,8 @@ TypeParameter
       returnType: void
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)
-  declaredElement: _@7
+  declaredElement: <testLibraryFragment> _@7
+    defaultType: void Function<_>(InvalidType, InvalidType)
 ''');
   }
 }

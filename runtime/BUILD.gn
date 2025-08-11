@@ -104,6 +104,14 @@ config("dart_os_config") {
   } else if (target_os == "ios") {
     defines += [ "DART_TARGET_OS_MACOS" ]
     defines += [ "DART_TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "watchos") {
+    defines += [ "DART_TARGET_OS_MACOS" ]
+
+    # This doesn't look entirely correct, but so far it looks
+    # sufficient and allows to add watchOS support with less changes.
+    # If we need to differentiate iOS and watchOS targets later, we'll
+    # change this.
+    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
   } else if (target_os == "linux") {
     defines += [ "DART_TARGET_OS_LINUX" ]
   } else if (target_os == "mac") {
@@ -121,9 +129,10 @@ config("dart_os_config") {
   }
 }
 
-# We need to build gen_snapshot targeting Linux ARM64 during a build
-# of the SDK. This configuration is used to unconditionally target
-# Linux ARM64. It should not be combined with dart_os_config and dart_arch_config.
+# The dart_linux_<arch>_config configs below are used for building cross
+# compilers when building the SDK. They should not be combined with
+# dart_os_config and dart_arch_config.
+
 config("dart_linux_arm64_config") {
   defines = [
     "DART_TARGET_OS_LINUX",
@@ -131,13 +140,24 @@ config("dart_linux_arm64_config") {
   ]
 }
 
-# We need to build gen_snapshot targeting Linux ARM64 during a build
-# of the SDK. This configuration is used to unconditionally target
-# Linux ARM64. It should not be combined with dart_os_config and dart_arch_config.
 config("dart_linux_x64_config") {
   defines = [
     "DART_TARGET_OS_LINUX",
     "TARGET_ARCH_X64",
+  ]
+}
+
+config("dart_linux_arm_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_ARM",
+  ]
+}
+
+config("dart_linux_riscv64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_RISCV64",
   ]
 }
 
@@ -160,8 +180,15 @@ config("dart_arch_config") {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)
   }
+  if (dart_use_compressed_pointers) {
+    if (dart_target_arch != "arm64" && dart_target_arch != "x64") {
+      print("Invalid architecture for compressed pointers: $dart_target_arch")
+      assert(false)
+    }
+    defines += [ "DART_COMPRESSED_POINTERS" ]
+  }
   if (dart_force_simulator) {
-    defines += [ "USING_SIMULATOR" ]
+    defines += [ "DART_INCLUDE_SIMULATOR" ]
     if (dart_target_arch == "arm64") {
       defines += [ "SIMULATOR_FFI" ]
     }
@@ -181,10 +208,6 @@ config("dart_config") {
 
   if (dart_include_sampling_heap_profiler) {
     defines += [ "FORCE_FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
-  }
-
-  if (dart_use_compressed_pointers) {
-    defines += [ "DART_COMPRESSED_POINTERS" ]
   }
 
   if (dart_support_perfetto) {
@@ -317,7 +340,10 @@ source_set("dart_api") {
 
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
-  extra_nonproduct_deps = [ "vm:libprotozero" ]
+  extra_nonproduct_deps = []
+  if (dart_support_perfetto) {
+    extra_nonproduct_deps += [ "vm:libprotozero" ]
+  }
   extra_deps = [
     ":generate_version_cc_file",
     "../third_party/double-conversion/src:libdouble_conversion",
@@ -363,6 +389,26 @@ action("generate_version_cc_file") {
     "../tools/utils.py",
     "../tools/VERSION",
     "vm/version_in.cc",
+  ]
+
+  # This list must be kept in sync with the VM_SNAPSHOT_FILES in
+  # tools/make_version.py.
+  inputs += [
+    "vm/app_snapshot.cc",
+    "vm/app_snapshot.h",
+    "vm/dart.cc",
+    "vm/dart_api_impl.cc",
+    "vm/datastream.h",
+    "vm/image_snapshot.cc",
+    "vm/image_snapshot.h",
+    "vm/object.cc",
+    "vm/object.h",
+    "vm/raw_object.cc",
+    "vm/raw_object.h",
+    "vm/snapshot.cc",
+    "vm/snapshot.h",
+    "vm/symbols.cc",
+    "vm/symbols.h",
   ]
   if (dart_version_git_info) {
     inputs += [ "$default_git_folder/logs/HEAD" ]

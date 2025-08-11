@@ -16,21 +16,23 @@ main() {
 @reflectiveTest
 class UriDoesNotExistInDocImportTest extends PubPackageResolutionTest {
   test_libraryDocImport_cannotResolve_dart() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport 'dart:foo';
 library;
-''', [
-      error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10),
-    ]);
+''',
+      [error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10)],
+    );
   }
 
   test_libraryDocImport_cannotResolve_file() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport 'foo.dart';
 library;
-''', [
-      error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10),
-    ]);
+''',
+      [error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10)],
+    );
   }
 
   test_libraryDocImport_canResolve_dart() async {

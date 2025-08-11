@@ -9,6 +9,4 @@ class C<T> {
   var field = T;
 }
 
-main() {
-
-}
+main() {}

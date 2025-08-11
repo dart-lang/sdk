@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewWithUndefinedConstructorTest);
     defineReflectiveTests(
-        NewWithUndefinedConstructorWithoutConstructorTearoffsTest);
+      NewWithUndefinedConstructorWithoutConstructorTearoffsTest,
+    );
   });
 }
 
@@ -22,30 +23,44 @@ class NewWithUndefinedConstructorTest extends PubPackageResolutionTest
 
 mixin NewWithUndefinedConstructorTestCases on PubPackageResolutionTest {
   test_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.name() {}
 }
 f() {
   new A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1,
-          messageContains: ["'A'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          38,
+          1,
+          messageContains: ["'A'"],
+        ),
+      ],
+    );
   }
 
   test_default_noKeyword() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.name() {}
 }
 f() {
   A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 34, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          34,
+          1,
+        ),
+      ],
+    );
   }
 
   test_default_prefixed() async {
@@ -54,29 +69,43 @@ class A {
   A.name() {}
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' as lib1;
 
 f() {
   new lib1.A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 41, 6,
-          messageContains: ["'lib1.A'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          41,
+          6,
+          messageContains: ["'lib1.A'"],
+        ),
+      ],
+    );
   }
 
   test_default_unnamedViaNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.name() {}
 }
 f() {
   A.new();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 36, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          36,
+          3,
+        ),
+      ],
+    );
   }
 
   test_defaultViaNew() async {
@@ -113,17 +142,24 @@ f() {
   }
 
   test_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() {}
 }
 f() {
   new A.name();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4,
-          messageContains: ["class 'A'", "named 'name'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          35,
+          4,
+          messageContains: ["class 'A'", "named 'name'"],
+        ),
+      ],
+    );
   }
 
   test_named_prefixed() async {
@@ -132,15 +168,22 @@ class A {
   A() {}
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' as lib1;
 f() {
   new lib1.A.name();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 47, 4,
-          messageContains: ["class 'lib1.A'", "named 'name'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          47,
+          4,
+          messageContains: ["class 'lib1.A'", "named 'name'"],
+        ),
+      ],
+    );
   }
 
   test_private_named() async {
@@ -149,14 +192,15 @@ class A {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 void f() {
   new A._named();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6)],
+    );
   }
 
   test_private_named_genericClass_noTypeArguments() async {
@@ -165,14 +209,15 @@ class A<T> {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 void f() {
   new A._named();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6)],
+    );
   }
 
   test_private_named_genericClass_withTypeArguments() async {
@@ -181,43 +226,47 @@ class A<T> {
   A._named() {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 void f() {
   new A<int>._named();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 41, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 41, 6)],
+    );
   }
 }
 
 @reflectiveTest
 class NewWithUndefinedConstructorWithoutConstructorTearoffsTest
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+    extends PubPackageResolutionTest
+    with WithoutConstructorTearoffsMixin {
   test_defaultViaNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.new() {}
 }
 f() {
   A();
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3)],
+    );
   }
 
   test_unnamedViaNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.named() {}
 }
 f() {
   A.new();
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 37, 3),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 37, 3)],
+    );
   }
 }

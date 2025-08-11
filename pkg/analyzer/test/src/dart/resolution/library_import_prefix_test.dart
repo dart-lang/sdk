@@ -16,15 +16,22 @@ main() {
 @reflectiveTest
 class ImportPrefixResolutionTest extends PubPackageResolutionTest {
   test_asExpression_expressionStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async' as p;
 
 main() {
   p; // use
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 38, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          38,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.simple('p; // use');
     assertResolvedNodeText(node, r'''
@@ -36,16 +43,23 @@ SimpleIdentifier
   }
 
   test_asExpression_forIn_iterable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async' as p;
 
 main() {
   for (var x in p) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          52,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -56,8 +70,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: x
-      declaredElement: hasImplicitType x@47
-        type: InvalidType
+      declaredFragment: isPublic x@47
+        type: null
+        element: hasImplicitType isPublic
+          type: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
@@ -71,7 +87,8 @@ ForStatement
   }
 
   test_asExpression_instanceCreation_argument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async' as p;
 
 class C<T> {
@@ -81,10 +98,16 @@ class C<T> {
 main() {
   var x = new C(p);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          76,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -96,7 +119,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::C
       type: C<dynamic>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -104,7 +127,7 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
         element: <testLibraryFragment>::@prefix2::p
         staticType: InvalidType
@@ -166,7 +189,8 @@ extension ExtendedString2 on String {
 
     // Import prefixes named `_` provide access to non-private extensions
     // in the imported library but are non-binding.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as _;
 import 'b.dart' as _;
 
@@ -175,10 +199,12 @@ f() {
   ''.stringExt2;
   _.a;
 }
-''', [
-      // String extensions are found but `_` is not bound.
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 86, 1),
-    ]);
+''',
+      [
+        // String extensions are found but `_` is not bound.
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 86, 1),
+      ],
+    );
   }
 
   test_wildcardResolution_preWildcards() async {
@@ -215,7 +241,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: package:test/a.dart::<fragment>::@getter::a#element
+  element: package:test/a.dart::@getter::a
   staticType: int
 ''');
   }

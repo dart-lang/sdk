@@ -38,66 +38,43 @@ void test(A a1) {
   A a2 = new E();
   print(a1.a);
 
-
-
-
   print(a2.a);
-
-
-
 
   if (a1 is B && a2 is C) {
     print(a1.a);
     print(a1.b);
 
-
-
     print(a2.a);
     print(a2.b);
     print(a2.c);
-
 
     if (a1 is C && a2 is D) {
       print(a1.a);
       print(a1.b);
       print(a1.c);
 
-
       print(a2.a);
       print(a2.b);
       print(a2.c);
-
     }
   }
 
   var o1 = a1 is B && a2 is C
-          ? '${a1.a}'
-              '${a1.b}'
-
-
-              '${a2.a}'
-              '${a2.b}'
-              '${a2.c}'
-
-          : '${a1.a}'
-
-
-
-          '${a2.a}'
-
-
-
-      ;
+      ? '${a1.a}'
+            '${a1.b}'
+            '${a2.a}'
+            '${a2.b}'
+            '${a2.c}'
+      : '${a1.a}'
+            '${a2.a}';
 
   if (a2 is C && a1 is B && a1 is C && a2 is B && a2 is D) {
     print(a1.a);
     print(a1.b);
     print(a1.c);
 
-
     print(a2.a);
     print(a2.b);
     print(a2.c);
-
   }
 }

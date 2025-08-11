@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ClassRefElement extends CustomElement implements Renderable {
@@ -41,13 +43,13 @@ class ClassRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _class))
-        ..text = _class.name
-    ];
+    removeChildren();
+    appendChild(new HTMLAnchorElement()
+      ..href = Uris.inspect(_isolate, object: _class)
+      ..text = _class.name ?? '');
   }
 }

@@ -7,8 +7,10 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isStyleSheetList =
-      predicate((x) => x is List<StyleSheet>, 'is a List<StyleSheet>');
+  var isStyleSheetList = predicate(
+    (x) => x is List<StyleSheet>,
+    'is a List<StyleSheet>',
+  );
 
   test('NodeList', () {
     List<Element> asList = window.document.querySelectorAll('body');

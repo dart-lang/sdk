@@ -125,10 +125,9 @@ class _FrameDecoder implements Iterator<String> {
   bool moveNext() => ++index < _length;
 
   @override
-  String get current =>
-      (index >= 0 && index < _length)
-          ? _internal[index]
-          : throw StateError('No current value available.');
+  String get current => (index >= 0 && index < _length)
+      ? _internal[index]
+      : throw StateError('No current value available.');
 
   bool get hasTokens => index < _length - 1 && _length > 0;
 

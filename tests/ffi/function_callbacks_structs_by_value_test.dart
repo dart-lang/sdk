@@ -71,22 +71,27 @@ Struct20BytesHomogeneousInt32 dartPassStructRecursive(
   return result;
 }
 
-final functionPointer = Pointer.fromFunction<
-  Struct20BytesHomogeneousInt32 Function(Int64, Struct20BytesHomogeneousInt32)
->(dartPassStructRecursive);
+final functionPointer =
+    Pointer.fromFunction<
+      Struct20BytesHomogeneousInt32 Function(
+        Int64,
+        Struct20BytesHomogeneousInt32,
+      )
+    >(dartPassStructRecursive);
 
-final cPassStructRecursive = ffiTestFunctions.lookupFunction<
-  Struct20BytesHomogeneousInt32 Function(
-    Int64 recursionCounter,
-    Struct20BytesHomogeneousInt32 struct,
-    Pointer callbackAddress,
-  ),
-  Struct20BytesHomogeneousInt32 Function(
-    int recursionCounter,
-    Struct20BytesHomogeneousInt32,
-    Pointer,
-  )
->("PassStructRecursive");
+final cPassStructRecursive = ffiTestFunctions
+    .lookupFunction<
+      Struct20BytesHomogeneousInt32 Function(
+        Int64 recursionCounter,
+        Struct20BytesHomogeneousInt32 struct,
+        Pointer callbackAddress,
+      ),
+      Struct20BytesHomogeneousInt32 Function(
+        int recursionCounter,
+        Struct20BytesHomogeneousInt32,
+        Pointer,
+      )
+    >("PassStructRecursive");
 
 Struct8BytesNestedInt typedDataBackedStruct =
     Pointer<Struct8BytesNestedInt>.fromAddress(0).ref;
@@ -101,10 +106,15 @@ final _receiveStructByValuePointer =
       _receiveStructByValue,
     );
 
-final _invokeReceiveStructByValue = ffiTestFunctions.lookupFunction<
-  Void Function(Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>),
-  void Function(Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>)
->("CallbackWithStruct");
+final _invokeReceiveStructByValue = ffiTestFunctions
+    .lookupFunction<
+      Void Function(
+        Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>,
+      ),
+      void Function(
+        Pointer<NativeFunction<Void Function(Struct8BytesNestedInt)>>,
+      )
+    >("CallbackWithStruct");
 
 void testCopyLogic() {
   _invokeReceiveStructByValue(_receiveStructByValuePointer);

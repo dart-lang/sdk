@@ -16,8 +16,9 @@ import 'use_flag_test_helper.dart';
 final _seenDescriptions = <String>{};
 
 Snapshot testProfile(String profilePath) {
-  final profile =
-      Snapshot.fromJson(jsonDecode(File(profilePath).readAsStringSync()));
+  final profile = Snapshot.fromJson(
+    jsonDecode(File(profilePath).readAsStringSync()),
+  );
 
   // Verify that there are no "unknown" nodes. These are emitted when we see a
   // reference to an some object but no other metadata about the object was
@@ -36,9 +37,10 @@ Snapshot testProfile(String profilePath) {
   // (most likely an oversight).
   for (final edge in root.edges) {
     Expect.isTrue(
-        reachable.add(edge.target),
-        "root\n\n$root\n\nhas multiple edges to node\n\n${edge.target}:\n\n"
-        "${root.edges.where((e) => e.target == edge.target).toList()}");
+      reachable.add(edge.target),
+      "root\n\n$root\n\nhas multiple edges to node\n\n${edge.target}:\n\n"
+      "${root.edges.where((e) => e.target == edge.target).toList()}",
+    );
   }
 
   // Check that all other nodes are reachable from the root.
@@ -52,8 +54,10 @@ Snapshot testProfile(String profilePath) {
     }
   }
 
-  final unreachable =
-      profile.nodes.skip(1).where((Node n) => !reachable.contains(n)).toSet();
+  final unreachable = profile.nodes
+      .skip(1)
+      .where((Node n) => !reachable.contains(n))
+      .toSet();
   Expect.isEmpty(unreachable);
 
   return profile;
@@ -61,8 +65,10 @@ Snapshot testProfile(String profilePath) {
 
 Future<void> testJIT(String dillPath, String snapshotKind) async {
   final description = snapshotKind;
-  Expect.isTrue(_seenDescriptions.add(description),
-      "test configuration $description would be run multiple times");
+  Expect.isTrue(
+    _seenDescriptions.add(description),
+    "test configuration $description would be run multiple times",
+  );
 
   await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
@@ -87,19 +93,23 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
     // This ensures that all bytes are accounted for in some way.
     int actualSize =
         await File(vmDataPath).length() + await File(isolateDataPath).length();
-    final expectedSize =
-        profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
+    final expectedSize = profile.nodes.fold<int>(
+      0,
+      (size, n) => size + n.selfSize,
+    );
 
     Expect.equals(expectedSize, actualSize, "failed on $description snapshot");
   });
 }
 
-Future<void> testAOT(String dillPath,
-    {bool useAsm = false,
-    bool forceDrops = false,
-    bool stripUtil = false, // Note: forced true if useAsm.
-    bool stripFlag = false,
-    bool disassemble = false}) async {
+Future<void> testAOT(
+  String dillPath, {
+  bool useAsm = false,
+  bool forceDrops = false,
+  bool stripUtil = false, // Note: forced true if useAsm.
+  bool stripFlag = false,
+  bool disassemble = false,
+}) async {
   if (const bool.fromEnvironment('dart.vm.product') && disassemble) {
     Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
   }
@@ -128,8 +138,10 @@ Future<void> testAOT(String dillPath,
   }
 
   final description = descriptionBuilder.toString();
-  Expect.isTrue(_seenDescriptions.add(description),
-      "test configuration $description would be run multiple times");
+  Expect.isTrue(
+    _seenDescriptions.add(description),
+    "test configuration $description would be run multiple times",
+  );
 
   await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
@@ -141,7 +153,7 @@ Future<void> testAOT(String dillPath,
       if (forceDrops) ...[
         '--dwarf-stack-traces',
         '--no-retain-function-objects',
-        '--no-retain-code-objects'
+        '--no-retain-code-objects',
       ],
       if (disassemble) '--disassemble', // Not defined in PRODUCT mode.
       dillPath,
@@ -170,8 +182,10 @@ Future<void> testAOT(String dillPath,
 
     final profile = testProfile(profilePath);
 
-    final expectedSize =
-        profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
+    final expectedSize = profile.nodes.fold<int>(
+      0,
+      (size, n) => size + n.selfSize,
+    );
 
     // May not be ELF, but another format.
     final elf = Elf.fromFile(snapshotPath);
@@ -193,19 +207,27 @@ Future<void> testAOT(String dillPath,
       Expect.isNotNull(vmDataSectionSymbol);
       final isolateTextSectionSymbol = elf.dynamicSymbolFor(isolateSymbolName);
       Expect.isNotNull(isolateTextSectionSymbol);
-      final isolateDataSectionSymbol =
-          elf.dynamicSymbolFor(isolateDataSymbolName);
+      final isolateDataSectionSymbol = elf.dynamicSymbolFor(
+        isolateDataSymbolName,
+      );
       Expect.isNotNull(isolateDataSectionSymbol);
 
-      final actualSize = vmTextSectionSymbol!.size +
+      final actualSize =
+          vmTextSectionSymbol!.size +
           vmDataSectionSymbol!.size +
           isolateTextSectionSymbol!.size +
           isolateDataSectionSymbol!.size;
 
       Expect.equals(
-          expectedSize, actualSize, "failed on $description snapshot");
-      Expect.equals(expectedSize, actualSize,
-          "symbol size check failed on $description snapshot");
+        expectedSize,
+        actualSize,
+        "failed on $description snapshot",
+      );
+      Expect.equals(
+        expectedSize,
+        actualSize,
+        "symbol size check failed on $description snapshot",
+      );
       checkedSize = true;
     }
 
@@ -221,11 +243,15 @@ Future<void> testAOT(String dillPath,
       final textSections = elf.namedSections(".text");
       Expect.isNotEmpty(textSections);
       Expect.isTrue(
-          textSections.length <= 2, "More text sections than expected");
+        textSections.length <= 2,
+        "More text sections than expected",
+      );
       final dataSections = elf.namedSections(".rodata");
       Expect.isNotEmpty(dataSections);
       Expect.isTrue(
-          dataSections.length <= 2, "More data sections than expected");
+        dataSections.length <= 2,
+        "More data sections than expected",
+      );
 
       var actualSize = 0;
       for (final section in textSections) {
@@ -239,11 +265,12 @@ Future<void> testAOT(String dillPath,
       final possiblePadding = mergedCount * segmentAlignment;
 
       Expect.approxEquals(
-          expectedSize,
-          actualSize,
-          possiblePadding,
-          "section size failed on $description snapshot" +
-              (!useAsm ? ", but symbol size test passed" : ""));
+        expectedSize,
+        actualSize,
+        possiblePadding,
+        "section size failed on $description snapshot" +
+            (!useAsm ? ", but symbol size test passed" : ""),
+      );
       checkedSize = true;
     }
 
@@ -255,8 +282,11 @@ Future<void> testAOT(String dillPath,
       var strippedSnapshotPath = snapshotPath;
       if (stripUtil) {
         strippedSnapshotPath = snapshotPath + '.stripped';
-        await stripSnapshot(snapshotPath, strippedSnapshotPath,
-            forceElf: !useAsm);
+        await stripSnapshot(
+          snapshotPath,
+          strippedSnapshotPath,
+          forceElf: !useAsm,
+        );
         print("Stripped snapshot generated at $strippedSnapshotPath.");
       }
 
@@ -267,11 +297,12 @@ Future<void> testAOT(String dillPath,
       final tolerance = 0.04 * actualSize + 2 * segmentAlignment;
 
       Expect.approxEquals(
-          expectedSize,
-          actualSize,
-          tolerance,
-          "total size check failed on $description snapshot" +
-              (elf != null ? ", but section size checks passed" : ""));
+        expectedSize,
+        actualSize,
+        tolerance,
+        "total size check failed on $description snapshot" +
+            (elf != null ? ", but section size checks passed" : ""),
+      );
       checkedSize = true;
     }
 
@@ -296,15 +327,20 @@ testMacros() async {
 
   final Map<String, Set<String>> fields = {};
 
-  final String rawObjectFieldsPath =
-      path.join(sdkDir, 'runtime', 'vm', 'raw_object_fields.cc');
+  final String rawObjectFieldsPath = path.join(
+    sdkDir,
+    'runtime',
+    'vm',
+    'raw_object_fields.cc',
+  );
   final RegExp fieldEntry = RegExp(" *F\\($className, $fieldName\\) *\\\\?");
 
-  await for (String line in File(rawObjectFieldsPath)
-      .openRead()
-      .cast<List<int>>()
-      .transform(utf8.decoder)
-      .transform(LineSplitter())) {
+  await for (String line
+      in File(rawObjectFieldsPath)
+          .openRead()
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(LineSplitter())) {
     Match? match = matchComplete(fieldEntry, line);
     if (match != null) {
       fields
@@ -317,16 +353,21 @@ testMacros() async {
   final RegExp classEnd = RegExp("}");
   final RegExp field = RegExp("  $rawClass. +$fieldName;.*");
 
-  final String rawObjectPath =
-      path.join(sdkDir, 'runtime', 'vm', 'raw_object.h');
+  final String rawObjectPath = path.join(
+    sdkDir,
+    'runtime',
+    'vm',
+    'raw_object.h',
+  );
 
   String? currentClass;
   bool hasMissingFields = false;
-  await for (String line in File(rawObjectPath)
-      .openRead()
-      .cast<List<int>>()
-      .transform(utf8.decoder)
-      .transform(LineSplitter())) {
+  await for (String line
+      in File(rawObjectPath)
+          .openRead()
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(LineSplitter())) {
     Match? match = matchComplete(classStart, line);
     if (match != null) {
       currentClass = match.group(1);
@@ -354,16 +395,19 @@ testMacros() async {
   }
 
   if (hasMissingFields) {
-    Expect.fail("$rawObjectFieldsPath is missing some fields. "
-        "Please update it to match $rawObjectPath.");
+    Expect.fail(
+      "$rawObjectFieldsPath is missing some fields. "
+      "Please update it to match $rawObjectPath.",
+    );
   }
 }
 
 main() async {
-  void printSkip(String description) =>
-      print('Skipping $description for ${path.basename(buildDir)} '
-              'on ${Platform.operatingSystem}' +
-          (clangBuildToolsDir == null ? ' without //buildtools' : ''));
+  void printSkip(String description) => print(
+    'Skipping $description for ${path.basename(buildDir)} '
+            'on ${Platform.operatingSystem}' +
+        (clangBuildToolsDir == null ? ' without //buildtools' : ''),
+  );
 
   // We don't have access to the SDK on Android.
   if (Platform.isAndroid) {
@@ -375,19 +419,27 @@ main() async {
 
   await withTempDir('v8-snapshot-profile-writer', (String tempDir) async {
     // We only need to generate the dill file once for all JIT tests.
-    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-        'v8_snapshot_profile_writer_test.dart');
+    final _thisTestPath = path.join(
+      sdkDir,
+      'runtime',
+      'tests',
+      'vm',
+      'dart',
+      'v8_snapshot_profile_writer_test.dart',
+    );
     final jitDillPath = path.join(tempDir, 'jit_test.dill');
     await run(genKernel, <String>[
       '--platform',
       platformDill,
-      ...Platform.executableArguments.where((arg) =>
-          arg.startsWith('--enable-experiment=') ||
-          arg == '--sound-null-safety' ||
-          arg == '--no-sound-null-safety'),
+      ...Platform.executableArguments.where(
+        (arg) =>
+            arg.startsWith('--enable-experiment=') ||
+            arg == '--sound-null-safety' ||
+            arg == '--no-sound-null-safety',
+      ),
       '-o',
       jitDillPath,
-      _thisTestPath
+      _thisTestPath,
     ]);
 
     // We only need to generate the dill file once for all AOT tests.
@@ -396,13 +448,15 @@ main() async {
       '--aot',
       '--platform',
       platformDill,
-      ...Platform.executableArguments.where((arg) =>
-          arg.startsWith('--enable-experiment=') ||
-          arg == '--sound-null-safety' ||
-          arg == '--no-sound-null-safety'),
+      ...Platform.executableArguments.where(
+        (arg) =>
+            arg.startsWith('--enable-experiment=') ||
+            arg == '--sound-null-safety' ||
+            arg == '--no-sound-null-safety',
+      ),
       '-o',
       aotDillPath,
-      _thisTestPath
+      _thisTestPath,
     ]);
 
     // Just as a reminder for AOT tests:

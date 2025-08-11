@@ -9,7 +9,7 @@ class A {
     return y;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'y' isn't defined for the class 'A'.
+    // [cfe] The getter 'y' isn't defined for the type 'A'.
   }
 }
 

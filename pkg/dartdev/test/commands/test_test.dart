@@ -185,7 +185,7 @@ void main() {
         RegExp(r'(http:\/\/127.0.0.1:\d*\/[\da-zA-Z-_]*=\/)');
     final process = await p.start(['test', '--pause-after-load']);
     final completer = Completer<Uri>();
-    late StreamSubscription sub;
+    late final StreamSubscription<String> sub;
     sub = process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())

@@ -18,8 +18,14 @@ const String DB_NAME = 'Test2';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
-testReadWrite(key, value, check,
-    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) async {
+testReadWrite(
+  key,
+  value,
+  check, [
+  dbName = DB_NAME,
+  storeName = STORE_NAME,
+  version = VERSION,
+]) async {
   void createObjectStore(e) {
     idb.ObjectStore store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
@@ -29,8 +35,11 @@ testReadWrite(key, value, check,
   // Delete any existing DBs.
   try {
     await html.window.indexedDB!.deleteDatabase(dbName);
-    db = await html.window.indexedDB!
-        .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
+    db = await html.window.indexedDB!.open(
+      dbName,
+      version: version,
+      onUpgradeNeeded: createObjectStore,
+    );
 
     idb.Transaction transaction = db.transactionList([storeName], 'readwrite');
     transaction.objectStore(storeName).put(value, key);
@@ -84,7 +93,7 @@ main() {
     var l1 = [1, 2, 3];
     var l2 = [
       const [1, 2, 3],
-      const [1, 2, 3]
+      const [1, 2, 3],
     ];
     verifyGraph([l1, l1], l2);
     // Use a try-catch block, since failure can be an expect exception.
@@ -92,7 +101,7 @@ main() {
     try {
       verifyGraph([
         [1, 2, 3],
-        [1, 2, 3]
+        [1, 2, 3],
       ], l2);
       fail("Expected failure in verifying the graph.");
     } catch (_) {
@@ -112,11 +121,11 @@ main() {
       await go('test_simple_splay', obj4);
       await go('const_array_1', const [
         const [1],
-        const [2]
+        const [2],
       ]);
       await go('const_array_dag', const [
         const [1],
-        const [1]
+        const [1],
       ]);
       await go('array_deferred_copy', [1, 2, 3, obj3, obj3, 6]);
       await go('array_deferred_copy_2', [
@@ -124,7 +133,7 @@ main() {
         2,
         3,
         [4, 5, obj3],
-        [obj3, 6]
+        [obj3, 6],
       ]);
       await go('cyclic_list', cyclic_list);
       await go('non-native lists', nonNativeListData);

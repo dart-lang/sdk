@@ -314,14 +314,15 @@ class JClosedWorldBuilder {
     Set<ClassEntity> helperClassesUsed = map.toBackendClassSet(
       backendUsage.helperClassesUsed,
     );
-    Set<RuntimeTypeUse> runtimeTypeUses =
-        backendUsage.runtimeTypeUses.map((RuntimeTypeUse runtimeTypeUse) {
-          return RuntimeTypeUse(
-            runtimeTypeUse.kind,
-            map.toBackendType(runtimeTypeUse.receiverType)!,
-            map.toBackendType(runtimeTypeUse.argumentType),
-          );
-        }).toSet();
+    Set<RuntimeTypeUse> runtimeTypeUses = backendUsage.runtimeTypeUses.map((
+      RuntimeTypeUse runtimeTypeUse,
+    ) {
+      return RuntimeTypeUse(
+        runtimeTypeUse.kind,
+        map.toBackendType(runtimeTypeUse.receiverType)!,
+        map.toBackendType(runtimeTypeUse.argumentType),
+      );
+    }).toSet();
 
     return BackendUsageImpl(
       globalFunctionDependencies: globalFunctionDependencies,

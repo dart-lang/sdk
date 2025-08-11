@@ -135,7 +135,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -144,9 +145,9 @@ augment class A {
     return 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 65, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 65, 9)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -182,7 +183,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -190,9 +192,9 @@ augment class A {
     augmented = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 64, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 64, 9)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''

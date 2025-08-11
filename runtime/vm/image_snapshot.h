@@ -13,12 +13,12 @@
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
-#include "vm/elf.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/reusable_handles.h"
+#include "vm/so_writer.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 
@@ -32,9 +32,9 @@ namespace dart {
 class BitsContainer;
 class Code;
 class Dwarf;
-class Elf;
 class Instructions;
 class Object;
+class SharedObjectWriter;
 
 class Image : ValueObject {
  public:
@@ -79,11 +79,27 @@ class Image : ValueObject {
   // meaning for instructions images from precompiled snapshots.
   intptr_t build_id_length() const;
 
-  // Returns whether this instructions section was compiled to ELF. Only has
-  // meaning for instructions images from precompiled snapshots.
+  // Returns whether this instructions section was directly compiled to a shared
+  // object. Only valid for instructions images from precompiled snapshots.
+  bool compiled_to_shared_object() const;
+
+  // For snapshots directly compiled to a shared object, returns a pointer to
+  // the beginning of the shared object in memory. Otherwise returns nullptr.
+  const uint8_t* shared_object_start() const;
+
+  // Returns whether this instructions section was directly compiled to ELF.
+  // Only valid for instructions images from precompiled snapshots.
   bool compiled_to_elf() const;
 
+  // Returns whether this instructions section was directly compiled to MachO.
+  // Only valid for instructions images from precompiled snapshots.
+  bool compiled_to_macho() const;
+
  private:
+  // For snapshots directly compiled to a shared object, returns a pointer to
+  // the beginning of the build id container. Otherwise returns nullptr;
+  const void* build_id_start() const;
+
   // Word-sized fields in an Image object header.
   enum class HeaderField : intptr_t {
     // The size of the image (total of header and payload).
@@ -142,9 +158,10 @@ class Image : ValueObject {
 
   // For access to private constants.
   friend class AssemblyImageWriter;
-  friend class BitsContainer;
   friend class BlobImageWriter;
   friend class ImageWriter;
+  friend class SharedObjectWriter;
+  friend class MachOHeader;  // For kHeaderSize.
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
@@ -374,7 +391,7 @@ class ImageWriter : public ValueObject {
 #endif
   virtual ~ImageWriter() {}
 
-  // Alignment constants used in writing ELF or assembly snapshots.
+  // Alignment constants used in writing shared object or assembly snapshots.
 
   // BSS sections contain word-sized data.
   static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
@@ -470,6 +487,8 @@ class ImageWriter : public ValueObject {
                                  const Trie<const char>* trie,
                                  const char* str);
 #endif
+
+  virtual void Finalize() = 0;
 
  protected:
   virtual void WriteBss(bool vm) = 0;
@@ -731,16 +750,20 @@ class ImageWriter : public ValueObject {
 
 #if defined(DART_PRECOMPILER)
 static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::Bss,
-                                        /*vm=*/true) == Elf::kVmBssLabel,
+                                        /*vm=*/true) ==
+                  SharedObjectWriter::kVmBssLabel,
               "unexpected label for VM BSS section");
 static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::Bss,
-                                        /*vm=*/false) == Elf::kIsolateBssLabel,
+                                        /*vm=*/false) ==
+                  SharedObjectWriter::kIsolateBssLabel,
               "unexpected label for isolate BSS section");
 static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::BuildId,
-                                        /*vm=*/true) == Elf::kBuildIdLabel,
+                                        /*vm=*/true) ==
+                  SharedObjectWriter::kBuildIdLabel,
               "unexpected label for build id section");
 static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::BuildId,
-                                        /*vm=*/false) == Elf::kBuildIdLabel,
+                                        /*vm=*/false) ==
+                  SharedObjectWriter::kBuildIdLabel,
               "unexpected label for build id section");
 
 #define AutoTraceImage(object, section_offset, stream)                         \
@@ -789,8 +812,8 @@ class AssemblyImageWriter : public ImageWriter {
                       BaseWriteStream* stream,
                       const Trie<const char>* deobfuscation_trie = nullptr,
                       bool strip = false,
-                      Elf* debug_elf = nullptr);
-  void Finalize();
+                      SharedObjectWriter* debug_so = nullptr);
+  virtual void Finalize();
 
  private:
   virtual void WriteBss(bool vm);
@@ -824,7 +847,7 @@ class AssemblyImageWriter : public ImageWriter {
 
   BaseWriteStream* const assembly_stream_;
   Dwarf* const assembly_dwarf_;
-  Elf* const debug_elf_;
+  SharedObjectWriter* const debug_so_;
 
   // Used in Relocation to output "(.)" for relocations involving the current
   // section position.
@@ -832,7 +855,7 @@ class AssemblyImageWriter : public ImageWriter {
 
   // Used for creating local symbols for code and data objects in the
   // debugging info, if separately written.
-  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
+  SharedObjectWriter::SymbolDataArray* current_symbols_ = nullptr;
 
   // Maps labels to the appropriate symbol names for relocations and DWARF
   // output.
@@ -849,15 +872,17 @@ class BlobImageWriter : public ImageWriter {
                   NonStreamingWriteStream* vm_instructions,
                   NonStreamingWriteStream* isolate_instructions,
                   const Trie<const char>* deobfuscation_trie = nullptr,
-                  Elf* debug_elf = nullptr,
-                  Elf* elf = nullptr);
+                  SharedObjectWriter* debug_so = nullptr,
+                  SharedObjectWriter* so = nullptr);
 #else
   BlobImageWriter(Thread* thread,
                   NonStreamingWriteStream* vm_instructions,
                   NonStreamingWriteStream* isolate_instructions,
-                  Elf* debug_elf = nullptr,
-                  Elf* elf = nullptr);
+                  SharedObjectWriter* debug_so = nullptr,
+                  SharedObjectWriter* so = nullptr);
 #endif
+
+  virtual void Finalize();
 
  private:
   virtual void WriteBss(bool vm);
@@ -884,8 +909,9 @@ class BlobImageWriter : public ImageWriter {
                               intptr_t target_label,
                               intptr_t target_offset);
   virtual intptr_t RelocatedAddress(intptr_t section_offset, intptr_t label) {
-    return ImageWriter::Relocation(section_offset,
-                                   Elf::Relocation::kSnapshotRelative, label);
+    return ImageWriter::Relocation(
+        section_offset, SharedObjectWriter::Relocation::kSnapshotRelative,
+        label);
   }
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
@@ -894,16 +920,16 @@ class BlobImageWriter : public ImageWriter {
 
   // Set on section entrance to a new array containing the relocations for the
   // current section.
-  ZoneGrowableArray<Elf::Relocation>* current_relocations_ = nullptr;
+  SharedObjectWriter::RelocationArray* current_relocations_ = nullptr;
   // Set on section entrance to a new array containing the local symbol data
   // for the current section.
-  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
+  SharedObjectWriter::SymbolDataArray* current_symbols_ = nullptr;
 #endif
 
   NonStreamingWriteStream* const vm_instructions_;
   NonStreamingWriteStream* const isolate_instructions_;
-  Elf* const elf_;
-  Elf* const debug_elf_;
+  SharedObjectWriter* const so_;
+  SharedObjectWriter* const debug_so_;
 
   // Set on section entrance to the stream that should be used by the writing
   // methods.

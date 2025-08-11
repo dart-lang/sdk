@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/element/element.dart'
-    show TypeParameterElementImpl2;
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/element/element.dart' // ignore: implementation_imports
+    show TypeParameterElementImpl;
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/variance_checker.dart';
@@ -20,17 +22,14 @@ class UnsafeVariance extends LintRule {
     : super(
         name: LintNames.unsafe_variance,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unsafe_variance;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -48,36 +47,36 @@ class _UnsafeVarianceChecker extends VarianceChecker {
     TypeAnnotation typeAnnotation,
   ) {
     if (staticType is TypeParameterType) {
-      var typeParameterElement = staticType.element3;
+      var typeParameterElement = staticType.element;
       if (!owningDeclarationSupportsVariance(typeParameterElement)) {
         return;
       }
-      if (typeParameterElement is TypeParameterElementImpl2) {
+      if (typeParameterElement is TypeParameterElementImpl) {
         if (typeParameterElement.firstFragment.isLegacyCovariant &&
             variance != Variance.out) {
-          rule.reportLint(typeAnnotation);
+          rule.reportAtNode(typeAnnotation);
         }
       }
     }
   }
 
-  bool owningDeclarationSupportsVariance(Element2 element) {
-    var parent = element.enclosingElement2;
+  bool owningDeclarationSupportsVariance(Element element) {
+    var parent = element.enclosingElement;
     while (parent != null) {
       switch (parent) {
-        case InstanceElement2():
-          if (parent is ClassElement2 ||
-              parent is MixinElement2 ||
-              parent is EnumElement2) {
+        case InstanceElement():
+          if (parent is ClassElement ||
+              parent is MixinElement ||
+              parent is EnumElement) {
             return true;
           }
-          if (parent is ExtensionTypeElement2 || parent is ExtensionElement2) {
+          if (parent is ExtensionTypeElement || parent is ExtensionElement) {
             return false;
           }
-        case ExecutableElement2():
+        case ExecutableElement():
           return false;
       }
-      parent = parent.enclosingElement2;
+      parent = parent.enclosingElement;
     }
     return false;
   }
@@ -85,7 +84,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   final VarianceChecker checker;
 
   _Visitor(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);

@@ -16,52 +16,59 @@ main() {
 @reflectiveTest
 class ConstNotInitializedTest extends PubPackageResolutionTest {
   test_class_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static const F;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 25, 1)],
+    );
   }
 
   test_enum_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   static const F;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 29, 1)],
+    );
   }
 
   test_extension_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static const F;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1)],
+    );
   }
 
   test_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   const int x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 18, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 18, 1),
+      ],
+    );
   }
 
   test_topLevel() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const F;
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 6, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 6, 1)],
+    );
   }
 }

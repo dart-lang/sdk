@@ -425,8 +425,9 @@ class ShiftRightOperation extends BinaryBitOperation {
     ConstantValue adjustedLeft = left;
     if (left is IntConstantValue) {
       BigInt value = left.intValue;
-      BigInt truncated =
-          value.isNegative ? value.toSigned(32) : value.toUnsigned(32);
+      BigInt truncated = value.isNegative
+          ? value.toSigned(32)
+          : value.toUnsigned(32);
       if (value != truncated) {
         adjustedLeft = createInt(truncated);
       }

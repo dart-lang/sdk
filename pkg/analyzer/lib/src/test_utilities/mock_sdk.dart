@@ -10,9 +10,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
 
 final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
-  MockSdkLibraryUnit(
-    'async/async.dart',
-    '''
+  MockSdkLibraryUnit('async/async.dart', '''
 library dart.async;
 
 import 'dart:_internal' show Since;
@@ -78,11 +76,8 @@ abstract class Timer {
 
 @Since("2.15")
 void unawaited(Future<void>? future) {}
-''',
-  ),
-  MockSdkLibraryUnit(
-    'async/stream.dart',
-    r'''
+'''),
+  MockSdkLibraryUnit('async/stream.dart', r'''
 part of dart.async;
 
 abstract class Stream<T> {
@@ -119,25 +114,19 @@ abstract class StreamSubscription<T> {
 }
 
 abstract class StreamTransformer<S, T> {}
-''',
-  )
+'''),
 ]);
 
 final MockSdkLibrary _LIB_ASYNC2 = MockSdkLibrary('async2', [
-  MockSdkLibraryUnit(
-    'async2/async2.dart',
-    '''
+  MockSdkLibraryUnit('async2/async2.dart', '''
 library dart.async2;
 
 class Future {}
-''',
-  )
+'''),
 ]);
 
 final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
-  MockSdkLibraryUnit(
-    'collection/collection.dart',
-    '''
+  MockSdkLibraryUnit('collection/collection.dart', '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {
@@ -232,16 +221,11 @@ abstract mixin class SetMixin<E> implements Set<E> { }
 abstract class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
 }
-''',
-  )
+'''),
 ]);
 
-final MockSdkLibrary _LIB_CONVERT = MockSdkLibrary(
-  'convert',
-  [
-    MockSdkLibraryUnit(
-      'convert/convert.dart',
-      '''
+final MockSdkLibrary _LIB_CONVERT = MockSdkLibrary('convert', [
+  MockSdkLibraryUnit('convert/convert.dart', '''
 library dart.convert;
 
 import 'dart:async';
@@ -265,17 +249,11 @@ typedef StringConversionSinkMixin = StringConversionSink;
 
 String jsonEncode(Object? object,
         {Object? toEncodable(Object? nonEncodable)?}) => '';
-''',
-    )
-  ],
-);
+'''),
+]);
 
-final MockSdkLibrary _LIB_CORE = MockSdkLibrary(
-  'core',
-  [
-    MockSdkLibraryUnit(
-      'core/core.dart',
-      '''
+final MockSdkLibrary _LIB_CORE = MockSdkLibrary('core', [
+  MockSdkLibraryUnit('core/core.dart', '''
 library dart.core;
 
 import "dart:_internal" hide Symbol;
@@ -734,15 +712,11 @@ class _Override {
 extension EnumName on Enum {
   String get name => _name;
 }
-''',
-    )
-  ],
-);
+'''),
+]);
 
 final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
-  MockSdkLibraryUnit(
-    'ffi/ffi.dart',
-    '''
+  MockSdkLibraryUnit('ffi/ffi.dart', '''
 @Since('2.6')
 library dart.ffi;
 
@@ -1104,16 +1078,16 @@ extension Int8ListAddress on Int8List {
 extension ArrayAddress<T extends NativeType> on Array<T> {
   external Pointer<T> get address;
 }
-''',
-  )
+
+@Since('3.5')
+extension Uint8ListAddress on Uint8List {
+  external Pointer<Uint8> get address;
+}
+'''),
 ]);
 
-final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary(
-  'html',
-  [
-    MockSdkLibraryUnit(
-      'html/dart2js/html_dart2js.dart',
-      '''
+final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary('html', [
+  MockSdkLibraryUnit('html/dart2js/html_dart2js.dart', '''
 library dart.dom.html;
 
 import 'dart:async';
@@ -1312,29 +1286,17 @@ class DocumentFragment {
 dynamic JS(a, b, c, d) {}
 
 class File {}
-''',
-    )
-  ],
-);
+'''),
+]);
 
-final MockSdkLibrary _LIB_INTERCEPTORS = MockSdkLibrary(
-  '_interceptors',
-  [
-    MockSdkLibraryUnit(
-      '_internal/js_runtime/lib/interceptors.dart',
-      '''
+final MockSdkLibrary _LIB_INTERCEPTORS = MockSdkLibrary('_interceptors', [
+  MockSdkLibraryUnit('_internal/js_runtime/lib/interceptors.dart', '''
 library dart._interceptors;
-''',
-    )
-  ],
-);
+'''),
+]);
 
-final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary(
-  '_internal',
-  [
-    MockSdkLibraryUnit(
-      '_internal/internal.dart',
-      '''
+final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary('_internal', [
+  MockSdkLibraryUnit('_internal/internal.dart', '''
 library dart._internal;
 
 import 'dart:core' hide Symbol;
@@ -1358,18 +1320,11 @@ class Since {
 class Symbol implements core.Symbol {
   external const Symbol(String name);
 }
-''',
-    )
-  ],
-  categories: '',
-);
+'''),
+], categories: '');
 
-final MockSdkLibrary _LIB_IO = MockSdkLibrary(
-  'io',
-  [
-    MockSdkLibraryUnit(
-      'io/io.dart',
-      '''
+final MockSdkLibrary _LIB_IO = MockSdkLibrary('io', [
+  MockSdkLibraryUnit('io/io.dart', '''
 library dart.io;
 
 import 'dart:convert';
@@ -1466,15 +1421,11 @@ abstract class Socket {
 
   static Future<Socket> connect(dynamic host, int port) async => Socket();
 }
-''',
-    )
-  ],
-);
+'''),
+]);
 
 final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
-  MockSdkLibraryUnit(
-    'isolate/isolate.dart',
-    '''
+  MockSdkLibraryUnit('isolate/isolate.dart', '''
 library dart.isolate;
 
 abstract class SendPort {}
@@ -1495,25 +1446,19 @@ class Isolate {
     String? debugName,
   });
 }
-''',
-  )
+'''),
 ]);
 
 final MockSdkLibrary _LIB_JS = MockSdkLibrary('js', [
-  MockSdkLibraryUnit(
-    'js/js.dart',
-    '''
+  MockSdkLibraryUnit('js/js.dart', '''
 library dart.js;
 
 class JsObject {}
-''',
-  )
+'''),
 ]);
 
 final MockSdkLibrary _LIB_JS_ANNOTATIONS = MockSdkLibrary('_js_annotations', [
-  MockSdkLibraryUnit(
-    'js/_js_annotations.dart',
-    '''
+  MockSdkLibraryUnit('js/_js_annotations.dart', '''
 library _js_annotations;
 
 class JS {
@@ -1526,16 +1471,11 @@ class _StaticInterop {
 }
 
 const _StaticInterop staticInterop = _StaticInterop();
-''',
-  )
+'''),
 ]);
 
-final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary(
-  'js_interop',
-  [
-    MockSdkLibraryUnit(
-      'js/js_interop.dart',
-      '''
+final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
+  MockSdkLibraryUnit('js/js_interop.dart', '''
 library;
 
 import 'dart:typed_data';
@@ -1579,17 +1519,11 @@ extension JSAnyUtilityExtension on JSAny? {
 extension NullableObjectUtilExtension on Object? {
   external JSAny? jsify();
 }
-''',
-    )
-  ],
-);
+'''),
+]);
 
-final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
-  'math',
-  [
-    MockSdkLibraryUnit(
-      'math/math.dart',
-      '''
+final MockSdkLibrary _LIB_MATH = MockSdkLibrary('math', [
+  MockSdkLibraryUnit('math/math.dart', '''
 library dart.math;
 
 const double e = 2.718281828459045;
@@ -1611,17 +1545,11 @@ class Random {
 }
 
 class Point<T extends num> {}
-''',
-    )
-  ],
-);
+'''),
+]);
 
-final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
-  'typed_data',
-  [
-    MockSdkLibraryUnit(
-      'typed_data/typed_data.dart',
-      '''
+final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary('typed_data', [
+  MockSdkLibraryUnit('typed_data/typed_data.dart', '''
 library dart.typed_data;
 
 abstract final class Uint8List {
@@ -1639,10 +1567,8 @@ abstract final class Float32List {
 abstract final class Float64List {
   external factory Float64List(int length);
 }
-''',
-    )
-  ],
-);
+'''),
+]);
 
 final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
   MockSdkLibraryUnit('_wasm/wasm.dart', ''),
@@ -1685,9 +1611,7 @@ void createMockSdk({
   root.getChildAssumingFile('version').writeAsStringSync(currentVersionStr);
 
   var librariesBuffer = StringBuffer();
-  librariesBuffer.writeln(
-    'const Map<String, LibraryInfo> libraries = const {',
-  );
+  librariesBuffer.writeln('const Map<String, LibraryInfo> libraries = const {');
 
   for (var library in [..._LIBRARIES, ...additionalLibraries]) {
     for (var unit in library.units) {
@@ -1711,10 +1635,7 @@ void createMockSdk({
         json.encode({
           'version': 1,
           'experimentSets': {
-            'sdkExperiments': <String>[
-              'class-modifiers',
-              'sealed-class',
-            ],
+            'sdkExperiments': <String>['class-modifiers', 'sealed-class'],
           },
           'sdk': {
             'default': {'experimentSet': 'sdkExperiments'},

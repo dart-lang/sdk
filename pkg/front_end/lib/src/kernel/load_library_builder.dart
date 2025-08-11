@@ -20,12 +20,15 @@ import 'package:kernel/ast.dart'
         ReturnStatement;
 
 import '../builder/builder.dart';
-import '../builder/library_builder.dart';
+import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends BuilderImpl {
+class LoadLibraryBuilder extends NamedBuilderImpl {
+  @override
+  String get name => 'loadLibrary';
+
   @override
   final SourceLibraryBuilder parent;
 
@@ -87,5 +90,5 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors => 'loadLibrary';
+  String get fullNameForErrors => name;
 }

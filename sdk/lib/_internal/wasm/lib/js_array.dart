@@ -14,13 +14,27 @@ extension JSArrayImplUncheckedOperations<T extends JSAny?> on JSArrayImpl {
 class JSArrayImpl<T extends JSAny?> implements List<T> {
   final WasmExternRef? _ref;
 
-  JSArrayImpl(this._ref);
+  static bool _checkRefType(WasmExternRef? ref) =>
+      js.JS<bool>('o => o instanceof Array', ref);
+
+  JSArrayImpl.fromRefUnchecked(this._ref) {
+    assert(_checkRefType(_ref));
+  }
+
+  factory JSArrayImpl.fromRef(WasmExternRef? ref) {
+    if (!_checkRefType(ref)) {
+      throw minify
+          ? ArgumentError()
+          : ArgumentError("JS reference is not an array");
+    }
+    return JSArrayImpl<T>.fromRefUnchecked(ref);
+  }
 
   factory JSArrayImpl.fromLength(int length) =>
-      JSArrayImpl<T>(js.newArrayFromLengthRaw(length));
+      JSArrayImpl<T>.fromRefUnchecked(js.newArrayFromLengthRaw(length));
 
   static JSArrayImpl<T>? box<T extends JSAny?>(WasmExternRef? ref) =>
-      js.isDartNull(ref) ? null : JSArrayImpl<T>(ref);
+      js.isDartNull(ref) ? null : JSArrayImpl<T>.fromRefUnchecked(ref);
 
   WasmExternRef? get toExternRef => _ref;
 
@@ -63,8 +77,9 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   void insertAll(int index, Iterable<T> iterable) {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
-    final that =
-        iterable is EfficientLengthIterable ? iterable : iterable.toList();
+    final that = iterable is EfficientLengthIterable
+        ? iterable
+        : iterable.toList();
     final thatLength = that.length;
     _setLengthUnsafe(length + thatLength);
     final end = index + thatLength;
@@ -164,7 +179,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
       toExternRef,
       separator.toExternRef,
     );
-    return JSStringImpl(result);
+    return JSStringImpl.fromRefUnchecked(result);
   }
 
   @override
@@ -256,7 +271,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   List<T> sublist(int start, [int? end]) {
     end = RangeErrorUtils.checkValidRange(start, end, length);
-    return JSArrayImpl<T>(
+    return JSArrayImpl<T>.fromRefUnchecked(
       js.JS<WasmExternRef?>(
         '(a, s, e) => a.slice(s, e)',
         toExternRef,
@@ -346,10 +361,9 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   void replaceRange(int start, int end, Iterable<T> replacement) {
     RangeErrorUtils.checkValidRange(start, end, length);
-    final replacementList =
-        replacement is EfficientLengthIterable
-            ? replacement
-            : replacement.toList();
+    final replacementList = replacement is EfficientLengthIterable
+        ? replacement
+        : replacement.toList();
     final removeLength = end - start;
     final insertLength = replacementList.length;
     if (removeLength >= insertLength) {
@@ -396,14 +410,13 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   Iterable<T> get reversed => ReversedListIterable<T>(this);
 
-  static int _compareAny<T extends JSAny?>(T a, T b) =>
-      js
-          .JS<double>(
-            '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
-            a.toExternRef,
-            b.toExternRef,
-          )
-          .toInt();
+  static int _compareAny<T extends JSAny?>(T a, T b) => js
+      .JS<double>(
+        '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
+        a.toExternRef,
+        b.toExternRef,
+      )
+      .toInt();
 
   @override
   void sort([int Function(T, T)? compare]) =>
@@ -539,7 +552,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   List<T> operator +(List<T> other) {
     if (other is JSArrayImpl) {
-      return JSArrayImpl<T>(
+      return JSArrayImpl<T>.fromRefUnchecked(
         js.JS<WasmExternRef?>(
           '(a, t) => a.concat(t)',
           toExternRef,

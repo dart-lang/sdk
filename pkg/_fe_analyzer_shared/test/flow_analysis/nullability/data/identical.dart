@@ -8,13 +8,15 @@ void var_identical_null(int? x) {
   if (identical(x, null)) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
 void var_notIdentical_null(int? x) {
   if (!identical(x, null)) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -24,13 +26,15 @@ void null_identical_var(int? x) {
   if (identical(null, x)) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
 void null_notIdentical_var(int? x) {
   if (!identical(null, x)) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }

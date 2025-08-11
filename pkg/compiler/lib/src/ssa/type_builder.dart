@@ -36,10 +36,9 @@ abstract class TypeBuilder {
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = type.element;
-    AbstractValue mask =
-        includeNull
-            ? _abstractValueDomain.createNullableSubtype(element)
-            : _abstractValueDomain.createNonNullSubtype(element);
+    AbstractValue mask = includeNull
+        ? _abstractValueDomain.createNullableSubtype(element)
+        : _abstractValueDomain.createNonNullSubtype(element);
     if (hasLateSentinel) mask = _abstractValueDomain.includeLateSentinel(mask);
     return mask;
   }
@@ -52,10 +51,9 @@ abstract class TypeBuilder {
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
-    bool hasLateSentinel =
-        _abstractValueDomain
-            .isLateSentinel(original.instructionType)
-            .isPotentiallyTrue;
+    bool hasLateSentinel = _abstractValueDomain
+        .isLateSentinel(original.instructionType)
+        .isPotentiallyTrue;
     final mask = trustTypeMask(type, hasLateSentinel: hasLateSentinel);
     if (mask == null) return original;
     return HTypeKnown.pinned(mask, original);
@@ -72,7 +70,7 @@ abstract class TypeBuilder {
     // similar operation on `registry`; otherwise, this one might not be needed.
     builder.registry.registerTypeUse(TypeUse.isCheck(type));
     if (other is HAsCheck &&
-        other.isRedundant(builder.closedWorld, builder.options)) {
+        other.isRedundantOn(other.checkedInput, builder.closedWorld)) {
       return original;
     }
     return other;

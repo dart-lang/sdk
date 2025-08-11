@@ -15,7 +15,8 @@ import 'package:expect/async_helper.dart';
 // Cache blocker is a workaround for:
 // https://code.google.com/p/dart/issues/detail?id=11834
 var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-var url = '/root_dart/tests/lib/html/xhr_cross_origin_data.txt?'
+var url =
+    '/root_dart/tests/lib/html/xhr_cross_origin_data.txt?'
     'cacheBlock=$cacheBlocker';
 
 void validate200Response(xhr) {
@@ -59,9 +60,11 @@ Future testXhrFile() async {
       completer.complete();
       validate200Response(xhr);
 
-      Timer.run(expectAsync(() {
-        expect(loadEndCalled, HttpRequest.supportsLoadEndEvent);
-      }));
+      Timer.run(
+        expectAsync(() {
+          expect(loadEndCalled, HttpRequest.supportsLoadEndEvent);
+        }),
+      );
     }
   });
 
@@ -91,9 +94,12 @@ Future testRequestFile() async {
 
 Future testRequestOnProgress() async {
   var progressCalled = false;
-  var xhr = await HttpRequest.request(url, onProgress: (_) {
-    progressCalled = true;
-  });
+  var xhr = await HttpRequest.request(
+    url,
+    onProgress: (_) {
+      progressCalled = true;
+    },
+  );
   expect(xhr.readyState, HttpRequest.DONE);
   expect(progressCalled, HttpRequest.supportsProgressEvent);
   validate200Response(xhr);
@@ -135,9 +141,11 @@ Future testGetStringNoFile() async {
 
 Future testRequestResponseTypeArrayBuffer() async {
   if (Platform.supportsTypedData) {
-    var xhr = await HttpRequest.request(url,
-        responseType: 'arraybuffer',
-        requestHeaders: {'Content-Type': 'text/xml'});
+    var xhr = await HttpRequest.request(
+      url,
+      responseType: 'arraybuffer',
+      requestHeaders: {'Content-Type': 'text/xml'},
+    );
     expect(xhr.status, 200);
     var byteBuffer = xhr.response;
     expect(byteBuffer, isInstanceOf<ByteBuffer>());
@@ -164,7 +172,9 @@ Future testXhrUpload() async {
     });
 
     xhr.open(
-        'POST', '${window.location.protocol}//${window.location.host}/echo');
+      'POST',
+      '${window.location.protocol}//${window.location.host}/echo',
+    );
 
     // 10MB of payload data w/ a bit of data to make sure it
     // doesn't get compressed to nil.
@@ -184,13 +194,17 @@ Future testXhrPostFormData() async {
 
   var parts = [];
   for (var key in data.keys) {
-    parts.add('${Uri.encodeQueryComponent(key)}='
-        '${Uri.encodeQueryComponent(data[key]!)}');
+    parts.add(
+      '${Uri.encodeQueryComponent(key)}='
+      '${Uri.encodeQueryComponent(data[key]!)}',
+    );
   }
   var encodedData = parts.join('&');
 
   var xhr = await HttpRequest.postFormData(
-      '${window.location.protocol}//${window.location.host}/echo', data);
+    '${window.location.protocol}//${window.location.host}/echo',
+    data,
+  );
   expect(xhr.responseText, encodedData);
 }
 
@@ -206,14 +220,14 @@ Future testRequestResponseTypeBlob() async {
 
 Future testResponseTypeJson() async {
   var url = '${window.location.protocol}//${window.location.host}/echo';
-  var data = {
-    'key': 'value',
-    'a': 'b',
-    'one': 2,
-  };
+  var data = {'key': 'value', 'a': 'b', 'one': 2};
 
-  var xhr = await HttpRequest.request(url,
-      method: 'POST', sendData: json.encode(data), responseType: 'json');
+  var xhr = await HttpRequest.request(
+    url,
+    method: 'POST',
+    sendData: json.encode(data),
+    responseType: 'json',
+  );
   expect(xhr.status, 200);
   var jsonResponse = xhr.response;
   expect(jsonResponse, data);

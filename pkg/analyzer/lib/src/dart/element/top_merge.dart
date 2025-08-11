@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -119,7 +119,7 @@ class TopMergeHelper {
     }
 
     if (T is TypeParameterType && S is TypeParameterType) {
-      if (T.element3 == S.element3) {
+      if (T.element == S.element) {
         return T;
       } else {
         throw _TopMergeStateError(T, S, 'Not the same type parameters');
@@ -136,7 +136,7 @@ class TopMergeHelper {
       throw _TopMergeStateError(T, S, 'Different number of type parameters');
     }
 
-    List<TypeParameterElementImpl2> R_typeParameters;
+    List<TypeParameterElementImpl> R_typeParameters;
     Substitution? T_Substitution;
     Substitution? S_Substitution;
 
@@ -160,7 +160,7 @@ class TopMergeHelper {
       T_Substitution = mergedTypeParameters.aSubstitution;
       S_Substitution = mergedTypeParameters.bSubstitution;
     } else {
-      R_typeParameters = const <TypeParameterElementImpl2>[];
+      R_typeParameters = const <TypeParameterElementImpl>[];
     }
 
     var R_returnType = mergeTypes(T.returnType, S.returnType);
@@ -181,7 +181,7 @@ class TopMergeHelper {
         throw _TopMergeStateError(T, S, 'Different formal parameter kinds');
       }
 
-      if (T_parameter.isNamed && T_parameter.name3 != S_parameter.name3) {
+      if (T_parameter.isNamed && T_parameter.name != S_parameter.name) {
         throw _TopMergeStateError(T, S, 'Different named parameter names');
       }
 
@@ -213,12 +213,7 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters.add(
-        T_parameter.copyWith(
-          type: R_type,
-          kind: R_kind,
-        ),
-      );
+      R_parameters.add(T_parameter.copyWith(type: R_type, kind: R_kind));
     }
 
     return FunctionTypeImpl.v2(
@@ -230,7 +225,7 @@ class TopMergeHelper {
   }
 
   InterfaceTypeImpl _interfaceTypes(InterfaceTypeImpl T, InterfaceTypeImpl S) {
-    if (T.element3 != S.element3) {
+    if (T.element != S.element) {
       throw _TopMergeStateError(T, S, 'Different class elements');
     }
 
@@ -244,7 +239,7 @@ class TopMergeHelper {
         (i) => topMerge(T_arguments[i], S_arguments[i]),
         growable: false,
       );
-      return T.element3.instantiateImpl(
+      return T.element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -291,11 +286,7 @@ class TopMergeHelper {
       var field1 = positional1[i];
       var field2 = positional2[i];
       var type = topMerge(field1.type, field2.type);
-      positionalFields.add(
-        RecordTypePositionalFieldImpl(
-          type: type,
-        ),
-      );
+      positionalFields.add(RecordTypePositionalFieldImpl(type: type));
     }
 
     var named1 = T1.namedFields;
@@ -312,12 +303,7 @@ class TopMergeHelper {
         throw _TopMergeStateError(T1, T2, 'Different named field names');
       }
       var type = topMerge(field1.type, field2.type);
-      namedFields.add(
-        RecordTypeNamedFieldImpl(
-          name: field1.name,
-          type: type,
-        ),
-      );
+      namedFields.add(RecordTypeNamedFieldImpl(name: field1.name, type: type));
     }
 
     return RecordTypeImpl(
@@ -328,14 +314,14 @@ class TopMergeHelper {
   }
 
   _MergeTypeParametersResult? _typeParameters(
-    List<TypeParameterElementImpl2> aParameters,
-    List<TypeParameterElementImpl2> bParameters,
+    List<TypeParameterElementImpl> aParameters,
+    List<TypeParameterElementImpl> bParameters,
   ) {
     if (aParameters.length != bParameters.length) {
       return null;
     }
 
-    var newParameters = <TypeParameterElementImpl2>[];
+    var newParameters = <TypeParameterElementImpl>[];
     var newTypes = <TypeParameterType>[];
     for (var i = 0; i < aParameters.length; i++) {
       var newParameter = aParameters[i].freshCopy();
@@ -377,7 +363,7 @@ class TopMergeHelper {
 }
 
 class _MergeTypeParametersResult {
-  final List<TypeParameterElementImpl2> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
   final Substitution aSubstitution;
   final Substitution bSubstitution;
 

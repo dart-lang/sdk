@@ -15,54 +15,66 @@ class SwitchStatementTest extends PartialCodeTest {
     var allExceptEof =
         PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
     buildTests(
-        'switch_statement',
-        [
-          TestDescriptor(
-              'keyword',
-              'switch',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "switch (_s_) {}",
-              failing: ['block']),
-          TestDescriptor(
-              'leftParen',
-              'switch (',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-                ScannerErrorCode.EXPECTED_TOKEN
-              ],
-              "switch (_s_) {}",
-              failing: [
-                'assert',
-                'block',
-                'labeled',
-                'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
-                'switch',
-              ]),
-          TestDescriptor(
-              'expression',
-              'switch (a',
-              [
-                ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-                ScannerErrorCode.EXPECTED_TOKEN
-              ],
-              "switch (a) {}",
-              failing: ['block']),
-          TestDescriptor('rightParen', 'switch (a)',
-              [ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY], "switch (a) {}",
-              failing: ['block']),
-          TestDescriptor('leftBrace', 'switch (a) {',
-              [ScannerErrorCode.EXPECTED_TOKEN], "switch (a) {}",
-              failing: allExceptEof),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'switch_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'switch',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          "switch (_s_) {}",
+          failing: ['block'],
+        ),
+        TestDescriptor(
+          'leftParen',
+          'switch (',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ],
+          "switch (_s_) {}",
+          failing: [
+            'assert',
+            'block',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return',
+            'switch',
+          ],
+        ),
+        TestDescriptor(
+          'expression',
+          'switch (a',
+          [
+            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ],
+          "switch (a) {}",
+          failing: ['block'],
+        ),
+        TestDescriptor(
+          'rightParen',
+          'switch (a)',
+          [ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY],
+          "switch (a) {}",
+          failing: ['block'],
+        ),
+        TestDescriptor(
+          'leftBrace',
+          'switch (a) {',
+          [ScannerErrorCode.EXPECTED_TOKEN],
+          "switch (a) {}",
+          failing: allExceptEof,
+        ),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

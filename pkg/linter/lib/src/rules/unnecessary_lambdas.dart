@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -13,7 +16,7 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
-Set<Element2?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
+Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
@@ -21,13 +24,10 @@ class UnnecessaryLambdas extends LintRule {
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_lambdas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
@@ -71,11 +71,11 @@ class _FinalExpressionChecker {
 }
 
 class _IdentifierVisitor extends RecursiveAstVisitor<void> {
-  final _elements = <Element2?>{};
+  final _elements = <Element?>{};
 
   _IdentifierVisitor();
 
-  Set<Element2?> extractElements(AstNode node) {
+  Set<Element?> extractElements(AstNode node) {
     node.accept(this);
     return _elements;
   }
@@ -92,8 +92,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, LinterContext context)
-    : constructorTearOffsEnabled = context.isEnabled(
+  _Visitor(this.rule, RuleContext context)
+    : constructorTearOffsEnabled = context.isFeatureEnabled(
         Feature.constructor_tearoffs,
       ),
       typeSystem = context.typeSystem;
@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     var element = node.declaredFragment?.element;
-    if (element?.name3 != '' || node.body.keyword != null) {
+    if (element?.name != null || node.body.keyword != null) {
       return;
     }
     var body = node.body;
@@ -170,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   void _visitInvocationExpression(
@@ -195,7 +195,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // see: https://github.com/dart-lang/linter/issues/1561
       var checker = _FinalExpressionChecker(parameters);
       if (checker.isFinalNode(node.function)) {
-        rule.reportLint(nodeToLint);
+        rule.reportAtNode(nodeToLint);
       }
     } else if (node is MethodInvocation) {
       if (node.target.mightBeDeferred) return;
@@ -210,7 +210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
         var variableElement =
-            parent.declaredElement2 ?? parent.declaredFragment?.element;
+            parent.declaredElement ?? parent.declaredFragment?.element;
         var variableType = variableElement?.type;
         if (variableType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           checker.isFinalNode(node.target) &&
           node.methodName.element.isFinal &&
           node.typeArguments == null) {
-        rule.reportLint(nodeToLint);
+        rule.reportAtNode(nodeToLint);
       }
     }
   }
@@ -234,17 +234,17 @@ extension on Expression? {
       SimpleIdentifier(:var element) => element,
       _ => null,
     };
-    return element is PrefixElement2 &&
+    return element is PrefixElement &&
         element.imports.any((e) => e.prefix2?.isDeferred ?? false);
   }
 }
 
-extension on Element2? {
+extension on Element? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-    PropertyAccessorElement2(:var isSynthetic, :var variable3?) =>
-      isSynthetic && variable3.isFinal && !variable3.isLate,
-    VariableElement2(:var isLate, :var isFinal) => isFinal && !isLate,
+    PropertyAccessorElement(:var isSynthetic, :var variable?) =>
+      isSynthetic && variable.isFinal && !variable.isLate,
+    VariableElement(:var isLate, :var isFinal) => isFinal && !isLate,
     // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
     _ => true,
   };

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
@@ -38,14 +38,14 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   void declaredLocalVar(
     Token name,
     TypeAnnotation? type,
-    LocalVariableElement2 declaredElement,
+    LocalVariableElement declaredElement,
   ) {}
 
   void declaredMethod(MethodDeclaration declaration) {}
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(Token name, Element2? element, TypeAnnotation? type) {}
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {}
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
@@ -82,7 +82,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (exceptionParameter != null) {
       declaredParam(
         exceptionParameter.name,
-        exceptionParameter.declaredElement2,
+        exceptionParameter.declaredElement,
         node.exceptionType,
       );
     }
@@ -91,7 +91,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (stackTraceParameter != null) {
       declaredParam(
         stackTraceParameter.name,
-        stackTraceParameter.declaredElement2,
+        stackTraceParameter.declaredElement,
         null,
       );
     }
@@ -134,12 +134,12 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement2!);
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement2);
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -151,12 +151,12 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement2!);
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement2);
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -412,7 +412,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   /// Visit the given [pattern] without visiting any of its parents.
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
-    var declaredElement = pattern.declaredElement2;
+    var declaredElement = pattern.declaredElement;
     if (declaredElement != null) {
       declaredLocalVar(pattern.name, pattern.type, declaredElement);
     }
@@ -448,7 +448,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
               declaredLocalVar(varDecl.name, varList.type,
-                  varDecl.declaredElement2 as LocalVariableElement2);
+                  varDecl.declaredElement as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {

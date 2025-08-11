@@ -29,7 +29,7 @@ final class Struct1ByteInt extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get a0#offsetOf() → core::int
+  static synthetic get a0#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 

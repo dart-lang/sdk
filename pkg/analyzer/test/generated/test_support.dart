@@ -75,8 +75,8 @@ class ExpectedError {
   /// An empty array of error descriptors used when no errors are expected.
   static List<ExpectedError> NO_ERRORS = <ExpectedError>[];
 
-  /// The error code associated with the error.
-  final ErrorCode code;
+  /// The diagnostic code associated with the error.
+  final DiagnosticCode code;
 
   // A pattern that should be contained in the error's correction message, or
   // `null` if the correction message contents should not be checked.
@@ -100,18 +100,22 @@ class ExpectedError {
   final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
-  ExpectedError(this.code, this.offset, this.length,
-      {this.correctionContains,
-      this.message,
-      this.messageContains = const [],
-      this.expectedContextMessages = const <ExpectedContextMessage>[]});
+  ExpectedError(
+    this.code,
+    this.offset,
+    this.length, {
+    this.correctionContains,
+    this.message,
+    this.messageContains = const [],
+    this.expectedContextMessages = const <ExpectedContextMessage>[],
+  });
 
   /// Return `true` if the [error] matches this description of what it's
   /// expected to be.
-  bool matches(AnalysisError error) {
+  bool matches(Diagnostic error) {
     if (error.offset != offset ||
         error.length != length ||
-        error.errorCode != code) {
+        error.diagnosticCode != code) {
       return false;
     }
     if (message != null && error.message != message) {
@@ -139,38 +143,39 @@ class ExpectedError {
   }
 }
 
-/// An error listener that collects all of the errors passed to it for later
-/// examination.
-class GatheringErrorListener implements AnalysisErrorListener {
+/// A diagnostic listener that collects all of the diagnostics passed to it for
+/// later examination.
+class GatheringDiagnosticListener implements DiagnosticListener {
   /// A flag indicating whether error ranges are to be compared when comparing
-  /// expected and actual errors.
+  /// expected and actual diagnostics.
   final bool checkRanges;
 
-  /// A list containing the errors that were collected.
-  final List<AnalysisError> _errors = [];
+  /// A list containing the diagnostics that were collected.
+  final List<Diagnostic> _diagnostics = [];
 
   /// A table mapping sources to the line information for the source.
   final Map<Source, LineInfo> _lineInfoMap = {};
 
-  /// Initialize a newly created error listener to collect errors.
-  GatheringErrorListener({this.checkRanges = true});
+  /// Initialize a newly created diagnostic listener to collect diagnostics.
+  GatheringDiagnosticListener({this.checkRanges = true});
 
-  /// Return the errors that were collected.
-  List<AnalysisError> get errors => _errors;
+  /// Returns the diagnostics that were collected.
+  List<Diagnostic> get diagnostics => _diagnostics;
 
-  /// Return `true` if at least one error has been gathered.
-  bool get hasErrors => _errors.isNotEmpty;
+  /// Whether at least one diagnostic has been gathered.
+  bool get hasDiagnostics => _diagnostics.isNotEmpty;
 
-  /// Add the given [errors] to this listener.
-  void addAll(List<AnalysisError> errors) {
-    for (AnalysisError error in errors) {
-      onError(error);
+  /// Adds the given [diagnostics] to this listener.
+  void addAll(List<Diagnostic> diagnostics) {
+    for (Diagnostic diagnostic in diagnostics) {
+      onDiagnostic(diagnostic);
     }
   }
 
-  /// Add all of the errors recorded by the given [listener] to this listener.
-  void addAll2(RecordingErrorListener listener) {
-    addAll(listener.errors);
+  /// Adds all of the diagnostics recorded by the given [listener] to this
+  /// listener.
+  void addAll2(RecordingDiagnosticListener listener) {
+    addAll(listener.diagnostics);
   }
 
   /// Assert that the number of errors that have been gathered matches the
@@ -180,15 +185,16 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Match actual errors to expected errors.
     //
-    List<AnalysisError> unmatchedActual = errors.toList();
+    List<Diagnostic> unmatchedActual = diagnostics.toList();
     List<ExpectedError> unmatchedExpected = expectedErrors.toList();
     int actualIndex = 0;
     while (actualIndex < unmatchedActual.length) {
       bool matchFound = false;
       int expectedIndex = 0;
       while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
+        if (unmatchedExpected[expectedIndex].matches(
+          unmatchedActual[actualIndex],
+        )) {
           matchFound = true;
           unmatchedActual.removeAt(actualIndex);
           unmatchedExpected.removeAt(expectedIndex);
@@ -219,9 +225,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         if (expected.messageContains.isNotEmpty) {
           buffer.write(', messageContains: ');
-          buffer.write(json.encode([
-            for (var pattern in expected.messageContains) pattern.toString()
-          ]));
+          buffer.write(
+            json.encode([
+              for (var pattern in expected.messageContains) pattern.toString(),
+            ]),
+          );
         }
         if (expected.correctionContains != null) {
           buffer.write(', correctionContains: ');
@@ -235,9 +243,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.writeln();
       }
       buffer.writeln('Found but did not expect:');
-      for (AnalysisError actual in unmatchedActual) {
+      for (Diagnostic actual in unmatchedActual) {
         buffer.write('  ');
-        buffer.write(actual.errorCode);
+        buffer.write(actual.diagnosticCode);
         buffer.write(' [');
         buffer.write(actual.offset);
         buffer.write(', ');
@@ -252,16 +260,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
     }
     if (buffer.isNotEmpty) {
-      errors.sort((first, second) => first.offset.compareTo(second.offset));
+      diagnostics.sort(
+        (first, second) => first.offset.compareTo(second.offset),
+      );
       buffer.writeln();
-      if (errors.isEmpty) {
+      if (diagnostics.isEmpty) {
         buffer.writeln('To accept the current state, expect no errors.');
       } else {
         buffer.writeln('To accept the current state, expect:');
-        for (AnalysisError actual in errors) {
+        for (Diagnostic actual in diagnostics) {
           List<DiagnosticMessage> contextMessages = actual.contextMessages;
           buffer.write('  error(');
-          buffer.write(actual.errorCode);
+          buffer.write(actual.diagnosticCode);
           buffer.write(', ');
           buffer.write(actual.offset);
           buffer.write(', ');
@@ -298,17 +308,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
   }
 
-  /// Assert that the number of errors that have been gathered matches the
-  /// number of [expectedErrorCodes] and that they have the expected error
-  /// codes. The order in which the errors were gathered is ignored.
-  void assertErrorsWithCodes(
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  /// Asserts that the number of diagnostics that have been gathered matches the
+  /// number of [expectedCodes] and that they have the expected diagnostic
+  /// codes.
+  ///
+  /// The order in which the diagnostics were gathered is ignored.
+  void assertErrorsWithCodes([
+    List<DiagnosticCode> expectedCodes = const <DiagnosticCode>[],
+  ]) {
     StringBuffer buffer = StringBuffer();
-    //
-    // Compute the expected number of each type of error.
-    //
-    Map<ErrorCode, int> expectedCounts = <ErrorCode, int>{};
-    for (ErrorCode code in expectedErrorCodes) {
+    // Compute the expected number of each type of diagnostic.
+    Map<DiagnosticCode, int> expectedCounts = <DiagnosticCode, int>{};
+    for (DiagnosticCode code in expectedCodes) {
       var count = expectedCounts[code];
       if (count == null) {
         count = 1;
@@ -320,19 +331,19 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    Map<ErrorCode, List<AnalysisError>> errorsByCode =
-        <ErrorCode, List<AnalysisError>>{};
-    for (AnalysisError error in _errors) {
-      errorsByCode
-          .putIfAbsent(error.errorCode, () => <AnalysisError>[])
-          .add(error);
+    Map<DiagnosticCode, List<Diagnostic>> diagnosticsByCode =
+        <DiagnosticCode, List<Diagnostic>>{};
+    for (Diagnostic diagnostic in _diagnostics) {
+      diagnosticsByCode
+          .putIfAbsent(diagnostic.diagnosticCode, () => <Diagnostic>[])
+          .add(diagnostic);
     }
     //
     // Compare the expected and actual number of each type of error.
     //
-    expectedCounts.forEach((ErrorCode code, int expectedCount) {
+    expectedCounts.forEach((DiagnosticCode code, int expectedCount) {
       int actualCount;
-      var list = errorsByCode.remove(code);
+      var list = diagnosticsByCode.remove(code);
       if (list == null) {
         actualCount = 0;
       } else {
@@ -355,8 +366,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    errorsByCode.forEach((ErrorCode code, List<AnalysisError> actualErrors) {
-      int actualCount = actualErrors.length;
+    diagnosticsByCode.forEach((
+      DiagnosticCode code,
+      List<Diagnostic> actualDiagnostics,
+    ) {
+      int actualCount = actualDiagnostics.length;
       if (buffer.length == 0) {
         buffer.write("Expected ");
       } else {
@@ -367,12 +381,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
       buffer.write(", found ");
       buffer.write(actualCount);
       buffer.write(" (");
-      for (int i = 0; i < actualErrors.length; i++) {
-        AnalysisError error = actualErrors[i];
+      for (int i = 0; i < actualDiagnostics.length; i++) {
+        Diagnostic diagnostic = actualDiagnostics[i];
         if (i > 0) {
           buffer.write(", ");
         }
-        buffer.write(error.offset);
+        buffer.write(diagnostic.offset);
       }
       buffer.write(")");
     });
@@ -385,11 +399,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// number of [expectedSeverities] and that there are the same number of
   /// errors and warnings as specified by the argument. The order in which the
   /// errors were gathered is ignored.
-  void assertErrorsWithSeverities(List<ErrorSeverity> expectedSeverities) {
+  void assertErrorsWithSeverities(List<DiagnosticSeverity> expectedSeverities) {
     int expectedErrorCount = 0;
     int expectedWarningCount = 0;
-    for (ErrorSeverity severity in expectedSeverities) {
-      if (severity == ErrorSeverity.ERROR) {
+    for (DiagnosticSeverity severity in expectedSeverities) {
+      if (severity == DiagnosticSeverity.ERROR) {
         expectedErrorCount++;
       } else {
         expectedWarningCount++;
@@ -397,8 +411,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     int actualErrorCount = 0;
     int actualWarningCount = 0;
-    for (AnalysisError error in _errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+    for (Diagnostic diagnostic in _diagnostics) {
+      if (diagnostic.diagnosticCode.severity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;
@@ -406,10 +420,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
-      fail("Expected $expectedErrorCount errors "
-          "and $expectedWarningCount warnings, "
-          "found $actualErrorCount errors "
-          "and $actualWarningCount warnings");
+      fail(
+        "Expected $expectedErrorCount errors "
+        "and $expectedWarningCount warnings, "
+        "found $actualErrorCount errors "
+        "and $actualWarningCount warnings",
+      );
     }
   }
 
@@ -422,19 +438,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// if no line information has been associated with the source.
   LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
 
-  /// Return `true` if an error with the given [errorCode] has been gathered.
-  bool hasError(ErrorCode errorCode) {
-    for (AnalysisError error in _errors) {
-      if (identical(error.errorCode, errorCode)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
-  void onError(AnalysisError error) {
-    _errors.add(error);
+  void onDiagnostic(Diagnostic diagnostic) {
+    _diagnostics.add(diagnostic);
   }
 
   /// Set the line information associated with the given [source] to [lineInfo].
@@ -455,9 +461,11 @@ class TestInstrumentor extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception,
-      [StackTrace? stackTrace,
-      List<InstrumentationServiceAttachment>? attachments]) {
+  void logException(
+    dynamic exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     log.add("error: $exception $stackTrace");
   }
 
@@ -536,7 +544,7 @@ class TestSourceWithUri extends TestSource {
   final Uri uri;
 
   TestSourceWithUri(String path, this.uri, [String content = ''])
-      : super(path, content);
+    : super(path, content);
 
   @override
   bool operator ==(Object other) {

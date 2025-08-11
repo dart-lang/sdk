@@ -19,17 +19,19 @@ final nl = Platform.isWindows ? [13, 10] : [10];
 /// the commands stdout as a list of bytes.
 List<int> runTest(String command) {
   final result = Process.runSync(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--verbosity=warning')
-        ..add(Platform.script.resolve('print_test_script.dart').toFilePath())
-        ..add(command),
-      stdoutEncoding: null);
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add(Platform.script.resolve('print_test_script.dart').toFilePath())
+      ..add(command),
+    stdoutEncoding: null,
+  );
 
   if (result.exitCode != 0) {
     throw AssertionError(
-        'unexpected exit code for command $command: ${result.stderr}');
+      'unexpected exit code for command $command: ${result.stderr}',
+    );
   }
   return result.stdout;
 }
@@ -57,7 +59,9 @@ void testStringCarriageReturnLinefeeds() {
   // Notice on Windows this will result in `\r\n` => `\r\r\n'
   final expected = [108, 49, 13, ...nl, 108, 50, 13, ...nl, 108, 51, 13, ...nl];
   Expect.listEquals(
-      expected, runTest("string-internal-carriagereturn-linefeeds"));
+    expected,
+    runTest("string-internal-carriagereturn-linefeeds"),
+  );
 }
 
 void testObjectInternalLineEnding() {

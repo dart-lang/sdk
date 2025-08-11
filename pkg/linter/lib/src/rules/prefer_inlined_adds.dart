@@ -2,35 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Inline list item declarations where possible.';
 
-class PreferInlinedAdds extends LintRule {
+class PreferInlinedAdds extends MultiAnalysisRule {
   PreferInlinedAdds()
     : super(name: LintNames.prefer_inlined_adds, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_inlined_adds_multiple,
     LinterLintCode.prefer_inlined_adds_single,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -57,9 +56,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLint(
+    rule.reportAtNode(
       invocation.methodName,
-      errorCode:
+      diagnosticCode:
           addAll
               ? LinterLintCode.prefer_inlined_adds_multiple
               : LinterLintCode.prefer_inlined_adds_single,

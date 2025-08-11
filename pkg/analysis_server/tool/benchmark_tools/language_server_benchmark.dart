@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'io_utils.dart';
 import 'legacy_messages.dart';
@@ -17,8 +18,9 @@ abstract class DartLanguageServerBenchmark {
   late final Process p;
   late final Timer longRunningRequestsTimer;
   bool _launched = false;
+  bool _exited = false;
   Completer<bool> _analyzingCompleter = Completer();
-  final _buffer = <int>[];
+  final _buffer = _Uint8ListHelper();
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
   final String executableToUse;
@@ -51,6 +53,7 @@ abstract class DartLanguageServerBenchmark {
   Future<void> afterInitialization();
 
   void exit() {
+    _exited = true;
     longRunningRequestsTimer.cancel();
     if (Platform.isLinux) {
       try {
@@ -281,6 +284,7 @@ abstract class DartLanguageServerBenchmark {
           '--port=9102',
           ...cacheFolderArgs,
         ]);
+      case LaunchFrom.AotWithPerf:
       case LaunchFrom.Aot:
         File serverFile = File.fromUri(
           repoDir.resolve('pkg/analysis_server/bin/server.aot'),
@@ -296,13 +300,38 @@ abstract class DartLanguageServerBenchmark {
         if (!aotRuntime.existsSync()) {
           throw "Couldn't find 'dartaotruntime' expected it at $aotRuntime";
         }
+
         p = await Process.start(aotRuntime.path, [
           serverFile.path,
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
           ...cacheFolderArgs,
         ]);
+
+        if (launchFrom == LaunchFrom.AotWithPerf) {
+          await Process.start('perf', [
+            'record',
+            '-p',
+            '${p.pid}',
+            '-g',
+          ], mode: ProcessStartMode.inheritStdio);
+        }
     }
+
+    // ignore: unawaited_futures
+    p.exitCode.then((exitCode) {
+      if (verbosity >= 0) {
+        print('Process existed with exitCode $exitCode');
+      }
+      if (!_exited) {
+        _analyzingCompleter.completeError('Process exited 1.');
+        while (_outstandingRequestsWithId.isNotEmpty) {
+          var entry = _outstandingRequestsWithId.entries.first;
+          _outstandingRequestsWithId.remove(entry.key);
+          entry.value.completer.completeError('Process exited 2.');
+        }
+      }
+    });
 
     if (verbosity >= 0) {
       print('Launched with pid ${p.pid}');
@@ -319,11 +348,11 @@ abstract class DartLanguageServerBenchmark {
           _buffer.length % 1000 == 0) {
         print(
           'DEBUG MESSAGE: Stdout buffer with length ${_buffer.length} so far: '
-          '${utf8.decode(_buffer)}',
+          '${utf8.decode(_buffer.view())}',
         );
       }
       if (_lsp == true && _headerContentLength == null && _endsWithCrLfCrLf()) {
-        String headerRaw = utf8.decode(_buffer);
+        String headerRaw = utf8.decode(_buffer.view());
         _buffer.clear();
         // Use a regex that makes the '\r' optional to handle "The Dart VM service
         // is listening on [..." message - at least on linux - being \n terminated
@@ -349,7 +378,7 @@ abstract class DartLanguageServerBenchmark {
               _headerContentLength != null &&
               _buffer.length == _headerContentLength!) ||
           (_lsp == false && _endsWithLf())) {
-        String messageString = utf8.decode(_buffer);
+        String messageString = utf8.decode(_buffer.view());
         _buffer.clear();
         _headerContentLength = null;
 
@@ -470,7 +499,7 @@ class DurationInfo {
   DurationInfo(this.name, this.duration);
 }
 
-enum LaunchFrom { Source, Dart, Aot }
+enum LaunchFrom { Source, Dart, Aot, AotWithPerf }
 
 class MemoryInfo {
   final String name;
@@ -484,6 +513,34 @@ class OutstandingRequest {
   final Completer<Map<String, dynamic>> completer = Completer();
   OutstandingRequest() {
     stopwatch.start();
+  }
+}
+
+class _Uint8ListHelper {
+  Uint8List data;
+  int length = 0;
+  _Uint8ListHelper() : data = Uint8List(1024);
+
+  int operator [](int index) {
+    if (index < 0 || index >= length) throw 'Out of bounds: $index';
+    return data[index];
+  }
+
+  void add(int i) {
+    if (length == data.length) {
+      var newData = Uint8List(length * 2);
+      newData.setRange(0, length, data);
+      data = newData;
+    }
+    data[length++] = i;
+  }
+
+  void clear() {
+    length = 0;
+  }
+
+  Uint8List view() {
+    return Uint8List.sublistView(data, 0, length);
   }
 }
 

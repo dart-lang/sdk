@@ -7,9 +7,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'package:expect/async_helper.dart';
 
-enum Fisk {
-  torsk,
-}
+enum Fisk { torsk }
 
 isolate1(Object port) {
   (port as SendPort).send(Fisk.torsk);

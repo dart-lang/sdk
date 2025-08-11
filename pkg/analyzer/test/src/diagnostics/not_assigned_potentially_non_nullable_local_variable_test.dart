@@ -20,39 +20,41 @@ main() {
 class NotInitializedPotentiallyNonNullableLocalVariableTest
     extends PubPackageResolutionTest {
   test_assignment_leftExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   List<int> v;
   v[0] = (v = [1, 2])[1];
   v;
 }
-''', [
-      _notAssignedError(28, 1),
-    ]);
+''',
+      [_notAssignedError(28, 1)],
+    );
   }
 
   test_assignment_leftLocal_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   v += 1;
   v;
 }
-''', [
-      _notAssignedError(22, 1),
-    ]);
+''',
+      [_notAssignedError(22, 1)],
+    );
   }
 
   test_assignment_leftLocal_compound_assignInRight() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   v += (v = v);
 }
-''', [
-      _notAssignedError(22, 1),
-      _notAssignedError(32, 1),
-    ]);
+''',
+      [_notAssignedError(22, 1), _notAssignedError(32, 1)],
+    );
   }
 
   test_assignment_leftLocal_pure_eq() async {
@@ -66,39 +68,48 @@ void f() {
   }
 
   test_assignment_leftLocal_pure_eq_self() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   v = v;
 }
-''', [
-      _notAssignedError(26, 1),
-    ]);
+''',
+      [_notAssignedError(26, 1)],
+    );
   }
 
   test_assignment_leftLocal_pure_questionEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   v ??= 0;
 }
-''', [
-      _notAssignedError(22, 1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
-    ]);
+''',
+      [
+        _notAssignedError(22, 1),
+        error(WarningCode.DEAD_CODE, 28, 2),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+      ],
+    );
   }
 
   test_assignment_leftLocal_pure_questionEq_self() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   v ??= v;
 }
-''', [
-      _notAssignedError(22, 1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
-      _notAssignedError(28, 1),
-    ]);
+''',
+      [
+        _notAssignedError(22, 1),
+        error(WarningCode.DEAD_CODE, 28, 2),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+        _notAssignedError(28, 1),
+      ],
+    );
   }
 
   test_basic() async {
@@ -112,28 +123,36 @@ void f() {
   }
 
   test_binaryExpression_ifNull_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   (v = 0) ?? 0;
   v;
 }
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 30, 4),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
+      ],
+    );
   }
 
   test_binaryExpression_ifNull_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   int v;
   a ?? (v = 0);
   v;
 }
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
-      _notAssignedError(43, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 29, 10),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
+        _notAssignedError(43, 1),
+      ],
+    );
   }
 
   test_binaryExpression_logicalAnd_left() async {
@@ -147,15 +166,16 @@ void f(bool c) {
   }
 
   test_binaryExpression_logicalAnd_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool c) {
   int v;
   c && ((v = 0) >= 0);
   v;
 }
-''', [
-      _notAssignedError(51, 1),
-    ]);
+''',
+      [_notAssignedError(51, 1)],
+    );
   }
 
   test_binaryExpression_logicalOr_left() async {
@@ -169,15 +189,16 @@ void f(bool c) {
   }
 
   test_binaryExpression_logicalOr_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool c) {
   int v;
   c || ((v = 0) >= 0);
   v;
 }
-''', [
-      _notAssignedError(51, 1),
-    ]);
+''',
+      [_notAssignedError(51, 1)],
+    );
   }
 
   test_binaryExpression_plus_left() async {
@@ -211,27 +232,29 @@ f(bool b) {
   }
 
   test_conditional_else() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(bool b) {
   int v;
   b ? 1 : (v = 2);
   v;
 }
-''', [
-      _notAssignedError(42, 1),
-    ]);
+''',
+      [_notAssignedError(42, 1)],
+    );
   }
 
   test_conditional_then() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(bool b) {
   int v;
   b ? (v = 1) : 2;
   v;
 }
-''', [
-      _notAssignedError(42, 1),
-    ]);
+''',
+      [_notAssignedError(42, 1)],
+    );
   }
 
   test_conditionalExpression_condition() async {
@@ -259,7 +282,8 @@ void f(bool b) {
   }
 
   test_doWhile_break_beforeAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   do {
@@ -268,13 +292,14 @@ void f(bool b) {
   } while (b);
   v;
 }
-''', [
-      _notAssignedError(79, 1),
-    ]);
+''',
+      [_notAssignedError(79, 1)],
+    );
   }
 
   test_doWhile_breakOuterFromInner() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2, v3;
   L1: do {
@@ -289,13 +314,14 @@ void f(bool b) {
   v1;
   v3;
 }
-''', [
-      _notAssignedError(168, 2),
-    ]);
+''',
+      [_notAssignedError(168, 2)],
+    );
   }
 
   test_doWhile_condition() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v1, v2;
   do {
@@ -303,13 +329,14 @@ void f() {
   } while ((v1 = 0) + (v2 = 0) >= 0);
   v2;
 }
-''', [
-      _notAssignedError(36, 2),
-    ]);
+''',
+      [_notAssignedError(36, 2)],
+    );
   }
 
   test_doWhile_condition_break() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   do {
@@ -317,13 +344,14 @@ void f(bool b) {
   } while ((v = 0) >= 0);
   v;
 }
-''', [
-      _notAssignedError(79, 1),
-    ]);
+''',
+      [_notAssignedError(79, 1)],
+    );
   }
 
   test_doWhile_condition_break_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b1, b2) {
   int v1, v2, v3, v4, v5, v6;
   do {
@@ -340,16 +368,19 @@ void f(bool b1, b2) {
   v5;
   v6;
 }
-''', [
-      _notAssignedError(360, 2),
-      _notAssignedError(421, 2),
-      _notAssignedError(427, 2),
-      _notAssignedError(433, 2),
-    ]);
+''',
+      [
+        _notAssignedError(360, 2),
+        _notAssignedError(421, 2),
+        _notAssignedError(427, 2),
+        _notAssignedError(433, 2),
+      ],
+    );
   }
 
   test_doWhile_condition_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2, v3, v4;
   do {
@@ -362,14 +393,14 @@ void f(bool b) {
   v3;
   v4;
 }
-''', [
-      _notAssignedError(200, 2),
-      _notAssignedError(253, 2),
-    ]);
+''',
+      [_notAssignedError(200, 2), _notAssignedError(253, 2)],
+    );
   }
 
   test_doWhile_continue_beforeAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   do {
@@ -378,9 +409,9 @@ void f(bool b) {
   } while (b);
   v;
 }
-''', [
-      _notAssignedError(82, 1),
-    ]);
+''',
+      [_notAssignedError(82, 1)],
+    );
   }
 
   test_doWhile_true_assignInBreak() async {
@@ -400,34 +431,37 @@ void f(bool b) {
 
   test_extensionType_hasImplements() async {
     // Extension types are always potentially non-nullable.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E(int it) implements int {}
 
 void f() {
   E v;
   v;
 }
-''', [
-      _notAssignedError(64, 1),
-    ]);
+''',
+      [_notAssignedError(64, 1)],
+    );
   }
 
   test_extensionType_noImplements() async {
     // Extension types are always potentially non-nullable.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E(int it) {}
 
 void f() {
   E v;
   v;
 }
-''', [
-      _notAssignedError(49, 1),
-    ]);
+''',
+      [_notAssignedError(49, 1)],
+    );
   }
 
   test_for_body() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   for (; b;) {
@@ -435,13 +469,14 @@ void f(bool b) {
   }
   v;
 }
-''', [
-      _notAssignedError(58, 1),
-    ]);
+''',
+      [_notAssignedError(58, 1)],
+    );
   }
 
   test_for_break() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   for (; b;) {
@@ -452,10 +487,9 @@ void f(bool b) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(94, 2),
-      _notAssignedError(100, 2),
-    ]);
+''',
+      [_notAssignedError(94, 2), _notAssignedError(100, 2)],
+    );
   }
 
   test_for_break_updaters() async {
@@ -484,7 +518,8 @@ void f() {
   }
 
   test_for_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   for (; b;) {
@@ -495,14 +530,14 @@ void f(bool b) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(97, 2),
-      _notAssignedError(103, 2),
-    ]);
+''',
+      [_notAssignedError(97, 2), _notAssignedError(103, 2)],
+    );
   }
 
   test_for_continue_updaters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   for (; b; v1 + v2) {
@@ -511,13 +546,14 @@ void f(bool b) {
     v2 = 0;
   }
 }
-''', [
-      _notAssignedError(48, 2),
-    ]);
+''',
+      [_notAssignedError(48, 2)],
+    );
   }
 
   test_for_initializer_expression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   for (v = 0;;) {
@@ -525,13 +561,14 @@ void f() {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 51, 2),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 51, 2)],
+    );
   }
 
   test_for_initializer_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   for (var t = (v = 0);;) {
@@ -539,14 +576,17 @@ void f() {
   }
   v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
-      error(WarningCode.DEAD_CODE, 61, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+        error(WarningCode.DEAD_CODE, 61, 2),
+      ],
+    );
   }
 
   test_for_updaters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2, v3, v4;
   for (; b; v1 = 0, v2 = 0, v3 = 0, v4) {
@@ -554,12 +594,14 @@ void f(bool b) {
   }
   v2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 2),
-      _notAssignedError(75, 2),
-      _notAssignedError(85, 2),
-      _notAssignedError(95, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 2),
+        _notAssignedError(75, 2),
+        _notAssignedError(85, 2),
+        _notAssignedError(95, 2),
+      ],
+    );
   }
 
   test_for_updaters_afterBody() async {
@@ -574,7 +616,8 @@ void f(bool b) {
   }
 
   test_forEach() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   List<int> v1;
   int v2;
@@ -584,13 +627,14 @@ void f() {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(97, 2),
-    ]);
+''',
+      [_notAssignedError(97, 2)],
+    );
   }
 
   test_forEach_break() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   for (var _ in [0, 1, 2]) {
@@ -601,14 +645,14 @@ void f(bool b) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(108, 2),
-      _notAssignedError(114, 2),
-    ]);
+''',
+      [_notAssignedError(108, 2), _notAssignedError(114, 2)],
+    );
   }
 
   test_forEach_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   for (var _ in [0, 1, 2]) {
@@ -619,14 +663,14 @@ void f(bool b) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(111, 2),
-      _notAssignedError(117, 2),
-    ]);
+''',
+      [_notAssignedError(111, 2), _notAssignedError(117, 2)],
+    );
   }
 
   test_functionExpression_closure_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v1, v2;
 
@@ -637,13 +681,14 @@ void f() {
     v2;
   });
 }
-''', [
-      _notAssignedError(75, 2),
-    ]);
+''',
+      [_notAssignedError(75, 2)],
+    );
   }
 
   test_functionExpression_closure_write() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
 
@@ -653,13 +698,14 @@ void f() {
 
   v;
 }
-''', [
-      _notAssignedError(67, 1),
-    ]);
+''',
+      [_notAssignedError(67, 1)],
+    );
   }
 
   test_functionExpression_localFunction_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
 
@@ -670,15 +716,18 @@ void f() {
     v;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(WarningCode.UNUSED_ELEMENT, 38, 1),
-      _notAssignedError(64, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+        error(WarningCode.UNUSED_ELEMENT, 38, 1),
+        _notAssignedError(64, 1),
+      ],
+    );
   }
 
   test_functionExpression_localFunction_local2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v1;
 
@@ -692,14 +741,14 @@ void f() {
     v3;
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 40, 1),
-      _notAssignedError(94, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 40, 1), _notAssignedError(94, 2)],
+    );
   }
 
   test_functionExpression_localFunction_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v1, v2;
 
@@ -712,14 +761,14 @@ void f() {
 
   v2 = 0;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 44, 1),
-      _notAssignedError(62, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 44, 1), _notAssignedError(62, 2)],
+    );
   }
 
   test_functionExpression_localFunction_write() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
 
@@ -729,22 +778,22 @@ void f() {
 
   v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 28, 1),
-      _notAssignedError(52, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 28, 1), _notAssignedError(52, 1)],
+    );
   }
 
   test_futureOr_questionArgument_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 f() {
   FutureOr<int?> v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+    );
   }
 
   test_hasInitializer() async {
@@ -771,7 +820,8 @@ main() {
   }
 
   test_if_condition_false() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   if (false) {
@@ -781,13 +831,14 @@ void f() {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 33, 25),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 33, 25)],
+    );
   }
 
   test_if_condition_logicalAnd() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b, int i) {
   int v;
   if (b && (v = i) > 0) {
@@ -797,14 +848,14 @@ void f(bool b, int i) {
   }
   v;
 }
-''', [
-      _notAssignedError(81, 1),
-      _notAssignedError(90, 1),
-    ]);
+''',
+      [_notAssignedError(81, 1), _notAssignedError(90, 1)],
+    );
   }
 
   test_if_condition_logicalOr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b, int i) {
   int v;
   if (b || (v = i) > 0) {
@@ -814,10 +865,9 @@ void f(bool b, int i) {
   }
   v;
 }
-''', [
-      _notAssignedError(63, 1),
-      _notAssignedError(90, 1),
-    ]);
+''',
+      [_notAssignedError(63, 1), _notAssignedError(90, 1)],
+    );
   }
 
   test_if_condition_notFalse() async {
@@ -833,7 +883,8 @@ void f() {
   }
 
   test_if_condition_notTrue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   if (!true) {
@@ -843,9 +894,9 @@ void f() {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 33, 25),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 33, 25)],
+    );
   }
 
   test_if_condition_true() async {
@@ -861,7 +912,8 @@ void f() {
   }
 
   test_if_then() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -869,9 +921,9 @@ void f(bool c) {
   }
   v;
 }
-''', [
-      _notAssignedError(54, 1),
-    ]);
+''',
+      [_notAssignedError(54, 1)],
+    );
   }
 
   test_if_thenElse_all() async {
@@ -891,7 +943,8 @@ void f(bool c) {
   }
 
   test_if_thenElse_else() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -901,13 +954,14 @@ void f(bool c) {
   }
   v;
 }
-''', [
-      _notAssignedError(85, 1),
-    ]);
+''',
+      [_notAssignedError(85, 1)],
+    );
   }
 
   test_if_thenElse_then() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool c) {
   int v;
   if (c) {
@@ -917,9 +971,9 @@ void f(bool c) {
   }
   v;
 }
-''', [
-      _notAssignedError(85, 1),
-    ]);
+''',
+      [_notAssignedError(85, 1)],
+    );
   }
 
   test_late() async {
@@ -938,35 +992,38 @@ f() {
   }
 
   test_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int v;
   v;
 }
-''', [
-      _notAssignedError(17, 1),
-    ]);
+''',
+      [_notAssignedError(17, 1)],
+    );
   }
 
   test_noInitializer_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f<T>() {
   T v;
   v;
 }
-''', [
-      _notAssignedError(18, 1),
-    ]);
+''',
+      [_notAssignedError(18, 1)],
+    );
   }
 
   test_notUsed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   int v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_nullable() async {
@@ -979,7 +1036,8 @@ f() {
   }
 
   test_switch_case1_default() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int e) {
   int v;
   switch (e) {
@@ -994,13 +1052,14 @@ void f(int e) {
   }
   v;
 }
-''', [
-      _notAssignedError(157, 1),
-    ]);
+''',
+      [_notAssignedError(157, 1)],
+    );
   }
 
   test_switch_case1_default_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int e) {
   int v;
@@ -1016,13 +1075,14 @@ void f(int e) {
   }
   v;
 }
-''', [
-      _notAssignedError(173, 1),
-    ]);
+''',
+      [_notAssignedError(173, 1)],
+    );
   }
 
   test_switch_case2_default() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int e) {
   int v1, v2;
   switch (e) {
@@ -1038,13 +1098,14 @@ void f(int e) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(157, 2),
-    ]);
+''',
+      [_notAssignedError(157, 2)],
+    );
   }
 
   test_switch_case2_default_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int e) {
   int v1, v2;
@@ -1061,13 +1122,14 @@ void f(int e) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(173, 2),
-    ]);
+''',
+      [_notAssignedError(173, 2)],
+    );
   }
 
   test_switch_case_default_break() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b, int e) {
   int v1, v2;
   switch (e) {
@@ -1084,13 +1146,14 @@ void f(bool b, int e) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(199, 2),
-    ]);
+''',
+      [_notAssignedError(199, 2)],
+    );
   }
 
   test_switch_case_default_break_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(bool b, int e) {
   int v1, v2;
@@ -1108,9 +1171,9 @@ void f(bool b, int e) {
   v1;
   v2;
 }
-''', [
-      _notAssignedError(215, 2),
-    ]);
+''',
+      [_notAssignedError(215, 2)],
+    );
   }
 
   test_switch_case_default_continue() async {
@@ -1161,7 +1224,8 @@ void f(int e) {
   }
 
   test_switch_case_noDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int e) {
   int v;
   switch (e) {
@@ -1171,13 +1235,14 @@ void f(int e) {
   }
   v;
 }
-''', [
-      _notAssignedError(84, 1),
-    ]);
+''',
+      [_notAssignedError(84, 1)],
+    );
   }
 
   test_switch_case_noDefault_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int e) {
   int v;
@@ -1188,9 +1253,9 @@ void f(int e) {
   }
   v;
 }
-''', [
-      _notAssignedError(100, 1),
-    ]);
+''',
+      [_notAssignedError(100, 1)],
+    );
   }
 
   test_switch_expression() async {
@@ -1215,41 +1280,44 @@ void f() {
   }
 
   test_syntheticPatternVariable_orPattern_inIfCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
     a;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 45, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 45, 8)],
+    );
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] when a > 0 => a,
     _ => 0,
   });
 }
-''', [
-      error(WarningCode.DEAD_CODE, 52, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 52, 8)],
+    );
   }
 
   test_syntheticPatternVariable_orPattern_inSwitchStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a] when a > 0:
       a;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 56, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 56, 8)],
+    );
   }
 
   test_syntheticPatternVariable_switchCasesSharingABody() async {
@@ -1265,7 +1333,8 @@ void f(Object? x) {
   }
 
   test_tryCatch_body() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   try {
@@ -1275,9 +1344,9 @@ void f() {
   }
   v;
 }
-''', [
-      _notAssignedError(81, 1),
-    ]);
+''',
+      [_notAssignedError(81, 1)],
+    );
   }
 
   test_tryCatch_body_catch() async {
@@ -1312,7 +1381,8 @@ void f() {
   }
 
   test_tryCatch_catch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   try {
@@ -1322,13 +1392,14 @@ void f() {
   }
   v;
 }
-''', [
-      _notAssignedError(81, 1),
-    ]);
+''',
+      [_notAssignedError(81, 1)],
+    );
   }
 
   test_tryCatchFinally_body() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   try {
@@ -1340,13 +1411,14 @@ void f() {
   }
   v;
 }
-''', [
-      _notAssignedError(115, 1),
-    ]);
+''',
+      [_notAssignedError(115, 1)],
+    );
   }
 
   test_tryCatchFinally_catch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   try {
@@ -1358,9 +1430,9 @@ void f() {
   }
   v;
 }
-''', [
-      _notAssignedError(115, 1),
-    ]);
+''',
+      [_notAssignedError(115, 1)],
+    );
   }
 
   test_tryCatchFinally_finally() async {
@@ -1380,7 +1452,8 @@ void f() {
   }
 
   test_tryCatchFinally_useInFinally() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   int x;
   try {
@@ -1394,9 +1467,9 @@ f() {
 }
 
 void g() {}
-''', [
-      _notAssignedError(114, 1),
-    ]);
+''',
+      [_notAssignedError(114, 1)],
+    );
   }
 
   test_tryFinally_body() async {
@@ -1428,33 +1501,36 @@ void f() {
   }
 
   test_type_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   dynamic v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1)],
+    );
   }
 
   test_type_dynamicImplicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   var v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_type_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   void v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1)],
+    );
   }
 
   test_while_condition() async {
@@ -1470,7 +1546,8 @@ void f() {
   }
 
   test_while_condition_notTrue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   while (b) {
@@ -1479,9 +1556,9 @@ void f(bool b) {
   }
   v;
 }
-''', [
-      _notAssignedError(64, 1),
-    ]);
+''',
+      [_notAssignedError(64, 1)],
+    );
   }
 
   test_while_true_break_afterAssignment() async {
@@ -1502,7 +1579,8 @@ void f(bool b) {
   }
 
   test_while_true_break_beforeAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1512,13 +1590,14 @@ void f(bool b) {
   }
   v;
 }
-''', [
-      _notAssignedError(85, 1),
-    ]);
+''',
+      [_notAssignedError(85, 1)],
+    );
   }
 
   test_while_true_break_if() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1533,9 +1612,9 @@ void f(bool b) {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 131, 2),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 131, 2)],
+    );
   }
 
   test_while_true_break_if2() async {
@@ -1555,7 +1634,8 @@ void f(bool b) {
   }
 
   test_while_true_break_if3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2;
   while (true) {
@@ -1572,13 +1652,14 @@ void f(bool b) {
   }
   v2;
 }
-''', [
-      _notAssignedError(190, 2),
-    ]);
+''',
+      [_notAssignedError(190, 2)],
+    );
   }
 
   test_while_true_breakOuterFromInner() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v1, v2, v3;
   L1: while (true) {
@@ -1594,13 +1675,14 @@ void f(bool b) {
   v1;
   v3;
 }
-''', [
-      _notAssignedError(193, 2),
-    ]);
+''',
+      [_notAssignedError(193, 2)],
+    );
   }
 
   test_while_true_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1609,18 +1691,22 @@ void f(bool b) {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 81, 2),
-      error(
+''',
+      [
+        error(WarningCode.DEAD_CODE, 81, 2),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           81,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_while_true_noBreak() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int v;
   while (true) {
@@ -1629,21 +1715,24 @@ void f() {
   }
   v;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 114, 2),
-      error(
+''',
+      [
+        error(WarningCode.DEAD_CODE, 114, 2),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           114,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   ExpectedError _notAssignedError(int offset, int length) {
     return error(
-        CompileTimeErrorCode
-            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-        offset,
-        length);
+      CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+      offset,
+      length,
+    );
   }
 }

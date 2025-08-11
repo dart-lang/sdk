@@ -12,7 +12,8 @@ main() {
   bool waitedForCancel = false;
 
   var controller = new StreamController(
-      onCancel: () => new Future(() => waitedForCancel = true));
+    onCancel: () => new Future(() => waitedForCancel = true),
+  );
   var sub = controller.stream.take(1).listen((x) {
     Expect.fail("onData should not be called");
   });

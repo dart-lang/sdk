@@ -25,8 +25,12 @@ main() {
       expect(ev.detail, {'type': 'detail'});
     });
 
-    var ev = new CustomEvent('foo',
-        canBubble: false, cancelable: false, detail: {'type': 'detail'});
+    var ev = new CustomEvent(
+      'foo',
+      canBubble: false,
+      cancelable: false,
+      detail: {'type': 'detail'},
+    );
     el.dispatchEvent(ev);
     expect(fired, isTrue);
   });

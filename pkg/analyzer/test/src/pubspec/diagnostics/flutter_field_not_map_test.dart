@@ -29,10 +29,13 @@ flutter:
   }
 
   test_flutterFieldNotMap_error_bool() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter: true
-''', [PubspecWarningCode.FLUTTER_FIELD_NOT_MAP]);
+''',
+      [PubspecWarningCode.FLUTTER_FIELD_NOT_MAP],
+    );
   }
 
   test_flutterFieldNotMap_noError() {

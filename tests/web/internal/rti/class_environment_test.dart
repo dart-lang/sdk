@@ -8,7 +8,9 @@ import "package:expect/expect.dart";
 void checkRtiIdentical(rti.Rti rti1, rti.Rti rti2) {
   var format = rti.testingRtiToString;
   Expect.isTrue(
-      identical(rti1, rti2), 'identical(${format(rti1)}, ${format(rti2)}');
+    identical(rti1, rti2),
+    'identical(${format(rti1)}, ${format(rti2)}',
+  );
 }
 
 void checkToString(String expected, rti.Rti rti1) {

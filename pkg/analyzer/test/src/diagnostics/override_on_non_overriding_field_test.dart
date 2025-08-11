@@ -16,18 +16,20 @@ main() {
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   @override
   int? foo;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3)],
+    );
   }
 
   test_class_extends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -40,14 +42,21 @@ class B extends A {
   int b = 0;
   @override
   int c = 0;
-}''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 131, 1,
-          contextMessages: [message(testFile, 39, 1)]),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE_SETTER,
+          131,
+          1,
+          contextMessages: [message(testFile, 39, 1)],
+        ),
+      ],
+    );
   }
 
   test_class_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -60,22 +69,29 @@ class B implements A {
   int b = 0;
   @override
   int c = 0;
-}''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 134, 1,
-          contextMessages: [message(testFile, 39, 1)]),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE_SETTER,
+          134,
+          1,
+          contextMessages: [message(testFile, 39, 1)],
+        ),
+      ],
+    );
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   @override
   final int foo = 0;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3)],
+    );
   }
 
   test_enum_implements() async {

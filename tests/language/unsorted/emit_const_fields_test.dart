@@ -11,7 +11,7 @@ class Guide {
   static const EARTH = const {
     "Sector": "ZZ9 Plural Z Alpha",
     "Status": const ["Scheduled for demolition", "1978-03-08"],
-    "Description": "Mostly harmless"
+    "Description": "Mostly harmless",
   };
 }
 

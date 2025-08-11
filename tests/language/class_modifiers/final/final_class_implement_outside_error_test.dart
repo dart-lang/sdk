@@ -22,4 +22,3 @@ enum EnumOutside implements ClassForEnum { x }
 //                          ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'ClassForEnum' can't be implemented outside of its library because it's a final class.
-

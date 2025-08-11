@@ -17,18 +17,23 @@ StackTrace captureStackTrace() {
 main() {
   StackTrace trace = captureStackTrace();
   var controller;
-  controller = new StreamController(onListen: () {
-    controller.addError("error", trace);
-    controller.close();
-  });
+  controller = new StreamController(
+    onListen: () {
+      controller.addError("error", trace);
+      controller.close();
+    },
+  );
   asyncStart();
   var iterator = new StreamIterator(controller.stream);
   var future = iterator.moveNext();
-  future.then<Null>((_) {
-    throw "unreachable";
-  }, onError: (e, st) {
-    Expect.equals("error", e);
-    Expect.identical(trace, st);
-    asyncEnd();
-  });
+  future.then<Null>(
+    (_) {
+      throw "unreachable";
+    },
+    onError: (e, st) {
+      Expect.equals("error", e);
+      Expect.identical(trace, st);
+      asyncEnd();
+    },
+  );
 }

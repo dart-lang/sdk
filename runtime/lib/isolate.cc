@@ -102,12 +102,9 @@ DEFINE_NATIVE_ENTRY(SendPort_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-static bool InSameGroup(Isolate* sender, const SendPort& receiver) {
-  // Cannot determine whether sender is in same group (yet).
-  if (sender->origin_id() == ILLEGAL_PORT) return false;
-
+static bool InSameGroup(IsolateGroup* sender, const SendPort& receiver) {
   // Only allow arbitrary messages between isolates of the same IG.
-  return sender->origin_id() == receiver.origin_id();
+  return sender->id() == receiver.origin_id();
 }
 
 DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
@@ -115,11 +112,12 @@ DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   const Dart_Port destination_port_id = port.Id();
-  const bool same_group = InSameGroup(isolate, port);
+  IsolateGroup* group = thread->isolate_group();
+  const bool same_group = InSameGroup(group, port);
 #if defined(DEBUG)
   if (same_group) {
     ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(destination_port_id,
-                                                         isolate->group()));
+                                                         group));
   }
 #endif
 
@@ -262,15 +260,15 @@ class WorkSet {
 class WorkSet {
  public:
   explicit WorkSet(Thread* thread)
-      : isolate_(thread->isolate()), list_(GrowableObjectArray::Handle()) {
-    isolate_->set_forward_table_new(new WeakTable());
-    isolate_->set_forward_table_old(new WeakTable());
+      : thread_(thread), list_(GrowableObjectArray::Handle()) {
+    thread_->set_forward_table_new(new WeakTable());
+    thread_->set_forward_table_old(new WeakTable());
     list_ = GrowableObjectArray::New(256);
     cursor_ = 0;
   }
   ~WorkSet() {
-    isolate_->set_forward_table_new(nullptr);
-    isolate_->set_forward_table_old(nullptr);
+    thread_->set_forward_table_new(nullptr);
+    thread_->set_forward_table_old(nullptr);
   }
 
   void Push(const Object& obj) {
@@ -294,22 +292,22 @@ class WorkSet {
   DART_FORCE_INLINE
   intptr_t GetObjectId(ObjectPtr object) {
     if (object->IsNewObject()) {
-      return isolate_->forward_table_new()->GetValueExclusive(object);
+      return thread_->forward_table_new()->GetValueExclusive(object);
     } else {
-      return isolate_->forward_table_old()->GetValueExclusive(object);
+      return thread_->forward_table_old()->GetValueExclusive(object);
     }
   }
 
   DART_FORCE_INLINE
   void SetObjectId(ObjectPtr object, intptr_t id) {
     if (object->IsNewObject()) {
-      isolate_->forward_table_new()->SetValueExclusive(object, id);
+      thread_->forward_table_new()->SetValueExclusive(object, id);
     } else {
-      isolate_->forward_table_old()->SetValueExclusive(object, id);
+      thread_->forward_table_old()->SetValueExclusive(object, id);
     }
   }
 
-  Isolate* isolate_;
+  Thread* thread_;
   GrowableObjectArray& list_;
   intptr_t cursor_;
 };
@@ -477,7 +475,6 @@ class MessageValidator : private WorkSet {
                   const char* exception_message,
                   const Object& root) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Zone* zone = thread->zone();
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
@@ -485,7 +482,7 @@ class MessageValidator : private WorkSet {
                       zone, String::NewFormatted(
                                 "%s%s",
                                 FindRetainingPath(
-                                    zone, isolate, root, illegal_object,
+                                    zone, thread, root, illegal_object,
                                     TraversalRules::kInternalToIsolateGroup),
                                 exception_message)));
     const Object& exception = Object::Handle(
@@ -505,11 +502,11 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   if (!port.IsNull()) {
     GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
-    const bool same_group = InSameGroup(isolate, port);
+    IsolateGroup* group = thread->isolate_group();
+    const bool same_group = InSameGroup(group, port);
 #if defined(DEBUG)
     if (same_group) {
-      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(),
-                                                           isolate->group()));
+      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(), group));
     }
 #endif
     if (!same_group) {
@@ -557,7 +554,6 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
 class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
-                    Dart_Port origin_id,
                     const char* script_url,
                     PersistentHandle* closure_tuple_handle,
                     SerializedObjectBuffer* message_buffer,
@@ -582,7 +578,6 @@ class IsolateSpawnState {
   ~IsolateSpawnState();
 
   Dart_Port parent_port() const { return parent_port_; }
-  Dart_Port origin_id() const { return origin_id_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
@@ -606,7 +601,6 @@ class IsolateSpawnState {
 
  private:
   Dart_Port parent_port_;
-  Dart_Port origin_id_ = ILLEGAL_PORT;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
@@ -630,7 +624,6 @@ static const char* NewConstChar(const char* chars) {
 }
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
-                                     Dart_Port origin_id,
                                      const char* script_url,
                                      PersistentHandle* closure_tuple_handle,
                                      SerializedObjectBuffer* message_buffer,
@@ -642,7 +635,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* debug_name,
                                      IsolateGroup* isolate_group)
     : parent_port_(parent_port),
-      origin_id_(origin_id),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
@@ -876,11 +868,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    if (state_->origin_id() != ILLEGAL_PORT) {
-      // origin_id is set to parent isolate main port id when spawning via
-      // spawnFunction.
-      child->set_origin_id(state_->origin_id());
-    }
     bool errors_are_fatal = state_->errors_are_fatal();
     Dart_Port on_error_port = state_->on_error_port();
     Dart_Port on_exit_port = state_->on_exit_port();
@@ -1037,9 +1024,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     } else if (state_->isolate_group() != nullptr) {
       ASSERT(IsolateGroup::Current() == nullptr);
       const bool kBypassSafepoint = false;
-      const bool result = Thread::EnterIsolateGroupAsHelper(
-          state_->isolate_group(), Thread::kSpawnTask, kBypassSafepoint);
-      ASSERT(result);
+      Thread::EnterIsolateGroupAsHelper(state_->isolate_group(),
+                                        Thread::kSpawnTask, kBypassSafepoint);
       state_ = nullptr;
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     } else {
@@ -1119,10 +1105,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   }
 
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
-      port.Id(), isolate->origin_id(), String2UTF8(script_uri),
-      closure_tuple_handle, &message_buffer, utf8_package_config,
-      paused.value(), fatal_errors, on_exit_port, on_error_port,
-      utf8_debug_name, isolate->group()));
+      port.Id(), String2UTF8(script_uri), closure_tuple_handle, &message_buffer,
+      utf8_package_config, paused.value(), fatal_errors, on_exit_port,
+      on_error_port, utf8_debug_name, isolate->group()));
 
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));
@@ -1390,6 +1375,18 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
                                        /*auto_delete=*/true);
   ASSERT(finalizable_ref != nullptr);
   return typed_data.ptr();
+}
+
+DEFINE_NATIVE_ENTRY(Timer_postTimerEvent, 0, 1) {
+#if !defined(PRODUCT)
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, milliseconds_overdue,
+                               arguments->NativeArgAt(0));
+  // |milliseconds_overdue| can get truncated on 32-bit platforms, but in
+  // practice, it should never get close to |INT_MAX|.
+  Service::SendTimerEvent(isolate,
+                          static_cast<intptr_t>(milliseconds_overdue.Value()));
+#endif  // !defined(PRODUCT)
+  return Object::null();
 }
 
 }  // namespace dart

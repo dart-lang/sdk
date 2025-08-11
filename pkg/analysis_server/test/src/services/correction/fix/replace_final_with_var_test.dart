@@ -50,6 +50,21 @@ class ReplaceFinalWithVarTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_final;
 
+  Future<void> test_function_forLoop() async {
+    await resolveTestCode('''
+void f(List<int> values) {
+  // ignore:unused_local_variable
+  for (final v in values) {}
+}
+''');
+    await assertHasFix('''
+void f(List<int> values) {
+  // ignore:unused_local_variable
+  for (var v in values) {}
+}
+''');
+  }
+
   Future<void> test_function_variableTyped() async {
     await resolveTestCode('''
 void f() {
@@ -134,6 +149,23 @@ class ReplaceFinalWithVarTypedRemoveTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.unnecessary_final;
+
+  Future<void> test_final_type() async {
+    await resolveTestCode(r'''
+void f(List<int> values) {
+  for (final int value in values) {
+    value;
+  }
+}
+''');
+    await assertHasFix(r'''
+void f(List<int> values) {
+  for (int value in values) {
+    value;
+  }
+}
+''');
+  }
 
   Future<void> test_function_variableTyped() async {
     await resolveTestCode('''

@@ -18,7 +18,8 @@ const subclassCount = 5000;
 // We alternate classes to be subclasses of I0 and I1 to ensure that subclasses
 // of I0 do not have consecutive class ids.
 String generateExample() {
-  final sb = StringBuffer()..writeln('''
+  final sb = StringBuffer()
+    ..writeln('''
 class I0 {}
 class I1 {}
   ''');

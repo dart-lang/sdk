@@ -14,8 +14,7 @@ namespace dart {
 static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   uword result = free_list->TryAllocate(size, is_protected);
   if ((result != 0u) && is_protected) {
-    VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
-                           VirtualMemory::kReadExecute);
+    VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(result), size);
   }
   return result;
 }
@@ -30,8 +29,7 @@ static void Free(FreeList* free_list,
   }
   free_list->Free(address, size);
   if (is_protected) {
-    VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                           VirtualMemory::kReadExecute);
+    VirtualMemory::WriteProtectCode(reinterpret_cast<void*>(address), size);
   }
 }
 
@@ -47,7 +45,7 @@ static void TestFreeList(VirtualMemory* region,
 
   if (is_protected) {
     // Write protect the whole region.
-    region->Protect(VirtualMemory::kReadExecute);
+    region->WriteProtectCode();
   }
 
   // Allocate a small object. Expect it to be positioned as the first element.
@@ -122,7 +120,7 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   free_list->Free(blob->start(), blob->size());
 
   // Write protect the whole region.
-  blob->Protect(VirtualMemory::kReadExecute);
+  blob->WriteProtectCode();
 
   // Allocate small objects.
   for (intptr_t i = 0; i < blob->size() / kObjectSize; i++) {
@@ -221,10 +219,9 @@ static void TestRegress38528(intptr_t header_overlap) {
   memcpy(other_code, ret, sizeof(ret));  // NOLINT
 
   free_list->Free(blob->start(), alloc_size + remainder_size);
-  blob->Protect(VirtualMemory::kReadExecute);  // not writable
-  Allocate(free_list.get(), alloc_size, /*protected=*/true);
-  VirtualMemory::Protect(blob->address(), alloc_size,
-                         VirtualMemory::kReadExecute);
+  blob->WriteProtectCode();  // not writable
+  Allocate(free_list.get(), alloc_size, /*is_protected=*/true);
+  VirtualMemory::WriteProtectCode(blob->address(), alloc_size);
   reinterpret_cast<void (*)()>(other_code)();
 }
 

@@ -22,15 +22,16 @@ void testEfficiency() {
   // Before fix, with N = 100000, took 25 seconds.
   const N = 1000000;
   String result = ""; // Starts empty, set once.
-  var sink = LineSplitter()
-      .startChunkedConversion(ChunkedConversionSink.withCallback((lines) {
-    // Gets called only once with exactly one line.
-    Expect.equals("", result);
-    Expect.equals(1, lines.length);
-    var line = lines.first;
-    Expect.notEquals("", line);
-    result = line;
-  }));
+  var sink = LineSplitter().startChunkedConversion(
+    ChunkedConversionSink.withCallback((lines) {
+      // Gets called only once with exactly one line.
+      Expect.equals("", result);
+      Expect.equals(1, lines.length);
+      var line = lines.first;
+      Expect.notEquals("", line);
+      result = line;
+    }),
+  );
   for (var i = 0; i < N; i++) {
     sink.add("xy");
   }

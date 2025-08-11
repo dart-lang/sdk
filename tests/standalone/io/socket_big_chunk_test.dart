@@ -23,15 +23,20 @@ Future<void> main() async {
   });
 
   HttpClient client = new HttpClient();
-  HttpClientRequest clientResult =
-      await client.get('127.0.0.1', server.port, 'foo');
+  HttpClientRequest clientResult = await client.get(
+    '127.0.0.1',
+    server.port,
+    'foo',
+  );
   HttpClientResponse response = await clientResult.close();
   print("Client result closed");
   int totalLength = 0;
   await for (List<int> data in response) {
     totalLength += data.length;
-    print("Got chunk of size ${data.length}. "
-        "Total received is now $totalLength.");
+    print(
+      "Got chunk of size ${data.length}. "
+      "Total received is now $totalLength.",
+    );
   }
   print("Client done.");
   Expect.equals(data.length, totalLength);

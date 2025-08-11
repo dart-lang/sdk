@@ -11,9 +11,7 @@ class A {
   final finalField;
   final otherFinalField;
 
-  A()
-      : finalField = 42,
-        otherFinalField = 54;
+  A() : finalField = 42, otherFinalField = 54;
 
   expectFinalField(arg1, arg2) {
     Expect.equals(arg1, arg2);
@@ -40,7 +38,9 @@ main() {
   // Using [: finalField :] twice will make the compiler want to
   // allocate one temporary for it.
   var a = untypedReceiver.expectFinalField(
-      typedReceiver.finalField, typedReceiver.finalField);
+    typedReceiver.finalField,
+    typedReceiver.finalField,
+  );
 
   // Having a check instruction in between two allocations of
   // temporary variables used to trigger a bug in the compiler.
@@ -50,5 +50,8 @@ main() {
   // allocate one temporary for it. The compiler used to assign the
   // same temporary for [: otherFinalField :] and [: finalField :].
   untypedReceiver.expectOtherFinalField(
-      b, typedReceiver.otherFinalField, typedReceiver.otherFinalField);
+    b,
+    typedReceiver.otherFinalField,
+    typedReceiver.otherFinalField,
+  );
 }

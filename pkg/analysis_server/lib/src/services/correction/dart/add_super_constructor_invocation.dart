@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -43,9 +43,9 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       prefix = ', ';
     }
     var producers = <ResolvedCorrectionProducer>[];
-    for (var constructor in superType.constructors2) {
+    for (var constructor in superType.constructors) {
       // Only propose public constructors.
-      var name = constructor.name3;
+      var name = constructor.name;
       if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _AddInvocation(constructor, insertOffset, prefix, context: context),
@@ -60,7 +60,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement2 _constructor;
+  final ConstructorElement _constructor;
 
   /// The offset at which the initializer is to be inserted.
   final int _insertOffset;
@@ -84,7 +84,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (constructorName != null && constructorName != 'new') {
       buffer.write('.');
       buffer.write(constructorName);
@@ -98,10 +98,27 @@ class _AddInvocation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (constructorName == null ||
-        _constructor.formalParameters.any((p) => p.name3 == null)) {
+        _constructor.formalParameters.any((p) => p.name == null)) {
       return;
+    }
+    var currentConstructor =
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var positionalParameters = 0;
+    var namedParameters = <String>{};
+    if (currentConstructor case ConstructorDeclaration(:var parameters)) {
+      for (var parameter in parameters.parameters) {
+        if (parameter case SuperFormalParameter(
+          :var isPositional,
+        ) when isPositional) {
+          positionalParameters++;
+        } else if (parameter case DefaultFormalParameter(
+          :SuperFormalParameter parameter,
+        ) when parameter.isNamed) {
+          namedParameters.add(parameter.name.lexeme);
+        }
+      }
     }
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_insertOffset, (builder) {
@@ -115,11 +132,20 @@ class _AddInvocation extends ResolvedCorrectionProducer {
         // add arguments
         builder.write('(');
         var firstParameter = true;
-        for (var parameter in _constructor.formalParameters) {
+        for (var (index, parameter) in _constructor.formalParameters.indexed) {
           // skip non-required parameters
           if (parameter.isOptional) {
             break;
           }
+          if (parameter.isNamed && namedParameters.contains(parameter.name)) {
+            // skip already initialized named parameters
+            continue;
+          }
+          if (parameter.isPositional && index < positionalParameters) {
+            // skip already initialized positional parameters
+            continue;
+          }
+
           // comma
           if (firstParameter) {
             firstParameter = false;
@@ -128,11 +154,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           }
 
           if (parameter.isNamed) {
-            builder.write('${parameter.name3}: ');
+            builder.write('${parameter.name}: ');
           }
           // A default value to pass as an argument.
           builder.addSimpleLinkedEdit(
-            parameter.name3!,
+            parameter.name!,
             parameter.type.defaultArgumentCode,
           );
         }

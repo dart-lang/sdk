@@ -37,7 +37,7 @@ void _microtaskLoop() {
     var next = entry.next;
     _nextCallback = next;
     if (next == null) _lastCallback = null;
-    (entry.callback)();
+    _microtaskEntryCallback(entry)();
   }
 }
 
@@ -62,6 +62,7 @@ void _startMicrotaskLoop() {
 /// microtasks, but as part of the current system event.
 void _scheduleAsyncCallback(_AsyncCallback callback) {
   _AsyncCallbackEntry newEntry = _AsyncCallbackEntry(callback);
+  _beforeScheduleMicrotaskCallback();
   _AsyncCallbackEntry? lastCallback = _lastCallback;
   if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
@@ -87,6 +88,7 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     return;
   }
   _AsyncCallbackEntry entry = _AsyncCallbackEntry(callback);
+  _beforeSchedulePriorityCallback();
   _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
   if (lastPriorityCallback == null) {
     entry.next = _nextCallback;
@@ -101,6 +103,20 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     }
   }
 }
+
+// Overridden by VM.
+@pragma("dart2js:prefer-inline")
+@pragma("dart2wasm:prefer-inline")
+void _beforeSchedulePriorityCallback() {}
+
+@pragma("dart2js:prefer-inline")
+@pragma("dart2wasm:prefer-inline")
+void _beforeScheduleMicrotaskCallback() {}
+
+@pragma("dart2js:prefer-inline")
+@pragma("dart2wasm:prefer-inline")
+void Function() _microtaskEntryCallback(_AsyncCallbackEntry entry) =>
+    entry.callback;
 
 /// Runs a function asynchronously.
 ///

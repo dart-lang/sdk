@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class ConstEvalMethodInvocationTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() {
   return 3;
 }
 const a = f();
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3)],
+    );
   }
 
   test_identical() async {

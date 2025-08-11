@@ -10,7 +10,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -24,7 +24,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
+  AssistKind get assistKind => DartAssistKind.importAddShow;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -59,7 +59,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final Map<String, Element2> namespace;
+  final Map<String, Element> namespace;
 
   Set<String> referencedNames = SplayTreeSet<String>();
 
@@ -67,80 +67,80 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _addImplicitExtensionName(node.readElement2?.enclosingElement2);
-    _addImplicitExtensionName(node.writeElement2?.enclosingElement2);
+    _addImplicitExtensionName(node.readElement?.enclosingElement);
+    _addImplicitExtensionName(node.writeElement?.enclosingElement);
     super.visitAssignmentExpression(node);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _addImplicitExtensionName(node.element?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitBinaryExpression(node);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _addImplicitExtensionName(node.element?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitFunctionExpressionInvocation(node);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _addImplicitExtensionName(node.element?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitIndexExpression(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _addImplicitExtensionName(node.methodName.element?.enclosingElement2);
+    _addImplicitExtensionName(node.methodName.element?.enclosingElement);
     super.visitMethodInvocation(node);
   }
 
   @override
   void visitNamedType(NamedType node) {
-    _addName(node.name2, node.element2);
+    _addName(node.name, node.element);
     super.visitNamedType(node);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    _addImplicitExtensionName(node.element2?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitPatternField(node);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _addImplicitExtensionName(node.element?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitPrefixedIdentifier(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _addImplicitExtensionName(node.element?.enclosingElement2);
+    _addImplicitExtensionName(node.element?.enclosingElement);
     super.visitPrefixExpression(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _addImplicitExtensionName(node.propertyName.element?.enclosingElement2);
+    _addImplicitExtensionName(node.propertyName.element?.enclosingElement);
     super.visitPropertyAccess(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     _addName(node.token, element);
   }
 
-  void _addImplicitExtensionName(Element2? enclosingElement) {
-    if (enclosingElement is ExtensionElement2) {
-      if (namespace[enclosingElement.name3] == enclosingElement) {
+  void _addImplicitExtensionName(Element? enclosingElement) {
+    if (enclosingElement is ExtensionElement) {
+      if (namespace[enclosingElement.name] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }
   }
 
-  void _addName(Token nameToken, Element2? element) {
+  void _addName(Token nameToken, Element? element) {
     if (element != null) {
       var name = nameToken.lexeme;
       if (namespace[name] == element || namespace['$name='] == element) {

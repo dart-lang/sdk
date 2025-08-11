@@ -24,7 +24,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+  AssistKind get assistKind => DartAssistKind.convertToSwitchStatement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -215,7 +215,7 @@ class ConvertSwitchExpressionToSwitchStatement
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
+  AssistKind get assistKind => DartAssistKind.convertToSwitchStatement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -394,7 +394,9 @@ class ConvertSwitchExpressionToSwitchStatement
         switchExpression: switchExpression,
         builder: builder,
         indent: indent,
-        beforeCaseExpression: '${variableId.token.lexeme} = ',
+        beforeCaseExpression:
+            '${variableId.token.lexeme} '
+            '${assignment.operator.lexeme} ',
         semicolon: semicolon,
       );
     });

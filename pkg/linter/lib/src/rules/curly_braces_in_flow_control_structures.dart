@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,14 +22,11 @@ class CurlyBracesInFlowControlStructures extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.curly_braces_in_flow_control_structures;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -66,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var lineInfo = unit.lineInfo;
       if (lineInfo.getLocation(node.ifKeyword.offset).lineNumber !=
           lineInfo.getLocation(node.thenStatement.end).lineNumber) {
-        rule.reportLint(node.thenStatement, arguments: ['an if']);
+        rule.reportAtNode(node.thenStatement, arguments: ['an if']);
       }
     } else {
       _check('an if', node.thenStatement);
@@ -82,6 +81,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _check(String where, Statement node) {
-    if (node is! Block) rule.reportLint(node, arguments: [where]);
+    if (node is! Block) rule.reportAtNode(node, arguments: [where]);
   }
 }

@@ -40,7 +40,8 @@ A createA() {
   }
 
   test_as_without_usage() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {}
@@ -54,13 +55,14 @@ void test() {
 A createA() {
   return B();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 83, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 83, 7)],
+    );
   }
 
   test_callable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -72,14 +74,21 @@ class A {
 void f(A a) {
   a();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 96, 1,
-          text: "The value of 'a' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          96,
+          1,
+          text: "The value of 'a' should be used.",
+        ),
+      ],
+    );
   }
 
   test_callable_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -93,14 +102,21 @@ class B {
 void f(A a) {
   a.b()(5);
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 130, 1,
-          text: "The value of 'b' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          130,
+          1,
+          text: "The value of 'b' should be used.",
+        ),
+      ],
+    );
   }
 
   test_callable_propertyAccess() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -114,14 +130,21 @@ class B {
 void f(A a) {
   a.b();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 127, 1,
-          text: "The value of 'b' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          127,
+          1,
+          text: "The value of 'b' should be used.",
+        ),
+      ],
+    );
   }
 
   test_callable_recursive() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -137,10 +160,16 @@ class C {
 void f(A a) {
   a([])()('');
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 170, 1,
-          text: "The value of 'a' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          170,
+          1,
+          text: "The value of 'a' should be used.",
+        ),
+      ],
+    );
   }
 
   test_constructor_result_assigned() async {
@@ -160,7 +189,8 @@ void f() {
   }
 
   test_constructor_result_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -171,9 +201,9 @@ class A {
 void f() {
   A();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 80, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 80, 3)],
+    );
   }
 
   test_field_result_assigned() async {
@@ -257,7 +287,8 @@ void main() {
   }
 
   test_field_result_functionExpression_unused() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -268,9 +299,9 @@ class A {
 void main() {
   A().foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 104, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 104, 3)],
+    );
   }
 
   test_field_result_functionExpression_used() async {
@@ -350,7 +381,8 @@ void main() {
   }
 
   test_field_result_unassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -361,13 +393,14 @@ class A {
 void main() {
   A().foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 95, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 95, 3)],
+    );
   }
 
   test_field_result_unassigned_conditional_if() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -378,13 +411,14 @@ class A {
 void f(bool b) {
   b ? A().foo : 0;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 102, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 102, 3)],
+    );
   }
 
   test_field_result_unassigned_conditional_if_parens() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -395,13 +429,14 @@ class A {
 void f(bool b) {
   b ? (A().foo) : 0;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 103, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 103, 3)],
+    );
   }
 
   test_field_result_unassigned_in_closure() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -416,9 +451,9 @@ void main() {
     A().foo;
   });
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 130, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 130, 3)],
+    );
   }
 
   test_field_result_used_conditional_if_parens() async {
@@ -502,7 +537,8 @@ void main() {
   }
 
   test_field_static_result_unassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -513,9 +549,9 @@ class A {
 void main() {
   A.foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 100, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 100, 3)],
+    );
   }
 
   test_getter_expressionStatement_id_dotResult_dotId() async {
@@ -534,7 +570,8 @@ void f(A a) {
   }
 
   test_getter_expressionStatement_result() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -543,9 +580,9 @@ int get foo => 0;
 void f() {
   foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 77, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 77, 3)],
+    );
   }
 
   test_getter_expressionStatement_result_dotId() async {
@@ -636,7 +673,8 @@ void main() {
   }
 
   test_getter_result_unassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -647,9 +685,9 @@ class A {
 void main() {
   A().foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 100, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 100, 3)],
+    );
   }
 
   test_import_hide() async {
@@ -876,7 +914,8 @@ void f(A a) {
   }
 
   test_method_result_for_updaters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -887,9 +926,9 @@ class A {
 void f(A a) {
   for (var i = 1; i < 7; a.foo()) {}
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 119, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 119, 3)],
+    );
   }
 
   test_method_result_forElement() async {
@@ -1019,7 +1058,8 @@ int f(A a) {
   }
 
   test_method_result_nullCheck_notUsed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1030,9 +1070,9 @@ class A {
 void f(A a) {
   a.foo()!;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 97, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 97, 3)],
+    );
   }
 
   test_method_result_objectPattern_assigned() async {
@@ -1069,7 +1109,8 @@ void main() {
   }
 
   test_method_result_recordPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 f() {
@@ -1078,9 +1119,9 @@ f() {
 
 @useResult
 (int, int) g() => (0, 0);
-''', [
-      error(WarningCode.UNUSED_RESULT, 42, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 42, 1)],
+    );
   }
 
   test_method_result_recordPattern_assigned() async {
@@ -1226,7 +1267,8 @@ void f(A a) {
   }
 
   test_method_result_unassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1237,14 +1279,21 @@ class A {
 void main() {
   A().foo();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 98, 3,
-          text: "The value of 'foo' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          98,
+          3,
+          text: "The value of 'foo' should be used.",
+        ),
+      ],
+    );
   }
 
   test_method_result_unassigned_cascade() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -1257,10 +1306,16 @@ class C {
     m2()..m1();
   }
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 127, 2,
-          text: "The value of 'm1' should be used."),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_RESULT,
+          127,
+          2,
+          text: "The value of 'm1' should be used.",
+        ),
+      ],
+    );
   }
 
   test_method_result_unassigned_parameterDefined() async {
@@ -1584,7 +1639,8 @@ void main() {
   }
 
   test_topLevelFunction_result_unassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1597,9 +1653,9 @@ void main() {
   bar(); // OK
   baz(); // OK
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 108, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 108, 3)],
+    );
   }
 
   test_topLevelFunction_result_unassigned_parameterDefined() async {
@@ -1616,7 +1672,8 @@ void main() {
   }
 
   test_topLevelFunction_result_unassigned_parameterUnDefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1625,13 +1682,14 @@ int foo([int? value]) => value ?? 0;
 void main() {
   foo();
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 133, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 133, 3)],
+    );
   }
 
   test_topLevelFunction_result_unassigned_parameterUnDefined2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'value')
@@ -1640,9 +1698,9 @@ int foo([String? msg, int? value]) => value ?? 0;
 void main() {
   foo('none');
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 146, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 146, 3)],
+    );
   }
 
   test_topLevelFunction_result_used_in_cascade() async {
@@ -1713,7 +1771,8 @@ int baz() {
   }
 
   test_topLevelVariable_unused() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -1722,9 +1781,9 @@ int foo = 0;
 void main() {
   foo;
 }
-''', [
-      error(WarningCode.UNUSED_RESULT, 75, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_RESULT, 75, 3)],
+    );
   }
 
   test_whenClause() async {

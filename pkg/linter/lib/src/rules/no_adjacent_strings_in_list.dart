@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,11 @@ class NoAdjacentStringsInList extends LintRule {
     : super(name: LintNames.no_adjacent_strings_in_list, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_adjacent_strings_in_list;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.no_adjacent_strings_in_list;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForElement(this, visitor);
     registry.addIfElement(this, visitor);
@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(AstNode? element) {
     if (element is AdjacentStrings) {
-      rule.reportLint(element);
+      rule.reportAtNode(element);
     }
   }
 
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (node.elseElement == null && node.thenElement is AdjacentStrings) {
-      rule.reportLint(node.thenElement);
+      rule.reportAtNode(node.thenElement);
     } else {
       check(node.elseElement);
     }

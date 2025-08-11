@@ -12,7 +12,7 @@
 /// interface defined by a class (an instance of [InterfaceType]) or the type of
 /// a function (an instance of [FunctionType]).
 ///
-/// We make a distinction between the declaration of a class (a [ClassElement2])
+/// We make a distinction between the declaration of a class (a [ClassElement])
 /// and the type defined by that class (an [InterfaceType]). The biggest reason
 /// for the distinction is to allow us to more cleanly represent the distinction
 /// between type parameters and type arguments. For example, if we define a
@@ -22,7 +22,6 @@
 library;
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
@@ -39,13 +38,14 @@ abstract class DartType {
 
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
-  @Deprecated('Use element3 instead')
+  @experimental
   Element? get element;
 
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
+  @Deprecated('Use element instead')
   @experimental
-  Element2? get element3;
+  Element? get element3;
 
   /// The extension type erasure of this type.
   ///
@@ -150,28 +150,7 @@ abstract class DartType {
   R accept<R>(TypeVisitor<R> visitor);
 
   /// Use the given [visitor] to visit this type.
-  R acceptWithArgument<R, A>(
-    TypeVisitorWithArgument<R, A> visitor,
-    A argument,
-  );
-
-  /// Return the canonical interface that this type implements for [element],
-  /// or `null` if such an interface does not exist.
-  ///
-  /// For example, given the following definitions
-  /// ```
-  /// class A<E> {}
-  /// class B<E> implements A<E> {}
-  /// class C implements A<String> {}
-  /// ```
-  /// Asking the type `B<int>` for the type associated with `A` will return the
-  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
-  /// return the type `A<String>`.
-  ///
-  /// For a [TypeParameterType] with a bound (declared or promoted), returns
-  /// the interface implemented by the bound.
-  @Deprecated('Use asInstanceOf2() instead')
-  InterfaceType? asInstanceOf(InterfaceElement element);
+  R acceptWithArgument<R, A>(TypeVisitorWithArgument<R, A> visitor, A argument);
 
   /// Return the canonical interface that this type implements for [element],
   /// or `null` if such an interface does not exist.
@@ -189,7 +168,26 @@ abstract class DartType {
   /// For a [TypeParameterType] with a bound (declared or promoted), returns
   /// the interface implemented by the bound.
   @experimental
-  InterfaceType? asInstanceOf2(InterfaceElement2 element);
+  InterfaceType? asInstanceOf(InterfaceElement element);
+
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  @Deprecated('Use asInstanceOf instead')
+  @experimental
+  InterfaceType? asInstanceOf2(InterfaceElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -207,14 +205,6 @@ abstract class DartType {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
   });
-
-  /// Determines whether this type is the same as [other].
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use `==` instead.
-  @Deprecated('Use `==` instead')
-  bool isStructurallyEqualTo(covariant DartType other);
 }
 
 /// The type `dynamic` is a type which is a supertype of all other types, just
@@ -239,6 +229,10 @@ abstract class DynamicType implements DartType {}
 abstract class FunctionType implements DartType {
   @override
   Null get element;
+
+  @Deprecated('Use element instead')
+  @override
+  Null get element3;
 
   /// The formal parameters.
   @experimental
@@ -267,53 +261,12 @@ abstract class FunctionType implements DartType {
   /// optional parameters declared, then the map is empty.
   List<DartType> get optionalParameterTypes;
 
-  /// A list containing the parameters elements of this type of function.
-  ///
-  /// The parameter types are not necessarily in the same order as they appear
-  /// in the declaration of the function.
-  @Deprecated('Use formalParameters instead')
-  List<ParameterElement> get parameters;
-
-  /// All the positional parameter types, starting with the required ones, and
-  /// followed by the optional ones.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use
-  /// [normalParameterTypes] and [optionalParameterTypes] instead.
-  @Deprecated('Please use normalParameterTypes and optionalParameterTypes')
-  List<DartType> get positionalParameterTypes;
-
-  /// The number of elements of [positionalParameterTypes] that are required
-  /// parameters.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use
-  /// [normalParameterTypes].length instead.
-  @Deprecated('Please use normalParameterTypes.length')
-  int get requiredPositionalParameterCount;
-
   /// The type of object returned by this type of function.
   DartType get returnType;
 
-  /// All the named parameters, sorted by name.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
-  /// instead.
-  @Deprecated('Please use parameters')
-  List<ParameterElement> get sortedNamedParameters;
-
-  /// The formal type parameters of this generic function; for example,
-  /// `<T> T -> T`.
-  @Deprecated('Use typeParameters instead')
-  List<TypeParameterElement> get typeFormals;
-
   /// The type parameters.
   @experimental
-  List<TypeParameterElement2> get typeParameters;
+  List<TypeParameterElement> get typeParameters;
 
   /// Produces a new function type by substituting type parameters of this
   /// function type with the given [argumentTypes].
@@ -322,19 +275,19 @@ abstract class FunctionType implements DartType {
   FunctionType instantiate(List<DartType> argumentTypes);
 }
 
-/// Information about an instantiated [TypeAliasElement2] and the type
+/// Information about an instantiated [TypeAliasElement] and the type
 /// arguments with which it is instantiated.
 abstract class InstantiatedTypeAliasElement {
   /// The alias element that is instantiated to produce a [DartType].
-  @Deprecated('Use element2 instead')
+  @experimental
   TypeAliasElement get element;
 
-  /// The alias element that is instantiated to produce a [DartType].
+  @Deprecated('Use element instead.')
   @experimental
-  TypeAliasElement2 get element2;
+  TypeAliasElement get element2;
 
-  /// The type arguments with which the [element2] was instantiated.
-  /// This list will be empty if the [element2] is not generic.
+  /// The type arguments with which the [element] was instantiated.
+  /// This list will be empty if the [element] is not generic.
   List<DartType> get typeArguments;
 }
 
@@ -343,30 +296,26 @@ abstract class InstantiatedTypeAliasElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceType implements ParameterizedType {
-  /// Return a list containing all of the accessors (getters and setters)
-  /// declared in this type.
-  @Deprecated('Use getters or setters instead')
-  List<PropertyAccessorElement> get accessors;
-
   /// Return all the super-interfaces implemented by this interface. This
   /// includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
 
   /// Return a list containing all of the constructors declared in this type.
-  @Deprecated('Use constructors2 instead')
+  @experimental
   List<ConstructorElement> get constructors;
 
-  /// Return a list containing all of the constructors declared in this type.
+  @Deprecated('Use constructors instead')
   @experimental
-  List<ConstructorElement2> get constructors2;
+  List<ConstructorElement> get constructors2;
 
-  @Deprecated('Use element3 instead')
+  @experimental
   @override
   InterfaceElement get element;
 
+  @Deprecated('Use element instead')
   @experimental
   @override
-  InterfaceElement2 get element3;
+  InterfaceElement get element3;
 
   /// Return a list containing all of the getters declared in this type.
   @experimental
@@ -379,12 +328,13 @@ abstract class InterfaceType implements ParameterizedType {
   List<InterfaceType> get interfaces;
 
   /// Return a list containing all of the methods declared in this type.
-  @Deprecated('Use methods2 instead')
+  @experimental
   List<MethodElement> get methods;
 
   /// Return a list containing all of the methods declared in this type.
+  @Deprecated('Use methods instead')
   @experimental
-  List<MethodElement2> get methods2;
+  List<MethodElement> get methods2;
 
   /// Return a list containing all of the mixins that are applied to the class
   /// being extended in order to derive the superclass of this class. Note that
@@ -412,34 +362,34 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter
   /// with the given name.
-  @Deprecated('Use getGetter2() instead')
-  PropertyAccessorElement? getGetter(String name);
+  GetterElement? getGetter(String name);
 
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter
   /// with the given name.
+  @Deprecated('Use getGetter instead')
   GetterElement? getGetter2(String name);
 
   /// Return the element representing the method with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a method
   /// with the given name.
-  @Deprecated('Use getMethod2() instead')
   MethodElement? getMethod(String name);
 
   /// Return the element representing the method with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a method
   /// with the given name.
-  MethodElement2? getMethod2(String name);
+  @Deprecated('Use getMethod instead')
+  MethodElement? getMethod2(String name);
 
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
-  @Deprecated('Use getSetter2() instead')
-  PropertyAccessorElement? getSetter(String name);
+  SetterElement? getSetter(String name);
 
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
+  @Deprecated('Use getSetter instead')
   SetterElement? getSetter2(String name);
 
   /// Return the element representing the constructor that results from looking
@@ -452,7 +402,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
   /// NoSuchMethodException is thrown.
   /// </blockquote>
-  @Deprecated('Use lookUpConstructor2() instead')
   ConstructorElement? lookUpConstructor(String? name, LibraryElement library);
 
   /// Return the element representing the constructor that results from looking
@@ -465,8 +414,8 @@ abstract class InterfaceType implements ParameterizedType {
   /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
   /// NoSuchMethodException is thrown.
   /// </blockquote>
-  ConstructorElement2? lookUpConstructor2(
-      String? name, LibraryElement2 library);
+  @Deprecated('Use lookUpConstructor instead')
+  ConstructorElement? lookUpConstructor2(String? name, LibraryElement library);
 
   /// Return the getter with the given [name].
   ///
@@ -478,8 +427,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static getters of the class,
   /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpGetter3() instead')
-  PropertyAccessorElement? lookUpGetter2(
+  GetterElement? lookUpGetter(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -497,9 +445,10 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static getters of the class,
   /// and its superclasses are considered. Clients should not use it.
+  @Deprecated('Use lookUpGetter instead')
   GetterElement? lookUpGetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -515,8 +464,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static methods of the class,
   /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpMethod3() instead')
-  MethodElement? lookUpMethod2(
+  MethodElement? lookUpMethod(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -534,26 +482,8 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static methods of the class,
   /// and its superclasses are considered. Clients should not use it.
-  MethodElement2? lookUpMethod3(
-    String name,
-    LibraryElement2 library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  });
-
-  /// Return the setter with the given [name].
-  ///
-  /// If [concrete] is `true`, then the concrete implementation is returned,
-  /// from this type, or its superclass.
-  ///
-  /// If [inherited] is `true`, then only setters from the superclass are
-  /// considered.
-  ///
-  /// If [recoveryStatic] is `true`, then static setters of the class,
-  /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpSetter3() instead')
-  PropertyAccessorElement? lookUpSetter2(
+  @Deprecated('Use lookUpMethod instead')
+  MethodElement? lookUpMethod3(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -571,9 +501,28 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static setters of the class,
   /// and its superclasses are considered. Clients should not use it.
+  SetterElement? lookUpSetter(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
+  /// Return the setter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only setters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static setters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  @Deprecated('Use lookUpSetter instead')
   SetterElement? lookUpSetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -598,7 +547,7 @@ abstract class NeverType implements DartType {}
 ///
 /// This substitution will be propagated to its members. For example, say our
 /// `Foo<T>` class has a field `T bar;`. When we look up this field, we will get
-/// back a [FieldElement2] that tracks the substituted type as `{S/T}T`, so when
+/// back a [FieldElement] that tracks the substituted type as `{S/T}T`, so when
 /// we ask for the field type we will get `S`.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -626,29 +575,15 @@ abstract class RecordType implements DartType {
   @override
   Null get element;
 
+  @Deprecated('Use element instead')
+  @override
+  Null get element3;
+
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
 
   /// The positional fields (might be empty).
   List<RecordTypePositionalField> get positionalFields;
-
-  /// The types of the positional fields (might be empty).
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use
-  /// [positionalFields] instead.
-  @Deprecated('Use positionalFields instead')
-  List<DartType> get positionalTypes;
-
-  /// All the named fields, sorted by name (might be empty).
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use [namedFields]
-  /// instead.
-  @Deprecated('Use namedFields instead')
-  List<RecordTypeNamedField> get sortedNamedTypes;
 }
 
 /// A field in a [RecordType].
@@ -680,21 +615,14 @@ abstract class TypeParameterType implements DartType {
   /// or `dynamic` if there was no explicit bound.
   DartType get bound;
 
-  /// An object that can be used to identify this type parameter with `==`.
-  ///
-  /// Depending on the use, [bound] may also need to be taken into account.
-  /// A given type parameter, it may have different bounds in different scopes.
-  /// Always consult the bound if that could be relevant.
-  @Deprecated('Elements are equal when they are identical')
-  ElementLocation get definition;
-
-  @Deprecated('Use element3 instead')
+  @experimental
   @override
   TypeParameterElement get element;
 
+  @Deprecated('Use element instead')
   @experimental
   @override
-  TypeParameterElement2 get element3;
+  TypeParameterElement get element3;
 }
 
 /// The special type `void` is used to indicate that the value of an
@@ -702,4 +630,8 @@ abstract class TypeParameterType implements DartType {
 abstract class VoidType implements DartType {
   @override
   Null get element;
+
+  @Deprecated('Use element instead')
+  @override
+  Null get element3;
 }

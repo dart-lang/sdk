@@ -910,10 +910,9 @@ Future<void> runEnvTest(
         node.initializer!,
       );
 
-      ConstantValue? value =
-          evaluatedConstant is! ir.UnevaluatedConstant
-              ? constantValuefier.visitConstant(evaluatedConstant)
-              : null;
+      ConstantValue? value = evaluatedConstant is! ir.UnevaluatedConstant
+          ? constantValuefier.visitConstant(evaluatedConstant)
+          : null;
 
       String valueText = value?.toStructuredText(dartTypes) ?? 'NonConstant';
       Expect.equals(

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,8 +19,8 @@ class VariableDeclarationResolver {
   VariableDeclarationResolver({
     required ResolverVisitor resolver,
     required bool strictInference,
-  })  : _resolver = resolver,
-        _strictInference = strictInference;
+  }) : _resolver = resolver,
+       _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
     var parent = node.parent as VariableDeclarationList;
@@ -29,7 +29,7 @@ class VariableDeclarationResolver {
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           node,
           WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           arguments: [node.name.lexeme],
@@ -40,7 +40,7 @@ class VariableDeclarationResolver {
 
     var element = node.declaredFragment!.element;
     var isTopLevel =
-        element is FieldElement2 || element is TopLevelVariableElement2;
+        element is FieldElement || element is TopLevelVariableElement;
 
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);
@@ -48,20 +48,23 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    var contextType = element is! PropertyInducingElementImpl2 ||
-            element.shouldUseTypeForInitializerInference
-        ? element.type
-        : UnknownInferredType.instance;
+    var contextType =
+        element is! PropertyInducingElementImpl ||
+                element.shouldUseTypeForInitializerInference
+            ? element.type
+            : UnknownInferredType.instance;
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
-    var whyNotPromoted =
-        _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      initializer,
+    );
 
     var initializerType = initializer.typeOrThrow;
-    if (parent.type == null && element is LocalVariableElementImpl2) {
-      element.type = _resolver
-          .variableTypeFromInitializerType(SharedTypeView(initializerType))
-          .unwrapTypeView();
+    if (parent.type == null && element is LocalVariableElementImpl) {
+      element.type =
+          _resolver
+              .variableTypeFromInitializerType(SharedTypeView(initializerType))
+              .unwrapTypeView();
     }
 
     if (isTopLevel) {
@@ -73,8 +76,8 @@ class VariableDeclarationResolver {
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
-    if (element is LocalVariableElementImpl2 && element.isConst) {
-      var fragment = element.firstFragment as ConstLocalVariableElementImpl;
+    if (element is LocalVariableElementImpl && element.isConst) {
+      var fragment = element.firstFragment;
       fragment.constantInitializer = initializer;
     }
 

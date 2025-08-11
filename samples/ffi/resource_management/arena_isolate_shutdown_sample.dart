@@ -16,11 +16,10 @@ import '../dylib_utils.dart';
 void main() {
   final receiveFromHelper = ReceivePort();
 
-  Isolate.spawn(helperIsolateMain, receiveFromHelper.sendPort)
-      .then((helperIsolate) {
-    helperIsolate.addOnExitListener(
-      receiveFromHelper.sendPort,
-    );
+  Isolate.spawn(helperIsolateMain, receiveFromHelper.sendPort).then((
+    helperIsolate,
+  ) {
+    helperIsolate.addOnExitListener(receiveFromHelper.sendPort);
     print("Main: Helper started.");
     Pointer<SomeResource> resource = nullptr;
     receiveFromHelper.listen((message) {
@@ -34,7 +33,8 @@ void main() {
         Expect.isNull(message);
         print("Main: Helper is shut down.");
         print(
-            "Main: Trying to use resource after isolate that was supposed to free it was shut down.");
+          "Main: Trying to use resource after isolate that was supposed to free it was shut down.",
+        );
         useResource(resource);
         print("Main: Releasing resource manually.");
         releaseResource(resource);
@@ -70,20 +70,27 @@ void helperIsolateMain(SendPort sendToMain) {
   });
 }
 
-final ffiTestDynamicLibrary =
-    dlopenPlatformSpecific("ffi_test_dynamic_library");
+final ffiTestDynamicLibrary = dlopenPlatformSpecific(
+  "ffi_test_dynamic_library",
+);
 
-final allocateResource = ffiTestDynamicLibrary.lookupFunction<
-    Pointer<SomeResource> Function(),
-    Pointer<SomeResource> Function()>("AllocateResource");
+final allocateResource = ffiTestDynamicLibrary
+    .lookupFunction<
+      Pointer<SomeResource> Function(),
+      Pointer<SomeResource> Function()
+    >("AllocateResource");
 
-final useResource = ffiTestDynamicLibrary.lookupFunction<
-    Void Function(Pointer<SomeResource>),
-    void Function(Pointer<SomeResource>)>("UseResource");
+final useResource = ffiTestDynamicLibrary
+    .lookupFunction<
+      Void Function(Pointer<SomeResource>),
+      void Function(Pointer<SomeResource>)
+    >("UseResource");
 
-final releaseResource = ffiTestDynamicLibrary.lookupFunction<
-    Void Function(Pointer<SomeResource>),
-    void Function(Pointer<SomeResource>)>("ReleaseResource");
+final releaseResource = ffiTestDynamicLibrary
+    .lookupFunction<
+      Void Function(Pointer<SomeResource>),
+      void Function(Pointer<SomeResource>)
+    >("ReleaseResource");
 
 /// Represents some opaque resource being managed by a library.
 final class SomeResource extends Opaque {}

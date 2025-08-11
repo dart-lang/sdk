@@ -300,6 +300,7 @@ DART_EXPORT bool Dart_IsReloading();
  *   "Embedder" - Execution of Dart embedder code
  *   "GC" - Execution of Dart Garbage Collector
  *   "Isolate" - Dart Isolate lifecycle execution
+ *   "Microtask" - Execution of Dart microtasks
  *   "VM" - Execution in Dart VM runtime code
  *   "" - None
  *

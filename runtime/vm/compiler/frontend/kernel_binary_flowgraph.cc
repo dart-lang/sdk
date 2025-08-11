@@ -352,7 +352,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           ReadCanonicalNameReference();
           instructions += BuildFieldInitializer(
               Field::ZoneHandle(Z, initializer_fields[i]->ptr()),
-              /*only_for_size_effects=*/false);
+              /*only_for_side_effects=*/false);
           break;
         }
         case kAssertInitializer: {
@@ -371,7 +371,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           intptr_t argument_count;
           instructions += BuildArguments(
               &argument_names, &argument_count,
-              /* positional_parameter_count = */ nullptr);  // read arguments.
+              /*positional_argument_count=*/nullptr);  // read arguments.
           argument_count += 1;
 
           Class& parent_klass = GetSuperOrDie();
@@ -397,7 +397,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           intptr_t argument_count;
           instructions += BuildArguments(
               &argument_names, &argument_count,
-              /* positional_parameter_count = */ nullptr);  // read arguments.
+              /*positional_argument_count=*/nullptr);  // read arguments.
           argument_count += 1;
 
           const Function& target = Function::ZoneHandle(
@@ -876,7 +876,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       prologue += type_args_handling;
       prologue += explicit_type_checks;
       extra_entry = B->BuildSharedUncheckedEntryPoint(
-          /*shared_prologue_linked_in=*/prologue,
+          /*prologue_from_normal_entry=*/prologue,
           /*skippable_checks=*/implicit_type_checks,
           /*redefinitions_if_skipped=*/implicit_redefinitions,
           /*body=*/body);
@@ -1519,10 +1519,6 @@ IndirectGotoInstr* StreamingFlowGraphBuilder::IndirectGoto(
 Fragment StreamingFlowGraphBuilder::Return(TokenPosition position) {
   return flow_graph_builder_->Return(position,
                                      /*omit_result_type_check=*/false);
-}
-
-Fragment StreamingFlowGraphBuilder::EvaluateAssertion() {
-  return flow_graph_builder_->EvaluateAssertion();
 }
 
 Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
@@ -2389,7 +2385,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
     instructions +=
         StaticCall(position, direct_call.target_, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr,
-                   /*type_args_count=*/0,
+                   /*type_args_len=*/0,
                    /*use_unchecked_entry=*/is_unchecked_call);
   } else {
     const intptr_t kTypeArgsLen = 0;
@@ -2401,7 +2397,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
         Function::null_function(),
         /*result_type=*/nullptr,
         /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
-        /*receiver_not_smi=*/false, is_call_on_this);
+        /*receiver_is_not_smi=*/false, is_call_on_this);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -2456,7 +2452,7 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
     instructions +=
         StaticCall(position, *direct_call_target, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr,
-                   /*type_args_count=*/0,
+                   /*type_args_len=*/0,
                    /*use_unchecked_entry=*/is_unchecked_call);
   } else {
     const intptr_t kTypeArgsLen = 0;
@@ -3332,7 +3328,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
            StaticCall(position, Function::ZoneHandle(Z, function.ptr()),
                       argument_count, argument_names, ICData::kSuper,
                       &result_type, type_args_len,
-                      /*use_unchecked_entry_point=*/true);
+                      /*use_unchecked_entry=*/true);
   }
 }
 
@@ -3394,6 +3390,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiCallbackKind::kIsolateLocalClosureCallback);
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+      return BuildFfiNativeCallbackFunction(
+          FfiCallbackKind::kIsolateGroupSharedStaticCallback);
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
+      return BuildFfiNativeCallbackFunction(
+          FfiCallbackKind::kIsolateGroupSharedClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
       return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
@@ -4626,13 +4628,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   TargetEntryInstr* otherwise;
 
   Fragment instructions;
-  // Asserts can be of the following two kinds:
-  //
-  //    * `assert(expr)`
-  //    * `assert(() { ... })`
-  //
-  // The call to `_AssertionError._evaluateAssertion()` will take care of both
-  // and returns a boolean.
   instructions += BuildExpression(position);  // read condition.
 
   const TokenPosition condition_start_offset =
@@ -4640,7 +4635,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   const TokenPosition condition_end_offset =
       ReadPosition();  // read condition end offset.
 
-  instructions += EvaluateAssertion();
   instructions += RecordCoverage(condition_start_offset);
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise);
@@ -4648,6 +4642,8 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(thread());
+  ASSERT(error == Error::null());
 
   Fragment otherwise_fragment(otherwise);
   if (CompilerState::Current().is_aot()) {
@@ -6078,8 +6074,8 @@ Fragment StreamingFlowGraphBuilder::BuildLoadStoreAbiSpecificInt(
   if (at_index) {
     code += BuildExpression();  // Argument 3: index
     code += IntConstant(native_type->SizeInBytes());
-    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
-    code += B->BinaryIntegerOp(Token::kADD, kTagged, /* truncate= */ true);
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /*is_truncating=*/true);
+    code += B->BinaryIntegerOp(Token::kADD, kTagged, /*is_truncating=*/true);
   }
   if (is_store) {
     code += BuildExpression();  // Argument 4: value
@@ -6220,6 +6216,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   // FfiCallbackKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
+  // FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+  //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
+  //
   // FfiCallbackKind::kAsyncCallback:
   //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
@@ -6227,9 +6226,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
+  // FfiCallbackKind::kIsolateGroupSharedClosureCallback:
+  //   _nativeIsolateGroupSharedCallbackFunction<NativeSignatureType>(
+  //       exceptionalReturn)
+  //
   // The FE also guarantees that the arguments are constants.
 
-  const bool has_target = kind == FfiCallbackKind::kIsolateLocalStaticCallback;
+  const bool has_target =
+      kind == FfiCallbackKind::kIsolateLocalStaticCallback ||
+      kind == FfiCallbackKind::kIsolateGroupSharedStaticCallback;
   const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);

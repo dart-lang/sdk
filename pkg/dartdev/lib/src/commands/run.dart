@@ -6,13 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartdev/src/commands/compile.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -154,8 +154,9 @@ class RunCommand extends DartdevCommand {
           'timeline-streams',
           help: 'Enables recording for specific timeline streams.\n'
               'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
-              'Debugger, Embedder, GC, Isolate, VM.\n'
-              'Defaults to "Compiler, Dart, GC" when --observe is provided.',
+              'Debugger, Embedder, GC, Isolate, Microtask, VM.\n'
+              'Defaults to "Compiler, Dart, GC, Microtask" when --observe is '
+              'provided.',
           valueHelp: 'str1, str2, ...',
           hide: !verbose,
         );
@@ -178,6 +179,14 @@ class RunCommand extends DartdevCommand {
               'Defaults to ring.',
           valueHelp: 'recorder',
           hide: !verbose,
+        )
+        ..addFlag(
+          'profile-microtasks',
+          hide: !verbose,
+          negatable: false,
+          help: 'Record information about each microtask. Information about '
+              'completed microtasks will be written to the "Microtask" '
+              'timeline stream.',
         );
     } else {
       argParser.addOption('timeline-recorder',
@@ -303,6 +312,9 @@ class RunCommand extends DartdevCommand {
   String get invocation =>
       '${super.invocation} [<dart-file|package-target> [args]]';
 
+  @override
+  CommandCategory get commandCategory => CommandCategory.project;
+
   /// Attempts to compile [executable] to a kernel file using the Resident
   /// Frontend Compiler associated with [residentCompilerInfoFile]. If
   /// [shouldRetryOnFrontendCompilerException] is true, when a
@@ -383,36 +395,28 @@ class RunCommand extends DartdevCommand {
     }
 
     String? nativeAssets;
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
-    if (packageConfig != null) {
+    if (packageConfigUri != null) {
+      final packageConfig =
+          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      if (packageConfig == null) {
+        return compileErrorExitCode;
+      }
       final runPackageName = getPackageForCommand(mainCommand) ??
           await DartNativeAssetsBuilder.findRootPackageName(
             Directory.current.uri,
           );
       if (runPackageName != null) {
-        final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return errorExitCode;
-          }
-        }
+        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri);
         final builder = DartNativeAssetsBuilder(
-          pubspec: pubspec,
-          packageConfigUri: packageConfig,
+          pubspecUri: pubspecUri,
+          packageConfigUri: packageConfigUri,
+          packageConfig: packageConfig,
           runPackageName: runPackageName,
+          includeDevDependencies: false,
           verbose: verbose,
         );
         if (!nativeAssetsExperimentEnabled) {

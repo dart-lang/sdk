@@ -8,10 +8,12 @@ foo() {
   try {
     try {
       return 1;
-    } catch (e1) {} finally {
+    } catch (e1) {
+    } finally {
       return 3;
     }
-  } catch (e2) {} finally {
+  } catch (e2) {
+  } finally {
     return 5;
   }
 }

@@ -22,43 +22,47 @@ class InvalidRequiredPositionalParamTest extends PubPackageResolutionTest {
   }
 
   test_ofFunction_first() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m(@required a) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 36, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 36, 11)],
+    );
   }
 
   test_ofFunction_second() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m(a, @required b) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11)],
+    );
   }
 
   test_ofGenericFunctionType_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int a);
-''', [
-      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15)],
+    );
   }
 
   test_ofGenericFunctionType_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int);
-''', [
-      error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13)],
+    );
   }
 
   test_valid() async {

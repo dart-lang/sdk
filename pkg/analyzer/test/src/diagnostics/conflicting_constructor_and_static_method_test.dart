@@ -37,15 +37,21 @@ class B extends A {
   }
 
   test_class_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.foo();
   static void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 14,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_instance() async {
@@ -59,16 +65,22 @@ enum E {
   }
 
   test_enum_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   static void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 30,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          30,
+          3,
+        ),
+      ],
+    );
   }
 
   test_extensionType_instance() async {
@@ -80,13 +92,19 @@ extension type A.foo(int it) {
   }
 
   test_extensionType_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.foo(int it) {
   static void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 17,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          17,
+          3,
+        ),
+      ],
+    );
   }
 }

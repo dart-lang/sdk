@@ -17,7 +17,8 @@ main() {
 class RedirectTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   test_generic_typeParameter_withArgument_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A implements C {
   A.named();
 }
@@ -27,16 +28,20 @@ typedef B<T> = T;
 class C {
   factory C() = B<A>.named;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           84,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generic_typeParameter_withArgument_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A implements C {}
 
 typedef B<T> = T;
@@ -44,16 +49,20 @@ typedef B<T> = T;
 class C {
   factory C() = B<A>;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           70,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generic_typeParameter_withoutArgument_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A implements C {}
 
 typedef B<T> = T;
@@ -61,12 +70,15 @@ typedef B<T> = T;
 class C {
   factory C() = B;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           70,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_notGeneric_class_named() async {

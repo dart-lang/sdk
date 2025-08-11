@@ -77,44 +77,55 @@ main() {
   Expect.equals(89, fieldC);
 
   expect(
-      '{accessor: Method(s(accessor) in s(A), getter)'
-      '}',
-      gettersOf(aClass));
+    '{accessor: Method(s(accessor) in s(A), getter)'
+    '}',
+    gettersOf(aClass),
+  );
   expect(
-      '{accessor: Method(s(accessor) in s(B), getter)'
-      ', field: Method(s(field) in s(B), getter)}',
-      gettersOf(bClass));
+    '{accessor: Method(s(accessor) in s(B), getter)'
+    ', field: Method(s(field) in s(B), getter)}',
+    gettersOf(bClass),
+  );
   expect('{accessor: Method(s(accessor) in s(C), getter)}', gettersOf(cClass));
 
   expect(
-      '{accessor=: Method(s(accessor=) in s(A), setter)'
-      '}',
-      settersOf(aClass));
+    '{accessor=: Method(s(accessor=) in s(A), setter)'
+    '}',
+    settersOf(aClass),
+  );
   expect(
-      '{accessor=: Method(s(accessor=) in s(B), setter)}', settersOf(bClass));
+    '{accessor=: Method(s(accessor=) in s(B), setter)}',
+    settersOf(bClass),
+  );
   expect(
-      '{accessor=: Method(s(accessor=) in s(C), setter)'
-      ', field=: Method(s(field=) in s(C), setter)}',
-      settersOf(cClass));
+    '{accessor=: Method(s(accessor=) in s(C), setter)'
+    ', field=: Method(s(field=) in s(C), setter)}',
+    settersOf(cClass),
+  );
 
   Expect.equals('A:instanceMethod(7)', a.invoke(instanceMethod, [7]).reflectee);
   Expect.equals('B:instanceMethod(9)', b.invoke(instanceMethod, [9]).reflectee);
   Expect.equals(
-      'C:instanceMethod(13)', c.invoke(instanceMethod, [13]).reflectee);
+    'C:instanceMethod(13)',
+    c.invoke(instanceMethod, [13]).reflectee,
+  );
 
   expect(
-      '{aMethod: Method(s(aMethod) in s(A))'
-      ', instanceMethod: Method(s(instanceMethod) in s(A))}',
-      methodsOf(aClass));
+    '{aMethod: Method(s(aMethod) in s(A))'
+    ', instanceMethod: Method(s(instanceMethod) in s(A))}',
+    methodsOf(aClass),
+  );
 
   expect(
-      '{bMethod: Method(s(bMethod) in s(B))'
-      ', instanceMethod: Method(s(instanceMethod) in s(B))}',
-      methodsOf(bClass));
+    '{bMethod: Method(s(bMethod) in s(B))'
+    ', instanceMethod: Method(s(instanceMethod) in s(B))}',
+    methodsOf(bClass),
+  );
   expect(
-      '{cMethod: Method(s(cMethod) in s(C))'
-      ', instanceMethod: Method(s(instanceMethod) in s(C))}',
-      methodsOf(cClass));
+    '{cMethod: Method(s(cMethod) in s(C))'
+    ', instanceMethod: Method(s(instanceMethod) in s(C))}',
+    methodsOf(cClass),
+  );
 
   Expect.equals('A:get accessor', a.getField(accessor).reflectee);
   Expect.equals('B:get accessor', b.getField(accessor).reflectee);

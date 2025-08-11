@@ -25,33 +25,33 @@ class C<T> {
 const int y = 1;
 var v = const C<int>();
 ''',
-      [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
-      ],
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1)],
     );
   }
 
   test_notGeneric_unresolved_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
 }
 var v = const A(0);
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10)],
+    );
   }
 
   test_notGeneric_unresolved_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
 }
 var v = const A(null);
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10)],
+    );
   }
 }

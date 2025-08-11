@@ -2,29 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
-class AvoidReturningNullForVoid extends LintRule {
+class AvoidReturningNullForVoid extends MultiAnalysisRule {
   AvoidReturningNullForVoid()
     : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.avoid_returning_null_for_void_from_function,
     LinterLintCode.avoid_returning_null_for_void_from_method,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
@@ -32,7 +31,7 @@ class AvoidReturningNullForVoid extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -72,11 +71,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) return;
 
     if (!isAsync && type is VoidType) {
-      rule.reportLint(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     } else if (isAsync &&
         type.isDartAsyncFuture &&
         (type as InterfaceType).typeArguments.first is VoidType) {
-      rule.reportLint(node, errorCode: code);
+      rule.reportAtNode(node, diagnosticCode: code);
     }
   }
 }

@@ -24,15 +24,14 @@
 
 namespace dart {
 
-template <bool sync>
-class MarkingVisitorBase : public ObjectPointerVisitor {
+class MarkingVisitor : public ObjectPointerVisitor {
  public:
-  MarkingVisitorBase(IsolateGroup* isolate_group,
-                     PageSpace* page_space,
-                     MarkingStack* old_marking_stack,
-                     MarkingStack* new_marking_stack,
-                     MarkingStack* tlab_deferred_marking_stack,
-                     MarkingStack* deferred_marking_stack)
+  MarkingVisitor(IsolateGroup* isolate_group,
+                 PageSpace* page_space,
+                 MarkingStack* old_marking_stack,
+                 MarkingStack* new_marking_stack,
+                 MarkingStack* tlab_deferred_marking_stack,
+                 MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate_group),
         page_space_(page_space),
         old_work_list_(old_marking_stack),
@@ -43,7 +42,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         marked_micros_(0),
         concurrent_(true),
         has_evacuation_candidate_(false) {}
-  ~MarkingVisitorBase() { ASSERT(delayed_.IsEmpty()); }
+  ~MarkingVisitor() { ASSERT(delayed_.IsEmpty()); }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
   int64_t marked_micros() const { return marked_micros_; }
@@ -322,7 +321,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = ProcessWeakArray(static_cast<WeakArrayPtr>(obj));
         } else if (class_id == kFinalizerEntryCid) {
           size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(obj));
-        } else if (sync && concurrent_ && class_id == kSuspendStateCid) {
+        } else if (concurrent_ && class_id == kSuspendStateCid) {
           // Shape changing is not compatible with concurrent marking.
           deferred_work_list_.Push(obj);
           size = obj->untag()->HeapSize();
@@ -490,7 +489,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       intptr_t size = obj->untag()->VisitPointersNonvirtual(this);
       // Add the size only if we win the marking race to prevent
       // double-counting.
-      if (TryAcquireMarkBit(obj)) {
+      if (obj->untag()->TryAcquireMarkBit()) {
         if (!obj->IsNewObject()) {
           marked_bytes_ += size;
         }
@@ -632,30 +631,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   GCLinkedLists* delayed() { return &delayed_; }
 
  private:
-  static bool TryAcquireMarkBit(ObjectPtr obj) {
-    if constexpr (!sync) {
-      if (!obj->untag()->IsMarked()) {
-        obj->untag()->SetMarkBitUnsynchronized();
-        return true;
-      }
-      return false;
-    } else {
-      return obj->untag()->TryAcquireMarkBit();
-    }
-  }
-
-  static bool TryAcquireMarkBitIgnoreRace(ObjectPtr obj) {
-    if constexpr (!sync) {
-      if (!obj->untag()->IsMarked()) {
-        obj->untag()->SetMarkBitUnsynchronized();
-        return true;
-      }
-      return false;
-    } else {
-      return obj->untag()->TryAcquireMarkBitIgnoreRace();
-    }
-  }
-
   DART_FORCE_INLINE
   bool MarkObject(ObjectPtr obj) {
     if (obj->IsImmediateObject()) {
@@ -665,15 +640,15 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     if (obj->IsNewObject()) {
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
       // Ignore race: TSAN doesn't support fences.
-      if (TryAcquireMarkBitIgnoreRace(obj)) {
+      if (obj->untag()->TryAcquireMarkBitIgnoreRace()) {
         new_work_list_.Push(obj);
       }
 #else
-      if (sync && concurrent_ && InTLAB(obj)) {
+      if (concurrent_ && InTLAB(obj)) {
         // New-space objects still in a TLAB might race with the header's
         // initializing store.
         deferred_work_list_.Push(obj);
-      } else if (TryAcquireMarkBit(obj)) {
+      } else if (obj->untag()->TryAcquireMarkBit()) {
         new_work_list_.Push(obj);
       }
 #endif
@@ -698,14 +673,14 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     intptr_t class_id = UntaggedObject::ClassIdTag::decode(tags);
     ASSERT(class_id != kFreeListElement);
 
-    if (sync && UNLIKELY(class_id == kInstructionsCid)) {
+    if (UNLIKELY(class_id == kInstructionsCid)) {
       // If this is the concurrent marker, this object may be non-writable due
       // to W^X (--write-protect-code).
       deferred_work_list_.Push(obj);
       return false;
     }
 
-    if (TryAcquireMarkBit(obj)) {
+    if (obj->untag()->TryAcquireMarkBit()) {
       old_work_list_.Push(obj);
     }
 
@@ -723,11 +698,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   bool concurrent_;
   bool has_evacuation_candidate_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
-
-typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
-typedef MarkingVisitorBase<true> SyncMarkingVisitor;
 
 static bool IsUnreachable(const ObjectPtr obj) {
   if (obj->IsImmediateObject()) {
@@ -738,18 +710,21 @@ static bool IsUnreachable(const ObjectPtr obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  explicit MarkingWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
+  explicit MarkingWeakVisitor(IsolateGroup* isolate_group)
+      : HandleVisitor(), isolate_group_(isolate_group) {}
 
   void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr obj = handle->ptr();
     if (IsUnreachable(obj)) {
-      handle->UpdateUnreachable(thread()->isolate_group());
+      handle->UpdateUnreachable(isolate_group_);
     }
   }
 
  private:
+  IsolateGroup* isolate_group_;
+
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
@@ -776,8 +751,7 @@ void GCMarker::Epilogue() {}
 
 enum RootSlices {
   kIsolate = 0,
-  kObjectIdRing = 1,
-  kNumFixedRootSlices = 2,
+  kNumFixedRootSlices = 1,
 };
 
 void GCMarker::ResetSlices() {
@@ -799,16 +773,11 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
 
     switch (slice) {
       case kIsolate: {
+        // TODO(gc): Split this by isolate?
         TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                       "ProcessIsolateGroupRoots");
         isolate_group_->VisitObjectPointers(
             visitor, ValidationPolicy::kDontValidateFrames);
-        break;
-      }
-      case kObjectIdRing: {
-        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
-                                      "ProcessObjectIdTable");
-        isolate_group_->VisitPointersInAllServiceIdZones(*visitor);
         break;
       }
     }
@@ -853,7 +822,7 @@ void GCMarker::IterateWeakRoots(Thread* thread) {
 
 void GCMarker::ProcessWeakHandles(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
-  MarkingWeakVisitor visitor(thread);
+  MarkingWeakVisitor visitor(isolate_group_);
   ApiState* state = isolate_group_->api_state();
   ASSERT(state != nullptr);
   isolate_group_->VisitWeakPersistentHandles(&visitor);
@@ -937,7 +906,7 @@ class ParallelMarkTask : public SafepointTask {
                    IsolateGroup* isolate_group,
                    MarkingStack* marking_stack,
                    ThreadBarrier* barrier,
-                   SyncMarkingVisitor* visitor,
+                   MarkingVisitor* visitor,
                    RelaxedAtomic<uintptr_t>* num_busy)
       : SafepointTask(isolate_group, barrier, Thread::kMarkerTask),
         marker_(marker),
@@ -1021,7 +990,7 @@ class ParallelMarkTask : public SafepointTask {
  private:
   GCMarker* marker_;
   MarkingStack* marking_stack_;
-  SyncMarkingVisitor* visitor_;
+  MarkingVisitor* visitor_;
   RelaxedAtomic<uintptr_t>* num_busy_;
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMarkTask);
@@ -1032,7 +1001,7 @@ class ConcurrentMarkTask : public ThreadPool::Task {
   ConcurrentMarkTask(GCMarker* marker,
                      IsolateGroup* isolate_group,
                      PageSpace* page_space,
-                     SyncMarkingVisitor* visitor)
+                     MarkingVisitor* visitor)
       : marker_(marker),
         isolate_group_(isolate_group),
         page_space_(page_space),
@@ -1044,9 +1013,8 @@ class ConcurrentMarkTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kMarkerTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kMarkerTask,
+                                      /*bypass_safepoint=*/true);
     {
       TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMark");
       int64_t start = OS::GetCurrentMonotonicMicros();
@@ -1091,7 +1059,7 @@ class ConcurrentMarkTask : public ThreadPool::Task {
   GCMarker* marker_;
   IsolateGroup* isolate_group_;
   PageSpace* page_space_;
-  SyncMarkingVisitor* visitor_;
+  MarkingVisitor* visitor_;
 
   DISALLOW_COPY_AND_ASSIGN(ConcurrentMarkTask);
 };
@@ -1124,7 +1092,7 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
       visitors_(),
       marked_bytes_(0),
       marked_micros_(0) {
-  visitors_ = new SyncMarkingVisitor*[FLAG_marker_tasks];
+  visitors_ = new MarkingVisitor*[FLAG_marker_tasks];
   for (intptr_t i = 0; i < FLAG_marker_tasks; i++) {
     visitors_[i] = nullptr;
   }
@@ -1166,7 +1134,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ASSERT(visitors_[i] == nullptr);
-    SyncMarkingVisitor* visitor = new SyncMarkingVisitor(
+    MarkingVisitor* visitor = new MarkingVisitor(
         isolate_group_, page_space, &old_marking_stack_, &new_marking_stack_,
         &tlab_deferred_marking_stack_, &deferred_marking_stack_);
     visitors_[i] = visitor;
@@ -1208,9 +1176,9 @@ void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                 "IncrementalMarkWithUnlimitedBudget");
 
-  SyncMarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                             &new_marking_stack_, &tlab_deferred_marking_stack_,
-                             &deferred_marking_stack_);
+  MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
+                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStack(kIntptrMax);
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1233,9 +1201,9 @@ void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                 "IncrementalMarkWithSizeBudget");
 
-  SyncMarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                             &new_marking_stack_, &tlab_deferred_marking_stack_,
-                             &deferred_marking_stack_);
+  MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
+                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStack(size);
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1253,9 +1221,9 @@ void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                 "IncrementalMarkWithTimeBudget");
 
-  SyncMarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                             &new_marking_stack_, &tlab_deferred_marking_stack_,
-                             &deferred_marking_stack_);
+  MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
+                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStackUntil(deadline);
   int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1322,80 +1290,49 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
   }
 
   Prologue();
-  {
-    Thread* thread = Thread::Current();
-    const int num_tasks = FLAG_marker_tasks;
-    if (num_tasks == 0) {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
-      int64_t start = OS::GetCurrentMonotonicMicros();
-      // Mark everything on main thread.
-      UnsyncMarkingVisitor visitor(
+
+  const int num_tasks = FLAG_marker_tasks;
+  RELEASE_ASSERT(num_tasks > 0);
+  ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
+
+  ResetSlices();
+  // Used to coordinate draining among tasks; all start out as 'busy'.
+  RelaxedAtomic<uintptr_t> num_busy = 0;
+
+  IntrusiveDList<SafepointTask> tasks;
+  for (intptr_t i = 0; i < num_tasks; ++i) {
+    MarkingVisitor* visitor = visitors_[i];
+    // Visitors may or may not have already been created depending on
+    // whether we did some concurrent marking.
+    if (visitor == nullptr) {
+      visitor = new MarkingVisitor(
           isolate_group_, page_space, &old_marking_stack_, &new_marking_stack_,
           &tlab_deferred_marking_stack_, &deferred_marking_stack_);
-      visitor.set_concurrent(false);
-      ResetSlices();
-      IterateRoots(&visitor);
-      visitor.FinishedRoots();
-      visitor.ProcessDeferredMarking();
-      visitor.DrainMarkingStack();
-      visitor.ProcessDeferredMarking();
-      visitor.FinalizeMarking();
-      visitor.MournWeakProperties();
-      visitor.MournWeakReferences();
-      visitor.MournWeakArrays();
-      visitor.MournFinalizerEntries();
-      thread->ReleaseStoreBuffer();  // Ahead of IterateWeak
-      IterateWeakRoots(thread);
-      // All marking done; detach code, etc.
-      int64_t stop = OS::GetCurrentMonotonicMicros();
-      visitor.AddMicros(stop - start);
-      marked_bytes_ += visitor.marked_bytes();
-      marked_micros_ += visitor.marked_micros();
-    } else {
-      ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
-
-      ResetSlices();
-      // Used to coordinate draining among tasks; all start out as 'busy'.
-      RelaxedAtomic<uintptr_t> num_busy = 0;
-
-      IntrusiveDList<SafepointTask> tasks;
-      for (intptr_t i = 0; i < num_tasks; ++i) {
-        SyncMarkingVisitor* visitor = visitors_[i];
-        // Visitors may or may not have already been created depending on
-        // whether we did some concurrent marking.
-        if (visitor == nullptr) {
-          visitor = new SyncMarkingVisitor(
-              isolate_group_, page_space, &old_marking_stack_,
-              &new_marking_stack_, &tlab_deferred_marking_stack_,
-              &deferred_marking_stack_);
-          visitors_[i] = visitor;
-        }
-
-        // Move all work from local blocks to the global list. Any given
-        // visitor might not get to run if it fails to reach TryEnter soon
-        // enough, and we must fail to visit objects but they're sitting in
-        // such a visitor's local blocks.
-        visitor->Flush(&global_list_);
-        // Need to move weak property list too.
-        tasks.Append(new ParallelMarkTask(this, isolate_group_,
-                                          &old_marking_stack_, barrier, visitor,
-                                          &num_busy));
-      }
-      visitors_[0]->Adopt(&global_list_);
-      isolate_group_->safepoint_handler()->RunTasks(&tasks);
-
-      for (intptr_t i = 0; i < num_tasks; i++) {
-        SyncMarkingVisitor* visitor = visitors_[i];
-        visitor->FinalizeMarking();
-        marked_bytes_ += visitor->marked_bytes();
-        marked_micros_ += visitor->marked_micros();
-        delete visitor;
-        visitors_[i] = nullptr;
-      }
-
-      ASSERT(global_list_.IsEmpty());
+      visitors_[i] = visitor;
     }
+
+    // Move all work from local blocks to the global list. Any given
+    // visitor might not get to run if it fails to reach TryEnter soon
+    // enough, and we must fail to visit objects but they're sitting in
+    // such a visitor's local blocks.
+    visitor->Flush(&global_list_);
+    // Need to move weak property list too.
+    tasks.Append(new ParallelMarkTask(this, isolate_group_, &old_marking_stack_,
+                                      barrier, visitor, &num_busy));
   }
+  visitors_[0]->Adopt(&global_list_);
+  isolate_group_->safepoint_handler()->RunTasks(&tasks);
+
+  for (intptr_t i = 0; i < num_tasks; i++) {
+    MarkingVisitor* visitor = visitors_[i];
+    visitor->FinalizeMarking();
+    marked_bytes_ += visitor->marked_bytes();
+    marked_micros_ += visitor->marked_micros();
+    delete visitor;
+    visitors_[i] = nullptr;
+  }
+
+  ASSERT(global_list_.IsEmpty());
 
   // Separate from verify_after_gc because that verification interferes with
   // concurrent marking.

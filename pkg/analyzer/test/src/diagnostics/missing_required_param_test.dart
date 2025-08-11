@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class MissingRequiredParamTest extends PubPackageResolutionTest {
   test_annotation_noImportPrefix_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A.named({required int a});
 }
 
 @A.named()
 void f() {}
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 51, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 51, 5)],
+    );
   }
 
   test_annotation_noImportPrefix_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A({required int a});
 }
 
 @A()
 void f() {}
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 43, 1)],
+    );
   }
 
   test_annotation_withImportPrefix_named() async {
@@ -48,14 +50,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as a;
 
 @a.A.named()
 void f() {}
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 28, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 28, 5)],
+    );
   }
 
   test_annotation_withImportPrefix_unnamed() async {
@@ -65,14 +68,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as a;
 
 @a.A()
 void f() {}
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 26, 1)],
+    );
   }
 
   test_constructor_argumentGiven() async {
@@ -88,31 +92,34 @@ main() {
   }
 
   test_constructor_missingArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C({required int a}) {}
 }
 main() {
   new C();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1)],
+    );
   }
 
   test_constructor_redirectingConstructorCall() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C({required int x});
   C.named() : this();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 47, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 47, 6)],
+    );
   }
 
   test_constructor_superCall() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C({required int a}) {}
 }
@@ -120,9 +127,9 @@ class C {
 class D extends C {
   D() : super();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 66, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 66, 7)],
+    );
   }
 
   test_constructor_superFormalParameter() async {
@@ -138,73 +145,79 @@ class B extends A {
   }
 
   test_enumConstant_withArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v();
   const E({required int a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1)],
+    );
   }
 
   test_enumConstant_withoutArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E({required int a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1)],
+    );
   }
 
   test_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f({required int a}) {}
 
 main() {
   f();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1)],
+    );
   }
 
   test_function_call() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f({required int a}) {}
 
 main() {
   f.call();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2)],
+    );
   }
 
   test_functionInvocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void Function({required int a}) f() => throw '';
 g() {
   f()();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 57, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 57, 5)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void m({required int a}) {}
 }
 f() {
   new A().m();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 58, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 58, 1)],
+    );
   }
 
   test_method_inOtherLib() async {
@@ -213,18 +226,20 @@ class A {
   void m({required int a}) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import "a_lib.dart";
 f() {
   new A().m();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1)],
+    );
   }
 
   test_typedef_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 String test(C c) => c.m()();
 
 typedef String F({required String x});
@@ -232,8 +247,8 @@ typedef String F({required String x});
 class C {
   F m() => ({required String x}) => throw '';
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 20, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 20, 7)],
+    );
   }
 }

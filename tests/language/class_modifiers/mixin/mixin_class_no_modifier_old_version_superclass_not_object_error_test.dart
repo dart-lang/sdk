@@ -18,4 +18,3 @@ abstract class AbstractMixinClass with NonObjectSuperclassClass {}
 //                                     ^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 // [cfe] The class 'NonObjectSuperclassClass' can't be used as a mixin because it extends a class other than 'Object'.
-

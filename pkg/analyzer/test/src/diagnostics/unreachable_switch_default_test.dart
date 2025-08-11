@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class UnreachableSwitchDefaultTest extends PubPackageResolutionTest {
   test_bool() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool x) {
   switch (x) {
     case false:
@@ -25,13 +26,14 @@ void f(bool x) {
       break;
   }
 }
-''', [
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 67, 7),
-    ]);
+''',
+      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 67, 7)],
+    );
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { e1, e2 }
 
 String f(E e) {
@@ -44,9 +46,9 @@ String f(E e) {
       return 'Some other value of E (impossible)';
   }
 }
-''', [
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 122, 7),
-    ]);
+''',
+      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 122, 7)],
+    );
   }
 
   test_not_always_exhaustive() async {
@@ -69,7 +71,8 @@ String f(List x) {
   }
 
   test_sealed_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -84,8 +87,8 @@ String f(A x) {
       return 'Some other subclass of A (impossible)';
   }
 }
-''', [
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 160, 7),
-    ]);
+''',
+      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 160, 7)],
+    );
   }
 }

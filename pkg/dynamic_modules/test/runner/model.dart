@@ -24,7 +24,12 @@ class DynamicModuleTest {
   final Map<String, String> dynamicModules;
 
   DynamicModuleTest(
-      this.name, this.folder, this.main, this.interface, this.dynamicModules);
+    this.name,
+    this.folder,
+    this.main,
+    this.interface,
+    this.dynamicModules,
+  );
 }
 
 /// Result of an individual module test.
@@ -40,13 +45,21 @@ class DynamicModuleTestResult {
       DynamicModuleTestResult._(test.name, Status.pass, '', time);
 
   factory DynamicModuleTestResult.compileError(
-          DynamicModuleTest test, String details, Duration time) =>
-      DynamicModuleTestResult._(
-          test.name, Status.compileTimeError, details, time);
+    DynamicModuleTest test,
+    String details,
+    Duration time,
+  ) => DynamicModuleTestResult._(
+    test.name,
+    Status.compileTimeError,
+    details,
+    time,
+  );
 
   factory DynamicModuleTestResult.runtimeError(
-          DynamicModuleTest test, String details, Duration time) =>
-      DynamicModuleTestResult._(test.name, Status.runtimeError, details, time);
+    DynamicModuleTest test,
+    String details,
+    Duration time,
+  ) => DynamicModuleTestResult._(test.name, Status.runtimeError, details, time);
 
   /// Emit the result in the JSON format expected by the test infrastructure.
   String toRecordJson(String configuration) {

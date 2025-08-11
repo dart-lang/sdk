@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -35,7 +35,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var getter = node.writeOrReadElement2;
+    var getter = node.writeOrReadElement;
 
     // The accessor must be a getter, and it must be synthetic.
     if (!(getter is GetterElement && getter.isSynthetic)) {
@@ -43,16 +43,16 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     }
 
     // The variable must be not synthetic, and have no setter yet.
-    var variable = getter.variable3;
+    var variable = getter.variable;
     if (variable == null) {
       return;
     }
-    if (variable.isSynthetic || variable.setter2 != null) {
+    if (variable.isSynthetic || variable.setter != null) {
       return;
     }
 
     // It must be a field declaration.
-    if (getter.enclosingElement2 is! ClassElement2) {
+    if (getter.enclosingElement is! ClassElement) {
       return;
     }
 

@@ -8,23 +8,29 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
-      'data'));
-  return runTests<_Data>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _AssignedVariablesDataComputer(), [analyzerDefaultConfig]));
+      'data',
+    ),
+  );
+  return runTests<_Data>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _AssignedVariablesDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
@@ -35,8 +41,11 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
       const _AssignedVariablesDataInterpreter();
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<_Data>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<_Data>> actualMap,
+  ) {
     var unitElement = unit.declaredFragment!.element;
     var uri = unitElement.firstFragment.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[uri]!;
@@ -49,8 +58,8 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 
   Declaration? _currentDeclaration;
 
-  AssignedVariablesForTesting<AstNode, PromotableElement2>?
-      _currentAssignedVariables;
+  AssignedVariablesForTesting<AstNode, PromotableElementImpl>?
+  _currentAssignedVariables;
 
   _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);
 
@@ -63,44 +72,54 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     if (currentAssignedVariables == null) return null;
     if (node == _currentDeclaration) {
       return _Data(
-          _convertVars(currentAssignedVariables.declaredAtTopLevel),
-          _convertVars(currentAssignedVariables.readAnywhere),
-          _convertVars(currentAssignedVariables.readCapturedAnywhere),
-          _convertVars(currentAssignedVariables.writtenAnywhere),
-          _convertVars(currentAssignedVariables.capturedAnywhere));
+        _convertVars(currentAssignedVariables.declaredAtTopLevel),
+        _convertVars(currentAssignedVariables.readAnywhere),
+        _convertVars(currentAssignedVariables.readCapturedAnywhere),
+        _convertVars(currentAssignedVariables.writtenAnywhere),
+        _convertVars(currentAssignedVariables.capturedAnywhere),
+      );
     }
     if (!currentAssignedVariables.isTracked(node)) return null;
     return _Data(
-        _convertVars(currentAssignedVariables.declaredInNode(node)),
-        _convertVars(currentAssignedVariables.readInNode(node)),
-        _convertVars(currentAssignedVariables.readCapturedInNode(node)),
-        _convertVars(currentAssignedVariables.writtenInNode(node)),
-        _convertVars(currentAssignedVariables.capturedInNode(node)));
+      _convertVars(currentAssignedVariables.declaredInNode(node)),
+      _convertVars(currentAssignedVariables.readInNode(node)),
+      _convertVars(currentAssignedVariables.readCapturedInNode(node)),
+      _convertVars(currentAssignedVariables.writtenInNode(node)),
+      _convertVars(currentAssignedVariables.capturedInNode(node)),
+    );
   }
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     _handlePossibleTopLevelDeclaration(
-        node, () => super.visitConstructorDeclaration(node));
+      node,
+      () => super.visitConstructorDeclaration(node),
+    );
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _handlePossibleTopLevelDeclaration(
-        node, () => super.visitFunctionDeclaration(node));
+      node,
+      () => super.visitFunctionDeclaration(node),
+    );
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _handlePossibleTopLevelDeclaration(
-        node, () => super.visitVariableDeclaration(node));
+      node,
+      () => super.visitVariableDeclaration(node),
+    );
   }
 
   Set<String> _convertVars(Iterable<int> x) =>
-      x.map((e) => _currentAssignedVariables!.variableForKey(e).name3!).toSet();
+      x.map((e) => _currentAssignedVariables!.variableForKey(e).name!).toSet();
 
   void _handlePossibleTopLevelDeclaration(
-      AstNode node, void Function() callback) {
+    AstNode node,
+    void Function() callback,
+  ) {
     if (_currentDeclaration == null) {
       _currentDeclaration = node as Declaration;
       _currentAssignedVariables = _flowResult.assignedVariables[node];
@@ -169,6 +188,11 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(this.declared, this.read, this.readCaptured, this.assigned,
-      this.captured);
+  _Data(
+    this.declared,
+    this.read,
+    this.readCaptured,
+    this.assigned,
+    this.captured,
+  );
 }

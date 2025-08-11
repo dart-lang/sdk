@@ -113,7 +113,8 @@ void exhaustiveNullableSwitch((Enum, bool)? r) {
     case (Enum.b, true):
       print('(b, true)');
       break;
-    /*space=Null*/ case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }
@@ -261,7 +262,8 @@ void unreachableCase3((Enum, bool)? r) {
     case (Enum.b, true):
       print('(b, true)');
       break;
-    /*space=Null*/ case null:
+    /*space=Null*/
+    case null:
       print('null1');
       break;
     /*

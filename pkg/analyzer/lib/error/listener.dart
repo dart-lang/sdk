@@ -7,72 +7,98 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-/// An object that listens for [AnalysisError]s being produced by the analysis
-/// engine.
-abstract class AnalysisErrorListener {
-  /// An error listener that ignores errors that are reported to it.
-  static final AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
+@Deprecated("Use 'BooleanDiagnosticListener' instead")
+typedef BooleanErrorListener = BooleanDiagnosticListener;
 
-  /// This method is invoked when an [error] has been found by the analysis
+@Deprecated("Use 'DiagnosticReporter' instead")
+typedef ErrorReporter = DiagnosticReporter;
+
+@Deprecated("Use 'RecordingDiagnosticListener' instead")
+typedef RecorderingErrorListener = RecordingDiagnosticListener;
+
+/// An object that listens for [Diagnostic]s being produced by the analysis
+/// engine.
+@Deprecated("Use 'DiagnosticListener' instead")
+abstract class AnalysisErrorListener implements DiagnosticOrErrorListener {
+  /// A diagnostic listener that ignores diagnostics that are reported to it.
+  @Deprecated("Use 'DiagnosticListener.nullListener' instead")
+  static const AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
+
+  /// This method is invoked when a [diagnostic] has been found by the analysis
   /// engine.
-  void onError(AnalysisError error);
+  void onError(Diagnostic diagnostic);
 }
 
-/// An [AnalysisErrorListener] that keeps track of whether any error has been
+/// A [DiagnosticListener] that keeps track of whether any diagnostic has been
 /// reported to it.
-class BooleanErrorListener implements AnalysisErrorListener {
-  /// A flag indicating whether an error has been reported to this listener.
-  bool _errorReported = false;
+class BooleanDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
+  /// A flag indicating whether a diagnostic has been reported to this listener.
+  bool _diagnosticReported = false;
 
-  /// Return `true` if an error has been reported to this listener.
-  bool get errorReported => _errorReported;
+  /// Whether a diagnostic has been reported to this listener.
+  bool get errorReported => _diagnosticReported;
 
   @override
-  void onError(AnalysisError error) {
-    _errorReported = true;
+  void onDiagnostic(Diagnostic diagnostic) {
+    _diagnosticReported = true;
   }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
 }
 
-/// An object used to create analysis errors and report then to an error
-/// listener.
-class ErrorReporter {
-  /// The error listener to which errors will be reported.
-  final AnalysisErrorListener _errorListener;
+abstract class DiagnosticListener implements DiagnosticOrErrorListener {
+  /// A diagnostic listener that ignores diagnostics that are reported to it.
+  static const DiagnosticListener nullListener = _NullDiagnosticListener();
 
-  /// The source to be used when reporting errors.
+  void onDiagnostic(Diagnostic diagnostic);
+}
+
+sealed class DiagnosticOrErrorListener {}
+
+/// An object used to create diagnostics and report them to a diagnostic
+/// listener.
+class DiagnosticReporter {
+  /// The diagnostic listener to which diagnostics are reported.
+  final DiagnosticOrErrorListener _diagnosticListener;
+
+  /// The source to be used when reporting diagnostics.
   final Source _source;
 
-  /// The lock level, if greater than zero, no errors will be reported.
-  /// This is used to prevent reporting errors inside comments.
+  /// The lock level; if greater than zero, no diagnostic will be reported.
+  ///
+  /// This is used to prevent reporting diagnostics inside comments.
   @internal
   int lockLevel = 0;
 
-  /// Initializes a newly created error reporter that will report errors to the
-  /// given [_errorListener].
+  /// Initializes a newly created error reporter that will report diagnostics to the
+  /// given [_diagnosticListener].
   ///
-  /// Errors will be reported against the [_source] unless another source is
+  /// Diagnostics are reported against the [_source] unless another source is
   /// provided later.
-  ErrorReporter(this._errorListener, this._source);
+  DiagnosticReporter(this._diagnosticListener, this._source);
 
   Source get source => _source;
 
-  /// Report a diagnostic with the given [errorCode] and [arguments].
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
   /// The location of the diagnostic will be the name of the [node].
   void atConstructorDeclaration(
     ConstructorDeclaration node,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -85,71 +111,48 @@ class ErrorReporter {
       atOffset(
         offset: offset,
         length: nameToken.end - offset,
-        errorCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments,
       );
     } else {
-      atNode(
-        node.returnType,
-        errorCode,
-        arguments: arguments,
-      );
+      atNode(node.returnType, diagnosticCode, arguments: arguments);
     }
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [element] is used to compute the location of the error.
-  @Deprecated('Use atElement2() instead')
-  void atElement(
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [element] is used to compute the location of the diagnostic.
+  @experimental
+  void atElement2(
     Element element,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     var nonSynthetic = element.nonSynthetic;
     atOffset(
-      errorCode: errorCode,
-      offset: nonSynthetic.nameOffset,
-      length: nonSynthetic.nameLength,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [element] is used to compute the location of the error.
-  @experimental
-  void atElement2(
-    Element2 element2,
-    ErrorCode errorCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    var nonSynthetic = element2.nonSynthetic2;
-    atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
-      length: nonSynthetic.name3?.length ?? 0,
+      length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [entity] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [entity] is used to compute the location of the diagnostic.
   void atEntity(
     SyntacticEntity entity,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: entity.offset,
       length: entity.length,
       arguments: arguments,
@@ -158,17 +161,18 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [node] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [node] is used to compute the location of the diagnostic.
   void atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: node.offset,
       length: node.length,
       arguments: arguments,
@@ -177,12 +181,16 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The location
-  /// of the error is specified by the given [offset] and [length].
+  /// Reports a diagnostic with the given [diagnosticCode] (or [errorCode],
+  /// deprecated) and [arguments].
+  ///
+  /// The location of the diagnostic is specified by the given [offset] and
+  /// [length].
   void atOffset({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    @Deprecated("Use 'diagnosticCode' instead") DiagnosticCode? errorCode,
+    DiagnosticCode? diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -190,28 +198,39 @@ class ErrorReporter {
     if (lockLevel != 0) {
       return;
     }
+    if ((errorCode == null && diagnosticCode == null) ||
+        (errorCode != null && diagnosticCode != null)) {
+      throw ArgumentError(
+        "Exactly one of 'errorCode' (deprecated) and 'diagnosticCode' should be given",
+      );
+    }
+
+    diagnosticCode ??= errorCode!;
 
     if (arguments != null) {
-      var invalid = arguments
-          .whereNotType<String>()
-          .whereNotType<DartType>()
-          .whereNotType<Element2>()
-          .whereNotType<int>()
-          .whereNotType<Uri>();
+      var invalid =
+          arguments
+              .whereNotType<String>()
+              .whereNotType<DartType>()
+              .whereNotType<Element>()
+              .whereNotType<int>()
+              .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
-        throw ArgumentError('Tried to format an error using '
-            '${invalid.map((e) => e.runtimeType).join(', ')}');
+        throw ArgumentError(
+          'Tried to format a diagnostic using '
+          '${invalid.map((e) => e.runtimeType).join(', ')}',
+        );
       }
     }
 
     contextMessages ??= [];
-    contextMessages.addAll(_convertTypeNames(arguments));
-    _errorListener.onError(
-      AnalysisError.tmp(
+    contextMessages.addAll(convertTypeNames(arguments));
+    _diagnosticListener.onDiagnostic(
+      Diagnostic.tmp(
         source: _source,
         offset: offset,
         length: length,
-        errorCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments ?? const [],
         contextMessages: contextMessages,
         data: data,
@@ -219,17 +238,18 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [span] is used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [span] is used to compute the location of the diagnostic.
   void atSourceSpan(
     SourceSpan span,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: span.start.offset,
       length: span.length,
       arguments: arguments,
@@ -238,17 +258,18 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The [token] is
-  /// used to compute the location of the error.
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [token] is used to compute the location of the diagnostic.
   void atToken(
     Token token,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       offset: token.offset,
       length: token.length,
       arguments: arguments,
@@ -257,200 +278,79 @@ class ErrorReporter {
     );
   }
 
-  /// Report the given [error].
-  void reportError(AnalysisError error) {
-    _errorListener.onError(error);
-  }
-
-  /// Given an array of [arguments] that is expected to contain two or more
-  /// types, convert the types into strings by using the display names of the
-  /// types, unless there are two or more types with the same names, in which
-  /// case the extended display names of the types will be used in order to
-  /// clarify the message.
-  List<DiagnosticMessage> _convertTypeNames(List<Object?>? arguments) {
-    if (arguments == null) {
-      return const [];
-    }
-
-    var typeGroups = <String, List<_ToConvert>>{};
-    for (var i = 0; i < arguments.length; i++) {
-      var argument = arguments[i];
-      if (argument is TypeImpl) {
-        var displayName = argument.getDisplayString(preferTypeAlias: true);
-        var types = typeGroups.putIfAbsent(displayName, () => []);
-        types.add(_TypeToConvert(i, argument, displayName));
-      } else if (argument is Element2) {
-        var displayName = argument.displayString2();
-        var types = typeGroups.putIfAbsent(displayName, () => []);
-        types.add(_ElementToConvert(i, argument, displayName));
-      }
-    }
-
-    var messages = <DiagnosticMessage>[];
-    for (var typeGroup in typeGroups.values) {
-      if (typeGroup.length == 1) {
-        var typeToConvert = typeGroup[0];
-        // If the display name of a type is unambiguous, just replace the type
-        // in the arguments list with its display name.
-        arguments[typeToConvert.index] = typeToConvert.displayName;
-        continue;
-      }
-
-      const unnamedExtension = '<unnamed extension>';
-      const unnamed = '<unnamed>';
-      var nameToElementMap = <String, Set<Element2>>{};
-      for (var typeToConvert in typeGroup) {
-        for (var element in typeToConvert.allElements) {
-          var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
-
-          var elements = nameToElementMap.putIfAbsent(name, () => {});
-          elements.add(element);
-        }
-      }
-
-      for (var typeToConvert in typeGroup) {
-        // TODO(brianwilkerson): When clients do a better job of displaying
-        // context messages, remove the extra text added to the buffer.
-        StringBuffer? buffer;
-        for (var element in typeToConvert.allElements) {
-          var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
-          var sourcePath =
-              element.firstFragment.libraryFragment!.source.fullName;
-          if (nameToElementMap[name]!.length > 1) {
-            if (buffer == null) {
-              buffer = StringBuffer();
-              buffer.write('where ');
-            } else {
-              buffer.write(', ');
-            }
-            buffer.write('$name is defined in $sourcePath');
-          }
-          messages.add(DiagnosticMessageImpl(
-            filePath: sourcePath,
-            length: element.name3?.length ?? 0,
-            message: '$name is defined in $sourcePath',
-            offset: element.firstFragment.nameOffset2 ?? -1,
-            url: null,
-          ));
-        }
-
-        arguments[typeToConvert.index] = buffer != null
-            ? '${typeToConvert.displayName} ($buffer)'
-            : typeToConvert.displayName;
-      }
-    }
-    return messages;
+  /// Report the given [diagnostic].
+  void reportError(Diagnostic diagnostic) {
+    _diagnosticListener.onDiagnostic(diagnostic);
   }
 }
 
-/// An error listener that will record the errors that are reported to it in a
-/// way that is appropriate for caching those errors within an analysis context.
-class RecordingErrorListener implements AnalysisErrorListener {
-  Set<AnalysisError>? _errors;
+/// A diagnostic listener that records the diagnostics that are reported to it
+/// in a way that is appropriate for caching those diagnostic within an
+/// analysis context.
+class RecordingDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
+  Set<Diagnostic>? _diagnostics;
 
-  /// Return the errors collected by the listener.
-  List<AnalysisError> get errors {
-    if (_errors == null) {
+  /// The diagnostics collected by the listener.
+  List<Diagnostic> get diagnostics {
+    if (_diagnostics == null) {
       return const [];
     }
-    return _errors!.toList();
+    return _diagnostics!.toList();
   }
+
+  @Deprecated("Use 'diagnostics' instead")
+  List<Diagnostic> get errors => diagnostics;
 
   /// Return the errors collected by the listener for the given [source].
-  List<AnalysisError> getErrorsForSource(Source source) {
-    if (_errors == null) {
+  @Deprecated('No longer supported')
+  List<Diagnostic> getErrorsForSource(Source source) {
+    if (_diagnostics == null) {
       return const [];
     }
-    return _errors!.where((error) => error.source == source).toList();
+    return _diagnostics!.where((d) => d.source == source).toList();
   }
 
   @override
-  void onError(AnalysisError error) {
-    (_errors ??= {}).add(error);
+  void onDiagnostic(Diagnostic diagnostic) {
+    (_diagnostics ??= {}).add(diagnostic);
+  }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
+}
+
+/// A [DiagnosticListener] that ignores everything.
+class _NullDiagnosticListener implements DiagnosticListener {
+  const _NullDiagnosticListener();
+
+  @override
+  void onDiagnostic(Diagnostic diagnostic) {
+    // Ignore diagnostics.
   }
 }
 
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is an [Element2], that is being converted to a display string.
-class _ElementToConvert implements _ToConvert {
-  @override
-  final int index;
+// ignore: deprecated_member_use_from_same_package
+/// An [AnalysisErrorListener] that ignores everything.
+class _NullErrorListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener {
+  const _NullErrorListener();
 
   @override
-  final String displayName;
-
-  @override
-  final Iterable<Element2> allElements;
-
-  _ElementToConvert(this.index, Element2 element, this.displayName)
-      : allElements = [element];
-}
-
-/// An [AnalysisErrorListener] that ignores error.
-class _NullErrorListener implements AnalysisErrorListener {
-  @override
-  void onError(AnalysisError event) {
-    // Ignore errors
+  void onError(Diagnostic diagnostic) {
+    // Ignore diagnostics.
   }
 }
 
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an argument that
-/// is being converted to a display string.
-abstract class _ToConvert {
-  /// A list of all elements involved in the [DartType] or [Element2]'s display
-  /// string.
-  Iterable<Element2> get allElements;
-
-  /// The argument's display string, to replace the argument in the argument
-  /// list.
-  String get displayName;
-
-  /// The index of the argument in the argument list.
-  int get index;
-}
-
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is a [DartType], that is being converted to a display string.
-class _TypeToConvert implements _ToConvert {
-  @override
-  final int index;
-
-  final DartType _type;
-
-  @override
-  final String displayName;
-
-  @override
-  late final Iterable<Element2> allElements = () {
-    var elements = <Element2>{};
-
-    void addElementsFrom(DartType type) {
-      if (type is FunctionType) {
-        addElementsFrom(type.returnType);
-        for (var parameter in type.formalParameters) {
-          addElementsFrom(parameter.type);
-        }
-      } else if (type is RecordType) {
-        for (var parameter in type.fields) {
-          addElementsFrom(parameter.type);
-        }
-      } else if (type is InterfaceType) {
-        if (elements.add(type.element3)) {
-          for (var typeArgument in type.typeArguments) {
-            addElementsFrom(typeArgument);
-          }
-        }
-      }
-    }
-
-    addElementsFrom(_type);
-    return elements.where((element) {
-      var name = element.name3;
-      return name != null && name.isNotEmpty;
-    });
-  }();
-
-  _TypeToConvert(this.index, this._type, this.displayName);
+extension DiagnosticOrErrorListenerExtension on DiagnosticOrErrorListener {
+  void onDiagnostic(Diagnostic diagnostic) => switch (this) {
+    DiagnosticListener self => self.onDiagnostic(diagnostic),
+    // ignore: deprecated_member_use_from_same_package
+    AnalysisErrorListener self => self.onError(diagnostic),
+  };
 }

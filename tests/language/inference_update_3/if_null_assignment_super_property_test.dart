@@ -258,9 +258,8 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = num?.
         // We avoid having a compile-time error because `o` can be demoted.
-        o =
-            (super.pDoubleQuestion ??= intQuestion)
-              ..expectStaticType<Exactly<num?>>();
+        o = (super.pDoubleQuestion ??= intQuestion)
+          ..expectStaticType<Exactly<num?>>();
       }
       o = '' as Object?;
       if (o is String?) {
@@ -300,9 +299,8 @@ class Test extends Base {
         // The fact that T2' <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o =
-            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-              ..expectStaticType<Exactly<A Function()>>();
+        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+          ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = (() => C2<int>()) as Object?;
@@ -322,9 +320,8 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o =
-            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-              ..expectStaticType<Exactly<A Function()>>();
+        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+          ..expectStaticType<Exactly<A Function()>>();
       }
 
       o = 0 as Object?;
@@ -344,9 +341,8 @@ class Test extends Base {
         // The fact that NonNull(T1) <!: S precludes using S as static type.
         // Therefore the type of `e` is T = A Function().
         // We avoid having a compile-time error because `o` can be demoted.
-        o =
-            (super.pC1IntFunctionQuestion ??= callableClassC2Int)
-              ..expectStaticType<Exactly<A Function()>>();
+        o = (super.pC1IntFunctionQuestion ??= callableClassC2Int)
+          ..expectStaticType<Exactly<A Function()>>();
       }
     }
   }

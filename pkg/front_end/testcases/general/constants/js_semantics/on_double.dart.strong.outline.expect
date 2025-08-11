@@ -10,9 +10,9 @@ class Class extends core::Object /*hasConstConstructor*/  {
   const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
     : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
     ;
-  static method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+  static synthetic method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
     return new self::Class::doubleShift(i1, i2);
-  static method _#tripleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+  static synthetic method _#tripleShift#tearOff(dynamic i1, dynamic i2) → self::Class
     return new self::Class::tripleShift(i1, i2);
 }
 static const field dynamic a = 1.0;

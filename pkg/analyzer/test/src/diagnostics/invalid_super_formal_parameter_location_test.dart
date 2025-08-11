@@ -16,93 +16,142 @@ main() {
 @reflectiveTest
 class InvalidSuperFormalParameterLocationTest extends PubPackageResolutionTest {
   test_class_constructor_external() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   external A(super.a);
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 23, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          23,
+          5,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A(super.a) {
     return A._();
   }
   A._();
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 22, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          22,
+          5,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_redirecting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(super.a) : this._();
   A._();
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 14, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          14,
+          5,
+        ),
+      ],
+    );
   }
 
   test_class_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo(super.a) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 21, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          21,
+          5,
+        ),
+      ],
+    );
   }
 
   test_extension_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   void foo(super.a) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 32, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          32,
+          5,
+        ),
+      ],
+    );
   }
 
   test_local_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   // ignore:unused_element
   void g(super.a) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 47, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          47,
+          5,
+        ),
+      ],
+    );
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   void foo(super.a) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 21, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          21,
+          5,
+        ),
+      ],
+    );
   }
 
   test_unit_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(super.a) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 7, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          7,
+          5,
+        ),
+      ],
+    );
   }
 
   test_valid_optionalNamed() async {

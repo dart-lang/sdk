@@ -7,21 +7,21 @@
 import 'dart:async' show Future;
 
 A<J> futureToA<T, J>(Future<T> future, [J wrapValue(T value)?]) {
-  return new A<J>(
-    (void resolveFn(J value), void rejectFn(error)) {
-      future.then((value) {
-        dynamic wrapped;
-        if (wrapValue != null) {
-          wrapped = wrapValue(value);
-        } else if (value != null) {
-          wrapped = value;
-        }
-        resolveFn(wrapped);
-      }).catchError((error) {
-        rejectFn(error);
-      });
-    },
-  );
+  return new A<J>((void resolveFn(J value), void rejectFn(error)) {
+    future
+        .then((value) {
+          dynamic wrapped;
+          if (wrapValue != null) {
+            wrapped = wrapValue(value);
+          } else if (value != null) {
+            wrapped = value;
+          }
+          resolveFn(wrapped);
+        })
+        .catchError((error) {
+          rejectFn(error);
+        });
+  });
 }
 
 class A<X> {

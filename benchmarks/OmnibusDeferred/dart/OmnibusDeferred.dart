@@ -50,8 +50,10 @@ final Map<String, Lib> benchmarks = {
   'ListCopy': Lib(lib_ListCopy.loadLibrary, () => lib_ListCopy.main()),
   'MapCopy': Lib(lib_MapCopy.loadLibrary, () => lib_MapCopy.main([])),
   'MD5': Lib(lib_MD5.loadLibrary, () => lib_MD5.main()),
-  'MultipleReturns':
-      Lib(lib_MultipleReturns.loadLibrary, () => lib_MultipleReturns.main()),
+  'MultipleReturns': Lib(
+    lib_MultipleReturns.loadLibrary,
+    () => lib_MultipleReturns.main(),
+  ),
   'RecordCollections': Lib(
     lib_RecordCollections.loadLibrary,
     () => lib_RecordCollections.main(),

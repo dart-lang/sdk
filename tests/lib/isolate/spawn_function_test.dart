@@ -30,8 +30,12 @@ Future<void> main([args, port]) async {
   // Start new isolate; paused so it's alive till we read the debugName.
   // If the isolate runs to completion, the isolate might get cleaned up
   // and debugName might be null.
-  final isolate = await Isolate.spawn(isolateEntryPoint, ['hi', port.sendPort],
-      paused: true, debugName: debugName);
+  final isolate = await Isolate.spawn(
+    isolateEntryPoint,
+    ['hi', port.sendPort],
+    paused: true,
+    debugName: debugName,
+  );
 
   Expect.equals(isolate.debugName, debugName);
   isolate.resume(isolate.pauseCapability!);

@@ -28,15 +28,18 @@ f(int a, int? b) {
   }
 
   test_equal_notNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int a) {
   a == null;
   null == a;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 15, 7),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 26, 7),
-    ]);
+''',
+      [
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 15, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 26, 7),
+      ],
+    );
   }
 
   test_equal_nullable() async {
@@ -49,29 +52,35 @@ f(int? a) {
   }
 
   test_implicitlyAssigned_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int? i;
   i != null;
   null != i;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 36, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 36, 4),
+      ],
+    );
   }
 
   test_implicitlyAssigned_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int? i;
   i == null;
   null == i;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 36, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 36, 4),
+      ],
+    );
   }
 }
 
@@ -89,15 +98,18 @@ f(int a, int? b) {
   }
 
   test_notEqual_notNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int a) {
   a != null;
   null != a;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 15, 7),
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 26, 7),
-    ]);
+''',
+      [
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 15, 7),
+        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 26, 7),
+      ],
+    );
   }
 
   test_notEqual_nullable() async {

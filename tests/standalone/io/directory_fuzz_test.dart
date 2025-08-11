@@ -51,11 +51,13 @@ fuzzAsyncMethods() async {
   await withTempDir('dart_directory_fuzz', (temp) async {
     final futures = <Future>[];
     typeMapping.forEach((k, v) {
-      futures.add(doItAsync(() {
-        Directory.systemTemp
-            .createTempSync("${temp.path}/${v as String}")
-            .deleteSync();
-      }));
+      futures.add(
+        doItAsync(() {
+          Directory.systemTemp
+              .createTempSync("${temp.path}/${v as String}")
+              .deleteSync();
+        }),
+      );
       if (v is! String) {
         return;
       }
@@ -63,22 +65,28 @@ fuzzAsyncMethods() async {
       futures.add(doItAsync(d.exists));
       futures.add(doItAsync(d.create));
       futures.add(doItAsync(d.delete));
-      futures.add(doItAsync(() {
-        return d.createTemp('tempdir').then((temp) {
-          return temp.delete();
-        });
-      }));
-      futures.add(doItAsync(() {
-        return d.exists().then((res) {
-          if (!res) return d.delete(recursive: true);
-          return new Future.value(true);
-        });
-      }));
+      futures.add(
+        doItAsync(() {
+          return d.createTemp('tempdir').then((temp) {
+            return temp.delete();
+          });
+        }),
+      );
+      futures.add(
+        doItAsync(() {
+          return d.exists().then((res) {
+            if (!res) return d.delete(recursive: true);
+            return new Future.value(true);
+          });
+        }),
+      );
       typeMapping.forEach((k2, v2) {
         futures.add(doItAsync(() => d.rename(v2 as String)));
-        futures.add(doItAsync(() {
-          d.list(recursive: v2 as bool).listen((_) {}, onError: (e) => null);
-        }));
+        futures.add(
+          doItAsync(() {
+            d.list(recursive: v2 as bool).listen((_) {}, onError: (e) => null);
+          }),
+        );
       });
     });
     await Future.wait(futures).then((_) => asyncEnd());

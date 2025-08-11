@@ -57,9 +57,13 @@ void setup() {
 main() {
   nativeTesting();
   setup();
-  var things = [makeA, makeB, () => new C(), () => new D(), () => new M()]
-      .map((f) => f())
-      .toList();
+  var things = [
+    makeA,
+    makeB,
+    () => new C(),
+    () => new D(),
+    () => new M(),
+  ].map((f) => f()).toList();
   var a = things[0];
   var b = things[1];
   var c = things[2];

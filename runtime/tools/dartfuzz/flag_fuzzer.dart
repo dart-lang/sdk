@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Invokes dart2js with various VM modes and flags, checking for crashes or
-// differences in output compared to the default.
-
 import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:io" as io;
 import "dart:math";
-
-const timeout = Duration(minutes: 25);
 
 final buildDirs = [
   "out/ReleaseX64",
@@ -39,13 +34,13 @@ final gcFlags = [
   "--dontneed_on_sweep",
   "--force_evacuation",
   "--mark_when_idle",
-  "--marker_tasks=${range(0, 3)}", // 0 disables parallel marking
+  "--marker_tasks=${range(1, 3)}",
   "--no_concurrent_mark",
   "--no_concurrent_sweep",
   "--no_inline_alloc",
   "--runtime_allocate_old",
   "--runtime_allocate_spill_tlab",
-  "--scavenger_tasks=${range(0, 3)}", // 0 disables parallel scavenge
+  "--scavenger_tasks=${range(1, 3)}",
   "--use_compactor",
   "--verify_after_gc",
   "--verify_after_marking",
@@ -74,6 +69,7 @@ final compilerFlags = [
   "--max_polymorphic_checks=${range(4, 12)}",
   "--no_array_bounds_check_elimination",
   "--no_background_compilation",
+  "--no_compress_deopt_info",
   "--no_dead_store_elimination",
   "--no_enable_peephole",
   "--no_guess_icdata_cid",
@@ -110,22 +106,49 @@ String oneOf(List<String> choices) {
 
 List<String> someOf(List<String> choices) {
   var result = <String>[];
-  for (var i = 0; i < range(1, 3); i++) {
+  for (var i = 0, n = range(0, 2); i < n; i++) {
     result.add(oneOf(choices));
   }
   return result;
 }
 
+List<String> someJitRuntimeFlags() {
+  return [
+    "--profiler", // Off by default unless VM service enabled
+    ...someOf(profilerFlags),
+    ...someOf(gcFlags),
+    ...someOf(compilerFlags),
+  ];
+}
+
+List<String> someAotRuntimeFlags() {
+  return [
+    "--profiler", // Off by default unless VM service enabled
+    ...someOf(profilerFlags),
+    ...someOf(gcFlags),
+  ];
+}
+
+List<String> someGenSnapshotFlags() {
+  return [...someOf(gcFlags), ...someOf(compilerFlags)];
+}
+
+Stopwatch stopwatch = new Stopwatch();
+
+const overallTimeout = Duration(minutes: 45);
+Duration get remainingTimeout => overallTimeout - stopwatch.elapsed;
+
 // LUCI will kill recipe steps if they go 1200 seconds without any output.
 const statusTimeout = Duration(minutes: 5);
 int pendingTaskCount = 0;
 late Timer pendingTimer;
-Stopwatch stopwatch = new Stopwatch();
 taskStart() {
   if (pendingTaskCount++ == 0) {
     pendingTimer = new Timer.periodic(statusTimeout, (timer) {
-      print("$pendingTaskCount tasks still running after "
-          "${stopwatch.elapsed.inMinutes} minutes");
+      print(
+        "$pendingTaskCount tasks still running after "
+        "${stopwatch.elapsed.inMinutes} minutes",
+      );
     });
   }
 }
@@ -136,33 +159,25 @@ taskEnd() {
   }
 }
 
-test(int taskIndex) async {
+test(List<String> Function(String) createDartCommand, int taskIndex) async {
   taskStart();
 
-  var buildDir = oneOf(buildDirs);
+  var dartCommand = createDartCommand("out/dartfuzz/$taskIndex.js");
+  var dartScript = dartCommand[0];
+  var dartArguments = dartCommand.getRange(1, dartCommand.length).toList();
 
+  var buildDir = oneOf(buildDirs);
   var commands;
   if (random.nextBool()) {
     // JIT
     commands = [
       [
         "$buildDir/dart",
-        "--profiler", // Off by default unless VM service enabled
-        ...someOf(profilerFlags),
-        ...someOf(gcFlags),
-        ...someOf(compilerFlags),
-        "pkg/compiler/lib/src/dart2js.dart",
-        "--invoker=test",
-        "--platform-binaries=out/ReleaseX64",
-        "--out=out/dartfuzz/$taskIndex.js",
-        "--no-source-maps", // Otherwise output includes path
-        "pkg/compiler/lib/src/util/memory_compiler.dart",
+        ...someJitRuntimeFlags(),
+        dartScript,
+        ...dartArguments,
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.js",
-        "out/dartfuzz/$taskIndex.js",
-      ],
+      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
     ];
   } else {
     // AOT
@@ -170,36 +185,25 @@ test(int taskIndex) async {
       [
         "out/ReleaseX64/dart",
         "pkg/vm/bin/gen_kernel.dart",
-        "--platform=$buildDir/vm_platform_strong.dill",
+        "--platform=$buildDir/vm_platform.dill",
         "--aot",
         "--output=out/dartfuzz/$taskIndex.dill",
-        "pkg/compiler/lib/src/dart2js.dart",
+        dartScript,
       ],
       [
         "$buildDir/gen_snapshot",
-        ...someOf(gcFlags),
-        ...someOf(compilerFlags),
+        ...someGenSnapshotFlags(),
         "--snapshot_kind=app-aot-elf",
         "--elf=out/dartfuzz/$taskIndex.elf",
         "out/dartfuzz/$taskIndex.dill",
       ],
       [
         "$buildDir/dartaotruntime",
-        "--profiler", // Off by default unless VM service enabled
-        ...someOf(profilerFlags),
-        ...someOf(gcFlags),
+        ...someAotRuntimeFlags(),
         "out/dartfuzz/$taskIndex.elf",
-        "--invoker=test",
-        "--platform-binaries=out/ReleaseX64",
-        "--out=out/dartfuzz/$taskIndex.js",
-        "--no-source-maps", // Otherwise output includes path
-        "pkg/compiler/lib/src/util/memory_compiler.dart",
+        ...dartArguments,
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.js",
-        "out/dartfuzz/$taskIndex.js",
-      ],
+      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
     ];
   }
 
@@ -209,6 +213,11 @@ test(int taskIndex) async {
     var arguments = command.getRange(1, command.length).toList();
     var cmdline = command.join(' ');
     print("Start: $cmdline");
+    var timeout = remainingTimeout;
+    if (timeout.isNegative) {
+      print("Timeout: $cmdline");
+      break;
+    }
     var process = await Process.start(executable, arguments);
     var timedOut = false;
     var timer = new Timer(timeout, () {
@@ -245,20 +254,19 @@ test(int taskIndex) async {
   taskEnd();
 }
 
-main() async {
+shard(List<String> Function(String) createDartCommand, int shardIndex) async {
+  while (!remainingTimeout.isNegative) {
+    await test(createDartCommand, shardIndex);
+  }
+}
+
+flagFuzz(List<String> Function(String) createDartCommand) async {
   stopwatch.start();
 
   await Directory("out/dartfuzz").create();
 
   var executable = "out/ReleaseX64/dart";
-  var arguments = [
-    "pkg/compiler/lib/src/dart2js.dart",
-    "--invoker=test",
-    "--platform-binaries=out/ReleaseX64",
-    "--out=out/dartfuzz/expected.js",
-    "--no-source-maps", // Otherwise output includes path
-    "pkg/compiler/lib/src/util/memory_compiler.dart",
-  ];
+  var arguments = createDartCommand("out/dartfuzz/expected.js");
   var processResult = await Process.run(executable, arguments);
   if (processResult.exitCode != 0) {
     print("=== FAILURE ===");
@@ -272,6 +280,6 @@ main() async {
   }
 
   for (var i = 0; i < Platform.numberOfProcessors; i++) {
-    test(i);
+    shard(createDartCommand, i);
   }
 }

@@ -162,13 +162,14 @@ class A {}
 export 'lib1.dart';
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' as p;
 import 'lib2.dart' as p;
 f(p.A a, p.B b) {}
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+    );
   }
 
   test_library_duplicateImport_differentPrefix() async {
@@ -195,16 +196,17 @@ extension E2 on int {
   void bar() {}
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart' as prefix;
 import 'lib2.dart' as prefix;
 void f() {
   0.foo();
   0.bar();
 }
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+    );
   }
 
   test_library_extension_noPrefixes_necessary() async {
@@ -240,16 +242,17 @@ extension E2 on int {
   void bar() {}
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
 void f() {
   0.foo();
   0.bar();
 }
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+    );
   }
 
   test_library_hasDeprecatedExport_hasNotDeprecatedImport_hasOtherClass() async {
@@ -298,15 +301,16 @@ class C {}
     // But the export of `B` from `c.dart` is deprecated.
     // We can get `B` from `import b`, in a not deprecated way.
     // It also declares `C`, but we don't use it.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 import 'c.dart';
 
 void f(A _, B _) {}
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 41, 8),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 41, 8)],
+    );
   }
 
   test_library_hasDeprecatedExport_noNotDeprecatedImport() async {
@@ -327,14 +331,15 @@ export 'b.dart';
 
     // `import c` is not marked as unnecessary because of there is
     // `DEPRECATED_EXPORT_USE` already reported.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'c.dart';
 
 void f(A _, B _) {}
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 47, 1)],
+    );
   }
 
   test_library_hide() async {
@@ -373,13 +378,14 @@ export 'a.dart';
 class B {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 void f(A _, B _, C _) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 51, 1)],
+    );
   }
 
   test_library_unnecessaryImport() async {
@@ -390,13 +396,14 @@ class A {}
 export 'lib1.dart';
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
 f(A a, B b) {}
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 7, 11),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+    );
   }
 
   test_library_unnecessaryImport_sameUri() async {
@@ -407,13 +414,14 @@ class A {}
 export 'lib1.dart';
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 import 'dart:async' show Completer;
 f(FutureOr<int> a, Completer<int> b) {}
-''', [
-      error(HintCode.UNNECESSARY_IMPORT, 28, 12),
-    ]);
+''',
+      [error(HintCode.UNNECESSARY_IMPORT, 28, 12)],
+    );
   }
 
   test_library_uriDoesNotExist() async {
@@ -421,13 +429,14 @@ f(FutureOr<int> a, Completer<int> b) {}
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 void f(A _) {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 8)],
+    );
   }
 
   test_part_inside_unnecessary() async {
@@ -449,9 +458,7 @@ void f(A _, B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(HintCode.UNNECESSARY_IMPORT, 25, 8),
-    ]);
+    await assertErrorsInFile2(b, [error(HintCode.UNNECESSARY_IMPORT, 25, 8)]);
   }
 
   test_part_inside_unnecessary_prefixed() async {
@@ -473,8 +480,6 @@ void f(prefix.A _, prefix.B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(HintCode.UNNECESSARY_IMPORT, 25, 8),
-    ]);
+    await assertErrorsInFile2(b, [error(HintCode.UNNECESSARY_IMPORT, 25, 8)]);
   }
 }

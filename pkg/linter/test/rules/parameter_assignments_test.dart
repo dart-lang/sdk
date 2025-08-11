@@ -151,6 +151,7 @@ void f([int? optional]) {
       [
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 59, 2),
         lint(46, 15),
+        error(WarningCode.DEAD_CODE, 59, 3),
       ],
     );
   }
@@ -305,7 +306,7 @@ void f([int p = 42]) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7)],
+      [lint(65, 7), error(WarningCode.DEAD_CODE, 71, 2)],
     );
   }
 
@@ -317,7 +318,7 @@ void f({int p = 42}) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7)],
+      [lint(65, 7), error(WarningCode.DEAD_CODE, 71, 2)],
     );
   }
 
@@ -346,7 +347,7 @@ void f([int? p]) {
   p ??= 16;
 }
 ''',
-      [lint(72, 8)],
+      [lint(72, 8), error(WarningCode.DEAD_CODE, 78, 3)],
     );
   }
 

@@ -83,9 +83,7 @@ class SummaryDataReader {
       return const {};
     }
 
-    return {
-      for (var i = 0; i < length; i++) readKey(): readValue(),
-    };
+    return {for (var i = 0; i < length; i++) readKey(): readValue()};
   }
 
   int? readOptionalInt64() {
@@ -230,6 +228,14 @@ class SummaryDataReader {
     return Uri.parse(uriStr);
   }
 
+  /// Temporary move to [offset] and run [operation].
+  void runAtOffset(int offset, void Function() operation) {
+    var oldOffset = this.offset;
+    this.offset = offset;
+    operation();
+    this.offset = oldOffset;
+  }
+
   String stringOfIndex(int index) {
     return _stringTable[index];
   }
@@ -247,11 +253,9 @@ class _StringTable {
   ///   - `<the length of the bytes> <-- [startOffset]`
   ///   - `<the number strings>`
   ///   - `<the array of lengths of individual strings>`
-  _StringTable({
-    required Uint8List bytes,
-    required int startOffset,
-  })  : _bytes = bytes,
-        _byteOffset = startOffset {
+  _StringTable({required Uint8List bytes, required int startOffset})
+    : _bytes = bytes,
+      _byteOffset = startOffset {
     var offset = startOffset - _readUInt30();
     var length = _readUInt30();
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,8 +21,11 @@ class InvalidUseOfVisibleForTemplateMemberTest
   void setUp() {
     super.setUp();
 
-    writeTestPackageConfig(PackageConfigFileBuilder(),
-        angularMeta: true, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      angularMeta: true,
+      meta: true,
+    );
   }
 
   test_class_constructor_named() async {
@@ -43,9 +47,7 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 66, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
     await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 13),
     ]);
@@ -70,9 +72,7 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 66, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
     await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 1),
     ]);

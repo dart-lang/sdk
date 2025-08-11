@@ -19,10 +19,11 @@ void main() {
 void doDynamicLinking() {
   Expect.isTrue(NativeApi.majorVersion == 2);
   Expect.isTrue(NativeApi.minorVersion >= 2);
-  final initializeApi = testLibrary.lookupFunction<
-    IntPtr Function(Pointer<Void>),
-    int Function(Pointer<Void>)
-  >("InitDartApiDL");
+  final initializeApi = testLibrary
+      .lookupFunction<
+        IntPtr Function(Pointer<Void>),
+        int Function(Pointer<Void>)
+      >("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
 }
 

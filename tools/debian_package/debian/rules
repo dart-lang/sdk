@@ -16,6 +16,12 @@ override_dh_auto_build:
 # Nop
 override_dh_auto_test:
 
+# Explicitly choose xz compression because newer versions dpkg-buildpackage
+# (on our bots) default to zstd, which is not supported by older versions
+# of dpkg (on users machines).
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 # Nop
 override_dh_strip:
 

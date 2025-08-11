@@ -6,7 +6,7 @@ description: >
   information, deobfuscation of stack-traces and minified names.
 
 environment:
-  sdk: '^3.7.0'
+  sdk: '^3.8.0'
 
 resolution: workspace
 

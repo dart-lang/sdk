@@ -278,7 +278,7 @@ class VmServerConnection {
 
   void setDefaultValue(String typeName, String fieldName, String defaultValue) {
     types
-        .firstWhere((t) => t!.name == typeName)!
+        .firstWhere((t) => t.name == typeName)
         .fields
         .firstWhere((f) => f.name == fieldName)
         .defaultValue = defaultValue;

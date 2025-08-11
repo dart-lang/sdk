@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class C {
   static int ctr = 0;
@@ -64,9 +65,11 @@ main() {
   /// The `>>>` Symbol works.
   var literalSymbol = #>>>;
   var constSymbol = const Symbol(">>>");
-  var newSymbol = new Symbol(">>>");
   Expect.identical(literalSymbol, constSymbol);
-  Expect.equals(literalSymbol, newSymbol);
+  if (!minifiedSymbols) {
+    var newSymbol = new Symbol(">>>");
+    Expect.equals(literalSymbol, newSymbol);
+  }
 
   dynamic n = NSM();
   var nsmSymbol = n >>> 42;

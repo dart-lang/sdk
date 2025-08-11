@@ -1,0 +1,12 @@
+analyzer:
+  errors:
+    dead_code: info
+    getter_not_subtype_setter_types: info
+    missing_enum_constant_in_switch: info
+    unused_element: info
+    unused_field: info
+    unused_import: info
+    unused_local_variable: info
+linter:
+  rules:
+    - prefer_relative_imports

@@ -48,9 +48,13 @@ main(List<String> args) async {
 
   await withTempDir("incompatible-loading-unit-test", (String tempDir) async {
     final source1 = path.join(
-        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_1.dart");
+      sdkDir,
+      "runtime/tests/vm/dart/incompatible_loading_unit_1.dart",
+    );
     final source2 = path.join(
-        sdkDir, "runtime/tests/vm/dart/incompatible_loading_unit_2.dart");
+      sdkDir,
+      "runtime/tests/vm/dart/incompatible_loading_unit_2.dart",
+    );
     final dill1 = path.join(tempDir, "incompatible_loading_unit_1.dart.dill");
     final dill2 = path.join(tempDir, "incompatible_loading_unit_2.dart.dill");
     final snapshot1 = path.join(tempDir, "incompatible_loading_unit_1.so");
@@ -87,9 +91,10 @@ main(List<String> args) async {
     Expect.equals(2, manifest["loadingUnits"].length);
     // Note package:expect doesn't do deep equals on collections.
     Expect.equals(
-        "[[incompatible_loading_unit_1.dart],"
-        " [incompatible_loading_unit_1_deferred.dart]]",
-        sanitizedPartitioning(manifest).toString());
+      "[[incompatible_loading_unit_1.dart],"
+      " [incompatible_loading_unit_1_deferred.dart]]",
+      sanitizedPartitioning(manifest).toString(),
+    );
     Expect.isTrue(await new File(deferredSnapshot1).exists());
 
     await run(genSnapshot, <String>[
@@ -101,9 +106,10 @@ main(List<String> args) async {
     manifest = jsonDecode(await new File(manifest2).readAsString());
     Expect.equals(2, manifest["loadingUnits"].length);
     Expect.equals(
-        "[[incompatible_loading_unit_2.dart],"
-        " [incompatible_loading_unit_2_deferred.dart]]",
-        sanitizedPartitioning(manifest).toString());
+      "[[incompatible_loading_unit_2.dart],"
+      " [incompatible_loading_unit_2_deferred.dart]]",
+      sanitizedPartitioning(manifest).toString(),
+    );
     Expect.isTrue(await new File(deferredSnapshot2).exists());
 
     // Works when used normally.
@@ -117,7 +123,8 @@ main(List<String> args) async {
     await new File(deferredSnapshot2).rename(deferredSnapshot1);
     lines = await runError(dartPrecompiledRuntime, <String>[snapshot1]);
     Expect.equals(
-        "DeferredLoadException: 'Deferred loading unit is from a different program than the main loading unit'",
-        lines[1]);
+      "DeferredLoadException: 'Deferred loading unit is from a different program than the main loading unit'",
+      lines[1],
+    );
   });
 }

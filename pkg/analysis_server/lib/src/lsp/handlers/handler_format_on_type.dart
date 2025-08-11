@@ -38,7 +38,7 @@ class FormatOnTypeHandler
     }
 
     var result = await server.getParsedUnit(path);
-    if (result == null || result.errors.isNotEmpty) {
+    if (result == null || result.diagnostics.isNotEmpty) {
       return success(null);
     }
 

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
+
 import 'package:observatory/service_common.dart';
 
 // Export the service library.

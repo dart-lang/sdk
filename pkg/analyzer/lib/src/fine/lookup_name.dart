@@ -15,6 +15,9 @@ extension type BaseName(String _it) {
     return BaseName(str);
   }
 
+  /// Returns the underlying [String] value, explicitly.
+  String get asString => _it;
+
   void write(BufferedSink sink) {
     sink.writeStringUtf8(_it);
   }
@@ -34,6 +37,14 @@ extension type LookupName(String _it) {
   }
 
   BaseName get asBaseName {
+    if (const {'==', '<=', '>='}.contains(_it)) {
+      return _it.asBaseName;
+    }
+
+    if (_it == '[]=') {
+      return '[]'.asBaseName;
+    }
+
     var str = _it.removeSuffix('=') ?? _it;
     return str.asBaseName;
   }
@@ -41,7 +52,61 @@ extension type LookupName(String _it) {
   /// Returns the underlying [String] value, explicitly.
   String get asString => _it;
 
+  bool get isIndexEq {
+    return _it == '[]=';
+  }
+
+  bool get isIndexOrIndexEq {
+    return const {'[]', '[]='}.contains(_it);
+  }
+
+  bool get isOperator {
+    return const {
+      ...{'+', '-', '*', '/', '~/', '%'},
+      ...{'<<', '>>', '>>>', '&', '^', '|', '~'},
+      ...{'<', '<=', '>', '>=', '=='},
+      'unary-',
+    }.contains(_it);
+  }
+
   bool get isPrivate => _it.startsWith('_');
+
+  bool get isSetter {
+    return _it.endsWith('=') && !const {'==', '<=', '>=', '[]='}.contains(_it);
+  }
+
+  /// This name must be a name of a method.
+  LookupName get methodToSetter {
+    assert(!isSetter);
+    if (isOperator || isIndexOrIndexEq) {
+      return this;
+    }
+    return LookupName('$_it=');
+  }
+
+  List<LookupName> get relatedNames {
+    if (isOperator) {
+      return [this];
+    }
+
+    if (isIndexOrIndexEq) {
+      return ['[]'.asLookupName, '[]='.asLookupName];
+    }
+
+    if (isSetter) {
+      return [this, setterToGetter];
+    }
+
+    var setterName = '$_it=';
+    return [this, setterName.asLookupName];
+  }
+
+  /// This name must be a name of a setter.
+  LookupName get setterToGetter {
+    assert(isSetter);
+    assert(_it.endsWith('='));
+    return _it.substring(0, _it.length - 1).asLookupName;
+  }
 
   void write(BufferedSink sink) {
     sink.writeStringUtf8(_it);
@@ -71,6 +136,12 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
+extension LookupNameIterableExtension on Iterable<LookupName> {
+  void write(BufferedSink sink) {
+    sink.writeIterable(this, (name) => name.write(sink));
+  }
+}
+
 extension StringExtension on String {
   BaseName get asBaseName {
     return BaseName(this);
@@ -88,6 +159,16 @@ extension SummaryDataReaderExtension on SummaryDataReader {
     for (var i = 0; i < length; i++) {
       var baseName = BaseName.read(this);
       result.add(baseName);
+    }
+    return result;
+  }
+
+  Set<LookupName> readLookupNameSet() {
+    var length = readUInt30();
+    var result = <LookupName>{};
+    for (var i = 0; i < length; i++) {
+      var lookupName = LookupName.read(this);
+      result.add(lookupName);
     }
     return result;
   }

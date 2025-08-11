@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
-import 'package:native_assets_cli/code_assets.dart';
 
 final _rpathUri = Uri.file('@rpath/');
 
@@ -157,4 +157,46 @@ Map<Architecture?, List<String>> parseOtoolArchitectureSections(String output) {
   }
 
   return architectureSections;
+}
+
+/// Rewrites the include path for an executable on MacOS.
+///
+/// The directory structure for `dart build cli` is
+///
+/// ```
+/// bundle/
+///   bin/
+///     <executable>
+///   lib/
+///     <dylibs>
+/// ```
+///
+/// So, the `bundle/` directory must be added to the include path to allow for
+/// loading dylibs.
+Future<void> rewriteInstallPath(Uri executable) async {
+  final result = await Process.run(
+    'install_name_tool',
+    ['-add_rpath', '@executable_path/..', executable.toFilePath()],
+  );
+  if (result.exitCode != 0) {
+    throw Exception(
+      'Failed to add rpath: ${result.stderr}',
+    );
+  }
+
+  // Resign after modifying.
+  final codesignResult = await Process.run(
+    'codesign',
+    [
+      '--force',
+      '--sign',
+      '-',
+      executable.toFilePath(),
+    ],
+  );
+  if (codesignResult.exitCode != 0) {
+    throw Exception(
+      'Failed to codesign dylib $executable: ${codesignResult.stderr}',
+    );
+  }
 }

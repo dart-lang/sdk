@@ -62,16 +62,15 @@ run(
       entryPoint: entryPoint,
       options: options,
     );
-    load_kernel.Output result =
-        (await load_kernel.run(
-          load_kernel.Input(
-            compiler.options,
-            compiler.provider,
-            compiler.reporter,
-            compiler.initializedCompilerState,
-            false,
-          ),
-        ))!;
+    load_kernel.Output result = (await load_kernel.run(
+      load_kernel.Input(
+        compiler.options,
+        compiler.provider,
+        compiler.reporter,
+        compiler.initializedCompilerState,
+        false,
+      ),
+    ))!;
     compiler.frontendStrategy.registerLoadedLibraries(
       result.component,
       result.libraries!,

@@ -16,11 +16,18 @@ main() {
 @reflectiveTest
 class ExportInternalLibraryTest extends PubPackageResolutionTest {
   test_export_internal_library() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'dart:_internal';
-''', [
-      error(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, 0, 24,
-          messageContains: ["library 'dart:_internal' "]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+          0,
+          24,
+          messageContains: ["library 'dart:_internal' "],
+        ),
+      ],
+    );
   }
 }

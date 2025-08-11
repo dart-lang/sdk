@@ -22,8 +22,7 @@ abstract class ValueKind {
 /// A [ValueKind] for a particular type [T], optionally with a recognized
 /// [NullValue].
 class SingleValueKind<T> implements ValueKind {
-  // TODO(johnniwinther): Type this as `NullValue<T>?`.
-  final NullValue<Object>? nullValue;
+  final NullValue? nullValue;
 
   const SingleValueKind([this.nullValue]);
 

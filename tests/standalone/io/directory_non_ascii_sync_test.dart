@@ -6,8 +6,9 @@ import "package:expect/expect.dart";
 import 'dart:io';
 
 main() {
-  Directory tempDir =
-      Directory.systemTemp.createTempSync('dart_directory_non_ascii_sync');
+  Directory tempDir = Directory.systemTemp.createTempSync(
+    'dart_directory_non_ascii_sync',
+  );
   var nonAsciiDir = new Directory("${tempDir.path}/æøå");
   // On MacOS you get the decomposed utf8 form of file and directory
   // names from the system. Therefore, we have to check for both here.
@@ -18,11 +19,13 @@ main() {
   Expect.isTrue(nonAsciiDir.existsSync());
   var temp = new Directory("${tempDir.path}/æøå").createTempSync('tempdir');
   Expect.isTrue(
-      temp.path.contains(precomposed) || temp.path.contains(decomposed));
+    temp.path.contains(precomposed) || temp.path.contains(decomposed),
+  );
   temp.deleteSync();
   temp = tempDir.createTempSync('æøå');
   Expect.isTrue(
-      temp.path.contains(precomposed) || temp.path.contains(decomposed));
+    temp.path.contains(precomposed) || temp.path.contains(decomposed),
+  );
   temp.deleteSync();
   tempDir.deleteSync(recursive: true);
   Expect.isFalse(nonAsciiDir.existsSync());

@@ -28,13 +28,19 @@ class Bar extends Foo {}
 interface class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 class Bar extends Foo {}
-''', [
-      error(CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          37, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          37,
+          3,
+        ),
+      ],
+    );
   }
 
   test_outside_viaTypedef_inside() async {
@@ -43,13 +49,19 @@ interface class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 class Bar extends FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          37, 10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          37,
+          10,
+        ),
+      ],
+    );
   }
 
   test_outside_viaTypedef_outside() async {
@@ -57,14 +69,20 @@ class Bar extends FooTypedef {}
 interface class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          63, 10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          63,
+          10,
+        ),
+      ],
+    );
   }
 
   test_subtypeOfBase_outside() async {

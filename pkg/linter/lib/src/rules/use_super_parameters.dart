@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 
@@ -23,26 +25,23 @@ Set<FormalParameterElement> _referencedParameters(
   return collector.foundParameters;
 }
 
-class UseSuperParameters extends LintRule {
+class UseSuperParameters extends MultiAnalysisRule {
   UseSuperParameters()
     : super(
         name: LintNames.use_super_parameters,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.use_super_parameters_multiple,
     LinterLintCode.use_super_parameters_single,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    if (!context.isEnabled(Feature.super_parameters)) return;
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    if (!context.isFeatureEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
@@ -62,8 +61,8 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LinterContext context;
-  final LintRule rule;
+  final RuleContext context;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule, this.context);
 
@@ -93,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var parameter in parameters.parameters) {
       var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement == null) continue;
-      if (parameterElement is FieldFormalParameterElement2) continue;
+      if (parameterElement is FieldFormalParameterElement) continue;
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
@@ -128,7 +127,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// there are parameters that can't be converted since this will short-circuit
   /// the lint.
   List<String>? _checkForConvertiblePositionalParams(
-    ConstructorElement2 constructorElement,
+    ConstructorElement constructorElement,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
     Set<FormalParameterElement> referencedParameters,
@@ -148,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var convertibleConstructorParams = <String>[];
     var matchedConstructorParamIndex = 0;
 
-    var seenSuperParams = <Element2>{};
+    var seenSuperParams = <Element>{};
 
     // For each super arg, ensure there is a constructor param (in the right
     // order).
@@ -196,7 +195,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _checkNamedParameter(
     FormalParameter parameter,
     FormalParameterElement parameterElement,
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     SuperConstructorInvocation superInvocation,
   ) {
     var superParameter = _correspondingNamedParameter(
@@ -209,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
       if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name3) {
+          argument.name.label.name == parameterElement.name) {
         var expression = argument.expression;
         if (expression is SimpleIdentifier &&
             expression.element == parameterElement) {
@@ -237,12 +236,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   FormalParameterElement? _correspondingNamedParameter(
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     FormalParameterElement thisParameter,
   ) {
     for (var superParameter in superConstructor.formalParameters) {
-      if (superParameter.isNamed &&
-          superParameter.name3 == thisParameter.name3) {
+      if (superParameter.isNamed && superParameter.name == thisParameter.name) {
         return superParameter;
       }
     }
@@ -254,17 +252,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.name ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_multiple,
+        diagnosticCode: LinterLintCode.use_super_parameters_multiple,
         arguments: [msg],
       );
     } else {
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
-        errorCode: LinterLintCode.use_super_parameters_single,
+        diagnosticCode: LinterLintCode.use_super_parameters_single,
         arguments: [identifiers.first],
       );
     }

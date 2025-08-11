@@ -32,7 +32,9 @@ class MetadataBuilder {
   /// Expression for an already parsed annotation.
   Expression? _expression;
 
-  MetadataBuilder(Token this._atToken)
+  final Uri fileUri;
+
+  MetadataBuilder(Token this._atToken, this.fileUri)
       : atOffset = _atToken.charOffset,
         hasPatch = _atToken.next?.lexeme == 'patch';
 
@@ -51,13 +53,12 @@ class MetadataBuilder {
       _unresolvedSharedExpressionForTesting;
 
   static void buildAnnotations(
-      Annotatable parent,
-      List<MetadataBuilder>? metadata,
-      BodyBuilderContext bodyBuilderContext,
-      SourceLibraryBuilder library,
-      Uri fileUri,
-      LookupScope scope,
-      {bool createFileUriExpression = false}) {
+      {required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required List<MetadataBuilder>? metadata,
+      required BodyBuilderContext bodyBuilderContext,
+      required SourceLibraryBuilder libraryBuilder,
+      required LookupScope scope}) {
     if (metadata == null) return;
 
     // [BodyBuilder] used to build annotations from [Token]s.
@@ -74,33 +75,42 @@ class MetadataBuilder {
 
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
+      bool createFileUriExpression =
+          annotatableFileUri != annotationBuilder.fileUri;
       Token? beginToken = annotationBuilder._atToken;
       if (beginToken != null) {
         if (computeSharedExpressionForTesting) {
           // Coverage-ignore-block(suite): Not run.
           annotationBuilder._sharedExpression = _parseSharedExpression(
-              library.loader, beginToken, library.importUri, fileUri, scope);
+              libraryBuilder.loader,
+              beginToken,
+              libraryBuilder.importUri,
+              annotationBuilder.fileUri,
+              scope);
           if (delaySharedExpressionLookupForTesting) {
             annotationBuilder._unresolvedSharedExpressionForTesting =
-                _parseSharedExpression(library.loader, beginToken,
-                    library.importUri, fileUri, scope,
+                _parseSharedExpression(libraryBuilder.loader, beginToken,
+                    libraryBuilder.importUri, annotationBuilder.fileUri, scope,
                     delayLookupForTesting: true);
           }
         }
 
-        bodyBuilder ??= library.loader.createBodyBuilderForOutlineExpression(
-            library, bodyBuilderContext, scope, fileUri);
+        bodyBuilder ??= libraryBuilder.loader
+            .createBodyBuilderForOutlineExpression(libraryBuilder,
+                bodyBuilderContext, scope, annotationBuilder.fileUri);
         Expression annotation = bodyBuilder.parseAnnotation(beginToken);
         annotationBuilder._atToken = null;
         if (createFileUriExpression) {
-          annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.atOffset;
+          annotation =
+              new FileUriExpression(annotation, annotationBuilder.fileUri)
+                ..fileOffset = annotationBuilder.atOffset;
         }
         // Record the index of [annotation] in `parent.annotations`.
-        parsedAnnotationBuilders[annotationBuilder] = parent.annotations.length;
+        parsedAnnotationBuilders[annotationBuilder] =
+            annotatable.annotations.length;
         // It is important for the inference and backlog computations that the
         // annotation is already a child of [parent].
-        parent.addAnnotation(annotation);
+        annotatable.addAnnotation(annotation);
       } else {
         // The annotation is needed for multiple declarations so we need to
         // clone the expression to use it more than once. For instance
@@ -124,22 +134,23 @@ class MetadataBuilder {
             cloner.cloneInContext(annotationBuilder._expression!);
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
-          annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.atOffset;
+          annotation =
+              new FileUriExpression(annotation, annotationBuilder.fileUri)
+                ..fileOffset = annotationBuilder.atOffset;
         }
-        parent.addAnnotation(annotation);
+        annotatable.addAnnotation(annotation);
       }
     }
     if (bodyBuilder != null) {
       // TODO(johnniwinther): Avoid potentially inferring annotations multiple
       // times.
-      bodyBuilder.inferAnnotations(parent, parent.annotations);
+      bodyBuilder.inferAnnotations(annotatable, annotatable.annotations);
       bodyBuilder.performBacklogComputations();
       for (MapEntry<MetadataBuilder, int> entry
           in parsedAnnotationBuilders.entries) {
         MetadataBuilder annotationBuilder = entry.key;
         int index = entry.value;
-        annotationBuilder._expression = parent.annotations[index];
+        annotationBuilder._expression = annotatable.annotations[index];
       }
     }
   }

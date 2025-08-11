@@ -26,8 +26,12 @@ main() {
   TestWalker walk(String startingNodeName) =>
       TestWalker()..walk(getNode(startingNodeName));
 
-  void checkGraph(Map<String, List<String>> graph, String startingNodeName,
-      List<List<String>> expectedEvaluations, List<bool> expectedSccFlags) {
+  void checkGraph(
+    Map<String, List<String>> graph,
+    String startingNodeName,
+    List<List<String>> expectedEvaluations,
+    List<bool> expectedSccFlags,
+  ) {
     makeGraph(graph);
     var walker = walk(startingNodeName);
     expect(walker._evaluations, expectedEvaluations.map((x) => x.toSet()));
@@ -36,144 +40,153 @@ main() {
 
   test('Complex graph', () {
     checkGraph(
-        {
-          'a': ['b', 'c'],
-          'b': ['c', 'd'],
-          'c': [],
-          'd': ['c', 'e'],
-          'e': ['b', 'f'],
-          'f': ['c', 'd']
-        },
-        'a',
-        [
-          ['c'],
-          ['b', 'd', 'e', 'f'],
-          ['a']
-        ],
-        [false, true, false]);
+      {
+        'a': ['b', 'c'],
+        'b': ['c', 'd'],
+        'c': [],
+        'd': ['c', 'e'],
+        'e': ['b', 'f'],
+        'f': ['c', 'd'],
+      },
+      'a',
+      [
+        ['c'],
+        ['b', 'd', 'e', 'f'],
+        ['a'],
+      ],
+      [false, true, false],
+    );
   });
 
   test('Diamond', () {
     checkGraph(
-        {
-          'a': ['b', 'c'],
-          'b': ['d'],
-          'c': ['d'],
-          'd': []
-        },
-        'a',
-        [
-          ['d'],
-          ['b'],
-          ['c'],
-          ['a']
-        ],
-        [false, false, false, false]);
+      {
+        'a': ['b', 'c'],
+        'b': ['d'],
+        'c': ['d'],
+        'd': [],
+      },
+      'a',
+      [
+        ['d'],
+        ['b'],
+        ['c'],
+        ['a'],
+      ],
+      [false, false, false, false],
+    );
   });
 
   test('Single node', () {
     checkGraph(
-        {'a': []},
-        'a',
-        [
-          ['a']
-        ],
-        [false]);
+      {'a': []},
+      'a',
+      [
+        ['a'],
+      ],
+      [false],
+    );
   });
 
   test('Single node with trivial cycle', () {
     checkGraph(
-        {
-          'a': ['a']
-        },
-        'a',
-        [
-          ['a']
-        ],
-        [true]);
+      {
+        'a': ['a'],
+      },
+      'a',
+      [
+        ['a'],
+      ],
+      [true],
+    );
   });
 
   test('Three nodes with circular dependency', () {
     checkGraph(
-        {
-          'a': ['b'],
-          'b': ['c'],
-          'c': ['a'],
-        },
-        'a',
-        [
-          ['a', 'b', 'c']
-        ],
-        [true]);
+      {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['a'],
+      },
+      'a',
+      [
+        ['a', 'b', 'c'],
+      ],
+      [true],
+    );
   });
 
   group('Two backlinks:', () {
     test('earlier first', () {
       // Test a graph A->B->C->D, where D points back to B and then C.
       checkGraph(
-          {
-            'a': ['b'],
-            'b': ['c'],
-            'c': ['d'],
-            'd': ['b', 'c']
-          },
-          'a',
-          [
-            ['b', 'c', 'd'],
-            ['a']
-          ],
-          [true, false]);
+        {
+          'a': ['b'],
+          'b': ['c'],
+          'c': ['d'],
+          'd': ['b', 'c'],
+        },
+        'a',
+        [
+          ['b', 'c', 'd'],
+          ['a'],
+        ],
+        [true, false],
+      );
     });
 
     test('later first', () {
       // Test a graph A->B->C->D, where D points back to C and then B.
       checkGraph(
-          {
-            'a': ['b'],
-            'b': ['c'],
-            'c': ['d'],
-            'd': ['c', 'b']
-          },
-          'a',
-          [
-            ['b', 'c', 'd'],
-            ['a']
-          ],
-          [true, false]);
+        {
+          'a': ['b'],
+          'b': ['c'],
+          'c': ['d'],
+          'd': ['c', 'b'],
+        },
+        'a',
+        [
+          ['b', 'c', 'd'],
+          ['a'],
+        ],
+        [true, false],
+      );
     });
   });
 
   test('Two nodes with circular dependency', () {
     checkGraph(
-        {
-          'a': ['b'],
-          'b': ['a']
-        },
-        'a',
-        [
-          ['a', 'b']
-        ],
-        [true]);
+      {
+        'a': ['b'],
+        'b': ['a'],
+      },
+      'a',
+      [
+        ['a', 'b'],
+      ],
+      [true],
+    );
   });
 
   test('Two nodes with simple dependency', () {
     checkGraph(
-        {
-          'a': ['b'],
-          'b': []
-        },
-        'a',
-        [
-          ['b'],
-          ['a']
-        ],
-        [false, false]);
+      {
+        'a': ['b'],
+        'b': [],
+      },
+      'a',
+      [
+        ['b'],
+        ['a'],
+      ],
+      [false, false],
+    );
   });
 
   test('Do not revisit already-evaluated nodes', () {
     makeGraph({
       'a': ['b'],
-      'b': []
+      'b': [],
     });
     var walker = TestWalker();
     var a = getNode('a');

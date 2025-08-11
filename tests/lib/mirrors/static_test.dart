@@ -19,15 +19,25 @@ class Foo {
 }
 
 void main() {
-  expect('Variable(s(aux) in s(Foo))',
-      reflectClass(Foo).declarations[new Symbol('aux')]);
-  expect('Method(s(baz) in s(Foo))',
-      reflectClass(Foo).declarations[new Symbol('baz')]);
+  expect(
+    'Variable(s(aux) in s(Foo))',
+    reflectClass(Foo).declarations[new Symbol('aux')],
+  );
+  expect(
+    'Method(s(baz) in s(Foo))',
+    reflectClass(Foo).declarations[new Symbol('baz')],
+  );
   expect('<null>', reflectClass(Foo).declarations[new Symbol('aux=')]);
-  expect('Method(s(foo) in s(Foo), static)',
-      reflectClass(Foo).declarations[new Symbol('foo')]);
-  expect('Variable(s(bar) in s(Foo), static)',
-      reflectClass(Foo).declarations[new Symbol('bar')]);
-  expect('Variable(s(biz) in s(Foo), static, final, const)',
-      reflectClass(Foo).declarations[new Symbol('biz')]);
+  expect(
+    'Method(s(foo) in s(Foo), static)',
+    reflectClass(Foo).declarations[new Symbol('foo')],
+  );
+  expect(
+    'Variable(s(bar) in s(Foo), static)',
+    reflectClass(Foo).declarations[new Symbol('bar')],
+  );
+  expect(
+    'Variable(s(biz) in s(Foo), static, final, const)',
+    reflectClass(Foo).declarations[new Symbol('biz')],
+  );
 }

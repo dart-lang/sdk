@@ -5,7 +5,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   constructor •() → self::A
     ;
-  static factory redir({core::double foo = null}) → self::A /* redirection-target: self::B::•<dynamic>*/
+  static factory redir({core::double foo = 10.0}) → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>(foo: foo);
 }
 class B<T extends core::Object? = dynamic> extends self::A {

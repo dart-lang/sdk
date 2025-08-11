@@ -10,14 +10,15 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dump_info.dart';
+import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/strategies.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:compiler/src/util/memory_compiler.dart';
+
 import '../helpers/text_helpers.dart';
 
 /// Entries in dump info that naturally differ between compilations.
@@ -50,7 +51,6 @@ Future<void> generateJavaScriptCode(
       DumpInfoProgramData.fromEmitterResults(
         compiler.backendStrategy.emitterTask,
         compiler.dumpInfoRegistry,
-        codegenResults,
         programSize,
       ),
     );

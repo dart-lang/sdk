@@ -16,7 +16,7 @@ import 'package:path/path.dart' as path;
 bar() {
   // Keep the 'throw' and its argument on separate lines.
   throw // force linebreak with dart format
-      "Hello, Dwarf!";
+  "Hello, Dwarf!";
 }
 
 @pragma("vm:never-inline")
@@ -40,20 +40,29 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
+  if (Platform.script.toString().endsWith(".dll")) {
+    return; // DWARF not available in DLLs.
+  }
+
   final dwarf = Dwarf.fromFile(
-      path.join(Platform.environment["TEST_COMPILATION_DIR"]!, "dwarf.so"))!;
+    path.join(Platform.environment["TEST_COMPILATION_DIR"]!, "dwarf.so"),
+  )!;
 
   await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
 
-Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
-    List<List<DartCallInfo>> expectedCallsInfo) async {
+Future<void> checkStackTrace(
+  String rawStack,
+  Dwarf dwarf,
+  List<List<DartCallInfo>> expectedCallsInfo,
+) async {
   print("");
   print("Raw stack trace:");
   print(rawStack);
 
-  final rawLines =
-      await Stream.value(rawStack).transform(const LineSplitter()).toList();
+  final rawLines = await Stream.value(
+    rawStack,
+  ).transform(const LineSplitter()).toList();
 
   final pcOffsets = collectPCOffsets(rawLines).toList();
   Expect.isNotEmpty(pcOffsets);
@@ -73,8 +82,9 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   print('Isolate start offset: 0x${isolateStart!.toRadixString(16)}');
 
   // The addresses of the stack frames in the separate DWARF debugging info.
-  final virtualAddresses =
-      pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
+  final virtualAddresses = pcOffsets
+      .map((o) => dwarf.virtualAddressOf(o))
+      .toList();
 
   print('Virtual addresses from PCOffsets:');
   for (final address in virtualAddresses) {
@@ -87,8 +97,10 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   print('DSO base address: 0x${dsoBase.toRadixString(16)}');
 
   final absoluteIsolateStart = isolateStartAddresses(rawLines).single;
-  print('Absolute isolate start address: '
-      '0x${absoluteIsolateStart.toRadixString(16)}');
+  print(
+    'Absolute isolate start address: '
+    '0x${absoluteIsolateStart.toRadixString(16)}',
+  );
 
   final absolutes = absoluteAddresses(rawLines);
   // The relocated addresses of the stack frames in the loaded DSO. These is
@@ -125,19 +137,25 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   for (final offset in pcOffsets) {
     final externalCallInfo = dwarf.callInfoForPCOffset(offset);
     Expect.isNotNull(externalCallInfo);
-    final allCallInfo =
-        dwarf.callInfoForPCOffset(offset, includeInternalFrames: true);
+    final allCallInfo = dwarf.callInfoForPCOffset(
+      offset,
+      includeInternalFrames: true,
+    );
     Expect.isNotNull(allCallInfo);
     for (final call in externalCallInfo!) {
       Expect.isTrue(call is DartCallInfo, "got non-Dart call info ${call}");
       Expect.isFalse(call.isInternal);
-      Expect.isTrue(allCallInfo!.contains(call),
-          "External call info ${call} is not among all calls");
+      Expect.isTrue(
+        allCallInfo!.contains(call),
+        "External call info ${call} is not among all calls",
+      );
     }
     for (final call in allCallInfo!) {
       if (!call.isInternal) {
-        Expect.isTrue(externalCallInfo.contains(call),
-            "External call info ${call} is not among external calls");
+        Expect.isTrue(
+          externalCallInfo.contains(call),
+          "External call info ${call} is not among external calls",
+        );
       }
     }
     gotCallsInfo.add(externalCallInfo.cast<DartCallInfo>().toList());
@@ -160,8 +178,9 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
       .transform(DwarfStackTraceDecoder(dwarf, includeInternalFrames: false))
       .toList();
 
-  final gotSymbolizedCalls =
-      gotSymbolizedLines.where((s) => s.startsWith('#')).toList();
+  final gotSymbolizedCalls = gotSymbolizedLines
+      .where((s) => s.startsWith('#'))
+      .toList();
 
   print("");
   print("Symbolized stack trace:");
@@ -178,8 +197,9 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
 
   // Strip off any unexpected lines, so we can also make sure we didn't get
   // unexpected calls prior to those calls we expect.
-  final gotCallsTrace =
-      gotSymbolizedCalls.sublist(0, expectedCallCount).join('\n');
+  final gotCallsTrace = gotSymbolizedCalls
+      .sublist(0, expectedCallCount)
+      .join('\n');
 
   Expect.containsInOrder(expectedStrings, gotCallsTrace);
 }
@@ -189,33 +209,38 @@ final expectedCallsInfo = <List<DartCallInfo>>[
   // into foo (so we'll get information for two calls for that PC address).
   [
     DartCallInfo(
-        function: "bar",
-        filename: "dwarf_stack_trace_test.dart",
-        line: 17,
-        column: 3,
-        inlined: true),
+      function: "bar",
+      filename: "dwarf_stack_trace_test.dart",
+      line: 18,
+      column: 3,
+      inlined: true,
+    ),
     DartCallInfo(
-        function: "foo",
-        filename: "dwarf_stack_trace_test.dart",
-        line: 23,
-        column: 3,
-        inlined: false)
+      function: "foo",
+      filename: "dwarf_stack_trace_test.dart",
+      line: 24,
+      column: 3,
+      inlined: false,
+    ),
   ],
   // The second frame corresponds to call to foo in main.
   [
     DartCallInfo(
-        function: "main",
-        filename: "dwarf_stack_trace_test.dart",
-        line: 29,
-        column: 5,
-        inlined: false)
+      function: "main",
+      filename: "dwarf_stack_trace_test.dart",
+      line: 30,
+      column: 5,
+      inlined: false,
+    ),
   ],
   // Don't assume anything about any of the frames below the call to foo
   // in main, as this makes the test too brittle.
 ];
 
 void checkFrames(
-    List<List<DartCallInfo>> gotInfo, List<List<DartCallInfo>> expectedInfo) {
+  List<List<DartCallInfo>> gotInfo,
+  List<List<DartCallInfo>> expectedInfo,
+) {
   // There may be frames below those we check.
   Expect.isTrue(gotInfo.length >= expectedInfo.length);
 

@@ -17,7 +17,8 @@ main() {
 class SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest
     extends PubPackageResolutionTest {
   test_generic_requiredPositional_explicit_notSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A(T a);
 }
@@ -25,13 +26,16 @@ class A<T> {
 class B extends A<int> {
   B(num super.a);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
           65,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generic_requiredPositional_explicit_same() async {
@@ -59,7 +63,8 @@ class B extends A<num> {
   }
 
   test_requiredNamed_explicit_notSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A({required int a});
 }
@@ -67,13 +72,16 @@ class A {
 class B extends A {
   B({required num super.a});
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
           80,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_requiredNamed_explicit_same() async {
@@ -113,7 +121,8 @@ class B extends A {
   }
 
   test_requiredPositional_explicit_notSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a);
 }
@@ -121,18 +130,22 @@ class A {
 class B extends A {
   B(num super.a);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
           59,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   /// No implicit coercions, like downcast from `dynamic`.
   test_requiredPositional_explicit_notSubtype_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a);
 }
@@ -140,13 +153,16 @@ class A {
 class B extends A {
   B(dynamic super.a);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
           63,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_requiredPositional_explicit_same() async {

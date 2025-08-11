@@ -17,16 +17,16 @@ void main() {
 @reflectiveTest
 class ConvertIntoIsNotEmptyTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
+  AssistKind get kind => DartAssistKind.convertIntoIsNotEmpty;
 
   Future<void> test_noBang() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f(String str) {
-  ~str.isEmpty;
+  ~str.^isEmpty;
 }
 ''');
-    await assertNoAssistAt('isEmpty;');
+    await assertNoAssist();
   }
 
   Future<void> test_noIsNotEmpty() async {
@@ -35,37 +35,37 @@ class A {
   bool get isEmpty => false;
 }
 void f(A a) {
-  !a.isEmpty;
+  !a.^isEmpty;
 }
 ''');
-    await assertNoAssistAt('isEmpty;');
+    await assertNoAssist();
   }
 
   Future<void> test_notInPrefixExpression() async {
     await resolveTestCode('''
 void f(String str) {
-  str.isEmpty;
+  str.^isEmpty;
 }
 ''');
-    await assertNoAssistAt('isEmpty;');
+    await assertNoAssist();
   }
 
   Future<void> test_notIsEmpty() async {
     await resolveTestCode('''
 void f(int p) {
-  !p.isEven;
+  !p.^isEven;
 }
 ''');
-    await assertNoAssistAt('isEven;');
+    await assertNoAssist();
   }
 
   Future<void> test_on_isEmpty() async {
     await resolveTestCode('''
 void f(String str) {
-  !str.isEmpty;
+  !str.^isEmpty;
 }
 ''');
-    await assertHasAssistAt('isEmpty', '''
+    await assertHasAssist('''
 void f(String str) {
   str.isNotEmpty;
 }
@@ -75,10 +75,10 @@ void f(String str) {
   Future<void> test_on_str() async {
     await resolveTestCode('''
 void f(String str) {
-  !str.isEmpty;
+  !^str.isEmpty;
 }
 ''');
-    await assertHasAssistAt('str.', '''
+    await assertHasAssist('''
 void f(String str) {
   str.isNotEmpty;
 }
@@ -88,10 +88,10 @@ void f(String str) {
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
 void f(String str) {
-  !'text'.isEmpty;
+  !'text'.^isEmpty;
 }
 ''');
-    await assertHasAssistAt('isEmpty', '''
+    await assertHasAssist('''
 void f(String str) {
   'text'.isNotEmpty;
 }

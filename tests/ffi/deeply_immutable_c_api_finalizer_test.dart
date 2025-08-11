@@ -40,10 +40,9 @@ final class MyFinalizable implements Finalizable {
   }
 }
 
-final calloc =
-    dlopenPlatformSpecific("ffi_test_functions")
-        .lookup<NativeFunction<Pointer<Void> Function(Size, Size)>>('Calloc')
-        .asFunction<Pointer<Void> Function(int, int)>();
+final calloc = dlopenPlatformSpecific("ffi_test_functions")
+    .lookup<NativeFunction<Pointer<Void> Function(Size, Size)>>('Calloc')
+    .asFunction<Pointer<Void> Function(int, int)>();
 
 final freeFinalizer = dlopenPlatformSpecific(
   "ffi_test_functions",
@@ -55,19 +54,18 @@ final Dart_FinalizableHandle Function(
   int,
   Dart_HandleFinalizer,
 )
-newFinalizableHandle =
-    _findDartApiFunction('Dart_NewFinalizableHandle')
-        .cast<
-          NativeFunction<
-            Dart_FinalizableHandle Function(
-              Handle,
-              Pointer<Void>,
-              IntPtr,
-              Dart_HandleFinalizer,
-            )
-          >
-        >()
-        .asFunction();
+newFinalizableHandle = _findDartApiFunction('Dart_NewFinalizableHandle')
+    .cast<
+      NativeFunction<
+        Dart_FinalizableHandle Function(
+          Handle,
+          Pointer<Void>,
+          IntPtr,
+          Dart_HandleFinalizer,
+        )
+      >
+    >()
+    .asFunction();
 
 final void Function(Dart_FinalizableHandle, Object) deleteFinalizableHandle =
     _findDartApiFunction('Dart_DeleteFinalizableHandle')

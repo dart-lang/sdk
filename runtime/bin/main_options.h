@@ -58,6 +58,7 @@ namespace bin {
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)                                     \
   V(print_dtd, print_dtd)                                                      \
+  V(profile_microtasks, profile_microtasks)                                    \
   /* The purpose of this flag is documented in */                              \
   /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
   V(resident, resident)
@@ -68,7 +69,7 @@ namespace bin {
   V(v, verbose, verbose_option)
 
 #define DEBUG_BOOL_OPTIONS_LIST(V)                                             \
-  V(force_load_elf_from_memory, force_load_elf_from_memory)
+  V(force_load_from_memory, force_load_from_memory)
 
 // A list of flags taking arguments from an enum. Organized as:
 //   V(flag_name, enum_type, field_name)
@@ -84,6 +85,7 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
+  V(ProcessProfileMicrotasksOption)                                            \
   V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.

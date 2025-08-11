@@ -12,14 +12,24 @@ main() {
 
   Expect.identical(Zone.root, Zone.current);
   Zone forked;
-  forked = Zone.current.fork(specification: new ZoneSpecification(createTimer:
-      (Zone self, ZoneDelegate parent, Zone origin, Duration duration, f()) {
-    events.add("forked.createTimer");
-    return parent.createTimer(origin, duration, () {
-      events.add("wrapped function ${duration.inMilliseconds}");
-      f();
-    });
-  }));
+  forked = Zone.current.fork(
+    specification: new ZoneSpecification(
+      createTimer:
+          (
+            Zone self,
+            ZoneDelegate parent,
+            Zone origin,
+            Duration duration,
+            f(),
+          ) {
+            events.add("forked.createTimer");
+            return parent.createTimer(origin, duration, () {
+              events.add("wrapped function ${duration.inMilliseconds}");
+              f();
+            });
+          },
+    ),
+  );
 
   asyncStart();
   forked.run(() {
@@ -38,7 +48,7 @@ main() {
       "forked.createTimer",
       "after createTimer",
       "wrapped function 0",
-      "createTimer"
+      "createTimer",
     ], events);
     asyncEnd();
   });

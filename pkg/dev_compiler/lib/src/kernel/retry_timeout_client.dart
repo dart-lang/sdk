@@ -43,13 +43,13 @@ class RetryTimeoutClient {
     Duration Function(int retryCount)? connectionTimeout,
     Duration Function(int retryCount)? responseTimeout,
     void Function(Uri, HttpClientResponse?, int retryCount)? onRetry,
-  })  : _retries = retries,
-        _when = when ?? _defaultWhen,
-        _whenError = whenError ?? _defaultWhenError,
-        _delay = delay ?? _defaultDelay,
-        _connectionTimeout = connectionTimeout ?? _defaultTimeout,
-        _responseTimeout = responseTimeout ?? _defaultTimeout,
-        _onRetry = onRetry {
+  }) : _retries = retries,
+       _when = when ?? _defaultWhen,
+       _whenError = whenError ?? _defaultWhenError,
+       _delay = delay ?? _defaultDelay,
+       _connectionTimeout = connectionTimeout ?? _defaultTimeout,
+       _responseTimeout = responseTimeout ?? _defaultTimeout,
+       _onRetry = onRetry {
     RangeError.checkNotNegative(_retries, 'retries');
   }
 
@@ -62,7 +62,9 @@ class RetryTimeoutClient {
   }
 
   Future<HttpClientResponse> _retry(
-      Uri url, Future<HttpClientRequest> Function(Uri) method) async {
+    Uri url,
+    Future<HttpClientRequest> Function(Uri) method,
+  ) async {
     var i = 0;
     for (;;) {
       HttpClientResponse? response;

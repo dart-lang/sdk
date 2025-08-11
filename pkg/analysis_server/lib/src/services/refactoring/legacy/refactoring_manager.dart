@@ -15,10 +15,10 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
 int test_resetCount = 0;
@@ -222,8 +222,8 @@ class RefactoringManager {
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
+        var element = node?.getElement();
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
@@ -235,9 +235,9 @@ class RefactoringManager {
     } else if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element is ExecutableElement2) {
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
+        var element = node?.getElement();
+        if (element is ExecutableElement) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
             resolvedUnit.session,
@@ -315,8 +315,8 @@ class RefactoringManager {
     } else if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node, useMockForImport: true);
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
+        var element = node?.getElement(useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&

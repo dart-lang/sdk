@@ -4,14 +4,14 @@ library;
 //
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:17:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E2 with A2 { // Error.
-//      ^^^^^^
+//      ^
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:14:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:49:6: Error: Can't declare a member that conflicts with an inherited one.
 // enum E6 with M6 { // Error.
-//      ^^^^^^
+//      ^
 // pkg/front_end/testcases/enhanced_enums/inherited_restricted_members.dart:46:11: Context: This is the inherited member.
 //   int get values => 42;
 //           ^^^^^^
@@ -87,7 +87,7 @@ class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super self::_E1&_Enum&A1::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 mixin class A2 extends core::Object {
@@ -102,7 +102,7 @@ class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super self::_E2&_Enum&A2::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 mixin class A3 extends core::Object {
@@ -117,7 +117,7 @@ class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super self::_E3&_Enum&A3::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 mixin class A4 extends core::Object {
@@ -132,7 +132,7 @@ class E4 extends self::_E4&_Enum&A4 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super self::_E4&_Enum&A4::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M5 extends core::Object /*isMixinDeclaration*/  {
@@ -145,7 +145,7 @@ class E5 extends self::_E5&_Enum&M5 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super self::_E5&_Enum&M5::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M6 extends core::Object /*isMixinDeclaration*/  {
@@ -158,7 +158,7 @@ class E6 extends self::_E6&_Enum&M6 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super self::_E6&_Enum&M6::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M7 extends core::Object /*isMixinDeclaration*/  {
@@ -171,7 +171,7 @@ class E7 extends self::_E7&_Enum&M7 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super self::_E7&_Enum&M7::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M8 extends core::Object /*isMixinDeclaration*/  {
@@ -184,7 +184,7 @@ class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E8
     : super self::_E8&_Enum&M8::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract mixin class A9 extends core::Object {
@@ -200,7 +200,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E9
     : super self::_E9&_Enum&A9::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M10 extends core::Object /*isMixinDeclaration*/  {
@@ -214,80 +214,80 @@ class E10 extends self::_E10&_Enum&M10 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E10
     : super self::_E10&_Enum&M10::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E1&_Enum&A1 = core::_Enum with self::A1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&A1
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get hashCode() → core::int
+  synthetic mixin-super-stub get hashCode() → core::int
     return super.{self::A1::hashCode};
 }
 abstract class _E2&_Enum&A2 = core::_Enum with self::A2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&A2
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get values() → core::int
+  synthetic mixin-super-stub get values() → core::int
     return super.{self::A2::values};
 }
 abstract class _E3&_Enum&A3 = core::_Enum with self::A3 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&A3
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get index() → core::int
+  synthetic mixin-super-stub get index() → core::int
     return super.{self::A3::index};
 }
 abstract class _E4&_Enum&A4 = core::_Enum with self::A4 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&A4
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub operator ==(core::Object other) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object other) → core::bool
     return super.{self::A4::==}(other);
 }
 abstract class _E5&_Enum&M5 = core::_Enum with self::M5 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&M5
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get hashCode() → core::int
+  synthetic mixin-super-stub get hashCode() → core::int
     return super.{self::M5::hashCode};
 }
 abstract class _E6&_Enum&M6 = core::_Enum with self::M6 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&M6
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get values() → core::int
+  synthetic mixin-super-stub get values() → core::int
     return super.{self::M6::values};
 }
 abstract class _E7&_Enum&M7 = core::_Enum with self::M7 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&M7
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get index() → core::int
+  synthetic mixin-super-stub get index() → core::int
     return super.{self::M7::index};
 }
 abstract class _E8&_Enum&M8 = core::_Enum with self::M8 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&M8
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub operator ==(core::Object other) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object other) → core::bool
     return super.{self::M8::==}(other);
 }
 abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get index() → core::int; -> self::A9::index
-  abstract mixin-stub get hashCode() → core::int; -> self::A9::hashCode
-  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::A9::==
+  abstract synthetic mixin-stub get index() → core::int; -> self::A9::index
+  abstract synthetic mixin-stub get hashCode() → core::int; -> self::A9::hashCode
+  abstract synthetic mixin-stub operator ==(core::Object other) → core::bool; -> self::A9::==
 }
 abstract class _E10&_Enum&M10 = core::_Enum with self::M10 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&M10
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get index() → core::int; -> self::M10::index
-  abstract mixin-stub get hashCode() → core::int; -> self::M10::hashCode
-  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::M10::==
+  abstract synthetic mixin-stub get index() → core::int; -> self::M10::index
+  abstract synthetic mixin-stub get hashCode() → core::int; -> self::M10::hashCode
+  abstract synthetic mixin-stub operator ==(core::Object other) → core::bool; -> self::M10::==
 }
 static method main() → dynamic
   ;

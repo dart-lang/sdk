@@ -52,7 +52,7 @@ int invalidPropertyFn() {
   return x.invalidProperty;
   //       ^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+  // [cfe] The getter 'invalidProperty' isn't defined for the type 'List<int>'.
 }
 
 const getWithIndexException = getWithIndexExceptionFn();

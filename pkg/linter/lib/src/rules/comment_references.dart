@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,10 @@ class CommentReferences extends LintRule {
     : super(name: LintNames.comment_references, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.comment_references;
+  DiagnosticCode get diagnosticCode => LinterLintCode.comment_references;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addComment(this, visitor);
     registry.addCommentReference(this, visitor);
@@ -70,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var reference = comment.substring(leftIndex + 1, rightIndex);
         if (_isParserSpecialCase(reference)) {
           var nameOffset = token.offset + leftIndex + 1;
-          rule.reportLintForOffset(nameOffset, reference.length);
+          rule.reportAtOffset(nameOffset, reference.length);
         }
 
         referenceIndices = comment.referenceIndices(rightIndex);
@@ -87,14 +86,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is Identifier &&
         expression.element == null &&
         !linkReferences.contains(expression.name)) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     } else if (expression is PropertyAccess &&
         expression.propertyName.element == null) {
       var target = expression.target;
       if (target is PrefixedIdentifier) {
         var name = '${target.name}.${expression.propertyName.name}';
         if (!linkReferences.contains(name)) {
-          rule.reportLint(expression);
+          rule.reportAtNode(expression);
         }
       }
     }

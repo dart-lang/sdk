@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class InstanceMemberAccessFromStaticTest extends PubPackageResolutionTest {
   test_class_superMethod_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -26,13 +27,14 @@ class B extends A {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 75, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 75, 3)],
+    );
   }
 
   test_class_thisGetter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -40,13 +42,14 @@ class A {
     foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3)],
+    );
   }
 
   test_class_thisGetter_fromMethod_fromClosure() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -56,13 +59,14 @@ class A {
     };
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 77, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 77, 3)],
+    );
   }
 
   test_class_thisGetter_fromMethod_functionExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -70,13 +74,14 @@ class A {
     () => foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 63, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 63, 3)],
+    );
   }
 
   test_class_thisGetter_fromMethod_functionExpression_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -85,13 +90,14 @@ class A {
     var x = () => foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 107, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 107, 3)],
+    );
   }
 
   test_class_thisMethod_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 
@@ -99,13 +105,14 @@ class A {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 53, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 53, 3)],
+    );
   }
 
   test_class_thisSetter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set foo(int _) {}
 
@@ -113,13 +120,14 @@ class A {
     foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3)],
+    );
   }
 
   test_extension_external_getter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on A {
   int get foo => 0;
 }
@@ -129,13 +137,14 @@ class A {
     foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3)],
+    );
   }
 
   test_extension_external_method_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on A {
   void foo() {}
 }
@@ -145,13 +154,14 @@ class A {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 74, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 74, 3)],
+    );
   }
 
   test_extension_external_setter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on A {
   set foo(int _) {}
 }
@@ -161,13 +171,14 @@ class A {
     foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3)],
+    );
   }
 
   test_extension_internal_getter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   int get foo => 0;
 
@@ -175,13 +186,14 @@ extension E on int {
     foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3)],
+    );
   }
 
   test_extension_internal_method_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   void foo() {}
 
@@ -189,13 +201,14 @@ extension E on int {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 64, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 64, 3)],
+    );
   }
 
   test_extension_internal_setter_fromMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   set foo(int _) {}
 
@@ -203,8 +216,8 @@ extension E on int {
     foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3)],
+    );
   }
 }

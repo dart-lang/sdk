@@ -28,6 +28,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_factory.dart';
 import '../util/helpers.dart';
 import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
@@ -142,7 +143,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
-    return unalias(aliasedType, legacyEraseAliases: false);
+    return unalias(aliasedType);
   }
 
   @override
@@ -360,7 +361,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {final Variance variance = Variance.covariant}) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
@@ -372,7 +373,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder positionalFieldBuilder = positionalFields[i];
         TypeBuilder? positionalFieldType = positionalFieldBuilder.type
             .substituteRange(
-                upperSubstitution, lowerSubstitution, unboundTypeParameters,
+                upperSubstitution, lowerSubstitution, typeParameterFactory,
                 variance: variance);
         if (positionalFieldType != null) {
           newPositionalFields ??= positionalFields.toList();
@@ -388,7 +389,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       for (int i = 0; i < namedFields.length; i++) {
         RecordTypeFieldBuilder namedFieldBuilder = namedFields[i];
         TypeBuilder? namedFieldType = namedFieldBuilder.type.substituteRange(
-            upperSubstitution, lowerSubstitution, unboundTypeParameters,
+            upperSubstitution, lowerSubstitution, typeParameterFactory,
             variance: variance);
         if (namedFieldType != null) {
           newNamedFields ??= namedFields.toList();

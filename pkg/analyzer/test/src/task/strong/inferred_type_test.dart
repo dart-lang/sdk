@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -25,26 +25,27 @@ class InferredTypeTest extends PubPackageResolutionTest {
     return getFile('${sdkRoot.posixPath}/lib/async/async.dart');
   }
 
-  LibraryElement2 get _resultLibraryElement {
+  LibraryElement get _resultLibraryElement {
     return result.libraryElement2;
   }
 
   test_asyncClosureReturnType_flatten() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> futureInt = null;
 var f = () => futureInt;
 var g = () async => futureInt;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4)],
+    );
     var futureInt = _resultLibraryElement.topLevelVariables[0];
-    expect(futureInt.name3, 'futureInt');
+    expect(futureInt.name, 'futureInt');
     _assertTypeStr(futureInt.type, 'Future<int>');
     var f = _resultLibraryElement.topLevelVariables[1];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
     var g = _resultLibraryElement.topLevelVariables[2];
-    expect(g.name3, 'g');
+    expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
@@ -53,32 +54,34 @@ var g = () async => futureInt;
 var f = () async => 0;
 ''');
     var f = _resultLibraryElement.topLevelVariables[0];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_futureOr() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 FutureOr<int> futureOrInt = null;
 var f = () => futureOrInt;
 var g = () async => futureOrInt;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 4)],
+    );
     var futureOrInt = _resultLibraryElement.topLevelVariables[0];
-    expect(futureOrInt.name3, 'futureOrInt');
+    expect(futureOrInt.name, 'futureOrInt');
     _assertTypeStr(futureOrInt.type, 'FutureOr<int>');
     var f = _resultLibraryElement.topLevelVariables[1];
-    expect(f.name3, 'f');
+    expect(f.name, 'f');
     _assertTypeStr(f.type, 'FutureOr<int> Function()');
     var g = _resultLibraryElement.topLevelVariables[2];
-    expect(g.name3, 'g');
+    expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -91,18 +94,21 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 218, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 245, 3),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 218, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 245, 3),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -115,18 +121,21 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 196, 3),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 196, 3),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -139,18 +148,21 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 215, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 219, 3),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 192, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 215, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 219, 3),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_asyncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var f = () async* {
     yield 1;
@@ -160,108 +172,126 @@ main() {
   Stream<num> g = f();
   Stream<int> h = f();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           77,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 3),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 3),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
   test_blockBodiedLambdas_basic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   List<int> o;
   var y = o.map((x) { return x + 1; });
   Iterable<int> z = y;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           35,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+      ],
+    );
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   String f() => null;
   var g = f;
   g = () { return 1; };
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 62, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 62, 1),
+      ],
+    );
 
     var g = findElement2.localVar('g');
     _assertTypeStr(g.type, 'String Function()');
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 String f() => null;
 var g = f;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 4)],
+    );
     var g = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(g.type, 'String Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() async {
   var f = () async { return null; };
   Future y = f();
   Future<String> z = f();
   String s = await f();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 9),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 9),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Future<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() async {
   var f = () async* { yield null; };
   Stream y = f();
   Stream<String> z = f();
   String s = await f().first;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 15),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 15),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Stream<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_sync() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var h = null;
 void foo(int g(Object _)) {}
 
@@ -274,39 +304,45 @@ main() {
   foo((x) { return null; });
   foo((x) { throw "not implemented"; });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 5),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 126, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 155, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 5),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 126, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 155, 4),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Null Function(Object)');
   }
 
   test_blockBodiedLambdas_inferBottom_syncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var f = () sync* { yield null; };
   Iterable y = f();
   Iterable<String> z = f();
   String s = f().first;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 102, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 106, 9),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 102, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 106, 9),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Iterable<Null> Function()');
   }
 
   test_blockBodiedLambdas_LUB() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Random;
 test2() {
   List<num> o;
@@ -320,57 +356,66 @@ test2() {
   Iterable<num> w = y;
   Iterable<int> z = y;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           67,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 210, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 233, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 237, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 210, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 233, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 237, 1),
+      ],
+    );
   }
 
   test_blockBodiedLambdas_nestedLambdas() async {
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var f = () {
     return (int x) { return 2.0 * x; };
   };
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'double Function(int) Function()');
   }
 
   test_blockBodiedLambdas_noReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   List<int> o;
   var y = o.map((x) { });
   Iterable<int> z = y;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           35,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 71, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 71, 1),
+      ],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'Iterable<Null>');
   }
 
   test_blockBodiedLambdas_syncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var f = () sync* {
     yield 1;
@@ -379,11 +424,13 @@ main() {
   Iterable<num> g = f();
   Iterable<int> h = f();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 114, 3),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 114, 3),
+      ],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
@@ -406,41 +453,50 @@ var v = () => null;
   }
 
   test_circularReference_viaClosures() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var x = () => y;
 var y = () => x;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
+      ],
+    );
 
     var x = _resultLibraryElement.topLevelVariables[0];
     var y = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
-    expect(y.name3, 'y');
+    expect(x.name, 'x');
+    expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'dynamic');
   }
 
+  @SkippedTest(reason: 'Element model rewrite')
   test_circularReference_viaClosures_initializerTypes() async {
-    await assertErrorsInCode('''
+    print('-' * 64);
+    await assertErrorsInCode(
+      '''
 var x = () => y;
 var y = () => x;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
+      ],
+    );
 
     var x = _resultLibraryElement.topLevelVariables[0];
     var y = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
-    expect(y.name3, 'y');
+    expect(x.name, 'x');
+    expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'dynamic');
   }
 
   test_conflictsCanHappen2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I1 {
   int x;
 }
@@ -468,41 +524,69 @@ class C1 implements A, B {
 class C2 implements A, B {
   get a => null;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          17, 1),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          39, 1),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          80, 1),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          89, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 120, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 154, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 204, 4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
-          contextMessages: [message(testFile, 116, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1,
-          contextMessages: [message(testFile, 150, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          17,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          39,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          80,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          89,
+          1,
+        ),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 120, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 154, 4),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          204,
+          4,
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          246,
+          1,
+          contextMessages: [message(testFile, 116, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          246,
+          1,
+          contextMessages: [message(testFile, 150, 1)],
+        ),
+      ],
+    );
   }
 
   test_constructors_downwardsWithConstraint() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26431
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {}
 class Foo<T extends A> {}
 void main() {
   Foo<B> foo = new Foo();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 3)],
+    );
   }
 
   test_constructors_inferFromArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   T t;
   C(this.t);
@@ -523,19 +607,22 @@ main() {
   var c_dynamic = new C<dynamic>(42);
   x.t = 'hello';
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 5),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 5),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           99,
-          1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 194, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 223, 6),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 9),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 7),
-    ]);
+          1,
+        ),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 194, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 223, 6),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 9),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 7),
+      ],
+    );
 
     _assertTypeStr(findElement2.localVar('x').type, 'C<int>');
     _assertTypeStr(findElement2.localVar('c_int').type, 'C<int>');
@@ -544,7 +631,8 @@ main() {
   }
 
   test_constructors_inferFromArguments_const() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   final T t;
   const C(this.t);
@@ -553,9 +641,9 @@ class C<T> {
 main() {
   var x = const C(42);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 63, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 63, 1)],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
@@ -563,7 +651,8 @@ main() {
 
   test_constructors_inferFromArguments_constWithUpperBound() async {
     // Regression for https://github.com/dart-lang/sdk/issues/26993
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T extends num> {
   final T x;
   const C(this.x);
@@ -576,14 +665,17 @@ void f() {
   C<int> c2 = c;
   const D<int> d = const D();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 143, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 166, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 143, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 166, 1),
+      ],
+    );
   }
 
   test_constructors_inferFromArguments_downwardsFromConstructor() {
-    return assertErrorsInCode(r'''
+    return assertErrorsInCode(
+      r'''
 class C<T> { C(List<T> list); }
 
 main() {
@@ -594,15 +686,18 @@ main() {
   // This one however works.
   var b = new C<Object>([123]);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 151, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 151, 1),
+      ],
+    );
   }
 
   test_constructors_inferFromArguments_factory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   T t;
 
@@ -620,14 +715,17 @@ main() {
   var x = new C(42);
   x.t = 'hello';
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           23,
-          1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 7),
-    ]);
+          1,
+        ),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 7),
+      ],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
@@ -645,7 +743,8 @@ class A<T> {
   }
 
   test_constructors_inferFromArguments_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   T t;
   C.named(List<T> t);
@@ -656,21 +755,25 @@ main() {
   var x = new C.named(<int>[]);
   x.t = 'hello';
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           22,
-          1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 95, 7),
-    ]);
+          1,
+        ),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 95, 7),
+      ],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_namedFactory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   T t;
   C();
@@ -687,21 +790,25 @@ main() {
   var x = new C.named(42);
   x.t = 'hello';
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           22,
-          1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 156, 7),
-    ]);
+          1,
+        ),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 156, 7),
+      ],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirecting() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   T t;
   C(this.t);
@@ -713,16 +820,17 @@ main() {
   var x = new C.named(<int>[42]);
   x.t = 'hello';
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 123, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 123, 7)],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirectingFactory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class C<T> {
   T get t;
   void set t(T t);
@@ -739,9 +847,9 @@ main() {
   var x = new C(42);
   x.t = 'hello';
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 183, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 183, 7)],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
@@ -760,22 +868,26 @@ class Pair<T, U> {
   }
 
   test_constructors_tooManyPositionalArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {}
 main() {
   var a = new A(42);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 39, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 39, 2),
+      ],
+    );
 
     var a = findElement2.localVar('a');
     _assertTypeStr(a.type, 'A<dynamic>');
   }
 
   test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x = 2;
 }
@@ -788,16 +900,23 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1,
-          contextMessages: [message(testFile, 22, 1)]),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 97, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          69,
+          1,
+          contextMessages: [message(testFile, 22, 1)],
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 97, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+      ],
+    );
   }
 
   test_dontInferFieldTypeWhenInitializerIsNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var x = null;
 var y = 3;
 class A {
@@ -816,38 +935,43 @@ test() {
   new A().x2 = "hi";
   new A().y2 = "hi";
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 140, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 168, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 210, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 140, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 168, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 210, 4),
+      ],
+    );
   }
 
   test_dontInferTypeOnDynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test() {
   dynamic x = 3;
   x = "hi";
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
   }
 
   test_dontInferTypeWhenInitializerIsNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test() {
   var x = null;
   x = "hi";
   x = 3;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_downwardInference_miscellaneous() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T Function2<S, T>(S x);
 class A<T> {
   Function2<T, T> x;
@@ -865,13 +989,14 @@ void main() {
     A<int> a = new A(f);
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 266, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 266, 1)],
+    );
   }
 
   test_downwardsInference_insideTopLevel() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   B<int> b;
 }
@@ -885,10 +1010,15 @@ var t2 = <B<int>>[new B(2)];
 var t3 = [
             new B(3)
          ];
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          19, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          19,
+          1,
+        ),
+      ],
+    );
   }
 
   test_downwardsInferenceAnnotations() async {
@@ -905,33 +1035,40 @@ class Baz {}
   }
 
   test_downwardsInferenceAssignmentStatements() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main() {
   List<int> l;
   l = ["hello"];
   l = (l = [1]);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 7),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 7),
+      ],
+    );
   }
 
   test_downwardsInferenceAsyncAwait() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future test() async {
   dynamic d;
   List<int> l0 = await [d];
   List<int> l1 = await new Future.value([d]);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 75, 2),
+      ],
+    );
   }
 
   test_downwardsInferenceForEach() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class MyStream<T> extends Stream<T> {
   factory MyStream() => throw 0;
 }
@@ -940,14 +1077,17 @@ Future main() async {
   for(int x in [1, 2, 3]) {}
   await for(int x in new MyStream()) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 115, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
+      ],
+    );
   }
 
   test_downwardsInferenceInitializingFormalDefaultFormal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T Function2<S, T>([S x]);
 class Foo {
   List<int> x;
@@ -957,17 +1097,21 @@ class Foo {
 void f([List<int> l = const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
 Function2<List<int>, String> g = ([llll = const [1]]) => "hello";
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           92,
-          3),
-    ]);
+          3,
+        ),
+      ],
+    );
   }
 
   test_downwardsInferenceOnConstructorArguments_inferDownwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class F0 {
   F0(List<int> a) {}
 }
@@ -1009,24 +1153,27 @@ void main() {
   new F4(a: [["hello"]]);
   new F4(a: [["hello"], [3]]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 197, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 259, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 280, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 343, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 367, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 421, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 499, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 522, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 591, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 617, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 197, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 259, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 280, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 343, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 367, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 421, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 499, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 522, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 591, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 617, 7),
+      ],
+    );
   }
 
   test_downwardsInferenceOnFunctionArguments_inferDownwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f0(List<int> a) {}
 void f1({List<int> a}) {}
 void f2(Iterable<int> a) {}
@@ -1058,24 +1205,27 @@ void main() {
   f4(a: [["hello"]]);
   f4(a: [["hello"], [3]]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 149, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 197, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 214, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 265, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 285, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 327, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 344, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 389, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 408, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 465, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 487, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 149, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 197, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 214, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 265, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 285, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 327, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 344, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 389, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 408, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 465, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 487, 7),
+      ],
+    );
   }
 
   test_downwardsInferenceOnFunctionExpressions() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T Function2<S, T>(S x);
 
 void main () {
@@ -1108,46 +1258,49 @@ void main () {
     Function2<String, String> l4 = (x) => x.substring(3);
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 95, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 128, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 180, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 185, 21),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 235, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 251, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 281, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 302, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 342, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 354, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 387, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 435, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 447, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 477, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 494, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 526, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 543, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 589, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 605, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 644, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 23),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 767, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 784, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 821, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 843, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 881, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 920, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 964, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 976, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1006, 2),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 1020, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1064, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 95, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 128, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 180, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 185, 21),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 235, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 251, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 281, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 302, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 342, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 354, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 387, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 435, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 447, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 477, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 494, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 526, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 543, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 589, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 605, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 644, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 23),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 767, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 784, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 821, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 843, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 881, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 920, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 964, 2),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 976, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1006, 2),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 1020, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1064, 2),
+      ],
+    );
   }
 
   test_downwardsInferenceOnFunctionOfTUsingTheT() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main () {
   {
     T f<T>(T x) => null;
@@ -1165,20 +1318,27 @@ void main () {
     Iterable<num> v = v2<num>(42);
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 2),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 115, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 179, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 212, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 253, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 288, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 318, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 2),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          115,
+          4,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 179, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 212, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 253, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 288, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 318, 1),
+      ],
+    );
   }
 
   test_downwardsInferenceOnGenericConstructorArguments_emptyList() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class F3<T> {
   F3(Iterable<Iterable<T>> a) {}
 }
@@ -1189,13 +1349,14 @@ void main() {
   new F3([]);
   new F4(a: []);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 91, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 91, 1)],
+    );
   }
 
   test_downwardsInferenceOnGenericConstructorArguments_inferDownwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class F0<T> {
   F0(List<T> a) {}
 }
@@ -1252,27 +1413,30 @@ void main() {
 
   new F5([[[3]]]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 63, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 202, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 338, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 364, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 471, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 540, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 566, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 638, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 666, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 750, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 781, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 819, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 846, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 63, 1),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 202, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 338, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 364, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 471, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 540, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 566, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 638, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 666, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 750, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 781, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 819, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 846, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 3),
+      ],
+    );
   }
 
   test_downwardsInferenceOnGenericFunctionExpressions() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main () {
   {
     String f<S>(int x) => null;
@@ -1315,38 +1479,61 @@ void main () {
     z = <T>(x) => x.substring(3);
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 88, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 133, 24),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 211, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 250, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 289, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 340, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 366, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 394, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 439, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 453, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 482, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 529, 26),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 580, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 612, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 655, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 696, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 743, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 757, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 856, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 879, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 901, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 88, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 133, 24),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 211, 1),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          250,
+          4,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 289, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 340, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 366, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 394, 1),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          439,
+          4,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 453, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 482, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 529, 26),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 580, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 612, 1),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          655,
+          4,
+        ),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          696,
+          4,
+        ),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          743,
+          4,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 757, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 856, 1),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 879, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 901, 1),
+      ],
+    );
   }
 
   test_downwardsInferenceOnInstanceCreations_inferDownwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<S, T> {
   S x;
   T y;
@@ -1443,83 +1630,92 @@ void main() {
     A<int, String> a5 = new F.named(3, "hello", "hello");
   }
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 427, 4),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 495, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 506, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          548, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          553, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 612, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 655, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 760, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 827, 31),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 884, 41),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 954, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 965, 7),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 974, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 997, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1014, 7),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1023, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1054, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1146, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1202, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1264, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1269, 34),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1324, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1329, 41),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1399, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1410, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1413, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1442, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1459, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1462, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1496, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1564, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1600, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1642, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1647, 17),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1682, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1687, 23),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1736, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1747, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1773, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1790, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1827, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1867, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1913, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1966, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2028, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2033, 28),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2082, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2087, 38),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2154, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2165, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2188, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2205, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2239, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2325, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2406, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2441, 7),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2463, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2487, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2548, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2597, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2626, 7),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2635, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 2658, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2687, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 427, 4),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 495, 1),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 506, 1),
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          548,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          553,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 612, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 655, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 760, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 822, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 827, 31),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 879, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 884, 41),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 954, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 965, 7),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 974, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 997, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1014, 7),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1023, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1054, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1146, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1202, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1264, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1269, 34),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1324, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1329, 41),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1399, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1410, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1413, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1442, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1459, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1462, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1496, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1564, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1600, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1642, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1647, 17),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1682, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1687, 23),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1736, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1747, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1773, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1790, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1827, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1867, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1913, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1966, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2028, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2033, 28),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2082, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2087, 38),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2154, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2165, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2188, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2205, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2239, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2325, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2406, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2441, 7),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2463, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2487, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2548, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2597, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2626, 7),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2635, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 2658, 2),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2687, 7),
+      ],
+    );
   }
 
   test_downwardsInferenceOnListLiterals_inferDownwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo([List<String> list1 = const [],
           List<String> list2 = const [42]]) {
 }
@@ -1556,45 +1752,48 @@ void main() {
     const List<int> c3 = const ["hello", 3];
   }
 }
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 79, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 145, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 175, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 199, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 205, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 299, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 333, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 374, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 379, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 402, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 407, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 431, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 436, 14),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 466, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 471, 17),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 477, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 516, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 543, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 571, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 577, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 605, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 611, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 652, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 687, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 723, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 735, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 777, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 79, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 145, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 169, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 175, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 199, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 205, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 299, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 333, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 374, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 379, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 402, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 407, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 431, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 436, 14),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 466, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 471, 17),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 477, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 516, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 543, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 571, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 577, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 605, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 611, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 652, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 687, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 723, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 735, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 777, 7),
+      ],
+    );
   }
 
   test_downwardsInferenceOnListLiterals_inferIfValueTypesMatchContext() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class DartType {}
 typedef void Asserter<T>(T type);
 typedef Asserter<T> AsserterBuilder<S, T>(S arg);
@@ -1649,48 +1848,85 @@ main() {
   g.assertAOf([_isInt, _isString]);
   g.assertDOf([_isInt, _isString]);
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 122, 6),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 149, 9),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 241, 9),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 330, 4),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          391, 9),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          813, 9),
-      error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 1181, 9),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 1261, 4),
-      error(
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          122,
+          6,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          149,
+          9,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          241,
+          9,
+        ),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          330,
+          4,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          391,
+          9,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          813,
+          9,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          1181,
+          9,
+        ),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          1261,
+          4,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           1344,
-          9),
-      error(
+          9,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           1526,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           1562,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           1611,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           1647,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_downwardsInferenceOnMapLiterals() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo([Map<int, String> m1 = const {1: "hello"},
     Map<int, String> m2 = const {
       // One error is from type checking and the other is from const evaluation.
@@ -1761,82 +1997,87 @@ void main() {
     };
   }
 }
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 173, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 311, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 324, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 369, 2),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 385, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 415, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 446, 7),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 455, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 498, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 533, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 578, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 629, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 668, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 731, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 809, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 859, 2),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 868, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 2),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 937, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 976, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1007, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1048, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1061, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1107, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1142, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1172, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1219, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1224, 16),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1263, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1268, 26),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1317, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1322, 20),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1421, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1473, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1492, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1543, 2),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1565, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 1601, 2),
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1637, 7),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1646, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 173, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 241, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 311, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 324, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 369, 2),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 385, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 415, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 446, 7),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 455, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 498, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 533, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 578, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 629, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 668, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 731, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 809, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 859, 2),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 868, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 2),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 937, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 976, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1007, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1048, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1061, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1107, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1142, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1172, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1219, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1224, 16),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1263, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1268, 26),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1317, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1322, 20),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1421, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1473, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1492, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1543, 2),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1565, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 1601, 2),
+        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1637, 7),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1646, 1),
+      ],
+    );
   }
 
   test_fieldRefersToStaticGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   final x = _x;
   static int get _x => null;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 4),
-    ]);
-    var x = _resultLibraryElement.classes[0].fields2[0];
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 4)],
+    );
+    var x = _resultLibraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
   test_fieldRefersToTopLevelGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   final x = y;
 }
 int get y => null;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4),
-    ]);
-    var x = _resultLibraryElement.classes[0].fields2[0];
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4)],
+    );
+    var x = _resultLibraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
   test_futureOr_subtyping() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void add(int x) {}
 add2(int y) {}
 main() {
@@ -1844,28 +2085,32 @@ main() {
   var a = f.then(add);
   var b = f.then(add2);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           70,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           93,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_futureThen() async {
-    String build(
-            {required String declared,
-            required String downwards,
-            required String upwards}) =>
-        '''
+    String build({
+      required String declared,
+      required String downwards,
+      required String upwards,
+    }) => '''
 import 'dart:async';
 
 class MyFuture<T> implements Future<T> {
@@ -1892,77 +2137,95 @@ void main() {
 ''';
 
     List<ExpectedError> errors = [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 188, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
+      error(
+        CompileTimeErrorCode.INVALID_OVERRIDE,
+        188,
+        4,
+        contextMessages: [message(dartAsyncFile, 589, 4)],
+      ),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 226, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 239, 4),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          295,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        295,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          367,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        367,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          452,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        452,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          495,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        495,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          550,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        550,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          610,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        610,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          677,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        677,
+        1,
+      ),
       error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          743,
-          1),
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        743,
+        1,
+      ),
     ];
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-        errors);
+      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
+      errors,
+    );
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
-        errors);
+      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
+      errors,
+    );
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
-        errors);
+      build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
+      errors,
+    );
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-        errors);
+      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
+      errors,
+    );
     await _assertErrors(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
-        errors);
+      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
+      errors,
+    );
     await _assertErrors(
-        build(declared: "Future", downwards: "Future", upwards: "Future"),
-        errors);
+      build(declared: "Future", downwards: "Future", upwards: "Future"),
+      errors,
+    );
   }
 
   test_futureThen_conditional() async {
-    String build(
-            {required String declared,
-            required String downwards,
-            required String upwards}) =>
-        '''
+    String build({
+      required String declared,
+      required String downwards,
+      required String upwards,
+    }) => '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -1984,186 +2247,244 @@ void main() {
 }
 ''';
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(
+      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           300,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           387,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           519,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           594,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
 
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(
+      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           300,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           389,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           523,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           600,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
 
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(
+      build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           302,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           391,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           525,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           602,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
 
     await _assertErrors(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-        [
-          error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-              contextMessages: [message(dartAsyncFile, 589, 4)]),
-          error(
-              CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-          error(
-              CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-          error(
-              CompileTimeErrorCode
-                  .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-              302,
-              1),
-          error(
-              CompileTimeErrorCode
-                  .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-              393,
-              1),
-          error(
-              CompileTimeErrorCode
-                  .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-              529,
-              1),
-          error(
-              CompileTimeErrorCode
-                  .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-              608,
-              1),
-        ]);
+      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          302,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          393,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          529,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          608,
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
 
     await _assertErrors(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(
+      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           298,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           387,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           521,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           598,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
 
     await _assertErrors(
-        build(declared: "Future", downwards: "Future", upwards: "Future"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(
+      build(declared: "Future", downwards: "Future", upwards: "Future"),
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           298,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           385,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           517,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           592,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
     await disposeAnalysisContextCollection();
   }
 
   test_futureThen_downwardsMethodTarget() async {
     // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   Future<int> f;
   Future<List<int>> b = f
@@ -2171,24 +2492,29 @@ main() {
       .whenComplete(() {});
   b = f.then((x) => []);
 }
-  ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(
+  ''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           50,
-          1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 50, 51),
-      error(
+          1,
+        ),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 50, 51),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           109,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_futureThen_explicitFuture() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m1() {
   Future<int> f;
   var x = f.then<Future<List<int>>>((x) => []);
@@ -2199,31 +2525,35 @@ m2() {
   var x = f.then<List<int>>((x) => []);
   Future<List<int>> y = x;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           34,
-          1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 67, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 1),
-      error(
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 67, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           135,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 185, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 185, 1),
+      ],
+    );
   }
 
   test_futureThen_upwards() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    String build(
-            {required String declared,
-            required String downwards,
-            required String upwards}) =>
-        '''
+    String build({
+      required String declared,
+      required String downwards,
+      required String upwards,
+    }) => '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -2247,8 +2577,12 @@ $declared foo() => new $declared<int>.value(1);
     await assertErrorsInCode(
       build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2261,8 +2595,12 @@ $declared foo() => new $declared<int>.value(1);
     await assertErrorsInCode(
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 311, 2),
@@ -2276,8 +2614,12 @@ $declared foo() => new $declared<int>.value(1);
     await assertErrorsInCode(
       build(declared: "Future", downwards: "Future", upwards: "Future"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2291,7 +2633,8 @@ $declared foo() => new $declared<int>.value(1);
 
   test_futureThen_upwardsFromBlock() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27113.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   Future<int> base;
   var f = base.then((x) { return x == 0; });
@@ -2299,27 +2642,31 @@ main() {
   Future<bool> b = f;
   b = g;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           39,
-          4),
-      error(
+          4,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           84,
-          4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 125, 1),
-    ]);
+          4,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 125, 1),
+      ],
+    );
   }
 
   test_futureUnion_asyncConditional() async {
-    String build(
-            {required String downwards,
-            required String upwards,
-            String expectedInfo = ''}) =>
-        '''
+    String build({
+      required String downwards,
+      required String upwards,
+      String expectedInfo = '',
+    }) => '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -2339,8 +2686,12 @@ $downwards<int> g3(bool x) async {
     ''';
 
     await assertErrorsInCode(build(downwards: "Future", upwards: "Future"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
+      error(
+        CompileTimeErrorCode.INVALID_OVERRIDE,
+        185,
+        4,
+        contextMessages: [message(dartAsyncFile, 589, 4)],
+      ),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 464, 1),
@@ -2348,8 +2699,12 @@ $downwards<int> g3(bool x) async {
     await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(build(downwards: "Future", upwards: "MyFuture"), [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message(dartAsyncFile, 589, 4)]),
+      error(
+        CompileTimeErrorCode.INVALID_OVERRIDE,
+        185,
+        4,
+        contextMessages: [message(dartAsyncFile, 589, 4)],
+      ),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 470, 1),
@@ -2358,11 +2713,12 @@ $downwards<int> g3(bool x) async {
   }
 
   test_futureUnion_downwards() async {
-    String build(
-        {required String declared,
-        required String downwards,
-        required String upwards,
-        String expectedError = ''}) {
+    String build({
+      required String declared,
+      required String downwards,
+      required String upwards,
+      String expectedError = '',
+    }) {
       return '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
@@ -2387,71 +2743,83 @@ $downwards<List<int>> g3() async {
     }
 
     await assertErrorsInCode(
-      build(
-        declared: "MyFuture",
-        downwards: "Future",
-        upwards: "Future",
-      ),
+      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
-            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 256, 1),
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          256,
+          1,
+        ),
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 338, 4),
       ],
     );
     await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
-      build(
-        declared: "MyFuture",
-        downwards: "Future",
-        upwards: "MyFuture",
-      ),
+      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
-            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 256, 1),
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          256,
+          1,
+        ),
       ],
     );
     await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
-      build(
-        declared: "Future",
-        downwards: "Future",
-        upwards: "Future",
-      ),
+      build(declared: "Future", downwards: "Future", upwards: "Future"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
-            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 254, 1),
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          254,
+          1,
+        ),
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 336, 4),
       ],
     );
     await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
-      build(
-        declared: "Future",
-        downwards: "Future",
-        upwards: "MyFuture",
-      ),
+      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
       [
-        error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 589, 4)]),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          187,
+          4,
+          contextMessages: [message(dartAsyncFile, 589, 4)],
+        ),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
-            CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 254, 1),
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          254,
+          1,
+        ),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -2462,7 +2830,8 @@ $downwards<List<int>> g3() async {
     //
     // We need to take a future union into account for both directions of
     // generic method inference.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 foo() async {
   Future<List<A>> f1 = null;
   Future<List<A>> f2 = null;
@@ -2470,35 +2839,42 @@ foo() async {
 }
 
 class A {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 66, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 6),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 66, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 6),
+      ],
+    );
   }
 
   test_futureUnion_downwardsGenericMethodWithGenericReturn() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27284
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 T id<T>(T x) => x;
 
 main() async {
   Future<String> f;
   String s = await id(f);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           77,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_futureUnion_upwardsGenericMethods() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27151
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() async {
   var b = new Future<B>.value(new B());
   var c = new Future<C>.value(new C());
@@ -2512,13 +2888,14 @@ main() async {
 class A {}
 class B extends A {}
 class C extends A {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 207, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 207, 4)],
+    );
   }
 
   test_genericFunctions_returnTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef void ToValue<T>(T value);
 
 main() {
@@ -2528,28 +2905,34 @@ main() {
   ToValue<int> takesInt = x;
   takesInt = y;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 70, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 130, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 70, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 130, 8),
+      ],
+    );
   }
 
   test_genericMethods_basicDownwardInference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 T f<S, T>(S s) => null;
 main() {
   String x = f(42);
   String y = (f)(42);
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      ],
+    );
   }
 
   test_genericMethods_dartMathMinMax() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math';
 
 void printInt(int x) => print(x);
@@ -2578,17 +2961,20 @@ main() {
   // Types other than int and double are not accepted.
   printInt(min("hi", "there"));
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 11),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 467, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 492, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 683, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 689, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 11),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 467, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 492, 3),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 683, 4),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 689, 7),
+      ],
+    );
   }
 
   test_genericMethods_doNotInferInvalidOverrideOfGenericMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
 T m<T>(T x) => x;
 }
@@ -2599,33 +2985,47 @@ main() {
   int y = new D().m<int>(42);
   print(y);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1,
-          contextMessages: [message(testFile, 12, 1)]),
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 91, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          50,
+          1,
+          contextMessages: [message(testFile, 12, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          91,
+          5,
+        ),
+      ],
+    );
   }
 
   test_genericMethods_downwardsInferenceAffectsArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 T f<T>(List<T> s) => null;
 main() {
   String x = f(['hi']);
   String y = f([42]);
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 76, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 76, 2),
+      ],
+    );
   }
 
   test_genericMethods_downwardsInferenceFold() async {
     // Regression from https://github.com/dart-lang/sdk/issues/25491
     // The first example works now, but the latter requires a full solution to
     // https://github.com/dart-lang/sdk/issues/25490
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void main() {
   List<int> o;
   int y = o.fold(0, (x, y) => x + y);
@@ -2638,35 +3038,42 @@ void functionExpressionInvocation() {
   var z = (o.fold)(0, (x, y) => x + y);
   y = z;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           39,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           77,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 175, 1),
-      error(
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 175, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           180,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           220,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_genericMethods_handleOverrideOfNonGenericWithGeneric() async {
     // Regression test for crash when adding genericity
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   m(x) => x;
   dynamic g(int x) => x;
@@ -2679,33 +3086,48 @@ main() {
   int y = (new D() as C).m(42);
   print(y);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
-          contextMessages: [message(testFile, 12, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
-          contextMessages: [message(testFile, 33, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          74,
+          1,
+          contextMessages: [message(testFile, 12, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          94,
+          1,
+          contextMessages: [message(testFile, 33, 1)],
+        ),
+      ],
+    );
   }
 
   test_genericMethods_inferenceError() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   List<String> y;
   Iterable<String> x = y.map((String z) => 1.0);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           50,
-          1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 70, 3),
-    ]);
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 70, 3),
+      ],
+    );
   }
 
   test_genericMethods_inferGenericFunctionParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 }
@@ -2713,11 +3135,13 @@ class D<T> {
   F<U> f<U>(U u) => null;
 }
 typedef void F<V>(V v);
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 45, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
-    ]);
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 45, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
+      ],
+    );
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
@@ -2731,12 +3155,13 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
   test_genericMethods_inferGenericFunctionReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 }
@@ -2744,11 +3169,13 @@ class D<T> {
   F<U> f<U>(U u) => null;
 }
 typedef V F<V>();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 45, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
-    ]);
-    var f = _resultLibraryElement.getClass2('C')!.methods2[0];
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 45, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 88, 4),
+      ],
+    );
+    var f = _resultLibraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -2769,7 +3196,8 @@ main() {
   }
 
   test_genericMethods_IterableAndFuture() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> make(int x) => (new Future(() => x));
 
 main() {
@@ -2784,17 +3212,20 @@ main() {
   Future<String> results4 = results.then((List<int> list)
     => list.fold<String>('', (x, y) => x + y.toString()));
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 183, 8),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 257, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 293, 8),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 33),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 410, 8),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 183, 8),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 257, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 293, 8),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 33),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 410, 8),
+      ],
+    );
   }
 
   test_genericMethods_nestedGenericInstantiation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 class Trace {
   List<Frame> frames = [];
@@ -2809,13 +3240,14 @@ main() {
         .fold(0, math.max);
   }).fold(0, math.max);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 153, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 153, 7)],
+    );
   }
 
   test_genericMethods_usesGreatestLowerBound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
@@ -2824,26 +3256,29 @@ T generic<T>(a(T _), b(T _)) => null;
 main() {
   var v = generic((F f) => null, (G g) => null);
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 96, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 96, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+      ],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
   test_genericMethods_usesGreatestLowerBound_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
 T generic<T>(a(T _), b(T _)) => null;
 
 var v = generic((F f) => null, (G g) => null);
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 96, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 96, 4)],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
@@ -2856,7 +3291,8 @@ var b = (a[0] = 1.0);
   }
 
   test_infer_assignToProperty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int f;
 }
@@ -2868,14 +3304,20 @@ var v_prefix_pp = (++new A().f);
 var v_prefix_mm = (--new A().f);
 var v_postfix_pp = (new A().f++);
 var v_postfix_mm = (new A().f--);
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_infer_assignToProperty_custom() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A operator +(other) => this;
   A operator -(other) => this;
@@ -2887,14 +3329,20 @@ var v_prefix_pp = (++new B().a);
 var v_prefix_mm = (--new B().a);
 var v_postfix_pp = (new B().a++);
 var v_postfix_mm = (new B().a--);
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          88, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          88,
+          1,
+        ),
+      ],
+    );
   }
 
   test_infer_assignToRef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int f;
 }
@@ -2902,10 +3350,15 @@ A a = new A();
 var b = (a.f = 1);
 var c = 0;
 var d = (c = 1);
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_infer_binary_custom() async {
@@ -3021,16 +3474,19 @@ var v_negate = -a;
   }
 
   test_infer_throw() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var t = true;
 var a = (throw 0);
 var b = (throw 0) ? 1 : 2;
 var c = t ? (throw 1) : 2;
 var d = t ? 1 : (throw 2);
-''', [
-      error(WarningCode.DEAD_CODE, 53, 1),
-      error(WarningCode.DEAD_CODE, 57, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 53, 1),
+        error(WarningCode.DEAD_CODE, 57, 1),
+      ],
+    );
   }
 
   test_infer_typeCast() async {
@@ -3093,7 +3549,8 @@ const a1 = m2;
 const a2 = b1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 const m1 = a1;
 const m2 = a2;
@@ -3102,13 +3559,14 @@ foo() {
   int i;
   i = m1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
   }
 
   test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   var x, y = 2, z = "hi";
 }
@@ -3131,19 +3589,25 @@ foo() {
   i = new B().z;
   i = new B().w;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          82, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 121, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 148, 9),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 182, 9),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 234, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          82,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 148, 9),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 182, 9),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 234, 9),
+      ],
+    );
   }
 
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A { int x; B operator+(other) => null; }
 class B extends A { B(ignore); }
 var a = new A();
@@ -3185,30 +3649,36 @@ test1() {
   j = false;
   j = [];
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          14, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 39, 4),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 171, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 201, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 572, 1),
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 591, 9),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 619, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 647, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 687, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 729, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 753, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 772, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 794, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 807, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 869, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 882, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          14,
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 39, 4),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 171, 1),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 201, 1),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 572, 1),
+        error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 591, 9),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 619, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 647, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 687, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 729, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 753, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 772, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 794, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 807, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 869, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 882, 2),
+      ],
+    );
   }
 
   test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   var x;
 }
@@ -3221,14 +3691,17 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+      ],
+    );
   }
 
   test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final x = null;
 }
@@ -3241,10 +3714,12 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      ],
+    );
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn() async {
@@ -3290,7 +3765,8 @@ test1() {
 var x = 2;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 var y = x;
 
@@ -3298,10 +3774,12 @@ test1() {
   x = "hi";
   y = "hi";
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 4),
+      ],
+    );
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag2() async {
@@ -3309,7 +3787,8 @@ test1() {
 class A { static var x = 2; }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 class B { static var y = A.x; }
 
@@ -3317,89 +3796,111 @@ test1() {
   A.x = "hi";
   B.y = "hi";
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 68, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 82, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 68, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 82, 4),
+      ],
+    );
   }
 
   test_inferGenericMethodType_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   T m<T>(int a, {String b, T c}) => null;
 }
 main() {
  var y = new C().m(1, b: 'bbb', c: 2.0);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 34, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 39, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 34, 1),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 39, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      ],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   T m<T>(int a, [T b]) => null;
 }
 main() {
   var y = new C().m(1, 2.0);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          29, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 36, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          29,
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 36, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      ],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   T m<T>(int a, [String b, T c]) => null;
 }
 main() {
   var y = new C().m(1, 'bbb', 2.0);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          34, 1),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          39, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          34,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          39,
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 46, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+      ],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   T m<T>(T x) => x;
 }
 main() {
   var y = new C().m(42);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'int');
   }
 
   test_inferListLiteralNestedInMapLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Resource {}
 class Folder extends Resource {}
 
@@ -3425,22 +3926,25 @@ main() {
     [getResource('/pkgA/lib/')]
   );
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 88, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 161, 3),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 204, 25),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 245, 25),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 313, 4),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 357, 25),
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 400, 25),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 467, 3),
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 501, 25),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 88, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 161, 3),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 204, 25),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 245, 25),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 313, 4),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 357, 25),
+        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 400, 25),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 467, 3),
+        error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 501, 25),
+      ],
+    );
   }
 
   test_inferLocalFunctionReturnType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26414
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   f0 () => 42;
   f1 () async => 42;
@@ -3456,18 +3960,24 @@ main() {
   f8 () => f9();
   f9 () => f5();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 2),
-      error(WarningCode.UNUSED_ELEMENT, 26, 2),
-      error(WarningCode.UNUSED_ELEMENT, 48, 2),
-      error(WarningCode.UNUSED_ELEMENT, 71, 2),
-      error(WarningCode.UNUSED_ELEMENT, 100, 2),
-      error(WarningCode.UNUSED_ELEMENT, 162, 2),
-      error(WarningCode.UNUSED_ELEMENT, 177, 2),
-      error(WarningCode.UNUSED_ELEMENT, 194, 2),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
-          contextMessages: [message(testFile, 211, 2)]),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 11, 2),
+        error(WarningCode.UNUSED_ELEMENT, 26, 2),
+        error(WarningCode.UNUSED_ELEMENT, 48, 2),
+        error(WarningCode.UNUSED_ELEMENT, 71, 2),
+        error(WarningCode.UNUSED_ELEMENT, 100, 2),
+        error(WarningCode.UNUSED_ELEMENT, 162, 2),
+        error(WarningCode.UNUSED_ELEMENT, 177, 2),
+        error(WarningCode.UNUSED_ELEMENT, 194, 2),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          203,
+          2,
+          contextMessages: [message(testFile, 211, 2)],
+        ),
+      ],
+    );
 
     void assertLocalFunctionType(String name, String expected) {
       var type = findElement2.localFunction(name).type;
@@ -3491,18 +4001,24 @@ main() {
   }
 
   test_inferParameterType_setter_fromField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C extends D {
   set foo(x) {}
 }
 class D {
   int foo;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          54, 3),
-    ]);
-    var f = _resultLibraryElement.getClass2('C')!.setters2[0];
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          54,
+          3,
+        ),
+      ],
+    );
+    var f = _resultLibraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -3515,7 +4031,7 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.setters2[0];
+    var f = _resultLibraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -3529,11 +4045,11 @@ class C {
   };
 }
 ''');
-    var x = _resultLibraryElement.getClass2('C')!.fields2[0];
-    expect(x.name3, 'x');
+    var x = _resultLibraryElement.getClass('C')!.fields[0];
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields2[1];
-    expect(y.name3, 'y');
+    var y = _resultLibraryElement.getClass('C')!.fields[1];
+    expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
 
@@ -3545,88 +4061,114 @@ class C {
 }
 ''');
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass2('C')!.fields2[0];
-    expect(y.name3, 'y');
+    var y = _resultLibraryElement.getClass('C')!.fields[0];
+    expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
 
   test_inferredInitializingFormalChecksDefaultValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo {
   var x = 1;
   Foo([this.x = "1"]);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 3)],
+    );
   }
 
   test_inferredType_blockClosure_noArgs_noReturn() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var f = () {};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var f = findElement2.localVar('f');
     _assertTypeStr(f.type, 'Null Function()');
   }
 
   test_inferredType_cascade() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int a;
   List<int> b;
   void m() {}
 }
 var v = new A()..a = 1..b.add(2)..m();
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          16, 1),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          31,
+          1,
+        ),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'A');
   }
 
   test_inferredType_customBinaryOp() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   bool operator*(C other) => true;
 }
 C c;
 var x = c*c;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 49, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          49,
+          1,
+        ),
+      ],
+    );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customBinaryOp_viaInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   bool operator*(C other) => true;
 }
 abstract class C implements I {}
 C c;
 var x = c*c;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 82, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          82,
+          1,
+        ),
+      ],
+    );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customIndexOp() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   bool operator[](int index) => true;
 }
@@ -3634,22 +4176,26 @@ main() {
   C c;
   var x = c[0];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 72, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           76,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var x = findElement2.localVar('x');
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customIndexOp_viaInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   bool operator[](int index) => true;
 }
@@ -3658,79 +4204,98 @@ main() {
   C c;
   var x = c[0];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           109,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var x = findElement2.localVar('x');
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customUnaryOp() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   bool operator-() => true;
 }
 C c;
 var x = -c;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          42,
+          1,
+        ),
+      ],
+    );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customUnaryOp_viaInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   bool operator-() => true;
 }
 abstract class C implements I {}
 C c;
 var x = -c;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 75, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          75,
+          1,
+        ),
+      ],
+    );
     var x = _resultLibraryElement.topLevelVariables[1];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_extractMethodTearOff() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   bool g() => true;
 }
 C f() => null;
 var x = f().g;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4)],
+    );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
   test_inferredType_extractMethodTearOff_viaInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   bool g() => true;
 }
 abstract class C implements I {}
 C f() => null;
 var x = f().g;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4)],
+    );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
@@ -3743,33 +4308,35 @@ var v = print;
   }
 
   test_inferredType_invokeMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   bool g() => true;
 }
 C f() => null;
 var x = f().g();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4)],
+    );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_invokeMethod_viaInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   bool g() => true;
 }
 abstract class C implements I {}
 C f() => null;
 var x = f().g();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 74, 4)],
+    );
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
@@ -3810,72 +4377,93 @@ final x = <String, F<int>>{};
   }
 
   test_inferredType_usesSyntheticFunctionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() => null;
 String g() => null;
 var v = [f, g];
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 31, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 31, 4),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function()>');
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 61, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 61, 4),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int Function(String))>');
   }
 
   test_inferredType_usesSyntheticFunctionType_namedParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f({int x}) => null;
 String g({int x}) => null;
 var v = [f, g];
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 11, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 38, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 11, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
+        error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 38, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function({int x})>');
   }
 
   test_inferredType_usesSyntheticFunctionType_positionalParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f([int x]) => null;
 String g([int x]) => null;
 var v = [f, g];
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          11, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          38, 1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          11,
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 4),
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          38,
+          1,
+        ),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 45, 4),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function([int])>');
   }
 
   test_inferredType_usesSyntheticFunctionType_requiredParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(int x) => null;
 String g(int x) => null;
 var v = [f, g];
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 16, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 16, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int)>');
   }
@@ -3887,7 +4475,7 @@ class C {
       (int i) => {i: b};
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
@@ -3897,7 +4485,7 @@ class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
@@ -3907,7 +4495,7 @@ class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultLibraryElement.getClass2('C')!.fields2[0];
+    var f = _resultLibraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
@@ -3959,7 +4547,8 @@ foo() {
   }
 
   test_inferStaticsTransitively2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const x1 = 1;
 final x2 = 1;
 final y1 = x1;
@@ -3970,9 +4559,9 @@ foo() {
   i = y1;
   i = y2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 1)],
+    );
   }
 
   test_inferStaticsTransitively3() async {
@@ -4010,20 +4599,22 @@ foo() {
 m3(String a, String b, [a1,a2]) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 class T {
   static final T foo = m1(m2(m3('', '')));
   static T m1(String m) { return null; }
   static String m2(e) { return ''; }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 103, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 103, 4)],
+    );
   }
 
   test_inferTypeOnOverriddenFields2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x = 2;
 }
@@ -4036,15 +4627,18 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 84, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 84, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+      ],
+    );
   }
 
   test_inferTypeOnOverriddenFields4() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x = 2;
 }
@@ -4057,40 +4651,49 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 93, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 93, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      ],
+    );
   }
 
   test_inferTypeOnVar() async {
     // Error also expected when declared type is `int`.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test1() {
   int x = 3;
   x = "hi";
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
+      ],
+    );
   }
 
   test_inferTypeOnVar2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test2() {
   var x = 3;
   x = "hi";
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
+      ],
+    );
   }
 
   test_inferTypeOnVarFromField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x = 0;
 
@@ -4109,20 +4712,26 @@ class A {
   int y; // field def after use
   final z = 42; // should infer `int`
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 139, 4),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          167, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 139, 4),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          167,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inferTypeOnVarFromTopLevel() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int x = 0;
 
 test1() {
@@ -4139,14 +4748,16 @@ test1() {
 
 int y = 0; // field def after use
 final z = 42; // should infer `int`
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 96, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 96, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 4),
+      ],
+    );
   }
 
   test_inferTypeRegardlessOfDeclarationOrderOrCycles() async {
@@ -4156,7 +4767,8 @@ import 'test.dart';
 class B extends A { }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 class C extends B {
   get x => null;
@@ -4168,16 +4780,19 @@ foo() {
   int y = new C().x;
   String z = new C().x;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 48, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 128, 9),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 48, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 128, 9),
+      ],
+    );
   }
 
   test_inferTypesOnGenericInstantiations_3() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   final T x = null;
   final T w = null;
@@ -4192,18 +4807,25 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 109, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 138, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 142, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 159, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 4),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          109,
+          7,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 138, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 142, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 159, 1),
+      ],
+    );
   }
 
   test_inferTypesOnGenericInstantiations_4() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   T x;
 }
@@ -4217,19 +4839,28 @@ foo() {
   int y = new B<String>().x;
   String z = new B<String>().x;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          17, 1),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          53, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 17),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          17,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          53,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 17),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+      ],
+    );
   }
 
   test_inferTypesOnGenericInstantiations_5() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class I<E> {
   String m(a, String f(v, E e));
 }
@@ -4254,18 +4885,21 @@ foo () {
   int y = new B().m(null, null);
   String z = new B().m(null, null);
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 284, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 21),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 330, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 346, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 366, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 284, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 21),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 330, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 346, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 366, 4),
+      ],
+    );
   }
 
   test_inferTypesOnGenericInstantiations_infer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   final T x = null;
 }
@@ -4278,13 +4912,19 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
-          contextMessages: [message(testFile, 23, 1)]),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 106, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 127, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 4),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          78,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 106, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 127, 1),
+      ],
+    );
   }
 
   test_inferTypesOnGenericInstantiationsInLibraryCycle() async {
@@ -4296,7 +4936,8 @@ abstract class I<E> {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 abstract class A<E> implements I<E> {
@@ -4320,19 +4961,22 @@ foo () {
   int y = new B<String>().m(null, null).value;
   String z = new B<String>().m(null, null).value;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 268, 35),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 292, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 314, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 342, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 88, 4),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 268, 35),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 292, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 314, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 342, 4),
+      ],
+    );
   }
 
   test_inferTypesOnLoopIndices_forEachLoop() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo {
   int bar = 42;
 }
@@ -4395,36 +5039,39 @@ test() {
     String y = x;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 248, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 345, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 396, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 427, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 446, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 497, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 565, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 634, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 728, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 746, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 244, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 248, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 345, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 396, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 427, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 446, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 497, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 565, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 634, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 728, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 746, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 897, 1),
+      ],
+    );
   }
 
   test_inferTypesOnLoopIndices_forLoopWithInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test() {
   for (var i = 0; i < 10; i++) {
     int j = i + 1;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+    );
   }
 
   test_inferVariableVoid() async {
@@ -4433,7 +5080,7 @@ void f() {}
 var x = f();
   ''');
     var x = _resultLibraryElement.topLevelVariables[0];
-    expect(x.name3, 'x');
+    expect(x.name, 'x');
     _assertTypeStr(x.type, 'void');
   }
 
@@ -4459,7 +5106,8 @@ void bar() {
   }
 
   test_listLiterals() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   var x = [1, 2, 3];
   x.add('hi');
@@ -4473,18 +5121,21 @@ test2() {
   x.add(4.0);
   List<int> y = x;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 134, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 167, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 171, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 134, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 167, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 171, 1),
+      ],
+    );
   }
 
   test_listLiterals_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var x1 = [1, 2, 3];
 test1() {
   x1.add('hi');
@@ -4498,14 +5149,16 @@ test2() {
   x2.add(4.0);
   List<int> y = x2;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 137, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 171, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 175, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 137, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 171, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 175, 2),
+      ],
+    );
   }
 
   test_listLiteralsCanInferNull_topLevel() async {
@@ -4517,21 +5170,23 @@ var x = [null];
   }
 
   test_listLiteralsCanInferNullBottom() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   var x = [null];
   x.add(42);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 2)],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'List<Null>');
   }
 
   test_mapLiterals() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   var x = { 1: 'x', 2: 'y' };
   x[3] = 'z';
@@ -4551,21 +5206,24 @@ test2() {
   x[2] = p;
   Map<int, String> y = x;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 75, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 209, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 247, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 265, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 302, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 306, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 4),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 75, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 209, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 247, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 265, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 302, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 306, 1),
+      ],
+    );
   }
 
   test_mapLiterals_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var x1 = { 1: 'x', 2: 'y' };
 test1() {
   x1[3] = 'z';
@@ -4585,29 +5243,34 @@ test2() {
   x2[2] = p;
   Map<int, String> y = x2;
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 214, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 254, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 272, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 4),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 214, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 254, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 272, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 2),
+      ],
+    );
   }
 
   test_mapLiteralsCanInferNull() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test1() {
   var x = { null: null };
   x[3] = 'z';
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 3),
+      ],
+    );
 
     var x = findElement2.localVar('x');
     _assertTypeStr(x.type, 'Map<Null, Null>');
@@ -4622,109 +5285,132 @@ var x = { null: null };
   }
 
   test_methodCall_withTypeArguments_instanceMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   D<T> f<T>() => null;
 }
 class D<T> {}
 var f = new C().f<int>();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4)],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_instanceMethod_identifierSequence() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   D<T> f<T>() => null;
 }
 class D<T> {}
 C c;
 var f = c.f<int>();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 51, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          51,
+          1,
+        ),
+      ],
+    );
     var v = _resultLibraryElement.topLevelVariables[1];
-    expect(v.name3, 'f');
+    expect(v.name, 'f');
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_staticMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static D<T> f<T>() => null;
 }
 class D<T> {}
 var f = C.f<int>();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 34, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 34, 4)],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 D<T> f<T>() => null;
 class D<T> {}
 var g = f<int>();
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4)],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 test1() {
   num x = 3;
   x = null;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
+      ],
+    );
   }
 
   test_nullCoalescingOperator() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26552
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   List<int> x;
   var y = x ?? [];
   List<int> z = y;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           34,
-          1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 39, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.DEAD_CODE, 36, 5),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 39, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      ],
+    );
   }
 
   test_nullCoalescingOperator2() async {
     // Don't do anything if we already have a context type.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   List<int> x;
   List<num> y = x ?? [];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-      error(
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+        error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           40,
-          1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 45, 2),
-    ]);
+          1,
+        ),
+        error(WarningCode.DEAD_CODE, 42, 5),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 45, 2),
+      ],
+    );
 
     var y = findElement2.localVar('y');
     _assertTypeStr(y.type, 'List<num>');
@@ -4732,7 +5418,8 @@ main() {
 
   test_nullLiteralShouldNotInferAsBottom() async {
     // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var h = null;
 void foo(int f(Object _)) {}
 
@@ -4752,16 +5439,19 @@ main() {
   foo((x) => null);
   foo((x) => throw "not implemented");
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 5),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 117, 7),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 214, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 5),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 117, 7),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 214, 4),
+      ],
+    );
   }
 
   test_propagateInferenceToFieldInClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x = 2;
 }
@@ -4772,13 +5462,14 @@ test() {
   print(a.x);     // doesn't require dynamic invoke
   print(a.x + 2); // ok to use in bigger expression
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1)],
+    );
   }
 
   test_propagateInferenceToFieldInClassDynamicWarnings() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x = 2;
 }
@@ -4789,13 +5480,14 @@ test() {
   print(a.x);
   print((a.x) + 2);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
   }
 
   test_propagateInferenceTransitively() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x = 2;
 }
@@ -4807,10 +5499,12 @@ test5() {
   A a2 = new A();
   a2.x = "hi";
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
+      ],
+    );
   }
 
   test_propagateInferenceTransitively2() async {
@@ -4851,7 +5545,8 @@ final x = F;
   }
 
   test_refineBinaryExpressionType_typeParameter_T_double() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T extends num> {
   T a;
 
@@ -4862,18 +5557,24 @@ class C<T extends num> {
     double r4 = a / b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 135, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          29,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 89, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 112, 2),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 135, 2),
+      ],
+    );
   }
 
   test_refineBinaryExpressionType_typeParameter_T_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T extends num> {
   T a;
 
@@ -4889,23 +5590,29 @@ class C<T extends num> {
     a *= b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 63, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 81, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 141, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 153, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 165, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          29,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 63, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 81, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 141, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 153, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 165, 1),
+      ],
+    );
   }
 
   test_refineBinaryExpressionType_typeParameter_T_T() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T extends num> {
   T a;
 
@@ -4921,46 +5628,53 @@ class C<T extends num> {
     a *= b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 61, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 79, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 137, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 161, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          29,
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 61, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 79, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 5),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 137, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 161, 1),
+      ],
+    );
   }
 
   test_staticMethod_tearoff() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const v = C.f;
 class C {
   static int f(String s) => null;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 53, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 53, 4)],
+    );
     var v = _resultLibraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'int Function(String)');
   }
 
   test_unsafeBlockClosureInference_closureCall() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26962
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = ((x) => 1.0)(() { return 1; });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
@@ -4972,7 +5686,7 @@ class C<T> {
 var v = new C<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<dynamic>');
   }
 
@@ -4984,12 +5698,13 @@ class C<T> {
 var v = new C<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
   test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   C(T x());
 }
@@ -4999,12 +5714,12 @@ main() {
       return 1;
     });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1)],
+    );
 
     var v = findElement2.localVar('v');
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
@@ -5016,7 +5731,7 @@ class C {
 var v = new C(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'C');
   }
 
@@ -5026,7 +5741,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5038,7 +5753,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5048,7 +5763,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<dynamic>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -5058,7 +5773,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -5072,7 +5787,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -5082,12 +5797,13 @@ List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = f(
     () {
@@ -5095,16 +5811,17 @@ main() {
     });
 }
 List<T> f<T>(T g()) => <T>[g()];
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = (f)(
     () {
@@ -5112,162 +5829,173 @@ main() {
     });
 }
 List<T> f<T>(T g()) => <T>[g()];
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = f(() { return 1; });
 }
 double f(x) => 1.0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = (f)(() { return 1; });
 }
 double f(x) => 1.0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_inList_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = <dynamic>[() { return 1; }];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_inList_typed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef int F();
 main() {
   var v = <F>[() { return 1; }];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inList_untyped() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = [
     () {
       return 1;
     }];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = <int, dynamic>{1: () { return 1; }};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'Map<int, dynamic>');
   }
 
   test_unsafeBlockClosureInference_inMap_typed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef int F();
 main() {
   var v = <int, F>{1: () { return 1; }};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_untyped() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = {
     1: () {
       return 1;
     }};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitDynamicParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
 main() {
   var v = new C().f<dynamic>(() { return 1; });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitTypeParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
 main() {
   var v = new C().f<int>(() { return 1; });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
@@ -5277,9 +6005,9 @@ main() {
       return 1;
     });
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
 
     var v = findElement2.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
@@ -5293,12 +6021,13 @@ class C {
 var v = new C().f(() { return 1; });
 ''');
     var v = _resultLibraryElement.topLevelVariables[0];
-    expect(v.name3, 'v');
+    expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_voidReturnTypeEquivalentToDynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 T run<T>(T f()) {
   print("running");
   var t = f();
@@ -5320,10 +6049,12 @@ main() {
   y = 123;
   y = 'hi';
 }
-  ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 297, 1),
-    ]);
+  ''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 297, 1),
+      ],
+    );
 
     var x = _resultLibraryElement.topLevelVariables[0];
     var y = _resultLibraryElement.topLevelVariables[1];
@@ -5332,12 +6063,14 @@ main() {
   }
 
   Future<void> _assertErrors(
-      String code, List<ExpectedError> expectedErrors) async {
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) async {
     await resolveTestCode(code);
     assertErrorsInList(
-      result.errors.where((e) {
-        return e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode is! TodoCode;
+      result.diagnostics.where((e) {
+        return e.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
+            e.diagnosticCode is! TodoCode;
       }).toList(),
       expectedErrors,
     );

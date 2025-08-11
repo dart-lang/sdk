@@ -44,7 +44,6 @@ namespace dart {
   V(NoSuchMethodFromCallStub)                                                  \
   V(NoSuchMethodFromPrologue)                                                  \
   V(OptimizeInvokedFunction)                                                   \
-  V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
   V(RangeErrorUnboxedInt64)                                                    \
@@ -65,6 +64,8 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
+  V(StaticFieldAccessedWithoutIsolateError)                                    \
+  V(ThrowIfValueCantBeShared)                                                  \
   V(LateFieldAlreadyInitializedError)                                          \
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
@@ -76,11 +77,14 @@ namespace dart {
   V(AllocateSubtypeTestCache)                                                  \
   V(GetFieldForDispatch)                                                       \
   V(AdjustArgumentsDesciptorForImplicitClosure)                                \
+  V(ConvertToInstanceTypeArguments)                                            \
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
+  V(ResolveExternalCall)                                                       \
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \
-  V(ResumeInterpreter)
+  V(ResumeInterpreter)                                                         \
+  V(InitializeSharedField)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

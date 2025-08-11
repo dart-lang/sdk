@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -14,7 +14,6 @@ import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 
@@ -65,7 +64,7 @@ class LinkedElementFactory {
     return rootReference.children
         .map((reference) => reference.element)
         .whereType<LibraryElementImpl>()
-        .map((e) => e.source.uri)
+        .map((e) => e.uri)
         .toList();
   }
 
@@ -87,31 +86,19 @@ class LinkedElementFactory {
     Uri uri,
     List<ExportedReference> exportedReferences,
   ) {
-    var exportedNames = <String, Element2>{};
+    var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var element = elementOfReference(exportedReference.reference);
-      // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
-      if (element == null) {
-        throw StateError(
-          '[No element]'
-          '[uri: $uri]'
-          '[exportedReferences: $exportedReferences]'
-          '[exportedReference: $exportedReference]',
-        );
-      }
-      exportedNames[element.name!] = element.asElement2!;
+      var element = elementOfReference3(exportedReference.reference);
+      exportedNames[element.lookupName!] = element;
     }
 
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl? createLibraryElementForReading(Uri uri) {
+  LibraryElementImpl createLibraryElementForReading(Uri uri) {
     var sourceFactory = analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri2(uri);
-
-    // The URI cannot be resolved, we don't know the library.
-    if (librarySource == null) return null;
+    var librarySource = sourceFactory.forUri2(uri)!;
 
     var reader = _libraryReaders[uri];
     if (reader == null) {
@@ -124,10 +111,7 @@ class LinkedElementFactory {
       }
       var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
       if (readers.length > 50) {
-        readers = [
-          ...readers.take(50),
-          '... (${readers.length} total)',
-        ];
+        readers = [...readers.take(50), '... (${readers.length} total)'];
       }
       throw ArgumentError(
         'Missing library: $uri\n'
@@ -138,9 +122,7 @@ class LinkedElementFactory {
       );
     }
 
-    var libraryElement = reader.readElement(
-      librarySource: librarySource,
-    );
+    var libraryElement = reader.readElement(librarySource: librarySource);
     setLibraryTypeSystem(libraryElement);
     return libraryElement;
   }
@@ -176,13 +158,9 @@ class LinkedElementFactory {
     }
   }
 
-  // TODO(scheglov): Why would this method return `null`?
-  ElementImpl? elementOfReference(Reference reference) {
+  ElementImpl elementOfReference3(Reference reference) {
     if (reference.element case var element?) {
       return element;
-    }
-    if (reference.parent == null) {
-      return null;
     }
 
     if (reference.isLibrary) {
@@ -191,11 +169,14 @@ class LinkedElementFactory {
     }
 
     var parentRef = reference.parentNotContainer;
-    var parentElement = elementOfReference(parentRef);
+    var parentElement = elementOfReference3(parentRef);
 
     // Only classes delay creating children.
     if (parentElement is ClassElementImpl) {
-      parentElement.linkedData?.readMembers(parentElement);
+      var firstFragment = parentElement.firstFragment;
+      // TODO(scheglov): directly ask to read all?
+      firstFragment.constructors;
+      parentElement.constructors;
     }
 
     var element = reference.element;
@@ -205,23 +186,12 @@ class LinkedElementFactory {
     return element;
   }
 
-  // TODO(scheglov): Why would this method return `null`?
-  Element2? elementOfReference2(Reference reference) {
-    return elementOfReference(reference)?.asElement2;
-  }
-
-  bool hasLibrary(Uri uri) {
-    // We already have the element, linked or read.
-    if (rootReference['$uri']?.element is LibraryElementImpl) {
-      return true;
-    }
-    // No element yet, but we know how to read it.
-    return _libraryReaders[uri] != null;
-  }
-
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    return elementOfReference(reference) as LibraryElementImpl?;
+    if (reference.element case LibraryElementImpl element) {
+      return element;
+    }
+    return createLibraryElementForReading(uri);
   }
 
   LibraryElementImpl libraryOfUri2(Uri uri) {
@@ -256,12 +226,16 @@ class LinkedElementFactory {
     // If we discard `dart:core` and `dart:async`, we should also discard
     // the type provider.
     if (uriSet.contains(_dartCoreUri)) {
-      if (!uriSet.contains(_dartAsyncUri)) {
-        throw StateError(
-          'Expected to link dart:core and dart:async together: '
-          '${uriSet.toList()}',
-        );
-      }
+      // Most of the time, if the `uriSet` contains `dart:core`, then it will
+      // also contain `dart:async`, since `dart:core` and `dart:async` are part
+      // of the same library cycle. However, if an event triggers `dart:core` to
+      // be discarded at a time when no library cycle information has been built
+      // yet, then just `dart:core` will be in `uriSet`. This can happen, for
+      // example, if two events trigger invalidation of `dart:core` in rapid
+      // succession. Fortunately, if this happens, it is benign; since no
+      // library cycle information has been built yet, there is nothing that
+      // that needs to be discarded.
+
       if (_libraryReaders.isNotEmpty) {
         throw StateError(
           'Expected to link dart:core and dart:async first: '

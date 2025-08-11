@@ -16,15 +16,18 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresFieldTest extends PubPackageResolutionTest {
   Future<void> test_multiple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   String? one, two, three;
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 3),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 39, 3),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 44, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 3),
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 39, 3),
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 44, 5),
+      ],
+    );
   }
 
   Future<void> test_none() async {
@@ -34,11 +37,14 @@ extension E on String {}
   }
 
   test_one() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   String? s;
 }
-''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1)]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1)],
+    );
   }
 
   Future<void> test_static() async {

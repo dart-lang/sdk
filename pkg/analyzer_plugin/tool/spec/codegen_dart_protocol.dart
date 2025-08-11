@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -27,10 +26,10 @@ const Map<String, String> specialElementFlags = {
 
 GeneratedFile target(bool responseRequiresRequestTime,
     CodegenUriConverterKind clientUriConverterKind) {
-  return GeneratedFile('lib/protocol/protocol_generated.dart',
-      (String pkgPath) async {
-    var visitor = CodegenProtocolVisitor(path.basename(pkgPath),
-        responseRequiresRequestTime, clientUriConverterKind, readApi(pkgPath));
+  return GeneratedFile('analyzer_plugin/lib/protocol/protocol_generated.dart',
+      (pkgRoot) async {
+    var visitor = CodegenProtocolVisitor('analyzer_plugin',
+        responseRequiresRequestTime, clientUriConverterKind, readApi(pkgRoot));
     return visitor.collectCode(visitor.visitApi);
   });
 }
@@ -52,6 +51,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     'SourceChange': ['edits', 'linkedEditGroups'],
     'SourceFileEdit': ['edits'],
     'TypeHierarchyItem': ['interfaces', 'mixins', 'subclasses'],
+  };
+
+  /// Class members for which the list type should not be the default,
+  /// but QueueList for performance reasons.
+  static const Map<String, List<String>> _useQueueList = {
+    'SourceFileEdit': ['edits'],
   };
 
   /// The disclaimer added to the documentation comment for each of the classes
@@ -461,7 +466,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           // given, the constructor should populate with the empty list.
           var fieldType = field.type;
           if (fieldType is TypeList) {
-            var defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            String defaultValue;
+            if (_useQueueList[className]?.contains(field.name) ?? false) {
+              defaultValue = 'QueueList<${dartType(fieldType.itemType)}>()';
+            } else {
+              defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            }
             initializers.add('${field.name} = ${field.name} ?? $defaultValue');
           } else {
             throw Exception("Don't know how to create default field value.");
@@ -839,7 +849,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
               '[code]. Edits are applied in the order they appear in [edits].')
         ]);
         writeln(
-            'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
+            'static String applySequence(String code, List<SourceEdit> edits) =>');
         writeln('    applySequenceOfEdits(code, edits);');
         return true;
       default:

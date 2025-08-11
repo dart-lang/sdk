@@ -326,10 +326,9 @@ class Selector {
   /// A selector is normalized if its call structure is normalized.
   // TODO(johnniwinther): Use normalized selectors as much as possible,
   // especially where selectors are used in sets or as keys in maps.
-  Selector toNormalized() =>
-      callStructure.isNormalized
-          ? this
-          : Selector(kind, memberName, callStructure.toNormalized());
+  Selector toNormalized() => callStructure.isNormalized
+      ? this
+      : Selector(kind, memberName, callStructure.toNormalized());
 
   Selector toCallSelector() => Selector.callClosureFrom(this);
 

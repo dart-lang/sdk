@@ -131,7 +131,7 @@ main() {
   Expect.equals(null, nullC()?.bad = bad());
   //                           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'bad' isn't defined for the class 'C'.
+  // [cfe] The setter 'bad' isn't defined for the type 'C'.
   {
     B b = new C(1);
     Expect.equals(2, b?.v = 2);
@@ -139,7 +139,7 @@ main() {
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                  ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-    // [cfe] The setter 'v' isn't defined for the class 'B'.
+    // [cfe] The setter 'v' isn't defined for the type 'B'.
   }
 
   // e1?.v op= e2 is equivalent to ((x) => x?.v = x.v op e2)(e1).
@@ -192,7 +192,7 @@ main() {
   nullC()?.bad = bad();
   //       ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-  // [cfe] The setter 'bad' isn't defined for the class 'C'.
+  // [cfe] The setter 'bad' isn't defined for the type 'C'.
   {
     B bname = new C(1);
     bname?.v += 2;
@@ -201,8 +201,8 @@ main() {
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-    // [cfe] The getter 'v' isn't defined for the class 'B'.
-    // [cfe] The setter 'v' isn't defined for the class 'B'.
+    // [cfe] The getter 'v' isn't defined for the type 'B'.
+    // [cfe] The setter 'v' isn't defined for the type 'B'.
   }
   {
     D d = new D(new E());

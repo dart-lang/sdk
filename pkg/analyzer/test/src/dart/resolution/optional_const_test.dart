@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,11 +30,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::named#element
+        baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::named#element
+      baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -53,7 +53,7 @@ InstanceCreationExpression
       element2: package:test/a.dart::@class::B
       type: B<num>
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::new#element
+      baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -79,11 +79,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::named#element
+        baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::named#element
+      baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -106,7 +106,7 @@ InstanceCreationExpression
       element2: package:test/a.dart::@class::B
       type: B<num>
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::B::@constructor::new#element
+      baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -127,9 +127,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/a.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/a.dart::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -146,7 +146,7 @@ InstanceCreationExpression
       name: A
       element2: package:test/a.dart::@class::A
       type: A
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -170,9 +170,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/a.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/a.dart::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -193,7 +193,7 @@ InstanceCreationExpression
       name: A
       element2: package:test/a.dart::@class::A
       type: A
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -235,7 +235,7 @@ InstanceCreationExpression
       element2: package:test/a.dart::@class::C
       type: C<int>
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
+      baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -244,8 +244,10 @@ InstanceCreationExpression
 ''');
   }
 
-  Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
-      {String? prefix}) async {
+  Future<InstanceCreationExpression> _resolveImplicitConst(
+    String expr, {
+    String? prefix,
+  }) async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
@@ -274,8 +276,8 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElement2;
-    var v = vg.variable3!.firstFragment as ConstVariableElement;
+    var vg = findNode.simple('a;').element as PropertyAccessorElement;
+    var v = vg.variable!.firstFragment as VariableFragmentImpl;
 
     var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;

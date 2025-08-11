@@ -18,7 +18,7 @@ class UnifiedAnalyticsService extends InternalService {
   UnifiedAnalyticsService({bool fake = false}) : _useFake = fake;
 
   @override
-  String get serviceName => 'UnifiedAnalytics';
+  String get serviceName => UnifiedAnalyticsServiceConstants.serviceName;
 
   final bool _useFake;
 
@@ -27,32 +27,32 @@ class UnifiedAnalyticsService extends InternalService {
     client
       ..registerServiceMethod(
         serviceName,
-        'getConsentMessage',
+        UnifiedAnalyticsServiceConstants.getConsentMessage,
         _getConsentMessage,
       )
       ..registerServiceMethod(
         serviceName,
-        'shouldShowMessage',
+        UnifiedAnalyticsServiceConstants.shouldShowMessage,
         _shouldShowMessage,
       )
       ..registerServiceMethod(
         serviceName,
-        'clientShowedMessage',
+        UnifiedAnalyticsServiceConstants.clientShowedMessage,
         _clientShowedMessage,
       )
       ..registerServiceMethod(
         serviceName,
-        'telemetryEnabled',
+        UnifiedAnalyticsServiceConstants.telemetryEnabled,
         _telemetryEnabled,
       )
       ..registerServiceMethod(
         serviceName,
-        'setTelemetry',
+        UnifiedAnalyticsServiceConstants.setTelemetry,
         _setTelemetry,
       )
       ..registerServiceMethod(
         serviceName,
-        'send',
+        UnifiedAnalyticsServiceConstants.send,
         _send,
       );
 
@@ -65,6 +65,14 @@ class UnifiedAnalyticsService extends InternalService {
         _listFakeAnalyticsSentEvents,
       );
     }
+  }
+
+  @override
+  void shutdown() {
+    _analyticsInstances.clear();
+    _cachedDartVersion = null;
+    _cachedFlutterChannel = null;
+    _cachedFlutterVersion = null;
   }
 
   /// Contains an [Analytics] instance for each [DashTool] client that uses
@@ -112,21 +120,21 @@ class UnifiedAnalyticsService extends InternalService {
   }
 
   Map<String, Object?> _setTelemetry(Parameters parameters) {
-    final enable = parameters['enable'].asBool;
+    final enable = parameters[DtdParameters.enable].asBool;
     final analytics = _analyticsFromParams(parameters);
     analytics.setTelemetry(enable);
     return Success().toJson();
   }
 
   Map<String, Object?> _send(Parameters parameters) {
-    final event = parameters['event'].asString;
+    final event = parameters[DtdParameters.event].asString;
     final analytics = _analyticsFromParams(parameters);
     analytics.send(Event.fromJson(event)!);
     return Success().toJson();
   }
 
   DashTool _extractTool(Parameters parameters) {
-    final toolString = parameters['tool'].asString;
+    final toolString = parameters[DtdParameters.tool].asString;
     try {
       return DashTool.fromLabel(toolString);
     } catch (e) {

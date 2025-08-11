@@ -7,7 +7,6 @@
 
 class Repeated {
   var a = '', b = 'Something';
-
 }
 
 main() {}

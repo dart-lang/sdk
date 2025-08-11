@@ -31,11 +31,14 @@ main() {
       });
     });
     throw "catch error";
-  }).listen((x) {
-    events.add(x);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
   done.future.whenComplete(() {
     // Give time to execute the callbacks.
     Timer.run(() {

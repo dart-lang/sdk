@@ -47,19 +47,19 @@ library;
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+// pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 // const bool.fromEnvironment("bar", defaultValue: null);
 //                                                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
+// pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
 // const String.fromEnvironment("bar", defaultValue: null);
 //                                                   ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+// pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 // const bool.fromEnvironment("bar", defaultValue: null);
 //                                                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+// pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
 // const int.fromEnvironment("bar", defaultValue: null);
 //                                                ^
 //
@@ -162,26 +162,6 @@ library;
 // const binaryOnStringWithStringBad = willBeString - " world";
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:78:13: Error: Constant evaluation error:
-// const x3 = x--;
-//             ^
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Context: The invocation of 'x' is not allowed in a constant expression.
-// const x3 = x--;
-//            ^
-// pkg/front_end/testcases/general/constants/various.dart:78:7: Context: While analyzing:
-// const x3 = x--;
-//       ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:79:13: Error: Constant evaluation error:
-// const x4 = x++;
-//             ^
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Context: The invocation of 'x' is not allowed in a constant expression.
-// const x4 = x++;
-//            ^
-// pkg/front_end/testcases/general/constants/various.dart:79:7: Context: While analyzing:
-// const x4 = x++;
-//       ^
-//
 // pkg/front_end/testcases/general/constants/various.dart:144:62: Error: Constant evaluation error:
 // const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
 //                                                              ^
@@ -209,13 +189,6 @@ library;
 // pkg/front_end/testcases/general/constants/various.dart:160:64: Context: This assertion failed with message: (empty)
 //   const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
 //                                                                ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:201:7: Error: Constant evaluation error:
-// const ConstClassWithFinalFields2();
-//       ^
-// pkg/front_end/testcases/general/constants/various.dart:197:14: Context: The invocation of 'x' is not allowed in a constant expression.
-//   final z2 = x;
-//              ^
 //
 // pkg/front_end/testcases/general/constants/various.dart:219:35: Error: Constant evaluation error:
 // const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
@@ -303,73 +276,77 @@ class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
 }
 class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
   final field core::int y = 1;
-  final field invalid-type z1 = this.{self::ConstClassWithFinalFields2::y}{core::int};
-  final field core::int z2 = self::x;
+  final field invalid-type z1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
+  final z1 = y;
+             ^";
+  final field core::int z2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
+  final z2 = x;
+             ^";
   const constructor •() → self::ConstClassWithFinalFields2
     : super core::Object::•()
     ;
 }
 static const field core::bool barFromEnv = #C1;
 static const field core::bool hasBarEnv = #C1;
-static const field core::bool barFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool barFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool notBarFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool notBarFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool conditionalOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool conditionalOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool nullAwareOnNullTrue = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool nullAwareOnNullTrue = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool nullAwareOnNullFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool nullAwareOnNullFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool andOnFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool andOnFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool andOnFalse2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool andOnFalse2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool andOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool andOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool andOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool andOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool orOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool orOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
-static const field core::bool orOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool orOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
 static const field core::bool orOnNull3 = #C2;
-static const field core::bool orOnNull4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool orOnNull4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
 static const field core::String barFromEnvString = #C3;
-static const field core::String barFromEnvOrNullString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
+static const field core::String barFromEnvOrNullString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
 const String.fromEnvironment(\"bar\", defaultValue: null);
                                                   ^";
 static const field core::String barFromEnvOrActualString = #C4;
-static const field core::String nullFromEnvString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
+static const field core::String nullFromEnvString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
 const String.fromEnvironment(\"bar\", defaultValue: null);
                                                   ^";
 static const field core::bool barFromEnvBool = #C1;
-static const field core::bool barFromEnvOrNullBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The value 'null' can't be assigned to the parameter type 'bool' because 'bool' is not nullable.
+static const field core::bool barFromEnvOrNullBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^";
 static const field core::bool barFromEnvOrActualBool = #C2;
-static const field core::bool nullFromEnvBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
+static const field core::bool nullFromEnvBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
 const String.fromEnvironment(\"bar\", defaultValue: null);
                                                   ^";
 static const field core::int barFromEnvInt = #C5;
-static const field core::int barFromEnvOrNullInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+static const field core::int barFromEnvOrNullInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
 const int.fromEnvironment(\"bar\", defaultValue: null);
                                                ^";
 static const field core::int barFromEnvOrActualInt = #C6;
-static const field core::int nullFromEnvInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
+static const field core::int nullFromEnvInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
 const String.fromEnvironment(\"bar\", defaultValue: null);
                                                   ^";
 static const field core::bool bazFromEnv = #C1;
@@ -395,10 +372,18 @@ static const field dynamic binaryOnStringWithStringOK = #C10;
 static const field dynamic binaryOnStringWithInt = invalid-expression "Binary operator '+' on '\"hello\"' requires operand of type 'String', but was of type 'int'.";
 static const field dynamic binaryOnStringWithStringBad = invalid-expression "The method '-' can't be invoked on '\"hello\"' in a constant expression.";
 static field core::int x = 1;
-static const field core::int x1 = invalid-expression "Not a constant expression.";
-static const field core::int x2 = invalid-expression "Not a constant expression.";
-static const field core::int x3 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
-static const field core::int x4 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
+static const field invalid-type x1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+const x1 = --x;
+             ^";
+static const field invalid-type x2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+const x2 = ++x;
+             ^";
+static const field invalid-type x3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+const x3 = x--;
+           ^";
+static const field invalid-type x4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+const x4 = x++;
+           ^";
 static const field core::int y = #C11;
 static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
 const y1 = --y;
@@ -450,7 +435,9 @@ static field self::ClassWithNonEmptyConstConstructor classWithNonEmptyConstConst
 Try using a constructor or factory that is 'const'.
 const ClassWithNonEmptyConstConstructor();
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
+static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
+  final z1 = y;
+             ^";
 static const field core::bool zeroPointZeroIdentical = #C2;
 static const field core::bool zeroPointZeroIdenticalToZero = #C1;
 static const field core::bool zeroIdenticalToZeroPointZero = #C1;
@@ -509,7 +496,7 @@ constants  {
 Extra constant evaluation status:
 Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
 Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:120:26 -> IntConstant(5)
-Extra constant evaluation: evaluated: 15, effectively constant: 2
+Extra constant evaluation: evaluated: 12, effectively constant: 2
 
 
 Constructor coverage from constants:

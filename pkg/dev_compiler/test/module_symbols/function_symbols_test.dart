@@ -56,8 +56,10 @@ void main() async {
         expect(functionSymbol.location!.scriptId, endsWith('/foo.dart'));
       });
       test('has start token', () async {
-        expect(functionSymbol.location!.tokenPos,
-            source.indexOf('topLevelFunction'));
+        expect(
+          functionSymbol.location!.tokenPos,
+          source.indexOf('topLevelFunction'),
+        );
       });
       test('has end token', () async {
         expect(functionSymbol.location!.endTokenPos, source.lastIndexOf('}'));
@@ -229,12 +231,15 @@ void main() async {
     setUpAll(() async {
       driver = TestDriver(options, source);
       var symbols = await driver.compileAndGetSymbols();
-      functionWithPositionalArgSymbol = symbols.functions
-          .singleWhere((f) => f.name == 'functionWithPositionalArg');
-      functionWithOptionalArgSymbol = symbols.functions
-          .singleWhere((f) => f.name == 'functionWithOptionalArg');
-      functionWithNamedArgSymbol = symbols.functions
-          .singleWhere((f) => f.name == 'functionWithNamedArg');
+      functionWithPositionalArgSymbol = symbols.functions.singleWhere(
+        (f) => f.name == 'functionWithPositionalArg',
+      );
+      functionWithOptionalArgSymbol = symbols.functions.singleWhere(
+        (f) => f.name == 'functionWithOptionalArg',
+      );
+      functionWithNamedArgSymbol = symbols.functions.singleWhere(
+        (f) => f.name == 'functionWithNamedArg',
+      );
       xSymbol = symbols.variables.singleWhere((v) => v.name == 'x');
       ySymbol = symbols.variables.singleWhere((v) => v.name == 'y');
       zSymbol = symbols.variables.singleWhere((v) => v.name == 'z');

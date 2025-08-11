@@ -400,17 +400,17 @@ class KernelImpactConverter implements ImpactRegistry {
     impactBuilder.registerStaticUse(
       isConst
           ? StaticUse.constConstructorInvoke(
-            constructor,
-            callStructure,
-            elementMap.getInterfaceType(type),
-            deferredImport,
-          )
+              constructor,
+              callStructure,
+              elementMap.getInterfaceType(type),
+              deferredImport,
+            )
           : StaticUse.typedConstructorInvoke(
-            constructor,
-            callStructure,
-            elementMap.getInterfaceType(type),
-            deferredImport,
-          ),
+              constructor,
+              callStructure,
+              elementMap.getInterfaceType(type),
+              deferredImport,
+            ),
     );
     if (type.typeArguments.any((ir.DartType type) => type is! ir.DynamicType)) {
       registerBackendImpact(_impacts.typeVariableBoundCheck);
@@ -808,8 +808,9 @@ class KernelImpactConverter implements ImpactRegistry {
     ir.DartType? argumentType,
   ) {
     DartType receiverDartType = elementMap.getDartType(receiverType);
-    DartType? argumentDartType =
-        argumentType == null ? null : elementMap.getDartType(argumentType);
+    DartType? argumentDartType = argumentType == null
+        ? null
+        : elementMap.getDartType(argumentType);
 
     // Enable runtime type support if we discover a getter called
     // runtimeType. We have to enable runtime type before hitting the
@@ -1030,8 +1031,9 @@ class KernelImpactConverter implements ImpactRegistry {
     final conditionalUse = ConditionalUse.withReplacement(
       impact: convert(impact.impactData),
       replacementImpact: convert(impact.replacementImpactData),
-      originalConditions:
-          impact.originalConditions.map(elementMap.getMember).toList(),
+      originalConditions: impact.originalConditions
+          .map(elementMap.getMember)
+          .toList(),
       original: impact.original,
       replacement: impact.replacement,
     );

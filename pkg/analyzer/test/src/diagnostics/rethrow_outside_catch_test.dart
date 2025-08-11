@@ -26,7 +26,8 @@ void f() {
   }
 
   test_insideCatch_insideClosure() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch (e) {
     () {
@@ -34,9 +35,9 @@ void f() {
     };
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 47, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 47, 7)],
+    );
   }
 
   test_insideCatch_insideClosure_insideCatch() async {
@@ -54,13 +55,14 @@ void f() {
   }
 
   test_withoutCatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   rethrow;
 }
-''', [
-      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 13, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 13, 7)],
+    );
 
     var node = findNode.singleRethrowExpression;
     assertResolvedNodeText(node, r'''

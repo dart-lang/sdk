@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -13,12 +12,13 @@ import 'package:meta/meta.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeProvider {
   /// Return the element representing the built-in class `bool`.
-  @Deprecated('Use boolElement2 instead')
+  @experimental
   ClassElement get boolElement;
 
   /// Return the element representing the built-in class `bool`.
+  @Deprecated('Use boolElement instead.')
   @experimental
-  ClassElement2 get boolElement2;
+  ClassElement get boolElement2;
 
   /// Return the type representing the built-in type `bool`.
   InterfaceType get boolType;
@@ -30,12 +30,13 @@ abstract class TypeProvider {
   InterfaceType get deprecatedType;
 
   /// Return the element representing the built-in class `double`.
-  @Deprecated('Use doubleElement2 instead')
+  @experimental
   ClassElement get doubleElement;
 
   /// Return the element representing the built-in class `double`.
+  @Deprecated('Use doubleElement instead')
   @experimental
-  ClassElement2 get doubleElement2;
+  ClassElement get doubleElement2;
 
   /// Return the type representing the built-in type `double`.
   InterfaceType get doubleType;
@@ -45,13 +46,14 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
-  @Deprecated('Use enumElement2 instead')
+  @experimental
   ClassElement? get enumElement;
 
   /// Return the element representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
+  @Deprecated('Use enumElement instead')
   @experimental
-  ClassElement2? get enumElement2;
+  ClassElement? get enumElement2;
 
   /// Return the type representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
@@ -64,34 +66,37 @@ abstract class TypeProvider {
   InterfaceType get futureDynamicType;
 
   /// Return the element representing the built-in class `Future`.
-  @Deprecated('Use futureElement2 instead')
+  @experimental
   ClassElement get futureElement;
 
   /// Return the element representing the built-in class `Future`.
+  @Deprecated('Use futureElement instead')
   @experimental
-  ClassElement2 get futureElement2;
+  ClassElement get futureElement2;
 
   /// Return the type representing `Future<Null>`.
   InterfaceType get futureNullType;
 
   /// Return the element representing the built-in class `FutureOr`.
-  @Deprecated('Use futureOrElement2 instead')
+  @experimental
   ClassElement get futureOrElement;
 
   /// Return the element representing the built-in class `FutureOr`.
+  @Deprecated('Use futureOrElement instead')
   @experimental
-  ClassElement2 get futureOrElement2;
+  ClassElement get futureOrElement2;
 
   /// Return the type representing `FutureOr<Null>`.
   InterfaceType get futureOrNullType;
 
   /// Return the element representing the built-in class `int`.
-  @Deprecated('Use intElement2 instead')
+  @experimental
   ClassElement get intElement;
 
   /// Return the element representing the built-in class `int`.
+  @Deprecated('Use intElement instead')
   @experimental
-  ClassElement2 get intElement2;
+  ClassElement get intElement2;
 
   /// Return the type representing the built-in type `int`.
   InterfaceType get intType;
@@ -100,31 +105,34 @@ abstract class TypeProvider {
   InterfaceType get iterableDynamicType;
 
   /// Return the element representing the built-in class `Iterable`.
-  @Deprecated('Use iterableElement2 instead')
+  @experimental
   ClassElement get iterableElement;
 
   /// Return the element representing the built-in class `Iterable`.
+  @Deprecated('Use iterableElement instead')
   @experimental
-  ClassElement2 get iterableElement2;
+  ClassElement get iterableElement2;
 
   /// Return the type representing the type `Iterable<Object>`.
   InterfaceType get iterableObjectType;
 
   /// Return the element representing the built-in class `List`.
-  @Deprecated('Use listElement2 instead')
+  @experimental
   ClassElement get listElement;
 
   /// Return the element representing the built-in class `List`.
+  @Deprecated('Use listElement instead')
   @experimental
-  ClassElement2 get listElement2;
+  ClassElement get listElement2;
 
   /// Return the element representing the built-in class `Map`.
-  @Deprecated('Use mapElement2 instead')
+  @experimental
   ClassElement get mapElement;
 
   /// Return the element representing the built-in class `Map`.
+  @Deprecated('Use mapElement instead')
   @experimental
-  ClassElement2 get mapElement2;
+  ClassElement get mapElement2;
 
   /// Return the type representing `Map<Object, Object>`.
   InterfaceType get mapObjectObjectType;
@@ -133,34 +141,37 @@ abstract class TypeProvider {
   NeverType get neverType;
 
   /// Return the element representing the built-in class `Null`.
-  @Deprecated('Use nullElement2 instead')
+  @experimental
   ClassElement get nullElement;
 
   /// Return the element representing the built-in class `Null`.
+  @Deprecated('Use nullElement instead')
   @experimental
-  ClassElement2 get nullElement2;
+  ClassElement get nullElement2;
 
   /// Return the type representing the built-in type `Null`.
   InterfaceType get nullType;
 
   /// Return the element representing the built-in class `num`.
-  @Deprecated('Use numElement2 instead')
+  @experimental
   ClassElement get numElement;
 
   /// Return the element representing the built-in class `num`.
+  @Deprecated('Use numElement instead')
   @experimental
-  ClassElement2 get numElement2;
+  ClassElement get numElement2;
 
   /// Return the type representing the built-in type `num`.
   InterfaceType get numType;
 
   /// Return the element representing the built-in class `Object`.
-  @Deprecated('Use objectElement2 instead')
+  @experimental
   ClassElement get objectElement;
 
   /// Return the element representing the built-in class `Object`.
+  @Deprecated('Use objectElement instead')
   @experimental
-  ClassElement2 get objectElement2;
+  ClassElement get objectElement2;
 
   /// Return the type representing the built-in type `Object?`.
   InterfaceType get objectQuestionType;
@@ -169,23 +180,25 @@ abstract class TypeProvider {
   InterfaceType get objectType;
 
   /// Return the element representing the built-in class `Record`.
-  @Deprecated('Use recordElement2 instead')
+  @experimental
   ClassElement get recordElement;
 
   /// Return the element representing the built-in class `Record`.
+  @Deprecated('Use recordElement instead')
   @experimental
-  ClassElement2 get recordElement2;
+  ClassElement get recordElement2;
 
   /// Return the type representing the built-in type `Record`.
   InterfaceType get recordType;
 
   /// Return the element representing the built-in class `Set`.
-  @Deprecated('Use setElement2 instead')
+  @experimental
   ClassElement get setElement;
 
   /// Return the element representing the built-in class `Set`.
+  @Deprecated('Use setElement instead')
   @experimental
-  ClassElement2 get setElement2;
+  ClassElement get setElement2;
 
   /// Return the type representing the built-in type `StackTrace`.
   InterfaceType get stackTraceType;
@@ -194,31 +207,34 @@ abstract class TypeProvider {
   InterfaceType get streamDynamicType;
 
   /// Return the element representing the built-in class `Stream`.
-  @Deprecated('Use streamElement2 instead')
+  @experimental
   ClassElement get streamElement;
 
   /// Return the element representing the built-in class `Stream`.
+  @Deprecated('Use streamElement instead')
   @experimental
-  ClassElement2 get streamElement2;
+  ClassElement get streamElement2;
 
   /// Return the element representing the built-in class `String`.
-  @Deprecated('Use stringElement2 instead')
+  @experimental
   ClassElement get stringElement;
 
   /// Return the element representing the built-in class `String`.
+  @Deprecated('Use stringElement instead')
   @experimental
-  ClassElement2 get stringElement2;
+  ClassElement get stringElement2;
 
   /// Return the type representing the built-in type `String`.
   InterfaceType get stringType;
 
   /// Return the element representing the built-in class `Symbol`.
-  @Deprecated('Use symbolElement2 instead')
+  @experimental
   ClassElement get symbolElement;
 
   /// Return the element representing the built-in class `Symbol`.
+  @Deprecated('Use symbolElement instead')
   @experimental
-  ClassElement2 get symbolElement2;
+  ClassElement get symbolElement2;
 
   /// Return the type representing the built-in type `Symbol`.
   InterfaceType get symbolType;
@@ -238,11 +254,11 @@ abstract class TypeProvider {
   InterfaceType futureType(DartType valueType);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
-  @Deprecated('Use isNonSubtypableClass2() instead')
   bool isNonSubtypableClass(InterfaceElement element);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
-  bool isNonSubtypableClass2(InterfaceElement2 element);
+  @Deprecated('Use isNonSubtypableClass instead')
+  bool isNonSubtypableClass2(InterfaceElement element);
 
   /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);

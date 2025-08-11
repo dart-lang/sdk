@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -47,6 +48,18 @@ int Function(int a)? y;
 ''');
   }
 
+  test_element_enclosingElement() async {
+    await assertNoErrorsInCode('''
+void f(
+  void Function() a,
+) {}
+''');
+
+    var node = findNode.singleGenericFunctionType;
+    var element = node.declaredFragment!.element;
+    expect(element.enclosingElement, same(result.libraryElement2));
+  }
+
   test_metadata_typeParameter() async {
     await assertNoErrorsInCode(r'''
 const a = 42;
@@ -62,11 +75,12 @@ TypeParameter
       atSign: @
       name: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@getter::a#element
+        element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibraryFragment>::@getter::a#element
+      element2: <testLibrary>::@getter::a
   name: T
-  declaredElement: T@27
+  declaredElement: <testLibraryFragment> T@27
+    defaultType: null
 ''');
   }
 

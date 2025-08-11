@@ -37,18 +37,19 @@ void main() {
 
       // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
-      var newModule =
-          ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+      var newModule = ModuleMetadata.fromJson(
+        moduleJson as Map<String, dynamic>,
+      );
       testMetadataFields(newModule, version);
     });
 
     test('read later backward-compatible patch version', () async {
       // Create metadata with next patch version.
       var version = ModuleMetadataVersion(
-              ModuleMetadataVersion.current.majorVersion,
-              ModuleMetadataVersion.current.minorVersion,
-              ModuleMetadataVersion.current.patchVersion + 1)
-          .version;
+        ModuleMetadataVersion.current.majorVersion,
+        ModuleMetadataVersion.current.minorVersion,
+        ModuleMetadataVersion.current.patchVersion + 1,
+      ).version;
 
       var module = createMetadata(version);
 
@@ -58,18 +59,19 @@ void main() {
 
       // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
-      var newModule =
-          ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+      var newModule = ModuleMetadata.fromJson(
+        moduleJson as Map<String, dynamic>,
+      );
       testMetadataFields(newModule, version);
     });
 
     test('read later backward-compatible minor version', () async {
       // Create metadata with next minor version.
       var version = ModuleMetadataVersion(
-              ModuleMetadataVersion.current.majorVersion,
-              ModuleMetadataVersion.current.minorVersion + 1,
-              ModuleMetadataVersion.current.patchVersion + 1)
-          .version;
+        ModuleMetadataVersion.current.majorVersion,
+        ModuleMetadataVersion.current.minorVersion + 1,
+        ModuleMetadataVersion.current.patchVersion + 1,
+      ).version;
       var module = createMetadata(version);
 
       // Write metadata.
@@ -78,18 +80,19 @@ void main() {
 
       // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
-      var newModule =
-          ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
+      var newModule = ModuleMetadata.fromJson(
+        moduleJson as Map<String, dynamic>,
+      );
       testMetadataFields(newModule, version);
     });
 
     test('fail to read later non-backward-compatible major version', () async {
       // Create metadata with next minor version.
       var version = ModuleMetadataVersion(
-              ModuleMetadataVersion.current.majorVersion + 1,
-              ModuleMetadataVersion.current.minorVersion + 1,
-              ModuleMetadataVersion.current.patchVersion + 1)
-          .version;
+        ModuleMetadataVersion.current.majorVersion + 1,
+        ModuleMetadataVersion.current.minorVersion + 1,
+        ModuleMetadataVersion.current.patchVersion + 1,
+      ).version;
       var module = createMetadata(version);
 
       // Write metadata.
@@ -103,7 +106,9 @@ void main() {
         newModule = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
       } catch (e) {
         expect(
-            e.toString(), 'Exception: Unsupported metadata version $version');
+          e.toString(),
+          'Exception: Unsupported metadata version $version',
+        );
       }
 
       expect(newModule, null);
@@ -111,11 +116,22 @@ void main() {
   });
 }
 
-ModuleMetadata createMetadata(String version) => ModuleMetadata(
-    'module', 'closure', 'module.map', 'module.js', 'module.full.dill',
-    version: version)
-  ..addLibrary(LibraryMetadata('library', 'package:library/test.dart',
-      'file:///source/library/lib/test.dart', ['src/test2.dart']));
+ModuleMetadata createMetadata(String version) =>
+    ModuleMetadata(
+      'module',
+      'closure',
+      'module.map',
+      'module.js',
+      'module.full.dill',
+      version: version,
+    )..addLibrary(
+      LibraryMetadata(
+        'library',
+        'package:library/test.dart',
+        'file:///source/library/lib/test.dart',
+        ['src/test2.dart'],
+      ),
+    );
 
 void testMetadataFields(ModuleMetadata module, String version) {
   // Reader always creates current metadata version.

@@ -27,19 +27,31 @@ void testUnsupported(String name, void f()) {
 main() {
   var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
-  var isInputElement =
-      predicate((x) => x is InputElement, 'is an InputElement');
-  var isImageElement =
-      predicate((x) => x is ImageElement, 'is an ImageElement');
+  var isInputElement = predicate(
+    (x) => x is InputElement,
+    'is an InputElement',
+  );
+  var isImageElement = predicate(
+    (x) => x is ImageElement,
+    'is an ImageElement',
+  );
   var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
-  var isAnchorElement =
-      predicate((x) => x is AnchorElement, 'is an AnchorElement');
-  var isElementList =
-      predicate((x) => x is List<Element>, 'is a List<Element>');
-  var isElementIterable =
-      predicate((x) => x is Iterable<Element>, 'is an Iterable<Element>');
-  var isHeadingElement =
-      predicate((x) => x is HeadingElement, 'is a HeadingElement');
+  var isAnchorElement = predicate(
+    (x) => x is AnchorElement,
+    'is an AnchorElement',
+  );
+  var isElementList = predicate(
+    (x) => x is List<Element>,
+    'is a List<Element>',
+  );
+  var isElementIterable = predicate(
+    (x) => x is Iterable<Element>,
+    'is an Iterable<Element>',
+  );
+  var isHeadingElement = predicate(
+    (x) => x is HeadingElement,
+    'is a HeadingElement',
+  );
 
   Element makeElement() => new Element.tag('div');
 
@@ -84,12 +96,15 @@ main() {
       Expect.throwsStateError(() => new Element.html('<br/><br/>'));
     });
 
-    test('.html has no parent',
-        () => expect(new Element.html('<br/>').parent, isNull));
+    test(
+      '.html has no parent',
+      () => expect(new Element.html('<br/>').parent, isNull),
+    );
 
     test('.html table', () {
       // http://developers.whatwg.org/tabular-data.html#tabular-data
-      TableElement node = new Element.html('''
+      TableElement node =
+          new Element.html('''
 <table>
  <caption>Characteristics with positive and negative sides</caption>
  <thead>
@@ -106,25 +121,30 @@ main() {
    <td headers="n r2"> Failing
    <th id="r2"> Grade
    <td> Passing
-</table>''') as TableElement;
+</table>''')
+              as TableElement;
       expect(node.tagName, 'TABLE');
       expect(node.parent, isNull);
-      expect(node.caption!.innerHtml,
-          'Characteristics with positive and negative sides');
+      expect(
+        node.caption!.innerHtml,
+        'Characteristics with positive and negative sides',
+      );
       expect(node.tHead!.rows.length, 1);
       expect(node.tHead!.rows[0].cells.length, 3);
       expect(node.tBodies.length, 1);
       expect(node.tBodies[0].rows.length, 2);
-      expect(node.tBodies[0].rows[1].cells.map((c) => c.innerHtml),
-          [' Failing\n   ', ' Grade\n   ', ' Passing\n']);
+      expect(node.tBodies[0].rows[1].cells.map((c) => c.innerHtml), [
+        ' Failing\n   ',
+        ' Grade\n   ',
+        ' Passing\n',
+      ]);
     });
 
     test('.html caption', () {
       var table = new TableElement();
-      TableCaptionElement node = table
-          .createFragment('<caption><p>Table 1.')
-          .nodes
-          .single as TableCaptionElement;
+      TableCaptionElement node =
+          table.createFragment('<caption><p>Table 1.').nodes.single
+              as TableCaptionElement;
       expect(node.tagName, 'CAPTION');
       expect(node.parent, isNull);
       expect(node.innerHtml, '<p>Table 1.</p>');
@@ -132,10 +152,9 @@ main() {
 
     test('.html colgroup', () {
       var table = new TableElement();
-      TableColElement node = table
-          .createFragment('<colgroup> <col> <col> <col>')
-          .nodes
-          .single as TableColElement;
+      TableColElement node =
+          table.createFragment('<colgroup> <col> <col> <col>').nodes.single
+              as TableColElement;
       expect(node.tagName, 'COLGROUP');
       expect(node.parent, isNull);
       expect(node.innerHtml, ' <col> <col> <col>');
@@ -144,10 +163,9 @@ main() {
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table
-          .createFragment('<tbody>$innerHtml')
-          .nodes
-          .single as TableSectionElement;
+      TableSectionElement node =
+          table.createFragment('<tbody>$innerHtml').nodes.single
+              as TableSectionElement;
       expect(node.tagName, 'TBODY');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -158,10 +176,9 @@ main() {
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
-      TableSectionElement node = table
-          .createFragment('<thead>$innerHtml')
-          .nodes
-          .single as TableSectionElement;
+      TableSectionElement node =
+          table.createFragment('<thead>$innerHtml').nodes.single
+              as TableSectionElement;
       expect(node.tagName, 'THEAD');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -172,10 +189,9 @@ main() {
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table
-          .createFragment('<tfoot>$innerHtml')
-          .nodes
-          .single as TableSectionElement;
+      TableSectionElement node =
+          table.createFragment('<tfoot>$innerHtml').nodes.single
+              as TableSectionElement;
       expect(node.tagName, 'TFOOT');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -187,10 +203,9 @@ main() {
       var table = new TableElement();
       document.body!.append(table);
       var tBody = table.createTBody();
-      TableRowElement node = tBody
-          .createFragment('<tr><td>foo<td>bar')
-          .nodes
-          .single as TableRowElement;
+      TableRowElement node =
+          tBody.createFragment('<tr><td>foo<td>bar').nodes.single
+              as TableRowElement;
       expect(node.tagName, 'TR');
       expect(node.parent, isNull);
       expect(node.cells.map((c) => c.innerHtml), ['foo', 'bar']);
@@ -254,7 +269,10 @@ main() {
       testEvent(target.onBlur, 'blur');
       testEvent(target.onChange, 'change');
       testEvent(
-          target.onContextMenu, 'contextmenu', (type) => new MouseEvent(type));
+        target.onContextMenu,
+        'contextmenu',
+        (type) => new MouseEvent(type),
+      );
       // We cannot test dispatching a true ClipboardEvent as the DOM does not
       // provide a way to create a fake ClipboardEvent.
       testEvent(target.onCopy, 'copy');
@@ -262,16 +280,28 @@ main() {
       testEvent(target.onPaste, 'paste');
 
       testEvent(
-          target.onDoubleClick, 'dblclick', (type) => new MouseEvent(type));
+        target.onDoubleClick,
+        'dblclick',
+        (type) => new MouseEvent(type),
+      );
       testEvent(target.onDrag, 'drag', (type) => new MouseEvent(type));
       testEvent(target.onDragEnd, 'dragend', (type) => new MouseEvent(type));
       testEvent(
-          target.onDragEnter, 'dragenter', (type) => new MouseEvent(type));
+        target.onDragEnter,
+        'dragenter',
+        (type) => new MouseEvent(type),
+      );
       testEvent(
-          target.onDragLeave, 'dragleave', (type) => new MouseEvent(type));
+        target.onDragLeave,
+        'dragleave',
+        (type) => new MouseEvent(type),
+      );
       testEvent(target.onDragOver, 'dragover', (type) => new MouseEvent(type));
       testEvent(
-          target.onDragStart, 'dragstart', (type) => new MouseEvent(type));
+        target.onDragStart,
+        'dragstart',
+        (type) => new MouseEvent(type),
+      );
       testEvent(target.onDrop, 'drop', (type) => new MouseEvent(type));
       testEvent(target.onError, 'error');
       testEvent(target.onFocus, 'focus');
@@ -280,16 +310,28 @@ main() {
       testEvent(target.onInvalid, 'invalid');
       testEvent(target.onKeyDown, 'keydown', (type) => new KeyboardEvent(type));
       testEvent(
-          target.onKeyPress, 'keypress', (type) => new KeyboardEvent(type));
+        target.onKeyPress,
+        'keypress',
+        (type) => new KeyboardEvent(type),
+      );
       testEvent(target.onKeyUp, 'keyup', (type) => new KeyboardEvent(type));
       testEvent(target.onLoad, 'load');
       testEvent(
-          target.onMouseDown, 'mousedown', (type) => new MouseEvent(type));
+        target.onMouseDown,
+        'mousedown',
+        (type) => new MouseEvent(type),
+      );
       testEvent(
-          target.onMouseMove, 'mousemove', (type) => new MouseEvent(type));
+        target.onMouseMove,
+        'mousemove',
+        (type) => new MouseEvent(type),
+      );
       testEvent(target.onMouseOut, 'mouseout', (type) => new MouseEvent(type));
       testEvent(
-          target.onMouseOver, 'mouseover', (type) => new MouseEvent(type));
+        target.onMouseOver,
+        'mouseover',
+        (type) => new MouseEvent(type),
+      );
       testEvent(target.onMouseUp, 'mouseup', (type) => new MouseEvent(type));
       testEvent(target.onReset, 'reset');
       testEvent(target.onScroll, 'scroll');
@@ -335,10 +377,11 @@ main() {
   group('attributes', () {
     test('manipulation', () {
       final element = new Element.html(
-          '''<div class="foo" style="overflow: hidden" data-foo="bar"
+        '''<div class="foo" style="overflow: hidden" data-foo="bar"
                    data-foo2="bar2" dir="rtl">
                </div>''',
-          treeSanitizer: new NullTreeSanitizer());
+        treeSanitizer: new NullTreeSanitizer(),
+      );
       final attributes = element.attributes;
       expect(attributes['class'], 'foo');
       startsWith(match) => predicate((x) => x is String && x.startsWith(match));
@@ -369,18 +412,20 @@ main() {
     });
 
     test('namespaces', () {
-      var element =
-          new svg.SvgElement.svg('''<svg xmlns="http://www.w3.org/2000/svg"
+      var element = new svg.SvgElement.svg(
+        '''<svg xmlns="http://www.w3.org/2000/svg"
                   xmlns:xlink="http://www.w3.org/1999/xlink">
             <image xlink:href="foo" data-foo="bar"/>
-          </svg>''').children[0];
+          </svg>''',
+      ).children[0];
 
       var attributes = element.attributes;
       expect(attributes.length, 1);
       expect(attributes['data-foo'], 'bar');
 
-      var xlinkAttrs =
-          element.getNamespacedAttributes('http://www.w3.org/1999/xlink');
+      var xlinkAttrs = element.getNamespacedAttributes(
+        'http://www.w3.org/1999/xlink',
+      );
       expect(xlinkAttrs.length, 1);
       expect(xlinkAttrs['href'], 'foo');
 
@@ -437,8 +482,9 @@ main() {
     });
 
     test('where', () {
-      var filtered =
-          makeElementWithChildren().children.where((n) => n is ImageElement);
+      var filtered = makeElementWithChildren().children.where(
+        (n) => n is ImageElement,
+      );
       expect(1, filtered.length);
       expect(filtered.first, isImageElement);
       expect(filtered, isElementIterable);
@@ -503,7 +549,7 @@ main() {
       el.children.addAll([
         new Element.tag('span'),
         new Element.tag('a'),
-        new Element.tag('h1')
+        new Element.tag('h1'),
       ]);
       expect(el.children[0], isBRElement);
       expect(el.children[1], isImageElement);
@@ -667,8 +713,9 @@ main() {
     });
 
     test('where', () {
-      var filtered =
-          getQuerySelectorAll().where((n) => n is SpanElement).toList();
+      var filtered = getQuerySelectorAll()
+          .where((n) => n is SpanElement)
+          .toList();
       expect(filtered.length, 1);
       expect(filtered[0], isSpanElement);
       expect(filtered, isElementList);
@@ -718,15 +765,19 @@ main() {
     });
 
     testUnsupported(
-        '[]=', () => getQuerySelectorAll()[1] = new Element.tag('br'));
+      '[]=',
+      () => getQuerySelectorAll()[1] = new Element.tag('br'),
+    );
     testUnsupported(
-        'add', () => getQuerySelectorAll().add(new Element.tag('br')));
+      'add',
+      () => getQuerySelectorAll().add(new Element.tag('br')),
+    );
 
     testUnsupported('addAll', () {
       getQuerySelectorAll().addAll([
         new Element.tag('span'),
         new Element.tag('a'),
-        new Element.tag('h1')
+        new Element.tag('h1'),
       ]);
     });
 
@@ -737,7 +788,9 @@ main() {
     });
 
     testUnsupported(
-        'removeRange', () => getQuerySelectorAll().removeRange(0, 1));
+      'removeRange',
+      () => getQuerySelectorAll().removeRange(0, 1),
+    );
 
     testUnsupported('clear', () => getQuerySelectorAll().clear());
 
@@ -797,19 +850,23 @@ main() {
 
       document.body!.onClick
           .matches('.selector')
-          .listen(expectAsync1((Event event) {
-        expect(event.currentTarget, document.body);
-        expect(event.target, clickOne);
-        expect(event.matchingTarget, selectorOne);
-      }));
+          .listen(
+            expectAsync1((Event event) {
+              expect(event.currentTarget, document.body);
+              expect(event.target, clickOne);
+              expect(event.matchingTarget, selectorOne);
+            }),
+          );
 
       selectorOne.onClick
           .matches('.selector')
-          .listen(expectAsync1((Event event) {
-        expect(event.currentTarget, selectorOne);
-        expect(event.target, clickOne);
-        expect(event.matchingTarget, selectorOne);
-      }));
+          .listen(
+            expectAsync1((Event event) {
+              expect(event.currentTarget, selectorOne);
+              expect(event.target, clickOne);
+              expect(event.matchingTarget, selectorOne);
+            }),
+          );
       clickOne.click();
 
       Element elem = new Element.div()..classes.addAll(['a', 'b']);
@@ -921,8 +978,12 @@ main() {
 
       var event = new Event('custom_event', canBubble: true);
       c.dispatchEvent(event);
-      expect(eventOrder,
-          ['a capture', 'b capture', 'b no-capture', 'a no-capture']);
+      expect(eventOrder, [
+        'a capture',
+        'b capture',
+        'b no-capture',
+        'a no-capture',
+      ]);
     });
   });
 
@@ -936,9 +997,9 @@ main() {
     //      some of these tests validate that a method can be called.
     //   2. Some methods are implemented by mixins.
 
-    ElementList<Element> makeElementList() =>
-        (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
-            .querySelectorAll('br');
+    ElementList<Element> makeElementList() => (new Element.html(
+      "<div>Foo<br/><!--baz--><br/><br/></div>",
+    )).querySelectorAll('br');
 
     test('hashCode', () {
       var nodes = makeElementList();

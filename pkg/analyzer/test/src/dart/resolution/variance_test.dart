@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,14 +15,6 @@ main() {
 
 @reflectiveTest
 class VarianceResolutionTest extends PubPackageResolutionTest {
-  @override
-  List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.variance.enableString,
-    ];
-  }
-
   test_inference_in_parameter() async {
     await assertNoErrorsInCode('''
 class Contravariant<in T> {}
@@ -57,7 +48,8 @@ MethodInvocation
   }
 
   test_inference_in_parameter_downwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B<in T> {
   B(List<T> x);
   void set x(T val) {}
@@ -66,9 +58,9 @@ class B<in T> {
 main() {
   B<int> b = B(<num>[])..x=2.2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1)],
+    );
 
     var node = findNode.instanceCreation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
@@ -80,14 +72,15 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::B
       type: B<num>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+      baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
 ''');
   }
 
   test_inference_inout_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Invariant<inout T> {}
 
 class Exactly<inout T> {}
@@ -97,11 +90,13 @@ Exactly<T> inferInvInv<T>(Invariant<T> x, Invariant<T> y) => new Exactly<T>();
 main() {
   inferInvInv(Invariant<String>(), Invariant<int>());
 }
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 147, 11),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.COULD_NOT_INFER, 147, 11),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
+      ],
+    );
 
     var node = findNode.methodInvocation('inferInvInv(');
     nodeTextConfiguration.skipArgumentList = true;

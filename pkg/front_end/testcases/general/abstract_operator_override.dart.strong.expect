@@ -99,16 +99,16 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  abstract operator +(self::A a) → self::A;
-  abstract operator unary-() → self::B;
-  abstract operator [](self::A a) → self::A;
-  abstract operator []=(self::A a, self::B b) → void;
+  abstract erroneous operator +(self::A a) → self::A;
+  abstract erroneous operator unary-() → self::B;
+  abstract erroneous operator [](self::A a) → self::A;
+  abstract erroneous operator []=(self::A a, self::B b) → void;
 }
 class C extends self::A {
   synthetic constructor •() → self::C
     : super self::A::•()
     ;
-  abstract operator [](self::B b) → self::B;
-  abstract operator []=(self::B b, self::A a) → void;
+  abstract erroneous operator [](self::B b) → self::B;
+  abstract erroneous operator []=(self::B b, self::A a) → void;
 }
 static method main() → dynamic {}

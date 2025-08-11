@@ -98,7 +98,9 @@ List<String> parseVmEnabledExperiments(List<String> vmArgs) {
 
 bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments
-        .contains(ExperimentalFeatures.native_assets.enableString);
+        .contains(ExperimentalFeatures.native_assets.enableString) ||
+    (_availableOnCurrentChannel(ExperimentalFeatures.native_assets.channels) &&
+        ExperimentalFeatures.native_assets.isEnabledByDefault);
 
 bool recordUseEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments.contains(ExperimentalFeatures.record_use.enableString);

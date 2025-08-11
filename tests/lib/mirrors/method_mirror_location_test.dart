@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't let the formatter change the location of things.
+// dart format off
+
 library test.method_location;
 
 import "dart:mirrors";
@@ -21,13 +24,15 @@ expectLocation(Mirror mirror, String uriSuffix, int line, int column) {
   Expect.isTrue(methodMirror is MethodMirror);
   final location = methodMirror.location!;
   final uri = location.sourceUri;
-  Expect.isTrue(uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
+  Expect.isTrue(
+    uri.toString().endsWith(uriSuffix),
+    "Expected suffix $uriSuffix in $uri",
+  );
   Expect.equals(line, location.line, "line");
   Expect.equals(column, location.column, "column");
 }
 
 class ClassInMainFile {
-
   ClassInMainFile();
 
   method() {}
@@ -50,28 +55,47 @@ main() {
   String otherSuffix = 'method_mirror_location_other.dart';
 
   // This file.
-  expectLocation(reflectClass(ClassInMainFile).declarations[#ClassInMainFile]!,
-      mainSuffix, 31, 3);
   expectLocation(
-      reflectClass(ClassInMainFile).declarations[#method]!, mainSuffix, 33, 3);
-  expectLocation(reflect(topLevelInMainFile), mainSuffix, 36, 1);
-  expectLocation(reflect(spaceIndentedInMainFile), mainSuffix, 37, 3);
-  expectLocation(reflect(tabIndentedInMainFile), mainSuffix, 38, 2);
-  expectLocation(reflect(localFunction), mainSuffix, 45, 3);
+    reflectClass(ClassInMainFile).declarations[#ClassInMainFile]!,
+    mainSuffix,
+    36,
+    3,
+  );
+  expectLocation(
+    reflectClass(ClassInMainFile).declarations[#method]!,
+    mainSuffix,
+    38,
+    3,
+  );
+  expectLocation(reflect(topLevelInMainFile), mainSuffix, 41, 1);
+  expectLocation(reflect(spaceIndentedInMainFile), mainSuffix, 42, 3);
+  expectLocation(reflect(tabIndentedInMainFile), mainSuffix, 43, 2);
+  expectLocation(reflect(localFunction), mainSuffix, 50, 3);
 
   // Another part.
-  expectLocation(reflectClass(ClassInOtherFile).declarations[#ClassInOtherFile]!,
-      otherSuffix, 8, 3);
   expectLocation(
-      reflectClass(ClassInOtherFile).declarations[#method]!, otherSuffix, 10, 3);
-  expectLocation(reflect(topLevelInOtherFile), otherSuffix, 13, 1);
-  expectLocation(reflect(spaceIndentedInOtherFile), otherSuffix, 15, 3);
-  expectLocation(reflect(tabIndentedInOtherFile), otherSuffix, 17, 2);
+    reflectClass(ClassInOtherFile).declarations[#ClassInOtherFile]!,
+    otherSuffix,
+    11,
+    3,
+  );
+  expectLocation(
+    reflectClass(ClassInOtherFile).declarations[#method]!,
+    otherSuffix,
+    13,
+    3,
+  );
+  expectLocation(reflect(topLevelInOtherFile), otherSuffix, 16, 1);
+  expectLocation(reflect(spaceIndentedInOtherFile), otherSuffix, 18, 3);
+  expectLocation(reflect(tabIndentedInOtherFile), otherSuffix, 20, 2);
 
   // Synthetic methods.
-  Expect.isNull(reflectClass(HasImplicitConstructor)
-      .declarations[#HasImplicitConstructor]!
-      .location);
   Expect.isNull(
-      (reflectType(Predicate) as TypedefMirror).referent.callMethod.location);
+    reflectClass(
+      HasImplicitConstructor,
+    ).declarations[#HasImplicitConstructor]!.location,
+  );
+  Expect.isNull(
+    (reflectType(Predicate) as TypedefMirror).referent.callMethod.location,
+  );
 }

@@ -21,8 +21,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -32,32 +34,45 @@ void testCloseOneEnd(String toClose) {
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
-  Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
-      .then((_) {
+  Future.wait([
+    serverDone.future,
+    serverEndDone.future,
+    clientEndDone.future,
+  ]).then((_) {
     asyncEnd();
   });
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    server.listen((serverConnection) {
-      serverConnection.listen((event) {
-        if (toClose == "server" || event == RawSocketEvent.readClosed) {
-          serverConnection.shutdown(SocketDirection.send);
-        }
-      }, onDone: () {
-        serverEndDone.complete(null);
-      });
-    }, onDone: () {
-      serverDone.complete(null);
-    });
-    RawSecureSocket.connect(HOST, server.port, context: clientContext)
-        .then((clientConnection) {
-      clientConnection.listen((event) {
-        if (toClose == "client" || event == RawSocketEvent.readClosed) {
-          clientConnection.shutdown(SocketDirection.send);
-        }
-      }, onDone: () {
-        clientEndDone.complete(null);
-        server.close();
-      });
+    server.listen(
+      (serverConnection) {
+        serverConnection.listen(
+          (event) {
+            if (toClose == "server" || event == RawSocketEvent.readClosed) {
+              serverConnection.shutdown(SocketDirection.send);
+            }
+          },
+          onDone: () {
+            serverEndDone.complete(null);
+          },
+        );
+      },
+      onDone: () {
+        serverDone.complete(null);
+      },
+    );
+    RawSecureSocket.connect(HOST, server.port, context: clientContext).then((
+      clientConnection,
+    ) {
+      clientConnection.listen(
+        (event) {
+          if (toClose == "client" || event == RawSocketEvent.readClosed) {
+            clientConnection.shutdown(SocketDirection.send);
+          }
+        },
+        onDone: () {
+          clientEndDone.complete(null);
+          server.close();
+        },
+      );
     });
   });
 }
@@ -65,8 +80,11 @@ void testCloseOneEnd(String toClose) {
 void testCloseBothEnds() {
   asyncStart();
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-        RawSecureSocket.connect(HOST, server.port, context: clientContext);
+    var clientEndFuture = RawSecureSocket.connect(
+      HOST,
+      server.port,
+      context: clientContext,
+    );
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.close();
@@ -85,8 +103,12 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  RawSecureServerSocket.bind(HOST, 0, serverContext, backlog: 2 * socketCount)
-      .then((server) {
+  RawSecureServerSocket.bind(
+    HOST,
+    0,
+    serverContext,
+    backlog: 2 * socketCount,
+  ).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
     subscription = server.listen((connection) {
@@ -104,8 +126,9 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST, server.port, context: clientContext)
-          .then((connection) {
+      RawSecureSocket.connect(HOST, server.port, context: clientContext).then((
+        connection,
+      ) {
         connection.shutdown(SocketDirection.send);
       });
     }
@@ -113,10 +136,11 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        RawSecureSocket.connect(HOST, server.port, context: clientContext)
-            .then((connection) {
-          connection.shutdown(SocketDirection.send);
-        });
+        RawSecureSocket.connect(HOST, server.port, context: clientContext).then(
+          (connection) {
+            connection.shutdown(SocketDirection.send);
+          },
+        );
       }
     });
   });
@@ -144,8 +168,9 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST, server.port, context: clientContext)
-          .then((connection) {
+      RawSecureSocket.connect(HOST, server.port, context: clientContext).then((
+        connection,
+      ) {
         ends.add(connection);
         checkDone();
       });

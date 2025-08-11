@@ -58,8 +58,10 @@ class _AllowedExperimentsParser {
     _ensureVersion(map);
 
     _withParsePath('experimentSets', () {
-      Map<String, Object?> experimentSetMap =
-          _requiredMap(map, 'experimentSets');
+      Map<String, Object?> experimentSetMap = _requiredMap(
+        map,
+        'experimentSets',
+      );
       for (MapEntry<String, Object?> entry in experimentSetMap.entries) {
         String setName = entry.key;
         _withParsePath(setName, () {
@@ -80,8 +82,10 @@ class _AllowedExperimentsParser {
       });
 
       _withParsePath('libraries', () {
-        Map<String, Object?>? sdkLibraryExperimentsMap =
-            _optionalMap(sdkMap, 'libraries');
+        Map<String, Object?>? sdkLibraryExperimentsMap = _optionalMap(
+          sdkMap,
+          'libraries',
+        );
         if (sdkLibraryExperimentsMap != null) {
           for (MapEntry<String, Object?> entry
               in sdkLibraryExperimentsMap.entries) {
@@ -98,8 +102,10 @@ class _AllowedExperimentsParser {
 
     Map<String, List<String>> packageExperiments = <String, List<String>>{};
     _withParsePath('packages', () {
-      Map<String, Object?>? packageExperimentsMap =
-          _optionalMap(map, 'packages');
+      Map<String, Object?>? packageExperimentsMap = _optionalMap(
+        map,
+        'packages',
+      );
       if (packageExperimentsMap != null) {
         for (MapEntry<String, Object?> entry in packageExperimentsMap.entries) {
           String packageName = entry.key;

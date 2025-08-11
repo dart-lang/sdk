@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -93,10 +93,11 @@ class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.directives_ordering;
 
-  bool Function(AnalysisError error) get _firstUnusedShownNameErrorFilter {
+  bool Function(Diagnostic diagnostic) get _firstUnusedShownNameErrorFilter {
     var firstError = true;
-    return (AnalysisError error) {
-      if (firstError && error.errorCode == WarningCode.UNUSED_SHOWN_NAME) {
+    return (Diagnostic diagnostic) {
+      if (firstError &&
+          diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) {
         firstError = false;
         return true;
       }

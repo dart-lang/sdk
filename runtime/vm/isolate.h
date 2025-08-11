@@ -48,7 +48,6 @@ class Become;
 class Capability;
 class CodeIndexTable;
 class Debugger;
-class DeoptContext;
 class ExternalTypedData;
 class GroupDebugger;
 class HandleScope;
@@ -62,7 +61,6 @@ class IsolateProfilerData;
 class Log;
 class Message;
 class MessageHandler;
-class MonitorLocker;
 class Mutex;
 class Object;
 class ObjectIdRing;
@@ -86,7 +84,6 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
-class WeakTable;
 
 class IsolateVisitor {
  public:
@@ -265,6 +262,60 @@ class MutatorThreadPool : public ThreadPool {
   IsolateGroup* isolate_group_ = nullptr;
 };
 
+enum RootSlice : intptr_t {
+  kClassTable,
+  kApiState,
+  kObjectStore,
+  kSavedUnlinkedCalls,
+  kInitialFieldTable,
+  kSentinelFieldTable,
+  kSharedInitialFieldTable,
+  kSharedFieldTable,
+  kBackgroundCompiler,
+  kDebugger,
+  kReloadContext,
+  kLoadedBlobs,
+  kBecome,
+  kObjectIdZones,
+
+  kNumRootSlices,
+};
+
+inline const char* RootSliceToCString(intptr_t slice) {
+  switch (slice) {
+    case kClassTable:
+      return "class table";
+    case kApiState:
+      return "api state";
+    case kObjectStore:
+      return "group object store";
+    case kSavedUnlinkedCalls:
+      return "saved unlinked calls";
+    case kInitialFieldTable:
+      return "initial field table";
+    case kSentinelFieldTable:
+      return "sentinel field table";
+    case kSharedInitialFieldTable:
+      return "shared initial field table";
+    case kSharedFieldTable:
+      return "shared field table";
+    case kBackgroundCompiler:
+      return "background compiler";
+    case kDebugger:
+      return "debugger";
+    case kReloadContext:
+      return "reload context";
+    case kLoadedBlobs:
+      return "loaded blobs";
+    case kBecome:
+      return "become";
+    case kObjectIdZones:
+      return "object id zones";
+    default:
+      return "?";
+  }
+}
+
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
@@ -318,12 +369,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
-  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
+  void RegisterIsolateGroupMutator();
+  void UnregisterIsolateGroupMutator();
 
   bool ContainsOnlyOneIsolate();
 
@@ -442,35 +494,31 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #undef DECLARE_GETTER
 
   bool should_load_vmservice() const {
-    return ShouldLoadVmServiceBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<ShouldLoadVmServiceBit>();
   }
   void set_should_load_vmservice(bool value) {
-    isolate_group_flags_ =
-        ShouldLoadVmServiceBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<ShouldLoadVmServiceBit>(value);
   }
 
   void set_asserts(bool value) {
-    isolate_group_flags_ =
-        EnableAssertsBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<EnableAssertsBit>(value);
   }
 
   void set_branch_coverage(bool value) {
-    isolate_group_flags_ =
-        BranchCoverageBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<BranchCoverageBit>(value);
   }
 
   void set_coverage(bool value) {
-    isolate_group_flags_ = CoverageBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<CoverageBit>(value);
   }
 
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {
-    return HasAttemptedReloadBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<HasAttemptedReloadBit>();
   }
   void SetHasAttemptedReload(bool value) {
-    isolate_group_flags_ =
-        HasAttemptedReloadBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<HasAttemptedReloadBit>(value);
   }
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
   intptr_t reload_every_n_stack_overflow_checks() const {
@@ -481,11 +529,18 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
 
+  bool has_seen_oom() const {
+    return isolate_group_flags_.Read<HasSeenOOMBit>();
+  }
+  void set_has_seen_oom(bool value) {
+    isolate_group_flags_.UpdateBool<HasSeenOOMBit>(value);
+  }
+
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
   void set_use_osr(bool use_osr) {
-    isolate_group_flags_ = UseOsrBit::update(use_osr, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<UseOsrBit>(use_osr);
   }
 #endif  // defined(PRODUCT)
 
@@ -533,6 +588,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
+  SafepointRwLock* shared_field_initializer_rwlock() {
+    return &shared_field_initializer_rwlock_;
+  }
+
   SafepointRwLock* program_lock() { return program_lock_.get(); }
 
   static inline IsolateGroup* Current() {
@@ -543,7 +602,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void IncreaseMutatorCount(Thread* thread,
                             bool is_nested_reenter,
                             bool was_stolen);
-  void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
+  void DecreaseMutatorCount(bool is_nested_exit);
   NO_SANITIZE_THREAD
   intptr_t MutatorCount() const { return active_mutators_; }
 
@@ -594,32 +653,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
-  // [single_current_mutator] will be called. Otherwise [otherwise] will be
-  // called inside a [SafepointOperationsScope] (or
-  // [ForceGrowthSafepointOperationScope] if [use_force_growth_in_otherwise]
-  // is set).
+  // [callable] will be called directly. Otherwise [callable] will be
+  // called inside a [SafepointOperationsScope].
   //
   // During the duration of this function, no new isolates can be added to the
   // isolate group.
-  void RunWithStoppedMutatorsCallable(
-      Callable* single_current_mutator,
-      Callable* otherwise,
-      bool use_force_growth_in_otherwise = false);
-
-  template <typename T, typename S>
-  void RunWithStoppedMutators(T single_current_mutator,
-                              S otherwise,
-                              bool use_force_growth_in_otherwise = false) {
-    LambdaCallable<T> single_callable(single_current_mutator);
-    LambdaCallable<S> otherwise_callable(otherwise);
-    RunWithStoppedMutatorsCallable(&single_callable, &otherwise_callable,
-                                   use_force_growth_in_otherwise);
-  }
+  void RunWithStoppedMutatorsCallable(Callable* callable);
 
   template <typename T>
-  void RunWithStoppedMutators(T function, bool use_force_growth = false) {
+  void RunWithStoppedMutators(T function) {
     LambdaCallable<T> callable(function);
-    RunWithStoppedMutatorsCallable(&callable, &callable, use_force_growth);
+    RunWithStoppedMutatorsCallable(&callable);
   }
 
 #ifndef PRODUCT
@@ -676,13 +720,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Become* become() const { return become_; }
   void set_become(Become* become) { become_ = become; }
 
-  uint64_t id() const { return id_; }
+  Dart_Port id() const { return id_; }
 
   static void Init();
   static void Cleanup();
 
   static void ForEach(std::function<void(IsolateGroup*)> action);
-  static void RunWithIsolateGroup(uint64_t id,
+  static void RunWithIsolateGroup(Dart_Port id,
                                   std::function<void(IsolateGroup*)> action,
                                   std::function<void()> not_found);
 
@@ -703,33 +747,30 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor, intptr_t slice);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
-    return AllClassesFinalizedBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<AllClassesFinalizedBit>();
   }
   void set_all_classes_finalized(bool value) {
-    isolate_group_flags_ =
-        AllClassesFinalizedBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<AllClassesFinalizedBit>(value);
   }
   bool has_dynamically_extendable_classes() const {
-    return HasDynamicallyExtendableClassesBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<HasDynamicallyExtendableClassesBit>();
   }
   void set_has_dynamically_extendable_classes(bool value) {
-    isolate_group_flags_ =
-        HasDynamicallyExtendableClassesBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<HasDynamicallyExtendableClassesBit>(value);
   }
 
   bool remapping_cids() const {
-    return RemappingCidsBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<RemappingCidsBit>();
   }
   void set_remapping_cids(bool value) {
-    isolate_group_flags_ =
-        RemappingCidsBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<RemappingCidsBit>(value);
   }
 
   void RememberLiveTemporaries();
@@ -744,6 +785,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
   void set_initial_field_table(std::shared_ptr<FieldTable> field_table) {
     initial_field_table_ = field_table;
+  }
+
+  FieldTable* sentinel_field_table() const {
+    return sentinel_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> sentinel_field_table_shareable() {
+    return sentinel_field_table_;
+  }
+  void set_sentinel_field_table(std::shared_ptr<FieldTable> field_table) {
+    sentinel_field_table_ = field_table;
   }
 
   FieldTable* shared_initial_field_table() const {
@@ -776,10 +827,25 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* EnterTemporaryIsolate();
   static void ExitTemporaryIsolate();
 
+  Mutex* cache_mutex() { return &cache_mutex_; }
+  void RunWithCachedCatchEntryMoves(
+      const Code& code,
+      intptr_t pc,
+      std::function<void(const CatchEntryMoves&)> action);
+  void ClearCatchEntryMovesCacheLocked();
+  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
+
   void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
     native_assets_api_ = *native_assets_api;
   }
   NativeAssetsApi* native_assets_api() { return &native_assets_api_; }
+
+  bool has_attempted_stepping() const {
+    return has_attempted_stepping_.load(std::memory_order_relaxed);
+  }
+  void set_has_attempted_stepping(bool value) {
+    has_attempted_stepping_.store(value, std::memory_order_relaxed);
+  }
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -792,6 +858,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(AllClassesFinalized)                                                       \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
+  V(HasSeenOOM)                                                                \
   V(RemappingCids)                                                             \
   V(ShouldLoadVmService)                                                       \
   V(Obfuscate)                                                                 \
@@ -836,6 +903,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
@@ -876,7 +944,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
   static Random* isolate_group_random_;
 
-  uint64_t id_ = 0;
+  Dart_Port id_ = 0;
 
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
@@ -885,9 +953,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> sentinel_field_table_;
   std::shared_ptr<FieldTable> shared_initial_field_table_;
   std::shared_ptr<FieldTable> shared_field_table_;
-  uint32_t isolate_group_flags_ = 0;
+  AtomicBitFieldContainer<uint32_t> isolate_group_flags_;
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
@@ -911,10 +980,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex initializer_functions_mutex_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
-  // Protect access to boxed_field_list_.
-  Mutex field_list_mutex_;
-  // List of fields that became boxed and that trigger deoptimization.
-  GrowableObjectArrayPtr boxed_field_list_;
+  // Ensure exclusive execution of shared field initializers.
+  SafepointRwLock shared_field_initializer_rwlock_;
 
   // Ensures synchronized access to classes functions, fields and other
   // program structure elements to accommodate concurrent modification done
@@ -931,6 +998,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 
   NativeAssetsApi native_assets_api_;
+
+  Mutex cache_mutex_;
+  HandlerInfoCache handler_info_cache_;
+  CatchEntryMovesCache catch_entry_moves_cache_;
+
+  std::atomic<bool> has_attempted_stepping_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1051,8 +1124,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
   }
-  Dart_Port origin_id();
-  void set_origin_id(Dart_Port id);
   void set_pause_capability(uint64_t value) { pause_capability_ = value; }
   uint64_t pause_capability() const { return pause_capability_; }
   void set_terminate_capability(uint64_t value) {
@@ -1093,9 +1164,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   MessageHandler* message_handler() const;
 
-  bool is_runnable() const { return LoadIsolateFlagsBit<IsRunnableBit>(); }
+  bool is_runnable() const { return isolate_flags_.Read<IsRunnableBit>(); }
   void set_is_runnable(bool value) {
-    UpdateIsolateFlagsBit<IsRunnableBit>(value);
+    isolate_flags_.UpdateBool<IsRunnableBit>(value);
 #if !defined(PRODUCT)
     if (is_runnable()) {
       set_last_resume_timestamp();
@@ -1128,12 +1199,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return has_completed_blocks_.exchange(1) == 0;
   }
 
-  void set_single_step(bool value) { single_step_ = value; }
-  bool single_step() const { return single_step_; }
-  static intptr_t single_step_offset() {
-    return OFFSET_OF(Isolate, single_step_);
-  }
-
   void set_has_resumption_breakpoints(bool value) {
     has_resumption_breakpoints_ = value;
   }
@@ -1144,10 +1209,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, has_resumption_breakpoints_);
   }
 
-  bool ResumeRequest() const { return LoadIsolateFlagsBit<ResumeRequestBit>(); }
+  bool ResumeRequest() const { return isolate_flags_.Read<ResumeRequestBit>(); }
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
-    UpdateIsolateFlagsBit<ResumeRequestBit>(true);
+    isolate_flags_.UpdateBool<ResumeRequestBit>(true);
     set_last_resume_timestamp();
   }
 
@@ -1160,7 +1225,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Returns whether the vm service has requested that the debugger
   // resume execution.
   bool GetAndClearResumeRequest() {
-    return UpdateIsolateFlagsBit<ResumeRequestBit>(false);
+    return isolate_flags_.TryClear<ResumeRequestBit>();
   }
 #endif
 
@@ -1182,9 +1247,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void RemoveErrorListener(const SendPort& listener);
   bool NotifyErrorListeners(const char* msg, const char* stacktrace);
 
-  bool ErrorsFatal() const { return LoadIsolateFlagsBit<ErrorsFatalBit>(); }
+  bool ErrorsFatal() const { return isolate_flags_.Read<ErrorsFatalBit>(); }
   void SetErrorsFatal(bool value) {
-    UpdateIsolateFlagsBit<ErrorsFatalBit>(value);
+    isolate_flags_.UpdateBool<ErrorsFatalBit>(value);
   }
 
   Random* random() { return &random_; }
@@ -1251,13 +1316,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
 
-  bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
-  DeoptContext* deopt_context() const { return deopt_context_; }
-  void set_deopt_context(DeoptContext* value) {
-    ASSERT(value == nullptr || deopt_context_ == nullptr);
-    deopt_context_ = value;
-  }
-
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
       Zone* zone,
       const Function& send_function,
@@ -1267,6 +1325,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupSharedFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();
@@ -1278,7 +1340,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void CloseReceivePort(const ReceivePort& receive_port);
 
   // Visible for testing.
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head() {
     return ffi_callback_list_head_;
   }
 
@@ -1315,10 +1377,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   bool should_pause_post_service_request() const {
-    return LoadIsolateFlagsBit<ShouldPausePostServiceRequestBit>();
+    return isolate_flags_.Read<ShouldPausePostServiceRequestBit>();
   }
   void set_should_pause_post_service_request(bool value) {
-    UpdateIsolateFlagsBit<ShouldPausePostServiceRequestBit>(value);
+    isolate_flags_.UpdateBool<ShouldPausePostServiceRequestBit>(value);
   }
 #endif  // !defined(PRODUCT)
 
@@ -1377,16 +1439,16 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  bool is_vm_isolate() const { return LoadIsolateFlagsBit<IsVMIsolateBit>(); }
+  bool is_vm_isolate() const { return isolate_flags_.Read<IsVMIsolateBit>(); }
   void set_is_vm_isolate(bool value) {
-    UpdateIsolateFlagsBit<IsVMIsolateBit>(value);
+    isolate_flags_.UpdateBool<IsVMIsolateBit>(value);
   }
 
   bool is_service_registered() const {
-    return LoadIsolateFlagsBit<IsServiceRegisteredBit>();
+    return isolate_flags_.Read<IsServiceRegisteredBit>();
   }
   void set_is_service_registered(bool value) {
-    UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
+    isolate_flags_.UpdateBool<IsServiceRegisteredBit>(value);
   }
 
   // Isolate-specific flag handling.
@@ -1410,20 +1472,13 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
   bool name() const {                                                          \
-    return FLAG_FOR_##when(LoadIsolateFlagsBit<bitname##Bit>(), flag_name);    \
+    return FLAG_FOR_##when(isolate_flags_.Read<bitname##Bit>(), flag_name);    \
   }
   BOOL_ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
-
-  bool has_attempted_stepping() const {
-    return LoadIsolateFlagsBit<HasAttemptedSteppingBit>();
-  }
-  void set_has_attempted_stepping(bool value) {
-    UpdateIsolateFlagsBit<HasAttemptedSteppingBit>(value);
-  }
 
   // Kills all non-system isolates.
   static void KillAllIsolates(LibMsgId msg_id);
@@ -1447,20 +1502,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   static bool IsVMInternalIsolate(const Isolate* isolate);
 
-  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
-
-  CatchEntryMovesCache* catch_entry_moves_cache() {
-    return &catch_entry_moves_cache_;
-  }
-
-  // The weak table used in the snapshot writer for the purpose of fast message
-  // sending.
-  WeakTable* forward_table_new() { return forward_table_new_.get(); }
-  void set_forward_table_new(WeakTable* table);
-
-  WeakTable* forward_table_old() { return forward_table_old_.get(); }
-  void set_forward_table_old(WeakTable* table);
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -1475,10 +1516,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void init_loaded_prefixes_set_storage();
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
-
-  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
-    return &pointers_to_verify_at_exit_;
-  }
 
   bool SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner);
 
@@ -1563,7 +1600,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
   GrowableObjectArrayPtr finalizers_;
-  bool single_step_ = false;
   bool has_resumption_breakpoints_ = false;
   // End accessed from generated code.
 
@@ -1599,18 +1635,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
-  template <class T>
-  bool UpdateIsolateFlagsBit(bool value) {
-    return T::decode(value ? isolate_flags_.fetch_or(T::encode(true),
-                                                     std::memory_order_relaxed)
-                           : isolate_flags_.fetch_and(
-                                 ~T::encode(true), std::memory_order_relaxed));
-  }
-  template <class T>
-  bool LoadIsolateFlagsBit() const {
-    return T::decode(isolate_flags_.load(std::memory_order_relaxed));
-  }
-  std::atomic<uint32_t> isolate_flags_;
+  AtomicBitFieldContainer<uint32_t> isolate_flags_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
@@ -1668,9 +1693,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Dart_IsolateCleanupCallback on_cleanup_callback_ = nullptr;
   char* name_ = nullptr;
   Dart_Port main_port_ = 0;
-  // Isolates created by Isolate.spawn have the same origin id.
-  Dart_Port origin_id_ = 0;
-  Mutex origin_id_mutex_;
   uint64_t pause_capability_ = 0;
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
@@ -1680,8 +1702,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
-  DeoptContext* deopt_context_ = nullptr;
-  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
 
@@ -1696,13 +1717,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // destroyed while there are child isolates in the midst of a spawn.
   Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
-
-  HandlerInfoCache handler_info_cache_;
-  CatchEntryMovesCache catch_entry_moves_cache_;
-
-  // Used during message sending of messages between isolates.
-  std::unique_ptr<WeakTable> forward_table_new_;
-  std::unique_ptr<WeakTable> forward_table_old_;
 
   // Signals whether the isolate can receive messages (e.g. KillAllIsolates can
   // send a kill message).
@@ -1744,8 +1758,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static intptr_t pending_shutdowns_;
 
   ArrayPtr loaded_prefixes_set_storage_;
-
-  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
   bool is_system_isolate_ = false;
 
@@ -1815,9 +1827,8 @@ class EnterIsolateGroupScope {
   explicit EnterIsolateGroupScope(IsolateGroup* isolate_group)
       : isolate_group_(isolate_group) {
     ASSERT(IsolateGroup::Current() == nullptr);
-    const bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kUnknownTask, /*bypass_safepoint=*/false);
-    ASSERT(result);
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      /*bypass_safepoint=*/false);
   }
 
   ~EnterIsolateGroupScope() {

@@ -855,6 +855,26 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   Type get runtimeType => getRuntimeTypeOfArray(this);
 }
 
+class JSArraySafeToStringHook extends SafeToStringHook {
+  const JSArraySafeToStringHook();
+  String? tryFormat(Object? array) {
+    if (array is! JSArray) return null;
+
+    final int flags = HArrayFlagsGet(array);
+    String info = '';
+    if (flags & ArrayFlags.constantCheck != 0) {
+      info = 'const, ';
+    } else if (flags & ArrayFlags.unmodifiableCheck != 0) {
+      info = 'unmodifiable, ';
+    } else if (flags & ArrayFlags.fixedLengthCheck != 0) {
+      info = 'fixed, ';
+    }
+    final base = Primitives.objectToHumanReadableString(array);
+    if (info == '') return base;
+    return '$base (${info}length: ${array.length})';
+  }
+}
+
 /// Dummy subclasses that allow the backend to track more precise
 /// information about arrays through their type. The CPA type inference
 /// relies on the fact that these classes do not override [] nor []=.
@@ -864,13 +884,15 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 /// 'isGrowable' and 'isMutable' checks into the getInterceptor implementation
 /// so these classes can have specialized implementations. Doing so will
 /// challenge many assumptions in the JS backend.
-class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable<E> {}
+abstract class JSMutableArray<E> extends JSArray<E>
+    implements JSMutableIndexable<E> {}
 
-class JSFixedArray<E> extends JSMutableArray<E> {}
+final class JSFixedArray<E> extends JSMutableArray<E> {}
 
-class JSExtendableArray<E> extends JSMutableArray<E> {}
+final class JSExtendableArray<E> extends JSMutableArray<E> {}
 
-class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.
+final class JSUnmodifiableArray<E>
+    extends JSArray<E> {} // Already is JSIndexable.
 
 /// An [Iterator] that iterates a JSArray.
 ///

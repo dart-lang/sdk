@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/code_assets_builder.dart' show OS;
+import 'package:code_assets/code_assets.dart' show OS;
 import 'package:path/path.dart' as path;
 
 import 'dart2native.dart';
@@ -228,7 +228,7 @@ class _Generator {
       extraGenKernelOptions: [
         '--invocation-modes=compile',
         '--verbosity=$_verbosity',
-        if (_depFile != null) '--depfile-target=$_outputPath',
+        if (_depFile != null) '--depfile-target=${_outputFile ?? _outputPath}',
         ...?extraOptions,
       ],
       recordedUsagesFile: recordedUsagesFile,

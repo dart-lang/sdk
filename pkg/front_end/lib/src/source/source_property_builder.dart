@@ -9,13 +9,13 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/property_builder.dart';
-import '../fragment/fragment.dart';
+import '../fragment/field/declaration.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -46,6 +46,9 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   final DeclarationBuilder? declarationBuilder;
 
+  @override
+  final bool isStatic;
+
   final NameScheme _nameScheme;
 
   /// The declarations that introduces this property. Subsequent property of the
@@ -61,102 +64,53 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   List<SetterDeclaration>? _augmentedSetables;
   SetterDeclaration? _lastSetable;
 
-  Modifiers _modifiers;
-
   final PropertyReferences _references;
 
   final MemberName _memberName;
 
-  SourcePropertyBuilder.forGetter(
+  SourcePropertyBuilder(
       {required this.fileUri,
       required this.fileOffset,
       required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required NameScheme nameScheme,
-      required GetterDeclaration declaration,
-      required List<GetterDeclaration> augmentations,
-      required Modifiers modifiers,
-      required PropertyReferences references})
-      : _nameScheme = nameScheme,
-        _introductoryGetable = declaration,
-        _getterAugmentations = augmentations,
-        _modifiers = modifiers,
-        _references = references,
-        _memberName = nameScheme.getDeclaredName(name) {
-    if (augmentations.isEmpty) {
-      _augmentedGetables = augmentations;
-      _lastGetable = declaration;
-    } else {
-      _augmentedGetables = [declaration, ...augmentations];
-      _lastGetable = _augmentedGetables!.removeLast();
-    }
-  }
-
-  SourcePropertyBuilder.forSetter(
-      {required this.fileUri,
-      required this.fileOffset,
-      required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required NameScheme nameScheme,
-      required SetterDeclaration declaration,
-      required List<SetterDeclaration> augmentations,
-      required Modifiers modifiers,
-      required PropertyReferences references})
-      : _nameScheme = nameScheme,
-        _introductorySetable = declaration,
-        _setterAugmentations = augmentations,
-        _modifiers = modifiers,
-        _references = references,
-        _memberName = nameScheme.getDeclaredName(name) {
-    if (augmentations.isEmpty) {
-      _augmentedSetables = augmentations;
-      _lastSetable = declaration;
-    } else {
-      _augmentedSetables = [declaration, ...augmentations];
-      _lastSetable = _augmentedSetables!.removeLast();
-    }
-  }
-
-  SourcePropertyBuilder.forField(
-      {required this.fileUri,
-      required this.fileOffset,
-      required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required NameScheme nameScheme,
-      required FieldDeclaration fieldDeclaration,
-      required Modifiers modifiers,
+      required FieldDeclaration? fieldDeclaration,
+      required GetterDeclaration? getterDeclaration,
+      required List<GetterDeclaration> getterAugmentations,
+      required SetterDeclaration? setterDeclaration,
+      required List<SetterDeclaration> setterAugmentations,
+      required this.isStatic,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
         _introductoryField = fieldDeclaration,
-        _modifiers = modifiers,
+        _introductoryGetable = getterDeclaration,
+        _getterAugmentations = getterAugmentations,
+        _introductorySetable = setterDeclaration,
+        _setterAugmentations = setterAugmentations,
         _references = references,
-        _memberName = nameScheme.getDeclaredName(name);
+        _memberName = nameScheme.getDeclaredName(name) {
+    if (getterAugmentations.isEmpty) {
+      _augmentedGetables = getterAugmentations;
+      _lastGetable = getterDeclaration;
+    } else if (getterDeclaration != null) {
+      _augmentedGetables = [getterDeclaration, ...getterAugmentations];
+      _lastGetable = _augmentedGetables!.removeLast();
+    }
+    if (setterAugmentations.isEmpty) {
+      _augmentedSetables = setterAugmentations;
+      _lastSetable = setterDeclaration;
+    } else if (setterDeclaration != null) {
+      _augmentedSetables = [setterDeclaration, ...setterAugmentations];
+      _lastSetable = _augmentedSetables!.removeLast();
+    }
+  }
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => _modifiers.isAugment;
-
-  @override
-  bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isExternal => _modifiers.isExternal;
-
-  @override
-  bool get isAbstract => _modifiers.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
+  bool get hasConstField => _introductoryField?.isConst ?? false;
 
   @override
   bool get isSynthesized => false;
@@ -165,18 +119,24 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
 
   @override
+  NamedBuilder? get getable => hasGetter ? this : null;
+
+  @override
+  NamedBuilder? get setable => hasSetter ? this : null;
+
+  @override
   int buildBodyNodes(BuildNodesCallback f) => 0;
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _introductoryField?.buildOutlineNode(
-        libraryBuilder, _nameScheme, f, _references as FieldReference,
+    _introductoryField?.buildFieldOutlineNode(
+        libraryBuilder, _nameScheme, f, _references,
         classTypeParameters: classBuilder?.cls.typeParameters);
 
     List<GetterDeclaration>? augmentedGetables = _augmentedGetables;
     if (augmentedGetables != null) {
       for (GetterDeclaration augmented in augmentedGetables) {
-        augmented.buildOutlineNode(
+        augmented.buildGetterOutlineNode(
             libraryBuilder: libraryBuilder,
             nameScheme: _nameScheme,
             f: noAddBuildNodesCallback,
@@ -185,17 +145,17 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             classTypeParameters: classBuilder?.cls.typeParameters);
       }
     }
-    _lastGetable?.buildOutlineNode(
+    _lastGetable?.buildGetterOutlineNode(
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
         f: f,
-        references: _references as GetterReference,
+        references: _references,
         classTypeParameters: classBuilder?.cls.typeParameters);
 
     List<SetterDeclaration>? augmentedSetables = _augmentedSetables;
     if (augmentedSetables != null) {
       for (SetterDeclaration augmented in augmentedSetables) {
-        augmented.buildOutlineNode(
+        augmented.buildSetterOutlineNode(
             libraryBuilder: libraryBuilder,
             nameScheme: _nameScheme,
             f: noAddBuildNodesCallback,
@@ -204,11 +164,11 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             classTypeParameters: classBuilder?.cls.typeParameters);
       }
     }
-    _lastSetable?.buildOutlineNode(
+    _lastSetable?.buildSetterOutlineNode(
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
         f: f,
-        references: _references as SetterReference,
+        references: _references,
         classTypeParameters: classBuilder?.cls.typeParameters);
   }
 
@@ -218,61 +178,57 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductoryField?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          [
+      _introductoryField?.buildFieldOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          annotatables: [
             readTarget as Annotatable,
             if (writeTarget != null && readTarget != writeTarget)
               writeTarget as Annotatable
           ],
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression: false);
-      _introductoryGetable?.buildOutlineExpressions(
+          annotatablesFileUri: readTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
+      _introductoryGetable?.buildGetterOutlineExpressions(
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           propertyBuilder: this,
           annotatable: readTarget as Annotatable,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _introductoryGetable?.fileUri != _lastGetable?.fileUri);
+          annotatableFileUri: readTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
       if (getterAugmentations != null) {
         for (GetterDeclaration augmentation in getterAugmentations) {
-          augmentation.buildOutlineExpressions(
+          augmentation.buildGetterOutlineExpressions(
               classHierarchy: classHierarchy,
               libraryBuilder: libraryBuilder,
               declarationBuilder: declarationBuilder,
               propertyBuilder: this,
               annotatable: readTarget as Annotatable,
-              isClassInstanceMember: isClassInstanceMember,
-              createFileUriExpression:
-                  augmentation.fileUri != _lastGetable?.fileUri);
+              annotatableFileUri: readTarget!.fileUri,
+              isClassInstanceMember: isClassInstanceMember);
         }
       }
-      _introductorySetable?.buildOutlineExpressions(
+      _introductorySetable?.buildSetterOutlineExpressions(
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           propertyBuilder: this,
           annotatable: writeTarget as Annotatable,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _introductorySetable?.fileUri != _lastSetable?.fileUri);
+          annotatableFileUri: writeTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
       if (setterAugmentations != null) {
         for (SetterDeclaration augmentation in setterAugmentations) {
-          augmentation.buildOutlineExpressions(
+          augmentation.buildSetterOutlineExpressions(
               classHierarchy: classHierarchy,
               libraryBuilder: libraryBuilder,
               declarationBuilder: declarationBuilder,
               propertyBuilder: this,
               annotatable: writeTarget as Annotatable,
-              isClassInstanceMember: isClassInstanceMember,
-              createFileUriExpression:
-                  augmentation.fileUri != _lastSetable?.fileUri);
+              annotatableFileUri: writeTarget!.fileUri,
+              isClassInstanceMember: isClassInstanceMember);
         }
       }
       hasBuiltOutlineExpressions = true;
@@ -286,24 +242,25 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     if (!isClassMember) {
       // Getter/setter type conflict for class members is handled in the class
       // hierarchy builder.
-      setterBuilder = nameSpace.lookupLocalMember(name, setter: true)
-          as SourcePropertyBuilder?;
+      setterBuilder =
+          nameSpace.lookupLocalMember(name)?.setable as SourcePropertyBuilder?;
     }
-    _introductoryField?.checkTypes(library, typeEnvironment, setterBuilder,
-        isExternal: isExternal, isAbstract: isAbstract);
+    _introductoryField?.checkFieldTypes(
+        library, typeEnvironment, setterBuilder);
 
-    _introductoryGetable?.checkTypes(library, typeEnvironment, setterBuilder);
+    _introductoryGetable?.checkGetterTypes(
+        library, typeEnvironment, setterBuilder);
     List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
     if (getterAugmentations != null) {
       for (GetterDeclaration augmentation in getterAugmentations) {
-        augmentation.checkTypes(library, typeEnvironment, setterBuilder);
+        augmentation.checkGetterTypes(library, typeEnvironment, setterBuilder);
       }
     }
-    _introductorySetable?.checkTypes(library, typeEnvironment);
+    _introductorySetable?.checkSetterTypes(library, typeEnvironment);
     List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
     if (setterAugmentations != null) {
       for (SetterDeclaration augmentation in setterAugmentations) {
-        augmentation.checkTypes(library, typeEnvironment);
+        augmentation.checkSetterTypes(library, typeEnvironment);
       }
     }
   }
@@ -312,33 +269,31 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     if (!isClassInstanceMember) return;
-    _introductoryField?.checkVariance(sourceClassBuilder, typeEnvironment);
+    _introductoryField?.checkFieldVariance(sourceClassBuilder, typeEnvironment);
 
-    _introductoryGetable?.checkVariance(sourceClassBuilder, typeEnvironment);
+    _introductoryGetable?.checkGetterVariance(
+        sourceClassBuilder, typeEnvironment);
     List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
     if (getterAugmentations != null) {
       for (GetterDeclaration augmentation in getterAugmentations) {
-        augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
+        augmentation.checkGetterVariance(sourceClassBuilder, typeEnvironment);
       }
     }
 
-    _introductorySetable?.checkVariance(sourceClassBuilder, typeEnvironment);
+    _introductorySetable?.checkSetterVariance(
+        sourceClassBuilder, typeEnvironment);
     List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
     if (setterAugmentations != null) {
       for (SetterDeclaration augmentation in setterAugmentations) {
-        augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
+        augmentation.checkSetterVariance(sourceClassBuilder, typeEnvironment);
       }
     }
   }
 
   @override
   Iterable<Reference> get exportedMemberReferences => [
-        ...?_introductoryField
-            ?.getExportedMemberReferences(_references as FieldReference),
-        ...?_lastGetable
-            ?.getExportedMemberReferences(_references as GetterReference),
-        ...?_lastSetable
-            ?.getExportedMemberReferences(_references as SetterReference),
+        ...?_lastGetable?.getExportedGetterReferences(_references),
+        ...?_lastSetable?.getExportedSetterReferences(_references),
       ];
 
   // TODO(johnniwinther): Should fields and getters have an invoke target?
@@ -349,40 +304,30 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get invokeTargetReference => readTargetReference;
 
-  @override
-  bool get isAssignable => _introductoryField?.hasSetter ?? false;
-
   List<ClassMember>? _localMembers;
 
   List<ClassMember>? _localSetters;
 
   @override
-  List<ClassMember> get localMembers => _localMembers ??= [
-        ...?_introductoryField?.localMembers,
-        if (_introductoryGetable != null) new _GetterClassMember(this)
-      ];
+  List<ClassMember> get localMembers =>
+      _localMembers ??= _introductoryGetable?.localMembers ?? const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= [
-        ...?_introductoryField?.localSetters,
-        if (_introductorySetable != null && !isConflictingSetter)
-          new _SetterClassMember(this)
-      ];
+  List<ClassMember> get localSetters =>
+      _localSetters ??= _introductorySetable?.localSetters ?? const [];
 
   @override
   Name get memberName => _memberName.name;
 
   @override
-  Member? get readTarget =>
-      _introductoryField?.readTarget ?? _lastGetable?.readTarget;
+  Member? get readTarget => _lastGetable?.readTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference? get readTargetReference => _references.getterReference;
 
   @override
-  Member? get writeTarget =>
-      _lastSetable?.writeTarget ?? _introductoryField?.writeTarget;
+  Member? get writeTarget => _lastSetable?.writeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -393,26 +338,26 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       {required bool inErrorRecovery}) {
     int count = 0;
     if (_introductoryField != null) {
-      count += _introductoryField!.computeDefaultTypes(context);
+      count += _introductoryField!.computeFieldDefaultTypes(context);
     }
 
     if (_introductoryGetable != null) {
-      count += _introductoryGetable!.computeDefaultTypes(context);
+      count += _introductoryGetable!.computeGetterDefaultTypes(context);
     }
     List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
     if (getterAugmentations != null) {
       for (GetterDeclaration augmentation in getterAugmentations) {
-        count += augmentation.computeDefaultTypes(context);
+        count += augmentation.computeGetterDefaultTypes(context);
       }
     }
 
     if (_introductorySetable != null) {
-      count += _introductorySetable!.computeDefaultTypes(context);
+      count += _introductorySetable!.computeSetterDefaultTypes(context);
     }
     List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
     if (setterAugmentations != null) {
       for (SetterDeclaration augmentation in setterAugmentations) {
-        count += augmentation.computeDefaultTypes(context);
+        count += augmentation.computeSetterDefaultTypes(context);
       }
     }
     return count;
@@ -425,19 +370,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isProperty => true;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasField`,
-  // `hasGetter` and `hasSetter`?
-  @override
-  bool get isField => _introductoryField != null;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasGetter`?
-  @override
-  bool get isGetter => _introductoryGetable != null;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasSetter`?
-  @override
-  bool get isSetter => _introductorySetable != null;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;
@@ -469,45 +401,53 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   void inferTypesFromOverrides() {
     if (_typeEnsured) return;
-    if (_classMembersBuilder != null) {
-      assert(_getterOverrideDependencies != null ||
-          _setterOverrideDependencies != null);
-      _introductoryField?.ensureTypes(_classMembersBuilder!,
-          _getterOverrideDependencies, _setterOverrideDependencies);
+    ClassMembersBuilder? classMembersBuilder = _classMembersBuilder;
+    if (classMembersBuilder != null) {
+      Set<ClassMember>? getterOverrideDependencies =
+          _getterOverrideDependencies;
+      Set<ClassMember>? setterOverrideDependencies =
+          _setterOverrideDependencies;
 
-      _introductoryGetable?.ensureTypes(
+      assert(getterOverrideDependencies != null ||
+          setterOverrideDependencies != null);
+
+      _introductoryField?.ensureTypes(classMembersBuilder,
+          getterOverrideDependencies, setterOverrideDependencies);
+
+      _introductoryGetable?.ensureGetterTypes(
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
-          membersBuilder: _classMembersBuilder!,
-          getterOverrideDependencies: _getterOverrideDependencies);
+          membersBuilder: classMembersBuilder,
+          getterOverrideDependencies: getterOverrideDependencies);
       List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
       if (getterAugmentations != null) {
         for (GetterDeclaration augmentation in getterAugmentations) {
           // Coverage-ignore-block(suite): Not run.
-          augmentation.ensureTypes(
+          augmentation.ensureGetterTypes(
               libraryBuilder: libraryBuilder,
               declarationBuilder: declarationBuilder,
-              membersBuilder: _classMembersBuilder!,
-              getterOverrideDependencies: _getterOverrideDependencies);
+              membersBuilder: classMembersBuilder,
+              getterOverrideDependencies: getterOverrideDependencies);
         }
       }
 
-      _introductorySetable?.ensureTypes(
+      _introductorySetable?.ensureSetterTypes(
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
-          membersBuilder: _classMembersBuilder!,
-          setterOverrideDependencies: _setterOverrideDependencies);
+          membersBuilder: classMembersBuilder,
+          setterOverrideDependencies: setterOverrideDependencies);
       List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
       if (setterAugmentations != null) {
         for (SetterDeclaration augmentation in setterAugmentations) {
           // Coverage-ignore-block(suite): Not run.
-          augmentation.ensureTypes(
+          augmentation.ensureSetterTypes(
               libraryBuilder: libraryBuilder,
               declarationBuilder: declarationBuilder,
-              membersBuilder: _classMembersBuilder!,
-              setterOverrideDependencies: _getterOverrideDependencies);
+              membersBuilder: classMembersBuilder,
+              setterOverrideDependencies: setterOverrideDependencies);
         }
       }
+
       _getterOverrideDependencies = null;
       _setterOverrideDependencies = null;
       _classMembersBuilder = null;
@@ -518,7 +458,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   static DartType getSetterType(SourcePropertyBuilder setterBuilder,
       {required List<TypeParameter>? getterExtensionTypeParameters}) {
     DartType setterType;
-    Procedure procedure = setterBuilder.writeTarget as Procedure;
+    Member member = setterBuilder.writeTarget!;
     if (setterBuilder.isExtensionInstanceMember ||
         setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance setter
@@ -533,6 +473,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       //
       // Similarly for extension type instance setters.
       //
+      Procedure procedure = member as Procedure;
       setterType = procedure.function.positionalParameters[1].type;
       if (getterExtensionTypeParameters != null &&
           getterExtensionTypeParameters.isNotEmpty) {
@@ -548,7 +489,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         ]).substituteType(setterType);
       }
     } else {
-      setterType = procedure.setterType;
+      setterType = member.setterType;
     }
     return setterType;
   }
@@ -610,15 +551,35 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   shared.Expression? get initializerExpression =>
       _introductoryField?.initializerExpression;
-}
-
-class _GetterClassMember implements ClassMember {
-  final SourcePropertyBuilder _builder;
-
-  _GetterClassMember(this._builder);
 
   @override
-  int get charOffset => _builder.fileOffset;
+  FieldQuality get fieldQuality =>
+      _introductoryField?.fieldQuality ?? FieldQuality.Absent;
+
+  @override
+  GetterQuality get getterQuality =>
+      _lastGetable?.getterQuality ?? GetterQuality.Absent;
+
+  @override
+  SetterQuality get setterQuality =>
+      _lastSetable?.setterQuality ?? SetterQuality.Absent;
+
+  UriOffsetLength? get fieldUriOffset => _introductoryField?.uriOffset;
+
+  @override
+  UriOffsetLength? get getterUriOffset => _introductoryGetable?.uriOffset;
+
+  @override
+  UriOffsetLength? get setterUriOffset => _introductorySetable?.uriOffset;
+}
+
+class GetterClassMember implements ClassMember {
+  final SourcePropertyBuilder _builder;
+
+  GetterClassMember(this._builder);
+
+  @override
+  UriOffsetLength get uriOffset => _builder.getterUriOffset!;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -627,9 +588,6 @@ class _GetterClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _builder.fileUri;
 
   @override
   bool get forSetter => false;
@@ -653,6 +611,7 @@ class _GetterClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
@@ -688,26 +647,13 @@ class _GetterClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _builder.isAbstract;
+  bool get isAbstract => _builder.hasAbstractGetter;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => true;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isNoSuchMethodForwarder => false;
@@ -723,7 +669,7 @@ class _GetterClassMember implements ClassMember {
 
   @override
   bool isSameDeclaration(ClassMember other) {
-    return other is _GetterClassMember &&
+    return other is GetterClassMember &&
         // Coverage-ignore(suite): Not run.
         _builder == other._builder;
   }
@@ -757,15 +703,15 @@ class _GetterClassMember implements ClassMember {
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }
 
-class _SetterClassMember implements ClassMember {
+class SetterClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
   late final Covariance _covariance =
       new Covariance.fromSetter(_builder.writeTarget as Procedure);
 
-  _SetterClassMember(this._builder);
+  SetterClassMember(this._builder);
 
   @override
-  int get charOffset => _builder.fileOffset;
+  UriOffsetLength get uriOffset => _builder.setterUriOffset!;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -774,9 +720,6 @@ class _SetterClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError('$runtimeType.declarations');
-
-  @override
-  Uri get fileUri => _builder.fileUri;
 
   @override
   bool get forSetter => true;
@@ -800,6 +743,7 @@ class _SetterClassMember implements ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
@@ -835,26 +779,13 @@ class _SetterClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _builder.isAbstract;
+  bool get isAbstract => _builder.hasAbstractSetter;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isNoSuchMethodForwarder => false;
@@ -871,7 +802,7 @@ class _SetterClassMember implements ClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   bool isSameDeclaration(ClassMember other) {
-    return other is _SetterClassMember && _builder == other._builder;
+    return other is SetterClassMember && _builder == other._builder;
   }
 
   @override
@@ -903,323 +834,93 @@ class _SetterClassMember implements ClassMember {
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }
 
-abstract class PropertyReferences {
-  Reference? get getterReference;
-  Reference? get setterReference;
-}
-
-class GetterReference extends PropertyReferences {
+/// [Reference]s used for the [Member] nodes created for a property.
+class PropertyReferences {
+  Reference? _fieldReference;
   Reference? _getterReference;
-
-  GetterReference._(this._getterReference);
-
-  factory GetterReference(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer) {
-    Reference? procedureReference;
-    ProcedureKind kind = ProcedureKind.Getter;
-    if (indexedContainer != null) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      procedureReference = indexedContainer.lookupGetterReference(nameToLookup);
-    }
-    return new GetterReference._(procedureReference);
-  }
-
-  void registerReference(SourceLoader loader, Builder builder) {
-    if (_getterReference != null) {
-      loader.buildersCreatedWithReferences[_getterReference!] = builder;
-    }
-  }
-
-  @override
-  Reference get getterReference => _getterReference ??= new Reference();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get setterReference => null;
-}
-
-class SetterReference extends PropertyReferences {
   Reference? _setterReference;
 
-  SetterReference._(this._setterReference);
+  /// Creates a [PropertyReferences] object preloaded with the
+  /// [preExistingFieldReference], [preExistingGetterReference] and
+  /// [preExistingSetterReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same field, getter, and setter in the previous compilation.
+  PropertyReferences._(
+      {required Reference? preExistingFieldReference,
+      required Reference? preExistingGetterReference,
+      required Reference? preExistingSetterReference})
+      : _fieldReference = preExistingFieldReference,
+        _getterReference = preExistingGetterReference,
+        _setterReference = preExistingSetterReference;
 
-  factory SetterReference(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer) {
-    Reference? procedureReference;
-    ProcedureKind kind = ProcedureKind.Setter;
+  /// Creates a [PropertyReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
+  factory PropertyReferences(
+      String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
+      {required bool fieldIsLateWithLowering}) {
+    Reference? preExistingGetterReference;
+    Reference? preExistingSetterReference;
+    Reference? preExistingFieldReference;
     if (indexedContainer != null) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
+      Name getterNameToLookup =
+          nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name;
+      preExistingGetterReference =
+          indexedContainer.lookupGetterReference(getterNameToLookup);
+
+      Name setterNameToLookup =
+          nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name;
       if ((nameScheme.isExtensionMember || nameScheme.isExtensionTypeMember) &&
           nameScheme.isInstanceMember) {
         // Extension (type) instance setters are encoded as methods.
-        procedureReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
+        preExistingSetterReference =
+            indexedContainer.lookupGetterReference(setterNameToLookup);
       } else {
-        procedureReference =
-            indexedContainer.lookupSetterReference(nameToLookup);
+        preExistingSetterReference =
+            indexedContainer.lookupSetterReference(setterNameToLookup);
       }
+
+      Name fieldNameToLookup = nameScheme
+          .getFieldMemberName(FieldNameType.Field, name,
+              isSynthesized: fieldIsLateWithLowering)
+          .name;
+      preExistingFieldReference =
+          indexedContainer.lookupFieldReference(fieldNameToLookup);
     }
-    return new SetterReference._(procedureReference);
+
+    return new PropertyReferences._(
+        preExistingFieldReference: preExistingFieldReference,
+        preExistingGetterReference: preExistingGetterReference,
+        preExistingSetterReference: preExistingSetterReference);
   }
 
-  void registerReference(SourceLoader loader, Builder builder) {
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [PropertyReferences._].
+  ///
+  /// This must be called before [fieldReference], [getterReference] and
+  /// [setterReference] are accessed.
+  void registerReference(SourceLoader loader, SourcePropertyBuilder builder) {
+    if (_fieldReference != null) {
+      loader.buildersCreatedWithReferences[_fieldReference!] = builder;
+    }
+    if (_getterReference != null) {
+      loader.buildersCreatedWithReferences[_getterReference!] = builder;
+    }
     if (_setterReference != null) {
       loader.buildersCreatedWithReferences[_setterReference!] = builder;
     }
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get getterReference => null;
+  /// The [Reference] used to refer to the field aspect of the [Field] node
+  /// created for this property.
+  Reference get fieldReference => _fieldReference ??= new Reference();
 
-  @override
+  /// The [Reference] used to refer to the getter aspect of the [Member] node(s)
+  /// created for this property.
+  Reference get getterReference => _getterReference ??= new Reference();
+
+  /// The [Reference] used to refer to the setter aspect of the [Member] node(s)
+  /// created for this property.
   Reference get setterReference => _setterReference ??= new Reference();
-}
-
-abstract class FieldReference extends PropertyReferences {
-  factory FieldReference(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
-      {required bool fieldIsLateWithLowering, required bool isExternal}) {
-    Reference? fieldReference;
-    Reference? fieldGetterReference;
-    Reference? fieldSetterReference;
-    Reference? lateIsSetFieldReference;
-    Reference? lateIsSetGetterReference;
-    Reference? lateIsSetSetterReference;
-    Reference? lateGetterReference;
-    Reference? lateSetterReference;
-    if (indexedContainer != null) {
-      if ((nameScheme.isExtensionMember || nameScheme.isExtensionTypeMember) &&
-          nameScheme.isInstanceMember &&
-          isExternal) {
-        /// An external extension (type) instance field is special. It is
-        /// treated as an external getter/setter pair and is therefore
-        /// encoded as a pair of top level methods using the extension
-        /// instance member naming convention.
-        fieldGetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
-        fieldSetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
-      } else if (nameScheme.isExtensionTypeMember &&
-          nameScheme.isInstanceMember) {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.RepresentationField, name,
-                isSynthesized: true)
-            .name;
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-      } else {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.Field, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        fieldSetterReference =
-            indexedContainer.lookupSetterReference(nameToLookup);
-      }
-
-      if (fieldIsLateWithLowering) {
-        Name lateIsSetName = nameScheme
-            .getFieldMemberName(FieldNameType.IsSetField, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        lateIsSetFieldReference =
-            indexedContainer.lookupFieldReference(lateIsSetName);
-        lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
-        lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        lateGetterReference = indexedContainer.lookupGetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Getter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-        lateSetterReference = indexedContainer.lookupSetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Setter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-      }
-    }
-    if (fieldIsLateWithLowering) {
-      return new _LateFieldLoweringReference._(
-          fieldReference: fieldReference,
-          fieldGetterReference: fieldGetterReference,
-          fieldSetterReference: fieldSetterReference,
-          lateIsSetFieldReference: lateIsSetFieldReference,
-          lateIsSetGetterReference: lateIsSetGetterReference,
-          lateIsSetSetterReference: lateIsSetSetterReference,
-          lateGetterReference: lateGetterReference,
-          lateSetterReference: lateSetterReference);
-    } else {
-      return new _RegularFieldReference._(
-          fieldReference: fieldReference,
-          fieldGetterReference: fieldGetterReference,
-          fieldSetterReference: fieldSetterReference,
-          lateIsSetFieldReference: lateIsSetFieldReference,
-          lateIsSetGetterReference: lateIsSetGetterReference,
-          lateIsSetSetterReference: lateIsSetSetterReference,
-          lateGetterReference: lateGetterReference,
-          lateSetterReference: lateSetterReference);
-    }
-  }
-
-  void registerReference(SourceLoader loader, Builder builder);
-
-  Reference get fieldReference;
-  Reference get fieldGetterReference;
-  Reference get fieldSetterReference;
-  Reference get lateIsSetFieldReference;
-  Reference get lateIsSetGetterReference;
-  Reference get lateIsSetSetterReference;
-  Reference get lateGetterReference;
-  Reference get lateSetterReference;
-}
-
-class _RegularFieldReference implements FieldReference {
-  Reference? _fieldReference;
-  Reference? _fieldGetterReference;
-  Reference? _fieldSetterReference;
-  Reference? _lateIsSetFieldReference;
-  Reference? _lateIsSetGetterReference;
-  Reference? _lateIsSetSetterReference;
-  Reference? _lateGetterReference;
-  Reference? _lateSetterReference;
-
-  _RegularFieldReference._(
-      {required Reference? fieldReference,
-      required Reference? fieldGetterReference,
-      required Reference? fieldSetterReference,
-      required Reference? lateIsSetFieldReference,
-      required Reference? lateIsSetGetterReference,
-      required Reference? lateIsSetSetterReference,
-      required Reference? lateGetterReference,
-      required Reference? lateSetterReference})
-      : _fieldReference = fieldReference,
-        _fieldGetterReference = fieldGetterReference,
-        _fieldSetterReference = fieldSetterReference,
-        _lateIsSetFieldReference = lateIsSetFieldReference,
-        _lateIsSetGetterReference = lateIsSetGetterReference,
-        _lateIsSetSetterReference = lateIsSetSetterReference,
-        _lateGetterReference = lateGetterReference,
-        _lateSetterReference = lateSetterReference;
-
-  @override
-  void registerReference(SourceLoader loader, Builder builder) {
-    if (_fieldGetterReference != null) {
-      loader.buildersCreatedWithReferences[_fieldGetterReference!] = builder;
-    }
-    if (_fieldSetterReference != null) {
-      loader.buildersCreatedWithReferences[_fieldSetterReference!] = builder;
-    }
-  }
-
-  @override
-  Reference get fieldReference => _fieldReference ??= new Reference();
-
-  @override
-  Reference get fieldGetterReference =>
-      _fieldGetterReference ??= new Reference();
-
-  @override
-  Reference get fieldSetterReference =>
-      _fieldSetterReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetFieldReference =>
-      _lateIsSetFieldReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetGetterReference =>
-      _lateIsSetGetterReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetSetterReference =>
-      _lateIsSetSetterReference ??= new Reference();
-
-  @override
-  Reference get lateGetterReference => _lateGetterReference ??= new Reference();
-
-  @override
-  Reference get lateSetterReference => _lateSetterReference ??= new Reference();
-
-  @override
-  Reference? get getterReference => fieldGetterReference;
-
-  @override
-  Reference? get setterReference => fieldSetterReference;
-}
-
-class _LateFieldLoweringReference implements FieldReference {
-  Reference? _fieldReference;
-  Reference? _fieldGetterReference;
-  Reference? _fieldSetterReference;
-  Reference? _lateIsSetFieldReference;
-  Reference? _lateIsSetGetterReference;
-  Reference? _lateIsSetSetterReference;
-  Reference? _lateGetterReference;
-  Reference? _lateSetterReference;
-
-  _LateFieldLoweringReference._(
-      {required Reference? fieldReference,
-      required Reference? fieldGetterReference,
-      required Reference? fieldSetterReference,
-      required Reference? lateIsSetFieldReference,
-      required Reference? lateIsSetGetterReference,
-      required Reference? lateIsSetSetterReference,
-      required Reference? lateGetterReference,
-      required Reference? lateSetterReference})
-      : _fieldReference = fieldReference,
-        _fieldGetterReference = fieldGetterReference,
-        _fieldSetterReference = fieldSetterReference,
-        _lateIsSetFieldReference = lateIsSetFieldReference,
-        _lateIsSetGetterReference = lateIsSetGetterReference,
-        _lateIsSetSetterReference = lateIsSetSetterReference,
-        _lateGetterReference = lateGetterReference,
-        _lateSetterReference = lateSetterReference;
-
-  @override
-  void registerReference(SourceLoader loader, Builder builder) {
-    if (_fieldGetterReference != null) {
-      loader.buildersCreatedWithReferences[_fieldGetterReference!] = builder;
-    }
-    if (_fieldSetterReference != null) {
-      loader.buildersCreatedWithReferences[_fieldSetterReference!] = builder;
-    }
-  }
-
-  @override
-  Reference get fieldReference => _fieldReference ??= new Reference();
-
-  @override
-  Reference get fieldGetterReference =>
-      _fieldGetterReference ??= new Reference();
-
-  @override
-  Reference get fieldSetterReference =>
-      _fieldSetterReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetFieldReference =>
-      _lateIsSetFieldReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetGetterReference =>
-      _lateIsSetGetterReference ??= new Reference();
-
-  @override
-  Reference get lateIsSetSetterReference =>
-      _lateIsSetSetterReference ??= new Reference();
-
-  @override
-  Reference get lateGetterReference => _lateGetterReference ??= new Reference();
-
-  @override
-  Reference get lateSetterReference => _lateSetterReference ??= new Reference();
-
-  @override
-  Reference? get getterReference => lateGetterReference;
-
-  @override
-  Reference? get setterReference => lateSetterReference;
 }

@@ -127,7 +127,9 @@ class NonAsciiIdentifierToken extends ErrorToken {
 
   @override
   Message get assertionMessage => templateNonAsciiIdentifier.withArguments(
-      new String.fromCharCodes([character]), character);
+    new String.fromCharCodes([character]),
+    character,
+  );
 }
 
 /// Represents a non-ASCII whitespace outside a string or comment.
@@ -151,7 +153,7 @@ class AsciiControlCharacterToken extends ErrorToken {
   final int character;
 
   AsciiControlCharacterToken(this.character, int charOffset)
-      : super(charOffset);
+    : super(charOffset);
 
   @override
   String toString() => "AsciiControlCharacterToken($character)";
@@ -183,7 +185,7 @@ class UnterminatedString extends ErrorToken {
   final int endOffset;
 
   UnterminatedString(this.start, int charOffset, this.endOffset)
-      : super(charOffset);
+    : super(charOffset);
 
   @override
   String toString() => "UnterminatedString($start)";
@@ -207,7 +209,7 @@ class UnterminatedToken extends ErrorToken {
   final int endOffset;
 
   UnterminatedToken(this.assertionMessage, int charOffset, this.endOffset)
-      : super(charOffset);
+    : super(charOffset);
 
   @override
   String toString() => "UnterminatedToken(${assertionMessage.code.name})";
@@ -225,8 +227,8 @@ class UnmatchedToken extends ErrorToken {
   final BeginToken begin;
 
   UnmatchedToken(BeginToken begin)
-      : this.begin = begin,
-        super(begin.charOffset);
+    : this.begin = begin,
+      super(begin.charOffset);
 
   @override
   String toString() => "UnmatchedToken(${begin.lexeme})";

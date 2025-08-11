@@ -91,20 +91,6 @@ library;
 //   static extensionStaticMethodAndInstanceSetter() {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:23:19: Error: This static member conflicts with an instance member.
-//   static void set instanceMethodAndStaticSetter(value) {}
-//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:22:3: Context: This is the instance member.
-//   instanceMethodAndStaticSetter() {}
-//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:25:10: Error: This static member conflicts with an instance member.
-//   static staticMethodAndInstanceSetter() {}
-//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:26:12: Context: This is the instance member.
-//   void set staticMethodAndInstanceSetter(value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -118,19 +104,11 @@ class Class extends core::Object {
     ;
   method instanceMethodAndSetter() → dynamic
     ;
-  set instanceMethodAndSetter(dynamic value) → void
-    ;
   static method staticMethodAndSetter() → dynamic
-    ;
-  static set staticMethodAndSetter(dynamic value) → void
     ;
   method instanceMethodAndStaticSetter() → dynamic
     ;
-  static set instanceMethodAndStaticSetter(dynamic value) → void
-    ;
   static method staticMethodAndInstanceSetter() → dynamic
-    ;
-  set staticMethodAndInstanceSetter(dynamic value) → void
     ;
   set Class(dynamic value) → void
     ;
@@ -142,36 +120,20 @@ extension Extension on core::int? {
   method extensionInstanceMethodAndStaticSetter = self::Extension|extensionInstanceMethodAndStaticSetter;
   method tearoff extensionInstanceMethodAndStaticSetter = self::Extension|get#extensionInstanceMethodAndStaticSetter;
   static method extensionStaticMethodAndInstanceSetter = self::Extension|extensionStaticMethodAndInstanceSetter;
-  set extensionInstanceMethodAndSetter = self::Extension|set#extensionInstanceMethodAndSetter;
-  static set extensionStaticMethodAndSetter = set self::Extension|extensionStaticMethodAndSetter;
-  static set extensionInstanceMethodAndStaticSetter = set self::Extension|extensionInstanceMethodAndStaticSetter;
-  set extensionStaticMethodAndInstanceSetter = self::Extension|set#extensionStaticMethodAndInstanceSetter;
 }
 static method topLevelMethodAndSetter() → dynamic
-  ;
-static set topLevelMethodAndSetter(dynamic value) → void
-  ;
-static set classAndSetter(dynamic value) → void
   ;
 static extension-member method Extension|extensionInstanceMethodAndSetter(lowered final core::int? #this) → dynamic
   ;
 static extension-member method Extension|get#extensionInstanceMethodAndSetter(lowered final core::int? #this) → () → dynamic
   return () → dynamic => self::Extension|extensionInstanceMethodAndSetter(#this);
-static extension-member method Extension|set#extensionInstanceMethodAndSetter(lowered final core::int? #this, dynamic value) → void
-  ;
 static extension-member method Extension|extensionStaticMethodAndSetter() → dynamic
-  ;
-static extension-member set Extension|extensionStaticMethodAndSetter(dynamic value) → void
   ;
 static extension-member method Extension|extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → dynamic
   ;
 static extension-member method Extension|get#extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → () → dynamic
   return () → dynamic => self::Extension|extensionInstanceMethodAndStaticSetter(#this);
-static extension-member set Extension|extensionInstanceMethodAndStaticSetter(dynamic value) → void
-  ;
 static extension-member method Extension|extensionStaticMethodAndInstanceSetter() → dynamic
-  ;
-static extension-member method Extension|set#extensionStaticMethodAndInstanceSetter(lowered final core::int? #this, dynamic value) → void
   ;
 static method test() → dynamic
   ;

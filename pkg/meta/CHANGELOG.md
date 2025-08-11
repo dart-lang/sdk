@@ -1,5 +1,28 @@
-## 1.16.1-wip
+## 1.17.0
 
+- Introduce `@awaitNotRequired` to annotate `Future`-returning functions and
+  `Future`-typed fields and top-level variables whose value does not
+  necessarily need to be awaited. This annotation can be used to suppress
+  `unawaited_futures` and `discarded_futures` lint diagnostics at call sites.
+
+  For example, this `log` function returns a `Future`, but maybe the return
+  value is typically not important, and is only useful in tests or while
+  debugging:
+
+  ```dart
+  @awaitNotRequired Future<LogMessage> log(String message) { ... }
+
+  void fn() {
+    log('Message'); // Not important to wait for logging to complete.
+  }
+  ```
+
+  Without the annotation on `log`, the analyzer may report a lint diagnostic at
+  the call to `log`, such as `unawaited_futures` or `discarded_futures`
+  regarding the danger of not awaiting the function call, depending on what
+  lint rules are enabled.
+
+- Mark `Required` and `required` as `@Deprecated`.
 - Update SDK constraints to `^3.5.0`.
 
 ## 1.16.0

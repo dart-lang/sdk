@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,14 +17,12 @@ class AvoidSettersWithoutGetters extends LintRule {
     : super(name: LintNames.avoid_setters_without_getters, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_setters_without_getters;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_setters_without_getters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -32,9 +32,8 @@ class AvoidSettersWithoutGetters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -56,30 +55,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!member.isSetter) continue;
 
       var element = member.declaredFragment?.element;
-      var interface = element?.enclosingElement2;
-      if (interface is! InterfaceElement2) continue;
+      var interface = element?.enclosingElement;
+      if (interface is! InterfaceElement) continue;
 
       var name = Name.forElement(element!);
       if (name == null) continue;
 
       // If we're overriding a setter, don't report here.
-      var overridden = inheritanceManager.getOverridden4(interface, name);
+      var overridden = interface.getOverridden(name);
       if (overridden != null && overridden.isNotEmpty) continue;
 
-      var getterName = element.name3;
+      var getterName = element.name;
       if (getterName == null) continue;
 
-      // Check for a declared (static) getter.
-      ExecutableElement2? getter = interface.getGetter2(getterName);
-      // Then look up for an inherited one.
-      getter ??= inheritanceManager.getMember4(
-        interface,
-        name.forGetter,
-        concrete: true,
-      );
+      var getter =
+          // Check for a declared (static) getter.
+          interface.getGetter(getterName) ??
+          // Then look for an inherited one.
+          interface.getInheritedConcreteMember(name.forGetter);
 
       if (getter == null) {
-        rule.reportLintForToken(member.name);
+        rule.reportAtToken(member.name);
       }
     }
   }

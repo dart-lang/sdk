@@ -1,18 +1,8 @@
 {
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
-  "uris": [
-    "types_of_arguments.dart"
-  ],
-  "ids": [
-    {
-      "uri": 0,
-      "parent": "SomeClass",
-      "name": "someStaticMethod"
-    }
-  ],
   "constants": [
     {
       "type": "int",
@@ -67,107 +57,69 @@
       }
     }
   ],
-  "calls": [
+  "locations": [
+    {
+      "uri": "types_of_arguments.dart"
+    }
+  ],
+  "recordings": [
     {
       "definition": {
-        "id": 0,
-        "@": {
-          "uri": 0,
-          "line": 24,
-          "column": 17
+        "identifier": {
+          "uri": "types_of_arguments.dart",
+          "scope": "SomeClass",
+          "name": "someStaticMethod"
         },
-        "loadingUnit": "1"
+        "loading_unit": "1"
       },
-      "references": [
+      "calls": [
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 0
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 8,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            0
+          ],
+          "loading_unit": "1",
+          "@": 0
         },
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 1
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 9,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            1
+          ],
+          "loading_unit": "1",
+          "@": 0
         },
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 2
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 10,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            2
+          ],
+          "loading_unit": "1",
+          "@": 0
         },
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 3
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 11,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            3
+          ],
+          "loading_unit": "1",
+          "@": 0
         },
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 10
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 13,
-            "column": 15
-          }
+          "type": "with_arguments",
+          "positional": [
+            10
+          ],
+          "loading_unit": "1",
+          "@": 0
         },
         {
-          "arguments": {
-            "nonConst": {
-              "positional": [
-                0
-              ]
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 19,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            null
+          ],
+          "loading_unit": "1",
+          "@": 0
         }
       ]
     }

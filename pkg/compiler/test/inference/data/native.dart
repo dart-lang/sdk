@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   nativeMethod();
 }
 
-/*member: nativeMethod:[null|subclass=Object|powerset=1]*/
+/*member: nativeMethod:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 nativeMethod()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;

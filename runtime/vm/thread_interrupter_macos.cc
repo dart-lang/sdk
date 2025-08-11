@@ -49,7 +49,11 @@ class ThreadInterrupterMacOS {
     ASSERT(os_thread != nullptr);
     mach_thread_ = pthread_mach_thread_np(os_thread->id());
     ASSERT(reinterpret_cast<void*>(mach_thread_) != nullptr);
+#if !defined(DART_HOST_OS_WATCH)
     res = thread_suspend(mach_thread_);
+#else
+    res = KERN_FAILURE;
+#endif
   }
 
   void CollectSample() {
@@ -58,9 +62,14 @@ class ThreadInterrupterMacOS {
     }
     auto count = static_cast<mach_msg_type_number_t>(THREAD_STATE_FLAVOR_SIZE);
     thread_state_flavor_t state;
+#if !defined(DART_HOST_OS_WATCH)
     kern_return_t res =
         thread_get_state(mach_thread_, THREAD_STATE_FLAVOR,
                          reinterpret_cast<thread_state_t>(&state), &count);
+#else
+    USE(count);
+    kern_return_t res = KERN_FAILURE;
+#endif
     ASSERT(res == KERN_SUCCESS);
     Thread* thread = static_cast<Thread*>(os_thread_->thread());
     if (thread == nullptr) {
@@ -74,7 +83,11 @@ class ThreadInterrupterMacOS {
     if (res != KERN_SUCCESS) {
       return;
     }
+#if !defined(DART_HOST_OS_WATCH)
     res = thread_resume(mach_thread_);
+#else
+    res = KERN_FAILURE;
+#endif
     ASSERT(res == KERN_SUCCESS);
   }
 
@@ -101,7 +114,7 @@ class ThreadInterrupterMacOS {
     its.lr = state.__lr;
 #endif  // HOST_ARCH_...
 
-#if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_ARM64) && !defined(DART_INCLUDE_SIMULATOR)
     its.dsp = state.__x[SPREG];
 #endif
     return its;

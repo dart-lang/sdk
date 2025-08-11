@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -28,13 +29,13 @@ String _relative(String file) {
   return file.startsWith(path.current) ? path.relative(file) : file;
 }
 
-/// Returns the given error's severity.
-ErrorSeverity _severityIdentity(AnalysisError error) =>
-    error.errorCode.errorSeverity;
+/// Returns the given diagnostic's severity.
+DiagnosticSeverity _severityIdentity(Diagnostic diagnostic) =>
+    diagnostic.diagnosticCode.severity;
 
-/// Returns desired severity for the given [error] (or `null` if it's to be
+/// Returns desired severity for the given [diagnostic] (or `null` if it's to be
 /// suppressed).
-typedef SeverityProcessor = ErrorSeverity? Function(AnalysisError error);
+typedef SeverityProcessor = DiagnosticSeverity? Function(Diagnostic diagnostic);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -103,7 +104,7 @@ class AnalysisStats {
   }
 }
 
-/// An [AnalysisError] with line and column information.
+/// A [Diagnostic] with line and column information.
 class CLIError implements Comparable<CLIError> {
   final String severity;
   final String sourcePath;
@@ -174,7 +175,7 @@ class ContextMessage {
   ContextMessage(this.filePath, this.message, this.line, this.column);
 }
 
-/// Helper for formatting [AnalysisError]s.
+/// Helper for formatting [Diagnostic]s.
 ///
 /// The two format options are a user consumable format and a machine consumable
 /// format.
@@ -194,34 +195,34 @@ abstract class ErrorFormatter {
   /// Call to write any batched up errors from [formatErrors].
   void flush();
 
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   );
 
   Future<void> formatErrors(List<ErrorsResult> results) async {
     stats.unfilteredCount += results.length;
 
-    var errors = <AnalysisError>[];
-    var errorToLine = <AnalysisError, ErrorsResult>{};
+    var diagnostics = <Diagnostic>[];
+    var diagnosticToLine = <Diagnostic, ErrorsResult>{};
     for (var result in results) {
-      for (var error in result.errors) {
-        if (_computeSeverity(error) != null) {
-          errors.add(error);
-          errorToLine[error] = result;
+      for (var diagnostic in result.diagnostics) {
+        if (_computeSeverity(diagnostic) != null) {
+          diagnostics.add(diagnostic);
+          diagnosticToLine[diagnostic] = result;
         }
       }
     }
 
-    for (var error in errors) {
-      await formatError(errorToLine, error);
+    for (var diagnostic in diagnostics) {
+      await formatDiagnostic(diagnosticToLine, diagnostic);
     }
   }
 
-  /// Compute the severity for this [error] or `null` if this error should be
-  /// filtered.
-  ErrorSeverity? _computeSeverity(AnalysisError error) =>
-      _severityProcessor(error);
+  /// Compute the severity for this [diagnostic] or `null` if this error should
+  /// be filtered.
+  DiagnosticSeverity? _computeSeverity(Diagnostic diagnostic) =>
+      _severityProcessor(diagnostic);
 }
 
 class HumanErrorFormatter extends ErrorFormatter {
@@ -287,9 +288,9 @@ class HumanErrorFormatter extends ErrorFormatter {
   }
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     var source = error.source;
     var result = errorToLine[error]!;
@@ -299,10 +300,10 @@ class HumanErrorFormatter extends ErrorFormatter {
 
     // Get display name; translate INFOs into LINTS and HINTS.
     var errorType = severity.displayName;
-    if (severity == ErrorSeverity.INFO) {
-      if (error.errorCode.type == ErrorType.HINT ||
-          error.errorCode.type == ErrorType.LINT) {
-        errorType = error.errorCode.type.displayName;
+    if (severity == DiagnosticSeverity.INFO) {
+      if (error.diagnosticCode.type == DiagnosticType.HINT ||
+          error.diagnosticCode.type == DiagnosticType.LINT) {
+        errorType = error.diagnosticCode.type.displayName;
       }
     }
 
@@ -349,9 +350,9 @@ class HumanErrorFormatter extends ErrorFormatter {
         column: location.columnNumber,
         message: error.message,
         contextMessages: contextMessages,
-        errorCode: error.errorCode.name.toLowerCase(),
-        correction: error.correction,
-        url: error.errorCode.url,
+        errorCode: error.diagnosticCode.name.toLowerCase(),
+        correction: error.correctionMessage,
+        url: error.diagnosticCode.url,
       ),
     );
   }
@@ -369,9 +370,9 @@ class JsonErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     throw UnsupportedError('Cannot format a single error');
   }
@@ -412,7 +413,7 @@ class JsonErrorFormatter extends ErrorFormatter {
 
     var diagnostics = <Map<String, dynamic>>[];
     for (var result in results) {
-      var errors = result.errors;
+      var errors = result.diagnostics;
       var lineInfo = result.lineInfo;
       for (var error in errors) {
         var severity = _computeSeverity(error);
@@ -431,13 +432,13 @@ class JsonErrorFormatter extends ErrorFormatter {
             'message': contextMessage.messageText(includeUrl: true),
           });
         }
-        var errorCode = error.errorCode;
+        var diagnosticCode = error.diagnosticCode;
         var problemMessage = error.problemMessage;
-        var url = error.errorCode.url;
+        var url = error.diagnosticCode.url;
         diagnostics.add({
-          'code': errorCode.name.toLowerCase(),
+          'code': diagnosticCode.name.toLowerCase(),
           'severity': severity.name,
-          'type': errorCode.type.name,
+          'type': diagnosticCode.type.name,
           'location': location(
             problemMessage.filePath,
             problemMessage.offset,
@@ -445,7 +446,8 @@ class JsonErrorFormatter extends ErrorFormatter {
             lineInfo,
           ),
           'problemMessage': problemMessage.messageText(includeUrl: true),
-          if (error.correction != null) 'correctionMessage': error.correction,
+          if (error.correctionMessage != null)
+            'correctionMessage': error.correctionMessage,
           if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
           if (url != null) 'documentation': url,
         });
@@ -460,7 +462,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _slashCodeUnit = '\\'.codeUnitAt(0);
   static final int _newline = '\n'.codeUnitAt(0);
   static final int _return = '\r'.codeUnitAt(0);
-  final Set<AnalysisError> _seenErrors = <AnalysisError>{};
+  final Set<Diagnostic> _seenDiagnostics = <Diagnostic>{};
 
   MachineErrorFormatter(
     super.out,
@@ -473,12 +475,12 @@ class MachineErrorFormatter extends ErrorFormatter {
   void flush() {}
 
   @override
-  Future<void> formatError(
-    Map<AnalysisError, ErrorsResult> errorToLine,
-    AnalysisError error,
+  Future<void> formatDiagnostic(
+    Map<Diagnostic, ErrorsResult> errorToLine,
+    Diagnostic error,
   ) async {
     // Ensure we don't over-report (#36062).
-    if (!_seenErrors.add(error)) {
+    if (!_seenDiagnostics.add(error)) {
       return;
     }
     var source = error.source;
@@ -487,21 +489,21 @@ class MachineErrorFormatter extends ErrorFormatter {
 
     var severity = _severityProcessor(error);
 
-    if (severity == ErrorSeverity.ERROR) {
+    if (severity == DiagnosticSeverity.ERROR) {
       stats.errorCount++;
-    } else if (severity == ErrorSeverity.WARNING) {
+    } else if (severity == DiagnosticSeverity.WARNING) {
       stats.warnCount++;
-    } else if (error.errorCode.type == ErrorType.HINT) {
+    } else if (error.diagnosticCode.type == DiagnosticType.HINT) {
       stats.hintCount++;
-    } else if (error.errorCode.type == ErrorType.LINT) {
+    } else if (error.diagnosticCode.type == DiagnosticType.LINT) {
       stats.lintCount++;
     }
 
     out.write(severity);
     out.write('|');
-    out.write(error.errorCode.type);
+    out.write(error.diagnosticCode.type);
     out.write('|');
-    out.write(error.errorCode.name);
+    out.write(error.diagnosticCode.name);
     out.write('|');
     out.write(_escapeForMachineMode(source.fullName));
     out.write('|');

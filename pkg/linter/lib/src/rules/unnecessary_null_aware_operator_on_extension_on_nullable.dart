@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,14 +22,11 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.unnecessary_null_aware_operator_on_extension_on_nullable;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -38,31 +37,33 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    var question = node.question;
+    if (question == null) return;
     if (node.isNullAware &&
         _isExtensionOnNullableType(
           node.inSetterContext()
               ? node
                   .thisOrAncestorOfType<AssignmentExpression>()
-                  ?.writeElement2
-                  ?.enclosingElement2
-              : node.element?.enclosingElement2,
+                  ?.writeElement
+                  ?.enclosingElement
+              : node.element?.enclosingElement,
         )) {
-      rule.reportLintForToken(node.question);
+      rule.reportAtToken(question);
     }
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    var operator = node.operator;
+    if (operator == null) return;
     if (node.isNullAware &&
-        _isExtensionOnNullableType(
-          node.methodName.element?.enclosingElement2,
-        )) {
-      rule.reportLintForToken(node.operator);
+        _isExtensionOnNullableType(node.methodName.element?.enclosingElement)) {
+      rule.reportAtToken(operator);
     }
   }
 
@@ -74,15 +75,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (_isExtensionOnNullableType(
         realParent is AssignmentExpression
-            ? realParent.writeElement2?.enclosingElement2
-            : node.propertyName.element?.enclosingElement2,
+            ? realParent.writeElement?.enclosingElement
+            : node.propertyName.element?.enclosingElement,
       )) {
-        rule.reportLintForToken(node.operator);
+        rule.reportAtToken(node.operator);
       }
     }
   }
 
-  bool _isExtensionOnNullableType(Element2? enclosingElement) =>
-      enclosingElement is ExtensionElement2 &&
+  bool _isExtensionOnNullableType(Element? enclosingElement) =>
+      enclosingElement is ExtensionElement &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
 }

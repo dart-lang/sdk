@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -56,7 +58,7 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-class DirectivesOrdering extends LintRule {
+class DirectivesOrdering extends MultiAnalysisRule {
   static const List<LintCode> allCodes = [
     LinterLintCode.directives_ordering_alphabetical,
     LinterLintCode.directives_ordering_dart,
@@ -68,21 +70,18 @@ class DirectivesOrdering extends LintRule {
     : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
-  List<LintCode> get lintCodes => allCodes;
+  List<DiagnosticCode> get diagnosticCodes => allCodes;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
-    reportLint(
+    reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_dart,
+      diagnosticCode: LinterLintCode.directives_ordering_dart,
       arguments: [type],
     );
   }
@@ -90,23 +89,27 @@ class DirectivesOrdering extends LintRule {
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
     AstNode node,
   ) {
-    reportLint(
+    reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_alphabetical,
+      diagnosticCode: LinterLintCode.directives_ordering_alphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportLint(node, errorCode: LinterLintCode.directives_ordering_exports);
+    reportAtNode(
+      node,
+      diagnosticCode: LinterLintCode.directives_ordering_exports,
+    );
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
     AstNode node,
     String type,
   ) {
-    reportLint(
+    reportAtNode(
       node,
-      errorCode: LinterLintCode.directives_ordering_package_before_relative,
+      diagnosticCode:
+          LinterLintCode.directives_ordering_package_before_relative,
       arguments: [type],
     );
   }

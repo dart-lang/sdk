@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -46,7 +46,7 @@ class DartInlayHintComputer {
     SyntacticEntity nodeOrToken,
     FormalParameterElement parameter,
   ) {
-    var name = parameter.name3;
+    var name = parameter.name;
     if (name == null || name.isEmpty) {
       return;
     }
@@ -186,8 +186,8 @@ class DartInlayHintComputer {
         InlayHintLabelPart(
           // Write type without type args or nullability suffix. Type args need
           // adding as their own parts, and the nullability suffix does after them.
-          value: type.element3?.name3 ?? type.getDisplayString(),
-          location: _locationForElement(type.element3),
+          value: type.element?.name ?? type.getDisplayString(),
+          location: _locationForElement(type.element),
         ),
       );
       // Call recursively for any nested type arguments.
@@ -203,7 +203,7 @@ class DartInlayHintComputer {
     }
   }
 
-  Location? _locationForElement(Element2? element) {
+  Location? _locationForElement(Element? element) {
     if (element == null) {
       return null;
     }
@@ -217,7 +217,7 @@ class DartInlayHintComputer {
     }
     return Location(
       uri: pathContext.toUri(path),
-      range: toRange(lineInfo, nameOffset, firstFragment.name2?.length ?? 0),
+      range: toRange(lineInfo, nameOffset, firstFragment.name?.length ?? 0),
     );
   }
 
@@ -271,8 +271,8 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement2;
-    if (declaration is LocalVariableElement2) {
+    var declaration = node.declaredElement;
+    if (declaration is LocalVariableElement) {
       _computer._addTypePrefix(node.name, declaration.type);
     }
   }
@@ -286,7 +286,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement2;
+    var declaration = node.declaredElement;
     if (declaration != null) {
       _computer._addTypePrefix(node.name, declaration.type);
     }

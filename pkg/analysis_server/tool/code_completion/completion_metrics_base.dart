@@ -8,12 +8,11 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 
@@ -132,7 +131,7 @@ abstract class CompletionMetricsComputer {
               await context.currentSession.getResolvedUnit(filePath)
                   as ResolvedUnitResult;
 
-          var analysisError = getFirstErrorOrNull(result);
+          var analysisError = result.diagnostics.errors.firstOrNull;
           if (analysisError != null) {
             progress.clear();
             print('File $filePath skipped due to errors such as:');
@@ -157,19 +156,6 @@ abstract class CompletionMetricsComputer {
 
   /// Performs setup tasks with [context] before resolution.
   void setupForResolution(AnalysisContext context);
-
-  /// Given some [ResolvedUnitResult] returns the first error of high severity
-  /// if such an error exists, `null` otherwise.
-  static err.AnalysisError? getFirstErrorOrNull(
-    ResolvedUnitResult resolvedUnitResult,
-  ) {
-    for (var error in resolvedUnitResult.errors) {
-      if (error.severity == Severity.error) {
-        return error;
-      }
-    }
-    return null;
-  }
 
   /// Gets overlay content for [content], applying a change at
   /// [expectedCompletion] with [prefixLength], according to [overlay], one of

@@ -218,14 +218,25 @@ class GitHelper {
 }
 
 class GClientHelper {
+  Future<String> execGclient(
+    List<String> cmd, {
+    String? cwd,
+    Map<String, String>? environment,
+  }) {
+    return exec(
+      [Platform.isWindows ? 'gclient.bat' : 'gclient', ...cmd],
+      cwd: cwd,
+      environment: environment,
+    );
+  }
+
   Future<List<PackageDependency>> getPackageDependencies() async {
     // gclient revinfo --output-json=<file> --ignore-dep-type=cipd
 
     final tempDir = Directory.systemTemp.createTempSync();
     final outFile = File(path.join(tempDir.path, 'deps.json'));
 
-    await exec([
-      'gclient',
+    await execGclient([
       'revinfo',
       '--output-json=${outFile.path}',
       '--ignore-dep-type=cipd',
@@ -247,9 +258,8 @@ class GClientHelper {
   Future<String> getHash(PackageDependency dep) async {
     // DEPOT_TOOLS_UPDATE=0 gclient getdep --var=path_rev
     var depName = dep.name;
-    var result = await exec(
+    var result = await execGclient(
       [
-        'gclient',
         'getdep',
         '--var=${depName}_rev',
       ],
@@ -263,9 +273,8 @@ class GClientHelper {
   Future<String> setHash(PackageDependency dep, String hash) async {
     // gclient setdep --var=args_rev=9879dsf7g9d87d9f8g7
     var depName = dep.name;
-    return await exec(
+    return await execGclient(
       [
-        'gclient',
         'setdep',
         '--var=${depName}_rev=$hash',
       ],

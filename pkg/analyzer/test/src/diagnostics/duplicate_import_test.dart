@@ -21,12 +21,13 @@ class DuplicateExportTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'lib1.dart';
 export 'lib1.dart';
-''', [
-      error(WarningCode.DUPLICATE_EXPORT, 27, 11),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_EXPORT, 27, 11)],
+    );
   }
 
   test_library_duplicateExport_differentShow() async {
@@ -45,12 +46,13 @@ export 'lib1.dart' show B;
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'lib1.dart' show A;
 export 'lib1.dart' show A;
-''', [
-      error(WarningCode.DUPLICATE_EXPORT, 34, 11),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_EXPORT, 34, 11)],
+    );
   }
 
   test_part_duplicateExport() async {
@@ -66,9 +68,7 @@ export 'dart:math';
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(WarningCode.DUPLICATE_EXPORT, 45, 11),
-    ]);
+    await assertErrorsInFile2(b, [error(WarningCode.DUPLICATE_EXPORT, 45, 11)]);
   }
 }
 
@@ -79,14 +79,15 @@ class DuplicateImportTest extends PubPackageResolutionTest {
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:test/a.dart';
 import 'package:test/a.dart';
 
 final a = A();
-''', [
-      error(WarningCode.DUPLICATE_IMPORT, 37, 21),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IMPORT, 37, 21)],
+    );
   }
 
   test_library_duplicateImport_relative_absolute() async {
@@ -94,14 +95,15 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'package:test/a.dart';
 
 final a = A();
-''', [
-      error(WarningCode.DUPLICATE_IMPORT, 24, 21),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IMPORT, 24, 21)],
+    );
   }
 
   test_library_duplicateImport_relative_relative() async {
@@ -109,14 +111,15 @@ final a = A();
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'a.dart';
 
 final a = A();
-''', [
-      error(WarningCode.DUPLICATE_IMPORT, 24, 8),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IMPORT, 24, 8)],
+    );
   }
 
   test_library_importsHaveIdenticalShowHide() async {
@@ -228,8 +231,6 @@ void f(Random _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(WarningCode.DUPLICATE_IMPORT, 45, 11),
-    ]);
+    await assertErrorsInFile2(b, [error(WarningCode.DUPLICATE_IMPORT, 45, 11)]);
   }
 }

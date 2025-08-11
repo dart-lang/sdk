@@ -11,8 +11,9 @@ import "package:expect/expect.dart";
 
 void testDefaultResponseHeaders() {
   checkDefaultHeaders(headers) {
-    Expect.listEquals(
-        headers[HttpHeaders.contentTypeHeader], ['text/plain; charset=utf-8']);
+    Expect.listEquals(headers[HttpHeaders.contentTypeHeader], [
+      'text/plain; charset=utf-8',
+    ]);
     Expect.listEquals(headers['X-Frame-Options'], ['SAMEORIGIN']);
     Expect.listEquals(headers['X-Content-Type-Options'], ['nosniff']);
     Expect.listEquals(headers['X-XSS-Protection'], ['1; mode=block']);
@@ -38,7 +39,8 @@ void testDefaultResponseHeaders() {
       if (clearHeaders) server.defaultResponseHeaders.clear();
       if (defaultHeaders != null) {
         defaultHeaders.forEach(
-            (name, value) => server.defaultResponseHeaders.add(name, value));
+          (name, value) => server.defaultResponseHeaders.add(name, value),
+        );
       }
       checker(server.defaultResponseHeaders);
       server.listen((request) {
@@ -50,10 +52,10 @@ void testDefaultResponseHeaders() {
           .get("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
-        checker(response.headers);
-        server.close();
-        client.close();
-      });
+            checker(response.headers);
+            server.close();
+            client.close();
+          });
     });
   }
 
@@ -76,13 +78,16 @@ void testDefaultResponseHeadersContentType() {
           .get("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
-        response.fold<List<int>>([], (a, b) => a..addAll(b)).then((body) {
-          Expect.listEquals(body, responseBody);
-        }).whenComplete(() {
-          server.close();
-          client.close();
-        });
-      });
+            response
+                .fold<List<int>>([], (a, b) => a..addAll(b))
+                .then((body) {
+                  Expect.listEquals(body, responseBody);
+                })
+                .whenComplete(() {
+                  server.close();
+                  client.close();
+                });
+          });
     });
   }
 
@@ -98,18 +103,25 @@ void testListenOn() {
     Expect.equals(socket.port, server.port);
 
     HttpClient client = new HttpClient();
-    client.get("127.0.0.1", socket.port, "/").then((request) {
-      return request.close();
-    }).then((response) {
-      response.listen((_) {}, onDone: () {
-        client.close();
-        onDone();
-      });
-    }).catchError((e, trace) {
-      String msg = "Unexpected error in Http Client: $e";
-      if (trace != null) msg += "\nStackTrace: $trace";
-      Expect.fail(msg);
-    });
+    client
+        .get("127.0.0.1", socket.port, "/")
+        .then((request) {
+          return request.close();
+        })
+        .then((response) {
+          response.listen(
+            (_) {},
+            onDone: () {
+              client.close();
+              onDone();
+            },
+          );
+        })
+        .catchError((e, trace) {
+          String msg = "Unexpected error in Http Client: $e";
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
   }
 
   // Test two connection after each other.
@@ -159,52 +171,61 @@ void testHttpServerZone() {
 void testHttpServerZoneError() {
   asyncStart();
   Expect.equals(Zone.root, Zone.current);
-  runZonedGuarded(() {
-    Expect.notEquals(Zone.root, Zone.current);
-    HttpServer.bind("127.0.0.1", 0).then((server) {
+  runZonedGuarded(
+    () {
       Expect.notEquals(Zone.root, Zone.current);
-      server.listen((request) {
+      HttpServer.bind("127.0.0.1", 0).then((server) {
         Expect.notEquals(Zone.root, Zone.current);
-        request.listen((_) {}, onError: (error) {
+        server.listen((request) {
           Expect.notEquals(Zone.root, Zone.current);
-          server.close();
-          throw error;
+          request.listen(
+            (_) {},
+            onError: (error) {
+              Expect.notEquals(Zone.root, Zone.current);
+              server.close();
+              throw error;
+            },
+          );
+        });
+        Socket.connect("127.0.0.1", server.port).then((socket) {
+          socket.write('GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n');
+          socket.write('some body');
+          socket.close();
+          socket.listen(null);
         });
       });
-      Socket.connect("127.0.0.1", server.port).then((socket) {
-        socket.write('GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n');
-        socket.write('some body');
-        socket.close();
-        socket.listen(null);
-      });
-    });
-  }, (e, s) {
-    asyncEnd();
-  });
+    },
+    (e, s) {
+      asyncEnd();
+    },
+  );
 }
 
 void testHttpServerClientClose() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    runZonedGuarded(() {
-      server.listen((request) {
-        request.response.bufferOutput = false;
-        request.response.add(new Uint8List(64 * 1024));
-        new Timer(const Duration(milliseconds: 100), () {
-          request.response.close().then((_) {
-            server.close();
+    runZonedGuarded(
+      () {
+        server.listen((request) {
+          request.response.bufferOutput = false;
+          request.response.add(new Uint8List(64 * 1024));
+          new Timer(const Duration(milliseconds: 100), () {
+            request.response.close().then((_) {
+              server.close();
+            });
           });
         });
-      });
-    }, (e, s) {
-      Expect.fail("Unexpected error: $e(${e.hashCode})\n$s");
-    });
+      },
+      (e, s) {
+        Expect.fail("Unexpected error: $e(${e.hashCode})\n$s");
+      },
+    );
     var client = new HttpClient();
     client
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      response.listen((_) {}).cancel();
-    });
+          response.listen((_) {}).cancel();
+        });
   });
 }
 

@@ -40,6 +40,7 @@ class DevToolsServer {
   static const argDdsHost = 'dds-host';
   static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
+  static const argDisableCors = 'disable-cors';
   static const argDtdUri = 'dtd-uri';
   static const argDtdExposedUri = 'dtd-exposed-uri';
   static const argPrintDtd = 'print-dtd';
@@ -202,6 +203,16 @@ class DevToolsServer {
         hide: !verbose,
       )
       ..addFlag(
+        argDisableCors,
+        help:
+            'Disable CORS so that the DevTools server can communicate with the '
+            'DevTools front end served on a different origin. Use caution when '
+            'passing this flag since allowing access to the DevTools server '
+            'from other origins may have security implications.',
+        defaultsTo: false,
+        hide: verbose,
+      )
+      ..addFlag(
         argHeadlessMode,
         negatable: false,
         help: 'Causes the server to spawn Chrome in headless mode for use in '
@@ -253,6 +264,7 @@ class DevToolsServer {
     bool launchBrowser = false,
     bool enableNotifications = false,
     bool allowEmbedding = true,
+    bool disableCors = false,
     bool headlessMode = false,
     bool verboseMode = false,
     bool printDtdUri = false,
@@ -336,10 +348,10 @@ class DevToolsServer {
       server.defaultResponseHeaders.add('origin-agent-cluster', '?1');
     }
 
-    // This is only true when the DevTools server is started through the
-    // tool/devtools_server/serve_local.dart script. This is required to allow
-    // connecting a debug instance of DevTools app to a running DevTools server.
-    if (Platform.script.toString().endsWith('serve_local.dart')) {
+    // CORS restrictions may be disabled for the purposes of debugging or
+    // testing when it is useful to allow connecting a debug instance of
+    // DevTools app to a running DevTools server.
+    if (disableCors) {
       server.defaultResponseHeaders.add(
         HttpHeaders.accessControlAllowOriginHeader,
         '*',
@@ -493,6 +505,8 @@ class DevToolsServer {
     final bool enableNotifications = args[argEnableNotifications];
     final bool allowEmbedding =
         args.wasParsed(argAllowEmbedding) ? args[argAllowEmbedding] : true;
+    final bool disableCors =
+        args.wasParsed(argDisableCors) ? args[argDisableCors] : false;
 
     final port = args[argPort] != null ? int.tryParse(args[argPort]) ?? 0 : 0;
 
@@ -589,6 +603,7 @@ class DevToolsServer {
       launchBrowser: launchBrowser,
       enableNotifications: enableNotifications,
       allowEmbedding: allowEmbedding,
+      disableCors: disableCors,
       port: port,
       headlessMode: headlessMode,
       numPortsToTry: numPortsToTry,

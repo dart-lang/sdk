@@ -5,10 +5,10 @@
 // Regression test for issue 1578.
 
 ]~<)$
-// [error line 7, column 1, length 1]
+// [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
 // [cfe] Expected a declaration, but got ']'.
-// [error line 7, column 2, length 1]
+// [error column 2, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
 // [cfe] Expected a declaration, but got '~'.
 //^
@@ -19,7 +19,6 @@
 // [cfe] Expected a declaration, but got ')'.
 //  ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-//  ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+// [cfe] Expected ';' after this.
 // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.

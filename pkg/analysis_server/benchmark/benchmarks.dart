@@ -11,7 +11,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 

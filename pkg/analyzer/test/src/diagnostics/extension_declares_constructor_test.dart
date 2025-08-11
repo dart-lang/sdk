@@ -16,11 +16,14 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresConstructorTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   E.named() : super();
 }
-''', [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)],
+    );
   }
 
   test_none() async {
@@ -30,10 +33,13 @@ extension E on String {}
   }
 
   test_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   E() : super();
 }
-''', [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)]);
+''',
+      [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)],
+    );
   }
 }

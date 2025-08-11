@@ -17,9 +17,10 @@ main() {
   testForeach(<int>[0, 1, 2, 3]);
 
   testForeachIterableThrows(
-      new Iterable<int>.generate(5, (i) => i < 4 ? i : throw "ERROR"),
-      4,
-      "ERROR");
+    new Iterable<int>.generate(5, (i) => i < 4 ? i : throw "ERROR"),
+    4,
+    "ERROR",
+  );
 
   testForeachFunctionThrows(new Iterable<int>.generate(5, (x) => x), 4);
 
@@ -33,25 +34,27 @@ void testForeach(Iterable<int> elements) {
     int count = 0;
     int nesting = 0;
     Future.forEach<int>(elements, (int value) {
-      Expect.isTrue(nesting == 0, "overlapping calls detected");
-      if (delay == 0) return "something-$delay";
-      nesting++;
-      var future;
-      if (delay == 1) {
-        future = new Future(() => null);
-      } else {
-        future = new Future.microtask(() => null);
-      }
-      return future.then<String>((_) {
-        Expect.equals(1, nesting);
-        nesting--;
-        return "something-$delay";
-      });
-    }).then((_) {
-      asyncEnd();
-    }).catchError((e) {
-      Expect.fail("Throws: $e");
-    });
+          Expect.isTrue(nesting == 0, "overlapping calls detected");
+          if (delay == 0) return "something-$delay";
+          nesting++;
+          var future;
+          if (delay == 1) {
+            future = new Future(() => null);
+          } else {
+            future = new Future.microtask(() => null);
+          }
+          return future.then<String>((_) {
+            Expect.equals(1, nesting);
+            nesting--;
+            return "something-$delay";
+          });
+        })
+        .then((_) {
+          asyncEnd();
+        })
+        .catchError((e) {
+          Expect.fail("Throws: $e");
+        });
   }
 }
 
@@ -69,13 +72,16 @@ void testForeachIterableThrows(Iterable<int> elements, n, error) {
           return new Future.microtask(() {});
       }
       return new Future.value();
-    }).then((_) {
-      Expect.fail("Did not throw");
-    }, onError: (e) {
-      Expect.equals(n, count);
-      Expect.equals(error, e);
-      asyncEnd();
-    });
+    }).then(
+      (_) {
+        Expect.fail("Did not throw");
+      },
+      onError: (e) {
+        Expect.equals(n, count);
+        Expect.equals(error, e);
+        asyncEnd();
+      },
+    );
   }
 }
 
@@ -104,11 +110,14 @@ void testForeachFunctionThrows(Iterable<int> elements, n) {
           return new Future.microtask(() {});
       }
       return new Future.value();
-    }).then((_) {
-      Expect.fail("Did not throw");
-    }, onError: (e) {
-      Expect.equals("ERROR", e);
-      asyncEnd();
-    });
+    }).then(
+      (_) {
+        Expect.fail("Did not throw");
+      },
+      onError: (e) {
+        Expect.equals("ERROR", e);
+        asyncEnd();
+      },
+    );
   }
 }

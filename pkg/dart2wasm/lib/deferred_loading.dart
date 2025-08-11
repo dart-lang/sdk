@@ -145,12 +145,14 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
     final enqueuedDeferredRoots = <Library>{entryPoint};
     final libraryToRootSet = <Library, _RootSet>{};
     final importTargetMap = <Library, Map<String, Library>>{};
+    bool isMainRoot = true;
+
     while (deferredRootStack.isNotEmpty) {
       final currentRoot = deferredRootStack.removeLast();
       final eagerWorkStack = [currentRoot];
       final enqueuedEagerLibraries = <Library>{currentRoot};
       final newDeferredRoots = <Library>[];
-      if (identical(currentRoot, entryPoint)) {
+      if (isMainRoot) {
         // Add required libraries because the compiler has implicit
         // dependencies on these. Also add libraries containing 'wasm:export'
         // since embedders might need access to these from the main module.
@@ -192,6 +194,7 @@ class DeferredLoadingModuleStrategy extends DefaultModuleStrategy {
           deferredRootStack.add(newRoot);
         }
       }
+      isMainRoot = false;
     }
     return (libraryToRootSet, importTargetMap);
   }

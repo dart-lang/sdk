@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -16,8 +19,12 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
     : super(
         name: LintNames.specify_nonobvious_local_variable_types,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
+
+  @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.specify_nonobvious_local_variable_types;
 
   @override
   List<String> get incompatibleRules => const [
@@ -25,14 +32,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
   ];
 
   @override
-  LintCode get lintCode =>
-      LinterLintCode.specify_nonobvious_local_variable_types;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
     registry.addPatternVariableDeclarationStatement(this, visitor);
@@ -55,7 +55,7 @@ class _PatternVisitor extends GeneralizingAstVisitor<void> {
         !staticType.isDartCoreNull) {
       return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (iterable.hasObviousType) {
         return;
       }
-      rule.reportLint(loopParts.loopVariable, ignoreSyntheticNodes: false);
+      rule.reportAtNode(loopParts.loopVariable);
     }
   }
 
@@ -133,10 +133,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (aDeclaredTypeIsNeeded) {
       if (node.variables.length == 1) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       } else {
         // Multiple variables, report each of them separately. No fix.
-        variablesThatNeedAType.forEach(rule.reportLint);
+        variablesThatNeedAType.forEach(rule.reportAtNode);
       }
     }
   }

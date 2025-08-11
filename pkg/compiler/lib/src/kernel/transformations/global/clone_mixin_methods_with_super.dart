@@ -65,10 +65,9 @@ void transformClass(Class cls) {
       // TODO(jensj): Provide a "referenceFrom" if we need to support
       // the incremental compiler.
       ensureExistingProcedureMaps();
-      Procedure? existingProcedure =
-          procedure.kind == ProcedureKind.Setter
-              ? existingSetters[procedure.name]
-              : existingNonSetters[procedure.name];
+      Procedure? existingProcedure = procedure.kind == ProcedureKind.Setter
+          ? existingSetters[procedure.name]
+          : existingNonSetters[procedure.name];
       if (existingProcedure != null) {
         cls.procedures.remove(existingProcedure);
       }

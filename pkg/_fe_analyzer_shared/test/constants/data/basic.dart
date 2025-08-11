@@ -21,11 +21,13 @@ main() {
   print(/*Int(1000000)*/ int1);
   print(/*Double(0.5)*/ double0);
   print(
-      /*cfe|analyzer.Symbol(foo)*/
-      /*dart2js.Instance(Symbol,{_name:String(foo))*/
-      symbol0);
+    /*cfe|analyzer.Symbol(foo)*/
+    /*dart2js.Instance(Symbol,{_name:String(foo))*/
+    symbol0,
+  );
   print(
-      /*cfe|analyzer.Symbol(foo)*/
-      /*dart2js.Instance(Symbol,{_name:String(foo))*/
-      symbol1);
+    /*cfe|analyzer.Symbol(foo)*/
+    /*dart2js.Instance(Symbol,{_name:String(foo))*/
+    symbol1,
+  );
 }

@@ -175,9 +175,16 @@ const char* StackFrame::ToCString() const {
   Zone* zone = Thread::Current()->zone();
 #if defined(DART_DYNAMIC_MODULES)
   if (is_interpreted()) {
-    const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
-    const char* name = bytecode.IsNull() ? "Cannot find bytecode object"
-                                         : bytecode.FullyQualifiedName();
+    const char* name;
+    if (IsEntryFrame()) {
+      name = "[Interpreter] Entry frame";
+    } else if (IsExitFrame()) {
+      name = "[Interpreter] Exit frame";
+    } else {
+      const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
+      name = bytecode.IsNull() ? "Cannot find bytecode object"
+                               : bytecode.FullyQualifiedName();
+    }
     return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
                                pc(), fp(), sp(), name);
   }
@@ -433,6 +440,7 @@ BytecodePtr StackFrame::LookupDartBytecode() const {
 
 BytecodePtr StackFrame::GetBytecodeObject() const {
   ASSERT(is_interpreted());
+  ASSERT(!IsEntryFrame() && !IsExitFrame());
   ObjectPtr pc_marker = *(
       reinterpret_cast<ObjectPtr*>(fp() + kKBCPcMarkerSlotFromFp * kWordSize));
   ASSERT((pc_marker == Object::null()) ||
@@ -469,47 +477,50 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     descriptors = code.pc_descriptors();
     *is_optimized = code.is_optimized();
   }
-  HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
-  ExceptionHandlerInfo* info = cache->Lookup(pc());
-  if (info != nullptr) {
-    *handler_pc = start + info->handler_pc_offset;
-    *needs_stacktrace = (info->needs_stacktrace != 0);
-    *has_catch_all = (info->has_catch_all != 0);
-    return true;
-  }
+  {
+    SafepointMutexLocker ml(thread->isolate_group()->cache_mutex());
+    HandlerInfoCache* cache = thread->isolate_group()->handler_info_cache();
+    ExceptionHandlerInfo* info = cache->Lookup(pc());
+    if (info != nullptr) {
+      *handler_pc = start + info->handler_pc_offset;
+      *needs_stacktrace = (info->needs_stacktrace != 0);
+      *has_catch_all = (info->has_catch_all != 0);
+      return true;
+    }
 
-  intptr_t try_index = -1;
-  if (handlers.num_entries() != 0) {
-    if (is_interpreted()) {
-      try_index = bytecode.GetTryIndexAtPc(pc());
-    } else {
-      uword pc_offset = pc() - code.PayloadStart();
-      PcDescriptors::Iterator iter(descriptors,
-                                   UntaggedPcDescriptors::kAnyKind);
-      while (iter.MoveNext()) {
-        const intptr_t current_try_index = iter.TryIndex();
-        if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-          try_index = current_try_index;
-          break;
+    intptr_t try_index = -1;
+    if (handlers.num_entries() != 0) {
+      if (is_interpreted()) {
+        try_index = bytecode.GetTryIndexAtPc(pc());
+      } else {
+        uword pc_offset = pc() - code.PayloadStart();
+        PcDescriptors::Iterator iter(descriptors,
+                                     UntaggedPcDescriptors::kAnyKind);
+        while (iter.MoveNext()) {
+          const intptr_t current_try_index = iter.TryIndex();
+          if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
+            try_index = current_try_index;
+            break;
+          }
         }
       }
     }
-  }
-  if (try_index == -1) {
-    if (handlers.has_async_handler()) {
-      *handler_pc = StubCode::AsyncExceptionHandler().EntryPoint();
-      *needs_stacktrace = true;
-      *has_catch_all = true;
-      return true;
+    if (try_index == -1) {
+      if (handlers.has_async_handler()) {
+        *handler_pc = StubCode::AsyncExceptionHandler().EntryPoint();
+        *needs_stacktrace = true;
+        *has_catch_all = true;
+        return true;
+      }
+      return false;
     }
-    return false;
+    ExceptionHandlerInfo handler_info;
+    handlers.GetHandlerInfo(try_index, &handler_info);
+    *handler_pc = start + handler_info.handler_pc_offset;
+    *needs_stacktrace = (handler_info.needs_stacktrace != 0);
+    *has_catch_all = (handler_info.has_catch_all != 0);
+    cache->Insert(pc(), handler_info);
   }
-  ExceptionHandlerInfo handler_info;
-  handlers.GetHandlerInfo(try_index, &handler_info);
-  *handler_pc = start + handler_info.handler_pc_offset;
-  *needs_stacktrace = (handler_info.needs_stacktrace != 0);
-  *has_catch_all = (handler_info.has_catch_all != 0);
-  cache->Insert(pc(), handler_info);
   return true;
 }
 
@@ -727,7 +738,7 @@ void StackFrameIterator::FrameSetIterator::Unpoison() {
   // instrumented C++, so there is nothing to unpoison. Additionally,
   // fp_ will be somewhere in the simulator's stack instead of the OSThread's
   // stack.
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (fp_ == 0) return;
   // Note that Thread::os_thread_ is cleared when the thread is descheduled.
   ASSERT(is_interpreted() || (thread_->os_thread() == nullptr) ||
@@ -743,7 +754,7 @@ void StackFrameIterator::FrameSetIterator::Unpoison() {
   uword upper = fp_ + kSavedCallerPcSlotFromFp * kWordSize;
   // Both lower and upper are inclusive, so we add one word when computing size.
   MSAN_UNPOISON(reinterpret_cast<void*>(lower), upper - lower + kWordSize);
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {

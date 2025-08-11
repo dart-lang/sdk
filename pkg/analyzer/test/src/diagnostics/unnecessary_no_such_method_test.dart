@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class UnnecessaryNoSuchMethodTest extends PubPackageResolutionTest {
   test_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -26,9 +27,9 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }
-''', [
-      error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+    );
   }
 
   test_blockBody_notReturnStatement() async {
@@ -61,7 +62,8 @@ class B extends A {
   }
 
   test_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -69,9 +71,9 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
 }
-''', [
-      error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+    );
   }
 
   test_expressionBody_notNoSuchMethod() async {

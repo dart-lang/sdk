@@ -16,7 +16,7 @@ main() {
     this.bar = 'Foo.bar';
   };
   aFoo = new Foo();
-  """
+  """,
   ]);
 
   Expect.equals('Foo.bar', jsBar);

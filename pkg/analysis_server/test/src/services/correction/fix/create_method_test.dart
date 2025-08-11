@@ -283,6 +283,95 @@ class CreateMethodTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_METHOD;
 
+  Future<void> test_assignment_invocation() async {
+    await resolveTestCode('''
+class A {
+  late bool Function() m = m2();
+}
+''');
+    await assertHasFix('''
+class A {
+  late bool Function() m = m2();
+
+  bool Function() m2() {}
+}
+''');
+  }
+
+  Future<void> test_assignment_invocation_constructor() async {
+    await resolveTestCode('''
+class A {
+  A() {
+    bool _ = m2();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A() {
+    bool _ = m2();
+  }
+
+  bool m2() {}
+}
+''');
+  }
+
+  Future<void> test_assignment_invocation_static() async {
+    await resolveTestCode('''
+class A {
+  static bool Function() m = m2();
+}
+''');
+    await assertHasFix('''
+class A {
+  static bool Function() m = m2();
+
+  static bool Function() m2() {}
+}
+''');
+  }
+
+  Future<void> test_assignment_invocation_static_factoryConstructor() async {
+    await resolveTestCode('''
+class A {
+  A._();
+
+  factory A() {
+    bool _ = m2();
+    return A._();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A._();
+
+  factory A() {
+    bool _ = m2();
+    return A._();
+  }
+
+  static bool m2() {}
+}
+''');
+  }
+
+  Future<void> test_assignment_invocation_static_nonLate() async {
+    await resolveTestCode('''
+class A {
+  bool Function() m = m2();
+}
+''');
+    await assertHasFix('''
+class A {
+  bool Function() m = m2();
+
+  static bool Function() m2() {}
+}
+''');
+  }
+
   Future<void> test_await_expression_statement() async {
     await resolveTestCode('''
 class A {
@@ -724,6 +813,164 @@ class A {
   }
 
   static void myUndefinedMethod() {}
+}
+''');
+  }
+
+  Future<void> test_enum_invocation() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void test(E e) {
+  e.bar();
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+
+  void bar() {}
+}
+
+void test(E e) {
+  e.bar();
+}
+''');
+  }
+
+  Future<void> test_enum_invocation_static() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void test() {
+  E.bar();
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+
+  static void bar() {}
+}
+
+void test() {
+  E.bar();
+}
+''');
+  }
+
+  Future<void> test_enum_tearoff() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_enum_tearoff_static() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff_static() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
 }
 ''');
   }
@@ -1222,19 +1469,14 @@ void f() {
     await assertNoFix();
   }
 
-  Future<void> test_internal_instance() async {
+  Future<void> test_internal_instance_extension() async {
     await resolveTestCode('''
 extension E on String {
   int m() => n();
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  int m() => n();
-
-  int n() {}
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_internal_static() async {
@@ -1243,13 +1485,8 @@ extension E on String {
   static int m() => n();
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  static int m() => n();
-
-  static int n() {}
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_main_part() async {
@@ -1284,15 +1521,8 @@ void f() {
   E('a').m();
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  void m() {}
-}
-
-void f() {
-  E('a').m();
-}
-''');
+    // This should be handled by create extension member fixes
+    await assertNoFix();
   }
 
   Future<void> test_parameterType_differentPrefixInTargetUnit() async {
@@ -1405,6 +1635,68 @@ class A {
 ''', target: part1Path);
   }
 
+  Future<void> test_record_invocation() async {
+    await resolveTestCode('''
+class A {
+  (bool,) m() => (m2(),);
+}
+''');
+    await assertHasFix('''
+class A {
+  (bool,) m() => (m2(),);
+
+  bool m2() {}
+}
+''');
+  }
+
+  Future<void> test_record_named_invocation() async {
+    await resolveTestCode('''
+class A {
+  ({bool b,}) m() => (b: m2(),);
+}
+''');
+    await assertHasFix('''
+class A {
+  ({bool b,}) m() => (b: m2(),);
+
+  bool m2() {}
+}
+''');
+  }
+
+  Future<void> test_record_named_tearoff() async {
+    await resolveTestCode('''
+class A {
+  ({bool Function() fn,}) m() => (fn: m2,);
+}
+''');
+    await assertHasFix('''
+class A {
+  ({bool Function() fn,}) m() => (fn: m2,);
+
+  bool m2() {
+  }
+}
+''');
+  }
+
+  Future<void> test_record_tearoff() async {
+    await resolveTestCode('''
+class A {
+  (bool Function(),) m() => (m2,);
+}
+''');
+    await assertHasFix('''
+class A {
+  (bool Function(),) m() => (m2,);
+
+  bool m2() {
+  }
+}
+''');
+  }
+
   Future<void> test_returnType_closure_expression() async {
     await resolveTestCode('''
 class A {
@@ -1455,24 +1747,148 @@ void f() {
   E.m();
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  static void m() {}
+    // This should be handled by create extension member fixes
+    await assertNoFix();
+  }
+
+  Future<void> test_static_tearoff() async {
+    await resolveTestCode('''
+void f() async {
+  int _ = await g(C.foo);
 }
 
-void f() {
-  E.m();
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+void f() async {
+  int _ = await g(C.foo);
+}
+
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+  static Future<int> foo() async {
+  }
 }
 ''');
   }
 
-  Future<void> test_targetIsEnum() async {
+  Future<void> test_static_tearoff_prefixed_typeParameter() async {
     await resolveTestCode('''
-enum MyEnum {A, B}
-void f() {
-  MyEnum.foo();
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound1() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound2() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_class() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
   }
 }

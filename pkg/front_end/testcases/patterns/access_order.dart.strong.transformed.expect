@@ -261,7 +261,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(core::int start, core::int end) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_closeGap(core::int start, core::int end) → void {
     core::int length = this.{core::List::length}{core::int};
     assert(0.{core::num::<=}(start){(core::num) → core::bool});
     assert(start.{core::num::<}(end){(core::num) → core::bool});
@@ -278,7 +278,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((self::_MyList&Object&ListMixin::E%) → core::bool test) → void {
     this.{col::ListBase::_filter}(test, true){((self::_MyList&Object&ListMixin::E%) → core::bool, core::bool) → void};
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((self::_MyList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_filter((self::_MyList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
     core::List<self::_MyList&Object&ListMixin::E%> retained = core::_GrowableList::•<self::_MyList&Object&ListMixin::E%>(0);
     core::int length = this.{core::List::length}{core::int};
     for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
@@ -541,7 +541,7 @@ static method test1(core::Object o) → core::String
       {
         hoisted core::Object? x;
         hoisted core::Object? y;
-        if(#0#0 is core::List<core::Object?> && #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (let final core::Object? #t11 = x = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?}) {
+        if(#0#0 is core::List<core::Object?> && #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (let final dynamic #t11 = x = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?}) {
           y = #0#0{core::List<core::Object?>}.{core::List::[]}(2){(core::int) → core::Object?};
           #t10 = "match-1";
           break #L1;
@@ -593,16 +593,16 @@ static method test3(core::Object o) → core::String
     {
       {
         hoisted core::Object x;
-        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t14 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (let final core::Object? #t15 = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in let final core::Object? #t17 = x = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t18 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in true) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t19 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})) {
+        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t14 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (let final dynamic #t15 = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final dynamic #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in let final dynamic #t17 = x = (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final dynamic #t18 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})! in true) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final dynamic #t19 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})) {
           #t13 = "match-1";
           break #L3;
         }
       }
       {
         hoisted core::Object x;
-        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool #t20 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final core::bool #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})) {
-          (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
-          x = (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final core::bool #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
+        if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t20 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::Object?} #0#6{core::Object?} : let final dynamic #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})) {
+          (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final dynamic #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
+          x = (#0#8#isSet ?{core::Object?} #0#8{core::Object?} : let final dynamic #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
           #t13 = "match-2";
           break #L3;
         }

@@ -226,7 +226,7 @@ At this point enough information is loaded from Kernel binary for runtime to suc
 > * Compile `hello.dart` to `hello.dill` Kernel binary using CFE
 >     ```console
 >     $ dart pkg/vm/bin/gen_kernel.dart                        \
->            --platform out/ReleaseX64/vm_platform_strong.dill \
+>            --platform out/ReleaseX64/vm_platform.dill \
 >            -o hello.dill                                     \
 >            hello.dart
 >     ```
@@ -235,7 +235,7 @@ At this point enough information is loaded from Kernel binary for runtime to suc
 >     $ dart pkg/vm/bin/dump_kernel.dart hello.dill hello.kernel.txt
 >     ```
 >
-> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform_strong.dill`. Alternatively you can use [`pkg/front_end/tool/compile_platform.dart`][] to generate the platform:
+> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform.dill`. Alternatively you can use [`pkg/front_end/tool/compile_platform.dart`][] to generate the platform:
 >
 > ```console
 > $ dart pkg/front_end/tool/compile_platform.dart \

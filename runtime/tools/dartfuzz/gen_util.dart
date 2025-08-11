@@ -37,10 +37,11 @@ class GenUtil {
     // class in order to pass in the sdkPath directly.
     final provider = PhysicalResourceProvider.INSTANCE;
     final collection = AnalysisContextCollectionImpl(
-        includedPaths: <String>[packageRoot],
-        excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
-        resourceProvider: provider,
-        sdkPath: sdkPath);
+      includedPaths: <String>[packageRoot],
+      excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
+      resourceProvider: provider,
+      sdkPath: sdkPath,
+    );
     return collection.contexts[0].currentSession;
   }
 }
@@ -52,21 +53,21 @@ extension DartTypeExtension on DartType {
     if (type is DynamicType) {
       return 'dynamic';
     } else if (type is FunctionType) {
-      final parameters = type.parameters.map((e) => e.type.asCode);
+      final parameters = type.formalParameters.map((e) => e.type.asCode);
       return type.returnType.asCode + ' Function($parameters)';
     } else if (type is InterfaceType) {
       final typeArguments = type.typeArguments;
       if (typeArguments.isEmpty ||
           typeArguments.every((t) => t is DynamicType)) {
-        return type.element.name;
+        return type.element3.name3!;
       } else {
         final typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-        return '${type.element.name}<$typeArgumentsStr>';
+        return '${type.element3.name3!}<$typeArgumentsStr>';
       }
     } else if (type is NeverType) {
       return 'Never';
     } else if (type is TypeParameterType) {
-      return type.element.name;
+      return type.element3.name3!;
     } else if (type is VoidType) {
       return 'void';
     } else {

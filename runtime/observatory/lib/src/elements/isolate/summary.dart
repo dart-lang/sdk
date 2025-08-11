@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/utils.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/isolate_ref.dart';
 import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
+import 'package:observatory/src/elements/isolate_ref.dart';
+import 'package:observatory/utils.dart';
 
 class IsolateSummaryElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateSummaryElement> _r;
@@ -51,54 +54,56 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
     if (_loadedIsolate == null) {
-      children = <Element>[
-        new SpanElement()..text = 'loading ',
+      children = <HTMLElement>[
+        new HTMLSpanElement()..textContent = 'loading ',
         new IsolateRefElement(_isolate, _events, queue: _r.queue).element
       ];
     } else {
-      children = <Element>[
+      children = <HTMLElement>[
         linkAndStatusRow(),
-        new BRElement(),
+        new HTMLBRElement(),
         memoryRow(),
-        new BRElement(),
+        new HTMLBRElement(),
         toolsRow(),
       ];
     }
   }
 
-  Element linkAndStatusRow() {
-    return new DivElement()
-      ..classes = ['flex-row-wrap']
-      ..children = <Element>[
-        new DivElement()
-          ..classes = ['isolate-ref-container']
-          ..children = <Element>[
+  HTMLElement linkAndStatusRow() {
+    return new HTMLDivElement()
+      ..className = 'flex-row-wrap'
+      ..appendChildren(<HTMLElement>[
+        new HTMLDivElement()
+          ..className = 'isolate-ref-container'
+          ..appendChildren(<HTMLElement>[
             new IsolateRefElement(_isolate, _events, queue: _r.queue).element
-          ],
-        new DivElement()..style.flex = '1',
-        new DivElement()
-          ..classes = ['flex-row', 'isolate-state-container']
-          ..children = <Element>[
+          ]),
+        new HTMLDivElement()..style.flex = '1',
+        new HTMLDivElement()
+          ..className = 'flex-row isolate-state-container'
+          ..appendChildren(<HTMLElement>[
             new IsolateRunStateElement(_isolate as M.Isolate, _events,
                     queue: _r.queue)
                 .element,
             new IsolateLocationElement(_isolate as M.Isolate, _events, _scripts,
                     queue: _r.queue)
                 .element,
-            new SpanElement()..text = ' [',
-            new AnchorElement(href: Uris.debugger(_isolate))..text = 'debug',
-            new SpanElement()..text = ']'
-          ]
-      ];
+            new HTMLSpanElement()..textContent = ' [',
+            new HTMLAnchorElement()
+              ..href = Uris.debugger(_isolate)
+              ..textContent = 'debug',
+            new HTMLSpanElement()..textContent = ']'
+          ])
+      ]);
   }
 
-  Element memoryRow() {
+  HTMLElement memoryRow() {
     final isolate = _isolate as M.Isolate;
     final newHeapUsed = Utils.formatSize(isolate.newSpace!.used);
     final newHeapCapacity = Utils.formatSize(isolate.newSpace!.capacity);
@@ -108,65 +113,76 @@ class IsolateSummaryElement extends CustomElement implements Renderable {
         Utils.formatSize(isolate.newSpace!.used + isolate.oldSpace!.used);
     final heapCapacity = Utils.formatSize(
         isolate.newSpace!.capacity + isolate.oldSpace!.capacity);
-    return new DivElement()
-      ..classes = ['flex-row-wrap-right']
-      ..children = <Element>[
-        new DivElement()
+    return new HTMLDivElement()
+      ..className = 'flex-row-wrap-right'
+      ..appendChildren(<HTMLElement>[
+        new HTMLDivElement()
           ..style.padding = '5px'
-          ..text = 'new-space $newHeapUsed of $newHeapCapacity',
-        new DivElement()
+          ..textContent = 'new-space $newHeapUsed of $newHeapCapacity',
+        new HTMLDivElement()
           ..style.padding = '5px'
-          ..text = '/',
-        new DivElement()
+          ..textContent = '/',
+        new HTMLDivElement()
           ..style.padding = '5px'
-          ..text = 'old-space $oldHeapUsed of $oldHeapCapacity',
-        new DivElement()
+          ..textContent = 'old-space $oldHeapUsed of $oldHeapCapacity',
+        new HTMLDivElement()
           ..style.padding = '5px'
-          ..text = '/',
-        new DivElement()
+          ..textContent = '/',
+        new HTMLDivElement()
           ..style.padding = '5px'
-          ..text = 'heap $heapUsed of $heapCapacity',
-      ];
+          ..textContent = 'heap $heapUsed of $heapCapacity',
+      ]);
   }
 
-  Element toolsRow() {
-    return new DivElement()
-      ..classes = ['flex-row-spaced']
-      ..children = <Element>[
-        new AnchorElement(href: Uris.debugger(_isolate))
-          ..classes = ['flex-item-even']
+  HTMLElement toolsRow() {
+    return new HTMLDivElement()
+      ..className = 'flex-row-spaced'
+      ..appendChildren(<HTMLElement>[
+        new HTMLAnchorElement()
+          ..href = Uris.debugger(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'debugger',
-        new AnchorElement(href: Uris.classTree(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.classTree(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'class hierarchy',
-        new AnchorElement(href: Uris.cpuProfiler(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.cpuProfiler(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'cpu profile',
-        new AnchorElement(href: Uris.cpuProfilerTable(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.cpuProfilerTable(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'cpu profile (table)',
-        new AnchorElement(href: Uris.allocationProfiler(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.allocationProfiler(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'allocation profile',
-        new AnchorElement(href: Uris.heapSnapshot(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.heapSnapshot(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'heap snapshot',
-        new AnchorElement(href: Uris.heapMap(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.heapMap(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'heap map',
-        new AnchorElement(href: Uris.metrics(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.metrics(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'metrics',
-        new AnchorElement(href: Uris.persistentHandles(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.persistentHandles(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'persistent handles',
-        new AnchorElement(href: Uris.ports(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.ports(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'ports',
-        new AnchorElement(href: Uris.logging(_isolate))
-          ..classes = ['flex-item-even']
+        new HTMLAnchorElement()
+          ..href = Uris.logging(_isolate)
+          ..className = 'flex-item-even'
           ..text = 'logging',
-      ];
+      ]);
   }
 
   Future _load() async {

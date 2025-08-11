@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'aot.dart';
+import 'vm.dart';
 import 'dart2wasm.dart';
 import 'ddc.dart';
 import 'load.dart';
@@ -22,21 +22,34 @@ void main(List<String> args) async {
   var tests = loadAllTests(suiteRoot);
   final parser = ArgParser()
     ..addFlag('help', help: 'Help message', negatable: false, abbr: 'h')
-    ..addOption('test',
-        help: 'Run a single test, rather than the entire suite',
-        allowed: tests.map((t) => t.name).toList(),
-        abbr: 't')
-    ..addOption('runtime',
-        help: 'Which runtime to use to run the test configuration',
-        allowed: Target.values.map((v) => v.name),
-        defaultsTo: Target.ddc.name,
-        abbr: 'r')
-    ..addOption('configuration',
-        help: 'Configuration to use for reporting test results', abbr: 'n')
-    ..addOption('output-directory',
-        help: 'location where to emit the json-l result and log files')
-    ..addFlag('verbose',
-        help: 'Show a lot of information', negatable: false, abbr: 'v');
+    ..addOption(
+      'test',
+      help: 'Run a single test, rather than the entire suite',
+      allowed: tests.map((t) => t.name).toList(),
+      abbr: 't',
+    )
+    ..addOption(
+      'runtime',
+      help: 'Which runtime to use to run the test configuration',
+      allowed: Target.values.map((v) => v.name),
+      defaultsTo: Target.ddc.name,
+      abbr: 'r',
+    )
+    ..addOption(
+      'configuration',
+      help: 'Configuration to use for reporting test results',
+      abbr: 'n',
+    )
+    ..addOption(
+      'output-directory',
+      help: 'location where to emit the json-l result and log files',
+    )
+    ..addFlag(
+      'verbose',
+      help: 'Show a lot of information',
+      negatable: false,
+      abbr: 'v',
+    );
   final options = parser.parse(args);
   if (options['help'] as bool) {
     print(parser.usage);
@@ -55,7 +68,8 @@ void main(List<String> args) async {
   try {
     executor = switch (target) {
       Target.ddc => DdcExecutor(logger),
-      Target.aot => AotExecutor(logger),
+      Target.aot => VmExecutor(logger, mode: VmMode.aot),
+      Target.jit => VmExecutor(logger, mode: VmMode.jit),
       Target.dart2wasm => Dart2wasmExecutor(logger),
     };
 
@@ -67,10 +81,12 @@ void main(List<String> args) async {
       }
       results.add(testResult);
     }
-    final result = _reportResults(results,
-        writeLog: singleTest == null,
-        configuration: options['configuration'],
-        logDir: options['output-directory']);
+    final result = _reportResults(
+      results,
+      writeLog: singleTest == null,
+      configuration: options['configuration'],
+      logDir: options['output-directory'],
+    );
     if (result != 0) {
       exitCode = result;
     }
@@ -82,7 +98,9 @@ void main(List<String> args) async {
 /// Takes the steps to build the artifacts needed by a test and then execute it
 /// on the target environment.
 Future<DynamicModuleTestResult> _runSingleTest(
-    DynamicModuleTest test, TargetExecutor target) async {
+  DynamicModuleTest test,
+  TargetExecutor target,
+) async {
   var timer = Stopwatch()..start();
   try {
     await target.compileApplication(test);
@@ -131,14 +149,16 @@ int _reportResults(
     // Ensure the directory URI ends with a path separator.
     var dirUri = Directory(logDir).uri;
     File.fromUri(dirUri.resolve('results.json')).writeAsStringSync(
-        results.map((r) => '${r.toRecordJson(configuration)}\n').join(),
-        flush: true);
+      results.map((r) => '${r.toRecordJson(configuration)}\n').join(),
+      flush: true,
+    );
     File.fromUri(dirUri.resolve('logs.json')).writeAsStringSync(
-        results
-            .where((r) => r.status != Status.pass)
-            .map((r) => '${r.toLogJson(configuration)}\n')
-            .join(),
-        flush: true);
+      results
+          .where((r) => r.status != Status.pass)
+          .map((r) => '${r.toLogJson(configuration)}\n')
+          .join(),
+      flush: true,
+    );
 
     print('Success: log files emitted under $dirUri');
   } else if (fail) {

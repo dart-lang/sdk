@@ -16,22 +16,34 @@ main() {
 @reflectiveTest
 class ExtensionTypeImplementsNotSupertypeTest extends PubPackageResolutionTest {
   test_notSupertype_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {}
 extension type B(A it) implements num {}
-''', [
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE, 62, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+          62,
+          3,
+        ),
+      ],
+    );
   }
 
   test_notSupertype_interfaceType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) implements String {}
-''', [
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE, 36, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+          36,
+          6,
+        ),
+      ],
+    );
   }
 
   test_supertype() async {

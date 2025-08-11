@@ -9,6 +9,7 @@ import 'value_class_support_lib.dart';
 @valueClass
 class Animal {
   int numberOfLegs;
-  //^
-  // [cfe] unspecified
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
+  // [cfe] Field 'numberOfLegs' should be initialized because its type 'int' doesn't allow null.
 }

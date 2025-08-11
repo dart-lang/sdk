@@ -6,8 +6,8 @@
 /// file 'assert_message_throw_ea.dart' contains similar tests for when
 /// assertions are _enabled_.
 
-/*member: main:[null|powerset=1]*/
-main(/*[null|subclass=Object|powerset=1]*/ args) {
+/*member: main:[null|powerset={null}]*/
+main(/*[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/ args) {
   test0();
   test1(args == null);
   test2(args == null);
@@ -15,7 +15,7 @@ main(/*[null|subclass=Object|powerset=1]*/ args) {
 }
 
 // Check that `throw` in the message is handled conditionally.
-/*member: test0:Container([exact=JSExtendableArray|powerset=0], element: [empty|powerset=0], length: 0, powerset: 0)*/
+/*member: test0:Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [empty|powerset=empty], length: 0, powerset: {I}{G}{M})*/
 test0() {
   assert(true, throw "unreachable");
   var list = [];
@@ -24,8 +24,8 @@ test0() {
 
 // Check that side-effects of the assert message is not included after the
 // assert.
-/*member: test1:[null|powerset=1]*/
-test1(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: test1:[null|powerset={null}]*/
+test1(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   var a;
   assert(b, a = 42);
   return a;
@@ -33,8 +33,8 @@ test1(/*[exact=JSBool|powerset=0]*/ b) {
 
 // Check that side-effects of the assert message is included after the assert
 // through the thrown exception.
-/*member: test2:[null|powerset=1]*/
-test2(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: test2:[null|powerset={null}]*/
+test2(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   var a;
   try {
     assert(b, a = 42);
@@ -43,8 +43,8 @@ test2(/*[exact=JSBool|powerset=0]*/ b) {
 }
 
 // Check that type tests are preserved after the assert.
-/*member: test3:[null|subclass=Object|powerset=1]*/
-test3(/*[null|subclass=Object|powerset=1]*/ a) {
+/*member: test3:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
+test3(/*[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/ a) {
   assert(a is int);
   return a;
 }

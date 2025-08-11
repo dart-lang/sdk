@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -29,7 +29,7 @@ class LibraryElementSuggestionBuilder
   final String? prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
-  final Set<LibraryElement2> visitedLibraries = <LibraryElement2>{};
+  final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
   factory LibraryElementSuggestionBuilder(
     DartCompletionRequest request,
@@ -59,55 +59,55 @@ class LibraryElementSuggestionBuilder
   );
 
   @override
-  void visitClassElement(ClassElement2 element) {
+  void visitClassElement(ClassElement element) {
     AstNode node = request.target.containingNode;
     var libraryElement = request.libraryElement;
-    if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
+    if (node is ExtendsClause && !element.isExtendableIn(libraryElement)) {
       return;
     } else if (node is ImplementsClause &&
-        !element.isImplementableIn2(libraryElement)) {
+        !element.isImplementableIn(libraryElement)) {
       return;
-    } else if (node is WithClause && !element.isMixableIn2(libraryElement)) {
+    } else if (node is WithClause && !element.isMixableIn(libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     // ignored
   }
 
   @override
-  visitEnumElement(EnumElement2 element) {
+  visitEnumElement(EnumElement element) {
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitExtensionElement(ExtensionElement2 element) {
+  void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.name3 != null) {
+      if (element.name != null) {
         builder.suggestExtension(element, kind: kind, prefix: prefix);
       }
     }
   }
 
   @override
-  void visitExtensionTypeElement(ExtensionTypeElement2 element) {
+  void visitExtensionTypeElement(ExtensionTypeElement element) {
     _visitInterfaceElement(element);
   }
 
   @override
   void visitGetterElement(GetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement2;
-      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+      var parent = element.enclosingElement;
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
-          if (variable is FieldElement2) {
+          if (variable is FieldElement) {
             builder.suggestField(variable, inheritanceDistance: 0.0);
           }
         } else {
@@ -120,17 +120,17 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitLibraryElement(LibraryElement2 element) {
+  void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 
   @override
-  visitMixinElement(MixinElement2 element) {
+  visitMixinElement(MixinElement element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
-        !element.isImplementableIn2(request.libraryElement)) {
+        !element.isImplementableIn(request.libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
@@ -138,13 +138,13 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitSetterElement(SetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement2;
-      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+      var parent = element.enclosingElement;
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (!element.isSynthetic) {
           builder.suggestSetter(element, inheritanceDistance: 0.0);
         }
@@ -169,14 +169,14 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitTopLevelVariableElement(TopLevelVariableElement2 element) {
+  void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
     }
   }
 
   @override
-  void visitTypeAliasElement(TypeAliasElement2 element) {
+  void visitTypeAliasElement(TypeAliasElement element) {
     if (opType.includeTypeNameSuggestions) {
       builder.suggestTypeAlias(element, prefix: prefix);
     }
@@ -186,14 +186,14 @@ class LibraryElementSuggestionBuilder
   ///
   /// If [onlyConst] is `true`, only `const` constructors will be suggested.
   void _addConstructorSuggestions(
-    ClassElement2 element, {
+    ClassElement element, {
     bool onlyConst = false,
   }) {
-    if (element is EnumElement2) {
+    if (element is EnumElement) {
       return;
     }
 
-    for (var constructor in element.constructors2) {
+    for (var constructor in element.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
@@ -207,11 +207,11 @@ class LibraryElementSuggestionBuilder
     }
   }
 
-  void _visitInterfaceElement(InterfaceElement2 element) {
+  void _visitInterfaceElement(InterfaceElement element) {
     if (opType.includeTypeNameSuggestions) {
       builder.suggestInterface(element, prefix: prefix);
     }
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       if (opType.includeConstructorSuggestions) {
         _addConstructorSuggestions(element);
       } else if (opType.includeAnnotationSuggestions) {
@@ -223,12 +223,12 @@ class LibraryElementSuggestionBuilder
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
-        for (var field in element.fields2) {
+        for (var field in element.fields) {
           if (field.isStatic &&
-              field.isAccessibleIn2(request.libraryElement) &&
+              field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
-              var getter = field.getter2;
+              var getter = field.getter;
               if (getter != null) {
                 builder.suggestGetter(
                   getter,

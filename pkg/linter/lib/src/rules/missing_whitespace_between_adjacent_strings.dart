@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,14 +19,11 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.missing_whitespace_between_adjacent_strings;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addAdjacentStrings(this, visitor);
   }
@@ -61,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!current.hasWhitespace) {
         continue;
       }
-      rule.reportLint(current);
+      rule.reportAtNode(current);
     }
 
     return super.visitAdjacentStrings(node);
@@ -70,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.element;
-      return constructorElement?.enclosingElement2.name3 == 'RegExp';
+      return constructorElement?.enclosingElement.name == 'RegExp';
     }
     return false;
   }

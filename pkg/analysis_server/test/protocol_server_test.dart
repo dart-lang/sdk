@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/line_info.dart' as engine;
@@ -33,16 +34,16 @@ void main() {
 @reflectiveTest
 class AnalysisErrorTest {
   late MockSource source;
-  late MockAnalysisError engineError;
+  late MockDiagnostic engineDiagnostic;
   late ResolvedUnitResult result;
 
   void setUp() {
     // prepare Source
     source = MockSource(fullName: 'foo.dart');
     // prepare AnalysisError
-    engineError = MockAnalysisError(
+    engineDiagnostic = MockDiagnostic(
       source: source,
-      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -51,12 +52,13 @@ class AnalysisErrorTest {
     var lineInfo = engine.LineInfo([0, 5, 9, 20]);
     result = _ResolvedUnitResultImplMock(
       lineInfo: lineInfo,
-      errors: [engineError],
+      diagnostics: [engineDiagnostic],
+      path: 'foo.dart',
     );
   }
 
   void test_fromEngine_hasContextMessage() {
-    engineError.contextMessages.add(
+    engineDiagnostic.contextMessages.add(
       engine.DiagnosticMessageImpl(
         filePath: 'bar.dart',
         offset: 30,
@@ -68,9 +70,10 @@ class AnalysisErrorTest {
     var error = newAnalysisError_fromEngine(
       _ResolvedUnitResultImplMock(
         lineInfo: engine.LineInfo([0, 5, 9, 20]),
-        errors: [engineError],
+        diagnostics: [engineDiagnostic],
+        path: 'bar.dart',
       ),
-      engineError,
+      engineDiagnostic,
     );
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -106,15 +109,15 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_hasCorrection() {
-    engineError = MockAnalysisError(
+    engineDiagnostic = MockDiagnostic(
       source: source,
-      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
       offset: 10,
       length: 20,
       message: 'my message',
-      correction: 'my correction',
+      correctionMessage: 'my correction',
     );
-    var error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -136,14 +139,16 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_hasUrl() {
-    engineError = MockAnalysisError(
+    engineDiagnostic = MockDiagnostic(
       source: source,
-      errorCode: MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+      diagnosticCode: MockDiagnosticCode(
+        url: 'http://codes.dartlang.org/TEST_ERROR',
+      ),
       offset: 10,
       length: 20,
       message: 'my message',
     );
-    var error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -164,9 +169,9 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_lint() {
-    engineError = MockAnalysisError(
+    engineDiagnostic = MockDiagnostic(
       source: source,
-      errorCode: LintCode(
+      diagnosticCode: LintCode(
         'my_lint',
         'my message',
         correctionMessage: 'correction',
@@ -175,7 +180,7 @@ class AnalysisErrorTest {
       length: 20,
       message: 'my message',
     );
-    var error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       SEVERITY: 'INFO',
       TYPE: 'LINT',
@@ -195,14 +200,14 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_noCorrection() {
-    engineError = MockAnalysisError(
+    engineDiagnostic = MockDiagnostic(
       source: source,
-      errorCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
       offset: 10,
       length: 20,
       message: 'my message',
     );
-    var error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -226,16 +231,16 @@ class AnalysisErrorTest {
 @reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
-    EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
-      (engine.ErrorSeverity engineErrorSeverity) =>
-          AnalysisErrorSeverity.values.byName(engineErrorSeverity.name),
-      exceptions: {engine.ErrorSeverity.NONE: null},
+    EnumTester<engine.DiagnosticSeverity, AnalysisErrorSeverity>().run(
+      (engineSeverity) =>
+          AnalysisErrorSeverity.values.byName(engineSeverity.name),
+      exceptions: {engine.DiagnosticSeverity.NONE: null},
     );
   }
 
   void test_AnalysisErrorType() {
-    EnumTester<engine.ErrorType, AnalysisErrorType>().run(
-      (engine.ErrorType engineErrorType) =>
+    EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
+      (engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
@@ -323,39 +328,37 @@ class EnumTester<EngineEnum, ApiEnum> {
   }
 }
 
-class MockAnalysisError implements engine.AnalysisError {
+class MockDiagnostic implements engine.Diagnostic {
   final MockSource? _source;
-  final engine.ErrorCode? _errorCode;
+  final engine.DiagnosticCode? _diagnosticCode;
   final int? _offset;
   final int? _length;
   final String? _message;
-  final String? _correction;
+
   final DiagnosticMessage? _problemMessage;
   final String? _correctionMessage;
 
   @override
   List<DiagnosticMessage> contextMessages = <DiagnosticMessage>[];
 
-  MockAnalysisError({
+  MockDiagnostic({
     MockSource? source,
-    engine.ErrorCode? errorCode,
+    engine.DiagnosticCode? diagnosticCode,
     int? offset,
     int? length,
     String? message,
-    String? correction,
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
   }) : _source = source,
-       _errorCode = errorCode,
+       _diagnosticCode = diagnosticCode,
        _offset = offset,
        _length = length,
        _message = message,
-       _correction = correction,
        _problemMessage = problemMessage,
        _correctionMessage = correctionMessage;
 
   @override
-  String? get correction => _correction;
+  String? get correction => null;
 
   @override
   String? get correctionMessage => _correctionMessage;
@@ -364,7 +367,10 @@ class MockAnalysisError implements engine.AnalysisError {
   Object? get data => throw UnimplementedError();
 
   @override
-  engine.ErrorCode get errorCode => _errorCode!;
+  engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;
+
+  @override
+  engine.DiagnosticCode get errorCode => diagnosticCode;
 
   @override
   int get length => _length!;
@@ -385,12 +391,12 @@ class MockAnalysisError implements engine.AnalysisError {
   engine.Source get source => _source!;
 }
 
-class MockErrorCode implements engine.ErrorCode {
+class MockDiagnosticCode implements engine.DiagnosticCode {
   @override
-  engine.ErrorType type;
+  engine.DiagnosticType type;
 
   @override
-  engine.ErrorSeverity errorSeverity;
+  engine.DiagnosticSeverity severity;
 
   @override
   String name;
@@ -398,9 +404,9 @@ class MockErrorCode implements engine.ErrorCode {
   @override
   String? url;
 
-  MockErrorCode({
-    this.type = engine.ErrorType.COMPILE_TIME_ERROR,
-    this.errorSeverity = engine.ErrorSeverity.ERROR,
+  MockDiagnosticCode({
+    this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
+    this.severity = engine.DiagnosticSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,
   });
@@ -438,9 +444,16 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   final engine.LineInfo lineInfo;
 
   @override
-  final List<engine.AnalysisError> errors;
+  final List<engine.Diagnostic> diagnostics;
 
-  _ResolvedUnitResultImplMock({required this.lineInfo, required this.errors});
+  @override
+  final String path;
+
+  _ResolvedUnitResultImplMock({
+    required this.lineInfo,
+    required this.diagnostics,
+    required this.path,
+  });
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

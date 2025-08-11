@@ -7,14 +7,16 @@ part of '../types.dart';
 /// [StaticType] for a record type.
 class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   RecordStaticType(super.typeOperations, super.fieldLookup, super.type)
-      : super(isImplicitlyNullable: false);
+    : super(isImplicitlyNullable: false);
 
   @override
   bool get isRecord => true;
 
   @override
-  String spaceToText(Map<Key, Space> spaceProperties,
-      Map<Key, Space> additionalSpaceProperties) {
+  String spaceToText(
+    Map<Key, Space> spaceProperties,
+    Map<Key, Space> additionalSpaceProperties,
+  ) {
     StringBuffer buffer = new StringBuffer();
     buffer.write('(');
     String comma = '';
@@ -58,9 +60,12 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   }
 
   @override
-  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
-      Map<Key, PropertyWitness> witnessFields,
-      {required bool forCorrection}) {
+  void witnessToDart(
+    DartTemplateBuffer buffer,
+    PropertyWitness witness,
+    Map<Key, PropertyWitness> witnessFields, {
+    required bool forCorrection,
+  }) {
     buffer.write('(');
     String comma = '';
     for (Key key in fields.keys) {

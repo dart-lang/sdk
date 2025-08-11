@@ -9,6 +9,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:isolate' as isolate;
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -31,6 +32,11 @@ const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
 
 late Uri remoteVmServiceUri;
 
+/// Resolves a path as if it was relative to the `test` dir in this package.
+Uri resolveTestRelativePath(String relativePath) =>
+    isolate.Isolate.resolvePackageUriSync(Uri.parse('package:dds/'))!
+        .resolve('../test/$relativePath');
+
 Future<io.Process> spawnDartProcess(
   String script, {
   bool serveObservatory = true,
@@ -51,7 +57,7 @@ Future<io.Process> spawnDartProcess(
     if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',
     ...io.Platform.executableArguments,
-    io.Platform.script.resolve(script).toString(),
+    resolveTestRelativePath(script).toFilePath(),
   ];
   final process = await io.Process.start(executable, arguments);
   if (subscribeToStdio) {
@@ -89,12 +95,8 @@ Future<void> executeUntilNextPause(VmService service) async {
 }
 
 /// Returns the resolved URI to the pre-built devtools app.
-///
-/// The method caller is responsible for providing the relative [prefix] that
-/// will resolve to the sdk/ directory (e.g. '../../../').
-Uri devtoolsAppUri({required String prefix}) {
-  const pathFromSdkDirectory = 'third_party/devtools/web';
-  return io.Platform.script.resolve('$prefix$pathFromSdkDirectory');
+Uri devtoolsAppUri() {
+  return resolveTestRelativePath('../../../third_party/devtools/web');
 }
 
 bool _isTestee() {
@@ -113,7 +115,7 @@ Uri _getTestUri(String script) {
   } else {
     // Resolve the script to ensure that test will fail if the provided script
     // name doesn't match the actual script.
-    return io.Platform.script.resolve(script);
+    return resolveTestRelativePath(script);
   }
 }
 
@@ -582,4 +584,26 @@ Future<void> runVMTests(
       serviceFactory: serviceFactory,
     );
   }
+}
+
+/// Runs the given [testBody] against the [VmService] at [serviceUri].
+///
+/// The test will fail if connection goes away prematurely.
+Future<void> withServiceConnection(
+    Uri serviceUri, Future<void> Function(VmService) testBody) async {
+  var disposed = false;
+  final service = await vmServiceConnectUri(serviceUri.toString());
+  await Future.wait([
+    () async {
+      try {
+        await testBody(service);
+      } finally {
+        disposed = true;
+        await service.dispose();
+      }
+    }(),
+    service.onDone.then((_) {
+      expect(disposed, isTrue);
+    }),
+  ], eagerError: true);
 }

@@ -11,7 +11,8 @@ void method1() {
   } finally {
     print(local);
   }
-  /*stmt: unreachable*/ local;
+  /*stmt: unreachable*/
+  local;
 }
 
 /*member: method2:doesNotComplete*/
@@ -26,7 +27,8 @@ void method2() {
   } finally {
     print(local);
   }
-  /*stmt: unreachable*/ local;
+  /*stmt: unreachable*/
+  local;
 }
 
 void method3() {

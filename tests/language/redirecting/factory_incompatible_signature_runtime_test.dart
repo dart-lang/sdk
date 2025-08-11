@@ -12,9 +12,6 @@ import "package:expect/expect.dart";
 
 class A {
   A(a, b);
-
 }
 
-main() {
-
-}
+main() {}

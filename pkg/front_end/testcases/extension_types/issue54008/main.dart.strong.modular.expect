@@ -39,25 +39,25 @@ static extension-type-member method SameString|constructor#(core::String s) → 
   lowered final self::SameString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameString|constructor#_#new#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method SameString|constructor#_#new#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#(s);
 static extension-type-member method SameString|constructor#named(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
   lowered final self::SameString% /* erasure=core::String, declared=! */ #this = "${s} world";
   return #this;
 }
-static extension-type-member method SameString|constructor#_#named#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method SameString|constructor#_#named#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#named(s);
 static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */ {
   lowered final self::SameNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */
+static extension-type-member synthetic method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */
   return self::SameNullable|constructor#(s);
 static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ {
   lowered final self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%>% /* erasure=self::SameGeneric|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%>% /* erasure=self::SameGeneric|constructor#_#new#tearOff::T%, declared=! */
   return self::SameGeneric|constructor#<self::SameGeneric|constructor#_#new#tearOff::T%>(s);
 static method sameLibrary() → dynamic {
   self::SameString% /* erasure=core::String, declared=! */ x0 = #C1;

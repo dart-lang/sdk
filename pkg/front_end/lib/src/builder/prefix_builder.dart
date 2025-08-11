@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
@@ -13,16 +15,18 @@ import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 import '../kernel/utils.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
+import 'compilation_unit.dart';
 import 'declaration_builders.dart';
-import 'library_builder.dart';
 
-class PrefixBuilder extends BuilderImpl {
+class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
+  @override
   final String name;
 
-  final NameSpace _prefixNameSpace = new NameSpaceImpl();
+  final ComputedMutableNameSpace _prefixNameSpace =
+      new ComputedMutableNameSpace();
 
   late final LookupScope _prefixScope =
-      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library, "top");
+      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);
 
   @override
   final SourceLibraryBuilder parent;
@@ -48,7 +52,7 @@ class PrefixBuilder extends BuilderImpl {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
     if (loadLibraryBuilder != null) {
-      addToPrefixScope('loadLibrary', loadLibraryBuilder!,
+      addToPrefixScope(loadLibraryBuilder!.name, loadLibraryBuilder!,
           importOffset: importOffset, prefixOffset: prefixOffset);
     }
   }
@@ -62,28 +66,30 @@ class PrefixBuilder extends BuilderImpl {
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   /// Lookup a member with [name] in the export scope.
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return _prefixScope.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int charOffset, Uri fileUri) {
+    return _prefixScope.lookup(name, charOffset, fileUri);
   }
 
-  void addToPrefixScope(String name, Builder member,
+  void addToPrefixScope(String name, NamedBuilder member,
       {required int importOffset, required int prefixOffset}) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(templateDeferredExtensionImport.withArguments(name),
           importOffset, noLength, fileUri);
     }
 
-    Builder? existing =
-        _prefixNameSpace.lookupLocalMember(name, setter: member.isSetter);
-    Builder result;
+    bool isSetter = isMappedAsSetter(member);
+
+    LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
+    NamedBuilder? existing =
+        isSetter ? existingResult?.setable : existingResult?.getable;
     if (existing != null) {
-      result = computeAmbiguousDeclarationForImport(
+      NamedBuilder result = computeAmbiguousDeclarationForImport(
           parent, name, existing, member,
           uriOffset: new UriOffset(fileUri, prefixOffset));
+      _prefixNameSpace.replaceLocalMember(name, result, setter: isSetter);
     } else {
-      result = member;
+      _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
     }
-    _prefixNameSpace.addLocalMember(name, result, setter: member.isSetter);
     if (member is ExtensionBuilder) {
       _prefixNameSpace.addExtension(member);
     }
@@ -92,6 +98,12 @@ class PrefixBuilder extends BuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
+
+  @override
+  NamedBuilder get getable => this;
+
+  @override
+  NamedBuilder? get setable => null;
 }
 
 class PrefixFragment {

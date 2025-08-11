@@ -7,8 +7,10 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/identifiers.dart';
+import '../../base/messages.dart';
 import '../../base/name_space.dart';
 import '../../builder/constructor_reference_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/type_builder.dart';
@@ -23,44 +25,47 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
+/// Interface for the factory declaration aspect of a [SourceFactoryBuilder].
+///
+/// If a factory is augmented, it will have multiple
+/// [FactoryDeclaration]s on a single [SourceFactoryBuilder].
 abstract class FactoryDeclaration {
-  Procedure get procedure;
-
-  Procedure? get tearOff;
+  Uri get fileUri;
 
   FunctionNode get function;
 
-  TypeBuilder get returnType;
+  Iterable<MetadataBuilder>? get metadata;
 
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? procedureReference,
-    required Reference? tearOffReference,
-  });
+  Procedure get procedure;
+
+  ConstructorReferenceBuilder? get redirectionTarget;
+
+  void createEncoding(
+      {required ProblemReporting problemReporting,
+      required DeclarationBuilder declarationBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeParameterFactory typeParameterFactory,
+      required FactoryEncodingStrategy encodingStrategy});
+
+  void buildOutlineExpressions(
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
 
   void buildOutlineNodes(
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required BuildNodesCallback f,
+      required NameScheme nameScheme,
+      required FactoryReferences? factoryReferences,
       required bool isConst});
-
-  void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required bool createFileUriExpression});
-
-  void inferRedirectionTarget(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
 
   /// Checks this factory builder if it is for a redirecting factory.
   void checkRedirectingFactory(
@@ -68,163 +73,133 @@ abstract class FactoryDeclaration {
       required SourceFactoryBuilder factoryBuilder,
       required TypeEnvironment typeEnvironment});
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery});
-
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment);
 
-  void setBody(Statement value);
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
 
-  void setAsyncModifier(AsyncMarker newModifier);
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
-  VariableDeclaration? getTearOffParameter(int index);
-
-  abstract List<DartType>? redirectionTypeArguments;
-
-  bool get isNative;
-
-  bool get isExternal;
-
-  Uri get fileUri;
-
-  int get fileOffset;
-
-  void becomeNative(
-      {required SourceLoader loader,
-      required Iterable<Annotatable> annotatables});
+  void inferRedirectionTarget(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
 
   void resolveRedirectingFactory(
       {required SourceLibraryBuilder libraryBuilder});
 
-  List<FormalParameterBuilder>? get formals;
-
-  /// Returns the [index]th parameter of this function.
-  ///
-  /// The index is the syntactical index, including both positional and named
-  /// parameter in the order they are declared, and excluding the synthesized
-  /// this parameter on extension instance members.
-  VariableDeclaration getFormalParameter(int index);
-
-  Iterable<MetadataBuilder>? get metadata;
-
-  ConstructorReferenceBuilder? get redirectionTarget;
-
-  BodyBuilderContext createBodyBuilderContext(
-      SourceFactoryBuilder factoryBuilder);
+  bool get isRedirectingFactory;
 }
 
-class FactoryDeclarationImpl implements FactoryDeclaration {
+class FactoryDeclarationImpl
+    implements FactoryDeclaration, FactoryFragmentDeclaration {
   final FactoryFragment _fragment;
-  final List<SourceNominalParameterBuilder>? typeParameters;
-  @override
-  final TypeBuilder returnType;
-  final FactoryEncoding _encoding;
+  late final List<SourceNominalParameterBuilder>? _typeParameters;
+  late final TypeBuilder _returnType;
+  late final FactoryEncoding _encoding;
 
-  FactoryDeclarationImpl(this._fragment,
-      {required this.typeParameters, required this.returnType})
-      : _encoding = new FactoryEncoding(_fragment,
-            typeParameters: typeParameters,
-            returnType: returnType,
-            redirectionTarget: _fragment.redirectionTarget) {
+  FactoryDeclarationImpl(this._fragment) {
     _fragment.declaration = this;
   }
 
   @override
-  Procedure get procedure => _encoding.procedure;
+  void createEncoding(
+      {required ProblemReporting problemReporting,
+      required DeclarationBuilder declarationBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeParameterFactory typeParameterFactory,
+      required FactoryEncodingStrategy encodingStrategy}) {
+    _fragment.builder = factoryBuilder;
+    var (typeParameters, returnType) =
+        encodingStrategy.createTypeParametersAndReturnType(
+            declarationBuilder: declarationBuilder,
+            declarationTypeParameterFragments:
+                _fragment.enclosingDeclaration.typeParameters,
+            typeParameterFactory: typeParameterFactory,
+            fullName: _fragment.constructorName.fullName,
+            fileUri: _fragment.fileUri,
+            fullNameOffset: _fragment.constructorName.fullNameOffset,
+            fullNameLength: _fragment.constructorName.fullNameLength);
+    _typeParameters = typeParameters;
+    _returnType = returnType;
+    _fragment.typeParameterNameSpace.addTypeParameters(
+        problemReporting, typeParameters,
+        ownerName: _fragment.name, allowNameConflict: true);
+    _encoding = new FactoryEncoding(_fragment,
+        typeParameters: typeParameters,
+        returnType: returnType,
+        redirectionTarget: _fragment.redirectionTarget);
+  }
 
   @override
-  Procedure? get tearOff => _encoding.tearOff;
+  TypeBuilder get returnType => _returnType;
+
+  @override
+  int get fileOffset => _fragment.fullNameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get isRedirectingFactory => _fragment.redirectionTarget != null;
+
+  @override
+  List<FormalParameterBuilder>? get formals => _fragment.formals;
 
   @override
   FunctionNode get function => _encoding.function;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isNative => _encoding.isNative;
 
   @override
-  bool get isExternal => _fragment.modifiers.isExternal;
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
-  Uri get fileUri => _fragment.fileUri;
+  Procedure get procedure => _encoding.procedure;
 
   @override
-  int get fileOffset => _fragment.fullNameOffset;
+  ConstructorReferenceBuilder? get redirectionTarget {
+    return _fragment.redirectionTarget;
+  }
 
   @override
-  void becomeNative(
-      {required SourceLoader loader,
-      required Iterable<Annotatable> annotatables}) {
-    for (Annotatable annotatable in annotatables) {
-      loader.addNativeAnnotation(annotatable, _fragment.nativeMethodName!);
-    }
+  void becomeNative(SourceLoader loader) {
+    loader.addNativeAnnotation(procedure, _fragment.nativeMethodName!);
     _encoding.becomeNative(loader);
   }
 
   @override
-  void createNode({
-    required String name,
-    required SourceLibraryBuilder libraryBuilder,
-    required NameScheme nameScheme,
-    required Reference? procedureReference,
-    required Reference? tearOffReference,
-  }) {
-    _encoding.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        procedureReference: procedureReference,
-        tearOffReference: tearOffReference);
-  }
-
-  @override
-  void buildOutlineNodes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required BuildNodesCallback f,
-      required bool isConst}) {
-    _encoding.buildOutlineNodes(
-        libraryBuilder: libraryBuilder,
-        factoryBuilder: factoryBuilder,
-        f: f,
-        isConst: isConst);
-  }
-
-  @override
-  BodyBuilderContext createBodyBuilderContext(
-      SourceFactoryBuilder factoryBuilder) {
-    return new FactoryBodyBuilderContext(
-        factoryBuilder, this, _encoding.procedure);
-  }
-
-  @override
   void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required bool createFileUriExpression}) {
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _fragment.formals?.infer(classHierarchy);
 
     BodyBuilderContext bodyBuilderContext =
         createBodyBuilderContext(factoryBuilder);
 
-    for (Annotatable annotatable in factoryBuilder.annotatables) {
+    for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
+    if (_typeParameters != null) {
+      for (int i = 0; i < _typeParameters.length; i++) {
+        _typeParameters[i].buildOutlineExpressions(
             libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
@@ -248,19 +223,21 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
   }
 
   @override
-  void inferRedirectionTarget(
+  void buildOutlineNodes(
       {required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    BodyBuilderContext bodyBuilderContext =
-        createBodyBuilderContext(factoryBuilder);
-    _encoding.inferRedirectionTarget(
+      required BuildNodesCallback f,
+      required NameScheme nameScheme,
+      required FactoryReferences? factoryReferences,
+      required bool isConst}) {
+    _encoding.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
-        declarationBuilder: factoryBuilder.declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+        factoryBuilder: factoryBuilder,
+        f: f,
+        name: _fragment.name,
+        nameScheme: nameScheme,
+        factoryReferences: factoryReferences,
+        isConst: isConst);
   }
 
   @override
@@ -272,17 +249,6 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
         libraryBuilder: libraryBuilder,
         factoryBuilder: factoryBuilder,
         typeEnvironment: typeEnvironment);
-  }
-
-  @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
-        inErrorRecovery: inErrorRecovery);
-    context.reportGenericFunctionTypesForFormals(_fragment.formals);
-    return count;
   }
 
   @override
@@ -299,13 +265,21 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
   }
 
   @override
-  void setBody(Statement value) {
-    _encoding.setBody(value);
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(_typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(_fragment.formals);
+    return count;
   }
 
   @override
-  void setAsyncModifier(AsyncMarker newModifier) {
-    _encoding.asyncModifier = newModifier;
+  BodyBuilderContext createBodyBuilderContext(
+      SourceFactoryBuilder factoryBuilder) {
+    return new FactoryBodyBuilderContext(
+        factoryBuilder, this, _encoding.procedure);
   }
 
   @override
@@ -314,19 +288,28 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
   }
 
   @override
+  VariableDeclaration getFormalParameter(int index) =>
+      _fragment.formals![index].variable!;
+
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<DartType>? get redirectionTypeArguments =>
-      _encoding.redirectionTypeArguments;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set redirectionTypeArguments(List<DartType>? value) {
-    _encoding.redirectionTypeArguments = value;
+  void inferRedirectionTarget(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+    BodyBuilderContext bodyBuilderContext =
+        createBodyBuilderContext(factoryBuilder);
+    _encoding.inferRedirectionTarget(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: factoryBuilder.declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
 
   @override
@@ -336,19 +319,55 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formals => _fragment.formals;
-
-  @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.formals![index].variable!;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadata => _fragment.metadata;
-
-  @override
-  ConstructorReferenceBuilder? get redirectionTarget {
-    return _fragment.redirectionTarget;
+  void setAsyncModifier(AsyncMarker newModifier) {
+    _encoding.asyncModifier = newModifier;
   }
+
+  @override
+  void setBody(Statement value) {
+    _encoding.setBody(value);
+  }
+}
+
+/// Interface for using a [FactoryFragment] to create a [BodyBuilderContext].
+abstract class FactoryFragmentDeclaration {
+  int get fileOffset;
+
+  List<FormalParameterBuilder>? get formals;
+
+  FunctionNode get function;
+
+  bool get isExternal;
+
+  bool get isNative;
+
+  ConstructorReferenceBuilder? get redirectionTarget;
+
+  TypeBuilder get returnType;
+
+  void becomeNative(SourceLoader loader);
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceFactoryBuilder factoryBuilder);
+
+  FormalParameterBuilder? getFormal(Identifier identifier);
+
+  /// Returns the [index]th parameter of this function.
+  ///
+  /// The index is the syntactical index, including both positional and named
+  /// parameter in the order they are declared, and excluding the synthesized
+  /// this parameter on extension instance members.
+  VariableDeclaration getFormalParameter(int index);
+
+  /// If this is an extension instance method or constructor with lowering
+  /// enabled, the tear off parameter corresponding to the [index]th parameter
+  /// on the instance method or constructor is returned.
+  ///
+  /// This is used to update the default value for the closure parameter when
+  /// it has been computed for the original parameter.
+  VariableDeclaration? getTearOffParameter(int index);
+
+  void setAsyncModifier(AsyncMarker newModifier);
+
+  void setBody(Statement value);
 }

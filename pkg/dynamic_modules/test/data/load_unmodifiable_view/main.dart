@@ -9,10 +9,11 @@ import 'package:expect/expect.dart';
 
 /// Dynamic module can be loaded from unmodifiable view.
 void main() async {
-  final result = await helper.load('entry1.dart',
-      transformBytes: (Uint8List bytes) => bytes.buffer
-          .asUint8List(0, bytes.lengthInBytes)
-          .asUnmodifiableView());
+  final result = await helper.load(
+    'entry1.dart',
+    transformBytes: (Uint8List bytes) =>
+        bytes.buffer.asUint8List(0, bytes.lengthInBytes).asUnmodifiableView(),
+  );
   Expect.equals(42, result);
   helper.done();
 }

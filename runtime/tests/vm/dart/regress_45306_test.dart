@@ -7,19 +7,13 @@
 // instance field initializer.
 
 class X {
-  late final Y y = Y(
-    () async {},
-  );
+  late final Y y = Y(() async {});
 
   final double? a;
   final double? b;
   final String? c;
 
-  X({
-    this.a,
-    this.b,
-    this.c,
-  });
+  X({this.a, this.b, this.c});
 }
 
 typedef Callback = Future<void> Function();

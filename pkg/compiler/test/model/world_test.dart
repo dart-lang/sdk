@@ -380,18 +380,28 @@ testNativeClasses() async {
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dartHtml)!;
 
-  ClassEntity clsEventTarget =
-      elementEnvironment.lookupClass(dart_html, 'EventTarget')!;
+  ClassEntity clsEventTarget = elementEnvironment.lookupClass(
+    dart_html,
+    'EventTarget',
+  )!;
   ClassEntity clsWindow = elementEnvironment.lookupClass(dart_html, 'Window')!;
-  ClassEntity clsAbstractWorker =
-      elementEnvironment.lookupClass(dart_html, 'AbstractWorker')!;
+  ClassEntity clsAbstractWorker = elementEnvironment.lookupClass(
+    dart_html,
+    'AbstractWorker',
+  )!;
   ClassEntity clsWorker = elementEnvironment.lookupClass(dart_html, 'Worker')!;
-  ClassEntity clsCanvasElement =
-      elementEnvironment.lookupClass(dart_html, 'CanvasElement')!;
-  ClassEntity clsCanvasRenderingContext =
-      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext')!;
-  ClassEntity clsCanvasRenderingContext2D =
-      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext2D')!;
+  ClassEntity clsCanvasElement = elementEnvironment.lookupClass(
+    dart_html,
+    'CanvasElement',
+  )!;
+  ClassEntity clsCanvasRenderingContext = elementEnvironment.lookupClass(
+    dart_html,
+    'CanvasRenderingContext',
+  )!;
+  ClassEntity clsCanvasRenderingContext2D = elementEnvironment.lookupClass(
+    dart_html,
+    'CanvasRenderingContext2D',
+  )!;
 
   List<ClassEntity> allClasses = [
     clsEventTarget,

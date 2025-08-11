@@ -20,36 +20,44 @@ main() {
 @reflectiveTest
 class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
   test_conflict_on_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class T<T> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, 8, 1)],
+    );
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndEnumTest extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E<E> {
   v
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM, 7, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM, 7, 1)],
+    );
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndExtensionTest extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension T<T> on String {}
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION, 12, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+          12,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -57,22 +65,29 @@ extension T<T> on String {}
 class ConflictingTypeVariableAndExtensionTypeTest
     extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type T<T>(int it) {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
-          17, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+          17,
+          1,
+        ),
+      ],
+    );
   }
 }
 
 @reflectiveTest
 class ConflictingTypeVariableAndMixinTest extends PubPackageResolutionTest {
   test_conflict_on_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin T<T> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN, 8, 1)],
+    );
   }
 }

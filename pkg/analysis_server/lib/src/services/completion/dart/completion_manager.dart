@@ -22,7 +22,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -31,7 +31,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -250,7 +249,7 @@ class DartCompletionRequest {
   final FeatureComputer featureComputer;
 
   /// The library element of the file in which completion is requested.
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
   /// The library fragment of the file in which completion is requested.
   final LibraryFragment libraryFragment;
@@ -403,10 +402,6 @@ class DartCompletionRequest {
     return opType.includeIdentifiers;
   }
 
-  InheritanceManager3 get inheritanceManager {
-    return analysisSession.inheritanceManager;
-  }
-
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;
 
@@ -543,7 +538,11 @@ class TokenData {
             (currentToken.offset == selectionOffset &&
                 !currentToken.isKeywordOrIdentifier)) &&
         !currentToken.isEof) {
-      currentToken = currentToken.previous!;
+      if (currentToken.previous case var previous?) {
+        currentToken = previous;
+      } else {
+        return null;
+      }
     }
     if (currentToken.isEof) {
       return null;

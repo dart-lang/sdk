@@ -21,7 +21,7 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
+  AssistKind get assistKind => DartAssistKind.replaceWithVar;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
@@ -160,8 +160,8 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
           return false;
         }
         var iterableType = parent.iterable.typeOrThrow;
-        var instantiatedType = iterableType.asInstanceOf2(
-          typeProvider.iterableElement2,
+        var instantiatedType = iterableType.asInstanceOf(
+          typeProvider.iterableElement,
         );
         if (instantiatedType?.typeArguments.first == staticType) {
           return true;

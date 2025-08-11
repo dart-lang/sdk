@@ -5,7 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to compute the list of elements referenced within a given
@@ -71,8 +71,8 @@ class _Visitor extends UnifyingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     if (node.offset <= endOffset && node.end >= startOffset) {
       var importPrefix = node.importPrefix;
-      var prefix = importPrefix?.element2?.name3 ?? '';
-      _addElement(prefix, node.element2);
+      var prefix = importPrefix?.element?.name ?? '';
+      _addElement(prefix, node.element);
     }
 
     super.visitNamedType(node);
@@ -91,7 +91,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
         node.offset <= endOffset &&
         node.end >= startOffset &&
         !_isConstructorDeclarationReturnType(node)) {
-      var nodeElement = node.writeOrReadElement2;
+      var nodeElement = node.writeOrReadElement;
 
       var prefix = '';
       var parent = node.parent;
@@ -108,18 +108,18 @@ class _Visitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void _addElement(String prefix, Element2? element) {
+  void _addElement(String prefix, Element? element) {
     if (element == null) {
       return;
     }
-    if (element is PrefixElement2) {
+    if (element is PrefixElement) {
       return;
     }
-    if (element.enclosingElement2 is! LibraryElement2) {
+    if (element.enclosingElement is! LibraryElement) {
       return;
     }
 
-    var path = element.library2?.firstFragment.source.fullName;
+    var path = element.library?.firstFragment.source.fullName;
     if (path == null) {
       return;
     }
@@ -130,7 +130,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
       () => ImportedElements(path, prefix, <String>[]),
     );
     var elementNames = elements.elements;
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName != null && !elementNames.contains(elementName)) {
       elementNames.add(elementName);
     }
@@ -139,8 +139,8 @@ class _Visitor extends UnifyingAstVisitor<void> {
   String _getPrefixFrom(SimpleIdentifier identifier) {
     if (identifier.offset <= endOffset && identifier.end >= startOffset) {
       var prefixElement = identifier.element;
-      if (prefixElement is PrefixElement2) {
-        return prefixElement.name3 ?? '';
+      if (prefixElement is PrefixElement) {
+        return prefixElement.name ?? '';
       }
     }
     return '';

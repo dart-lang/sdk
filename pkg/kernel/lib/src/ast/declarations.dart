@@ -716,14 +716,16 @@ enum ExtensionMemberKind {
 
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
-  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+  // Must match serialized bit positions:
+  static const int FlagStatic = 1 << 0;
+  static const int FlagInternalImplementation = 1 << 1;
 
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
   /// uniqueness. This name is used to lookup an extension method in the
   /// extension itself.
-  Name name;
+  final Name name;
 
   /// [ExtensionMemberKind] kind of the original member.
   ///
@@ -745,7 +747,7 @@ class ExtensionMemberDescriptor {
   /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
-  ExtensionMemberKind kind;
+  final ExtensionMemberKind kind;
 
   int flags = 0;
 
@@ -762,23 +764,40 @@ class ExtensionMemberDescriptor {
       {required this.name,
       required this.kind,
       bool isStatic = false,
+      bool isInternalImplementation = false,
       required this.memberReference,
       required this.tearOffReference}) {
     this.isStatic = isStatic;
+    this.isInternalImplementation = isInternalImplementation;
     assert(memberReference != null || tearOffReference != null);
   }
 
-  /// Return `true` if the extension method was declared as `static`.
+  /// Return `true` if the extension member was declared as `static`.
   bool get isStatic => flags & FlagStatic != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
 
+  /// Returns `true` if member is not part of the extension API but only
+  /// internal to the extension implementation.
+  ///
+  /// This is `true` for instance for synthesized fields added for the late
+  /// lowering.
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
+  }
+
   @override
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
-        '${memberReference?.toStringInternal()},isStatic=${isStatic})';
+        '${memberReference?.toStringInternal()},'
+        'isStatic=$isStatic,'
+        'isInternalImplementation=$isInternalImplementation)';
   }
 }
 
@@ -1004,14 +1023,16 @@ enum ExtensionTypeMemberKind {
 
 /// Information about an member declaration in an extension type declaration.
 class ExtensionTypeMemberDescriptor {
-  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+  // Must match serialized bit positions:
+  static const int FlagStatic = 1 << 0;
+  static const int FlagInternalImplementation = 1 << 1;
 
   /// The name of the extension type declaration member.
   ///
   /// The name of the generated top-level member is mangled to ensure
   /// uniqueness. This name is used to lookup a member in the extension type
   /// declaration itself.
-  Name name;
+  final Name name;
 
   /// [ExtensionTypeMemberKind] kind of the original member.
   ///
@@ -1033,7 +1054,7 @@ class ExtensionTypeMemberDescriptor {
   /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
-  ExtensionTypeMemberKind kind;
+  final ExtensionTypeMemberKind kind;
 
   int flags = 0;
 
@@ -1051,9 +1072,11 @@ class ExtensionTypeMemberDescriptor {
       {required this.name,
       required this.kind,
       bool isStatic = false,
+      bool isInternalImplementation = false,
       required this.memberReference,
       required this.tearOffReference}) {
     this.isStatic = isStatic;
+    this.isInternalImplementation = isInternalImplementation;
     assert(memberReference != null || tearOffReference != null);
   }
 
@@ -1063,6 +1086,19 @@ class ExtensionTypeMemberDescriptor {
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+  }
+
+  /// Returns `true` if member is not part of the extension type API but only
+  /// internal to the extension implementation.
+  ///
+  /// This is `true` for instance for synthesized fields added for the late
+  /// lowering.
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
   }
 
   @override

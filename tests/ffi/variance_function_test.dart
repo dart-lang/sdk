@@ -110,14 +110,17 @@ void returnSubtype() {
 }
 
 void functionArgumentVariance() {
-  final p = Pointer<
-    NativeFunction<
-      Pointer<NativeFunction<Pointer<Int8> Function(Pointer<NativeType>)>>
-      Function(
-        Pointer<NativeFunction<Pointer<NativeType> Function(Pointer<Int8>)>>,
-      )
-    >
-  >.fromAddress(0x1234);
+  final p =
+      Pointer<
+        NativeFunction<
+          Pointer<NativeFunction<Pointer<Int8> Function(Pointer<NativeType>)>>
+          Function(
+            Pointer<
+              NativeFunction<Pointer<NativeType> Function(Pointer<Int8>)>
+            >,
+          )
+        >
+      >.fromAddress(0x1234);
   p
       .asFunction<
         Pointer<NativeFunction<Pointer<NativeType> Function(Pointer<Int8>)>>
@@ -188,56 +191,62 @@ Pointer<NativeType> naTyPointerReturnOp() {
 }
 
 void callbackParamInvariant1() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackInt64PointerParamOp,
-    CallbackInt64PointerParamOpDart
-  >(callbackParamOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackInt64PointerParamOp,
+        CallbackInt64PointerParamOpDart
+      >(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
   callback(fp);
 }
 
 void callbackParamInvariant2() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackNaTyPointerParamOp,
-    CallbackNaTyPointerParamOpDart
-  >(callbackParamOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackNaTyPointerParamOp,
+        CallbackNaTyPointerParamOpDart
+      >(callbackParamOpName);
   final fp = Pointer.fromFunction<NaTyPointerParamOp>(naTyPointerParamOp);
   callback(fp);
 }
 
 void callbackParamImplicitDowncast1() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackNaTyPointerParamOp,
-    CallbackNaTyPointerParamOpDart
-  >(callbackParamOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackNaTyPointerParamOp,
+        CallbackNaTyPointerParamOpDart
+      >(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
   // Pointer type arguments are not reified, any cast will succeed.
   callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
 }
 
 void callbackParamSubtype1() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackInt64PointerParamOp,
-    CallbackInt64PointerParamOpDart
-  >(callbackParamOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackInt64PointerParamOp,
+        CallbackInt64PointerParamOpDart
+      >(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(naTyPointerParamOp);
   callback(fp);
 }
 
 void callbackReturnInvariant1() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackInt64PointerReturnOp,
-    CallbackInt64PointerReturnOpDart
-  >(callbackReturnOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackInt64PointerReturnOp,
+        CallbackInt64PointerReturnOpDart
+      >(callbackReturnOpName);
   final fp = Pointer.fromFunction<Int64PointerReturnOp>(int64PointerReturnOp);
   callback(fp);
 }
 
 void callbackReturnInvariant2() {
-  final callback = ffiTestFunctions.lookupFunction<
-    CallbackNaTyPointerReturnOp,
-    CallbackNaTyPointerReturnOpDart
-  >(callbackReturnOpName);
+  final callback = ffiTestFunctions
+      .lookupFunction<
+        CallbackNaTyPointerReturnOp,
+        CallbackNaTyPointerReturnOpDart
+      >(callbackReturnOpName);
   final fp = Pointer.fromFunction<NaTyPointerReturnOp>(naTyPointerReturnOp);
   callback(fp);
 }

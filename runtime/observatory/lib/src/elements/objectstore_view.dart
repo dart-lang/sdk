@@ -5,12 +5,15 @@
 library objectstore_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -66,13 +69,13 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
     final fields = _store?.fields.toList(growable: false);
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -81,34 +84,33 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
             .element,
         (new NavNotifyElement(_notifications, queue: _r.queue).element)
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h1()
-            ..text = fields == null
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = fields == null
                 ? 'Object Store'
                 : 'Object Store (${fields.length})',
-          new HRElement(),
+          new HTMLHRElement(),
           fields == null
-              ? (new HeadingElement.h2()..text = 'Loading...')
-              : (new DivElement()
-                ..classes = ['memberList']
-                ..children = fields
-                    .map<Element>((field) => new DivElement()
-                      ..classes = ['memberItem']
-                      ..children = <Element>[
-                        new DivElement()
-                          ..classes = ['memberName']
-                          ..text = field.name,
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..children = <Element>[
+              ? (new HTMLHeadingElement.h2()..textContent = 'Loading...')
+              : (new HTMLDivElement()
+                ..className = 'memberList'
+                ..appendChildren(
+                    fields.map<HTMLElement>((field) => new HTMLDivElement()
+                      ..className = 'memberItem'
+                      ..appendChildren(<HTMLElement>[
+                        new HTMLDivElement()
+                          ..className = 'memberName'
+                          ..textContent = field.name,
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..appendChildren(<HTMLElement>[
                             anyRef(_isolate, field.value, _objects,
                                 queue: _r.queue)
-                          ]
-                      ])
-                    .toList()),
-        ]
+                          ])
+                      ])))),
+        ])
     ];
   }
 

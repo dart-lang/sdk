@@ -255,10 +255,10 @@ List<String> stringAnnotationValues(Expression node) {
   return values;
 }
 
-/// Returns the [Library] within [component] matching the specified
+/// Returns the [Library] within [libraries] matching the specified
 /// [interopUri] or [null].
-Library? _findJsInteropLibrary(Component component, Uri interopUri) {
-  for (Library lib in component.libraries) {
+Library? _findJsInteropLibrary(List<Library> libraries, Uri interopUri) {
+  for (Library lib in libraries) {
     for (LibraryDependency dependency in lib.dependencies) {
       Library targetLibrary = dependency.targetLibrary;
       if (targetLibrary.importUri == interopUri) {
@@ -276,19 +276,17 @@ Library? _findJsInteropLibrary(Component component, Uri interopUri) {
 /// `calculateTransitiveImportsOfDartFfiIfUsed` in
 /// pkg/vm/lib/transformations/ffi/common.dart.
 Set<Library> calculateTransitiveImportsOfJsInteropIfUsed(
-  Component component,
+  List<Library> libraries,
   Uri interopUri,
 ) {
   // Check for the presence of [jsInteropLibrary] as a dependency of any of the
   // libraries in [component]. We use this to bypass the expensive
   // [calculateTransitiveDependenciesOf] call for cases where js interop is
   // not used, otherwise we could just use the index of the library instead.
-  Library? jsInteropLibrary = _findJsInteropLibrary(component, interopUri);
+  Library? jsInteropLibrary = _findJsInteropLibrary(libraries, interopUri);
   if (jsInteropLibrary == null) return const <Library>{};
 
-  kernel_graph.LibraryGraph graph = kernel_graph.LibraryGraph(
-    component.libraries,
-  );
+  kernel_graph.LibraryGraph graph = kernel_graph.LibraryGraph(libraries);
   Set<Library> result = kernel_graph.calculateTransitiveDependenciesOf(graph, {
     jsInteropLibrary,
   });

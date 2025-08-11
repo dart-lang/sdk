@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/abstract_class.dart:6:11: Error: The class 'Function' is abstract and can't be instantiated.
+//   return .new(); // Error
+//           ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/abstract_class.dart:10:11: Error: Constructors on abstract classes can't be torn off.
+//   return .new; // Error
+//           ^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method instantiation() → core::Function {
+  return invalid-expression "pkg/front_end/testcases/dot_shorthands/abstract_class.dart:6:11: Error: The class 'Function' is abstract and can't be instantiated.
+  return .new(); // Error
+          ^^^" as{TypeError,ForDynamic} core::Function;
+}
+static method tearOff() → core::Function {
+  return invalid-expression "pkg/front_end/testcases/dot_shorthands/abstract_class.dart:10:11: Error: Constructors on abstract classes can't be torn off.
+  return .new; // Error
+          ^^^" as{TypeError,ForDynamic} core::Function;
+}
+static method main() → void async /* emittedValueType= void */ {
+  core::List<core::int> iter = <core::int>[1, 2];
+  await for (core::int x in asy::Stream::fromIterable<core::int>(iter)) {
+    core::print(x);
+  }
+}

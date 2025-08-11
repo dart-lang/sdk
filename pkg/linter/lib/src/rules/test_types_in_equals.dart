@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,10 @@ class TestTypesInEquals extends LintRule {
     : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.test_types_in_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.test_types_in_equals;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addAsExpression(this, visitor);
   }
@@ -40,10 +39,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var parameters = declaration?.parameters;
-    var parameterName = parameters?.parameterFragments.first?.name2;
+    var parameterName = parameters?.parameterFragments.first?.name;
     if (expression.name == parameterName) {
       var typeName = _getTypeName(declaration!);
-      rule.reportLint(node, arguments: [typeName]);
+      rule.reportAtNode(node, arguments: [typeName]);
     }
   }
 

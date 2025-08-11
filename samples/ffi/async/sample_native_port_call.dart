@@ -37,8 +37,11 @@ main() async {
   print("Dart: Setup.");
   Expect.isTrue(NativeApi.majorVersion == 2);
   Expect.isTrue(NativeApi.minorVersion >= 2);
-  final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
-      int Function(Pointer<Void>)>("InitDartApiDL");
+  final initializeApi = dl
+      .lookupFunction<
+        IntPtr Function(Pointer<Void>),
+        int Function(Pointer<Void>)
+      >("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
 
   final interactiveCppRequests = ReceivePort()..listen(handleCppRequests);
@@ -111,8 +114,10 @@ void handleCppRequests(dynamic message) {
     // the argument to the function.
     final int argument = cppRequest.data[0];
     final int result = myCallback1(argument);
-    final cppResponse =
-        CppResponse(cppRequest.pendingCall!, Uint8List.fromList([result]));
+    final cppResponse = CppResponse(
+      cppRequest.pendingCall!,
+      Uint8List.fromList([result]),
+    );
     print('Dart:   Responding: $cppResponse');
     cppRequest.replyPort!.send(cppResponse.toCppMessage());
   } else if (cppRequest.method == 'myCallback2') {
@@ -123,14 +128,18 @@ void handleCppRequests(dynamic message) {
 
 final dl = dlopenPlatformSpecific("ffi_test_functions");
 
-final registerSendPort = dl.lookupFunction<Void Function(Int64 sendPort),
-    void Function(int sendPort)>('RegisterSendPort');
+final registerSendPort = dl
+    .lookupFunction<Void Function(Int64 sendPort), void Function(int sendPort)>(
+      'RegisterSendPort',
+    );
 
-final startWorkSimulator2 =
-    dl.lookupFunction<Void Function(), void Function()>('StartWorkSimulator2');
+final startWorkSimulator2 = dl.lookupFunction<Void Function(), void Function()>(
+  'StartWorkSimulator2',
+);
 
-final stopWorkSimulator2 =
-    dl.lookupFunction<Void Function(), void Function()>('StopWorkSimulator2');
+final stopWorkSimulator2 = dl.lookupFunction<Void Function(), void Function()>(
+  'StopWorkSimulator2',
+);
 
 Future asyncSleep(int ms) {
   return new Future.delayed(Duration(milliseconds: ms), () => true);

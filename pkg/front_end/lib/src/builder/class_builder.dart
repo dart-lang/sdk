@@ -6,89 +6,7 @@ part of 'declaration_builders.dart';
 
 const Uri? noUri = null;
 
-abstract class ClassMemberAccess {
-  /// [Iterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructor are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       Class(); // declared, so it is included
-  ///       Class.named(); // declared, so it is included
-  ///       Class.named(); // duplicate, so it is *not* included
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment Class(); // augmenting, so it is *not* included
-  ///       Class.extra(); // declared, so it is included
-  ///     }
-  ///
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
-
-  /// [NameIterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructors are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       Class(); // declared, so it is included
-  ///       Class.named(); // declared, so it is included
-  ///       Class.named(); // duplicate, so it is *not* included
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment Class(); // augmenting, so it is *not* included
-  ///       Class.extra(); // declared, so it is included
-  ///     }
-  ///
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       method() {} // Declared, so it is included.
-  ///       method2() {} // Declared, so it is included.
-  ///       method2() {} // Duplicate, so it is *not* included.
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment method() {} // Augmenting, so it is *not* included.
-  ///       extra() {} // Declared, so it is included.
-  ///     }
-  ///
-  Iterator<T> fullMemberIterator<T extends Builder>();
-
-  /// [NameIterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  ///
-  /// For instance:
-  ///
-  ///     class Class {
-  ///       method() {} // Declared, so it is included.
-  ///       method2() {} // Declared, so it is included.
-  ///       method2() {} // Duplicate, so it is *not* included.
-  ///     }
-  ///
-  ///     augment class Class {
-  ///       augment method() {} // Augmenting, so it is *not* included.
-  ///       extra() {} // Declared, so it is included.
-  ///     }
-  ///
-  NameIterator<T> fullMemberNameIterator<T extends Builder>();
-}
-
-abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
+abstract class ClassBuilder implements DeclarationBuilder {
   /// The type in the `extends` clause of a class declaration.
   ///
   /// Currently this also holds the synthesized super class for a mixin
@@ -161,11 +79,11 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
+    with DeclarationBuilderMixin
     implements ClassBuilder {
   @override
   bool isNullClass = false;
 
-  InterfaceType? _legacyRawType;
   InterfaceType? _nullableRawType;
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
@@ -181,55 +99,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Builder? findStaticBuilder(
-      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter = false}) {
-    if (accessingLibrary.nameOriginBuilder !=
-            libraryBuilder.nameOriginBuilder &&
-        name.startsWith("_")) {
-      return null;
-    }
-    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
-    Builder? declaration;
-    if (getable != null || setable != null) {
-      declaration = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: fileOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: this.name,
-          isSetter: isSetter,
-          forStaticAccess: true);
-    }
-    return declaration;
-  }
-
-  @override
-  Builder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false}) {
-    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
-    if (required && builder == null) {
-      internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
-    }
-    return builder;
-  }
-
-  @override
   InterfaceType get thisType {
     return _thisType ??= new InterfaceType(cls, Nullability.nonNullable,
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
-  }
-
-  // Coverage-ignore(suite): Not run.
-  InterfaceType get legacyRawType {
-    return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
-        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nullableRawType {
@@ -246,9 +118,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        // Coverage-ignore(suite): Not run.
-        return legacyRawType;
       case Nullability.nullable:
         return nullableRawType;
       case Nullability.nonNullable:
@@ -364,7 +233,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
-      typeArguments = unaliasTypes(typeArguments, legacyEraseAliases: false)!;
+      typeArguments = unaliasTypes(typeArguments)!;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(

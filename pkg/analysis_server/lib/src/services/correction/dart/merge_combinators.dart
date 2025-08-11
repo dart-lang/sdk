@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -91,12 +91,12 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    LibraryElement2? element;
-    Map<String, Element2> namespace;
+    LibraryElement? element;
+    Map<String, Element> namespace;
     Namespace? originalNamespace;
     switch (directive) {
-      case ExportDirective(:LibraryExportElementImpl libraryExport):
-        element = libraryExport.exportedLibrary2;
+      case ExportDirective(:LibraryExportImpl libraryExport):
+        element = libraryExport.exportedLibrary;
         if (element is! LibraryElementImpl) {
           return;
         }
@@ -104,7 +104,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
         namespace = _currentNamespace(libraryExport).definedNames2;
       case ImportDirective(:var libraryImport?):
         namespace = getImportNamespace(libraryImport);
-        element = libraryImport.importedLibrary2;
+        element = libraryImport.importedLibrary;
       default:
         return;
     }
@@ -154,7 +154,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
     });
   }
 
-  Namespace _currentNamespace(LibraryExportElementImpl libraryExport) {
+  Namespace _currentNamespace(LibraryExportImpl libraryExport) {
     return namespaceBuilder.createExportNamespaceForDirective2(libraryExport);
   }
 

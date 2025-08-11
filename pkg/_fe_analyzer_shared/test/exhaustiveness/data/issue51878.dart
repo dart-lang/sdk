@@ -15,16 +15,13 @@ String test1(Object? o) {
   }
 }
 
-String test2(
-        Object?
-            o) => /*
+String test2(Object? o) => /*
  checkingOrder={Object?,Object,Null},
  subtypes={Object,Null},
  type=Object?
-*/
-    switch (o) {
-      Object _! /*space=()*/ => "exhaustive"
-    };
+*/ switch (o) {
+  Object _! /*space=()*/ => "exhaustive",
+};
 
 main() {
   print(test1(42));

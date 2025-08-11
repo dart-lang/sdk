@@ -94,7 +94,7 @@ class LspClientConfiguration {
     var oldTypes = _globalSettings.showTodoTypes;
     var newTypes = otherConfig.showTodoTypes;
     return newFlag != oldFlag ||
-        !const SetEquality().equals(oldTypes, newTypes);
+        !const SetEquality<String>().equals(oldTypes, newTypes);
   }
 
   /// Returns whether or not the provided new configuration changes any values
@@ -102,7 +102,7 @@ class LspClientConfiguration {
   bool affectsAnalysisRoots(LspGlobalClientConfiguration otherConfig) {
     var oldExclusions = _globalSettings.analysisExcludedFolders;
     var newExclusions = otherConfig.analysisExcludedFolders;
-    return !const ListEquality().equals(oldExclusions, newExclusions);
+    return !const ListEquality<String>().equals(oldExclusions, newExclusions);
   }
 
   /// Returns config for a given resource.
@@ -210,8 +210,8 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get includeDependenciesInWorkspaceSymbols =>
       _settings['includeDependenciesInWorkspaceSymbols'] as bool? ?? true;
 
-  /// The users preferred kind of documentation for Hovers, Code Completion and
-  /// other related panels in the UI.
+  /// The users preferred kind of documentation for requests that return many
+  /// results and could have large payloads when docs are included.
   ///
   /// If the user has not expressed a preference, defaults to
   /// [DocumentationPreference.full].
@@ -235,7 +235,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get showAllTodos =>
       _settings['showTodos'] is bool ? _settings['showTodos'] as bool : false;
 
-  // A specific set of `TODO` comments that should generate diagnostics.
+  /// A specific set of `TODO` comments that should generate diagnostics.
   ///
   /// Codes are all forced UPPERCASE regardless of what the client supplies.
   ///

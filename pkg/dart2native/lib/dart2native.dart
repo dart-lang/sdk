@@ -5,9 +5,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:code_assets/code_assets.dart' show OS;
 import 'package:collection/collection.dart';
 import 'package:kernel/binary/tag.dart' show Tag;
-import 'package:native_assets_cli/code_assets_builder.dart' show OS;
 import 'package:path/path.dart' as path;
 
 import 'dart2native_macho.dart' show writeAppendedMachOExecutable;
@@ -29,13 +29,13 @@ final platformDill = path.join(
   binDir.parent.path,
   'lib',
   '_internal',
-  'vm_platform_strong.dill',
+  'vm_platform.dill',
 );
 final productPlatformDill = path.join(
   binDir.parent.path,
   'lib',
   '_internal',
-  'vm_platform_strong_product.dill',
+  'vm_platform_product.dill',
 );
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K

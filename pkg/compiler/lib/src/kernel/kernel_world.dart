@@ -193,20 +193,19 @@ class KClosedWorld implements BuiltWorld {
   }
 
   @override
-  late final Iterable<FunctionEntity> userNoSuchMethods =
-      (() {
-        final result = <FunctionEntity>[];
-        liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
-          if (member is FunctionEntity && memberUsage.hasUse) {
-            if (member.isInstanceMember &&
-                member.name == Identifiers.noSuchMethod_ &&
-                !commonElements.isDefaultNoSuchMethodImplementation(member)) {
-              result.add(member);
-            }
-          }
-        });
-        return result;
-      })();
+  late final Iterable<FunctionEntity> userNoSuchMethods = (() {
+    final result = <FunctionEntity>[];
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+      if (member is FunctionEntity && memberUsage.hasUse) {
+        if (member.isInstanceMember &&
+            member.name == Identifiers.noSuchMethod_ &&
+            !commonElements.isDefaultNoSuchMethodImplementation(member)) {
+          result.add(member);
+        }
+      }
+    });
+    return result;
+  })();
 
   @override
   late final Iterable<FunctionEntity> closurizedMembers = (() {
@@ -220,49 +219,46 @@ class KClosedWorld implements BuiltWorld {
   }());
 
   @override
-  late final Iterable<FunctionEntity> closurizedStatics =
-      (() {
-        final result = <FunctionEntity>{};
-        liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-          if (member.isFunction &&
-              (member.isStatic || member.isTopLevel) &&
-              usage.hasRead) {
-            result.add(member as FunctionEntity);
-          }
-        });
-        return result;
-      })();
+  late final Iterable<FunctionEntity> closurizedStatics = (() {
+    final result = <FunctionEntity>{};
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member.isFunction &&
+          (member.isStatic || member.isTopLevel) &&
+          usage.hasRead) {
+        result.add(member as FunctionEntity);
+      }
+    });
+    return result;
+  })();
 
   @override
-  late final Map<MemberEntity, DartType> genericCallableProperties =
-      (() {
-        final result = <MemberEntity, DartType>{};
-        liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-          if (usage.hasRead) {
-            DartType? type;
-            if (member is FieldEntity) {
-              type = elementEnvironment.getFieldType(member);
-            } else if (member.isGetter) {
-              type =
-                  elementEnvironment
-                      .getFunctionType(member as FunctionEntity)
-                      .returnType;
-            }
-            if (type == null) return;
-            if (dartTypes.canAssignGenericFunctionTo(type)) {
-              result[member] = type;
-            } else {
-              type = type.withoutNullability;
-              if (type is InterfaceType) {
-                FunctionType? callType = dartTypes.getCallType(type);
-                if (callType != null &&
-                    dartTypes.canAssignGenericFunctionTo(callType)) {
-                  result[member] = callType;
-                }
-              }
+  late final Map<MemberEntity, DartType> genericCallableProperties = (() {
+    final result = <MemberEntity, DartType>{};
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (usage.hasRead) {
+        DartType? type;
+        if (member is FieldEntity) {
+          type = elementEnvironment.getFieldType(member);
+        } else if (member.isGetter) {
+          type = elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .returnType;
+        }
+        if (type == null) return;
+        if (dartTypes.canAssignGenericFunctionTo(type)) {
+          result[member] = type;
+        } else {
+          type = type.withoutNullability;
+          if (type is InterfaceType) {
+            FunctionType? callType = dartTypes.getCallType(type);
+            if (callType != null &&
+                dartTypes.canAssignGenericFunctionTo(callType)) {
+              result[member] = callType;
             }
           }
-        });
-        return result;
-      })();
+        }
+      }
+    });
+    return result;
+  })();
 }

@@ -23,7 +23,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
+  AssistKind get assistKind => DartAssistKind.assignToLocalVariable;
 
   String get _declarationKeyword {
     if (getCodeStyleOptions(unitResult.file).makeLocalsFinal) {
@@ -37,7 +37,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement? expressionStatement;
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is ExpressionStatement) {
         expressionStatement = node;
         break;

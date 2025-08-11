@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,14 +21,11 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.prefer_const_literals_to_create_immutables;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
@@ -67,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (literal.canBeConst) {
-      rule.reportLint(literal);
+      rule.reportAtNode(literal);
     }
   }
 
@@ -81,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     InterfaceType? current = type;
     while (current != null) {
-      if (current.element3.metadata2.hasImmutable) return true;
+      if (current.element.metadata.hasImmutable) return true;
       current = current.superclass;
     }
 

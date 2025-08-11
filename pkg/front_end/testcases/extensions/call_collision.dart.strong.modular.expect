@@ -2,24 +2,24 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/call_collision.dart:19:6: Error: The setter 'call' isn't defined for the class 'Function'.
+// pkg/front_end/testcases/extensions/call_collision.dart:19:6: Error: The setter 'call' isn't defined for the type 'Function'.
 //  - 'Function' is from 'dart:core'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
 //   f1.call = 0; // Error.
 //      ^^^^
 //
-// pkg/front_end/testcases/extensions/call_collision.dart:21:6: Error: The setter 'call' isn't defined for the class 'void Function()'.
+// pkg/front_end/testcases/extensions/call_collision.dart:21:6: Error: The setter 'call' isn't defined for the type 'void Function()'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
 //   f2.call = 0; // Error.
 //      ^^^^
 //
-// pkg/front_end/testcases/extensions/call_collision.dart:23:6: Error: The method 'call' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/extensions/call_collision.dart:23:6: Error: The method 'call' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/call_collision.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   c1.call(); // Error.
 //      ^^^^
 //
-// pkg/front_end/testcases/extensions/call_collision.dart:24:6: Error: The setter 'call' isn't defined for the class 'Class?'.
+// pkg/front_end/testcases/extensions/call_collision.dart:24:6: Error: The setter 'call' isn't defined for the type 'Class?'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/call_collision.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
 //   c2.call = 0; // Error.
@@ -47,23 +47,23 @@ static extension-member method _extension#1|get#call(lowered final self::Class? 
   return () → void => self::_extension#1|call(#this);
 static method method(core::Function f1, () → void f2, self::Class c1, self::Class? c2) → dynamic {
   f1();
-  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:19:6: Error: The setter 'call' isn't defined for the class 'Function'.
+  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:19:6: Error: The setter 'call' isn't defined for the type 'Function'.
  - 'Function' is from 'dart:core'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
   f1.call = 0; // Error.
      ^^^^" in f1.{<unresolved>}call = 0;
   f2(){() → void};
-  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:21:6: Error: The setter 'call' isn't defined for the class 'void Function()'.
+  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:21:6: Error: The setter 'call' isn't defined for the type 'void Function()'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
   f2.call = 0; // Error.
      ^^^^" in f2.{<unresolved>}call = 0;
   c1.{self::Class::call} = 0;
-  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:23:6: Error: The method 'call' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:23:6: Error: The method 'call' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/call_collision.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   c1.call(); // Error.
      ^^^^" in c1{<unresolved>}.call();
-  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:24:6: Error: The setter 'call' isn't defined for the class 'Class?'.
+  invalid-expression "pkg/front_end/testcases/extensions/call_collision.dart:24:6: Error: The setter 'call' isn't defined for the type 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/call_collision.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'call'.
   c2.call = 0; // Error.

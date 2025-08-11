@@ -6,6 +6,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert' as convert show json;
 import 'dart:io' show File, IOSink;
 import 'dart:typed_data';
 
@@ -76,7 +77,7 @@ import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 void declareCompilerOptions(ArgParser args) {
   args.addOption(
     'platform',
-    help: 'Path to vm_platform_strong.dill file',
+    help: 'Path to vm_platform.dill file',
     defaultsTo: null,
   );
   args.addOption(
@@ -218,6 +219,10 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption(
     'dynamic-interface',
     help: 'Path to dynamic module interface yaml file.',
+  );
+  args.addOption(
+    'dump-detailed-dynamic-interface',
+    help: 'Path to output detailed dynamic interface.',
   );
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
   args.addMultiOption(
@@ -388,6 +393,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       dynamicInterfaceFilePath == null
           ? null
           : resolveInputUri(dynamicInterfaceFilePath);
+  final String? dumpDetailedDynamicInterface =
+      options['dump-detailed-dynamic-interface'];
 
   Uri? mainUri;
   if (input != null) {
@@ -439,6 +446,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
       dynamicInterface: dynamicInterfaceUri,
+      dumpDetailedDynamicInterface: dumpDetailedDynamicInterface,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       useRapidTypeAnalysis: rta,
@@ -562,6 +570,7 @@ class KernelCompilationArguments {
   final List<String> keepClassNamesImplementing;
   final bool aot;
   final Uri? dynamicInterface;
+  final String? dumpDetailedDynamicInterface;
   final Map<String, String> environmentDefines; // Should be mutable.
   final bool enableAsserts;
   final bool useGlobalTypeFlowAnalysis;
@@ -584,6 +593,7 @@ class KernelCompilationArguments {
     this.keepClassNamesImplementing = const <String>[],
     this.aot = false,
     this.dynamicInterface,
+    this.dumpDetailedDynamicInterface,
     Map<String, String>? environmentDefines,
     this.enableAsserts = true,
     this.useGlobalTypeFlowAnalysis = false,
@@ -745,13 +755,21 @@ Future runGlobalTransformations(
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
     final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
+    final dumpDetailedDynamicInterface = args.dumpDetailedDynamicInterface;
+    Map<String, List<Map<String, String>>>? detailedDynamicInterfaceJson =
+        (dumpDetailedDynamicInterface != null) ? {} : null;
     dynamic_interface_annotator.annotateComponent(
       File(fileUri.toFilePath()).readAsStringSync(),
       dynamicInterface,
       component,
       coreTypes,
-      target,
+      detailedDynamicInterfaceJson: detailedDynamicInterfaceJson,
     );
+    if (dumpDetailedDynamicInterface != null) {
+      File(
+        dumpDetailedDynamicInterface,
+      ).writeAsStringSync(convert.json.encode(detailedDynamicInterfaceJson));
+    }
   }
 
   // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of

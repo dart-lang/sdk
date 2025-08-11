@@ -6,7 +6,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -64,14 +64,13 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     String content = io.File(astBuilderPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
     var astBuilder = unit.declarations[0] as ClassDeclaration;
-    var method = astBuilder.members
-        .whereType<MethodDeclaration>()
-        .firstWhere((x) => x.name.lexeme == 'reportMessage');
-    SwitchStatement statement = (method.body as BlockFunctionBody)
-        .block
-        .statements
-        .whereType<SwitchStatement>()
-        .first;
+    var method = astBuilder.members.whereType<MethodDeclaration>().firstWhere(
+      (x) => x.name.lexeme == 'reportMessage',
+    );
+    SwitchStatement statement =
+        (method.body as BlockFunctionBody).block.statements
+            .whereType<SwitchStatement>()
+            .first;
     expect(statement, isNotNull);
     List<String> codes = <String>[];
     for (SwitchMember member in statement.members) {
@@ -85,8 +84,14 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   @failingTest
   test_mappedMessageCoverage() {
     String frontEndPath = path.join(package_root.packageRoot, 'front_end');
-    String parserPath =
-        path.join(frontEndPath, 'lib', 'src', 'fasta', 'parser', 'parser.dart');
+    String parserPath = path.join(
+      frontEndPath,
+      'lib',
+      'src',
+      'fasta',
+      'parser',
+      'parser.dart',
+    );
     Set<String> generatedNames = getGeneratedNames(parserPath);
 
     List<String> mappedCodes = getMappedCodes();
@@ -108,8 +113,13 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   @failingTest
   test_translatedMessageCoverage() {
     String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
-    String astBuilderPath =
-        path.join(analyzerPath, 'lib', 'src', 'fasta', 'error_converter.dart');
+    String astBuilderPath = path.join(
+      analyzerPath,
+      'lib',
+      'src',
+      'fasta',
+      'error_converter.dart',
+    );
     List<String> translatedCodes = getTranslatedCodes(astBuilderPath);
 
     List<String> referencedCodes = getReferencedCodes();
@@ -122,14 +132,16 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     }
     StringBuffer buffer = StringBuffer();
     if (untranslated.isNotEmpty) {
-      buffer
-          .writeln('Analyzer codes used in messages.yaml but not translated:');
+      buffer.writeln(
+        'Analyzer codes used in messages.yaml but not translated:',
+      );
       for (String code in untranslated) {
         buffer.write('  ');
         buffer.writeln(code);
       }
       buffer.write(
-          'Add a case for these codes to FastaErrorReporter.reportError.');
+        'Add a case for these codes to FastaErrorReporter.reportError.',
+      );
     }
 
     List<String> unreferenced = <String>[];
@@ -144,13 +156,16 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         buffer.writeln();
       }
       buffer.writeln(
-          'Analyzer codes that are translated but not used in messages.yaml:');
+        'Analyzer codes that are translated but not used in messages.yaml:',
+      );
       for (String code in unreferenced) {
         buffer.write('  ');
         buffer.writeln(code);
       }
-      buffer.write('Remove the cases for these codes from '
-          'FastaErrorReporter.reportMessage.');
+      buffer.write(
+        'Remove the cases for these codes from '
+        'FastaErrorReporter.reportMessage.',
+      );
     }
     if (buffer.isNotEmpty) {
       fail(buffer.toString());

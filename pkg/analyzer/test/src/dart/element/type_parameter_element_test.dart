@@ -35,21 +35,13 @@ class TypeParameterTypeTest extends AbstractTypeSystemTest {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
 
-    _assertEqual(
-      typeParameterTypeNone(T1),
-      typeParameterTypeNone(T2),
-      isFalse,
-    );
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isFalse);
   }
 
   test_equal_sameElement() {
     var T = typeParameter('T');
 
-    _assertEqual(
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(T),
-      isTrue,
-    );
+    _assertEqual(typeParameterTypeNone(T), typeParameterTypeNone(T), isTrue);
 
     _assertEqual(
       typeParameterTypeNone(T),

@@ -54,8 +54,10 @@ void main() async {
         expect(variableSymbol.location!.scriptId, endsWith('/foo.dart'));
       });
       test('start token position', () async {
-        expect(variableSymbol.location!.tokenPos,
-            source.indexOf('globalVariable'));
+        expect(
+          variableSymbol.location!.tokenPos,
+          source.indexOf('globalVariable'),
+        );
       });
       test('end token position', () async {
         expect(variableSymbol.location!.endTokenPos, source.lastIndexOf(';'));

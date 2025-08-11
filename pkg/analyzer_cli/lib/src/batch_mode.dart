@@ -7,7 +7,8 @@ import 'dart:io' show exitCode, stdin;
 
 import 'package:analyzer/error/error.dart';
 
-typedef BatchRunnerHandler = Future<ErrorSeverity> Function(List<String> args);
+typedef BatchRunnerHandler =
+    Future<DiagnosticSeverity> Function(List<String> args);
 
 /// Provides a framework to read command line options from stdin and feed them
 /// to a callback.
@@ -26,7 +27,7 @@ class BatchRunner {
     stopwatch.start();
     var testsFailed = 0;
     var totalTests = 0;
-    var batchResult = ErrorSeverity.NONE;
+    var batchResult = DiagnosticSeverity.NONE;
     // Read line from stdin.
     var cmdLine = stdin.transform(utf8.decoder).transform(LineSplitter());
     cmdLine.listen((String line) async {
@@ -49,7 +50,7 @@ class BatchRunner {
       try {
         totalTests++;
         var result = await handler(args);
-        var resultPass = result != ErrorSeverity.ERROR;
+        var resultPass = result != DiagnosticSeverity.ERROR;
         if (!resultPass) {
           testsFailed++;
         }

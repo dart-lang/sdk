@@ -23,9 +23,7 @@ class A {
 }
 class B extends Object with A {}
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 49, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 49, 1)],
     );
   }
 
@@ -37,9 +35,7 @@ class A {
 }
 class B = Object with A;
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1)],
     );
   }
 
@@ -54,9 +50,7 @@ enum E with A {
   v
 }
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 34, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 34, 1)],
     );
   }
 
@@ -88,9 +82,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1)],
     );
   }
 
@@ -102,9 +94,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 27, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 27, 1)],
     );
   }
 
@@ -117,9 +107,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 35, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 35, 1)],
     );
   }
 
@@ -131,9 +119,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [
-        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1),
-      ],
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1)],
     );
   }
 

@@ -68,14 +68,11 @@ main([args, port]) async {
       Isolate.spawn(remote, rawPort.sendPort);
       Isolate.spawn(remote, port.sendPort);
       int ctr = 2;
-      port.listen(
-        (v) {
-          Expect.equals(v, "reply");
-          ctr--;
-          if (ctr == 0) port.close();
-        },
-        onDone: () => completer.complete(),
-      );
+      port.listen((v) {
+        Expect.equals(v, "reply");
+        ctr--;
+        if (ctr == 0) port.close();
+      }, onDone: () => completer.complete());
     };
     return completer.future;
   });
@@ -86,14 +83,18 @@ main([args, port]) async {
     final onExit = ReceivePort();
 
     final parentSendPort = parentPort.sendPort;
-    await Isolate.spawn((_) async {
-      final weakPort = RawReceivePort();
-      parentSendPort.send(weakPort.sendPort);
-      weakPort.handler = (message) {
-        weakPort.keepIsolateAlive = false;
-        parentSendPort.send(1000 + message);
-      };
-    }, null, onExit: onExit.sendPort);
+    await Isolate.spawn(
+      (_) async {
+        final weakPort = RawReceivePort();
+        parentSendPort.send(weakPort.sendPort);
+        weakPort.handler = (message) {
+          weakPort.keepIsolateAlive = false;
+          parentSendPort.send(1000 + message);
+        };
+      },
+      null,
+      onExit: onExit.sendPort,
+    );
 
     final si = StreamIterator(parentPort);
 

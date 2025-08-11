@@ -165,9 +165,9 @@ void main() {
                 System.linux)));
       });
 
-      test("architecture defaults to 'x64'", () {
+      test("architecture defaults to host architecture", () {
         expect(Configuration.parse("dart2js-debug-vm-linux", {}).architecture,
-            equals(Architecture.x64));
+            equals(Architecture.host));
       });
 
       test("compiler defaults to runtime's default compiler", () {
@@ -213,7 +213,7 @@ void main() {
               "hot-reload-rollback": true,
               "use-sdk": true
             }),
-            equals(Configuration("dart2js", Architecture.x64, Compiler.dart2js,
+            equals(Configuration("dart2js", Architecture.host, Compiler.dart2js,
                 Mode.release, Runtime.d8, System.host,
                 nnbdMode: NnbdMode.weak,
                 builderTag: "the tag",
@@ -390,7 +390,7 @@ void main() {
         isMinified: true,
         useAnalyzerCfe: true,
         useAnalyzerFastaParser: true,
-        useElf: true,
+        genSnapshotFormat: GenSnapshotFormat.elf,
         useHotReload: true,
         useHotReloadRollback: true,
         useSdk: true,

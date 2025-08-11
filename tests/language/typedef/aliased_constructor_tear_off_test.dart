@@ -58,14 +58,8 @@ void main() {
       Bounded.new,
       Bounded.named,
     ],
-    const <C<C<int>> Function(C<int>)>[
-      Wrapping.new,
-      Wrapping.named,
-    ],
-    const <C<int> Function(int)>[
-      Extra.new,
-      Extra.named,
-    ]
+    const <C<C<int>> Function(C<int>)>[Wrapping.new, Wrapping.named],
+    const <C<int> Function(int)>[Extra.new, Extra.named],
   ];
   Expect.isNotNull(constructors); // Use variable.
 
@@ -104,24 +98,32 @@ void main() {
 
   // Implicitly instantiated.
   context<C<int> Function(int)>(
-      Direct.new..expectStaticType<Exactly<C<int> Function(int)>>());
+    Direct.new..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
   context<C<int> Function(int)>(
-      Direct.named..expectStaticType<Exactly<C<int> Function(int)>>());
+    Direct.named..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
 
   context<C<int> Function(int)>(
-      Bounded.new..expectStaticType<Exactly<C<int> Function(int)>>());
+    Bounded.new..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
   context<C<int> Function(int)>(
-      Bounded.named..expectStaticType<Exactly<C<int> Function(int)>>());
+    Bounded.named..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
 
   context<C<C<int>> Function(C<int>)>(
-      Wrapping.new..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
+    Wrapping.new..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>(),
+  );
   context<C<C<int>> Function(C<int>)>(
-      Wrapping.named..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
+    Wrapping.named..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>(),
+  );
 
   context<C<int> Function(int)>(
-      Extra.new..expectStaticType<Exactly<C<int> Function(int)>>());
+    Extra.new..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
   context<C<int> Function(int)>(
-      Extra.named..expectStaticType<Exactly<C<int> Function(int)>>());
+    Extra.named..expectStaticType<Exactly<C<int> Function(int)>>(),
+  );
 
   // Uninstantiated tear-offs always canonicalize.
   Expect.identical(Direct.new, Direct.new);
@@ -173,22 +175,10 @@ void main() {
   Expect.identical(Swapped<int, String>.named, D<String, int>.named);
 
   // Implicit instantiation.
-  Expect.identical(
-    context<C<int> Function(int)>(Direct.new),
-    C<int>.new,
-  );
-  Expect.identical(
-    context<C<int> Function(int)>(Direct.named),
-    C<int>.named,
-  );
-  Expect.identical(
-    context<C<int> Function(int)>(Bounded.new),
-    C<int>.new,
-  );
-  Expect.identical(
-    context<C<int> Function(int)>(Bounded.named),
-    C<int>.named,
-  );
+  Expect.identical(context<C<int> Function(int)>(Direct.new), C<int>.new);
+  Expect.identical(context<C<int> Function(int)>(Direct.named), C<int>.named);
+  Expect.identical(context<C<int> Function(int)>(Bounded.new), C<int>.new);
+  Expect.identical(context<C<int> Function(int)>(Bounded.named), C<int>.named);
   Expect.identical(
     context<C<C<int>> Function(C<int>)>(Wrapping.new),
     C<C<int>>.new,

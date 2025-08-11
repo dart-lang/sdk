@@ -198,7 +198,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
     return true;
   }
 
-  LongJumpScope jump;
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
@@ -826,14 +826,15 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!cls.is_finalized());
 
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     cls.EnsureDeclarationLoaded();
     ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);
     return Error::null();
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)

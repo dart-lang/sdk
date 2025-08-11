@@ -6,12 +6,10 @@
 
 class C<T> {
   void m() {
-    const List lst = const [
-      T
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
-// [cfe] Type variables can't be used as constants.
-    ];
+    const List lst = const [T];
+    //                      ^
+    // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+    // [cfe] Type variables can't be used as constants.
   }
 }
 

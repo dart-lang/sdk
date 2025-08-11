@@ -14,13 +14,15 @@ typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 main() {
   print('start main');
 
-  DynamicLibrary ffiTestFunctions =
-      dlopenPlatformSpecific("ffi_test_functions");
+  DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+    "ffi_test_functions",
+  );
 
   {
     // Pass a struct to a c function and get a struct as return value.
-    Pointer<NativeFunction<NativeCoordinateOp>> p1 =
-        ffiTestFunctions.lookup("TransposeCoordinate");
+    Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
+      "TransposeCoordinate",
+    );
     NativeCoordinateOp f1 = p1.asFunction();
 
     final c1 = calloc<Coordinate>()
@@ -45,8 +47,9 @@ main() {
 
   {
     // Pass an array of structs to a c function.
-    Pointer<NativeFunction<NativeCoordinateOp>> p1 =
-        ffiTestFunctions.lookup("CoordinateElemAt1");
+    Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
+      "CoordinateElemAt1",
+    );
     NativeCoordinateOp f1 = p1.asFunction();
 
     Pointer<Coordinate> c1 = calloc<Coordinate>(3);

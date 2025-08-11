@@ -59,15 +59,15 @@ class ParsedArguments {
     this.isExpressionCompiler = false,
   });
 
-  /// Preprocess arguments to determine whether DDK is used in batch mode or as a
-  /// persistent worker.
+  /// Preprocess arguments to determine whether DDK is used in batch mode or as
+  /// a persistent worker.
   ///
   /// When used in batch mode, we expect a `--batch` parameter.
   ///
   /// When used as a persistent bazel worker, the `--persistent_worker` might be
-  /// present, and an argument of the form `@path/to/file` might be provided. The
-  /// latter needs to be replaced by reading all the contents of the
-  /// file and expanding them into the resulting argument list.
+  /// present, and an argument of the form `@path/to/file` might be provided.
+  /// The `@latter needs to be replaced by reading all the contents of the file
+  /// and expanding them into the resulting argument list.
   factory ParsedArguments.from(List<String> args) {
     if (args.isEmpty) return ParsedArguments._(args);
 
@@ -101,12 +101,14 @@ class ParsedArguments {
         newArgs.add(arg);
       }
     }
-    return ParsedArguments._(newArgs,
-        isWorker: isWorker,
-        isBatch: isBatch,
-        reuseResult: reuseResult,
-        useIncrementalCompiler: useIncrementalCompiler,
-        isExpressionCompiler: isExpressionCompiler);
+    return ParsedArguments._(
+      newArgs,
+      isWorker: isWorker,
+      isBatch: isBatch,
+      reuseResult: reuseResult,
+      useIncrementalCompiler: useIncrementalCompiler,
+      isExpressionCompiler: isExpressionCompiler,
+    );
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.
@@ -128,12 +130,14 @@ class ParsedArguments {
     if (newArgs.isBatchOrWorker) {
       throw ArgumentError('cannot change batch or worker mode after startup.');
     }
-    return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
-        isWorker: isWorker,
-        isBatch: isBatch,
-        reuseResult: reuseResult || newArgs.reuseResult,
-        useIncrementalCompiler:
-            useIncrementalCompiler || newArgs.useIncrementalCompiler);
+    return ParsedArguments._(
+      rest.toList()..addAll(newArgs.rest),
+      isWorker: isWorker,
+      isBatch: isBatch,
+      reuseResult: reuseResult || newArgs.reuseResult,
+      useIncrementalCompiler:
+          useIncrementalCompiler || newArgs.useIncrementalCompiler,
+    );
   }
 }
 

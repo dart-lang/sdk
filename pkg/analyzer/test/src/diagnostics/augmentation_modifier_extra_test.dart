@@ -23,13 +23,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment abstract class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 8)],
+    );
   }
 
   test_class_abstract_base() async {
@@ -39,14 +40,17 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment abstract base class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 8),
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 36, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 8),
+        error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 36, 4),
+      ],
+    );
   }
 
   test_class_base() async {
@@ -56,13 +60,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment base class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 4)],
+    );
   }
 
   test_class_final() async {
@@ -72,13 +77,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment final class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 5)],
+    );
   }
 
   test_class_interface() async {
@@ -88,13 +94,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment interface class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 9)],
+    );
   }
 
   test_class_mixin() async {
@@ -104,13 +111,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment mixin class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 5)],
+    );
   }
 
   test_class_sealed() async {
@@ -120,13 +128,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment sealed class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 6)],
+    );
   }
 
   test_mixin_base() async {
@@ -136,12 +145,13 @@ part 'test.dart';
 mixin A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment base mixin A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, 27, 4)],
+    );
   }
 }

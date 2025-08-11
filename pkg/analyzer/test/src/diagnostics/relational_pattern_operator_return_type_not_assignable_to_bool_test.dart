@@ -10,7 +10,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        RelationalPatternOperatorReturnTypeNotAssignableToBoolTest);
+      RelationalPatternOperatorReturnTypeNotAssignableToBoolTest,
+    );
   });
 }
 
@@ -30,7 +31,8 @@ void f(A x) {
   }
 
   test_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int operator >(_) => 42;
 }
@@ -38,17 +40,21 @@ class A {
 void f(A x) {
   if (x case > 0) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
           67,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_Object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   Object operator >(_) => 42;
 }
@@ -56,12 +62,15 @@ class A {
 void f(A x) {
   if (x case > 0) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
           70,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

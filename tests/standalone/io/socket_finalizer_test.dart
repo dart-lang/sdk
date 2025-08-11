@@ -26,13 +26,17 @@ main() async {
   Isolate isolate = await Isolate.spawn(ConnectorIsolate, server.port);
   Completer<Null> completer = new Completer<Null>();
   server.listen((Socket socket) {
-    socket.listen((_) {}, onDone: () {
-      print("Socket closed normally");
-      completer.complete(null);
-      socket.close();
-    }, onError: (e) {
-      Expect.fail("Socket error $e");
-    });
+    socket.listen(
+      (_) {},
+      onDone: () {
+        print("Socket closed normally");
+        completer.complete(null);
+        socket.close();
+      },
+      onError: (e) {
+        Expect.fail("Socket error $e");
+      },
+    );
 
     final port = ReceivePort();
     port.listen((_) {

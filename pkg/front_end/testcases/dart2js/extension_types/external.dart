@@ -44,6 +44,8 @@ extension type B._(A a) {
   external static B get staticProperty;
 
   external static void set staticProperty(B b);
+
+  external B methodWithOptionalArgument([B? b]);
 }
 
 void method(A a) {
@@ -63,4 +65,6 @@ void method(A a) {
   b1 = B.staticGetter;
   B.staticSetter = b2;
   B.staticProperty = B.staticProperty;
+  b2 = b1.methodWithOptionalArgument(b2);
+  b1 = b2.methodWithOptionalArgument();
 }

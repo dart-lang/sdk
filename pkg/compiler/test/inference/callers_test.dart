@@ -70,20 +70,18 @@ class CallersIrComputer extends IrDataExtractor<String> {
   String? getMemberValue(MemberEntity member) {
     Iterable<MemberEntity>? callers = inferrer.getCallersOfForTesting(member);
     if (callers != null) {
-      List<String> names =
-          callers.map((MemberEntity member) {
-              StringBuffer sb = StringBuffer();
-              if (member.enclosingClass != null) {
-                sb.write(member.enclosingClass!.name);
-                sb.write('.');
-              }
-              sb.write(member.name);
-              if (member.isSetter) {
-                sb.write('=');
-              }
-              return sb.toString();
-            }).toList()
-            ..sort();
+      List<String> names = callers.map((MemberEntity member) {
+        StringBuffer sb = StringBuffer();
+        if (member.enclosingClass != null) {
+          sb.write(member.enclosingClass!.name);
+          sb.write('.');
+        }
+        sb.write(member.name);
+        if (member.isSetter) {
+          sb.write('=');
+        }
+        return sb.toString();
+      }).toList()..sort();
       return '[${names.join(',')}]';
     }
     return null;

@@ -16,10 +16,10 @@ class C {
   // [cfe] Final field 'd' is not initialized.
 
   C() {}
-//^
-// [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED_CONSTRUCTOR
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED_CONSTRUCTOR
   C(this.d) {}
-//^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
-// [cfe] 'C' is already declared in this scope.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
+  // [cfe] 'C' is already declared in this scope.
 }

@@ -33,7 +33,7 @@ class A {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
+        return error.diagnosticCode == ParserErrorCode.VAR_AS_TYPE_NAME;
       },
     );
   }

@@ -9,14 +9,14 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/builder_factory.dart';
+import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -25,6 +25,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
 sealed class MethodEncoding implements InferredTypeListener {
@@ -42,13 +43,13 @@ sealed class MethodEncoding implements InferredTypeListener {
   void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f,
@@ -97,10 +98,8 @@ sealed class MethodEncodingStrategy {
     }
   }
 
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory);
 }
 
 mixin _DirectMethodEncodingMixin implements MethodEncoding {
@@ -145,17 +144,20 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
     buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
         bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
     buildFormalsForOutlineExpressions(
@@ -209,7 +211,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -251,8 +253,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     if (formals == null) {
       return new FormalParameterScope(parent: parent);
     }
-    Map<String, Builder> local = <String, Builder>{};
-    for (FormalParameterBuilder formal in formals) {
+    Map<String, VariableBuilder> local = {};
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       if (formal.isWildcard) {
         continue;
       }
@@ -268,7 +271,8 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
         .build(libraryBuilder, TypeUse.returnType, hierarchy: hierarchy);
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals != null) {
-      for (FormalParameterBuilder formal in declaredFormals) {
+      for (int i = 0; i < declaredFormals.length; i++) {
+        FormalParameterBuilder formal = declaredFormals[i];
         formal.type
             .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
       }
@@ -386,17 +390,20 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
 
     buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
         bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
@@ -475,7 +482,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -531,7 +538,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   LocalScope createFormalParameterScope(LookupScope parent) {
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
 
     assert(!_thisFormal.isWildcard);
     local[_thisFormal.name] = _thisFormal;
@@ -743,17 +750,15 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -821,10 +826,8 @@ class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new _ExtensionStaticMethodEncoding(fragment);
   }
 }
@@ -861,10 +864,8 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -872,7 +873,7 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return fragment.isOperator
@@ -939,10 +940,8 @@ class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new _ExtensionTypeStaticMethodEncoding(fragment);
   }
 }
@@ -974,10 +973,8 @@ class _RegularMethodStrategy implements MethodEncodingStrategy {
   const _RegularMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(
-      SourceMethodBuilder builder,
-      MethodFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
+      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
     return fragment.isOperator
         ? new _RegularOperatorEncoding(fragment)
         : new _RegularMethodEncoding(fragment);

@@ -24,11 +24,12 @@ var f = ({int a = 0}) {};
   }
 
   test_closure_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var f = ({int a}) {};
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 14, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 14, 1)],
+    );
   }
 
   test_closure_nonNullable_positional_optional_default() async {
@@ -38,12 +39,18 @@ var f = ([int a = 0]) {};
   }
 
   test_closure_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var f = ([int a]) {};
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          14, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          14,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_externalFactory_nonNullable_named_optional_noDefault() async {
@@ -71,26 +78,33 @@ class C {
   }
 
   test_constructor_factory_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   factory C({int a}) => C._();
   C._();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 27, 1)],
+    );
   }
 
   test_constructor_factory_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   factory C([int a]) => C._();
   C._();
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          27, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_factory_nullable_named_optional_noDefault() async {
@@ -103,13 +117,14 @@ class C {
   }
 
   test_constructor_generative_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C({int a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 19, 1)],
+    );
   }
 
   test_constructor_generative_nonNullable_named_optional_super_hasDefault_explicit() async {
@@ -149,40 +164,48 @@ class B extends A {
   }
 
   test_constructor_generative_nonNullable_named_optional_super_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A({int? a});
 }
 class B extends A{
   B({int super.a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1)],
+    );
   }
 
   test_constructor_generative_nonNullable_named_optional_super_noDefault_fromSuper() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A({num a = 1.2});
 }
 class B extends A{
   B({int super.a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 66, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 66, 1)],
+    );
   }
 
   test_constructor_generative_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C([int a]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          19, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          19,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_generative_nonNullable_positional_optional_super_hasDefault_explicit() async {
@@ -208,31 +231,43 @@ class B extends A{
   }
 
   test_constructor_generative_nonNullable_positional_optional_super_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A([int? a]);
 }
 class B extends A{
   B([int super.a]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          61, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_generative_nonNullable_positional_optional_super_noDefault_fromSuper() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A([num a = 1.2]);
 }
 class B extends A{
   B([int super.a]);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          66, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          66,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_generative_nullable_named_optional_noDefault() async {
@@ -253,7 +288,8 @@ class C {
   }
 
   test_constructor_generative_super_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int a;
   A({this.a = 0});
@@ -266,9 +302,9 @@ class B extends A {
 class C extends B {
   C({super.a});
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 126, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 126, 1)],
+    );
   }
 
   test_constructor_generative_super_nullable_named_optional_noDefault() async {
@@ -391,35 +427,39 @@ external void f([int? a]);
   }
 
   test_function_native_nonNullable_named_optional_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f({int a = 0}) native;
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7)],
+    );
   }
 
   test_function_native_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f({int a}) native;
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7)],
+    );
   }
 
   test_function_native_nonNullable_positional_optional_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f([int a = 0]) native;
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7)],
+    );
   }
 
   test_function_native_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f([int a]) native;
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7)],
+    );
   }
 
   test_function_nonNullable_named_optional_default() async {
@@ -429,11 +469,12 @@ void f({int a = 0}) {}
   }
 
   test_function_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f({int a}) {}
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 12, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 12, 1)],
+    );
   }
 
   test_function_nonNullable_named_required() async {
@@ -449,12 +490,18 @@ void f([int a = 0]) {}
   }
 
   test_function_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f([int a]) {}
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          12, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          12,
+          1,
+        ),
+      ],
+    );
   }
 
   test_function_nonNullable_positional_required() async {
@@ -622,74 +669,86 @@ class A<T extends Object?> {
   }
 
   test_method_native_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo({int a}) native;
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7)],
+    );
   }
 
   test_method_native_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo([int a]) native;
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7)],
+    );
   }
 
   test_method_native_nullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo({int? a}) native;
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7)],
+    );
   }
 
   test_method_native_potentiallyNonNullable_named_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   void foo({T a}) native;
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7)],
+    );
   }
 
   test_method_native_potentiallyNonNullable_positional_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends Object?> {
   void foo([T a]) native;
 }
-''', [
-      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 47, 7),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 47, 7)],
+    );
   }
 
   test_method_nonNullable_named_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo({int a}) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 26, 1)],
+    );
   }
 
   test_method_nonNullable_positional_optional_noDefault() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo([int a]) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          26, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          26,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_nullable_named_optional_noDefault() async {
@@ -701,24 +760,31 @@ class C {
   }
 
   test_method_potentiallyNonNullable_named_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends Object?> {
   void foo({T a}) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1)],
+    );
   }
 
   test_method_potentiallyNonNullable_positional_optional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends Object?> {
   void foo([T a]) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
-          43, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL,
+          43,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super_forward_wildcards() async {
@@ -741,18 +807,22 @@ class MissingDefaultValueForParameterWithAnnotationTest
     extends PubPackageResolutionTest {
   test_method_withAnnotation() async {
     writeTestPackageConfigWithMeta();
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class C {
   void foo({@required int a}) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
           70,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

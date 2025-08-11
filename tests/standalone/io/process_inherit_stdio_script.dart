@@ -15,14 +15,16 @@ void main(List<String> args) {
     return;
   }
   asyncStart();
-  var script =
-      Platform.script.resolve('process_inherit_stdio_script.dart').toFilePath();
+  var script = Platform.script
+      .resolve('process_inherit_stdio_script.dart')
+      .toFilePath();
   var future = Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..addAll([script, "--child", "foo"]),
-      mode: ProcessStartMode.inheritStdio);
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..addAll([script, "--child", "foo"]),
+    mode: ProcessStartMode.inheritStdio,
+  );
   future.then((process) {
     process.exitCode.then((c) {
       asyncEnd();

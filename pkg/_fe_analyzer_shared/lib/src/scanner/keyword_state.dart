@@ -26,7 +26,8 @@ extension type KeywordState._(int _offset) {
     // The entry for next starts with A at index offset + 1 because offset + 0
     // is the (possible) keyword.
     return new KeywordState._(
-        KeywordStateHelper._table![_offset + next - $A + 1]);
+      KeywordStateHelper._table![_offset + next - $A + 1],
+    );
   }
 }
 

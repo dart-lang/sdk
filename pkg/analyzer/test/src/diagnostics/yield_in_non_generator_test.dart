@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class YieldInNonGeneratorTest extends PubPackageResolutionTest {
   test_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() async {
   yield 0;
 }
-''', [
-      error(CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, 14, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, 14, 8)],
+    );
   }
 
   test_asyncStar() async {
@@ -34,16 +35,19 @@ f() async* {
   }
 
   @FailingTest(
-      reason: 'We are currently trying to parse the yield statement as a '
-          'binary expression.')
+    reason:
+        'We are currently trying to parse the yield statement as a '
+        'binary expression.',
+  )
   test_sync() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   yield 0;
 }
-''', [
-      error(CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, 0, 0),
-    ]);
+''',
+      [error(CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, 0, 0)],
+    );
   }
 
   test_syncStar() async {

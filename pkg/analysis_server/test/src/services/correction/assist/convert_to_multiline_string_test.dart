@@ -17,15 +17,15 @@ void main() {
 @reflectiveTest
 class ConvertToMultilineStringTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
+  AssistKind get kind => DartAssistKind.convertToMultilineString;
 
   Future<void> test_doubleQuoted() async {
     await resolveTestCode('''
 void f() {
-  print("abc");
+  print("^abc");
 }
 ''');
-    await assertHasAssistAt('abc', '''
+    await assertHasAssist('''
 void f() {
   print("""
 abc""");
@@ -36,10 +36,10 @@ abc""");
   Future<void> test_doubleQuoted_alreadyMultiline() async {
     await resolveTestCode('''
 void f() {
-  print("""abc""");
+  print("""^abc""");
 }
 ''');
-    await assertNoAssistAt('abc');
+    await assertNoAssist();
   }
 
   Future<void> test_doubleQuoted_interpolation_expressionElement() async {
@@ -47,10 +47,10 @@ void f() {
 void f() {
   var b = 'b';
   var c = 'c';
-  print("a $b - ${c} d");
+  print("a $b - ${^c} d");
 }
 """);
-    await assertNoAssistAt(r'c}');
+    await assertNoAssist();
   }
 
   Future<void> test_doubleQuoted_interpolation_stringElement_begin() async {
@@ -58,10 +58,10 @@ void f() {
 void f() {
   var b = 'b';
   var c = 'c';
-  print("a $b - ${c} d");
+  print(^"a $b - ${c} d");
 }
 """);
-    await assertHasAssistAt('"a ', r'''
+    await assertHasAssist(r'''
 void f() {
   var b = 'b';
   var c = 'c';
@@ -76,10 +76,10 @@ a $b - ${c} d""");
 void f() {
   var b = 'b';
   var c = 'c';
-  print("a $b - ${c} d");
+  print("a $b ^- ${c} d");
 }
 """);
-    await assertHasAssistAt('- ', r'''
+    await assertHasAssist(r'''
 void f() {
   var b = 'b';
   var c = 'c';
@@ -92,10 +92,10 @@ a $b - ${c} d""");
   Future<void> test_doubleQuoted_raw() async {
     await resolveTestCode('''
 void f() {
-  print(r"abc");
+  print(r"^abc");
 }
 ''');
-    await assertHasAssistAt('abc', '''
+    await assertHasAssist('''
 void f() {
   print(r"""
 abc""");
@@ -107,29 +107,29 @@ abc""");
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  "abc
+  ^"abc
 }
 ''');
-    await assertNoAssistAt('"');
+    await assertNoAssist();
   }
 
   Future<void> test_doubleQuoted_unterminated_empty() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  "
+  ^"
 }
 ''');
-    await assertNoAssistAt('"');
+    await assertNoAssist();
   }
 
   Future<void> test_singleQuoted() async {
     await resolveTestCode('''
 void f() {
-  print('abc');
+  print('^abc');
 }
 ''');
-    await assertHasAssistAt('abc', """
+    await assertHasAssist("""
 void f() {
   print('''
 abc''');
@@ -142,10 +142,10 @@ abc''');
 void f() {
   var b = 'b';
   var c = 'c';
-  print('a $b - ${c} d');
+  print('a $b - ${^c} d');
 }
 """);
-    await assertNoAssistAt(r'c}');
+    await assertNoAssist();
   }
 
   Future<void> test_singleQuoted_interpolation_stringElement_begin() async {
@@ -153,10 +153,10 @@ void f() {
 void f() {
   var b = 'b';
   var c = 'c';
-  print('a $b - ${c} d');
+  print(^'a $b - ${c} d');
 }
 """);
-    await assertHasAssistAt("'a ", r"""
+    await assertHasAssist(r"""
 void f() {
   var b = 'b';
   var c = 'c';
@@ -171,10 +171,10 @@ a $b - ${c} d''');
 void f() {
   var b = 'b';
   var c = 'c';
-  print('a $b - ${c} d');
+  print('a $b ^- ${c} d');
 }
 """);
-    await assertHasAssistAt('- ', r"""
+    await assertHasAssist(r"""
 void f() {
   var b = 'b';
   var c = 'c';
@@ -187,10 +187,10 @@ a $b - ${c} d''');
   Future<void> test_singleQuoted_raw() async {
     await resolveTestCode('''
 void f() {
-  print(r'abc');
+  print(r'^abc');
 }
 ''');
-    await assertHasAssistAt('abc', """
+    await assertHasAssist("""
 void f() {
   print(r'''
 abc''');
@@ -202,19 +202,19 @@ abc''');
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  'abc
+  ^'abc
 }
 ''');
-    await assertNoAssistAt("'");
+    await assertNoAssist();
   }
 
   Future<void> test_singleQuoted_unterminated_empty() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  '
+  ^'
 }
 ''');
-    await assertNoAssistAt("'");
+    await assertNoAssist();
   }
 }

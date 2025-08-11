@@ -14,17 +14,20 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// Test configuration used for testing the analyzer without experiments.
 final TestConfig analyzerDefaultConfig = TestConfig(
-    analyzerMarker, 'analyzer without experiments',
-    featureSet: FeatureSet.latestLanguageVersion());
+  analyzerMarker,
+  'analyzer without experiments',
+  featureSet: FeatureSet.latestLanguageVersion(),
+);
 
 /// A fake absolute directory used as the root of a memory-file system in ID
 /// tests.
@@ -41,19 +44,22 @@ void onFailure(String message) {
 ///
 /// Returns `true` if an error was encountered.
 Future<Map<String, TestResult<T>>> runTest<T>(
-    MarkerOptions markerOptions,
-    TestData testData,
-    DataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
-    {required bool testAfterFailures,
-    bool forUserLibrariesOnly = true,
-    Iterable<Id> globalIds = const <Id>[],
-    required void Function(String message) onFailure,
-    Map<String, List<String>>? skipMap}) async {
+  MarkerOptions markerOptions,
+  TestData testData,
+  DataComputer<T> dataComputer,
+  List<TestConfig> testedConfigs, {
+  required bool testAfterFailures,
+  bool forUserLibrariesOnly = true,
+  Iterable<Id> globalIds = const <Id>[],
+  required void Function(String message) onFailure,
+  Map<String, List<String>>? skipMap,
+}) async {
   for (TestConfig config in testedConfigs) {
     if (!testData.expectedMaps.containsKey(config.marker)) {
-      throw ArgumentError("Unexpected test marker '${config.marker}'. "
-          "Supported markers: ${testData.expectedMaps.keys}.");
+      throw ArgumentError(
+        "Unexpected test marker '${config.marker}'. "
+        "Supported markers: ${testData.expectedMaps.keys}.",
+      );
     }
   }
 
@@ -63,37 +69,56 @@ Future<Map<String, TestResult<T>>> runTest<T>(
       continue;
     }
     results[config.marker] = await runTestForConfig(
-        markerOptions, testData, dataComputer, config,
-        fatalErrors: !testAfterFailures, onFailure: onFailure);
+      markerOptions,
+      testData,
+      dataComputer,
+      config,
+      fatalErrors: !testAfterFailures,
+      onFailure: onFailure,
+    );
   }
   return results;
 }
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction<T> runTestFor<T>(
-    DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
-  return (MarkerOptions markerOptions, TestData testData,
-      {required bool testAfterFailures,
-      bool? verbose,
-      bool? succinct,
-      bool? printCode,
-      Map<String, List<String>>? skipMap,
-      Uri? nullUri}) {
-    return runTest(markerOptions, testData, dataComputer, testedConfigs,
-        testAfterFailures: testAfterFailures,
-        onFailure: onFailure,
-        skipMap: skipMap);
+  DataComputer<T> dataComputer,
+  List<TestConfig> testedConfigs,
+) {
+  return (
+    MarkerOptions markerOptions,
+    TestData testData, {
+    required bool testAfterFailures,
+    bool? verbose,
+    bool? succinct,
+    bool? printCode,
+    Map<String, List<String>>? skipMap,
+    Uri? nullUri,
+  }) {
+    return runTest(
+      markerOptions,
+      testData,
+      dataComputer,
+      testedConfigs,
+      testAfterFailures: testAfterFailures,
+      onFailure: onFailure,
+      skipMap: skipMap,
+    );
   };
 }
 
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
-    TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors = true,
-    required void Function(String message) onFailure,
-    Map<String, List<String>>? skipMap}) async {
+Future<TestResult<T>> runTestForConfig<T>(
+  MarkerOptions markerOptions,
+  TestData testData,
+  DataComputer<T> dataComputer,
+  TestConfig config, {
+  bool fatalErrors = true,
+  required void Function(String message) onFailure,
+  Map<String, List<String>>? skipMap,
+}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker]!;
 
@@ -101,21 +126,18 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
   var testFiles = <_TestFile>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var uri = _toTestUri(entry.key);
-    var path = resourceProvider.convertPath(uri.path);
+    var path = ResourceProviderExtension(
+      resourceProvider,
+    ).convertPath(uri.path);
     var file = resourceProvider.getFile(path);
-    testFiles.add(
-      _TestFile(uri: uri, file: file),
-    );
+    testFiles.add(_TestFile(uri: uri, file: file));
     file.writeAsStringSync(entry.value);
   }
 
   var sdkRoot = resourceProvider.newFolder(
-    resourceProvider.convertPath('/sdk'),
+    ResourceProviderExtension(resourceProvider).convertPath('/sdk'),
   );
-  createMockSdk(
-    resourceProvider: resourceProvider,
-    root: sdkRoot,
-  );
+  createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
   var contextCollection = AnalysisContextCollectionImpl(
     includedPaths: testFiles.map((e) => e.path).toList(),
@@ -142,32 +164,35 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     var testUri = testFile.uri;
     var result = await analysisSession.getResolvedUnit(testFile.path);
     result as ResolvedUnitResult;
-    var errors =
-        result.errors.where((e) => e.severity == Severity.error).toList();
+    var errors = result.diagnostics.errors;
     if (errors.isNotEmpty) {
       if (dataComputer.supportsErrors) {
-        var errorMap = <int, List<AnalysisError>>{};
+        var diagnosticMap = <int, List<Diagnostic>>{};
         for (var error in errors) {
           var offset = error.offset;
           if (offset == 0 || offset < 0) {
             // Position errors without offset in the begin of the file.
             offset = 0;
           }
-          (errorMap[offset] ??= <AnalysisError>[]).add(error);
+          (diagnosticMap[offset] ??= <Diagnostic>[]).add(error);
         }
-        errorMap.forEach((offset, errors) {
+        diagnosticMap.forEach((offset, errors) {
           var id = NodeId(offset, IdKind.error);
           var data = dataComputer.computeErrorData(
-              config, driver.testingData!, id, errors);
+            config,
+            driver.testingData!,
+            id,
+            errors,
+          );
           if (data != null) {
             Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
             actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
           }
         });
       } else {
-        String formatError(AnalysisError e) {
+        String formatError(Diagnostic e) {
           var locationInfo = result.unit.lineInfo.getLocation(e.offset);
-          return '$locationInfo: ${e.errorCode}: ${e.message}';
+          return '$locationInfo: ${e.diagnosticCode}: ${e.message}';
         }
 
         onFailure('Errors found:\n  ${errors.map(formatError).join('\n  ')}');
@@ -179,13 +204,28 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 
   results.forEach((testUri, result) {
     dataComputer.computeUnitData(
-        driver.testingData!, result.unit, actualMapFor(testUri));
+      driver.testingData!,
+      result.unit,
+      actualMapFor(testUri),
+    );
   });
   var compiledData = AnalyzerCompiledData<T>(
-      testData.code, testData.entryPoint, actualMaps, globalData);
-  return checkCode(markerOptions, config.marker, config.name, testData,
-      memberAnnotations, compiledData, dataComputer.dataValidator,
-      fatalErrors: fatalErrors, onFailure: onFailure);
+    testData.code,
+    testData.entryPoint,
+    actualMaps,
+    globalData,
+  );
+  return checkCode(
+    markerOptions,
+    config.marker,
+    config.name,
+    testData,
+    memberAnnotations,
+    compiledData,
+    dataComputer.dataValidator,
+    fatalErrors: fatalErrors,
+    onFailure: onFailure,
+  );
 }
 
 /// Convert relative file paths into an absolute Uri as expected by the test
@@ -198,11 +238,11 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   final Map<Uri, AnnotatedCode> code;
 
   AnalyzerCompiledData(
-      this.code,
-      Uri mainUri,
-      Map<Uri, Map<Id, ActualData<T>>> actualMaps,
-      Map<Id, ActualData<T>> globalData)
-      : super(mainUri, actualMaps, globalData);
+    this.code,
+    Uri mainUri,
+    Map<Uri, Map<Id, ActualData<T>>> actualMaps,
+    Map<Id, ActualData<T>> globalData,
+  ) : super(mainUri, actualMaps, globalData);
 
   @override
   int getOffsetFromId(Id id, Uri uri) {
@@ -212,8 +252,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       var className = id.className;
       var name = id.memberName;
       var unit =
-          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
-              .unit;
+          parseString(
+            content: code[uri]!.sourceCode,
+            throwIfDiagnostics: false,
+          ).unit;
       if (className != null) {
         for (var declaration in unit.declarations) {
           if (declaration is ClassDeclaration &&
@@ -258,8 +300,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
     } else if (id is ClassId) {
       var className = id.className;
       var unit =
-          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
-              .unit;
+          parseString(
+            content: code[uri]!.sourceCode,
+            throwIfDiagnostics: false,
+          ).unit;
       for (var declaration in unit.declarations) {
         if (declaration is ClassDeclaration &&
             declaration.name.lexeme == className) {
@@ -273,8 +317,12 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   }
 
   @override
-  void reportError(Uri uri, int offset, String message,
-      {bool succinct = false}) {
+  void reportError(
+    Uri uri,
+    int offset,
+    String message, {
+    bool succinct = false,
+  }) {
     print('$offset: $message');
   }
 }
@@ -291,16 +339,22 @@ abstract class DataComputer<T> {
   /// state, so this testing feature is opt-in.
   bool get supportsErrors => false;
 
-  /// Returns data corresponding to [errors].
-  T? computeErrorData(TestConfig config, TestingData testingData, Id id,
-          List<AnalysisError> errors) =>
-      null;
+  /// Returns data corresponding to [diagnostics].
+  T? computeErrorData(
+    TestConfig config,
+    TestingData testingData,
+    Id id,
+    List<Diagnostic> diagnostics,
+  ) => null;
 
   /// Computes a data mapping for [unit].
   ///
   /// Fills [actualMap] with the data.
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<T>> actualMap);
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<T>> actualMap,
+  );
 }
 
 class TestConfig {
@@ -309,17 +363,14 @@ class TestConfig {
   final FeatureSet featureSet;
 
   TestConfig(this.marker, this.name, {FeatureSet? featureSet})
-      : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
+    : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }
 
 class _TestFile {
   final Uri uri;
   final File file;
 
-  _TestFile({
-    required this.uri,
-    required this.file,
-  });
+  _TestFile({required this.uri, required this.file});
 
   String get path => file.path;
 }

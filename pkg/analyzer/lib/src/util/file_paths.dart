@@ -94,7 +94,7 @@ bool isGenerated(String path) {
     '.pbenum.dart',
     '.pbserver.dart',
     '.pbjson.dart',
-    '.template.dart'
+    '.template.dart',
   ];
   for (var suffix in suffixes) {
     if (path.endsWith(suffix)) {

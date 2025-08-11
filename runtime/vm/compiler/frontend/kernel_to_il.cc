@@ -1059,6 +1059,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1549,7 +1551,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction: {
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -1982,7 +1986,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   // and thus already checked (e.g., the implementation of the
   // UnmodifiableXListView constructors).
 
-  body += AllocateObject(token_pos, view_class, /*arg_count=*/0);
+  body += AllocateObject(token_pos, view_class, /*argument_count=*/0);
   LocalVariable* view_object = MakeTemporary();
 
   body += LoadLocal(view_object);
@@ -2014,7 +2018,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   //
   // WARNING: Notice that we assume here no GC happens between the
   // LoadNativeField and the StoreNativeField, as the GC expects a properly
-  // updated data field (see ScavengerVisitorBase::VisitTypedDataViewPointers).
+  // updated data field (see ScavengerVisitor::VisitTypedDataViewPointers).
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
   body += LoadNativeField(Slot::PointerBase_data(),
@@ -2279,19 +2283,6 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
     return !alloc->known_function().IsNull();
   }
   return false;
-}
-
-Fragment FlowGraphBuilder::EvaluateAssertion() {
-  const Class& klass =
-      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
-  ASSERT(!klass.IsNull());
-  const auto& error = klass.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& target = Function::ZoneHandle(
-      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::EvaluateAssertion()));
-  ASSERT(!target.IsNull());
-  return StaticCall(TokenPosition::kNoSource, target, /* argument_count = */ 1,
-                    ICData::kStatic);
 }
 
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
@@ -3817,7 +3808,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     body += IntConstant(function.NumParameters());
   }
   body += LoadLocal(argument_count_var);
-  body += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+  body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
   LocalVariable* argument_count = MakeTemporary();
 
   // We are generating code like the following:
@@ -3880,7 +3871,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(index);
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
-    loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
+    loop_body += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
     loop_body +=
         LoadFpRelativeSlot(compiler::target::kWordSize *
                                compiler::target::frame_layout.param_end_from_fp,
@@ -3890,7 +3881,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     // ++i
     loop_body += LoadLocal(index);
     loop_body += IntConstant(1);
-    loop_body += SmiBinaryOp(Token::kADD, /*truncate=*/true);
+    loop_body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
     loop_body += StoreLocal(TokenPosition::kNoSource, index);
     loop_body += Drop();
 
@@ -5271,7 +5262,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   switch (function.GetFfiCallbackKind()) {
     case FfiCallbackKind::kIsolateLocalStaticCallback:
+    case FfiCallbackKind::kIsolateGroupSharedStaticCallback:
     case FfiCallbackKind::kIsolateLocalClosureCallback:
+    case FfiCallbackKind::kIsolateGroupSharedClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
     case FfiCallbackKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
@@ -5319,7 +5312,7 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(
       CachableIdempotentCall(TokenPosition::kNoSource, kUntagged, ffi_resolver,
                              /*argument_count=*/3,
                              /*argument_names=*/Array::null_array(),
-                             /*type_args_count=*/0);
+                             /*type_args_len=*/0);
   return body;
 #else  // !defined(TARGET_ARCH_IA32)
   // IA32 only has JIT and no pool. This function will only be compiled if
@@ -5582,8 +5575,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
-  const bool is_closure = function.GetFfiCallbackKind() ==
-                          FfiCallbackKind::kIsolateLocalClosureCallback;
+  const bool is_closure =
+      function.GetFfiCallbackKind() ==
+          FfiCallbackKind::kIsolateLocalClosureCallback ||
+      function.GetFfiCallbackKind() ==
+          FfiCallbackKind::kIsolateGroupSharedClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

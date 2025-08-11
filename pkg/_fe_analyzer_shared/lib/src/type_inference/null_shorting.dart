@@ -16,8 +16,13 @@ import '../flow_analysis/flow_analysis_operations.dart';
 /// The type parameter [Guard] should be instantiated with the data structure
 /// used by the client to desugar null-aware accesses. (The analyzer can
 /// instantiate this with `Null`, since it doesn't do desugaring.)
-mixin NullShortingMixin<Guard, Expression extends Object, Type extends Object>
-    on TypeAnalysisNullShortingInterface<Expression, Type> {
+mixin NullShortingMixin<
+  Guard,
+  Expression extends Object,
+  Variable extends Object,
+  Type extends Object
+>
+    on TypeAnalysisNullShortingInterface<Expression, Variable, Type> {
   /// Stack of [Guard] objects associated with null-shorting operations that
   /// haven't been terminated yet.
   final _guards = <Guard>[];
@@ -63,18 +68,36 @@ mixin NullShortingMixin<Guard, Expression extends Object, Type extends Object>
   /// desugar the null-aware access. It will be passed to
   /// [handleNullShortingStep] when the null shorting for this particular
   /// null-aware expression is terminated.
-  void startNullShorting(Guard guard, Expression target, Type targetType) {
+  ///
+  /// If the client desugars the null-aware access using a guard variable (e.g.,
+  /// if it desugars `a?.b` into `let x = a in x == null ? null : x.b`), it
+  /// should pass in the variable used for desugaring as [guardVariable]. Flow
+  /// analysis will ensure that this variable is promoted to the appropriate
+  /// type in the "not null" code path.
+  void startNullShorting(
+    Guard guard,
+    Expression target,
+    Type targetType, {
+    Variable? guardVariable,
+  }) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
-    flow.nullAwareAccess_rightBegin(target, targetType);
+    flow.nullAwareAccess_rightBegin(
+      target,
+      targetType,
+      guardVariable: guardVariable,
+    );
     _guards.add(guard);
   }
 }
 
 abstract interface class TypeAnalysisNullShortingInterface<
-    Expression extends Object, Type extends Object> {
+  Expression extends Object,
+  Variable extends Object,
+  Type extends Object
+> {
   /// Returns the client's [FlowAnalysis] object.
-  FlowAnalysisNullShortingInterface<Expression, Type> get flow;
+  FlowAnalysisNullShortingInterface<Expression, Variable, Type> get flow;
 
   /// Returns the number of null-shorting operations that haven't been
   /// terminated yet.

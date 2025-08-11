@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,10 @@ class UnnecessaryRawStrings extends LintRule {
     : super(name: LintNames.unnecessary_raw_strings, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_raw_strings;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_raw_strings;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
   }
@@ -34,7 +33,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw && ![r'\', r'$'].any(node.literal.lexeme.contains)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

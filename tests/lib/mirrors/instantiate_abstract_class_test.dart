@@ -13,9 +13,10 @@ assertInstantiationErrorOnGenerativeConstructors(classMirror) {
     if (!decl.isGenerativeConstructor) return;
     var args = new List<dynamic>.filled(decl.parameters.length, null);
     Expect.throws(
-        () => classMirror.newInstance(decl.constructorName, args),
-        (e) => e is AbstractClassInstantiationError,
-        '${decl.qualifiedName} should have failed');
+      () => classMirror.newInstance(decl.constructorName, args),
+      (e) => e is AbstractClassInstantiationError,
+      '${decl.qualifiedName} should have failed',
+    );
   });
 }
 

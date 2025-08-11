@@ -4,16 +4,16 @@
 
 import 'dart:io';
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/lint/io.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/pub.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -28,8 +28,8 @@ Source _createSource(Uri uri) {
 }
 
 /// Dart source linter, only for package:linter's tools and tests.
-class TestLinter implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
+class TestLinter implements DiagnosticListener {
+  final errors = <Diagnostic>[];
 
   final LinterOptions options;
   final file_system.ResourceProvider _resourceProvider;
@@ -38,11 +38,12 @@ class TestLinter implements AnalysisErrorListener {
     : _resourceProvider =
           resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
-  Future<List<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    var errors = <AnalysisErrorInfo>[];
+  Future<List<DiagnosticInfo>> lintFiles(List<File> files) async {
     var lintDriver = LintDriver(options, _resourceProvider);
-    errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
-    for (var file in files.where(isPubspecFile)) {
+    var errors = await lintDriver.analyze(
+      files.where((f) => f.path.endsWith('.dart')),
+    );
+    for (var file in files.where(_isPubspecFile)) {
       lintPubspecSource(
         contents: file.readAsStringSync(),
         sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
@@ -57,14 +58,14 @@ class TestLinter implements AnalysisErrorListener {
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (var rule in options.enabledRules) {
-      var visitor = rule.getPubspecVisitor();
+      var visitor = rule.pubspecVisitor;
       if (visitor != null) {
         // Analyzer sets reporters; if this file is not being analyzed,
         // we need to set one ourselves.  (Needless to say, when pubspec
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
           var source = _createSource(sourceUrl);
-          rule.reporter = ErrorReporter(this, source);
+          rule.reporter = DiagnosticReporter(this, source);
         }
         try {
           spec.accept(visitor);
@@ -76,5 +77,9 @@ class TestLinter implements AnalysisErrorListener {
   }
 
   @override
-  void onError(AnalysisError error) => errors.add(error);
+  void onDiagnostic(Diagnostic error) => errors.add(error);
+
+  /// Returns whether this [entry] is a pubspec file.
+  bool _isPubspecFile(FileSystemEntity entry) =>
+      path.basename(entry.path) == file_paths.pubspecYaml;
 }

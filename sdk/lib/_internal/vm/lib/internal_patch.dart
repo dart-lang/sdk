@@ -474,3 +474,11 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
 
 @pragma("vm:external-name", "Internal_loadDynamicModule")
 external Object? _loadDynamicModule(Uint8List bytes);
+
+@patch
+@pragma("vm:entry-point")
+abstract interface class IsolateGroup {
+  @patch
+  @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
+  external static Object _runSync(Object computation);
+}

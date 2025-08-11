@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
-    0xaa83f1d2)                                                                \
+    0xaa83f593)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
     SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
@@ -120,6 +120,10 @@ namespace dart {
     FfiNativeAsyncCallbackFunction, 0xbdd1a333)                                \
   V(FfiLibrary, ::, _nativeIsolateLocalCallbackFunction,                       \
     FfiNativeIsolateLocalCallbackFunction, 0x21b66eba)                         \
+  V(FfiLibrary, ::, _nativeIsolateGroupSharedCallbackFunction,                 \
+    FfiNativeIsolateGroupSharedCallbackFunction, 0x8882d3ca)                   \
+  V(FfiLibrary, ::, _nativeIsolateGroupSharedClosureFunction,                  \
+    FfiNativeIsolateGroupSharedClosureFunction, 0x2c93f675)                    \
   V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf70a6)    \
   V(FfiLibrary, ::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex,  \
     0xc188dd75)                                                                \

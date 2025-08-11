@@ -42,6 +42,8 @@ abstract class RpcErrorCodes {
   // static const kFileSystemDoesNotExist = 1002;
   // static const kFileDoesNotExist = 1003;
 
+  static const kConnectionFailed = 150;
+
   static const errorMessages = {
     kStreamAlreadySubscribed: 'Stream already subscribed',
     kStreamNotSubscribed: 'Stream not subscribed',
@@ -55,5 +57,7 @@ abstract class RpcErrorCodes {
     kPermissionDenied: 'Permission denied',
     kExpectsUriParamWithFileScheme: 'File scheme expected on uri',
     kUnknownUriScheme: 'URI scheme is not supported',
+    // Custom error codes.
+    kConnectionFailed: 'Connection failed',
   };
 }

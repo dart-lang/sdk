@@ -42,14 +42,16 @@ extension on JSFunction {
   @JS('call')
   external String _call(JSAny? self, String s);
 
-  String Function(String) get call => (String s) => _call(globalContext, s);
+  String Function(String) get call =>
+      (String s) => _call(globalContext, s);
 }
 
 extension type ExtOnJSObject._(JSObject _) {
   @JS('call')
   external String _call(String s);
 
-  String Function(String) get call => (String s) => _call(s);
+  String Function(String) get call =>
+      (String s) => _call(s);
 }
 
 @JS('jsFunction')
@@ -98,8 +100,10 @@ void main() {
 
 void testJSFunction() {
   var obj = jsFunctionAsJSFunction;
-  Expect.equals('C',
-      (obj.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart);
+  Expect.equals(
+    'C',
+    (obj.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart,
+  );
   Expect.equals('C', obj.call('Cello'));
   Expect.equals('C', (obj.call)('Cello'));
 
@@ -125,9 +129,13 @@ void testJSFunction() {
 void testExtOnJSObject() {
   var obj = jsFunctionAsExtOnJSObject;
   Expect.throws(
-      () => obj.call('Cello'), dart2wasm ? null : jsArgIsNotStringCheck);
+    () => obj.call('Cello'),
+    dart2wasm ? null : jsArgIsNotStringCheck,
+  );
   Expect.throws(
-      () => (obj.call)('Cello'), dart2wasm ? null : jsArgIsNotStringCheck);
+    () => (obj.call)('Cello'),
+    dart2wasm ? null : jsArgIsNotStringCheck,
+  );
 
   obj = jsObjectAsExtOnJSObject;
   Expect.equals('C', obj.call('Cello'));
@@ -140,20 +148,21 @@ void testExtOnJSObject() {
 
 void testExtOnJSObject2() {
   var obj = jsFunctionAsExtOnJSObject2;
-  Expect.throws(() =>
-      obj.call.callAsFunction(globalContext, globalContext, 'Cello'.toJS));
+  Expect.throws(
+    () => obj.call.callAsFunction(globalContext, globalContext, 'Cello'.toJS),
+  );
 
   obj = jsObjectAsExtOnJSObject2;
   Expect.equals(
-      'C',
-      (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString)
-          .toDart);
+    'C',
+    (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart,
+  );
 
   obj = jsClassAsExtOnJSObject2;
   Expect.equals(
-      'C',
-      (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString)
-          .toDart);
+    'C',
+    (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart,
+  );
 }
 
 void testExtOnJSFunction() {
@@ -163,9 +172,9 @@ void testExtOnJSFunction() {
   if (dart2wasm) {
     obj = jsObjectAsExtOnJSFunction;
     Expect.equals(
-        'C',
-        (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString)
-            .toDart);
+      'C',
+      (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart,
+    );
   } else {
     Expect.throwsTypeError(() => jsObjectAsExtOnJSFunction);
   }
@@ -173,9 +182,9 @@ void testExtOnJSFunction() {
   if (dart2wasm) {
     obj = jsClassAsExtOnJSFunction;
     Expect.equals(
-        'C',
-        (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString)
-            .toDart);
+      'C',
+      (obj.call.callAsFunction(globalContext, 'Cello'.toJS) as JSString).toDart,
+    );
   } else {
     Expect.throwsTypeError(() => jsClassAsExtOnJSFunction);
   }

@@ -312,6 +312,10 @@ MemberShouldBeListedAsCallableInDynamicInterface:
   problemMessage: "Cannot invoke member '#name' from a dynamic module."
   correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
 
+ExtensionTypeShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot use extension type '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable."
+
 ClassShouldBeListedAsCallableInDynamicInterface:
   problemMessage: "Cannot use class '#name' in a dynamic module."
   correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable."
@@ -2795,7 +2799,6 @@ ExtensionTypeDeclaresInstanceField:
 StaticConflictsWithInstance:
   problemMessage: "Static property '#name' conflicts with instance property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script: |
     class A {
       void set foo(_) {}
@@ -2809,7 +2812,6 @@ StaticConflictsWithInstanceCause:
 InstanceConflictsWithStatic:
   problemMessage: "Instance property '#name' conflicts with static property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script: |
     class A {
       static void set foo(_) {}
@@ -2903,17 +2905,6 @@ ConflictsWithImplicitSetter:
 
 ConflictsWithImplicitSetterCause:
   problemMessage: "Field '#name' with the implicit setter."
-  severity: CONTEXT
-
-ConflictsWithSetter:
-  problemMessage: "Conflicts with setter '#name'."
-  analyzerCode: CONFLICTS_WITH_MEMBER
-  script: |
-    void set foo(_) {}
-    int? foo;
-
-ConflictsWithSetterCause:
-  problemMessage: "Conflicting setter '#name'."
   severity: CONTEXT
 
 ConflictsWithTypeParameter:
@@ -4070,45 +4061,6 @@ ArgumentTypeNotAssignable:
       method(1.5);
     }
 
-ArgumentTypeNotAssignableNullability:
-  problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    method(int i) {}
-    main() {
-      int? j = null;
-      method(j);
-    }
-
-ArgumentTypeNotAssignablePartNullability:
-  problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    method(List<int> i) {}
-    main() {
-      List<int?> j = [null];
-      method(j);
-    }
-
-ArgumentTypeNotAssignableNullabilityNull:
-  problemMessage: "The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable."
-  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    method(int i) {}
-    main() {
-      method(null);
-    }
-
-ArgumentTypeNotAssignableNullabilityNullType:
-  problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable."
-  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    method(int i) {}
-    main() {
-      Null n;
-      method(n);
-    }
-
 InvalidAssignmentError:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
@@ -4116,45 +4068,6 @@ InvalidAssignmentError:
     main() {
       int i;
       i = 1.5;
-    }
-
-InvalidAssignmentErrorNullability:
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: INVALID_ASSIGNMENT
-  script: >
-    main() {
-      int i = 0;
-      int? j;
-      i = j;
-    }
-
-InvalidAssignmentErrorPartNullability:
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: INVALID_ASSIGNMENT
-  script: >
-    main() {
-      List<int> i = [];
-      List<int?> j = [null];
-      i = j;
-    }
-
-InvalidAssignmentErrorNullabilityNull:
-  problemMessage: "The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable."
-  analyzerCode: INVALID_ASSIGNMENT
-  script: >
-    main() {
-      int i = 0;
-      i = null;
-    }
-
-InvalidAssignmentErrorNullabilityNullType:
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable."
-  analyzerCode: INVALID_ASSIGNMENT
-  script: >
-    main() {
-      Null n;
-      int i = 0;
-      i = n;
     }
 
 PatchClassTypeParametersMismatch:
@@ -4236,7 +4149,7 @@ InvalidUseOfNullAwareAccess:
   analyzerCode: INVALID_USE_OF_NULL_AWARE_ACCESS
 
 UndefinedGetter:
-  problemMessage: "The getter '#name' isn't defined for the class '#type'."
+  problemMessage: "The getter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
   analyzerCode: UNDEFINED_GETTER
   script: >
@@ -4246,7 +4159,7 @@ UndefinedGetter:
     }
 
 UndefinedSetter:
-  problemMessage: "The setter '#name' isn't defined for the class '#type'."
+  problemMessage: "The setter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
   analyzerCode: UNDEFINED_SETTER
   script: >
@@ -4256,7 +4169,7 @@ UndefinedSetter:
     }
 
 UndefinedMethod:
-  problemMessage: "The method '#name' isn't defined for the class '#type'."
+  problemMessage: "The method '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
   analyzerCode: UNDEFINED_METHOD
   script: >
@@ -4266,7 +4179,7 @@ UndefinedMethod:
     }
 
 UndefinedOperator:
-  problemMessage: "The operator '#name' isn't defined for the class '#type'."
+  problemMessage: "The operator '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
   analyzerCode: UNDEFINED_METHOD
   script: >
@@ -4449,26 +4362,6 @@ ForInLoopElementTypeNotAssignable:
       for (int i in list) {}
     }
 
-ForInLoopElementTypeNotAssignableNullability:
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
-  correctionMessage: "Try changing the type of the variable."
-  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
-  script: |
-    method() {
-      List<int?> list = [];
-      for (int i in list) {}
-    }
-
-ForInLoopElementTypeNotAssignablePartNullability:
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  correctionMessage: "Try changing the type of the variable."
-  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
-  script: |
-    method() {
-      List<List<int?>> list = [[]];
-      for (List<int> i in list) {}
-    }
-
 ForInLoopTypeNotIterable:
   problemMessage: "The type '#type' used in the 'for' loop must implement '#type2'."
   analyzerCode: FOR_IN_OF_INVALID_TYPE
@@ -4477,22 +4370,6 @@ ForInLoopTypeNotIterable:
       String list = '';
       for (int i in list) {}
     }
-
-ForInLoopTypeNotIterableNullability:
-  problemMessage: "The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: FOR_IN_OF_INVALID_TYPE
-  script: |
-    method() {
-      List<int>? list = null;
-      for (int i in list) {}
-    }
-
-# This cannot never occur since the iterable is checked to be assignable to `Iterable<dynamic>` so nullability can
-# only be a problem at the immediate level as in [ForInLoopTypeNotIterableNullability]. The message is needed for
-# symmetry in the call site.
-ForInLoopTypeNotIterablePartNullability:
-  problemMessage: "The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: FOR_IN_OF_INVALID_TYPE
 
 InitializingFormalTypeMismatch:
   problemMessage: "The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'."
@@ -4692,41 +4569,9 @@ InvalidReturn:
   problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2'."
   declaration: "int foo() { return true; }"
 
-InvalidReturnNullability:
-  problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't."
-  declaration: "int foo(int? i) { return i; }"
-
-InvalidReturnPartNullability:
-  problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
-  declaration: "List<int> foo(List<int?> list) { return list; }"
-
-InvalidReturnNullabilityNull:
-  problemMessage: "The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable."
-  declaration: "int foo() { return null; }"
-
-InvalidReturnNullabilityNullType:
-  problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable."
-  declaration: "int foo(Null i) { return i; }"
-
 InvalidReturnAsync:
   problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2'."
   declaration: "Future<int> foo() async { return true; }"
-
-InvalidReturnAsyncNullability:
-  problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't."
-  declaration: "Future<int> foo(int? i) async { return i; }"
-
-InvalidReturnAsyncPartNullability:
-  problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
-  declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
-
-InvalidReturnAsyncNullabilityNull:
-  problemMessage: "The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable."
-  declaration: "Future<int> foo() async { return null; }"
-
-InvalidReturnAsyncNullabilityNullType:
-  problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable."
-  declaration: "Future<int> foo(Null n) async { return n; }"
 
 ImplicitReturnNull:
   problemMessage: "A non-null value must be returned since the return type '#type' doesn't allow null."
@@ -4989,26 +4834,6 @@ ObjectMixesIn:
   problemMessage: "The class 'Object' can't use mixins."
   frontendInternal: true
   external: test/object_supertype_test.dart
-
-StaticAndInstanceConflict:
-  problemMessage: "This static member conflicts with an instance member."
-  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
-  script:
-    - |
-      class C {
-        set foo(value) {}
-        static get foo => 42;
-      }
-    - |
-      class C {
-        static set foo(value) {}
-        get foo => 42;
-      }
-  analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
-
-StaticAndInstanceConflictCause:
-  problemMessage: "This is the instance member."
-  severity: CONTEXT
 
 InstanceAndSynthesizedStaticConflict:
   problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
@@ -5300,24 +5125,6 @@ SpreadElementTypeMismatch:
       List<int> b = <int>[...a];
     }
 
-SpreadElementTypeMismatchNullability:
-  problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      List<int?> a = <int?>[0, null];
-      List<int> b = <int>[...a];
-    }
-
-SpreadElementTypeMismatchPartNullability:
-  problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      List<List<int?>> a = <List<int?>>[[0, null]];
-      List<List<int>> b = <List<int>>[...a];
-    }
-
 SpreadMapEntryTypeMismatch:
   problemMessage: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
@@ -5341,24 +5148,6 @@ SpreadMapEntryElementKeyTypeMismatch:
       Map<int, int> b = <int, int>{...a};
     }
 
-SpreadMapEntryElementKeyTypeMismatchNullability:
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
-      Map<String, int> b = <String, int>{...a};
-    }
-
-SpreadMapEntryElementKeyTypeMismatchPartNullability:
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
-      Map<List<String>, int> b = <List<String>, int>{...a};
-    }
-
 SpreadMapEntryElementValueTypeMismatch:
   problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -5366,24 +5155,6 @@ SpreadMapEntryElementValueTypeMismatch:
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
-    }
-
-SpreadMapEntryElementValueTypeMismatchNullability:
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
-  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
-      Map<String, int> b = <String, int>{...a};
-    }
-
-SpreadMapEntryElementValueTypeMismatchPartNullability:
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
-  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  script: >
-    main() {
-      Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
-      Map<String, List<int>> b = <String, List<int>>{...a};
     }
 
 CantDisambiguateNotEnoughInformation:

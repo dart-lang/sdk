@@ -9,24 +9,67 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
-import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration/support/dart_tooling_daemon.dart';
-import '../integration/support/web_sockets.dart';
+import '../../integration_test/support/dart_tooling_daemon.dart';
+import '../../integration_test/support/web_sockets.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
+
+/// The name of the DTD service that LSP methods are registered against.
+const lspServiceName = 'Lsp';
+
+/// The name of the DTD stream that events/notifications will be posted to.
+const lspStreamName = 'Lsp';
+
+/// A wrapper around [DartToolingDaemon] that allows using the
+/// [LspRequestHelpersMixin] methods to send requests over DTD.
+class DtdHelper with LspRequestHelpersMixin {
+  final DartToolingDaemon connection;
+
+  DtdHelper(this.connection);
+
+  @override
+  Future<T> expectSuccessfulResponseTo<T, R>(
+    RequestMessage request,
+    T Function(R) fromJson,
+  ) async {
+    var response = await sendRequestToServer(request);
+    var error = response.error;
+    if (error != null) {
+      throw error;
+    } else {
+      // response.result should only be null when error != null if T allows null.
+      return response.result == null
+          ? null as T
+          : fromJson(response.result as R);
+    }
+  }
+
+  @override
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request) async {
+    var response = await connection.call(
+      lspServiceName,
+      request.method.toString(),
+      params: request.params as Map<String, Object?>,
+    );
+
+    return ResponseMessage(
+      jsonrpc: jsonRpcVersion,
+      // The LSP result is in the 'result' field, and DTD provides the whole
+      // result in `response.result`.
+      result: response.result['result'],
+    );
+  }
+}
 
 /// Shared DTD tests that are used by both LSP and legacy server integration
 /// tests.
-mixin SharedDtdTests on LspRequestHelpersMixin {
+mixin SharedDtdTests
+    on LspRequestHelpersMixin, LspEditHelpersMixin, LspVerifyEditHelpersMixin {
   /// The name of the DTD service that methods will be registered under.
-  static const lspServiceName = 'Lsp';
-
-  /// The name of the DTD stream that events/notifications will be posted to.
-  static const lspStreamName = 'Lsp';
 
   /// The `dart tooling-daemon` process we've spawned to connect to.
   late DtdProcess dtdProcess;
@@ -34,16 +77,27 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   /// The URI we can connect to [dtdProcess] using.
   late Uri dtdUri;
 
-  /// The tests client connection to DTD (used to verify we can call services
-  /// provided by the analysis server over DTD).
-  late DartToolingDaemon dtd;
+  /// A helper wrapping the tests connection to DTD which can be used to
+  /// interact with DTD and send LSP requests using the shared request helper
+  /// methods.
+  ///
+  /// Calling methods like `getHover` on this instance will send the request
+  /// DTD whereas calling [getHover] would send the request directly to the
+  /// server (via the real or simulated stdin/stdout streams).
+  late DtdHelper dtd;
 
   /// A list of service/methods that the test client has seen registered (and
   /// not yet unregistered) over the DTD connection.
-  final availableMethods = <(String, Method)>[];
+  ///
+  /// The service name is a nullable String because DTD-internal methods and
+  /// services do not have a service name.
+  final availableMethods = <(String?, Method)>[];
 
   /// An invalid DTD URI used for testing connection failures.
   final invalidUri = Uri.parse('ws://invalid:345/invalid');
+
+  // TODO(dantup): Support this for LSP-over-Legacy shared tests.
+  set failTestOnErrorDiagnostic(bool value);
 
   /// Overridden by test subclasses to provide the path of a file for testing.
   String get testFile;
@@ -53,6 +107,44 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
   /// Overridden by test subclasses to create a new file.
   void createFile(String path, String content);
+
+  /// Sets up a file with [code] and expects/returns the [Command] code action
+  /// with [title].
+  Future<Command> expectCommandCodeAction(TestCode code, String title) async {
+    createFile(testFile, code.code);
+    await initializeServer();
+    await sendConnectToDtdRequest();
+
+    // Ensure the codeAction service is available.
+    expectMethod(Method.textDocument_codeAction);
+
+    // Fetch code actions at the marked location.
+    var actions = await dtd.getCodeActions(
+      testFileUri,
+      range: code.range.range,
+    );
+
+    // Ensure all returned actions are Commands (not CodeActionLiterals).
+    var commands = actions.map((action) => action.asCommand).toList();
+
+    // Find the one with the matching title.
+    expect(commands.map((command) => command.title), contains(title));
+    return commands.singleWhere((command) => command.title == title);
+  }
+
+  Future<void> expectedCommandCodeActionEdits(
+    TestCode code,
+    String title,
+    String expected,
+  ) async {
+    var command = await expectCommandCodeAction(code, title);
+
+    // Invoke the command over DTD, expecting edits to be sent back to us
+    // (not over DTD).
+    var verifier = await executeForEdits(() => dtd.executeCommand(command));
+
+    verifier.verifyFiles(expected);
+  }
 
   void expectMethod(Method method, {bool available = true}) {
     if (available) {
@@ -78,13 +170,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     // Set up a completer to listen for the 'initialized' event on the Lsp
     // stream so that we know when the services have finished registering.
     var lspInitializedCompleter = Completer<void>();
-    var lspEventSub = dtd.onEvent(lspStreamName).listen((e) {
+    var lspEventSub = dtd.connection.onEvent(lspStreamName).listen((e) {
       switch (e.kind) {
         case 'initialized':
           lspInitializedCompleter.complete();
       }
     });
-    await dtd.streamListen(lspStreamName);
+    await dtd.connection.streamListen(lspStreamName);
 
     try {
       await connectToDtd(
@@ -97,7 +189,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     } finally {
       // Unsubscribe.
       await lspEventSub.cancel();
-      await dtd.streamCancel(lspStreamName);
+      await dtd.connection.streamCancel(lspStreamName);
     }
   }
 
@@ -107,28 +199,30 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
     // Create our own (logged) connection to it
     dtdUri = await dtdProcess.dtdUri;
-    dtd = DartToolingDaemon.fromStreamChannel(
-      await createLoggedWebSocketChannel(dtdUri),
+    dtd = DtdHelper(
+      DartToolingDaemon.fromStreamChannel(
+        await createLoggedWebSocketChannel(dtdUri),
+      ),
     );
 
     // Capture service method registrations/unregistrations.
-    dtd.onEvent('Service').listen((e) {
+    dtd.connection.onEvent('Service').listen((e) {
       switch (e.kind) {
         case 'ServiceRegistered':
           availableMethods.add((
-            e.data['service'] as String,
+            e.data['service'] as String?,
             Method(e.data['method'] as String),
           ));
         case 'ServiceUnregistered':
           availableMethods.remove((
-            e.data['service'] as String,
+            e.data['service'] as String?,
             Method(e.data['method'] as String),
           ));
       }
     });
 
     // Start listening to the stream.
-    await dtd.streamListen('Service');
+    await dtd.connection.streamListen('Service');
   }
 
   /// Overridden by test subclasses to instruct the server to shut down (which
@@ -250,7 +344,6 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.experimentalEcho);
   }
 
-  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   Future<void> test_connectToDtd_success_registers_standardLspMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -263,7 +356,84 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.textDocument_documentColor);
   }
 
-  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
+  Future<void> test_service_codeAction_assist() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+var a = [!''!];
+''');
+
+    var title = 'Convert to double quoted string';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+var a = "";
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_fix() async {
+    failTestOnErrorDiagnostic = false;
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+Future<void> [!f!]() {}
+''');
+
+    var title = "Add 'async' modifier";
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+Future<void> f() async {}
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_refactor() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+void f() {
+  [!print('');!]
+}
+''');
+
+    var title = 'Extract Method';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+void f() {
+  newMethod();
+}
+
+void newMethod() {
+  print('');
+}
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
+  Future<void> test_service_codeAction_source() async {
+    setApplyEditSupport();
+
+    var code = TestCode.parse('''
+[!!]import 'dart:async';
+import 'dart:io';
+
+FutureOr<void>? a;
+''');
+
+    var title = 'Organize Imports';
+    var expected = r'''
+>>>>>>>>>> lib/main.dart
+import 'dart:async';
+
+FutureOr<void>? a;
+''';
+
+    await expectedCommandCodeActionEdits(code, title, expected);
+  }
+
   Future<void> test_service_failure_hover() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -271,16 +441,9 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     // Attempt an unsuccessful request to textDocument/hover over DTD.
     expectMethod(Method.textDocument_hover);
     var nonExistantFilePath = testFile.replaceAll('.dart', '.notExist.dart');
-    var call = dtd.call(
-      lspServiceName,
-      'textDocument/hover',
-      params:
-          TextDocumentPositionParams(
-            textDocument: TextDocumentIdentifier(
-              uri: Uri.file(nonExistantFilePath),
-            ),
-            position: Position(line: 1, character: 1),
-          ).toJson(),
+    var call = dtd.getHover(
+      Uri.file(nonExistantFilePath),
+      Position(line: 1, character: 1),
     );
 
     // Expect a proper RPC Exception with the standard LSP error code/message.
@@ -299,7 +462,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
-    var response = await dtd.call(
+    var response = await dtd.connection.call(
       lspServiceName,
       CustomMethods.experimentalEcho.toString(),
       params: {'a': 'b'},
@@ -310,11 +473,28 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expect(result, equals({'a': 'b'}));
   }
 
-  Future<void> test_service_success_echo_nullResponse() async {
+  Future<void>
+  test_service_success_echo_nullResponse_with_empty_params() async {
     await initializeServer();
     await sendConnectToDtdRequest(registerExperimentalHandlers: true);
 
-    var response = await dtd.call(
+    var response = await dtd.connection.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+      params: const <String, Object?>{},
+    );
+
+    var result = response.result['result'] as Map<String, Object?>?;
+
+    expect(response.type, 'Null');
+    expect(result, isNull);
+  }
+
+  Future<void> test_service_success_echo_nullResponse_with_null_params() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.connection.call(
       lspServiceName,
       CustomMethods.experimentalEcho.toString(),
     );
@@ -325,7 +505,6 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expect(result, isNull);
   }
 
-  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   Future<void> test_service_success_hover() async {
     var code = TestCode.parse('''
 /// A function.
@@ -338,25 +517,10 @@ void [!myFun^ction!]() {}
 
     // Attempt a successful request to textDocument/hover over DTD.
     expectMethod(Method.textDocument_hover);
-    var response = await dtd.call(
-      lspServiceName,
-      'textDocument/hover',
-      params:
-          TextDocumentPositionParams(
-            textDocument: TextDocumentIdentifier(uri: testFileUri),
-            position: code.position.position,
-          ).toJson(),
-    );
-
-    expect(response.type, equals('Hover'));
-    // The LSP result is in the 'result' field, and DTD provides the whole
-    // result in `response.result`.
-    var result = response.result['result'] as Map<String, Object?>;
+    var hoverResult = await dtd.getHover(testFileUri, code.position.position);
 
     // Verify the result.
-    expect(Hover.canParse(result, nullLspJsonReporter), isTrue);
-    var hoverResult = Hover.fromJson(result);
-    var hoverStringContent = hoverResult.contents.map(
+    var hoverStringContent = hoverResult!.contents.map(
       (markup) => markup.value,
       (string) => string,
     );
@@ -364,12 +528,14 @@ void [!myFun^ction!]() {}
     expect(hoverStringContent, contains('A function.'));
   }
 
-  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   Future<void> test_service_unregisteredOnShutdown() async {
     await initializeServer();
     await sendConnectToDtdRequest();
 
-    expect(availableMethods, isNotEmpty);
+    var lspMethods = availableMethods.where(
+      (serviceMethod) => serviceMethod.$1 == 'Lsp',
+    );
+    expect(lspMethods, isNotEmpty);
 
     // Send a request to the server to connect to DTD. This will only complete
     // once all services are registered, however there's no guarantee about the
@@ -378,9 +544,9 @@ void [!myFun^ction!]() {}
     await shutdownServer();
 
     // Wait for the services to be unregistered.
-    while (availableMethods.isNotEmpty) {
+    while (lspMethods.isNotEmpty) {
       await pumpEventQueue(times: 5000);
     }
-    expect(availableMethods, isEmpty);
+    expect(lspMethods, isEmpty);
   }
 }

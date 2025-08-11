@@ -158,7 +158,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment LoadLocal(LocalVariable* variable);
   IndirectGotoInstr* IndirectGoto(intptr_t target_count);
   Fragment Return(TokenPosition position);
-  Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError(TokenPosition position,
                                   const Function& target,

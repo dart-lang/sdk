@@ -15,6 +15,9 @@ import '../vm_interop_handler.dart';
 class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
 
+  @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
   static const String commandDescription = '''
 Start Dart's analysis server.
 
@@ -35,7 +38,10 @@ For more information about the server's capabilities and configuration, see:
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
-    );
+    )..addFlag(useAotSnapshotFlag,
+        help: 'Use the AOT analysis server snapshot',
+        defaultsTo: true,
+        hide: true);
   }
 
   @override
@@ -48,12 +54,26 @@ For more information about the server's capabilities and configuration, see:
       args = [...args, '--$protocol=$lsp'];
     }
     try {
-      VmInteropHandler.run(
-        sdk.analysisServerSnapshot,
-        args,
-        packageConfigOverride: null,
-        useExecProcess: false,
-      );
+      if (argResults!.flag(useAotSnapshotFlag)) {
+        if (!Sdk.checkArtifactExists(sdk.dartAotRuntime)) {
+          return _genericErrorExitCode;
+        }
+        args = [...args];
+        args.remove('--$useAotSnapshotFlag');
+        VmInteropHandler.run(
+          sdk.dartAotRuntime,
+          [sdk.analysisServerAotSnapshot, ...args],
+          useExecProcess: true,
+        );
+      } else {
+        args = [...args];
+        args.remove('--no-$useAotSnapshotFlag');
+        VmInteropHandler.run(
+          sdk.analysisServerSnapshot,
+          args,
+          useExecProcess: false,
+        );
+      }
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching language analysis server failed');
@@ -64,4 +84,6 @@ For more information about the server's capabilities and configuration, see:
       return 255;
     }
   }
+
+  static const _genericErrorExitCode = 255;
 }

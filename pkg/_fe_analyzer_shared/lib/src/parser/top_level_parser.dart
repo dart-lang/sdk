@@ -17,7 +17,9 @@ class TopLevelParser extends ClassMemberParser {
   TopLevelParser(super.listener, {super.useImplicitCreationExpression});
 
   @override
-  Token parseClassOrMixinOrExtensionBody(Token token, DeclarationKind kind,
-          String? enclosingDeclarationName) =>
-      skipClassOrMixinOrExtensionBody(token);
+  Token parseClassOrMixinOrExtensionBody(
+    Token token,
+    DeclarationKind kind,
+    String? enclosingDeclarationName,
+  ) => skipClassOrMixinOrExtensionBody(token);
 }

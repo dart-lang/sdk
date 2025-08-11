@@ -126,7 +126,7 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
 
   for (auto main_port : oob_isolates) {
     Isolate::SendInternalLibMessage(main_port, Isolate::kCheckForReload,
-                                    /*ignored=*/-1);
+                                    /*capability=*/-1);
   }
 
   // Now wait for all threads that are not already at a safepoint to check-in.
@@ -437,9 +437,8 @@ void SafepointTask::Run() {
     return;
   }
 
-  bool result = Thread::EnterIsolateGroupAsHelper(isolate_group_, kind_,
-                                                  /*bypass_safepoint=*/true);
-  ASSERT(result);
+  Thread::EnterIsolateGroupAsHelper(isolate_group_, kind_,
+                                    /*bypass_safepoint=*/true);
 
   RunEnteredIsolateGroup();
 

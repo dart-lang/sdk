@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ShadowFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SHADOW_FIELD;
+  AssistKind get kind => DartAssistKind.shadowField;
 
   Future<void> test_is_assigned() async {
     await resolveTestCode('''
@@ -25,7 +25,7 @@ class C {
   num f = 0;
 
   void m() {
-    if (f is int) {
+    if (^f is int) {
       print(f.abs());
     }
     f = 0;
@@ -33,7 +33,7 @@ class C {
   }
 }
 ''');
-    await assertNoAssistAt('f is');
+    await assertNoAssist();
   }
 
   Future<void> test_is_noBlock_while() async {
@@ -43,13 +43,13 @@ class C {
 
   void m() {
     while (true)
-      if (f is int) {
+      if (^f is int) {
         print((f as int).abs());
       }
   }
 }
 ''');
-    await assertNoAssistAt('f is');
+    await assertNoAssist();
   }
 
   Future<void> test_is_referencedViaThis() async {
@@ -58,13 +58,13 @@ class C {
   num f = 0;
 
   void m() {
-    if (f is int) {
+    if (^f is int) {
       print(this.f);
     }
   }
 }
 ''');
-    await assertHasAssistAt('f is', '''
+    await assertHasAssist('''
 class C {
   num f = 0;
 
@@ -84,13 +84,13 @@ class C {
   num f = 0;
 
   void m() {
-    if (f is int) {
+    if (^f is int) {
       print((f as int).abs());
     }
   }
 }
 ''');
-    await assertHasAssistAt('f is', '''
+    await assertHasAssist('''
 class C {
   num f = 0;
 
@@ -110,13 +110,13 @@ class C {
   int? f;
 
   void m() {
-    if (f != null) {
+    if (^f != null) {
       print(f!.abs());
     }
   }
 }
 ''');
-    await assertHasAssistAt('f !=', '''
+    await assertHasAssist('''
 class C {
   int? f;
 
@@ -136,7 +136,7 @@ class C {
   int? f;
 
   void m() {
-    if (f != null) {
+    if (^f != null) {
       print(f!.abs());
     }
     f = 0;
@@ -144,7 +144,7 @@ class C {
   }
 }
 ''');
-    await assertNoAssistAt('f != ');
+    await assertNoAssist();
   }
 
   Future<void> test_notNull_referencedViaThis() async {
@@ -153,13 +153,13 @@ class C {
   int? f;
 
   void m() {
-    if (f != null) {
+    if (^f != null) {
       print(this.f!);
     }
   }
 }
 ''');
-    await assertHasAssistAt('f != ', '''
+    await assertHasAssist('''
 class C {
   int? f;
 

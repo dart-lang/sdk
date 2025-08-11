@@ -263,7 +263,7 @@ f() {
 
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
-    // test/integration/analysis/get_navigation_test.dart
+    // integration_test/analysis/get_navigation_test.dart
     var text = r'''
 class Foo {}
 
@@ -464,6 +464,25 @@ void f(A a) {
       await _getNavigation(search: search, length: 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60200')
+  Future<void> test_parameter_generic() async {
+    addTestFile('''
+void f() {
+  B().m(p: null);
+}
+
+class A<T> {
+  void m({T? p}) {}
+}
+
+class B extends A<String> {}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(search: 'p: null');
+    assertHasRegion('p: null');
+    assertHasTarget('p}) {}');
   }
 
   Future<void> test_parameter_wildcard() async {

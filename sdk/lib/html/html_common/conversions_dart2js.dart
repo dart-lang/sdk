@@ -123,9 +123,9 @@ class _StructuredCloneDart2Js extends _StructuredClone {
   newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
   cloneNotRequired(e) =>
       (e is NativeByteBuffer ||
-          e is NativeTypedData ||
-          e is MessagePort ||
-          e is SharedArrayBuffer);
+      e is NativeTypedData ||
+      e is MessagePort ||
+      e is SharedArrayBuffer);
 }
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {

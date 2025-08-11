@@ -687,10 +687,10 @@ class MiniJsParser {
         // parses as a an equals token followed by a regexp literal start.
         newCat =
             (code == char_codes.$BANG ||
-                    code == char_codes.$SLASH ||
-                    code == char_codes.$TILDE)
-                ? _Category.none
-                : _category(code);
+                code == char_codes.$SLASH ||
+                code == char_codes.$TILDE)
+            ? _Category.none
+            : _category(code);
       } while (!_singleCharCategory(cat) &&
           (cat == newCat ||
               (cat == _Category.alpha &&
@@ -956,8 +956,9 @@ class MiniJsParser {
             _expectCategory(_Category.comma);
           }
         }
-        receiver =
-            constructor ? New(receiver, arguments) : Call(receiver, arguments);
+        receiver = constructor
+            ? New(receiver, arguments)
+            : Call(receiver, arguments);
         constructor = false;
       } else if (!constructor && _acceptCategory(_Category.lsquare)) {
         Expression inBraces = parseExpression();

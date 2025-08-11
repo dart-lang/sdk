@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, PcDescriptorsRef;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class PcDescriptorsRefElement extends CustomElement implements Renderable {
@@ -43,16 +45,17 @@ class PcDescriptorsRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
     final text = (_descriptors.name == null || _descriptors.name == '')
         ? 'PcDescriptors'
         : _descriptors.name;
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _descriptors))
-        ..text = text
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(_isolate, object: _descriptors)
+        ..text = text ?? ''
     ];
   }
 }

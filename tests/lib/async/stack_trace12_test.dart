@@ -12,11 +12,14 @@ main() {
   var f = new Future(() {
     throw "foo";
   });
-  f.then<Null>((_) {
-    throw "Unreachable";
-  }, onError: (e, st) {
-    Expect.equals("foo", e);
-    Expect.isNotNull(st);
-    asyncEnd();
-  });
+  f.then<Null>(
+    (_) {
+      throw "Unreachable";
+    },
+    onError: (e, st) {
+      Expect.equals("foo", e);
+      Expect.isNotNull(st);
+      asyncEnd();
+    },
+  );
 }

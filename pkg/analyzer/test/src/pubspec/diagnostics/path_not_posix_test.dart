@@ -20,15 +20,16 @@ class PathNotPosixTest extends PubspecDiagnosticTest {
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertErrors(r'''
+    assertErrors(
+      r'''
 name: sample
 version: 0.1.0
 publish_to: none
 dependencies:
   foo:
     path: \foo
-''', [
-      PubspecWarningCode.PATH_NOT_POSIX,
-    ]);
+''',
+      [PubspecWarningCode.PATH_NOT_POSIX],
+    );
   }
 }

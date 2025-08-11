@@ -335,11 +335,10 @@ void main() {
 
   // Warm up all benchmarks to ensure consistent behavior of shared code.
   benchmarks.forEach(
-    (bm) =>
-        bm()
-          ..setup()
-          ..run()
-          ..run(),
+    (bm) => bm()
+      ..setup()
+      ..run()
+      ..run(),
   );
 
   benchmarks.forEach((bm) => bm().report());

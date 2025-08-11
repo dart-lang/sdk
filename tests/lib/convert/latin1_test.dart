@@ -41,9 +41,13 @@ void testDirectConversions() {
     }
 
     for (var nonLatin1String in nonLatin1Strings) {
-      Expect.throws(() {
-        print(codec.encoder.convert(nonLatin1String));
-      }, (_) => true, nonLatin1String);
+      Expect.throws(
+        () {
+          print(codec.encoder.convert(nonLatin1String));
+        },
+        (_) => true,
+        nonLatin1String,
+      );
     }
 
     var encode = codec.encoder.convert;
@@ -104,7 +108,10 @@ void testDirectConversions() {
 }
 
 List<int> encode(
-    String str, int chunkSize, Converter<String, List<int>> converter) {
+  String str,
+  int chunkSize,
+  Converter<String, List<int>> converter,
+) {
   List<int> bytes = <int>[];
   var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
@@ -120,7 +127,10 @@ List<int> encode(
 }
 
 String decode(
-    List<int> bytes, int chunkSize, Converter<List<int>, String> converter) {
+  List<int> bytes,
+  int chunkSize,
+  Converter<List<int>, String> converter,
+) {
   StringBuffer buf = new StringBuffer();
   var stringSink = new StringConversionSink.fromStringSink(buf);
   var byteConversionSink = converter.startChunkedConversion(stringSink);
@@ -140,7 +150,7 @@ void testChunkedConversions() {
   for (var converter in [
     latin1.encoder,
     new Latin1Codec().encoder,
-    new Latin1Encoder()
+    new Latin1Encoder(),
   ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var latin1String in latin1Strings) {
@@ -159,7 +169,7 @@ void testChunkedConversions() {
   for (var converter in [
     latin1.decoder,
     new Latin1Codec().decoder,
-    new Latin1Decoder()
+    new Latin1Decoder(),
   ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var latin1String in latin1Strings) {

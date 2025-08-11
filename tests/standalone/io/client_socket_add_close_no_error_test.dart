@@ -20,10 +20,13 @@ void clientSocketAddCloseNoErrorTest() {
     Socket.connect("127.0.0.1", server.port).then((client) {
       const int SIZE = 1024 * 1024;
       int count = 0;
-      client.listen((data) => count += data.length, onDone: () {
-        Expect.equals(SIZE, count);
-        server.close();
-      });
+      client.listen(
+        (data) => count += data.length,
+        onDone: () {
+          Expect.equals(SIZE, count);
+          server.close();
+        },
+      );
       client.add(new List.filled(SIZE, 0));
       client.close();
       // Start piping now.

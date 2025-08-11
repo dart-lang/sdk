@@ -19,21 +19,23 @@ class ConstSpreadExpectedMapTest extends PubPackageResolutionTest
 
 mixin ConstSpreadExpectedMapTestCases on PubPackageResolutionTest {
   test_const_mapInt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 5;
 var b = const <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 49, 1)],
+    );
   }
 
   test_const_mapList() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = <int>[5];
 var b = const <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1)],
+    );
   }
 
   test_const_mapMap() async {
@@ -44,12 +46,13 @@ var b = <int, int>{...a};
   }
 
   test_const_mapNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = null;
 var b = const <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 52, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 52, 1)],
+    );
   }
 
   test_const_mapNull_nullable() async {
@@ -60,12 +63,13 @@ var b = <int, int>{...?a};
   }
 
   test_const_mapSet() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = <int>{5};
 var b = const <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1)],
+    );
   }
 
   test_nonConst_mapInt() async {

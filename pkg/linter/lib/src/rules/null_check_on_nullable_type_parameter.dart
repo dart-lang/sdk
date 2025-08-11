@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import 'unnecessary_null_checks.dart';
@@ -21,13 +23,11 @@ class NullCheckOnNullableTypeParameter extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.null_check_on_nullable_type_parameter;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.null_check_on_nullable_type_parameter;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addPostfixExpression(this, visitor);
     registry.addNullAssertPattern(this, visitor);
@@ -37,7 +37,7 @@ class NullCheckOnNullableTypeParameter extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   bool isNullableTypeParameterType(DartType? type) =>
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     if (isNullableTypeParameterType(node.matchedValueType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         context.typeSystem.isPotentiallyNullable(expectedType) &&
         context.typeSystem.promoteToNonNull(type!) ==
             context.typeSystem.promoteToNonNull(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 }

@@ -8,6 +8,8 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -265,11 +267,11 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
       : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _ThrowsAsyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -300,7 +302,7 @@ class _ThrowsSyncErrorFix extends ResolvedCorrectionProducer {
   FixKind get fixKind => FixKind('unused', 50, 'Unused');
 
   @override
-  Future<void> compute(ChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) {
     throw StateError('A message.');
   }
 }
@@ -312,11 +314,11 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
       : super(name: 'no_bools', description: 'No bools desc');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _ThrowsSyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }

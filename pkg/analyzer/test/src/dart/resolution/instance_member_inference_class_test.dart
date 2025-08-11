@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -918,27 +918,27 @@ class B implements A {
   }
 
   void _assertFieldType(
-    FieldElement2 field,
+    FieldElement field,
     String type, {
     bool isCovariant = false,
   }) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterType(field.getter2, type);
+    _assertGetterType(field.getter, type);
 
-    var setter = field.setter2;
+    var setter = field.setter;
     if (setter != null) {
       _assertSetterType(setter, type, isCovariant: isCovariant);
     }
   }
 
-  void _assertFieldTypeDynamic(FieldElement2 field) {
+  void _assertFieldTypeDynamic(FieldElement field) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterTypeDynamic(field.getter2);
+    _assertGetterTypeDynamic(field.getter);
 
     if (!field.isFinal) {
-      _assertSetterTypeDynamic(field.setter2);
+      _assertSetterTypeDynamic(field.setter);
     }
   }
 

@@ -140,6 +140,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.INSTANCE_SETTER_DECLARATION: SemanticTokenTypes.property,
   HighlightRegionType.INSTANCE_SETTER_REFERENCE: SemanticTokenTypes.property,
   HighlightRegionType.KEYWORD: SemanticTokenTypes.keyword,
+  HighlightRegionType.LABEL: CustomSemanticTokenTypes.label,
   HighlightRegionType.LIBRARY_NAME: SemanticTokenTypes.namespace,
   HighlightRegionType.LITERAL_BOOLEAN: CustomSemanticTokenTypes.boolean,
   HighlightRegionType.LITERAL_DOUBLE: SemanticTokenTypes.number,

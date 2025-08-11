@@ -49,7 +49,7 @@ final class Struct11 extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C13
-  static get nested#offsetOf() → core::int
+  static synthetic get nested#offsetOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C6

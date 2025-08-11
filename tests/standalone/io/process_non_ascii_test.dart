@@ -29,12 +29,13 @@ main() {
   // Note: we prevent this child process from using Crashpad handler because
   // this introduces an issue with deleting the temporary directory.
   Process.run(
-      executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add(script),
-      workingDirectory: nonAsciiDir.path,
-      environment: {'DART_CRASHPAD_HANDLER': ''}).then((result) {
+    executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add(script),
+    workingDirectory: nonAsciiDir.path,
+    environment: {'DART_CRASHPAD_HANDLER': ''},
+  ).then((result) {
     if (result.exitCode != 0) {
       print('exitCode:\n${result.exitCode}');
       print('stdout:\n${result.stdout}');

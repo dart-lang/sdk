@@ -20,7 +20,7 @@ $ tools/test.py -c dartkp -m release $path_to_an_il_test
 ```
 
 Tests require `gen_snapshot`, `dartaotruntime` and
-`vm_platform_strong.dill` to be built for the target configuration.
+`vm_platform.dill` to be built for the target configuration.
 
 Each IL test should contain one or more of the functions marked with a
 `@pragma('vm:testing:print-flow-graph'[, 'phases filter'])`.

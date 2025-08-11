@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,22 +18,19 @@ const _desc = r"Don't check for `null` in custom `==` operators.";
 bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
 
-bool _isComparingParameterWithNull(
-  BinaryExpression node,
-  Element2? parameter,
-) =>
+bool _isComparingParameterWithNull(BinaryExpression node, Element? parameter) =>
     _isComparingEquality(node.operator.type) &&
     ((node.leftOperand.isNullLiteral &&
             _isParameter(node.rightOperand, parameter)) ||
         (node.rightOperand.isNullLiteral &&
             _isParameter(node.leftOperand, parameter)));
 
-bool _isParameter(Expression expression, Element2? parameter) =>
+bool _isParameter(Expression expression, Element? parameter) =>
     expression.canonicalElement == parameter;
 
 bool _isParameterWithQuestionQuestion(
   BinaryExpression node,
-  Element2? parameter,
+  Element? parameter,
 ) =>
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
@@ -44,21 +43,18 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_null_checks_in_equality_operators;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
-  final Element2? parameter;
+  final Element? parameter;
   final LintRule rule;
 
   _BodyVisitor(this.parameter, this.rule);
@@ -67,7 +63,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitBinaryExpression(BinaryExpression node) {
     if (_isParameterWithQuestionQuestion(node, parameter) ||
         _isComparingParameterWithNull(node, parameter)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitBinaryExpression(node);
   }
@@ -76,7 +72,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitMethodInvocation(MethodInvocation node) {
     if (node.operator?.type == TokenType.QUESTION_PERIOD &&
         node.target.canonicalElement == parameter) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitMethodInvocation(node);
   }
@@ -85,7 +81,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitPropertyAccess(PropertyAccess node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
         node.target.canonicalElement == parameter) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitPropertyAccess(node);
   }

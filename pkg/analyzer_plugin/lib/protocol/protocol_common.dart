@@ -8,6 +8,8 @@
 
 import 'dart:convert' hide JsonDecoder;
 
+import 'package:collection/collection.dart' show QueueList;
+
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 
@@ -18,6 +20,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 /// {
 ///   "type": "add"
 ///   "content": String
+///   "version": optional int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -25,7 +28,17 @@ class AddContentOverlay implements HasToJson {
   /// The new content of the file.
   String content;
 
-  AddContentOverlay(this.content);
+  /// An optional version number for the document. Version numbers allow the
+  /// server to tag edits with the version of the document they apply to which
+  /// can avoid applying edits to documents that have already been updated
+  /// since the edits were computed.
+  ///
+  /// If version numbers are supplied with AddContentOverlay and
+  /// ChangeContentOverlay, they must be increasing (but not necessarily
+  /// consecutive) numbers.
+  int? version;
+
+  AddContentOverlay(this.content, {this.version});
 
   factory AddContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json,
@@ -42,7 +55,11 @@ class AddContentOverlay implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'content');
       }
-      return AddContentOverlay(content);
+      int? version;
+      if (json.containsKey('version')) {
+        version = jsonDecoder.decodeInt('$jsonPath.version', json['version']);
+      }
+      return AddContentOverlay(content, version: version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'AddContentOverlay', json);
     }
@@ -53,6 +70,10 @@ class AddContentOverlay implements HasToJson {
     var result = <String, Object>{};
     result['type'] = 'add';
     result['content'] = content;
+    var version = this.version;
+    if (version != null) {
+      result['version'] = version;
+    }
     return result;
   }
 
@@ -62,7 +83,7 @@ class AddContentOverlay implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is AddContentOverlay) {
-      return content == other.content;
+      return content == other.content && version == other.version;
     }
     return false;
   }
@@ -71,6 +92,7 @@ class AddContentOverlay implements HasToJson {
   int get hashCode => Object.hash(
         704418402,
         content,
+        version,
       );
 }
 
@@ -363,6 +385,7 @@ enum AnalysisErrorType {
 /// {
 ///   "type": "change"
 ///   "edits": List<SourceEdit>
+///   "version": optional int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -370,7 +393,17 @@ class ChangeContentOverlay implements HasToJson {
   /// The edits to be applied to the file.
   List<SourceEdit> edits;
 
-  ChangeContentOverlay(this.edits);
+  /// An optional version number for the document. Version numbers allow the
+  /// server to tag edits with the version of the document they apply to which
+  /// can avoid applying edits to documents that have already been updated
+  /// since the edits were computed.
+  ///
+  /// If version numbers are supplied with AddContentOverlay and
+  /// ChangeContentOverlay, they must be increasing (but not necessarily
+  /// consecutive) numbers.
+  int? version;
+
+  ChangeContentOverlay(this.edits, {this.version});
 
   factory ChangeContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json,
@@ -391,7 +424,11 @@ class ChangeContentOverlay implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
-      return ChangeContentOverlay(edits);
+      int? version;
+      if (json.containsKey('version')) {
+        version = jsonDecoder.decodeInt('$jsonPath.version', json['version']);
+      }
+      return ChangeContentOverlay(edits, version: version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'ChangeContentOverlay', json);
     }
@@ -405,6 +442,10 @@ class ChangeContentOverlay implements HasToJson {
         .map((SourceEdit value) =>
             value.toJson(clientUriConverter: clientUriConverter))
         .toList();
+    var version = this.version;
+    if (version != null) {
+      result['version'] = version;
+    }
     return result;
   }
 
@@ -415,7 +456,8 @@ class ChangeContentOverlay implements HasToJson {
   bool operator ==(other) {
     if (other is ChangeContentOverlay) {
       return listEqual(
-          edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+              edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
+          version == other.version;
     }
     return false;
   }
@@ -424,6 +466,7 @@ class ChangeContentOverlay implements HasToJson {
   int get hashCode => Object.hash(
         873118866,
         Object.hashAll(edits),
+        version,
       );
 }
 
@@ -3569,7 +3612,7 @@ class SourceChange implements HasToJson {
 class SourceEdit implements HasToJson {
   /// Get the result of applying a set of [edits] to the given [code]. Edits
   /// are applied in the order they appear in [edits].
-  static String applySequence(String code, Iterable<SourceEdit> edits) =>
+  static String applySequence(String code, List<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
   /// The offset of the region to be modified.
@@ -3718,7 +3761,7 @@ class SourceFileEdit implements HasToJson {
   List<SourceEdit> edits;
 
   SourceFileEdit(this.file, this.fileStamp, {List<SourceEdit>? edits})
-      : edits = edits ?? <SourceEdit>[];
+      : edits = edits ?? QueueList<SourceEdit>();
 
   factory SourceFileEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json,

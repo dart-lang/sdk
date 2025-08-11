@@ -85,13 +85,13 @@ import "dart:core" as core;
 
 static method method1(core::int a, core::String b) → invalid-type
   return invalid-expression "This requires the experimental 'records' language feature to be enabled.";
-static method method2([invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::int
+static method method2([erroneously-initialized invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::int
   return record{<invalid>}.$1;
-static method method3([invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::String
+static method method3([erroneously-initialized invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::String
   return record{<invalid>}.$2;
 static method method4(core::int a, core::String b) → invalid-type
   return invalid-expression "This requires the experimental 'records' language feature to be enabled.";
-static method method5([invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::int
+static method method5([erroneously-initialized invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::int
   return record{<invalid>}.a;
-static method method6([invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::String
+static method method6([erroneously-initialized invalid-type record = invalid-expression "This requires the experimental 'records' language feature to be enabled."]) → core::String
   return record{<invalid>}.b;

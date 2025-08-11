@@ -9,6 +9,14 @@ part of dart._runtime;
 // The default values for these properties are set when the global_ final field
 // in runtime.dart is initialized.
 
+/// Used as a property on a library object to identify its import Uri.
+final Object libraryImportUri = JS('!', 'Symbol("libraryImportUri")');
+
+bool isDartLibrary(Object? value) {
+  if (value == null) return false;
+  return JS('', '#[#]', value, libraryImportUri) != null;
+}
+
 argumentError(value) {
   throw ArgumentError.value(value);
 }

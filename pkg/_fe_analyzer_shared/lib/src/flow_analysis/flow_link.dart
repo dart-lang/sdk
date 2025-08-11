@@ -55,9 +55,11 @@ abstract base class FlowLink<Link extends FlowLink<Link>> {
 
   /// Creates a new [FlowLink] object. Caller is required to satisfy the
   /// invariant described in [previousForKey].
-  FlowLink(
-      {required this.key, required this.previous, required this.previousForKey})
-      : _depth = previous.depth + 1 {
+  FlowLink({
+    required this.key,
+    required this.previous,
+    required this.previousForKey,
+  }) : _depth = previous.depth + 1 {
     assert(key >= 0);
     assert(identical(previousForKey, _computePreviousForKey(key)));
   }
@@ -98,14 +100,14 @@ class FlowLinkDiffEntry<Link extends FlowLink<Link>> {
   /// both the `left` and `right` arguments to [FlowLinkReader.diff].
   Link? _previousForKey;
 
-  FlowLinkDiffEntry._(
-      {required this.key,
-      required Link? firstLeft,
-      required Link? firstRight,
-      required Link? previousForKey})
-      : _firstLeft = firstLeft,
-        _firstRight = firstRight,
-        _previousForKey = previousForKey;
+  FlowLinkDiffEntry._({
+    required this.key,
+    required Link? firstLeft,
+    required Link? firstRight,
+    required Link? previousForKey,
+  }) : _firstLeft = firstLeft,
+       _firstRight = firstRight,
+       _previousForKey = previousForKey;
 
   /// The [FlowLink] associated with [key] in the common ancestor of the two
   /// [FlowLink] maps passed to [FlowLinkReader.diff], or `null` if the common
@@ -181,7 +183,9 @@ class FlowLinkReader<Link extends FlowLink<Link>> {
   /// Otherwise, this method has time complexity `O(n)`, where `n` is the number
   /// of edges between [left] and [right] in the implicit [FlowLink] tree.
   ({Link? ancestor, List<FlowLinkDiffEntry<Link>> entries}) diff(
-      Link? left, Link? right) {
+    Link? left,
+    Link? right,
+  ) {
     if (identical(left, right)) {
       return (ancestor: left, entries: const []);
     }
@@ -212,7 +216,10 @@ class FlowLinkReader<Link extends FlowLink<Link>> {
   /// between [left] and [right], adding diff entries to [entries]. The return
   /// value is the common ancestor of [left] and [right].
   Link? _diffCore(
-      Link? left, Link? right, List<FlowLinkDiffEntry<Link>> entries) {
+    Link? left,
+    Link? right,
+    List<FlowLinkDiffEntry<Link>> entries,
+  ) {
     // The core strategy is to traverse the implicit [FlowLink] tree, starting
     // at `left` and `right`, and taking single steps through the linked list
     // formed by `FlowLink.previous`, until a common ancestor is found. For each
@@ -229,11 +236,14 @@ class FlowLinkReader<Link extends FlowLink<Link>> {
       if (index == null) {
         // No diff entry has been created for this key yet, so create one.
         _diffIndices.set(key, entries.length);
-        entries.add(new FlowLinkDiffEntry<Link>._(
+        entries.add(
+          new FlowLinkDiffEntry<Link>._(
             key: key,
             firstLeft: left,
             firstRight: null,
-            previousForKey: left.previousForKey));
+            previousForKey: left.previousForKey,
+          ),
+        );
       } else {
         // A diff entry for this key has already been created, so update it.
         entries[index]._firstLeft ??= left;
@@ -250,11 +260,14 @@ class FlowLinkReader<Link extends FlowLink<Link>> {
       int? index = _diffIndices.get(key);
       if (index == null) {
         _diffIndices.set(key, entries.length);
-        entries.add(new FlowLinkDiffEntry<Link>._(
+        entries.add(
+          new FlowLinkDiffEntry<Link>._(
             key: key,
             firstLeft: null,
             firstRight: right,
-            previousForKey: right.previousForKey));
+            previousForKey: right.previousForKey,
+          ),
+        );
       } else {
         entries[index]._firstRight ??= right;
         entries[index]._previousForKey = right.previousForKey;

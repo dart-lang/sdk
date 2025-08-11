@@ -6,7 +6,6 @@
 library;
 
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -14,11 +13,11 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-  'test/integration/support/integration_test_methods.dart',
-  (String pkgPath) async {
+  'analysis_server/integration_test/support/integration_test_methods.dart',
+  (pkgRoot) async {
     var visitor = CodegenInttestMethodsVisitor(
-      path.basename(pkgPath),
-      readApi(pkgPath),
+      'analysis_server',
+      readApi(pkgRoot),
     );
     return visitor.collectCode(visitor.visitApi);
   },
@@ -94,6 +93,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       write(uri);
       writeln("';");
     }
+    writeln("import 'package:path/path.dart' as path;");
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
@@ -107,7 +107,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln(
         '/// The converter used to convert between URI/Paths in server communication.',
       );
-      writeln('ClientUriConverter? uriConverter;');
+      writeln(
+        'final ClientUriConverter uriConverter = ClientUriConverter.noop(path.context);',
+      );
       super.visitApi();
       writeln();
       docComment(

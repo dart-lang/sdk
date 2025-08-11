@@ -155,12 +155,14 @@ void _invokeMain(WasmExternRef jsArrayRef) {
   }
 }
 
-String jsonEncode(String object) => JSStringImpl(
-  JS<WasmExternRef>(
-    "s => JSON.stringify(s)",
-    jsStringFromDartString(object).toExternRef,
-  ),
-);
+String jsonEncode(String object) =>
+    // Use checked boxing as `JSON.stringify` can be patched by users.
+    JSStringImpl.fromRef(
+      JS<WasmExternRef>(
+        "s => JSON.stringify(s)",
+        jsStringFromDartString(object).toExternRef,
+      ),
+    );
 
 /// Whether to check bounds in [IndexErrorUtils.checkIndex],
 /// which are  used in list and typed data implementations.
@@ -224,3 +226,11 @@ external void pushWasmArray<T>(
 /// slot in the array, which may cause memory leaks. Callers should manually
 /// clear non-nullable reference element slots in the array when popping.
 external T popWasmArray<T>(WasmArray<T> array, int length);
+
+@patch
+@pragma("vm:entry-point")
+abstract interface class IsolateGroup {
+  @patch
+  static Object _runSync(Object computation) =>
+      throw UnsupportedError("_runSync");
+}

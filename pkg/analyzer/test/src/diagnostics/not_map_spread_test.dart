@@ -48,51 +48,58 @@ void f<T extends Map<int, String>?>(T a) {
   }
 
   test_notMap_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = <int, int>{...a};
-''', [
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 33, 1)],
+    );
   }
 
   test_notMap_forElement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = <int, int>{for (var i in []) ...a};
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 51, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(CompileTimeErrorCode.NOT_MAP_SPREAD, 51, 1),
+      ],
+    );
   }
 
   test_notMap_ifElement_else() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...<int, int>{} else ...a};
-''', [
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 65, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 65, 1)],
+    );
   }
 
   test_notMap_ifElement_then() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...a};
-''', [
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 44, 1)],
+    );
   }
 
   test_notMap_typeParameter_bound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   var v = <int, int>{...a};
   v;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 53, 1)],
+    );
   }
 }
 
@@ -100,12 +107,13 @@ void f<T extends num>(T a) {
 class NotMapSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_map() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(dynamic a) {
   <int, String>{...a};
 }
-''', [
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 39, 1)],
+    );
   }
 }

@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +18,10 @@ class VoidChecks extends LintRule {
   VoidChecks() : super(name: LintNames.void_checks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.void_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.void_checks;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAssignedVariablePattern(this, visitor);
     registry.addAssignmentExpression(this, visitor);
@@ -36,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
+  _Visitor(this.rule, RuleContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
     if (type is DynamicType) return true;
@@ -68,8 +68,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var valueType = node.matchedValueType;
-    var element = node.element2;
-    if (element is! VariableElement2) return;
+    var element = node.element;
+    if (element is! VariableElement) return;
     _check(element.type, valueType, node);
   }
 
@@ -155,11 +155,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (expectedType is VoidType && !isTypeAcceptableWhenExpectingVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (expectedType.isDartAsyncFutureOr &&
         (expectedType as InterfaceType).typeArguments.first is VoidType &&
         !isTypeAcceptableWhenExpectingFutureOrVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (checkedNode is FunctionExpression &&
         checkedNode.body is! ExpressionFunctionBody &&
         expectedType is FunctionType &&

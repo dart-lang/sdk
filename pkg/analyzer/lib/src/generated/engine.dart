@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
-export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
+export 'package:analyzer/error/listener.dart' show RecordingDiagnosticListener;
 export 'package:analyzer/src/dart/analysis/analysis_options.dart';
 export 'package:analyzer/src/generated/timestamped_data.dart'
     show TimestampedData;
@@ -55,11 +55,6 @@ export 'package:analyzer/src/generated/timestamped_data.dart'
 /// the state after a refactoring.
 @AnalyzerPublicApi(message: 'exposed by Element.context')
 abstract class AnalysisContext {
-  /// Return the set of analysis options controlling the behavior of this
-  /// context. Clients should not modify the returned set of options.
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions;
-
   /// Return the set of declared variables used when computing constant values.
   DeclaredVariables get declaredVariables;
 

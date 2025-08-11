@@ -40,9 +40,12 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   final Iterator<String> names = nameGenerator().iterator..moveNext();
 
-  final List<String> classes = <String>[];
+  final List<String> declarations = <String>[];
 
   final List<TypeParameter> usedTypeParameters = <TypeParameter>[];
+
+  final List<StructuralParameter> usedStructuralParameters =
+      <StructuralParameter>[];
 
   String serializeTypeChecks(List<Object> typeChecks) {
     for (Object list in typeChecks) {
@@ -50,13 +53,15 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       writeTypeCheck(typeCheck[0] as DartType, typeCheck[1] as DartType,
           typeCheck[2] as bool);
     }
-    writeClasses();
+    writeDeclarations();
     return jsonEncode(this);
   }
 
   void writeTypeCheck(DartType s, DartType t, bool expected) {
     assert(usedTypeParameters.isEmpty);
+    assert(usedStructuralParameters.isEmpty);
     usedTypeParameters.clear();
+    usedStructuralParameters.clear();
     StringBuffer sb = new StringBuffer();
     s.accept1(this, sb);
     String sString = "$sb";
@@ -65,6 +70,8 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     String tString = "$sb";
     List<Object> arguments = <Object>[sString, tString];
     Set<TypeParameter> seenTypeParameters = new Set<TypeParameter>();
+    Set<StructuralParameter> seenStructuralParameters =
+        new Set<StructuralParameter>();
     List<String> parameterStrings = <String>[];
     while (usedTypeParameters.isNotEmpty) {
       List<TypeParameter> typeParameters = usedTypeParameters.toList();
@@ -73,6 +80,18 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
         if (seenTypeParameters.add(parameter)) {
           sb.clear();
           writeTypeParameter(parameter, sb);
+          parameterStrings.add("$sb");
+        }
+      }
+    }
+    while (usedStructuralParameters.isNotEmpty) {
+      List<StructuralParameter> structuralParameters =
+          usedStructuralParameters.toList();
+      usedStructuralParameters.clear();
+      for (StructuralParameter parameter in structuralParameters) {
+        if (seenStructuralParameters.add(parameter)) {
+          sb.clear();
+          writeStructuralParameter(parameter, sb);
           parameterStrings.add("$sb");
         }
       }
@@ -147,30 +166,54 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
   }
 
-  void writeClasses() {
-    Set<Class> writtenClasses = new Set<Class>();
+  void writeDeclarations() {
+    Set<TreeNode> writtenDeclarations = new Set<TreeNode>();
     int index = 0;
     List<TreeNode> nodes = nodeNames.keys.toList();
     while (index < nodes.length) {
       for (; index < nodes.length; index++) {
         TreeNode node = nodes[index];
-        if (node is Class) {
-          writeClass(node, writtenClasses);
-        }
+        writeDeclaration(node, writtenDeclarations);
       }
       nodes = nodeNames.keys.toList();
     }
   }
 
-  void writeClass(Class? cls, Set<Class> writtenClasses) {
-    if (cls == null || !writtenClasses.add(cls)) return;
-    Supertype? supertype = cls.supertype;
-    writeClass(supertype?.classNode, writtenClasses);
-    Supertype? mixedInType = cls.mixedInType;
-    writeClass(mixedInType?.classNode, writtenClasses);
-    for (Supertype implementedType in cls.implementedTypes) {
-      writeClass(implementedType.classNode, writtenClasses);
+  void writeDeclaration(
+      TreeNode? declaration, Set<TreeNode> writtenDeclarations) {
+    if (declaration is Class) {
+      writeClass(declaration, writtenDeclarations);
+    } else if (declaration is Typedef) {
+      writeTypedef(declaration, writtenDeclarations);
+    } else if (declaration is ExtensionTypeDeclaration) {
+      writeExtensionTypeDeclaration(declaration, writtenDeclarations);
     }
+  }
+
+  void writeDeclarationForType(
+      DartType type, Set<TreeNode> writtenDeclarations) {
+    if (type is InterfaceType) {
+      writeClass(type.classNode, writtenDeclarations);
+    } else if (type is TypedefType) {
+      writeTypedef(type.typedefNode, writtenDeclarations);
+    } else if (type is ExtensionType) {
+      writeExtensionTypeDeclaration(
+          type.extensionTypeDeclaration, writtenDeclarations);
+    }
+  }
+
+  void writeClass(Class? cls, Set<TreeNode> writtenDeclarations) {
+    if (cls == null || !writtenDeclarations.add(cls)) {
+      return;
+    }
+    Supertype? supertype = cls.supertype;
+    writeClass(supertype?.classNode, writtenDeclarations);
+    Supertype? mixedInType = cls.mixedInType;
+    writeClass(mixedInType?.classNode, writtenDeclarations);
+    for (Supertype implementedType in cls.implementedTypes) {
+      writeClass(implementedType.classNode, writtenDeclarations);
+    }
+
     StringBuffer sb = new StringBuffer();
     sb.write("class ");
     sb.write(computeName(cls));
@@ -208,20 +251,78 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     } else {
       sb.write(";");
     }
-    classes.add("$sb");
+    declarations.add("$sb");
+  }
+
+  void writeTypedef(Typedef? typedefNode, Set<TreeNode> writtenDeclarations) {
+    if (typedefNode == null || !writtenDeclarations.add(typedefNode)) {
+      return;
+    }
+    DartType? rhsType = typedefNode.type;
+    if (rhsType != null) {
+      writeDeclarationForType(rhsType, writtenDeclarations);
+    }
+
+    StringBuffer sb = new StringBuffer();
+    sb.write("typedef ");
+    sb.write(computeName(typedefNode));
+    writeTypeParameters(typedefNode.typeParameters, sb);
+    sb.write(" ");
+    rhsType?.accept1(this, sb);
+    sb.write(";");
+    declarations.add("$sb");
+  }
+
+  void writeExtensionTypeDeclaration(
+      ExtensionTypeDeclaration? extensionTypeDeclaration,
+      Set<TreeNode> writtenDeclarations) {
+    if (extensionTypeDeclaration == null ||
+        !writtenDeclarations.add(extensionTypeDeclaration)) {
+      return;
+    }
+    writeDeclarationForType(extensionTypeDeclaration.declaredRepresentationType,
+        writtenDeclarations);
+    for (TypeDeclarationType implementedType
+        in extensionTypeDeclaration.implements) {
+      writeDeclaration(implementedType.typeDeclaration, writtenDeclarations);
+    }
+
+    StringBuffer sb = new StringBuffer();
+    sb.write("extension type ");
+    sb.write(computeName(extensionTypeDeclaration));
+    writeTypeParameters(extensionTypeDeclaration.typeParameters, sb);
+    sb.write("(");
+    extensionTypeDeclaration.declaredRepresentationType.accept1(this, sb);
+    sb.write(" it)");
+    bool first = true;
+    for (TypeDeclarationType implementedType
+        in extensionTypeDeclaration.implements) {
+      if (first) {
+        sb.write(" implements ");
+      } else {
+        sb.write(", ");
+      }
+      implementedType.accept1(this, sb);
+      first = false;
+    }
+    sb.write(";");
+    declarations.add("$sb");
   }
 
   String computeName(TreeNode node) {
     String? name = nodeNames[node];
     if (name != null) return name;
-    if (node is Class) {
-      Library library = node.enclosingLibrary;
+    if (node
+        case Class(:var name, :var enclosingLibrary) ||
+            Typedef(:var name, :var enclosingLibrary) ||
+            ExtensionTypeDeclaration(:var name, :var enclosingLibrary)) {
+      Library library = enclosingLibrary;
       String uriString = "${library.importUri}";
       if (uriString == "dart:core" || uriString == "dart:async") {
-        if (!usedNames.add(node.name)) {
+        if (!usedNames.add(name)) {
           throw "Class name conflict for $node";
         }
-        return nodeNames[node] = node.name;
+        return nodeNames[node] = name;
       }
     }
     while (!usedNames.add(name = names.current)) {
@@ -245,9 +346,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     switch (nullability) {
       case Nullability.nullable:
         sb.write("?");
-        break;
-      case Nullability.legacy:
-        sb.write("*");
         break;
       case Nullability.undetermined:
         sb.write("%");
@@ -399,12 +497,16 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     String name = computeName(node.parameter);
     usedTypeParameters.add(node.parameter);
     sb.write(name);
+    writeNullability(node.nullability, sb);
   }
 
   @override
   void visitStructuralParameterType(
       StructuralParameterType node, StringBuffer sb) {
-    throw "not implemented";
+    String name = computeStructuralParameterName(node.parameter);
+    usedStructuralParameters.add(node.parameter);
+    sb.write(name);
+    writeNullability(node.nullability, sb);
   }
 
   @override
@@ -416,17 +518,54 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitTypedefType(TypedefType node, StringBuffer sb) {
-    throw "not implemented";
+    Typedef typedefNode = node.typedefNode;
+    sb.write(computeName(typedefNode));
+    if (node.typeArguments.isNotEmpty) {
+      sb.write("<");
+      bool first = true;
+      for (DartType type in node.typeArguments) {
+        if (!first) sb.write(", ");
+        type.accept1(this, sb);
+        first = false;
+      }
+      sb.write(">");
+    }
+    Uri clsImportUri = typedefNode.enclosingLibrary.importUri;
+    bool isNull = typedefNode.name == "Null" &&
+        clsImportUri.isScheme("dart") &&
+        clsImportUri.path == "core";
+    if (!isNull) {
+      writeNullability(node.nullability, sb);
+    }
   }
 
   @override
   void visitExtensionType(ExtensionType node, StringBuffer sb) {
-    throw "not implemented";
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        node.extensionTypeDeclaration;
+    sb.write(computeName(extensionTypeDeclaration));
+    if (node.typeArguments.isNotEmpty) {
+      sb.write("<");
+      bool first = true;
+      for (DartType type in node.typeArguments) {
+        if (!first) sb.write(", ");
+        type.accept1(this, sb);
+        first = false;
+      }
+      sb.write(">");
+    }
+    Uri clsImportUri = extensionTypeDeclaration.enclosingLibrary.importUri;
+    bool isNull = extensionTypeDeclaration.name == "Null" &&
+        clsImportUri.isScheme("dart") &&
+        clsImportUri.path == "core";
+    if (!isNull) {
+      writeNullability(node.nullability, sb);
+    }
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      "classes": classes,
+      "classes": declarations,
       "checks": checks,
     };
   }

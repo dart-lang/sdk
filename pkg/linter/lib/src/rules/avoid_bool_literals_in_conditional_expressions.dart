@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,14 +19,11 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_bool_literals_in_conditional_expressions;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addConditionalExpression(this, visitor);
   }
@@ -33,7 +32,7 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -45,8 +44,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (thenExp.staticType == typeProvider.boolType &&
         elseExp.staticType == typeProvider.boolType) {
-      if (thenExp is BooleanLiteral) rule.reportLint(node);
-      if (elseExp is BooleanLiteral) rule.reportLint(node);
+      if (thenExp is BooleanLiteral) rule.reportAtNode(node);
+      if (elseExp is BooleanLiteral) rule.reportAtNode(node);
     }
   }
 }

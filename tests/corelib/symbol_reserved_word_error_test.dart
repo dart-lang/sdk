@@ -14,7 +14,7 @@ main() {
   #void.foo;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'foo' isn't defined for the class 'Symbol'.
+  // [cfe] The getter 'foo' isn't defined for the type 'Symbol'.
 
   #foo.void;
   //   ^^^^

@@ -54,15 +54,21 @@ void flutterValidator(PubspecValidationContext ctx) {
       var pathField = assetField.nodes[PubspecField.ASSET_PATH_FIELD];
       if (pathField == null) {
         ctx.reportErrorForNode(
-            assetField, PubspecWarningCode.ASSET_MISSING_PATH);
+          assetField,
+          PubspecWarningCode.ASSET_MISSING_PATH,
+        );
       } else if (pathField is! YamlScalar) {
         ctx.reportErrorForNode(
-            pathField, PubspecWarningCode.ASSET_PATH_NOT_STRING);
+          pathField,
+          PubspecWarningCode.ASSET_PATH_NOT_STRING,
+        );
       } else {
         var entry = pathField.valueOrThrow;
         if (entry is! String) {
           ctx.reportErrorForNode(
-              pathField, PubspecWarningCode.ASSET_NOT_STRING);
+            pathField,
+            PubspecWarningCode.ASSET_NOT_STRING,
+          );
           return;
         }
 
@@ -70,7 +76,9 @@ void flutterValidator(PubspecValidationContext ctx) {
       }
     } else {
       ctx.reportErrorForNode(
-          assetField, PubspecWarningCode.ASSET_NOT_STRING_OR_MAP);
+        assetField,
+        PubspecWarningCode.ASSET_NOT_STRING_OR_MAP,
+      );
     }
   }
 
@@ -113,7 +121,10 @@ bool _assetExistsAtPath(PubspecValidationContext ctx, String assetPath) {
 /// Validates that [pathValue] is a valid path value, reporting any error on
 /// [errorField].
 void _validateAssetPath(
-    PubspecValidationContext ctx, String pathValue, YamlScalar errorField) {
+  PubspecValidationContext ctx,
+  String pathValue,
+  YamlScalar errorField,
+) {
   if (pathValue.startsWith('packages/')) {
     // TODO(brianwilkerson): Add validation of package references.
   } else {
@@ -123,9 +134,10 @@ void _validateAssetPath(
     var normalizedEntry = context.joinAll(path.posix.split(pathValue));
     var assetPath = context.join(packageRoot, normalizedEntry);
     if (!_assetExistsAtPath(ctx, assetPath)) {
-      var errorCode = isDirectoryEntry
-          ? PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST
-          : PubspecWarningCode.ASSET_DOES_NOT_EXIST;
+      var errorCode =
+          isDirectoryEntry
+              ? PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST
+              : PubspecWarningCode.ASSET_DOES_NOT_EXIST;
       ctx.reportErrorForNode(errorField, errorCode, [pathValue]);
     }
   }

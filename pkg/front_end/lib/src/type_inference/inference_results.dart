@@ -389,8 +389,6 @@ class NullAwareGuard {
   ///
   Expression createExpression(
       DartType inferredType, Expression nullAwareAction) {
-    // End non-nullable promotion of the initializer of [_nullAwareVariable].
-    _inferrer.flowAnalysis.nullAwareAccess_end();
     Expression equalsNull = _inferrer.createEqualsNull(
         _nullAwareFileOffset, createVariableGet(_nullAwareVariable));
 

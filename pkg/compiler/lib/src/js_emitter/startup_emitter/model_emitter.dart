@@ -190,9 +190,9 @@ class ModelEmitter {
     );
   }
 
-  js.Expression constantListGenerator(js.Expression array) {
+  js.Expression constantListGenerator(js.Expression array, js.Expression rti) {
     // TODO(floitsch): remove hard-coded name.
-    return js.js('makeConstList(#)', [array]);
+    return js.js('makeConstList(#, #)', [array, rti]);
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -416,16 +416,24 @@ class ModelEmitter {
     js.LiteralString partFileName, {
     js.Expression? code,
   }) {
-    return js.js.statement(
-      '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
-      's[d][e].push({p:#part,e:"beginPart"});})'
-      '(self,#deferredInitializers, #eventLog)',
-      {
-        'deferredInitializers': js.string(deferredInitializersGlobal),
-        'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-        'part': partFileName,
-      },
-    );
+    if (_options.enableDeferredLoadingEventLog) {
+      return js.js.statement(
+        '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
+        's[d][e].push({p:#part,e:"beginPart"});})'
+        '(self,#deferredInitializers, #eventLog)',
+        {
+          'deferredInitializers': js.string(deferredInitializersGlobal),
+          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+          'part': partFileName,
+        },
+      );
+    } else {
+      return js.js.statement(
+        '((s,d) => {s[d] = s[d] || {};})'
+        '(self,#deferredInitializers)',
+        {'deferredInitializers': js.string(deferredInitializersGlobal)},
+      );
+    }
   }
 
   js.Statement buildStartupMetrics() {
@@ -684,17 +692,28 @@ var $startupMetricsGlobal =
     String hash = hasher.getHash();
 
     // Now we copy the deferredInitializer.current into its correct hash.
-    final epilogue = js.js.statement(
-      '((d,h)=>{d[h]=d.current; '
-      'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
-      '(#deferredInitializers,#hash)',
-      {
-        'deferredInitializers': deferredInitializersGlobal,
-        'hash': js.string(hash),
-        'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-        'part': outputFileJsString,
-      },
-    );
+    js.Statement epilogue;
+    if (_options.enableDeferredLoadingEventLog) {
+      epilogue = js.js.statement(
+        '((d,h)=>{d[h]=d.current; '
+        'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
+        '(#deferredInitializers,#hash)',
+        {
+          'deferredInitializers': deferredInitializersGlobal,
+          'hash': js.string(hash),
+          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
+          'part': outputFileJsString,
+        },
+      );
+    } else {
+      epilogue = js.js.statement(
+        '((d)=>{d[#hash]=d.current;})(#deferredInitializers)',
+        {
+          'deferredInitializers': deferredInitializersGlobal,
+          'hash': js.string(hash),
+        },
+      );
+    }
     output.add('\n');
     output.add(
       js

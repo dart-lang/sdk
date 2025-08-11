@@ -43,23 +43,23 @@ testIntersection() {
     [
       [10, 10, 20, 20],
       [15, 15, 25, 25],
-      [15, 15, 20, 20]
+      [15, 15, 20, 20],
     ],
     [
       [10, 10, 20, 20],
       [20, 0, 30, 10],
-      [20, 10, 20, 10]
+      [20, 10, 20, 10],
     ],
     [
       [0, 0, 1, 1],
       [10, 11, 12, 13],
-      null
+      null,
     ],
     [
       [11, 12, 98, 99],
       [22, 23, 34, 35],
-      [22, 23, 34, 35]
-    ]
+      [22, 23, 34, 35],
+    ],
   ];
 
   for (var test in tests) {
@@ -89,23 +89,23 @@ testBoundingBox() {
     [
       [10, 10, 20, 20],
       [15, 15, 25, 25],
-      [10, 10, 25, 25]
+      [10, 10, 25, 25],
     ],
     [
       [10, 10, 20, 20],
       [20, 0, 30, 10],
-      [10, 0, 30, 20]
+      [10, 0, 30, 20],
     ],
     [
       [0, 0, 1, 1],
       [10, 11, 12, 13],
-      [0, 0, 12, 13]
+      [0, 0, 12, 13],
     ],
     [
       [11, 12, 98, 99],
       [22, 23, 34, 35],
-      [11, 12, 98, 99]
-    ]
+      [11, 12, 98, 99],
+    ],
   ];
 
   for (var test in tests) {
@@ -122,8 +122,11 @@ testContainsRectangle() {
   var r = Rectangle(-10, 0, 20, 10);
   Expect.isTrue(r.containsRectangle(r));
 
-  Expect.isFalse(r.containsRectangle(
-      Rectangle(double.nan, double.nan, double.nan, double.nan)));
+  Expect.isFalse(
+    r.containsRectangle(
+      Rectangle(double.nan, double.nan, double.nan, double.nan),
+    ),
+  );
 
   var r2 = Rectangle(0, 2, 5, 5);
   Expect.isTrue(r.containsRectangle(r2));

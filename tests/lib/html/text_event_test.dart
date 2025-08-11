@@ -9,8 +9,11 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'event_test.dart';
 
 main() {
-  eventTest('TextEvent', () => new TextEvent('foo', view: window, data: 'data'),
-      (ev) {
-    expect(ev.data, 'data');
-  });
+  eventTest(
+    'TextEvent',
+    () => new TextEvent('foo', view: window, data: 'data'),
+    (ev) {
+      expect(ev.data, 'data');
+    },
+  );
 }

@@ -45,12 +45,15 @@ main() {
 
   expect('{Foo: Method(s(Foo) in s(Foo), constructor)}', fooConstructors);
   expect('{Bar: Method(s(Bar) in s(Bar), constructor)}', barConstructors);
-  expect('{Baz.named: Method(s(Baz.named) in s(Baz), constructor)}',
-      bazConstructors);
   expect(
-      '{Biz: Method(s(Biz) in s(Biz), constructor),'
-      ' Biz.named: Method(s(Biz.named) in s(Biz), constructor)}',
-      bizConstructors);
+    '{Baz.named: Method(s(Baz.named) in s(Baz), constructor)}',
+    bazConstructors,
+  );
+  expect(
+    '{Biz: Method(s(Biz) in s(Biz), constructor),'
+    ' Biz.named: Method(s(Biz.named) in s(Biz), constructor)}',
+    bizConstructors,
+  );
   print(bizConstructors);
 
   expect('[]', fooConstructors.values.single.parameters);
@@ -61,13 +64,20 @@ main() {
   }
 
   expect(
-      '[s()]', fooConstructors.values.map((m) => m.constructorName).toList());
+    '[s()]',
+    fooConstructors.values.map((m) => m.constructorName).toList(),
+  );
   expect(
-      '[s()]', barConstructors.values.map((m) => m.constructorName).toList());
-  expect('[s(named)]',
-      bazConstructors.values.map((m) => m.constructorName).toList());
+    '[s()]',
+    barConstructors.values.map((m) => m.constructorName).toList(),
+  );
   expect(
-      '[s(), s(named)]',
-      bizConstructors.values.map((m) => m.constructorName).toList()
-        ..sort(compareSymbols));
+    '[s(named)]',
+    bazConstructors.values.map((m) => m.constructorName).toList(),
+  );
+  expect(
+    '[s(), s(named)]',
+    bizConstructors.values.map((m) => m.constructorName).toList()
+      ..sort(compareSymbols),
+  );
 }

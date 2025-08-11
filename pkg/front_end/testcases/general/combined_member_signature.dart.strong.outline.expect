@@ -19,9 +19,9 @@ abstract class B extends core::Object {
 abstract class E extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::E
     ;
-  abstract member-signature method method() → (core::Object?, core::Object?); -> self::A::method
-  abstract member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
-  abstract member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
+  abstract synthetic member-signature method method() → (core::Object?, core::Object?); -> self::A::method
+  abstract synthetic member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
+  abstract synthetic member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
 }
 class D extends core::Object implements self::E {
   synthetic constructor •() → self::D

@@ -11,7 +11,7 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,8 +31,10 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) => desc
-    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
+  Description describe(Description desc) =>
+      desc..add(
+        "an ErrorProcessor setting ${required.code} to ${required.severity}",
+      );
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
@@ -107,9 +109,11 @@ analyzer:
       options.errorProcessors,
       unorderedMatches([
         ErrorProcessorMatcher(
-            ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessor('toplevelerror', DiagnosticSeverity.WARNING),
+        ),
         ErrorProcessorMatcher(
-            ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessor('lowlevelerror', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -135,7 +139,9 @@ include: second_options.yaml
     expect(
       options.errorProcessors,
       contains(
-        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
       ),
     );
   }
@@ -162,8 +168,12 @@ include:
     expect(
       options.errorProcessors,
       unorderedMatches([
-        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -190,7 +200,9 @@ analyzer:
         // We want to explicitly state the expected severity.
         // ignore: avoid_redundant_argument_values
         ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -222,7 +234,9 @@ include:
         // We want to explicitly state the expected severity.
         // ignore: avoid_redundant_argument_values
         ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -351,26 +365,21 @@ linter:
 
   AnalysisOptions _getOptionsObject(String filePath) =>
       AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptions(getFolder(filePath)));
+        optionsMap: provider.getOptions(getFolder(filePath)),
+      );
 }
 
 class TestRule extends LintRule {
   static const LintCode code = LintCode(
-      'fantastic_test_rule', 'Fantastic test rule.',
-      correctionMessage: 'Try fantastic test rule.');
+    'fantastic_test_rule',
+    'Fantastic test rule.',
+    correctionMessage: 'Try fantastic test rule.',
+  );
 
-  TestRule()
-      : super(
-          name: 'fantastic_test_rule',
-          description: '',
-        );
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name)
-      : super(
-          name: name,
-          description: '',
-        );
+  TestRule.withName(String name) : super(name: name, description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

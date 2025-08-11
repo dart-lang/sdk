@@ -20,8 +20,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -45,7 +47,10 @@ Future<RawSecureServerSocket> startEchoServer() {
             Expect.isFalse(client.writeEventsEnabled);
             Expect.isNotNull(dataToWrite);
             bytesWritten += client.write(
-                dataToWrite!, bytesWritten, dataToWrite!.length - bytesWritten);
+              dataToWrite!,
+              bytesWritten,
+              dataToWrite!.length - bytesWritten,
+            );
             if (bytesWritten < dataToWrite!.length) {
               client.writeEventsEnabled = true;
             }
@@ -70,18 +75,22 @@ Future<RawSecureServerSocket> startEchoServer() {
 Future testClient(server) {
   Completer success = new Completer();
   List<String> chunks = <String>[];
-  SecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((socket) {
+  SecureSocket.connect(HOST, server.port, context: clientContext).then((
+    socket,
+  ) {
     socket.write("Hello server.");
     socket.close();
-    socket.listen((List<int> data) {
-      var received = new String.fromCharCodes(data);
-      chunks.add(received);
-    }, onDone: () {
-      String reply = chunks.join();
-      Expect.equals("Hello server.", reply);
-      success.complete(server);
-    });
+    socket.listen(
+      (List<int> data) {
+        var received = new String.fromCharCodes(data);
+        chunks.add(received);
+      },
+      onDone: () {
+        String reply = chunks.join();
+        Expect.equals("Hello server.", reply);
+        success.complete(server);
+      },
+    );
   });
   return success.future;
 }

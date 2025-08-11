@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class AnnotationSyntaxTest extends PubPackageResolutionTest {
   test_annotation_on_type_argument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const annotation = null;
 
 class Annotation {
@@ -29,9 +30,11 @@ class A<E> {}
 class C {
   m() => new A<@annotation @Annotation("test") C>();
 }
-''', [
-      error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 146, 11),
-      error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 158, 19),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 146, 11),
+        error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 158, 19),
+      ],
+    );
   }
 }

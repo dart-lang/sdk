@@ -228,7 +228,7 @@ library;
 //   S field14;
 //     ^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:17: Error: The value 'null' can't be assigned to a variable of type 'T' because 'T' is not nullable.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:17: Error: A value of type 'Null' can't be assigned to a variable of type 'T'.
 //   var field13 = null; // error
 //                 ^
 //
@@ -293,9 +293,9 @@ class C extends core::Object implements self::A<core::int>, self::B<core::int, c
   field dynamic field9;
   covariant-by-class field core::int field10;
   covariant-by-class field invalid-type field11;
-  covariant-by-class field core::int? field12;
+  covariant-by-class erroneous field core::int? field12;
   covariant-by-class field core::int field13 = 0;
-  covariant-by-class field core::int? field14;
+  covariant-by-class erroneous field core::int? field14;
   field invalid-type field15;
   field invalid-type field16;
   field invalid-type field17;
@@ -317,7 +317,7 @@ class D<T extends core::Object? = dynamic> extends core::Object implements self:
   covariant-by-class field self::D::T% field10;
   covariant-by-class field self::D::T% field11;
   covariant-by-class field self::D::T% field12;
-  covariant-by-class field self::D::T% field13 = invalid-expression "pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:17: Error: The value 'null' can't be assigned to a variable of type 'T' because 'T' is not nullable.
+  covariant-by-class field self::D::T% field13 = invalid-expression "pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:17: Error: A value of type 'Null' can't be assigned to a variable of type 'T'.
   var field13 = null; // error
                 ^" in null as{TypeError} Never;
   covariant-by-class field self::D::T% field14;

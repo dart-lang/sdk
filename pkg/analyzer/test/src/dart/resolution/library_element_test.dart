@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,17 +21,11 @@ main() {
 @reflectiveTest
 class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language205() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.5',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.5');
 
     await resolveTestCode('');
 
-    _assertLanguageVersion(
-      package: Version.parse('2.5.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('2.5.0'), override: null);
 
     _assertFeatureSet([
       Feature.constant_update_2018,
@@ -41,17 +36,11 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   test_language208() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.8',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.8');
 
     await resolveTestCode('');
 
-    _assertLanguageVersion(
-      package: Version.parse('2.8.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('2.8.0'), override: null);
 
     _assertFeatureSet([
       Feature.constant_update_2018,
@@ -63,10 +52,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   test_language208_override205() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.8',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.8');
 
     await resolveTestCode('// @dart = 2.5');
 
@@ -85,17 +71,11 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   test_language209() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.9',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.9');
 
     await resolveTestCode('');
 
-    _assertLanguageVersion(
-      package: Version.parse('2.9.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('2.9.0'), override: null);
 
     _assertFeatureSet([
       Feature.constant_update_2018,
@@ -107,18 +87,12 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   test_language212_override399() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.12',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
 
     await resolveTestCode('// @dart = 3.99');
 
     // Invalid override: minor is greater than the latest minor.
-    _assertLanguageVersion(
-      package: Version.parse('2.12.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('2.12.0'), override: null);
 
     _assertFeatureSet([
       Feature.constant_update_2018,
@@ -131,18 +105,12 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   test_language212_override400() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.12',
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
 
     await resolveTestCode('// @dart = 4.00');
 
     // Invalid override: major is greater than the latest major.
-    _assertLanguageVersion(
-      package: Version.parse('2.12.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('2.12.0'), override: null);
 
     _assertFeatureSet([
       Feature.constant_update_2018,
@@ -157,9 +125,10 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   void _assertFeatureSet(List<Feature> expected) {
     var featureSet = result.libraryElement2.featureSet;
 
-    var actual = ExperimentStatus.knownFeatures.values
-        .where(featureSet.isEnabled)
-        .toSet();
+    var actual =
+        ExperimentStatus.knownFeatures.values
+            .where(featureSet.isEnabled)
+            .toSet();
 
     expect(actual, unorderedEquals(expected));
   }
@@ -181,10 +150,7 @@ class LibraryElementTest_toString extends PubPackageResolutionTest {
 library my.name;
 ''');
 
-    expect(
-      result.libraryElement2.toString(),
-      'library package:test/test.dart',
-    );
+    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
   }
 
   test_hasLibraryDirective_noName() async {
@@ -192,10 +158,7 @@ library my.name;
 library;
 ''');
 
-    expect(
-      result.libraryElement2.toString(),
-      'library package:test/test.dart',
-    );
+    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
   }
 
   test_noLibraryDirective() async {
@@ -203,9 +166,6 @@ library;
 class A {}
 ''');
 
-    expect(
-      result.libraryElement2.toString(),
-      'library package:test/test.dart',
-    );
+    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
   }
 }

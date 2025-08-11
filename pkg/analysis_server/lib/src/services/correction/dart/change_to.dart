@@ -10,13 +10,13 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A predicate is a one-argument function that returns a boolean value.
-typedef _ElementPredicate = bool Function(Element2 argument);
+typedef _ElementPredicate = bool Function(Element argument);
 
 class ChangeTo extends ResolvedCorrectionProducer {
   /// The kind of elements that should be proposed.
@@ -84,14 +84,14 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Iterable<FormalParameterElement> _formalParameterSuggestions(
-    FunctionTypedElement2 element,
+    FunctionTypedElement element,
     Iterable<FormalParameter> formalParameters,
   ) {
     return element.formalParameters.where(
       (superParam) =>
           superParam.isNamed &&
           !formalParameters.any(
-            (param) => superParam.name3 == param.name?.lexeme,
+            (param) => superParam.name == param.name?.lexeme,
           ),
     );
   }
@@ -114,10 +114,10 @@ class ChangeTo extends ResolvedCorrectionProducer {
     Token? nameToken;
     if (node is NamedType) {
       prefixName = node.importPrefix?.name.lexeme;
-      nameToken = node.name2;
+      nameToken = node.name;
     } else if (node is PrefixedIdentifier &&
         node.parent is NamedType &&
-        node.prefix.element is PrefixElement2) {
+        node.prefix.element is PrefixElement) {
       prefixName = node.prefix.name;
       nameToken = node.identifier.token;
     } else if (node is SimpleIdentifier) {
@@ -128,7 +128,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
         nameToken.lexeme,
-        (element) => element is InterfaceElement2,
+        (element) => element is InterfaceElement,
       );
       // Check elements of this library.
       if (prefixName == null) {
@@ -137,13 +137,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // Check elements from imports.
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name3 == prefixName) {
+        if (importElement.prefix2?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }
       // If we have a close enough element, suggest to use it.
-      await _suggest(builder, nameToken, finder._element?.name3);
+      await _suggest(builder, nameToken, finder._element?.name);
     }
   }
 
@@ -163,8 +163,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
         _updateFinderWithClassMembers(finder, interfaceElement);
       }
     } else if (target is ExtensionOverride) {
-      _updateFinderWithExtensionMembers(finder, target.element2);
-    } else if (targetIdentifierElement is ExtensionElement2) {
+      _updateFinderWithExtensionMembers(finder, target.element);
+    } else if (targetIdentifierElement is ExtensionElement) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {
       var interfaceElement = getTargetInterfaceElement(target);
@@ -203,8 +203,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
     var type = node.type?.type;
     await _proposeClassOrMixinMember(builder, node.name, null, (element) {
-      return element is FieldElement2 &&
-          !exclusions.contains(element.name3) &&
+      return element is FieldElement &&
+          !exclusions.contains(element.name) &&
           !element.isSynthetic &&
           !element.isExternal &&
           (type == null ||
@@ -225,7 +225,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
         var invocation = node.parent;
         if (invocation is MethodInvocation && invocation.methodName == node) {
           var target = invocation.target;
-          if (target is SimpleIdentifier && target.element is PrefixElement2) {
+          if (target is SimpleIdentifier && target.element is PrefixElement) {
             prefixName = target.name;
           }
         }
@@ -244,13 +244,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // Check unprefixed imports.
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name3 == prefixName) {
+        if (importElement.prefix2?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }
       // If we have a close enough element, suggest to use it.
-      await _suggest(builder, node, finder._element?.name3);
+      await _suggest(builder, node, finder._element?.name);
     }
   }
 
@@ -273,9 +273,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
           return wantGetter;
         } else if (element is SetterElement) {
           return wantSetter;
-        } else if (element is FieldElement2) {
-          return wantGetter && element.getter2 != null ||
-              wantSetter && element.setter2 != null;
+        } else if (element is FieldElement) {
+          return wantGetter && element.getter != null ||
+              wantSetter && element.setter != null;
         }
         return false;
       });
@@ -290,7 +290,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
         builder,
         node.token,
         parent.realTarget,
-        (element) => element is MethodElement2 && !element.isOperator,
+        (element) => element is MethodElement && !element.isOperator,
       );
     }
   }
@@ -326,8 +326,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
       var superType = targetClassElement.supertype;
       if (superType == null) return;
 
-      for (var constructor in superType.constructors2) {
-        if (constructor.name3 == 'new') {
+      for (var constructor in superType.constructors) {
+        if (constructor.name == 'new') {
           var list = _formalParameterSuggestions(constructor, formalParameters);
           finder._updateList(list);
           break;
@@ -336,7 +336,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     }
 
     // If we have a close enough element, suggest to use it.
-    await _suggest(builder, superParameter.name, finder._element?.name3);
+    await _suggest(builder, superParameter.name, finder._element?.name);
   }
 
   Future<void> _suggest(
@@ -354,7 +354,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   void _updateFinderWithClassMembers(
     _ClosestElementFinder finder,
-    InterfaceElement2 clazz,
+    InterfaceElement clazz,
   ) {
     var members = getMembers(clazz);
     finder._updateList(members);
@@ -362,7 +362,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   void _updateFinderWithExtensionMembers(
     _ClosestElementFinder finder,
-    ExtensionElement2? element,
+    ExtensionElement? element,
   ) {
     if (element != null) {
       finder._updateList(getExtensionMembers(element));
@@ -370,7 +370,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 }
 
-/// Helper for finding [Element2] with name closest to the given.
+/// Helper for finding [Element] with name closest to the given.
 class _ClosestElementFinder {
   /// The maximum Levenshtein distance between the existing name and a possible
   /// replacement before the replacement is deemed to not be worth offering.
@@ -385,13 +385,13 @@ class _ClosestElementFinder {
 
   int _distance = _maxDistance;
 
-  Element2? _element;
+  Element? _element;
 
   _ClosestElementFinder(this._targetName, this._predicate);
 
-  void _update(Element2 element) {
+  void _update(Element element) {
     if (_predicate(element)) {
-      var name = element.name3;
+      var name = element.name;
       if (name != null) {
         var memberDistance = levenshtein(name, _targetName, _distance);
         if (memberDistance < _distance) {
@@ -402,7 +402,7 @@ class _ClosestElementFinder {
     }
   }
 
-  void _updateList(Iterable<Element2> elements) {
+  void _updateList(Iterable<Element> elements) {
     for (var element in elements) {
       _update(element);
     }

@@ -8,5 +8,5 @@ main() {
   print((castObject(true)..whatever()) ? 1 : 2);
   //                       ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'whatever' isn't defined for the class 'bool'.
+  // [cfe] The method 'whatever' isn't defined for the type 'bool'.
 }

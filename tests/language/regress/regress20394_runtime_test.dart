@@ -5,9 +5,7 @@ import 'regress20394_lib.dart';
 
 mixin M {}
 
-class C extends Super with M {
-
-}
+class C extends Super with M {}
 
 main() {
   new C();

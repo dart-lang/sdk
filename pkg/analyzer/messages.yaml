@@ -61,7 +61,26 @@ AnalysisOptionsErrorCode:
 
       Parameters:
       0: the error message from the parse error
-AnalysisOptionsHintCode:
+AnalysisOptionsWarningCode:
+  ANALYSIS_OPTION_DEPRECATED:
+    problemMessage: "The option '{0}' is no longer supported."
+    hasPublishedDocs: false
+    comment: |
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+    sharedName: ANALYSIS_OPTION_DEPRECATED
+    problemMessage: "The option '{0}' is no longer supported."
+    correctionMessage: "Try using the new '{1}' option."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+      1: the replacement option name
   DEPRECATED_LINT:
     problemMessage: "'{0}' is a deprecated lint rule and should not be used."
     correctionMessage: Try removing '{0}'.
@@ -90,26 +109,6 @@ AnalysisOptionsHintCode:
 
       Parameters:
       0: the rule name
-AnalysisOptionsWarningCode:
-  ANALYSIS_OPTION_DEPRECATED:
-    problemMessage: "The option '{0}' is no longer supported."
-    hasPublishedDocs: false
-    comment: |
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
-    sharedName: ANALYSIS_OPTION_DEPRECATED
-    problemMessage: "The option '{0}' is no longer supported."
-    correctionMessage: "Try using the new '{1}' option."
-    hasPublishedDocs: false
-    comment: |-
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-      1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     hasPublishedDocs: false
@@ -1149,21 +1148,28 @@ CompileTimeErrorCode:
       }
       ```
   AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+    experiment: augmentations
     problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
     correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
+    hasPublishedDocs: false
   AUGMENTATION_MODIFIER_EXTRA:
+    experiment: augmentations
     problemMessage: The augmentation has the '{0}' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '{0}' modifier, or adding it to the declaration.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the lexeme of the modifier.
   AUGMENTATION_MODIFIER_MISSING:
+    experiment: augmentations
     problemMessage: The augmentation is missing the '{0}' modifier that the declaration has.
     correctionMessage: Try adding the '{0}' modifier, or removing it from the declaration.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the lexeme of the modifier.
   AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+    experiment: augmentations
     problemMessage: Can't augment a {0} with a {1}.
     correctionMessage: Try changing the augmentation to match the declaration kind.
     hasPublishedDocs: false
@@ -1172,30 +1178,37 @@ CompileTimeErrorCode:
       0: the name of the declaration kind.
       1: the name of the augmentation kind.
   AUGMENTATION_TYPE_PARAMETER_BOUND:
+    experiment: augmentations
     problemMessage: The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_TYPE_PARAMETER_COUNT:
+    experiment: augmentations
     problemMessage: The augmentation must have the same number of type parameters as the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_TYPE_PARAMETER_NAME:
+    experiment: augmentations
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   AUGMENTATION_WITHOUT_DECLARATION:
+    experiment: augmentations
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
+    experiment: augmentations
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_SETTER:
+    experiment: augmentations
     problemMessage: The augmented declaration is a setter, it can't be used to read a value.
     correctionMessage: Try assigning a value to the augmented setter.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_NOT_OPERATOR:
+    experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '{0}'.
     correctionMessage: Try augmenting or invoking the correct operator.
     hasPublishedDocs: false
@@ -2090,6 +2103,7 @@ CompileTimeErrorCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
+    comment: The documentation is in `front_end/message.yaml`.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -3861,6 +3875,120 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the duplicate entity
+  DOT_SHORTHAND_MISSING_CONTEXT:
+    experiment: dot-shorthands
+    problemMessage: "A dot shorthand can't be used where there is no context type."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used where
+      there is no context type.
+
+      #### Example
+
+      The following code produces this diagnostic because there is no context
+      type for the expression `.a`:
+
+      ```dart
+      void f() {
+        var e = [!.a!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If you want to use a dot shorthand, then add a context type, which in this
+      example means adding the explicit type `E` to the local variable:
+
+      ```dart
+      void f() {
+        E e = .a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      If you don't want to add a context type, then specify the name of the
+      type containing the member being referenced, which in this case is `E`:
+
+      ```dart
+      void f() {
+        var e = E.a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+  DOT_SHORTHAND_UNDEFINED_GETTER:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    experiment: dot-shorthands
+    problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
+    correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the static getter
+      1: the name of the enclosing type where the getter is being looked for
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used to
+      reference a member, but that member doesn't exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the enum `E` doesn't
+      define a static member named `c`:
+
+      ```dart
+      void f() {
+        E e = .[!c!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If the name is correct, then define a member with that name in the context
+      type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .c;
+        print(e);
+      }
+
+      enum E {a, b, c}
+      ```
+
+      If the name is not correct, then replace the name with the name of an
+      existing member from the context type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .b;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+  DOT_SHORTHAND_UNDEFINED_INVOCATION:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    experiment: dot-shorthands
+    problemMessage: "The static method or constructor '{0}' isn't defined for the context type '{1}'."
+    correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the static method or constructor
+      1: the name of the enclosing type where the method or constructor is being looked for
   DUPLICATE_CONSTRUCTOR_DEFAULT:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: The unnamed constructor is already defined.
@@ -7559,6 +7687,7 @@ CompileTimeErrorCode:
   INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
     problemMessage: "'{0}' is inherited as a getter (from '{1}') and also a method (from '{2}')."
     correctionMessage: Try adjusting the supertypes of this class to remove the inconsistency.
+    hasPublishedDocs: false
     comment: |-
       11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
       class `C` declared in library `L`. `I` inherits all members of
@@ -11834,7 +11963,7 @@ CompileTimeErrorCode:
       extension type A(void Function(String) f) {}
       ```
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -11895,7 +12024,7 @@ CompileTimeErrorCode:
       in the future. You will lose the ability to have the compiler warn you if
       the `switch` needs to be updated to account for newly added types.
   NON_EXHAUSTIVE_SWITCH_STATEMENT:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a default case or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -18375,6 +18504,16 @@ CompileTimeErrorCode:
       }
       C f() => C.named();
       ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+    sharedName: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+    experiment: dot-shorthands
+    problemMessage: "The constructor '{0}.{1}` doesn't have type parameters."
+    correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class being instantiated
+      1: the name of the constructor being invoked
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
     problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
     correctionMessage: Try adjusting the number of type arguments.
@@ -18902,16 +19041,132 @@ FfiCode:
     problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      in a context other than as an argument to a native external call that is
+      marked as a leaf call (`isLeaf: true`).
+
+      #### Example
+
+      The following code produces this diagnostic because `.address` is used
+      incorrectly:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>()
+      external void nonLeafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10);
+
+        // Incorrect: Using '.address' as an argument to a non-leaf call.
+        nonLeafCall(data.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the `.address` expression is used directly as an argument to a
+      native external call that is annotated with `@Native(...)` and has
+      `isLeaf: true` set in its annotation.
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      @Native<Void Function(Pointer<Uint8>)>(isLeaf: true)
+      external void leafCall(Pointer<Uint8> ptr);
+
+      void main() {
+        final data = Uint8List(10);
+
+        // Correct: Using .address directly as an argument to a leaf call.
+        leafCall(data.address);
+      }
+      ```
   ADDRESS_RECEIVER:
     problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
     correctionMessage: Change the receiver of '.address' to one of the allowed kinds.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `.address` getter is used
+      on a receiver whose static type isn't one of the allowed FFI types. The
+      `.address` getter is used to obtain a `Pointer` to the underlying memory
+      of an FFI data structure.
+
+      The receiver of `.address` must be one of the following:
+      - A concrete `TypedData` instance (e.g., `Uint8List`).
+      - An element of a concrete `TypedData` instance accessed via `[]`.
+      - An `Array<T>` instance (from `dart:ffi`).
+      - An element of an `Array<T>` instance accessed via `[]`.
+      - A field of a `Struct` or `Union` subclass, if that field's type is `Array<T>`, a nested `Struct`, or a nested `Union`.
+      - A `Struct` or `Union` instance.
+
+      #### Example
+
+      The following code produces this diagnostic for various incorrect receivers:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        final y = struct.y;
+        // Incorrect: The receiver is not a struct field, but some integer.
+        nativeLeafCall(y.[!address!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Ensure that the receiver of the `.address` getter is one of the allowed
+      types.  The `.address` getter is for obtaining a `Pointer` to the memory
+      of `TypedData`, `Array`, `Struct`, or `Union` instances, or certain
+      fields/elements thereof.
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Pointer)>(isLeaf: true)
+      external void nativeLeafCall(Pointer ptr);
+
+      final class MyStruct extends Struct {
+        @Uint8()
+        external int x;
+
+        @Uint8()
+        external int y;
+      }
+
+      void main() {
+        final struct = Struct.create<MyStruct>();
+        // Correct: The receiver is a struct field.
+        nativeLeafCall(struct.y.address);
+      }
+      ```
   ANNOTATION_ON_POINTER_FIELD:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
-    comment: No parameters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19555,6 +19810,57 @@ FfiCode:
     correctionMessage: Pass as Handle instead.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function or method annotated
+      with `@Native` has a parameter in its FFI signature that is a `Pointer`,
+      but the corresponding Dart parameter type is a class instance that doesn't
+      extend `NativeFieldWrapperClass1` (or is a Pointer or TypedData).
+
+      #### Example
+
+      The following code produces this diagnostic because `MyService` doesn't
+      extend `NativeFieldWrapperClass1`, but the `@Native` signature for its
+      `process` method indicates the receiver should be passed as a `Pointer<Void>`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class MyService { // MyService does not extend NativeFieldWrapperClass1
+        @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+        external void [!process!](int data);
+      }
+      ```
+
+      #### Common fixes
+
+      1.  **If the Dart class is intended to wrap a native object:**
+          Make the Dart class extend `NativeFieldWrapperClass1`. This is the
+          correct approach if the Dart class instance has a corresponding native
+          object whose pointer should be passed.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService extends NativeFieldWrapperClass1 {
+            @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
+
+      2.  **If you intend to pass an opaque handle to the Dart object:**
+          Change the FFI signature in the `@Native` annotation to use `Handle`
+          instead of `Pointer` for the parameter. This allows passing a
+          reference to the Dart object itself, which native code can interact
+          with using the Dart C API.
+          ```dart
+          import 'dart:ffi';
+
+          class MyService {
+            @Native<Void Function(Handle, Int8)>(symbol: 'MyService_process')
+            external void process(int data);
+          }
+          ```
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
@@ -21449,8 +21755,10 @@ ParserErrorCode:
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
+    hasPublishedDocs: false
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
+    hasPublishedDocs: false
     comment: |-
       16.32 Identifier Reference: It is a compile-time error if any of the
       identifiers async, await, or yield is used as an identifier in a function
@@ -21458,12 +21766,11 @@ ParserErrorCode:
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
+    hasPublishedDocs: false
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
-  DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
-    problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
-    correctionMessage: "Try using a different name."
+    hasPublishedDocs: false
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.
@@ -21498,91 +21805,119 @@ ParserErrorCode:
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
+    hasPublishedDocs: false
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.
+    hasPublishedDocs: false
   EXPECTED_CLASS_MEMBER:
     problemMessage: Expected a class member.
     correctionMessage: Try placing this code inside a class member.
+    hasPublishedDocs: false
   EXPECTED_EXECUTABLE:
     problemMessage: Expected a method, getter, setter or operator declaration.
     correctionMessage: This appears to be incomplete code. Try removing it or completing it.
+    hasPublishedDocs: false
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_EXTENDS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a class name.
     correctionMessage: Try using a class name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_IMPLEMENTS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_ON:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_NAMED_TYPE_WITH:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a mixin name.
     correctionMessage: Try using a mixin name, possibly with type arguments.
+    hasPublishedDocs: false
   EXPECTED_REPRESENTATION_FIELD:
     problemMessage: Expected a representation field.
     correctionMessage: Try providing the representation field for this extension type.
+    hasPublishedDocs: false
   EXPECTED_REPRESENTATION_TYPE:
     problemMessage: Expected a representation type.
     correctionMessage: Try providing the representation type for this extension type.
+    hasPublishedDocs: false
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
+    hasPublishedDocs: false
   EXPECTED_TOKEN:
     problemMessage: "Expected to find '{0}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the token that was expected but not found
   EXPECTED_TYPE_NAME:
     problemMessage: Expected a type name.
+    hasPublishedDocs: false
   EXTERNAL_GETTER_WITH_BODY:
     problemMessage: "External getters can't have a body."
     correctionMessage: "Try removing the body of the getter, or removing the keyword 'external'."
+    hasPublishedDocs: false
   EXTERNAL_OPERATOR_WITH_BODY:
     problemMessage: "External operators can't have a body."
     correctionMessage: "Try removing the body of the operator, or removing the keyword 'external'."
+    hasPublishedDocs: false
   EXTERNAL_SETTER_WITH_BODY:
     problemMessage: "External setters can't have a body."
     correctionMessage: "Try removing the body of the setter, or removing the keyword 'external'."
+    hasPublishedDocs: false
   FACTORY_WITHOUT_BODY:
     problemMessage: "A non-redirecting 'factory' constructor must have a body."
     correctionMessage: Try adding a body to the constructor.
+    hasPublishedDocs: false
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
+    hasPublishedDocs: false
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
+    hasPublishedDocs: false
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
+    hasPublishedDocs: false
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
+    hasPublishedDocs: false
   GETTER_WITH_PARAMETERS:
     problemMessage: Getters must be declared without a parameter list.
     correctionMessage: "Try removing the parameter list, or removing the keyword 'get' to define a method rather than a getter."
+    hasPublishedDocs: false
   INVALID_CODE_POINT:
     problemMessage: "The escape sequence '{0}' isn't a valid code point."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the invalid escape sequence
   INVALID_COMMENT_REFERENCE:
     problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
+    hasPublishedDocs: false
   INVALID_GENERIC_FUNCTION_TYPE:
     problemMessage: Invalid generic function type.
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
+    hasPublishedDocs: false
   INVALID_LITERAL_IN_CONFIGURATION:
     problemMessage: "The literal in a configuration can't contain interpolation."
     correctionMessage: Try removing the interpolation expressions.
+    hasPublishedDocs: false
   INVALID_OPERATOR_FOR_SUPER:
     problemMessage: "The operator '{0}' can't be used with 'super'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the operator being applied to 'super'
@@ -21592,173 +21927,225 @@ ParserErrorCode:
   INVALID_STAR_AFTER_ASYNC:
     problemMessage: "The modifier 'async*' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+    hasPublishedDocs: false
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+    hasPublishedDocs: false
   INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+    experiment: augmentations
     problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
     correctionMessage: Try using a different identifier.
     hasPublishedDocs: false
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
+    hasPublishedDocs: false
   MISSING_CLOSING_PARENTHESIS:
     problemMessage: The closing parenthesis is missing.
     correctionMessage: Try adding the closing parenthesis.
+    hasPublishedDocs: false
   MISSING_ENUM_BODY:
     problemMessage: An enum definition must have a body with at least one constant name.
     correctionMessage: Try adding a body and defining at least one constant.
+    hasPublishedDocs: false
   MISSING_EXPRESSION_IN_INITIALIZER:
     problemMessage: Expected an expression after the assignment operator.
     correctionMessage: Try adding the value to be assigned, or remove the assignment operator.
+    hasPublishedDocs: false
   MISSING_FUNCTION_BODY:
     problemMessage: A function body must be provided.
     correctionMessage: Try adding a function body.
+    hasPublishedDocs: false
   MISSING_FUNCTION_KEYWORD:
     problemMessage: "Function types must have the keyword 'Function' before the parameter list."
     correctionMessage: "Try adding the keyword 'Function'."
+    hasPublishedDocs: false
   MISSING_FUNCTION_PARAMETERS:
     problemMessage: Functions must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_GET:
     problemMessage: "Getters must have the keyword 'get' before the getter name."
     correctionMessage: "Try adding the keyword 'get'."
+    hasPublishedDocs: false
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
+    hasPublishedDocs: false
   MISSING_METHOD_PARAMETERS:
     problemMessage: Methods must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_NAME_FOR_NAMED_PARAMETER:
     problemMessage: Named parameters in a function type must have a name
     correctionMessage: Try providing a name for the parameter or removing the curly braces.
+    hasPublishedDocs: false
   MISSING_NAME_IN_LIBRARY_DIRECTIVE:
     problemMessage: Library directives must include a library name.
     correctionMessage: "Try adding a library name after the keyword 'library', or remove the library directive if the library doesn't have any parts."
+    hasPublishedDocs: false
   MISSING_NAME_IN_PART_OF_DIRECTIVE:
     problemMessage: Part-of directives must include a library name.
     correctionMessage: "Try adding a library name after the 'of'."
+    hasPublishedDocs: false
   MISSING_STAR_AFTER_SYNC:
     problemMessage: "The modifier 'sync' must be followed by a star ('*')."
     correctionMessage: Try removing the modifier, or add a star.
+    hasPublishedDocs: false
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to close the parameter group."
     correctionMessage: "Try inserting a '{0}' at the end of the group."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the terminator that is missing
   MISSING_TYPEDEF_PARAMETERS:
     problemMessage: Typedefs must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
+    hasPublishedDocs: false
   MISSING_VARIABLE_IN_FOR_EACH:
     problemMessage: "A loop variable must be declared in a for-each loop before the 'in', but none was found."
     correctionMessage: Try declaring a loop variable.
+    hasPublishedDocs: false
   MIXED_PARAMETER_GROUPS:
     problemMessage: "Can't have both positional and named parameters in a single parameter list."
     correctionMessage: Try choosing a single style of optional parameters.
+    hasPublishedDocs: false
   MULTIPLE_IMPLEMENTS_CLAUSES:
     problemMessage: Each class or mixin definition can have at most one implements clause.
     correctionMessage: Try combining all of the implements clauses into a single clause.
+    hasPublishedDocs: false
   MULTIPLE_NAMED_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of named parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+    hasPublishedDocs: false
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+    hasPublishedDocs: false
   MULTIPLE_REPRESENTATION_FIELDS:
     problemMessage: Each extension type should have exactly one representation field.
     correctionMessage: Try combining fields into a record, or removing extra fields.
+    hasPublishedDocs: false
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the number of variables being declared
   NAMED_FUNCTION_EXPRESSION:
     problemMessage: "Function expressions can't be named."
     correctionMessage: Try removing the name, or moving the function expression to a function declaration statement.
+    hasPublishedDocs: false
   NAMED_FUNCTION_TYPE:
     problemMessage: "Function types can't be named."
     correctionMessage: "Try replacing the name with the keyword 'Function'."
+    hasPublishedDocs: false
   NAMED_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Named parameters must be enclosed in curly braces ('{' and '}')."
     correctionMessage: Try surrounding the named parameters in curly braces.
+    hasPublishedDocs: false
   NATIVE_CLAUSE_IN_NON_SDK_CODE:
     problemMessage: Native clause can only be used in the SDK and code that is loaded through native extensions.
     correctionMessage: Try removing the native clause.
+    hasPublishedDocs: false
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
     problemMessage: Native functions can only be declared in the SDK and code that is loaded through native extensions.
     correctionMessage: "Try removing the word 'native'."
+    hasPublishedDocs: false
   NON_CONSTRUCTOR_FACTORY:
     problemMessage: Only a constructor can be declared to be a factory.
     correctionMessage: "Try removing the keyword 'factory'."
+    hasPublishedDocs: false
   NON_IDENTIFIER_LIBRARY_NAME:
     problemMessage: The name of a library must be an identifier.
     correctionMessage: Try using an identifier as the name of the library.
+    hasPublishedDocs: false
   NON_PART_OF_DIRECTIVE_IN_PART:
     problemMessage: The part-of directive must be the only directive in a part.
     correctionMessage: Try removing the other directives, or moving them to the library for which this is a part.
+    hasPublishedDocs: false
   NON_STRING_LITERAL_AS_URI:
     problemMessage: The URI must be a string literal.
     correctionMessage: Try enclosing the URI in either single or double quotes.
+    hasPublishedDocs: false
   NON_USER_DEFINABLE_OPERATOR:
     problemMessage: "The operator '{0}' isn't user definable."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the operator that the user is trying to define
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
+    hasPublishedDocs: false
   PART_OF_NAME:
     problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
     correctionMessage: "Try using 'part of' with a URI instead."
+    hasPublishedDocs: false
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
+    hasPublishedDocs: false
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+    hasPublishedDocs: false
   REPRESENTATION_FIELD_MODIFIER:
     problemMessage: "Representation fields can't have modifiers."
     correctionMessage: Try removing the modifier.
+    hasPublishedDocs: false
   REPRESENTATION_FIELD_TRAILING_COMMA:
     problemMessage: The representation field can't have a trailing comma.
     correctionMessage: Try removing the trailing comma.
+    hasPublishedDocs: false
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
+    hasPublishedDocs: false
   STATIC_GETTER_WITHOUT_BODY:
     problemMessage: "A 'static' getter must have a body."
     correctionMessage: "Try adding a body to the getter, or removing the keyword 'static'."
+    hasPublishedDocs: false
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
+    hasPublishedDocs: false
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the starting character that was missing
   UNEXPECTED_TOKEN:
     problemMessage: "Unexpected text '{0}'."
     correctionMessage: Try removing the text.
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the unexpected text that was found
   VAR_CLASS:
     problemMessage: "Classes can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
+    hasPublishedDocs: false
   VAR_ENUM:
     problemMessage: "Enums can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
+    hasPublishedDocs: false
   VAR_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
+    hasPublishedDocs: false
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."
+    hasPublishedDocs: false
   WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "Expected '{0}' to close parameter group."
     correctionMessage: "Try replacing '{0}' with '{1}'."
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the terminator that was expected
@@ -22674,6 +23061,58 @@ PubspecWarningCode:
           - pkg/package_1
           - pkg/package_2
       ```
+ScannerErrorCode:
+  EXPECTED_TOKEN:
+    problemMessage: Expected to find '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the token that was expected but not found
+  ILLEGAL_CHARACTER:
+    problemMessage: Illegal character '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the illegal character
+  MISSING_DIGIT:
+    problemMessage: Decimal digit expected.
+    hasPublishedDocs: false
+  MISSING_HEX_DIGIT:
+    problemMessage: Hexadecimal digit expected.
+    hasPublishedDocs: false
+  MISSING_IDENTIFIER:
+    problemMessage: Expected an identifier.
+    hasPublishedDocs: false
+  MISSING_QUOTE:
+    problemMessage: Expected quote (' or ").
+    hasPublishedDocs: false
+  UNABLE_GET_CONTENT:
+    problemMessage: Unable to get content of '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the path of the file that cannot be read
+  UNEXPECTED_DOLLAR_IN_STRING:
+    problemMessage: A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+    hasPublishedDocs: false
+    correctionMessage: Try adding a backslash (\) to escape the '$'.
+  UNEXPECTED_SEPARATOR_IN_NUMBER:
+    problemMessage: Digit separators ('_') in a number literal can only be placed between two digits.
+    hasPublishedDocs: false
+    correctionMessage: Try removing the '_'.
+  UNSUPPORTED_OPERATOR:
+    problemMessage: The '{0}' operator is not supported.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the unsupported operator
+  UNTERMINATED_MULTI_LINE_COMMENT:
+    problemMessage: Unterminated multi-line comment.
+    hasPublishedDocs: false
+    correctionMessage: Try terminating the comment with '*/', or removing any unbalanced occurrences of '/*' (because comments nest in Dart).
+  UNTERMINATED_STRING_LITERAL:
+    problemMessage: Unterminated string literal.
+    hasPublishedDocs: false
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
@@ -23751,19 +24190,125 @@ WarningCode:
   DOC_IMPORT_CANNOT_BE_DEFERRED:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import uses the
+      `deferred` keyword.
+
+      Documentation imports can't be deferred because deferring them wouldn't
+      impact the size of the compiled code.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `deferred` keyword:
+
+      ```dart
+      // ignore:missing_prefix_in_deferred_import
+      /// @docImport 'package:meta/meta.dart' [!deferred!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `deferred` keyword:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
     problemMessage: "Doc imports can't have show or hide combinators."
     correctionMessage: Try removing the combinator.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `hide` or `show` combinators.
+
+      Using combinators isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `show` combinator:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!show max!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `hide` and `show` combinators:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `if` clauses.
+
+      Documentation imports aren't configurable.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has an `if` clause:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!if (dart.library.io) 'dart:io'!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `if` clauses:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_PREFIX:
     problemMessage: "Doc imports can't have prefixes."
     correctionMessage: Try removing the prefix.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has a
+      prefix.
+
+      Using prefixes isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import declares a prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' as [!a!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
@@ -24156,6 +24701,36 @@ WarningCode:
       #### Common fixes
 
       Remove the annotation from the declaration.
+  INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+    problemMessage: "The annotation 'awaitNotRequired' can only be applied to a Future-returning function, or a Future-typed field."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a
+      `Future`-returning function or a `Future`-typed field or top-level
+      variable is annotated with [`awaitNotRequired`][meta-awaitNotRequired].
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      `void`-returning function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!awaitNotRequired!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      void f() {}
+      ```
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."
@@ -24713,7 +25288,7 @@ WarningCode:
 
       Parameters:
       0: the name of the member
-  invalid_use_of_do_not_submit_member:
+  INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
     problemMessage: "Uses of '{0}' should not be submitted to source control."
     correctionMessage: "Try removing the reference to '{0}'."
     hasPublishedDocs: true
@@ -24810,7 +25385,7 @@ WarningCode:
       Remove the reference to the internal declaration.
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a member annotated with
       `@protected` is used outside of an instance member of a subclass.
@@ -24818,6 +25393,47 @@ WarningCode:
       Parameters:
       0: the name of the member
       1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a getter, setter, field, or
+      method that has been annotated with `@protected` is referenced anywhere
+      other than in the library in which it is declared or in a subclass of the
+      class in which it is declared.
+
+      #### Example
+
+      Given a file `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {
+        @protected
+        void a() {}
+      }
+      ```
+
+      The following code produces this diagnostic because the method `a` is
+      being invoked in code that isn't in a subclass of `A`:
+
+      ```dart
+      import 'a.dart';
+
+      void b(A a) {
+        a.[!a!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If it's reasonable for the member to be marked as `@protected`, then
+      remove the reference to the protected member, replacing it with some
+      equivalent code.
+
+      If it isn't reasonable for the member to be marked as `@protected`, and
+      you have the ability to do so, remove the annotation.
   INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
     problemMessage: "The member '{0}' can only be used for overriding."
     hasPublishedDocs: true
@@ -25150,12 +25766,55 @@ WarningCode:
   INVALID_REOPEN_ANNOTATION:
     problemMessage: "The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows."
     correctionMessage: Try removing the '@reopen' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where `@reopen` annotates a class which
       did not reopen any type.
 
       No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@reopen` annotation has been
+      placed on a class or mixin that does not remove restrictions placed on the
+      superclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` is
+      annotated with `@reopen` even though it doesn't expand the ability of `A`
+      to be subclassed:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      sealed class A {}
+
+      @[!reopen!]
+      class B extends A {}
+      ```
+
+      #### Common fixes
+
+      If the superclass should be restricted in a way that the subclass would
+      change, then modify the superclass to reflect those restrictions:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      interface class A {}
+
+      @reopen
+      class B extends A {}
+      ```
+
+      If the superclass is correct, then remove the annotation:
+
+      ```dart
+      sealed class A {}
+
+      class B extends A {}
+      ```
   INVALID_SEALED_ANNOTATION:
     removedIn: "3.5"
     problemMessage: "The annotation '@sealed' can only be applied to classes."
@@ -25194,6 +25853,189 @@ WarningCode:
       class A {
         void m() {}
       }
+      ```
+  INVALID_WIDGET_PREVIEW_APPLICATION:
+    problemMessage: "The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions."
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@Preview(...)` annotation
+      is applied to an invalid widget preview target. Widget previews can only
+      be applied to public, statically accessible, explicitly defined
+      constructors and functions.
+
+      #### Examples
+
+      The following code produces this diagnostic because `_myPrivatePreview`
+      is private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // Invalid application to private top-level function.
+      @[!Preview!]()
+      // ignore: unused_element
+      Widget _myPrivatePreview() => Text('Foo');
+      ```
+
+      The following code produces this diagnostic because `myExternalPreview`
+      is `external`:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+
+      // Invalid application to an external function.
+      @[!Preview!]()
+      external Widget myExternalPreview();
+      ```
+
+      The following code produces this diagnostic because `PublicWidget._()` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      class PublicWidget extends StatelessWidget {
+        // Invalid application to a private constructor.
+        @[!Preview!]()
+        PublicWidget._();
+
+        @override
+        Widget build(BuildContext) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `instancePreview` is
+      an instance method:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      class PublicWidget extends StatelessWidget {
+        // Invalid application to a instance member.
+        @[!Preview!]()
+        Widget instancePreview() => PublicWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `_PrivateWidget` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // ignore: unused_element
+      class _PrivateWidget extends StatelessWidget {
+        // Invalid application to a constructor of a private class.
+        @[!Preview!]()
+        _PrivateWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `_PrivateWidget` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // ignore: unused_element
+      class _PrivateWidget extends StatelessWidget {
+        // Invalid application to a static method of a private class.
+        @[!Preview!]()
+        Widget privateStatic() => _PrivateWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `AbstractWidget` is
+      an `abstract` class:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      abstract class AbstractWidget extends StatelessWidget {
+        // Invalid application to a constructor of an abstract class.
+        @[!Preview!]()
+        AbstractWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      #### Common fixes
+
+      Create a dedicated public, statically accessible, and explicitly defined
+      constructor, top-level function, or class member for use as a preview:
+
+  INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+    problemMessage: "'@Preview(...)' can only accept arguments that consist of literals and public symbols."
+    correctionMessage: "Rename private symbol '{0}' to '{1}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the private symbol
+      1: the name of the proposed public symbol equivalent
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `Preview` constructor is
+      invoked with arguments that contain references to private symbols.
+
+      #### Example
+
+      The following code produces this diagnostic because the constant variable
+      `_name` is private to the current library:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      const String _name = 'My Foo Preview';
+
+      @Preview([!name: _name!])
+      Widget myPreview() => Text('Foo');
+      ```
+
+      #### Common fixes
+
+      If appropriate, the private symbol should be made public:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      const String name = 'My Foo Preview';
+
+      @Preview(name: name)
+      Widget myPreview() => Text('Foo');
+      ```
+
+      Otherwise, a different public constant symbol should be used:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      @Preview(name: 'My Foo Preview')
+      Widget myPreview() => Text('Foo');
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
@@ -25621,8 +26463,38 @@ WarningCode:
   NON_NULLABLE_EQUALS_PARAMETER:
     problemMessage: "The parameter type of '==' operators should be non-nullable."
     correctionMessage: Try using a non-nullable type.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an override of the operator
+      `==` has a parameter whose type is nullable. The language spec makes it
+      impossible for the argument of the method to be `null`, and the
+      parameter's type should reflect that.
+
+      #### Example
+
+      The following code produces this diagnostic because the implementation of
+      the operator `==` in `C` :
+
+      ```dart
+      class C {
+        @override
+        bool operator [!==!](Object? other) => false;
+      }
+      ```
+
+      #### Common fixes
+
+      Make the parameter type be non-nullable:
+
+      ```dart
+      class C {
+        @override
+        bool operator ==(Object other) => false;
+      }
+      ```
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.
@@ -27332,8 +28204,34 @@ WarningCode:
   UNNECESSARY_WILDCARD_PATTERN:
     problemMessage: Unnecessary wildcard pattern.
     correctionMessage: Try removing the wildcard pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a wildcard pattern is used in
+      either an and (`&&`) pattern or an or (`||`) pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the wildcard pattern
+      (`_`) will always succeed, making it's use in an and pattern unnecessary:
+
+      ```dart
+      void f(Object? x) {
+        if (x case [!_!] && 0) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the use of the wildcard pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case 0) {}
+      }
+      ```
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.

@@ -33,14 +33,18 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/lookup_result.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../source/source_member_builder.dart';
@@ -482,6 +486,7 @@ class PropertyAccessGenerator extends Generator {
   String get _plainNameForRead => name.text;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -1416,7 +1421,8 @@ class StaticAccessGenerator extends Generator {
       this.targetName, this.readTarget, this.invokeTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware = false})
       : assert(
-            readTarget != null || invokeTarget != null || writeTarget != null),
+            readTarget != null || invokeTarget != null || writeTarget != null,
+            "No targets for $targetName."),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
@@ -1430,9 +1436,12 @@ class StaticAccessGenerator extends Generator {
     // If both [getterBuilder] and [setterBuilder] exist, they must both be
     // either top level (potentially from different libraries) or from the same
     // class/extension.
-    assert(getterBuilder == null ||
-        setterBuilder == null ||
-        getterBuilder.declarationBuilder == setterBuilder.declarationBuilder);
+    assert(
+        getterBuilder == null ||
+            setterBuilder == null ||
+            getterBuilder.declarationBuilder ==
+                setterBuilder.declarationBuilder,
+        "Invalid builders for $targetName: $getterBuilder vs $setterBuilder.");
     return new StaticAccessGenerator(
         helper,
         token,
@@ -1648,21 +1657,18 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Procedure? readTarget;
     Procedure? invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder.isField) {
-        assert(!getterBuilder.isStatic && getterBuilder.isExternal);
+      assert(!getterBuilder.isStatic);
+      if (getterBuilder is PropertyBuilder) {
+        assert(!getterBuilder.hasConcreteField);
         readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isGetter) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isRegularMethod) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (getterBuilder.isOperator) {
-        assert(!getterBuilder.isStatic);
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else if (getterBuilder is MethodBuilder) {
+        if (getterBuilder.isOperator) {
+          // Coverage-ignore-block(suite): Not run.
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        } else {
+          readTarget = getterBuilder.readTarget as Procedure?;
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -1673,11 +1679,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
     }
     Procedure? writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder.isField) {
-        assert(!setterBuilder.isStatic && setterBuilder.isExternal);
-        writeTarget = setterBuilder.writeTarget as Procedure?;
-      } else if (setterBuilder.isSetter) {
-        assert(!setterBuilder.isStatic);
+      if (setterBuilder is PropertyBuilder) {
+        assert(!setterBuilder.isStatic && !setterBuilder.hasConcreteField);
         writeTarget = setterBuilder.writeTarget as Procedure?;
         // Coverage-ignore-block(suite): Not run.
         targetName ??= setterBuilder.name;
@@ -1949,8 +1952,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       int extensionTypeArgumentOffset,
       Extension extension,
       Name targetName,
-      Builder? getterBuilder,
-      Builder? setterBuilder,
+      MemberBuilder? getterBuilder,
+      MemberBuilder? setterBuilder,
       Expression receiver,
       List<DartType>? explicitTypeArguments,
       int extensionTypeParameterCount,
@@ -1960,34 +1963,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Procedure? invokeTarget;
     if (getterBuilder != null) {
       assert(!getterBuilder.isStatic);
-      if (getterBuilder is AccessErrorBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        AccessErrorBuilder error = getterBuilder;
-        getterBuilder = error.builder;
-        // We should only see an access error here if we've looked up a setter
-        // when not explicitly looking for a setter.
-        assert(getterBuilder.isSetter);
-      } else if (getterBuilder.isGetter) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        readTarget = memberBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isRegularMethod) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder procedureBuilder = getterBuilder as MemberBuilder;
-        readTarget = procedureBuilder.readTarget as Procedure?;
-        invokeTarget = procedureBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isOperator) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        invokeTarget = memberBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isField) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        assert(
-            memberBuilder.invokeTarget is Procedure?,
-            "Unexpected invoke target ${memberBuilder.invokeTarget} "
-            "(${memberBuilder.invokeTarget.runtimeType}) on ${memberBuilder}.");
-        readTarget = memberBuilder.invokeTarget as Procedure?;
+      if (getterBuilder is PropertyBuilder) {
+        assert(!getterBuilder.hasConcreteField);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder is MethodBuilder) {
+        if (getterBuilder.isOperator) {
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        } else {
+          readTarget = getterBuilder.readTarget as Procedure?;
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "$getterBuilder (${getterBuilder.runtimeType})",
@@ -1999,16 +1984,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Procedure? writeTarget;
     if (setterBuilder != null) {
       assert(!setterBuilder.isStatic);
-      if (setterBuilder is AccessErrorBuilder) {
-        // No setter.
-      } else if (setterBuilder.isSetter) {
-        assert(!setterBuilder.isStatic);
-        MemberBuilder memberBuilder = setterBuilder as MemberBuilder;
-        writeTarget = memberBuilder.writeTarget as Procedure?;
-      } else if (setterBuilder.isField) {
-        assert(!setterBuilder.isStatic);
-        MemberBuilder memberBuilder = setterBuilder as MemberBuilder;
-        writeTarget = memberBuilder.writeTarget as Procedure?;
+      if (setterBuilder is PropertyBuilder) {
+        if (setterBuilder.hasSetter) {
+          writeTarget = setterBuilder.writeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "$setterBuilder (${setterBuilder.runtimeType})",
@@ -2068,6 +2047,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   Expression _createRead(Expression receiver) {
     Expression read;
     if (readTarget == null) {
+      // Coverage-ignore-block(suite): Not run.
       read = _makeInvalidRead(UnresolvedKind.Getter);
     } else {
       read = _helper.buildExtensionMethodInvocation(
@@ -2337,38 +2317,15 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       Token token,
       int extensionTypeArgumentOffset,
       Extension extension,
-      Builder? getterBuilder,
-      Builder? setterBuilder,
+      MemberBuilder? getterBuilder,
+      MemberBuilder? setterBuilder,
       Expression receiver,
       Expression index,
       List<DartType>? explicitTypeArguments,
       int extensionTypeParameterCount,
       {required bool isNullAware}) {
-    Procedure? readTarget;
-    if (getterBuilder != null) {
-      if (getterBuilder is AccessErrorBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        AccessErrorBuilder error = getterBuilder;
-        getterBuilder = error.builder;
-        // We should only see an access error here if we've looked up a setter
-        // when not explicitly looking for a setter.
-        assert(getterBuilder is MemberBuilder);
-      } else if (getterBuilder is MemberBuilder) {
-        MemberBuilder procedureBuilder = getterBuilder;
-        readTarget = procedureBuilder.invokeTarget as Procedure?;
-      } else {
-        return unhandled(
-            "${getterBuilder.runtimeType}",
-            "InstanceExtensionAccessGenerator.fromBuilder",
-            offsetForToken(token),
-            helper.uri);
-      }
-    }
-    Procedure? writeTarget;
-    if (setterBuilder is MemberBuilder) {
-      MemberBuilder memberBuilder = setterBuilder;
-      writeTarget = memberBuilder.invokeTarget as Procedure?;
-    }
+    Procedure? readTarget = getterBuilder?.invokeTarget as Procedure?;
+    Procedure? writeTarget = setterBuilder?.invokeTarget as Procedure?;
     return new ExplicitExtensionIndexedAccessGenerator(
         helper,
         token,
@@ -2651,11 +2608,11 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   Generator _createInstanceAccess(Token token, Name name,
       {bool isNullAware = false}) {
-    Builder? getter = extensionBuilder.lookupLocalMemberByName(name);
+    MemberBuilder? getter = extensionBuilder.lookupLocalMemberByName(name);
     if (getter != null && getter.isStatic) {
       getter = null;
     }
-    Builder? setter =
+    MemberBuilder? setter =
         extensionBuilder.lookupLocalMemberByName(name, setter: true);
     if (setter != null && setter.isStatic) {
       setter = null;
@@ -2743,8 +2700,10 @@ class ExplicitExtensionAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    Builder? getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
-    Builder? setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
+    MemberBuilder? getter =
+        extensionBuilder.lookupLocalMemberByName(indexGetName);
+    MemberBuilder? setter =
+        extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
       // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(_helper, token, indexGetName,
@@ -3241,7 +3200,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       }
     }
     if (declarationBuilder is DeclarationBuilder) {
-      Builder? member = declarationBuilder.findStaticBuilder(
+      LookupResult? result = declarationBuilder.findStaticBuilder(
           name.text, nameOffset, _uri, _helper.libraryBuilder);
       Generator generator;
       bool supportsConstructorTearOff =
@@ -3251,7 +3210,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 ExtensionBuilder() => false,
                 ExtensionTypeDeclarationBuilder() => true,
               };
-      if (member == null) {
+      if (result == null) {
         // If we find a setter, [member] is an [AccessErrorBuilder], not null.
         if (send is PropertySelector) {
           assert(
@@ -3328,8 +3287,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                       declarationBuilder.buildAliasedTypeArguments(
                           _helper.libraryBuilder,
                           unaliasedTypeArguments,
-                          /* hierarchy = */ null),
-                      legacyEraseAliases: false)!;
+                          /* hierarchy = */ null))!;
                 }
               } else if (typeArguments != null) {
                 builtTypeArguments = _helper.buildDartTypeArguments(
@@ -3368,9 +3326,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                         .add(freshTypeParameters.substitute(builtTypeArgument));
                   }
                 }
-                substitutedTypeArguments = unaliasTypes(
-                    substitutedTypeArguments,
-                    legacyEraseAliases: false);
+                substitutedTypeArguments =
+                    unaliasTypes(substitutedTypeArguments);
 
                 tearOffExpression = _helper.forest.createTypedefTearOff(
                     token.charOffset,
@@ -3380,8 +3337,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               } else {
                 if (builtTypeArguments != null &&
                     builtTypeArguments.isNotEmpty) {
-                  builtTypeArguments = unaliasTypes(builtTypeArguments,
-                      legacyEraseAliases: false)!;
+                  builtTypeArguments = unaliasTypes(builtTypeArguments)!;
 
                   tearOffExpression = _helper.forest.createInstantiation(
                       token.charOffset, tearOffExpression, builtTypeArguments);
@@ -3407,41 +3363,45 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               unresolvedKind:
                   isNullAware ? UnresolvedKind.Method : UnresolvedKind.Member);
         }
-      } else if (member is AmbiguousBuilder) {
-        return _helper.buildProblem(
-            member.message, member.fileOffset, name.text.length);
-      } else if (member.isStatic &&
-          !member.isFactory &&
-          typeArguments != null) {
-        return _helper.buildProblem(messageStaticTearOffFromInstantiatedClass,
-            send.fileOffset, send.name.text.length);
       } else {
-        Builder? setter;
-        if (member.isSetter) {
-          setter = member;
-          member = null;
-        } else if (member.isGetter) {
-          setter = declarationBuilder.findStaticBuilder(
-              name.text, fileOffset, _uri, _helper.libraryBuilder,
-              isSetter: true);
-        } else if (member.isField) {
-          MemberBuilder fieldBuilder = member as MemberBuilder;
-          if (!fieldBuilder.isAssignable) {
-            setter = declarationBuilder.findStaticBuilder(
-                name.text, fileOffset, _uri, _helper.libraryBuilder,
-                isSetter: true);
+        Builder? getable = result.getable;
+        Builder? setable = result.setable;
+        if (getable != null) {
+          if (getable is AmbiguousBuilder) {
+            return _helper.buildProblem(
+                getable.message, getable.fileOffset, name.text.length);
+          } else if (getable.isStatic &&
+              getable is! FactoryBuilder &&
+              typeArguments != null) {
+            return _helper.buildProblem(
+                messageStaticTearOffFromInstantiatedClass,
+                send.fileOffset,
+                send.name.text.length);
           } else {
-            setter = member;
+            generator = new StaticAccessGenerator.fromBuilder(
+                _helper,
+                name.text,
+                send.token,
+                getable is MemberBuilder ? getable : null,
+                setable is MemberBuilder ? setable : null,
+                typeOffset: fileOffset,
+                isNullAware: isNullAware);
+          }
+        } else {
+          if (setable is AmbiguousBuilder) {
+            return _helper.buildProblem(
+                setable.message, setable.fileOffset, name.text.length);
+          } else {
+            generator = new StaticAccessGenerator.fromBuilder(
+                _helper,
+                name.text,
+                send.token,
+                getable is MemberBuilder ? getable : null,
+                setable is MemberBuilder ? setable : null,
+                typeOffset: fileOffset,
+                isNullAware: isNullAware);
           }
         }
-        generator = new StaticAccessGenerator.fromBuilder(
-            _helper,
-            name.text,
-            send.token,
-            member is MemberBuilder ? member : null,
-            setter is MemberBuilder ? setter : null,
-            typeOffset: fileOffset,
-            isNullAware: isNullAware);
       }
 
       return arguments == null
@@ -3460,7 +3420,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   Expression_Generator_Builder doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    if (declaration.isExtension) {
+    if (declaration is ExtensionBuilder) {
       ExtensionBuilder extensionBuilder = declaration as ExtensionBuilder;
       if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
         return _helper.buildProblem(messageExplicitExtensionArgumentMismatch,

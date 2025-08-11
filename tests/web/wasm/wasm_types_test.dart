@@ -15,8 +15,11 @@ external WasmExternRef? createObject(WasmExternRef? prototype);
 external WasmExternRef? singularArray(WasmExternRef? element);
 
 @pragma("wasm:import", "Reflect.apply")
-external WasmExternRef? apply(WasmFuncRef? target, WasmExternRef? thisArgument,
-    WasmExternRef? argumentsList);
+external WasmExternRef? apply(
+  WasmFuncRef? target,
+  WasmExternRef? thisArgument,
+  WasmExternRef? argumentsList,
+);
 
 WasmAnyRef? anyRef;
 WasmEqRef? eqRef;
@@ -38,7 +41,8 @@ class WasmFields {
   const WasmFields(this.i32, this.i64, this.f32, this.f64);
 
   @override
-  String toString() => "${i32.toIntSigned()} ${i64.toInt()} "
+  String toString() =>
+      "${i32.toIntSigned()} ${i64.toInt()} "
       "${f32.toDouble()} ${f64.toDouble()}";
 }
 
@@ -96,7 +100,11 @@ test() {
   Expect.equals(8.0, 8.0.toWasmF64().toDouble());
 
   const wasmConst = const WasmFields(
-      const WasmI32(2), const WasmI64(3), const WasmF32(4), const WasmF64(5));
+    const WasmI32(2),
+    const WasmI64(3),
+    const WasmF32(4),
+    const WasmF64(5),
+  );
   Expect.isFalse(wasmConst.i32 == const WasmI32(1));
   Expect.isFalse(wasmConst.i64 == const WasmI64(1));
   Expect.isFalse(wasmConst.f32 == const WasmF32(1));
@@ -121,8 +129,9 @@ test() {
 
   // Create a typed function reference from an import and call it.
   var createObjectFun = WasmFunction.fromFunction(createObject);
-  WasmAnyRef jsObject3 =
-      createObjectFun.call(WasmExternRef.nullRef).internalize()!;
+  WasmAnyRef jsObject3 = createObjectFun
+      .call(WasmExternRef.nullRef)
+      .internalize()!;
   Expect.isFalse(jsObject3.isObject);
 
   Expect.equals(3, funCount);
@@ -207,8 +216,12 @@ void testImmutableArrays() {
   Expect.identical(arrayAlit3[0], arrayAlit3[2]);
 
   final int32Array = ImmutableWasmArray<WasmI32>.literal([0, 1, 2, 3]);
-  final int32ArrayC =
-      const ImmutableWasmArray<WasmI32>.literal([0, 10, 20, 30]);
+  final int32ArrayC = const ImmutableWasmArray<WasmI32>.literal([
+    0,
+    10,
+    20,
+    30,
+  ]);
   for (int i = 0; i < 4; ++i) {
     Expect.equals(int32Array.readSigned(i), i);
   }

@@ -21,6 +21,10 @@ class TypedefFragment implements Fragment {
 
   SourceTypeAliasBuilder? _builder;
 
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
+
   TypedefFragment(
       {required this.metadata,
       required this.name,

@@ -11,10 +11,11 @@ import 'dart:async';
 class DoubleTransformer<T> extends StreamTransformerBase<T, T> {
   Stream<T> bind(Stream<T> stream) {
     var transformer = new StreamTransformer<T, T>.fromHandlers(
-        handleData: (T data, EventSink<T> sink) {
-      sink.add(data);
-      sink.add(data);
-    });
+      handleData: (T data, EventSink<T> sink) {
+        sink.add(data);
+        sink.add(data);
+      },
+    );
     return transformer.bind(stream);
   }
 }
@@ -22,6 +23,8 @@ class DoubleTransformer<T> extends StreamTransformerBase<T, T> {
 main() async {
   // This should not crash. Did crash by trying to complete future more
   // than once.
-  await (new Stream.fromIterable([1, 2]).transform(new DoubleTransformer()))
-      .first;
+  await (new Stream.fromIterable([
+    1,
+    2,
+  ]).transform(new DoubleTransformer())).first;
 }

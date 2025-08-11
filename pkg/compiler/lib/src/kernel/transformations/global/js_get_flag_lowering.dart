@@ -58,6 +58,7 @@ class JsGetFlagLowering {
     'USE_CONTENT_SECURITY_POLICY' =>
       _options.features.useContentSecurityPolicy.isEnabled,
     'VARIANCE' => _options.enableVariance,
+    'DEFERRED_LOADING_EVENT_LOG' => _options.enableDeferredLoadingEventLog,
     _ => null,
   };
 

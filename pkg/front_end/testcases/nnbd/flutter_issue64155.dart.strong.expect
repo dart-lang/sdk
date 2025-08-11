@@ -64,14 +64,14 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
     ;
-  mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
+  synthetic mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
 }
 abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
-  mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
+  synthetic mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
 }
 static method main() → dynamic {}

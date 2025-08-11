@@ -106,9 +106,11 @@ void f(List<int> a) {
   a.test;
 }
 
-extension E<T> on Iterable<T> {
+extension on List<int> {
   get test => null;
 }
+
+extension E<T> on Iterable<T> {}
 ''');
   }
 
@@ -198,6 +200,55 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_inExtensionGetter() async {
+    await resolveTestCode('''
+void f(int i) => i.foo;
+
+extension on int {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+void f(int i) => i.foo;
+
+extension on int {
+  int get foo => bar;
+
+  int get bar => null;
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestCode('''
+extension E on String {
+  static int m()  => g;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int get g => null;
+
+  static int m()  => g;
+}
+''');
+  }
+
+  Future<void> test_namedRecord_returnType() async {
+    await resolveTestCode('''
+extension E on int {
+  ({int v,}) get test => (v: v,);
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  ({int v,}) get test => (v: v,);
+
+  int get v => null;
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -211,6 +262,51 @@ void f(int? p) {
 
 extension on int? {
   int get test => null;
+}
+''');
+  }
+
+  Future<void> test_onExtension() async {
+    await resolveTestCode('''
+mixin M {
+  void m(M m) => m.foo;
+}
+
+extension on M {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void m(M m) => m.foo;
+}
+
+extension on M {
+  int get foo => bar;
+
+  int get bar => null;
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestCode('''
+extension E on String {
+}
+
+void f(String s) {
+  int v = E(s).test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int get test => null;
+}
+
+void f(String s) {
+  int v = E(s).test;
+  print(v);
 }
 ''');
   }
@@ -271,6 +367,21 @@ void f(String a) {
 
 extension on String {
   get test => null;
+}
+''');
+  }
+
+  Future<void> test_record_returnType() async {
+    await resolveTestCode('''
+extension E on int {
+  (int,) get test => (a,);
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int,) get test => (a,);
+
+  int get a => null;
 }
 ''');
   }
@@ -351,6 +462,56 @@ extension on String {
 ''');
   }
 
+  Future<void> test_create_extension_existingNullable() async {
+    await resolveTestCode('''
+class A {}
+
+extension on A? {}
+
+void f(A a) {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {}
+
+extension on A? {}
+
+void f(A a) {
+  a.m();
+}
+
+extension on A {
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_create_extensionOnNullable() async {
+    await resolveTestCode('''
+class A {}
+
+extension on A {}
+
+void f(A? a) {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {}
+
+extension on A {}
+
+void f(A? a) {
+  a.m();
+}
+
+extension on A? {
+  void m() {}
+}
+''');
+  }
+
   Future<void> test_existingExtension_contextType() async {
     await resolveTestCode('''
 void f() {
@@ -385,9 +546,11 @@ void f(List<int> a) {
   a.test();
 }
 
-extension E<T> on Iterable<T> {
+extension on List<int> {
   void test() {}
 }
+
+extension E<T> on Iterable<T> {}
 ''');
   }
 
@@ -404,9 +567,11 @@ void f(List<int> a) {
   a.test();
 }
 
-extension E<T extends Iterable<int>> on T {
+extension on List<int> {
   void test() {}
 }
+
+extension E<T extends Iterable<int>> on T {}
 ''');
   }
 
@@ -517,6 +682,150 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_multipleSameTypeExistingExtensions() async {
+    await resolveTestCode('''
+void f(int i) {
+  i.m();
+}
+
+extension on int {
+}
+
+extension on int {}
+''');
+    await assertHasFix('''
+void f(int i) {
+  i.m();
+}
+
+extension on int {
+  void m() {}
+}
+
+extension on int {}
+''');
+  }
+
+  Future<void> test_multipleSameTypeExistingExtensions_override() async {
+    await resolveTestCode('''
+void f(int i) {
+  E2(i).m();
+}
+
+extension E1 on int {}
+
+extension E2 on int {}
+''');
+    await assertHasFix('''
+void f(int i) {
+  E2(i).m();
+}
+
+extension E1 on int {}
+
+extension E2 on int {
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_multipleSameTypeExistingExtensions_preferFirst() async {
+    await resolveTestCode('''
+void f(num n) {
+  n.m();
+}
+
+extension on num {}
+
+extension on String {}
+
+extension on num {}
+''');
+    await assertHasFix('''
+void f(num n) {
+  n.m();
+}
+
+extension on num {
+  void m() {}
+}
+
+extension on String {}
+
+extension on num {}
+''');
+  }
+
+  Future<void> test_multipleValidExistingExtensions() async {
+    await resolveTestCode('''
+void f(int i) {
+  i.m();
+}
+
+extension on num {}
+
+extension on int {
+}
+''');
+    await assertHasFix('''
+void f(int i) {
+  i.m();
+}
+
+extension on num {}
+
+extension on int {
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_multipleValidExistingExtensions_createExactType() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+extension AE on A {}
+extension BE on B {}
+
+void f(C c) {
+  c.m();
+}
+''');
+    await assertHasFix('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+extension AE on A {}
+extension BE on B {}
+
+void f(C c) {
+  c.m();
+}
+
+extension on C {
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_namedRecord_returnType() async {
+    await resolveTestCode('''
+extension E on int {
+  ({int v,}) get test => (v: v(),);
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  ({int v,}) get test => (v: v(),);
+
+  int v() {}
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -530,6 +839,25 @@ void f(int? p) {
 
 extension on int? {
   int test() {}
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestCode('''
+extension E on String {}
+
+void f() {
+  E('a').m();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  void m() {}
+}
+
+void f() {
+  E('a').m();
 }
 ''');
   }
@@ -573,6 +901,59 @@ void f(String a) {
 
 extension on String {
   void test() {}
+}
+''');
+  }
+
+  Future<void> test_record_returnType() async {
+    await resolveTestCode('''
+extension E on int {
+  (int,) get test => (a(),);
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int,) get test => (a(),);
+
+  int a() {}
+}
+''');
+  }
+
+  Future<void> test_static() async {
+    await resolveTestCode('''
+extension E on String {}
+
+void f() {
+  E.m();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static void m() {}
+}
+
+void f() {
+  E.m();
+}
+''');
+  }
+
+  Future<void> test_static_tearoff() async {
+    await resolveTestCode('''
+extension E on String {}
+
+void f() {
+  bool Function() _ = E.m;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static bool m() {}
+}
+
+void f() {
+  bool Function() _ = E.m;
 }
 ''');
   }
@@ -848,6 +1229,29 @@ extension <T> on T {
 }
 ''');
   }
+
+  Future<void> test_useExtensionOnNullable2() async {
+    await resolveTestCode('''
+class A {}
+
+extension on A? {}
+
+void f(A? a) {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {}
+
+extension on A? {
+  void m() {}
+}
+
+void f(A? a) {
+  a.m();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1050,9 +1454,11 @@ void f(List<int> a) {
   a.test = 0;
 }
 
-extension E<T> on Iterable<T> {
+extension on List<int> {
   set test(int test) {}
 }
+
+extension E<T> on Iterable<T> {}
 ''');
   }
 

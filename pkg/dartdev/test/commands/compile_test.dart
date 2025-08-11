@@ -5,9 +5,10 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
-import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -1478,6 +1479,39 @@ void main() {
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
+  });
+
+  test('Compile JIT snapshot with asserts', () async {
+    final p = project(mainSrc: '''
+void main() {
+  assert(int.parse('1') == 2);
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'jit-snapshot',
+        '--enable-asserts',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains(failedAssertionError));
+    expect(result.exitCode, 255);
+
+    result = await p.run(
+      ['--enable-asserts', outFile],
+    );
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, contains(failedAssertionError));
   });
 
   if (Platform.isMacOS) {

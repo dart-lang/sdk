@@ -417,14 +417,12 @@ class Scroller implements Draggable, MomentumDelegate {
     Coordinate contentStart = _contentStartOffset!;
     num newX = contentStart.x + _touchHandler.getDragDeltaX();
     num newY = contentStart.y + _touchHandler.getDragDeltaY();
-    newY =
-        _shouldScrollVertically()
-            ? _adjustValue(newY, _minPoint.y, _maxPoint.y)
-            : 0;
-    newX =
-        _shouldScrollHorizontally()
-            ? _adjustValue(newX, _minPoint.x, _maxPoint.x)
-            : 0;
+    newY = _shouldScrollVertically()
+        ? _adjustValue(newY, _minPoint.y, _maxPoint.y)
+        : 0;
+    newX = _shouldScrollHorizontally()
+        ? _adjustValue(newX, _minPoint.x, _maxPoint.x)
+        : 0;
     if (!_activeGesture) {
       _activeGesture = true;
       _dragInProgress = true;
@@ -605,11 +603,11 @@ class Scroller implements Draggable, MomentumDelegate {
   static Function _getOffsetFunction(int scrollTechnique) {
     return scrollTechnique == ScrollerScrollTechnique.TRANSFORM_3D
         ? (el, x, y) {
-          FxUtil.setTranslate(el, x, y, 0);
-        }
+            FxUtil.setTranslate(el, x, y, 0);
+          }
         : (el, x, y) {
-          FxUtil.setLeftAndTop(el, x, y);
-        };
+            FxUtil.setLeftAndTop(el, x, y);
+          };
   }
 }
 

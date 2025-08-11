@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ImportAddShowTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
+  AssistKind get kind => DartAssistKind.importAddShow;
 
   Future<void> test_aliased() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -28,11 +28,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart' as l;
+^import 'lib.dart' as l;
 
 void f(l.C c) => c + c;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' as l show C, E;
 
 void f(l.C c) => c + c;
@@ -48,11 +48,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c + c;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c + c;
@@ -68,11 +68,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c();
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c();
@@ -88,11 +88,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.f;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.f;
@@ -110,11 +110,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.c.f;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.c.f;
@@ -130,13 +130,13 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 int f(C c) => switch (c) {
   C(:var f) => f,
 };
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 int f(C c) => switch (c) {
@@ -154,14 +154,14 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 int f(C c) {
   var C(:f) = c;
   return f;
 }
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 int f(C c) {
@@ -180,11 +180,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c[7];
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c[7];
@@ -200,11 +200,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c[7] = 6;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c[7] = 6;
@@ -220,11 +220,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.m();
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.m();
@@ -242,11 +242,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c..m()..n();
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c..m()..n();
@@ -263,11 +263,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.f += 7;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.f += 7;
@@ -284,11 +284,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.f ??= 7;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.f ??= 7;
@@ -304,11 +304,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => c.f = 7;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => c.f = 7;
@@ -324,11 +324,11 @@ extension E on C {
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f(C c) => ~c;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show C, E;
 
 void f(C c) => ~c;
@@ -337,23 +337,23 @@ void f(C c) => ~c;
 
   Future<void> test_hasShow() async {
     await resolveTestCode('''
-import 'dart:math' show pi;
+^import 'dart:math' show pi;
 void f() {
   pi;
 }
 ''');
-    await assertNoAssistAt('import ');
+    await assertNoAssist();
   }
 
   Future<void> test_hasUnresolvedIdentifier() async {
     await resolveTestCode('''
-import 'dart:math';
+^import 'dart:math';
 void f(x) {
   pi;
   return x.foo();
 }
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'dart:math' show pi;
 void f(x) {
   pi;
@@ -367,10 +367,10 @@ void f(x) {
 mixin M {}
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 void f(M m) {}
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show M;
 void f(M m) {}
 ''');
@@ -378,14 +378,14 @@ void f(M m) {}
 
   Future<void> test_onDirective() async {
     await resolveTestCode('''
-import 'dart:math';
+^import 'dart:math';
 void f() {
   pi;
   e;
   max(1, 2);
 }
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'dart:math' show e, max, pi;
 void f() {
   pi;
@@ -397,14 +397,14 @@ void f() {
 
   Future<void> test_onUri() async {
     await resolveTestCode('''
-import 'dart:math';
+import 'd^art:math';
 void f() {
   pi;
   e;
   max(1, 2);
 }
 ''');
-    await assertHasAssistAt('art:math', '''
+    await assertHasAssist('''
 import 'dart:math' show e, max, pi;
 void f() {
   pi;
@@ -419,11 +419,11 @@ void f() {
 set s(int value) {}
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 
 void f() => s = 7;
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show s;
 
 void f() => s = 7;
@@ -435,13 +435,13 @@ void f() => s = 7;
 void set setter(int i) {}
 ''');
     await resolveTestCode('''
-import 'a.dart';
+^import 'a.dart';
 
 void f() {
   setter = 42;
 }
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'a.dart' show setter;
 
 void f() {
@@ -455,10 +455,10 @@ void f() {
 typedef Cb = void Function();
 ''');
     await resolveTestCode('''
-import 'lib.dart';
+^import 'lib.dart';
 void f(Cb cb) {}
 ''');
-    await assertHasAssistAt('import ', '''
+    await assertHasAssist('''
 import 'lib.dart' show Cb;
 void f(Cb cb) {}
 ''');
@@ -467,15 +467,15 @@ void f(Cb cb) {}
   Future<void> test_unresolvedUri() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-import '/no/such/lib.dart';
+^import '/no/such/lib.dart';
 ''');
-    await assertNoAssistAt('import ');
+    await assertNoAssist();
   }
 
   Future<void> test_unused() async {
     await resolveTestCode('''
-import 'dart:math';
+^import 'dart:math';
 ''');
-    await assertNoAssistAt('import ');
+    await assertNoAssist();
   }
 }

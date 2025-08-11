@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -32,12 +32,13 @@ class PrefixedIdentifierResolver {
     _resolver.checkUnreachableNode(node.identifier);
 
     var prefixElement = node.prefix.element;
-    if (prefixElement is! PrefixElement2) {
+    if (prefixElement is! PrefixElement) {
       var prefixType = node.prefix.staticType;
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
-        var prefixTypeResolved =
-            _resolver.typeSystem.resolveToBound(prefixType);
+        var prefixTypeResolved = _resolver.typeSystem.resolveToBound(
+          prefixType,
+        );
         if (prefixTypeResolved is RecordType) {
           var propertyAccess = PropertyAccessImpl(
             target: node.prefix,
@@ -62,7 +63,7 @@ class PrefixedIdentifierResolver {
     var identifier = node.identifier;
     identifier.element = element;
 
-    if (element is ExtensionElement2) {
+    if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
       return null;
     }
@@ -78,7 +79,7 @@ class PrefixedIdentifierResolver {
         result.readElementRecovery2 != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is InterfaceElement2) {
+    } else if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.recordStaticType(type, resolver: _resolver);
@@ -87,12 +88,12 @@ class PrefixedIdentifierResolver {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return null;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       var type = _typeProvider.typeType;
       node.recordStaticType(type, resolver: _resolver);
       identifier.setPseudoExpressionStaticType(type);
       return null;
-    } else if (element is TypeAliasElement2) {
+    } else if (element is TypeAliasElement) {
       if (node.parent is NamedType) {
         // no type
       } else {
@@ -101,13 +102,13 @@ class PrefixedIdentifierResolver {
         identifier.setPseudoExpressionStaticType(type);
       }
       return null;
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       type = element.type;
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       type = result.getType!;
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       type = element.type;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;
@@ -122,8 +123,12 @@ class PrefixedIdentifierResolver {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      type = _inferenceHelper.inferTearOff(node, identifier, type,
-          contextType: contextType);
+      type = _inferenceHelper.inferTearOff(
+        node,
+        identifier,
+        type,
+        contextType: contextType,
+      );
     }
     identifier.setPseudoExpressionStaticType(type);
     node.recordStaticType(type, resolver: _resolver);
@@ -174,7 +179,7 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.errorReporter.atNode(
+    _resolver.diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
       arguments: [node.name],

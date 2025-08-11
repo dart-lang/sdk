@@ -10,10 +10,14 @@ namespace dart {
 namespace bin {
 
 IsolateGroupData::IsolateGroupData(const char* url,
+                                   const char* asset_resolution_base,
                                    const char* packages_file,
                                    AppSnapshot* app_snapshot,
                                    bool isolate_run_app_snapshot)
     : script_url((url != nullptr) ? Utils::StrDup(url) : nullptr),
+      asset_resolution_base((asset_resolution_base != nullptr)
+                                ? Utils::StrDup(asset_resolution_base)
+                                : nullptr),
       app_snapshot_(app_snapshot),
       resolved_packages_config_(nullptr),
       kernel_buffer_(nullptr),
@@ -29,6 +33,7 @@ IsolateGroupData::~IsolateGroupData() {
     delete loading_units_[i];
   }
   free(script_url);
+  free(asset_resolution_base);
   script_url = nullptr;
   free(packages_file_);
   packages_file_ = nullptr;

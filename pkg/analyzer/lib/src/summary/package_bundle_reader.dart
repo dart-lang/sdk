@@ -19,8 +19,12 @@ class ConflictingSummaryException implements Exception {
   final String summary2Uri;
   late final String _message;
 
-  ConflictingSummaryException(Iterable<String> summaryPaths, this.duplicatedUri,
-      this.summary1Uri, this.summary2Uri) {
+  ConflictingSummaryException(
+    Iterable<String> summaryPaths,
+    this.duplicatedUri,
+    this.summary1Uri,
+    this.summary2Uri,
+  ) {
     // Paths are often quite long.  Find and extract out a common prefix to
     // build a more readable error message.
     var prefix = _commonPrefix(summaryPaths.toList());
@@ -54,8 +58,9 @@ include the same source.
       }
     }
     // The prefix should end with a file separator.
-    var last =
-        first.substring(0, common).lastIndexOf(io.Platform.pathSeparator);
+    var last = first
+        .substring(0, common)
+        .lastIndexOf(io.Platform.pathSeparator);
     return last < 0 ? 0 : last + 1;
   }
 }

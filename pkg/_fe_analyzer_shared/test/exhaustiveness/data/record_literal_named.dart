@@ -231,7 +231,8 @@ void unreachableCase2(({Enum a, bool b}) r) {
     case (a: Enum.b, b: true):
       print('(b, true)');
       break;
-    /*space=Null*/ case null:
+    /*space=Null*/
+    case null:
       print('null');
       break;
   }

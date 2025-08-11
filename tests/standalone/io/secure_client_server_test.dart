@@ -22,8 +22,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -31,11 +33,12 @@ SecurityContext clientContext = new SecurityContext()
 Future<SecureServerSocket> startEchoServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((SecureSocket client) {
-      client.fold<List<int>>(
-          <int>[], (message, data) => message..addAll(data)).then((message) {
-        client.add(message);
-        client.close();
-      });
+      client
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            client.add(message);
+            client.close();
+          });
     });
     return server;
   });
@@ -43,8 +46,9 @@ Future<SecureServerSocket> startEchoServer() {
 
 void checkServerCertificate(X509Certificate serverCert) {
   String serverCertString = serverCert.pem;
-  String certFile =
-      new File(localFile('certificates/server_chain.pem')).readAsStringSync();
+  String certFile = new File(
+    localFile('certificates/server_chain.pem'),
+  ).readAsStringSync();
   Expect.isTrue(certFile.contains(serverCertString));
 
   // Computed with:
@@ -58,16 +62,18 @@ void checkServerCertificate(X509Certificate serverCert) {
 }
 
 Future testClient(server) {
-  return SecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((socket) {
+  return SecureSocket.connect(HOST, server.port, context: clientContext).then((
+    socket,
+  ) {
     checkServerCertificate(socket.peerCertificate!);
     socket.write("Hello server.");
     socket.close();
-    return socket.fold<List<int>>(
-        <int>[], (message, data) => message..addAll(data)).then((message) {
-      Expect.listEquals("Hello server.".codeUnits, message);
-      return server;
-    });
+    return socket
+        .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+        .then((message) {
+          Expect.listEquals("Hello server.".codeUnits, message);
+          return server;
+        });
   });
 }
 

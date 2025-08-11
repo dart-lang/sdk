@@ -244,8 +244,9 @@ main(List<String> args) {
 
             List<PragmaAnnotationData> pragmaAnnotations = annotationData
                 .getMemberPragmaAnnotationData(member);
-            Set<String> pragmaNames =
-                pragmaAnnotations.map((d) => d.name).toSet();
+            Set<String> pragmaNames = pragmaAnnotations
+                .map((d) => d.name)
+                .toSet();
             Expect.setEquals(
               expectedPragmaNames,
               pragmaNames,
@@ -302,8 +303,8 @@ main(List<String> args) {
             isNativeMember
                 ? expectedNativeMemberName ?? memberEntity.name
                 : (isJsInteropMember
-                    ? expectedJsInteropMemberName ?? memberEntity.name
-                    : null),
+                      ? expectedJsInteropMemberName ?? memberEntity.name
+                      : null),
             nativeData.getFixedBackendName(memberEntity),
             "Unexpected fixed backend name from native data for $member, "
             "id: $memberId",
@@ -354,8 +355,9 @@ main(List<String> args) {
           List<PragmaAnnotationData> pragmaAnnotations = frontendStrategy
               .modularStrategyForTesting
               .getPragmaAnnotationData(member);
-          Set<String> pragmaNames =
-              pragmaAnnotations.map((d) => d.name).toSet();
+          Set<String> pragmaNames = pragmaAnnotations
+              .map((d) => d.name)
+              .toSet();
           Expect.setEquals(
             expectedPragmaNames,
             pragmaNames,

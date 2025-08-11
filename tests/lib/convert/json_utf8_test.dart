@@ -19,21 +19,22 @@ void main() {
 
     // String (0x22 = ") with UTF-8 encoded Unicode characters.
     Expect.equals(
-        "A\xff\u1234\u{65555}",
-        parse([
-          0x22,
-          0x41,
-          0xc3,
-          0xbf,
-          0xe1,
-          0x88,
-          0xb4,
-          0xf1,
-          0xa5,
-          0x95,
-          0x95,
-          0x22
-        ]));
+      "A\xff\u1234\u{65555}",
+      parse([
+        0x22,
+        0x41,
+        0xc3,
+        0xbf,
+        0xe1,
+        0x88,
+        0xb4,
+        0xf1,
+        0xa5,
+        0x95,
+        0x95,
+        0x22,
+      ]),
+    );
 
     // BOM followed by true.
     Expect.isTrue(parse([0xEF, 0xBB, 0xBF, 0x74, 0x72, 0x75, 0x65]));
@@ -41,18 +42,22 @@ void main() {
 
   // Do not accept BOM in non-UTF-8 decoder.
   Expect.throws<FormatException>(
-      () => new JsonDecoder().convert("\xEF\xBB\xBFtrue"));
+    () => new JsonDecoder().convert("\xEF\xBB\xBFtrue"),
+  );
   Expect.throws<FormatException>(() => new JsonDecoder().convert("\uFEFFtrue"));
 
   // Only accept BOM first.
   Expect.throws<FormatException>(
-      () => parseFuse(" \xEF\xBB\xBFtrue".codeUnits.toList()));
+    () => parseFuse(" \xEF\xBB\xBFtrue".codeUnits.toList()),
+  );
   // Only accept BOM first.
   Expect.throws<FormatException>(
-      () => parseFuse(" true\xEF\xBB\xBF".codeUnits.toList()));
+    () => parseFuse(" true\xEF\xBB\xBF".codeUnits.toList()),
+  );
 
   Expect.throws<FormatException>(
-      () => parseFuse(" [\xEF\xBB\xBF]".codeUnits.toList()));
+    () => parseFuse(" [\xEF\xBB\xBF]".codeUnits.toList()),
+  );
 
   // Regression test for dartbug.com/46205
   // Bug occurs in sound null safe mode only.
@@ -69,10 +74,13 @@ Object? parseSequence(List<int> text) {
 
 Object? parseChunked(List<int> text) {
   var result;
-  var sink = new Utf8Decoder().fuse(new JsonDecoder()).startChunkedConversion(
-      new ChunkedConversionSink.withCallback((List<Object?> values) {
-    result = values[0];
-  }));
+  var sink = new Utf8Decoder()
+      .fuse(new JsonDecoder())
+      .startChunkedConversion(
+        new ChunkedConversionSink.withCallback((List<Object?> values) {
+          result = values[0];
+        }),
+      );
   for (var i = 0; i < text.length; i++) {
     sink.add([text[i]]);
   }

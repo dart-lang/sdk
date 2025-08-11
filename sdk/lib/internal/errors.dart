@@ -68,3 +68,22 @@ class ReachabilityError extends Error {
         : "ReachabilityError";
   }
 }
+
+class FieldAccessError extends Error {
+  final String? _message;
+
+  FieldAccessError([this._message]);
+
+  @pragma("vm:entry-point")
+  FieldAccessError.staticFieldAccessedWithoutIsolate(String localName)
+    : _message =
+          "Attempt to access isolate static field '${localName}'"
+          " without an isolate.";
+
+  String toString() {
+    var message = _message;
+    return (message != null)
+        ? "FieldAccessError: $message"
+        : "FieldAccessError";
+  }
+}

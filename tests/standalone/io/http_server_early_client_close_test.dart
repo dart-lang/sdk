@@ -36,25 +36,32 @@ class EarlyCloseTest {
       bool calledOnDone = false;
       ReceivePort port = new ReceivePort();
       var requestCompleter = new Completer();
-      server.listen((request) {
-        Expect.isTrue(expectRequest);
-        Expect.isFalse(calledOnError);
-        Expect.isFalse(calledOnRequest, "onRequest called multiple times");
-        calledOnRequest = true;
-        request.listen((_) {}, onDone: () {
-          requestCompleter.complete();
-        }, onError: (error) {
+      server.listen(
+        (request) {
+          Expect.isTrue(expectRequest);
           Expect.isFalse(calledOnError);
-          Expect.equals(exception, error.message);
-          calledOnError = true;
-          if (exception != null) port.close();
-        });
-      }, onDone: () {
-        Expect.equals(expectRequest, calledOnRequest);
-        calledOnDone = true;
-        if (exception == null) port.close();
-        c.complete(null);
-      });
+          Expect.isFalse(calledOnRequest, "onRequest called multiple times");
+          calledOnRequest = true;
+          request.listen(
+            (_) {},
+            onDone: () {
+              requestCompleter.complete();
+            },
+            onError: (error) {
+              Expect.isFalse(calledOnError);
+              Expect.equals(exception, error.message);
+              calledOnError = true;
+              if (exception != null) port.close();
+            },
+          );
+        },
+        onDone: () {
+          Expect.equals(expectRequest, calledOnRequest);
+          calledOnDone = true;
+          if (exception == null) port.close();
+          c.complete(null);
+        },
+      );
 
       List<int>? d;
       if (data is List<int>) d = data;
@@ -88,10 +95,16 @@ void testEarlyClose1() {
   add("GET / HTTP/1.1\r\n");
 
   // Close while sending content
-  add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n",
-      "Connection closed while receiving data", true);
-  add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n1",
-      "Connection closed while receiving data", true);
+  add(
+    "GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n",
+    "Connection closed while receiving data",
+    true,
+  );
+  add(
+    "GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n1",
+    "Connection closed while receiving data",
+    true,
+  );
 
   void runTest(Iterator it) {
     if (it.moveNext()) {
@@ -108,11 +121,11 @@ testEarlyClose2() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       String name = Platform.script.toFilePath();
-      new File(name)
-          .openRead()
-          .cast<List<int>>()
-          .pipe(request.response)
-          .catchError((e) {/* ignore */});
+      new File(
+        name,
+      ).openRead().cast<List<int>>().pipe(request.response).catchError((e) {
+        /* ignore */
+      });
     });
 
     var count = 0;
@@ -140,11 +153,14 @@ void testEarlyClose3() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var subscription;
-      subscription = request.listen((_) {}, onError: (error) {
-        // subscription.cancel should not trigger an error.
-        subscription.cancel();
-        server.close();
-      });
+      subscription = request.listen(
+        (_) {},
+        onError: (error) {
+          // subscription.cancel should not trigger an error.
+          subscription.cancel();
+          server.close();
+        },
+      );
     });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.write("GET / HTTP/1.1\r\n");

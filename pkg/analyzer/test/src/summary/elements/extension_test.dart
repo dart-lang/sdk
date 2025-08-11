@@ -19,6 +19,27 @@ main() {
 }
 
 abstract class ExtensionElementTest extends ElementsBaseTest {
+  test_extendedType_recordType() async {
+    var library = await buildLibrary('''
+extension E on (int, String) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: (int, String)
+''');
+  }
+
   test_extension_documented_tripleSlash() async {
     var library = await buildLibrary('''
 /// aaa
@@ -29,17 +50,17 @@ extension E on int {}''');
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @34
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @34
           element: <testLibrary>::@extension::E
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
       documentationComment: /// aaa\n/// bbbb\n/// cc
+      extendedType: int
 ''');
   }
 
@@ -52,40 +73,42 @@ extension E on int {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @10
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @10
           element: <testLibrary>::@extension::E
           fields
-            hasInitializer x @36
-              reference: <testLibraryFragment>::@extension::E::@field::x
-              element: <testLibraryFragment>::@extension::E::@field::x#element
+            #F2 hasInitializer x @36
+              element: <testLibrary>::@extension::E::@field::x
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @40
                   staticType: int
-              getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
-            synthetic get x
-              reference: <testLibraryFragment>::@extension::E::@getter::x
-              element: <testLibraryFragment>::@extension::E::@getter::x#element
+            #F3 synthetic x
+              element: <testLibrary>::@extension::E::@getter::x
+              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
+      extendedType: int
       fields
         static const hasInitializer x
-          firstFragment: <testLibraryFragment>::@extension::E::@field::x
+          reference: <testLibrary>::@extension::E::@field::x
+          firstFragment: #F2
           type: int
           constantInitializer
-            fragment: <testLibraryFragment>::@extension::E::@field::x
+            fragment: #F2
             expression: expression_0
-          getter: <testLibraryFragment>::@extension::E::@getter::x#element
+          getter: <testLibrary>::@extension::E::@getter::x
       getters
-        synthetic static get x
-          firstFragment: <testLibraryFragment>::@extension::E::@getter::x
+        synthetic static x
+          reference: <testLibrary>::@extension::E::@getter::x
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extension::E::@field::x
 ''');
   }
 
@@ -97,22 +120,23 @@ extension E<T extends num> on int {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @10
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @10
           element: <testLibrary>::@extension::E
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           bound: num
+      extendedType: int
 ''');
   }
 
@@ -124,21 +148,122 @@ extension E<T> on int {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @10
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @10
           element: <testLibrary>::@extension::E
           typeParameters
-            T @12
-              element: T@12
+            #F2 T @12
+              element: #E0 T
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
+      extendedType: int
+''');
+  }
+
+  test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  int get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T @12
+              element: #E0 T
+          fields
+            #F3 synthetic foo
+              element: <testLibrary>::@extension::E::@field::foo
+          getters
+            #F4 foo @38
+              element: <testLibrary>::@extension::E::@getter::foo
+              returnType: int
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: List<T>
+      fields
+        synthetic foo
+          reference: <testLibrary>::@extension::E::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@extension::E::@getter::foo
+      getters
+        foo
+          reference: <testLibrary>::@extension::E::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::E::@field::foo
+''');
+  }
+
+  test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  T get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T @12
+              element: #E0 T
+          fields
+            #F3 synthetic foo
+              element: <testLibrary>::@extension::E::@field::foo
+          getters
+            #F4 foo @36
+              element: <testLibrary>::@extension::E::@getter::foo
+              returnType: T
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: List<T>
+      fields
+        synthetic foo
+          reference: <testLibrary>::@extension::E::@field::foo
+          firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibrary>::@extension::E::@getter::foo
+      getters
+        foo
+          reference: <testLibrary>::@extension::E::@getter::foo
+          firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
+          returnType: T
+          variable: <testLibrary>::@extension::E::@field::foo
 ''');
   }
 
@@ -157,109 +282,114 @@ extension E<@foo T> on int {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @31
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @31
           element: <testLibrary>::@extension::E
           typeParameters
-            T @38
-              element: T@38
+            #F2 T @38
+              element: #E0 T
               metadata
                 Annotation
                   atSign: @ @33
                   name: SimpleIdentifier
                     token: foo @34
-                    element: <testLibraryFragment>::@getter::foo#element
+                    element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibraryFragment>::@getter::foo#element
+                  element2: <testLibrary>::@getter::foo
           fields
-            hasInitializer foo @65
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
+            #F3 hasInitializer foo @65
+              element: <testLibrary>::@extension::E::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @71
                   staticType: int
-              getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@extension::E::@getter::foo
-              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+            #F4 synthetic foo
+              element: <testLibrary>::@extension::E::@getter::foo
+              returnType: int
           methods
-            bar @88
-              reference: <testLibraryFragment>::@extension::E::@method::bar
-              element: <testLibraryFragment>::@extension::E::@method::bar#element
+            #F5 bar @88
+              element: <testLibrary>::@extension::E::@method::bar
               metadata
                 Annotation
                   atSign: @ @76
                   name: SimpleIdentifier
                     token: foo @77
-                    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+                    element: <testLibrary>::@extension::E::@getter::foo
                     staticType: null
-                  element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+                  element2: <testLibrary>::@extension::E::@getter::foo
       topLevelVariables
-        hasInitializer foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F6 hasInitializer foo @6
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_1
             IntegerLiteral
               literal: 0 @12
               staticType: int
-          getter2: <testLibraryFragment>::@getter::foo
       getters
-        synthetic get foo
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
+        #F7 synthetic foo
+          element: <testLibrary>::@getter::foo
+          returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
           metadata
             Annotation
               atSign: @ @33
               name: SimpleIdentifier
                 token: foo @34
-                element: <testLibraryFragment>::@getter::foo#element
+                element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibraryFragment>::@getter::foo#element
+              element2: <testLibrary>::@getter::foo
+      extendedType: int
       fields
         static const hasInitializer foo
-          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          reference: <testLibrary>::@extension::E::@field::foo
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: <testLibraryFragment>::@extension::E::@field::foo
+            fragment: #F3
             expression: expression_0
-          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+          getter: <testLibrary>::@extension::E::@getter::foo
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@extension::E::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extension::E::@field::foo
       methods
         bar
-          firstFragment: <testLibraryFragment>::@extension::E::@method::bar
+          reference: <testLibrary>::@extension::E::@method::bar
+          firstFragment: #F5
           metadata
             Annotation
               atSign: @ @76
               name: SimpleIdentifier
                 token: foo @77
-                element: <testLibraryFragment>::@extension::E::@getter::foo#element
+                element: <testLibrary>::@extension::E::@getter::foo
                 staticType: null
-              element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+              element2: <testLibrary>::@extension::E::@getter::foo
+          returnType: void
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F6
       type: int
       constantInitializer
-        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        fragment: #F6
         expression: expression_1
-      getter: <testLibraryFragment>::@getter::foo#element
+      getter: <testLibrary>::@getter::foo
   getters
-    synthetic static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F7
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -274,57 +404,172 @@ extension E on A {}''');
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @22
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        extension E @50
-          reference: <testLibraryFragment>::@extension::E
+        #F3 extension E @50
           element: <testLibrary>::@extension::E
       topLevelVariables
-        hasInitializer a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
+        #F4 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             NullLiteral
               literal: null @10
               staticType: Null
-          getter2: <testLibraryFragment>::@getter::a
       getters
-        synthetic get a
-          reference: <testLibraryFragment>::@getter::a
-          element: <testLibraryFragment>::@getter::a#element
+        #F5 synthetic a
+          element: <testLibrary>::@getter::a
+          returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F3
+      extendedType: A
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
-      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      firstFragment: #F4
       type: dynamic
       constantInitializer
-        fragment: <testLibraryFragment>::@topLevelVariable::a
+        fragment: #F4
         expression: expression_0
-      getter: <testLibraryFragment>::@getter::a#element
+      getter: <testLibrary>::@getter::a
   getters
-    synthetic static get a
-      firstFragment: <testLibraryFragment>::@getter::a
+    synthetic static a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F5
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_method() async {
+    var library = await buildLibrary('''
+extension E on int {
+  void foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          methods
+            #F2 foo @28
+              element: <testLibrary>::@extension::E::@method::foo
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      methods
+        foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F2
+          returnType: void
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T @12
+              element: #E0 T
+          methods
+            #F3 foo @35
+              element: <testLibrary>::@extension::E::@method::foo
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: List<T>
+      methods
+        foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F3
+          returnType: void
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E @10
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T @12
+              element: #E0 T
+          methods
+            #F3 foo @35
+              element: <testLibrary>::@extension::E::@method::foo
+              formalParameters
+                #F4 _ @41
+                  element: <testLibrary>::@extension::E::@method::foo::@formalParameter::_
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: List<T>
+      methods
+        foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            #E1 requiredPositional _
+              firstFragment: #F4
+              type: T
+          returnType: void
 ''');
   }
 
@@ -339,33 +584,35 @@ extension E on int {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @10
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @10
           element: <testLibrary>::@extension::E
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
-              getter2: <testLibraryFragment>::@extension::E::@getter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@extension::E::@field::foo
           getters
-            get foo @31
-              reference: <testLibraryFragment>::@extension::E::@getter::foo
-              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+            #F3 foo @31
+              element: <testLibrary>::@extension::E::@getter::foo
+              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          reference: <testLibrary>::@extension::E::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+          getter: <testLibrary>::@extension::E::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+        foo
+          reference: <testLibrary>::@extension::E::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extension::E::@field::foo
 ''');
   }
 
@@ -380,39 +627,40 @@ extension E on int {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension E @10
-          reference: <testLibraryFragment>::@extension::E
+        #F1 extension E @10
           element: <testLibrary>::@extension::E
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              element: <testLibraryFragment>::@extension::E::@field::foo#element
-              setter2: <testLibraryFragment>::@extension::E::@setter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@extension::E::@field::foo
           setters
-            set foo @27
-              reference: <testLibraryFragment>::@extension::E::@setter::foo
-              element: <testLibraryFragment>::@extension::E::@setter::foo#element
+            #F3 foo @27
+              element: <testLibrary>::@extension::E::@setter::foo
               formalParameters
-                value @35
-                  element: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
+                #F4 value @35
+                  element: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F1
+      extendedType: int
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          reference: <testLibrary>::@extension::E::@field::foo
+          firstFragment: #F2
           type: int
-          setter: <testLibraryFragment>::@extension::E::@setter::foo#element
+          setter: <testLibrary>::@extension::E::@setter::foo
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@extension::E::@setter::foo
+        foo
+          reference: <testLibrary>::@extension::E::@setter::foo
+          firstFragment: #F3
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
+              firstFragment: #F4
               type: int
+          returnType: void
 ''');
   }
 
@@ -424,16 +672,16 @@ extension on int {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
-          reference: <testLibraryFragment>::@extension::0
+        #F1 extension <null-name> (offset=0)
           element: <testLibrary>::@extension::0
   extensions
     extension <null-name>
       reference: <testLibrary>::@extension::0
-      firstFragment: <testLibraryFragment>::@extension::0
+      firstFragment: #F1
+      extendedType: int
 ''');
   }
 }

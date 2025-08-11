@@ -9,11 +9,7 @@ library;
 import 'model.dart';
 
 /// Possible backends where the tests can be executed.
-enum Target {
-  aot,
-  dart2wasm,
-  ddc,
-}
+enum Target { aot, jit, dart2wasm, ddc }
 
 /// Defines how to build and run a test in a specific target.
 ///

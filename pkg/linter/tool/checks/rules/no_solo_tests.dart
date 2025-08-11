@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Don't commit soloed tests.";
@@ -21,14 +23,11 @@ class NoSoloTests extends LintRule {
   NoSoloTests() : super(name: 'no_solo_tests', description: _desc);
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    if (context.definingUnit.unit.inTestDir) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    if (context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);
     }
@@ -45,13 +44,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(pq): we *could* ensure we're in a reflective test too.
     // Handle both 'solo_test_' and 'solo_fail_'.
     if (node.name.lexeme.startsWith('solo_')) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
       return;
     }
 
     for (var annotation in node.metadata) {
       if (annotation.isSoloTest) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }
@@ -59,9 +58,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Annotation {
   bool get isSoloTest {
-    var element = element2;
+    var element = this.element;
     return element is GetterElement &&
-        element.name3 == 'soloTest' &&
-        element.library2.name3 == 'test_reflective_loader';
+        element.name == 'soloTest' &&
+        element.library.name == 'test_reflective_loader';
   }
 }

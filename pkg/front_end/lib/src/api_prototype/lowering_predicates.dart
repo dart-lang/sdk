@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../kernel/late_lowering.dart';
+import '../source/name_scheme.dart';
 
 export '../kernel/constructor_tearoff_lowering.dart'
     show
@@ -845,11 +846,78 @@ String createJoinedIntermediateName(String variableName, int index) {
   return '$variableName$joinedIntermediateInfix$index';
 }
 
-// Coverage-ignore(suite): Not run.
-/// This turns Foo|bar into Foo.bar.
+const String unnamedExtensionSentinel = '<unnamed extension>';
+
+/// Returns the qualified name of an extension or extension type member.
 ///
-/// This only works for normal methods and operators, but for getters and
-/// setters.
+/// This turns `Foo|bar` and `Foo|get#bar` into `Foo.bar`.
+///
+/// For members of unnamed extensions, the extension name
+/// [unnamedExtensionSentinel] is used.
+///
+/// No-name extension type constructors use `new` as the name.
+///
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName(null),
+///   null)
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('Foo'),
+///   null)
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('Foo|bar'),
+///   'Foo.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('Foo|get#bar'),
+///   'Foo.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('Foo|set#bar'),
+///   'Foo.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('Foo|constructor#bar'),
+///   'Foo.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('_extension#1|bar'),
+///   '<unnamed extension>.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('_extension#2|get#bar'),
+///   '<unnamed extension>.bar')
+/// DartDocTest(
+///   extractQualifiedNameFromExtensionMethodName('_extension#3|set#bar'),
+///   '<unnamed extension>.bar')
+///
 String? extractQualifiedNameFromExtensionMethodName(String? methodName) {
-  return methodName?.replaceFirst('|', '.');
+  if (methodName == null) return null;
+  int delimiterIndex = methodName.indexOf(NameScheme.extensionNameDelimiter);
+  if (delimiterIndex == -1) return null;
+  String extensionName = methodName.substring(0, delimiterIndex);
+  if (extensionName.startsWith(NameScheme.unnamedExtensionNamePrefix)) {
+    extensionName = unnamedExtensionSentinel;
+  }
+  String memberName = methodName
+      .substring(delimiterIndex + NameScheme.extensionNameDelimiter.length);
+  if (memberName.startsWith(NameScheme.extensionTypeConstructorPrefix)) {
+    memberName =
+        memberName.substring(NameScheme.extensionTypeConstructorPrefix.length);
+  }
+  if (memberName.startsWith(NameScheme.extensionGetterPrefix)) {
+    memberName = memberName.substring(NameScheme.extensionGetterPrefix.length);
+  }
+  if (memberName.startsWith(NameScheme.extensionSetterPrefix)) {
+    // Coverage-ignore-block(suite): Not run.
+    memberName = memberName.substring(NameScheme.extensionSetterPrefix.length);
+  }
+  if (memberName.isEmpty) {
+    memberName = 'new';
+  }
+  return '$extensionName.$memberName';
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns the qualified name of [member] if it is an extension or extension
+/// type member, and otherwise `null`.
+String? extractQualifiedNameFromExtensionMember(Member member) {
+  if (member.isExtensionMember || member.isExtensionTypeMember) {
+    return extractQualifiedNameFromExtensionMethodName(member.name.text);
+  }
+  return null;
 }

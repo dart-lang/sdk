@@ -10,8 +10,10 @@ import 'package:analyzer/src/wolf/ir/ir.dart';
 /// scope is the set of instructions between a "begin" instruction (a `block`,
 /// `loop`, `tryCatch`, `tryFinally`, `function`, or `instanceFunction`
 /// instruction) and the `end` instruction that matches it.
-Scopes analyzeScopes(BaseIRContainer ir,
-    {ScopeAnalyzerEventListener? eventListener}) {
+Scopes analyzeScopes(
+  BaseIRContainer ir, {
+  ScopeAnalyzerEventListener? eventListener,
+}) {
   eventListener ??= ScopeAnalyzerEventListener();
   var scopeAnalyzer = _ScopeAnalyzer(ir, eventListener);
   eventListener._scopeAnalyzer = scopeAnalyzer;
@@ -89,15 +91,15 @@ class Scopes {
   final List<int> _parents;
 
   Scopes._(_ScopeAnalyzer analyzer)
-      : stateVarCount = analyzer.stateVarToPendingEffectsIndex.length,
-        _allocIndexToStateVar = analyzer.allocIndexToStateVar,
-        _beginAddresses = analyzer.beginAddresses,
-        _effects = analyzer.effects,
-        _effectCounts = analyzer.effectCounts,
-        _effectIndices = analyzer.effectIndices,
-        _endAddresses = analyzer.endAddresses,
-        _lastDescendants = analyzer.lastDescendants,
-        _parents = analyzer.parents;
+    : stateVarCount = analyzer.stateVarToPendingEffectsIndex.length,
+      _allocIndexToStateVar = analyzer.allocIndexToStateVar,
+      _beginAddresses = analyzer.beginAddresses,
+      _effects = analyzer.effects,
+      _effectCounts = analyzer.effectCounts,
+      _effectIndices = analyzer.effectIndices,
+      _endAddresses = analyzer.endAddresses,
+      _lastDescendants = analyzer.lastDescendants,
+      _parents = analyzer.parents;
 
   /// The number of scopes that was found.
   int get scopeCount => _beginAddresses.length;
@@ -309,57 +311,70 @@ base class _ScopeAnalyzer {
     // Scopes are numbered in pre-order, so `_scopeIndices` should be
     // monotonically increasing.
     for (var i = 0; i < scopeIndices.length - 1; i++) {
-      assert(scopeIndices[i] < scopeIndices[i + 1],
-          '_scopeIndices out of order: $scopeIndices');
+      assert(
+        scopeIndices[i] < scopeIndices[i + 1],
+        '_scopeIndices out of order: $scopeIndices',
+      );
     }
     // State variables mentioned in `_pendingEffects` must exist.
     for (var stateVar in pendingEffects) {
       assert(
-          stateVar.index >= 0 && stateVar.index < stateVarCount,
-          '_pendingEffects contains non-existent state var $stateVar: '
-          '$pendingEffects');
+        stateVar.index >= 0 && stateVar.index < stateVarCount,
+        '_pendingEffects contains non-existent state var $stateVar: '
+        '$pendingEffects',
+      );
     }
     // `_scopeStart` and `_outerScopeStarts` should refer to properly nested
     // indices within `_pendingEffects`.
     var previousScopeStart = 0;
     var scopeStarts = [...outerScopeStarts, scopeStart];
     for (var scopeStart in scopeStarts) {
-      assert(scopeStart >= previousScopeStart,
-          'improper nesting of scope starts: $scopeStarts');
-      assert(scopeStart <= pendingEffectsCount,
-          'scope start is too large: $scopeStart > $pendingEffectsCount');
+      assert(
+        scopeStart >= previousScopeStart,
+        'improper nesting of scope starts: $scopeStarts',
+      );
+      assert(
+        scopeStart <= pendingEffectsCount,
+        'scope start is too large: $scopeStart > $pendingEffectsCount',
+      );
     }
     // `_stateVarToPendingEffectsIndex` and `_previousPendingEffectsIndices`
     // should properly reflect the contents of `_pendingEffects`.
     assert(
-        previousPendingEffectsIndices.length == pendingEffectsCount,
-        '_previousPendingEffectsIndices should have length '
-        '$pendingEffectsCount: $previousPendingEffectsIndices');
-    var expectedStateVarToPendingEffectsIndex =
-        List.filled(stateVarToPendingEffectsIndex.length, -1);
+      previousPendingEffectsIndices.length == pendingEffectsCount,
+      '_previousPendingEffectsIndices should have length '
+      '$pendingEffectsCount: $previousPendingEffectsIndices',
+    );
+    var expectedStateVarToPendingEffectsIndex = List.filled(
+      stateVarToPendingEffectsIndex.length,
+      -1,
+    );
     for (var i = 0; i < pendingEffectsCount; i++) {
       assert(
-          previousPendingEffectsIndices[i] ==
-              expectedStateVarToPendingEffectsIndex[pendingEffects[i].index],
-          '_previousPendingEffectsIndices[$i] is incorrect: expected '
-          '${expectedStateVarToPendingEffectsIndex[pendingEffects[i].index]}, '
-          'got ${previousPendingEffectsIndices[i]}');
+        previousPendingEffectsIndices[i] ==
+            expectedStateVarToPendingEffectsIndex[pendingEffects[i].index],
+        '_previousPendingEffectsIndices[$i] is incorrect: expected '
+        '${expectedStateVarToPendingEffectsIndex[pendingEffects[i].index]}, '
+        'got ${previousPendingEffectsIndices[i]}',
+      );
       expectedStateVarToPendingEffectsIndex[pendingEffects[i].index] = i;
     }
     for (var i = 0; i < stateVarCount; i++) {
       assert(
-          stateVarToPendingEffectsIndex[i] ==
-              expectedStateVarToPendingEffectsIndex[i],
-          '_stateVarToPendingEffectsIndex is incorrect: '
-          'expected $expectedStateVarToPendingEffectsIndex, '
-          'got $stateVarToPendingEffectsIndex');
+        stateVarToPendingEffectsIndex[i] ==
+            expectedStateVarToPendingEffectsIndex[i],
+        '_stateVarToPendingEffectsIndex is incorrect: '
+        'expected $expectedStateVarToPendingEffectsIndex, '
+        'got $stateVarToPendingEffectsIndex',
+      );
     }
     // State variables mentioned in `_localToStateVar` must exist.
     for (var stateVar in localToStateVar) {
       assert(
-          stateVar.index >= 0 && stateVar.index < stateVarCount,
-          '_localToStateVar contains non-existent state var $stateVar: '
-          '$localToStateVar');
+        stateVar.index >= 0 && stateVar.index < stateVarCount,
+        '_localToStateVar contains non-existent state var $stateVar: '
+        '$localToStateVar',
+      );
     }
     return true;
   }
@@ -430,12 +445,18 @@ base class _ScopeAnalyzer {
     parents.add(outerScope);
   }
 
-  void removePendingEffect(StateVar stateVar, int pendingEffectsIndex,
-      int previousPendingEffectsIndex) {
+  void removePendingEffect(
+    StateVar stateVar,
+    int pendingEffectsIndex,
+    int previousPendingEffectsIndex,
+  ) {
     assert(
-        stateVarToPendingEffectsIndex[stateVar.index] == pendingEffectsIndex);
-    assert(previousPendingEffectsIndices[pendingEffectsIndex] ==
-        previousPendingEffectsIndex);
+      stateVarToPendingEffectsIndex[stateVar.index] == pendingEffectsIndex,
+    );
+    assert(
+      previousPendingEffectsIndices[pendingEffectsIndex] ==
+          previousPendingEffectsIndex,
+    );
     // There may be additional entries in `_pendingEffects` after the entry to
     // be removed, so move the last entry in `_pendingEffects` to
     // `pendingEffectsIndex`. This is a no-op if the entry to be removed is
@@ -465,7 +486,9 @@ base class _ScopeAnalyzer {
           for (var i = 0; i < count; i++) {
             var stateVar = createStateVar();
             eventListener.onAlloc(
-                index: allocIndexToStateVar.length, stateVar: stateVar);
+              index: allocIndexToStateVar.length,
+              stateVar: stateVar,
+            );
             localToStateVar.add(stateVar);
             allocIndexToStateVar.add(stateVar);
           }
@@ -486,7 +509,10 @@ base class _ScopeAnalyzer {
               // affect any outer scope, and therefore we can stop tracking it.
               const previousPendingEffectsIndex = -1;
               removePendingEffect(
-                  stateVar, pendingEffectsIndex, previousPendingEffectsIndex);
+                stateVar,
+                pendingEffectsIndex,
+                previousPendingEffectsIndex,
+              );
             }
             localToStateVar.removeLast();
           }

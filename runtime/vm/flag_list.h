@@ -6,6 +6,7 @@
 #define RUNTIME_VM_FLAG_LIST_H_
 
 #include "platform/thread_sanitizer.h"
+#include "vm/globals.h"
 
 // Don't use USING_PRODUCT outside of this file.
 #if defined(PRODUCT)
@@ -122,6 +123,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
+  C(interpreter, false, false, bool, false, "Use bytecode interpreter")        \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
@@ -213,8 +215,6 @@ constexpr bool FLAG_support_il_printer = false;
   D(trace_type_checks_verbose, bool, false,                                    \
     "Enable verbose trace of runtime type checks.")                            \
   D(trace_patching, bool, false, "Trace patching of code.")                    \
-  D(trace_optimized_ic_calls, bool, false,                                     \
-    "Trace IC calls in optimized code.")                                       \
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
@@ -249,7 +249,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(verify_entry_points, bool, true,                                           \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
-  C(branch_coverage, false, false, bool, false, "Enable branch coverage")      \
-  C(coverage, false, false, bool, true, "Enable coverage")
+  C(branch_coverage, false, false, bool, true, "Enable branch coverage")       \
+  C(coverage, false, false, bool, true, "Enable coverage")                     \
+  P(use_simulator, bool, true, "Use simulator if available")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

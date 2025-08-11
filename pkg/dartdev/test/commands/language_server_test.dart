@@ -27,7 +27,7 @@ void defineLanguageServerTests() {
   late utils.TestProject project;
   Process? process;
 
-  Future runWithLsp(List<String> args) async {
+  Future<void> runWithLsp(List<String> args) async {
     project = utils.project();
 
     process = await project.start(args);
@@ -71,6 +71,30 @@ void defineLanguageServerTests() {
 
   test('protocol lsp', () async {
     return runWithLsp(['language-server', '--protocol=lsp']);
+  });
+
+  test('--use-aot-snapshot', () async {
+    return runWithLsp(['language-server', '--use-aot-snapshot']);
+  });
+
+  test('--use-aot-snapshot --enable-experiment=foo', () async {
+    return runWithLsp([
+      'language-server',
+      '--use-aot-snapshot',
+      '--enable-experiment=foo',
+    ]);
+  });
+
+  test('--no-use-aot-snapshot', () async {
+    return runWithLsp(['language-server', '--no-use-aot-snapshot']);
+  });
+
+  test('--no-use-aot-snapshot --enable-experiment=foo', () async {
+    return runWithLsp([
+      'language-server',
+      '--no-use-aot-snapshot',
+      '--enable-experiment=foo',
+    ]);
   });
 
   test('protocol analyzer', () async {

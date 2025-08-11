@@ -16,11 +16,17 @@
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 /// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use package:analyzer/src/dart/error/hint_codes.dart instead',
+)
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
-class HintCode extends ErrorCode {
+class HintCode extends DiagnosticCode {
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not
@@ -62,8 +68,8 @@ class HintCode extends ErrorCode {
   ///
   ///  This code is deprecated in favor of the
   ///  'deprecated_member_from_same_package' lint rule, and will be removed.
-  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
-      HintCode(
+  static const HintCode
+  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -115,14 +121,14 @@ class HintCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'HintCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'HintCode.${uniqueName ?? name}',
+       );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
+  DiagnosticSeverity get severity => DiagnosticType.HINT.severity;
 
   @override
-  ErrorType get type => ErrorType.HINT;
+  DiagnosticType get type => DiagnosticType.HINT;
 }

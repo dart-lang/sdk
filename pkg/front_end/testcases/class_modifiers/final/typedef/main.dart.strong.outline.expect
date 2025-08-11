@@ -67,7 +67,7 @@ class EnumImplementsFinalClassTypedef extends core::_Enum implements mai::A /*is
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsFinalClassTypedef.${this.{core::_Enum::_name}{core::String}}";
 }
 class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*isEnum*/  {
@@ -76,7 +76,7 @@ class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*i
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsFinalClassTypedef2.${this.{core::_Enum::_name}{core::String}}";
 }
 final class ExtendsFinalClassTypedefOutside extends mai::A {
@@ -93,7 +93,7 @@ class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai:
   const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "EnumImplementsFinalClassTypedefOutside.${this.{core::_Enum::_name}{core::String}}";
 }
 

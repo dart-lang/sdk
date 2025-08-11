@@ -30,20 +30,26 @@ class DartToolingDaemon {
   /// To over a WebSocket, the [DartToolingDaemon.connect] helper can be used.
   DartToolingDaemon.fromStreamChannel(StreamChannel<String> streamChannel)
       : _clientPeer = Peer(streamChannel) {
-    _clientPeer.registerMethod('streamNotify', (Parameters params) {
-      final streamId = params['streamId'].asString;
-      final eventKind = params['eventKind'].asString;
-      final eventData = params['eventData'].asMap as Map<String, Object?>;
-      final timestamp = params['timestamp'].asInt;
+    _clientPeer.registerMethod(CoreDtdServiceConstants.streamNotify,
+        (Parameters params) {
+      try {
+        final streamId = params[DtdParameters.streamId].asString;
+        final eventKind = params[DtdParameters.eventKind].asString;
+        final eventData =
+            params[DtdParameters.eventData].asMap as Map<String, Object?>;
+        final timestamp = params[DtdParameters.timestamp].asInt;
 
-      _subscribedStreamControllers[streamId]?.add(
-        DTDEvent(
-          streamId,
-          eventKind,
-          eventData,
-          timestamp,
-        ),
-      );
+        _subscribedStreamControllers[streamId]?.add(
+          DTDEvent(
+            streamId,
+            eventKind,
+            eventData,
+            timestamp,
+          ),
+        );
+      } catch (e) {
+        print('Error while handling streamNotify event: $e');
+      }
     });
 
     _done = _clientPeer.listen();
@@ -97,16 +103,27 @@ class DartToolingDaemon {
     Map<String, Object?>? capabilities,
   }) async {
     final combinedName = '$service.$method';
-    await _clientPeer.sendRequest('registerService', {
-      'service': service,
-      'method': method,
-      if (capabilities != null) 'capabilities': capabilities,
+    await _clientPeer.sendRequest(CoreDtdServiceConstants.registerService, {
+      DtdParameters.service: service,
+      DtdParameters.method: method,
+      if (capabilities != null) DtdParameters.capabilities: capabilities,
     });
 
     _clientPeer.registerMethod(
       combinedName,
       callback,
     );
+  }
+
+  /// Returns a structured response with all the currently registered services
+  /// available on this DTD instance.
+  Future<RegisteredServicesResponse> getRegisteredServices() async {
+    final json = await _clientPeer.sendRequest(
+      CoreDtdServiceConstants.getRegisteredServices,
+    ) as Map<String, Object?>;
+
+    final dtdResponse = _dtdResponseFromJson(json);
+    return RegisteredServicesResponse.fromDTDResponse(dtdResponse);
   }
 
   /// Subscribes this client to events posted on [streamId].
@@ -119,9 +136,9 @@ class DartToolingDaemon {
   /// [RpcErrorCodes.kStreamAlreadySubscribed] will be thrown.
   Future<void> streamListen(String streamId) {
     return _clientPeer.sendRequest(
-      'streamListen',
+      CoreDtdServiceConstants.streamListen,
       {
-        'streamId': streamId,
+        DtdParameters.streamId: streamId,
       },
     );
   }
@@ -135,9 +152,9 @@ class DartToolingDaemon {
   /// [RpcErrorCodes.kStreamNotSubscribed] will be thrown.
   Future<void> streamCancel(String streamId) {
     return _clientPeer.sendRequest(
-      'streamCancel',
+      CoreDtdServiceConstants.streamCancel,
       {
-        'streamId': streamId,
+        DtdParameters.streamId: streamId,
       },
     );
   }
@@ -167,178 +184,52 @@ class DartToolingDaemon {
     Map<String, Object?> eventData,
   ) async {
     await _clientPeer.sendRequest(
-      'postEvent',
+      CoreDtdServiceConstants.postEvent,
       {
-        'streamId': streamId,
-        'eventKind': eventKind,
-        'eventData': eventData,
+        DtdParameters.streamId: streamId,
+        DtdParameters.eventKind: eventKind,
+        DtdParameters.eventData: eventData,
       },
     );
   }
 
   /// Invokes the service method registered with the name
-  /// `[serviceName].[methodName]`.
+  /// `[serviceName].[methodName]`, or with `[methodName]` when [serviceName] is
+  /// null.
+  ///
+  /// [serviceName] may be null if the service method is a first party service
+  /// method registered by DTD or by an internal service.
   ///
   /// If provided, [params] will be sent as the set of parameters used when
   /// invoking the service.
   ///
-  /// If `[serviceName].[methodName]` is not a registered service method, an
-  /// [RpcException] will be thrown with [RpcErrorCodes.kMethodNotFound].
+  /// If `[serviceName].[methodName]`, or `[methodName]` when [serviceName] is
+  /// null, is not a registered service method, an [RpcException] will be thrown
+  /// with [RpcErrorCodes.kMethodNotFound].
   ///
   /// If the parameters included in [params] are invalid, an [RpcException] will
   /// be thrown with [RpcErrorCodes.kInvalidParams].
   Future<DTDResponse> call(
-    String serviceName,
+    String? serviceName,
     String methodName, {
     Map<String, Object?>? params,
   }) async {
+    final combinedName = [serviceName, methodName].nonNulls.join('.');
     final json = await _clientPeer.sendRequest(
-      '$serviceName.$methodName',
-      params ?? <String, Object?>{},
+      combinedName,
+      params,
     ) as Map<String, Object?>;
+    return _dtdResponseFromJson(json);
+  }
 
-    final type = json['type'] as String?;
+  DTDResponse _dtdResponseFromJson(Map<String, Object?> json) {
+    final type = json[DtdParameters.type] as String?;
     if (type == null) {
       throw DartToolingDaemonConnectionException.callResponseMissingType(json);
     }
 
     // TODO(danchevalier): Find out how to get access to the id.
     return DTDResponse('-1', type, json);
-  }
-
-  /// Reads the file at [uri] from disk in the environment where the Dart
-  /// Tooling Daemon is running.
-  ///
-  /// If [uri] is not contained in the IDE workspace roots, then an
-  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
-  ///
-  /// If [uri] does not exist, then an [RpcException] exception with error
-  /// code [RpcErrorCodes.kFileDoesNotExist] is thrown.
-  ///
-  /// If [uri] does not have a file scheme, then an [RpcException] with
-  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
-  Future<FileContent> readFileAsString(
-    Uri uri, {
-    Encoding encoding = utf8,
-  }) async {
-    final result = await call(
-      kFileSystemServiceName,
-      'readFileAsString',
-      params: {
-        'uri': uri.toString(),
-        'encoding': encoding.name,
-      },
-    );
-    return FileContent.fromDTDResponse(result);
-  }
-
-  /// Writes [contents] to the file at [uri] in the environment where the Dart
-  /// Tooling Daemon is running.
-  ///
-  /// The file will be created if it does not exist, and it will be overwritten
-  /// if it already exist.
-  ///
-  /// If [uri] is not contained in the IDE workspace roots, then an
-  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
-  ///
-  /// If [uri] does not have a file scheme, then an [RpcException] with
-  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
-  Future<void> writeFileAsString(
-    Uri uri,
-    String contents, {
-    Encoding encoding = utf8,
-  }) async {
-    await call(
-      kFileSystemServiceName,
-      'writeFileAsString',
-      params: {
-        'uri': uri.toString(),
-        'contents': contents,
-        'encoding': encoding.name,
-      },
-    );
-  }
-
-  /// Lists the directories and files under the directory at [uri] in the
-  /// environment where the Dart Tooling Daemon is running.
-  ///
-  /// If [uri] is not a directory, throws an [RpcException] exception with error
-  /// code [RpcErrorCodes.kDirectoryDoesNotExist].
-  ///
-  /// If [uri] is not contained in the IDE workspace roots, then an
-  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
-  ///
-  /// If [uri] does not have a file scheme, then an [RpcException] with
-  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
-  ///
-  /// The returned uris will be `file://` Uris.
-  Future<UriList> listDirectoryContents(Uri uri) async {
-    final result = await call(
-      kFileSystemServiceName,
-      'listDirectoryContents',
-      params: {
-        'uri': uri.toString(),
-      },
-    );
-    return UriList.fromDTDResponse(result);
-  }
-
-  /// Sets the IDE workspace roots for the FileSystem service.
-  ///
-  /// This is a privileged RPC that require's a [secret], which is provided by
-  /// the Dart Tooling Daemon, to be called successfully. This secret is
-  /// generated by the daemon and provided to its spawner to ensure only trusted
-  /// clients can set workspace roots. If [secret] is invalid, an [RpcException]
-  /// with error code [RpcErrorCodes.kPermissionDenied] is thrown.
-  ///
-  /// If [secret] does not match the secret created when Dart Tooling Daemon was
-  /// created, then an [RpcException] with [RpcErrorCodes.kPermissionDenied] is
-  /// thrown.
-  ///
-  /// If one of the [roots] is missing a "file" scheme then an [RpcException]
-  /// with [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
-  Future<void> setIDEWorkspaceRoots(String secret, List<Uri> roots) async {
-    await call(
-      kFileSystemServiceName,
-      'setIDEWorkspaceRoots',
-      params: {
-        'roots': roots.map<String>((e) => e.toString()).toList(),
-        'secret': secret,
-      },
-    );
-  }
-
-  /// Gets the IDE workspace roots for the FileSystem service.
-  ///
-  /// The returned uris will be `file://` Uris.
-  Future<IDEWorkspaceRoots> getIDEWorkspaceRoots() async {
-    final result = await call(
-      kFileSystemServiceName,
-      'getIDEWorkspaceRoots',
-    );
-    return IDEWorkspaceRoots.fromDTDResponse(result);
-  }
-
-  /// Gets the project roots contained within the current set of IDE workspace
-  /// roots.
-  ///
-  /// A project root is any directory that contains a 'pubspec.yaml' file. If
-  /// IDE workspace roots are not set, or if there are no project roots within
-  /// the IDE workspace roots, this method will return an empty [UriList].
-  ///
-  /// [depth] is the maximum depth that each IDE workspace root directory tree
-  /// will be searched for project roots.
-  ///
-  /// The returned uris will be `file://` Uris.
-  Future<UriList> getProjectRoots({
-    int depth = defaultGetProjectRootsDepth,
-  }) async {
-    final result = await call(
-      kFileSystemServiceName,
-      'getProjectRoots',
-      params: {'depth': depth},
-    );
-    return UriList.fromDTDResponse(result);
   }
 }
 
@@ -374,10 +265,10 @@ class DTDEvent {
   @override
   String toString() {
     return jsonEncode({
-      'stream': stream,
-      'timestamp': timestamp,
-      'kind': kind,
-      'data': data,
+      DtdParameters.stream: stream,
+      DtdParameters.timestamp: timestamp,
+      DtdParameters.kind: kind,
+      DtdParameters.data: data,
     });
   }
 }

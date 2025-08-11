@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,13 +19,10 @@ class AnnotateOverrides extends LintRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.annotate_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_overrides;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -32,17 +31,17 @@ class AnnotateOverrides extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
-  void check(Element2? element, Token target) {
+  void check(Element? element, Token target) {
     if (element == null) return;
-    if (element case Annotatable a when a.metadata2.hasOverride) return;
+    if (element case Annotatable a when a.metadata.hasOverride) return;
 
-    var member = context.inheritanceManager.overriddenMember(element);
+    var member = element.overriddenMember;
     if (member != null) {
-      rule.reportLintForToken(target, arguments: [member.name3!]);
+      rule.reportAtToken(target, arguments: [member.name!]);
     }
   }
 

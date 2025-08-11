@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -70,7 +70,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         if (argument is! NamedExpression) {
           FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
-            var namedParameterName = namedParameter.name3;
+            var namedParameterName = namedParameter.name;
             if (typeSystem.isSubtypeOf(
                   argument.typeOrThrow,
                   namedParameter.type,
@@ -99,7 +99,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         for (var entry in argumentToParameter.entries) {
           var argument = entry.key;
           var parameter = entry.value;
-          builder.addSimpleInsertion(argument.offset, '${parameter.name3}: ');
+          builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');
         }
       });
     }

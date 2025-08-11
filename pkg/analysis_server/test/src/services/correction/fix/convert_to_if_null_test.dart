@@ -12,13 +12,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToIfNullBulkTest);
-    defineReflectiveTests(ConvertToIfNullTest);
+    defineReflectiveTests(ConvertToIfNullPreferBulkTest);
+    defineReflectiveTests(ConvertToIfNullPreferTest);
+    defineReflectiveTests(ConvertToIfNullUseBulkTest);
+    defineReflectiveTests(ConvertToIfNullUseTest);
   });
 }
 
 @reflectiveTest
-class ConvertToIfNullBulkTest extends BulkFixProcessorTest {
+class ConvertToIfNullPreferBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_if_null_operators;
 
@@ -39,7 +41,7 @@ void f(String s) {
 }
 
 @reflectiveTest
-class ConvertToIfNullTest extends FixProcessorLintTest {
+class ConvertToIfNullPreferTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
 
@@ -84,7 +86,7 @@ void f(String s, bool b) {
 ''');
     await assertNoFix(
       errorFilter: (error) {
-        var code = error.errorCode;
+        var code = error.diagnosticCode;
         return code is LintCode &&
             code.name == LintNames.prefer_if_null_operators;
       },
@@ -100,7 +102,7 @@ void f(String s, bool b) {
 ''');
     await assertNoFix(
       errorFilter: (error) {
-        var code = error.errorCode;
+        var code = error.diagnosticCode;
         return code is LintCode &&
             code.name == LintNames.prefer_if_null_operators;
       },
@@ -129,6 +131,62 @@ void f(String? s) {
     await assertHasFix('''
 void f(String? s) {
   print(s);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToIfNullUseBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_if_null_to_convert_nulls_to_bools;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f(bool? value) {
+  print(value == true);
+  print(value != false);
+}
+''');
+    await assertHasFix('''
+void f(bool? value) {
+  print(value ?? false);
+  print(value ?? true);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToIfNullUseTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
+
+  @override
+  String get lintCode => LintNames.use_if_null_to_convert_nulls_to_bools;
+
+  Future<void> test_different_false() async {
+    await resolveTestCode('''
+void f(bool? value) {
+  print(value != false);
+}
+''');
+    await assertHasFix('''
+void f(bool? value) {
+  print(value ?? true);
+}
+''');
+  }
+
+  Future<void> test_equals_true() async {
+    await resolveTestCode('''
+void f(bool? value) {
+  print(value == true);
+}
+''');
+    await assertHasFix('''
+void f(bool? value) {
+  print(value ?? false);
 }
 ''');
   }

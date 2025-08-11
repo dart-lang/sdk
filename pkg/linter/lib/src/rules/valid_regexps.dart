@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -13,13 +15,10 @@ class ValidRegexps extends LintRule {
   ValidRegexps() : super(name: LintNames.valid_regexps, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.valid_regexps;
+  DiagnosticCode get diagnosticCode => LinterLintCode.valid_regexps;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -32,10 +31,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element?.enclosingElement2;
+    var element = node.constructorName.element?.enclosingElement;
     if (element == null) return;
 
-    if (element.name3 == 'RegExp' && element.library2.isDartCore) {
+    if (element.name == 'RegExp' && element.library.isDartCore) {
       var args = node.argumentList.arguments;
       if (args.isEmpty) return;
 
@@ -55,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           try {
             RegExp(source, unicode: unicode);
           } on FormatException {
-            rule.reportLint(sourceExpression);
+            rule.reportAtNode(sourceExpression);
           }
         }
       }

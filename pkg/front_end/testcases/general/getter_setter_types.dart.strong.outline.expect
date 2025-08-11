@@ -67,15 +67,15 @@ class C extends core::Object {
 }
 extension E<T extends self::G<T> = self::G<dynamic>> on T {
   get getter1 = self::E|get#getter1;
-  get getter2 = self::E|get#getter2;
   set setter1 = self::E|set#setter1;
+  get getter2 = self::E|get#getter2;
   set setter2 = self::E|set#setter2;
 }
 extension type ET<T extends self::G<T> = self::G<dynamic>>(T it) {
   abstract extension-type-member representation-field get it() → T;
   get getter1 = self::ET|get#getter1;
-  get getter2 = self::ET|get#getter2;
   set setter1 = self::ET|set#setter1;
+  get getter2 = self::ET|get#getter2;
   set setter2 = self::ET|set#setter2;
   constructor • = self::ET|constructor#;
   constructor tearoff • = self::ET|constructor#_#new#tearOff;
@@ -90,7 +90,7 @@ static extension-member method E|set#setter2<T extends self::G<self::E|set#sette
   ;
 static extension-type-member method ET|constructor#<T extends self::G<self::ET|constructor#::T> = self::G<dynamic>>(self::ET|constructor#::T it) → self::ET<self::ET|constructor#::T>% /* erasure=self::ET|constructor#::T, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff<T extends self::G<self::ET|constructor#_#new#tearOff::T> = self::G<dynamic>>(self::ET|constructor#_#new#tearOff::T it) → self::ET<self::ET|constructor#_#new#tearOff::T>% /* erasure=self::ET|constructor#_#new#tearOff::T, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff<T extends self::G<self::ET|constructor#_#new#tearOff::T> = self::G<dynamic>>(self::ET|constructor#_#new#tearOff::T it) → self::ET<self::ET|constructor#_#new#tearOff::T>% /* erasure=self::ET|constructor#_#new#tearOff::T, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T>(it);
 static extension-type-member method ET|get#getter1<T extends self::G<self::ET|get#getter1::T> = self::G<dynamic>>(lowered final self::ET<self::ET|get#getter1::T>% /* erasure=self::ET|get#getter1::T, declared=! */ #this) → self::ET|get#getter1::T
   ;

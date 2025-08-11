@@ -16,21 +16,27 @@
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 /// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use package:analyzer/src/pubspec/pubspec_warning_code.dart instead',
+)
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
-class PubspecWarningCode extends ErrorCode {
+class PubspecWarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the path to the asset directory as given in the file.
   static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
       PubspecWarningCode(
-    'ASSET_DIRECTORY_DOES_NOT_EXIST',
-    "The asset directory '{0}' doesn't exist.",
-    correctionMessage:
-        "Try creating the directory or fixing the path to the directory.",
-    hasPublishedDocs: true,
-  );
+        'ASSET_DIRECTORY_DOES_NOT_EXIST',
+        "The asset directory '{0}' doesn't exist.",
+        correctionMessage:
+            "Try creating the directory or fixing the path to the directory.",
+        hasPublishedDocs: true,
+      );
 
   ///  Parameters:
   ///  0: the path to the asset as given in the file.
@@ -90,11 +96,11 @@ class PubspecWarningCode extends ErrorCode {
   ///  0: the name of the field
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
       PubspecWarningCode(
-    'DEPENDENCIES_FIELD_NOT_MAP',
-    "The value of the '{0}' field is expected to be a map.",
-    correctionMessage: "Try converting the value to be a map.",
-    hasPublishedDocs: true,
-  );
+        'DEPENDENCIES_FIELD_NOT_MAP',
+        "The value of the '{0}' field is expected to be a map.",
+        correctionMessage: "Try converting the value to be a map.",
+        hasPublishedDocs: true,
+      );
 
   ///  Parameters:
   ///  0: the name of the field
@@ -180,8 +186,8 @@ class PubspecWarningCode extends ErrorCode {
 
   ///  Parameters:
   ///  0: the path to the dependency as given in the file.
-  static const PubspecWarningCode PATH_PUBSPEC_DOES_NOT_EXIST =
-      PubspecWarningCode(
+  static const PubspecWarningCode
+  PATH_PUBSPEC_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_PUBSPEC_DOES_NOT_EXIST',
     "The directory '{0}' doesn't contain a pubspec.",
     correctionMessage:
@@ -193,11 +199,11 @@ class PubspecWarningCode extends ErrorCode {
   ///  No parameters.
   static const PubspecWarningCode PLATFORM_VALUE_DISALLOWED =
       PubspecWarningCode(
-    'PLATFORM_VALUE_DISALLOWED',
-    "Keys in the `platforms` field can't have values.",
-    correctionMessage: "Try removing the value, while keeping the key.",
-    hasPublishedDocs: true,
-  );
+        'PLATFORM_VALUE_DISALLOWED',
+        "Keys in the `platforms` field can't have values.",
+        correctionMessage: "Try removing the value, while keeping the key.",
+        hasPublishedDocs: true,
+      );
 
   ///  Parameters:
   ///  0: the unknown platform.
@@ -210,8 +216,8 @@ class PubspecWarningCode extends ErrorCode {
 
   ///  Parameters:
   ///  0: the name of the package in the dev_dependency list.
-  static const PubspecWarningCode UNNECESSARY_DEV_DEPENDENCY =
-      PubspecWarningCode(
+  static const PubspecWarningCode
+  UNNECESSARY_DEV_DEPENDENCY = PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
     "The dev dependency on {0} is unnecessary because there is also a normal "
         "dependency on that package.",
@@ -231,21 +237,21 @@ class PubspecWarningCode extends ErrorCode {
   ///  No parameters.
   static const PubspecWarningCode WORKSPACE_VALUE_NOT_STRING =
       PubspecWarningCode(
-    'WORKSPACE_VALUE_NOT_STRING',
-    "Workspace entries are required to be directory paths (strings).",
-    correctionMessage: "Try converting the value to be a string.",
-  );
+        'WORKSPACE_VALUE_NOT_STRING',
+        "Workspace entries are required to be directory paths (strings).",
+        correctionMessage: "Try converting the value to be a string.",
+      );
 
   ///  Parameters:
   ///  0: the path of the directory that contains the pubspec.yaml file.
   static const PubspecWarningCode WORKSPACE_VALUE_NOT_SUBDIRECTORY =
       PubspecWarningCode(
-    'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
-    "Workspace values must be a relative path of a subdirectory of '{0}'.",
-    correctionMessage:
-        "Try using a subdirectory of the directory containing the "
-        "'pubspec.yaml' file.",
-  );
+        'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+        "Workspace values must be a relative path of a subdirectory of '{0}'.",
+        correctionMessage:
+            "Try using a subdirectory of the directory containing the "
+            "'pubspec.yaml' file.",
+      );
 
   /// Initialize a newly created error code to have the given [name].
   const PubspecWarningCode(
@@ -256,14 +262,14 @@ class PubspecWarningCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
+       );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+  DiagnosticSeverity get severity => DiagnosticSeverity.WARNING;
 
   @override
-  ErrorType get type => ErrorType.STATIC_WARNING;
+  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }

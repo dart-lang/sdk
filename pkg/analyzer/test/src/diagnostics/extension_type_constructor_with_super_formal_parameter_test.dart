@@ -17,17 +17,21 @@ main() {
 class ExtensionTypeConstructorWithSuperFormalParameterTest
     extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int it) {
   E.named(this.it, {super.foo});
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
           47,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
@@ -37,7 +41,7 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::it
+    declaredElement: <testLibraryFragment> it@42
       type: int
   leftDelimiter: {
   parameter: DefaultFormalParameter
@@ -45,9 +49,9 @@ FormalParameterList
       superKeyword: super
       period: .
       name: foo
-      declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@parameter::foo
+      declaredElement: <testLibraryFragment> foo@53
         type: dynamic
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@parameter::foo
+    declaredElement: <testLibraryFragment> foo@53
       type: dynamic
   rightDelimiter: }
   rightParenthesis: )
@@ -55,17 +59,21 @@ FormalParameterList
   }
 
   test_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int it) {
   E.named(this.it, super.foo);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
           46,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
@@ -75,13 +83,13 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::it
+    declaredElement: <testLibraryFragment> it@42
       type: int
   parameter: SuperFormalParameter
     superKeyword: super
     period: .
     name: foo
-    declaredElement: <testLibraryFragment>::@extensionType::E::@constructor::named::@formalParameter::foo
+    declaredElement: <testLibraryFragment> foo@52
       type: dynamic
   rightParenthesis: )
 ''');

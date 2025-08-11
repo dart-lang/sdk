@@ -63,6 +63,18 @@ _precompiler_product_linux_arm64_config =
       "$_dart_runtime:dart_linux_arm64_config",
     ] + _product + _precompiler_base
 
+_precompiler_product_linux_arm_config =
+    [
+      "$_dart_runtime:dart_config",
+      "$_dart_runtime:dart_linux_arm_config",
+    ] + _product + _precompiler_base
+
+_precompiler_product_linux_riscv64_config =
+    [
+      "$_dart_runtime:dart_config",
+      "$_dart_runtime:dart_linux_riscv64_config",
+    ] + _product + _precompiler_base
+
 _all_configs = [
   {
     suffix = "_jit"
@@ -148,6 +160,20 @@ _all_configs = [
     compiler = true
     is_product = true
   },
+  {
+    suffix = "_precompiler_product_linux_arm"
+    configs = _precompiler_product_linux_arm_config
+    snapshot = false
+    compiler = true
+    is_product = true
+  },
+  {
+    suffix = "_precompiler_product_linux_riscv64"
+    configs = _precompiler_product_linux_riscv64_config
+    snapshot = false
+    compiler = true
+    is_product = true
+  },
 ]
 
 # This template creates a target for each of the configurations listed above.
@@ -203,6 +229,10 @@ template("library_for_all_configs") {
   if (defined(invoker.extra_nonproduct_deps)) {
     extra_nonproduct_deps += invoker.extra_nonproduct_deps
   }
+  extra_precompiler_deps = []
+  if (defined(invoker.extra_precompiler_deps)) {
+    extra_precompiler_deps += invoker.extra_precompiler_deps
+  }
   foreach(conf, _all_configs) {
     target(invoker.target_type, "${target_name}${conf.suffix}") {
       forward_variables_from(invoker,
@@ -241,6 +271,9 @@ template("library_for_all_configs") {
           sources += snapshot_sources
         }
       } else {
+        if (conf.compiler) {
+          deps += extra_precompiler_deps
+        }
         if (defined(snapshot_sources)) {
           not_needed([ "snapshot_sources" ])
         }
@@ -270,6 +303,10 @@ template("library_for_all_configs_with_compiler") {
   extra_nonproduct_deps = []
   if (defined(invoker.extra_nonproduct_deps)) {
     extra_nonproduct_deps += invoker.extra_nonproduct_deps
+  }
+  extra_precompiler_deps = []
+  if (defined(invoker.extra_precompiler_deps)) {
+    extra_precompiler_deps += invoker.extra_precompiler_deps
   }
   foreach(conf, _all_configs) {
     if (conf.compiler) {
@@ -303,6 +340,7 @@ template("library_for_all_configs_with_compiler") {
             sources += snapshot_sources
           }
         } else {
+          deps += extra_precompiler_deps
           if (defined(snapshot_sources)) {
             not_needed([ "snapshot_sources" ])
           }

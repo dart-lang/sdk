@@ -46,24 +46,38 @@ class B implements A {
   }
 
   test_constGenerativeNamed_hasNonFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x = 0;
   const A.a();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 31, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+          31,
+          3,
+        ),
+      ],
+    );
   }
 
   test_constGenerativeUnnamed_hasNonFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x = 0;
   const A();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 }

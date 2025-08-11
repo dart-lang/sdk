@@ -63,48 +63,60 @@ main() {
   {
     // - Ki=_ and Si=Object?, so Ri=Object? and Si <: Ri; thus Ti=Si=Object?.
     var objQ = 0 as Object?;
-    contextRecordUnknown((objQ,)
-      ..expectStaticType<Exactly<(Object?,)>>()
-      ..$1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
-    contextRecordNamedUnknown((f1: objQ)
-      ..expectStaticType<Exactly<({Object? f1})>>()
-      ..f1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+    contextRecordUnknown(
+      (objQ,)
+        ..expectStaticType<Exactly<(Object?,)>>()
+        ..$1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
+    contextRecordNamedUnknown(
+      (f1: objQ)
+        ..expectStaticType<Exactly<({Object? f1})>>()
+        ..f1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
 
     // - Ki=dynamic and Si=Object?, so Ri=dynamic and Si <: Ri; thus
     //   Ti=Si=Object?.
-    context<(dynamic,)>((objQ,)
-      ..expectStaticType<Exactly<(Object?,)>>()
-      ..$1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
-    context<({dynamic f1})>((f1: objQ)
-      ..expectStaticType<Exactly<({Object? f1})>>()
-      ..f1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+    context<(dynamic,)>(
+      (objQ,)
+        ..expectStaticType<Exactly<(Object?,)>>()
+        ..$1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
+    context<({dynamic f1})>(
+      (f1: objQ)
+        ..expectStaticType<Exactly<({Object? f1})>>()
+        ..f1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
 
     // - Ki=Object? and Si=Object?, so Ri=Object? and Si <: Ri; thus
     //   Ti=Si=Object?.
-    context<(Object?,)>((objQ,)
-      ..expectStaticType<Exactly<(Object?,)>>()
-      ..$1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
-    context<({Object? f1})>((f1: objQ)
-      ..expectStaticType<Exactly<({Object? f1})>>()
-      ..f1.abs());
-    //     ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'abs' isn't defined for the class 'Object?'.
+    context<(Object?,)>(
+      (objQ,)
+        ..expectStaticType<Exactly<(Object?,)>>()
+        ..$1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
+    context<({Object? f1})>(
+      (f1: objQ)
+        ..expectStaticType<Exactly<({Object? f1})>>()
+        ..f1.abs(),
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      // [cfe] The method 'abs' isn't defined for the type 'Object?'.
+    );
   }
 
   //   - Otherwise, if Si is dynamic, then we insert an implicit cast on ei to
@@ -114,16 +126,20 @@ main() {
     // TODO(paulberry): investigate why CFE doesn't produce the expected errors
     // here; it apparently is producing a type of `List<dynamic>`.
     var d = [1] as dynamic;
-    contextRecordListOfUnknown((d,)
-      ..expectStaticType<Exactly<(List<Object?>,)>>()
-      ..$1.first.abs());
-    //           ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    contextRecordNamedListOfUnknown((f1: d)
-      ..expectStaticType<Exactly<({List<Object?> f1})>>()
-      ..f1.first.abs);
-    //           ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    contextRecordListOfUnknown(
+      (d,)
+        ..expectStaticType<Exactly<(List<Object?>,)>>()
+        ..$1.first.abs(),
+      //           ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    );
+    contextRecordNamedListOfUnknown(
+      (f1: d)
+        ..expectStaticType<Exactly<({List<Object?> f1})>>()
+        ..f1.first.abs,
+      //           ^^^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    );
   }
 
   // (No error tests are needed to cover the remaining of the spec text--this is

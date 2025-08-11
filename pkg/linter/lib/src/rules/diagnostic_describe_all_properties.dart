@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -22,14 +24,12 @@ class DiagnosticDescribeAllProperties extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.diagnostic_describe_all_properties;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.diagnostic_describe_all_properties;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -64,15 +64,14 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   void removeReferences(MethodDeclaration? method, List<Token> properties) {
     method?.body.accept(_IdentifierVisitor(properties));
   }
 
-  bool skipForDiagnostic({Element2? element, DartType? type, Token? name}) =>
+  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
       name.isPrivate || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
@@ -120,19 +119,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     removeReferences(debugDescribeChildren, properties);
 
     // Flag the rest.
-    properties.forEach(rule.reportLintForToken);
+    properties.forEach(rule.reportAtToken);
   }
 
-  bool _isOverridingMember(Element2? member) {
+  bool _isOverridingMember(Element? member) {
     if (member == null) return false;
 
-    var classElement = member.thisOrAncestorOfType2<InterfaceElement2>();
+    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
     if (classElement == null) return false;
 
-    var name = member.name3;
+    var name = member.name;
     if (name == null) return false;
 
-    return inheritanceManager.getInherited4(classElement, Name(null, name)) !=
-        null;
+    return classElement.getInheritedMember(Name(null, name)) != null;
   }
 }

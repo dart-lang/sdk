@@ -46,7 +46,13 @@ abstract interface class ConditionVariable {
   /// `mutex` must be a [Mutex] object exclusively held by the current thread.
   /// It will be released and the thread will block until another thread
   /// calls [notify].
-  external void wait(Mutex mutex);
+  ///
+  /// If `timeout` is provided, it must be positive or zero.
+  /// Default zero value indicates that the method will wait to be notified
+  /// infinitely, without timeout.
+  /// If it is greater than zero, then after this many milliseconds the method
+  /// will return even if the variable was not notified.
+  external void wait(Mutex mutex, [int timeout = 0]);
 
   /// Wake up at least one thread waiting on this condition variable.
   external void notify();

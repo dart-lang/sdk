@@ -12,9 +12,8 @@
 import "dart:io";
 
 import 'package:expect/expect.dart';
-import 'package:native_stack_traces/elf.dart';
 import 'package:native_stack_traces/src/dwarf_container.dart';
-import 'package:native_stack_traces/src/macho.dart';
+import 'package:native_stack_traces/src/macho.dart' as macho;
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -41,8 +40,10 @@ Future<void> main(List<String> args) async {
 
   await withTempDir('unobfuscated-static-symbols-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -55,80 +56,151 @@ Future<void> main(List<String> args) async {
     ]);
 
     await checkElf(tempDir, scriptDill);
+    await checkMachO(tempDir, scriptDill);
     await checkAssembly(tempDir, scriptDill);
   });
 }
 
-const commonGenSnapshotArgs = <String>[
-  // Make sure that the runs are deterministic so we can depend on the same
-  // snapshot being generated each time.
-  '--deterministic',
-];
+Future<List<String>?> retrieveDebugMap(
+  SnapshotType snapshotType,
+  String snapshotPath,
+) async {
+  // Don't check the debug map of assembled Mach-O snapshots.
+  if (snapshotType != SnapshotType.machoDylib) return null;
+  final dsymutil = llvmTool('dsymutil');
+  if (dsymutil == null) {
+    // Only return a null debug map if this part of the test should be
+    // skipped on the current configuration.
+    if (Platform.isWindows || Platform.isFuchsia) {
+      // The identifier isn't provided on these platforms due to the lack
+      // of a basename implementation, so no debug map can be extracted.
+      return null;
+    }
+    if (isSimulator) {
+      // clangBuildToolsDir uses Abi.current(), so it returns the buildtools
+      // dir for the architecture being simulated, not the host.
+      return null;
+    }
+    throw StateError('Expected dsymutil');
+  }
+  return await runOutput(dsymutil, ['--dump-debug-map', snapshotPath]);
+}
 
-Future<void> checkElf(String tempDir, String scriptDill) async {
+final hasMinOSVersionOption = Platform.isMacOS || Platform.isIOS;
+final expectedVersion = hasMinOSVersionOption ? macho.Version(1, 2, 3) : null;
+
+Future<void> checkSnapshotType(
+  String tempDir,
+  String scriptDill,
+  SnapshotType snapshotType,
+) async {
+  final commonOptions = <String>[];
+  if (hasMinOSVersionOption && snapshotType == SnapshotType.machoDylib) {
+    commonOptions.add('--macho-min-os-version=$expectedVersion');
+  }
   // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
   // once with obfuscation, and once with obfuscation and saving debugging
   // information.
-  final scriptUnobfuscatedSnapshot = path.join(tempDir, 'unobfuscated-elf.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$scriptUnobfuscatedSnapshot',
+  final scriptUnobfuscatedSnapshot = path.join(
+    tempDir,
+    'unobfuscated-$snapshotType.so',
+  );
+  await createSnapshot(
     scriptDill,
-  ]);
+    snapshotType,
+    scriptUnobfuscatedSnapshot,
+    commonOptions,
+  );
   final unobfuscatedCase = TestCase(
-      scriptUnobfuscatedSnapshot, Elf.fromFile(scriptUnobfuscatedSnapshot)!);
+    snapshotType,
+    scriptUnobfuscatedSnapshot,
+    snapshotType.fromFile(scriptUnobfuscatedSnapshot)!,
+    debugMap: await retrieveDebugMap(snapshotType, scriptUnobfuscatedSnapshot),
+  );
 
-  final scriptObfuscatedOnlySnapshot =
-      path.join(tempDir, 'obfuscated-only-elf.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
+  final scriptObfuscatedOnlySnapshot = path.join(
+    tempDir,
+    'obfuscated-only-$snapshotType.so',
+  );
+  await createSnapshot(scriptDill, snapshotType, scriptObfuscatedOnlySnapshot, [
+    ...commonOptions,
     '--obfuscate',
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$scriptObfuscatedOnlySnapshot',
-    scriptDill,
   ]);
-  final obfuscatedOnlyCase = TestCase(scriptObfuscatedOnlySnapshot,
-      Elf.fromFile(scriptObfuscatedOnlySnapshot)!);
+  final obfuscatedOnlyCase = TestCase(
+    snapshotType,
+    scriptObfuscatedOnlySnapshot,
+    snapshotType.fromFile(scriptObfuscatedOnlySnapshot)!,
+    debugMap: await retrieveDebugMap(
+      snapshotType,
+      scriptObfuscatedOnlySnapshot,
+    ),
+  );
 
-  final scriptObfuscatedSnapshot = path.join(tempDir, 'obfuscated-elf.so');
-  final scriptDebuggingInfo = path.join(tempDir, 'obfuscated-debug-elf.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    '--obfuscate',
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$scriptObfuscatedSnapshot',
-    '--save-debugging-info=$scriptDebuggingInfo',
-    scriptDill,
-  ]);
-  final obfuscatedCase = TestCase(
+  // Don't compare to separate debugging information for assembled snapshots
+  // because the assembled code introduces a lot of local static symbols for
+  // relocations and so the two won't contain similar amounts of static symbols.
+  TestCase? obfuscatedCase;
+  TestCase? strippedCase;
+  if (snapshotType != SnapshotType.assembly) {
+    final scriptObfuscatedSnapshot = path.join(
+      tempDir,
+      'obfuscated-$snapshotType.so',
+    );
+    final scriptDebuggingInfo = path.join(
+      tempDir,
+      'obfuscated-debug-$snapshotType.so',
+    );
+    await createSnapshot(scriptDill, snapshotType, scriptObfuscatedSnapshot, [
+      ...commonOptions,
+      '--obfuscate',
+      '--save-debugging-info=$scriptDebuggingInfo',
+    ]);
+    obfuscatedCase = TestCase(
+      snapshotType,
       scriptObfuscatedSnapshot,
-      Elf.fromFile(scriptObfuscatedSnapshot)!,
-      Elf.fromFile(scriptDebuggingInfo)!);
+      snapshotType.fromFile(scriptObfuscatedSnapshot)!,
+      debuggingInfoContainer: snapshotType.fromFile(scriptDebuggingInfo)!,
+      debugMap: await retrieveDebugMap(snapshotType, scriptObfuscatedSnapshot),
+    );
 
-  final scriptStrippedSnapshot =
-      path.join(tempDir, 'obfuscated-stripped-elf.so');
-  final scriptSeparateDebuggingInfo =
-      path.join(tempDir, 'obfuscated-separate-debug-elf.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    '--strip',
-    '--obfuscate',
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$scriptStrippedSnapshot',
-    '--save-debugging-info=$scriptSeparateDebuggingInfo',
-    scriptDill,
-  ]);
-  final strippedCase = TestCase(
+    final scriptStrippedSnapshot = path.join(
+      tempDir,
+      'obfuscated-stripped-$snapshotType.so',
+    );
+    final scriptSeparateDebuggingInfo = path.join(
+      tempDir,
+      'obfuscated-separate-debug-$snapshotType.so',
+    );
+    await createSnapshot(scriptDill, snapshotType, scriptStrippedSnapshot, [
+      ...commonOptions,
+      '--strip',
+      '--obfuscate',
+      '--save-debugging-info=$scriptSeparateDebuggingInfo',
+    ]);
+    strippedCase = TestCase(
+      snapshotType,
       scriptStrippedSnapshot,
       /*container=*/ null, // No static symbols in stripped snapshot.
-      Elf.fromFile(scriptSeparateDebuggingInfo)!);
+      debuggingInfoContainer: snapshotType.fromFile(
+        scriptSeparateDebuggingInfo,
+      )!,
+      // No N_OSO symbol in stripped Mach-O snapshots.
+      debugMap: null,
+    );
+  }
 
   await checkCases(unobfuscatedCase, <TestCase>[
     obfuscatedOnlyCase,
-    obfuscatedCase,
-    strippedCase,
-  ]);
+    if (obfuscatedCase != null) obfuscatedCase,
+  ], strippedCase);
+}
+
+Future<void> checkElf(String tempDir, String scriptDill) async {
+  await checkSnapshotType(tempDir, scriptDill, SnapshotType.elf);
+}
+
+Future<void> checkMachO(String tempDir, String scriptDill) async {
+  await checkSnapshotType(tempDir, scriptDill, SnapshotType.machoDylib);
 }
 
 Future<void> checkAssembly(String tempDir, String scriptDill) async {
@@ -136,68 +208,49 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
   // normally they compile to ELF and don't need them for compiling assembly
   // snapshots.
   if (isSimulator || (!Platform.isLinux && !Platform.isMacOS)) return;
-
-  // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
-  // once with obfuscation, and once with obfuscation and saving debugging
-  // information.
-  final scriptUnobfuscatedAssembly =
-      path.join(tempDir, 'unobfuscated-assembly.S');
-  final scriptUnobfuscatedSnapshot =
-      path.join(tempDir, 'unobfuscated-assembly.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    '--snapshot-kind=app-aot-assembly',
-    '--assembly=$scriptUnobfuscatedAssembly',
-    scriptDill,
-  ]);
-  await assembleSnapshot(
-      scriptUnobfuscatedAssembly, scriptUnobfuscatedSnapshot);
-  final unobfuscatedCase = TestCase(
-      scriptUnobfuscatedSnapshot,
-      Platform.isMacOS
-          ? MachO.fromFile(scriptUnobfuscatedSnapshot)!
-          : Elf.fromFile(scriptUnobfuscatedSnapshot)!);
-
-  final scriptObfuscatedOnlyAssembly =
-      path.join(tempDir, 'obfuscated-only-assembly.S');
-  final scriptObfuscatedOnlySnapshot =
-      path.join(tempDir, 'obfuscated-only-assembly.so');
-  await run(genSnapshot, <String>[
-    ...commonGenSnapshotArgs,
-    '--obfuscate',
-    '--snapshot-kind=app-aot-assembly',
-    '--assembly=$scriptObfuscatedOnlyAssembly',
-    scriptDill,
-  ]);
-  await assembleSnapshot(
-      scriptObfuscatedOnlyAssembly, scriptObfuscatedOnlySnapshot);
-  final obfuscatedOnlyCase = TestCase(
-      scriptObfuscatedOnlySnapshot,
-      Platform.isMacOS
-          ? MachO.fromFile(scriptObfuscatedOnlySnapshot)!
-          : Elf.fromFile(scriptObfuscatedOnlySnapshot)!);
-
-  await checkCases(unobfuscatedCase, <TestCase>[
-    obfuscatedOnlyCase,
-  ]);
+  await checkSnapshotType(tempDir, scriptDill, SnapshotType.assembly);
 }
 
 class TestCase {
+  final SnapshotType type;
   final String snapshotPath;
   final DwarfContainer? container;
   final DwarfContainer? debuggingInfoContainer;
+  final List<String>? debugMap;
 
-  TestCase(this.snapshotPath, this.container, [this.debuggingInfoContainer]);
+  TestCase(
+    this.type,
+    this.snapshotPath,
+    this.container, {
+    this.debuggingInfoContainer,
+    this.debugMap,
+  });
 }
 
 Future<void> checkCases(
-    TestCase unobfuscated, List<TestCase> obfuscateds) async {
+  TestCase unobfuscated,
+  List<TestCase> unstrippedObfuscateds,
+  TestCase? stripped,
+) async {
+  final obfuscateds = [
+    ...unstrippedObfuscateds,
+    if (stripped != null) stripped,
+  ];
   checkStaticSymbolTables(unobfuscated, obfuscateds);
   await checkTraces(unobfuscated, obfuscateds);
+  if (unobfuscated.debugMap != null) {
+    checkDebugMaps(
+      unobfuscated.debugMap!,
+      unstrippedObfuscateds.map((c) => c.debugMap!).toList(),
+    );
+  }
+  checkMachOSnapshots(unobfuscated, obfuscateds);
 }
 
 Future<void> checkTraces(
-    TestCase unobfuscated, List<TestCase> obfuscateds) async {
+  TestCase unobfuscated,
+  List<TestCase> obfuscateds,
+) async {
   // Run the resulting scripts, saving the stack traces.
   final expectedTrace = await runError(dartPrecompiledRuntime, <String>[
     unobfuscated.snapshotPath,
@@ -209,9 +262,11 @@ Future<void> checkTraces(
 
   final obfuscatedTraces = <List<String>>[];
   for (int i = 0; i < obfuscateds.length; i++) {
-    obfuscatedTraces.add(await runError(dartPrecompiledRuntime, <String>[
-      obfuscateds[i].snapshotPath,
-    ]));
+    obfuscatedTraces.add(
+      await runError(dartPrecompiledRuntime, <String>[
+        obfuscateds[i].snapshotPath,
+      ]),
+    );
 
     print('');
     print("Obfuscated stack trace ${i + 1}:");
@@ -235,29 +290,35 @@ Future<void> checkTraces(
     }
   }
   Expect.isTrue(
-      differs, 'The obfuscated traces are identical to the unobfuscated trace');
+    differs,
+    'The obfuscated traces are identical to the unobfuscated trace',
+  );
 }
 
 void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
-  final expectedSymbolNames =
-      expected.container!.staticSymbols.map((o) => o.name).toSet();
+  final expectedSymbolNames = expected.container!.staticSymbols
+      .map((o) => o.name)
+      .toSet();
 
   if (expected.debuggingInfoContainer != null) {
     expectSimilarStaticSymbols(
-        expectedSymbolNames,
-        expected.debuggingInfoContainer!.staticSymbols
-            .map((o) => o.name)
-            .toSet());
+      expectedSymbolNames,
+      expected.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet(),
+    );
   }
 
   for (final got in cases) {
     if (got.container != null) {
-      expectSimilarStaticSymbols(expectedSymbolNames,
-          got.container!.staticSymbols.map((o) => o.name).toSet());
+      expectSimilarStaticSymbols(
+        expectedSymbolNames,
+        got.container!.staticSymbols.map((o) => o.name).toSet(),
+      );
     }
     if (got.debuggingInfoContainer != null) {
-      expectSimilarStaticSymbols(expectedSymbolNames,
-          got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet());
+      expectSimilarStaticSymbols(
+        expectedSymbolNames,
+        got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet(),
+      );
     }
   }
 }
@@ -265,8 +326,8 @@ void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
 const kMaxPercentAllowedDifferences = 0.01;
 
 void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
-  final allowedDifferences =
-      (expected.length * kMaxPercentAllowedDifferences).floor();
+  final allowedDifferences = (expected.length * kMaxPercentAllowedDifferences)
+      .floor();
   // There are cases where we cannot assume that we have the exact same symbols
   // in both snapshots (e.g., because we're using an assembler that adds
   // symbols with randomly generated names). Instead, we compare them manually,
@@ -295,7 +356,110 @@ void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
 
   final differences = onlyExpected.length + onlyGot.length;
   Expect.isTrue(
-      differences <= allowedDifferences,
-      'Got $differences different symbols, which is '
-      'more than $allowedDifferences.');
+    differences <= allowedDifferences,
+    'Got $differences different symbols, which is '
+    'more than $allowedDifferences.',
+  );
+}
+
+final _tripleLineRegExp = RegExp(r'triple:\s+(.*)');
+final _timestampLineRegExp = RegExp(r'timestamp:\s+(.*)');
+// We only check that the number of symbols were the same.
+final _symbolLineRegExp = RegExp(r'{ sym: ');
+
+void checkDebugMaps(List<String> expected, List<List<String>> cases) {
+  // The dump should look like the following YAML:
+  // ---
+  // triple:        '<arch>-<vendor>-<os>'
+  // binary-path:   <filename>
+  // objects:
+  //   - filename:      <filename>
+  //   - timestamp:     0
+  //   - symbols:
+  //     - { sym: <name>, ... }
+  //     ...
+  // ...
+  //
+  // The initial --- and ending ... are literal, as those are used to
+  // separate multiple YAML documents in a single stream.
+  //
+  // For all test cases:
+  // - The triple should be the same.
+  // - The binary-path and filename lines should exist, though the filenames
+  //   may be different.
+  // - The timestamp should be 0.
+  // - The number of symbols should be the same.
+  Expect.isTrue(expected.length > 7);
+  for (final c in cases) {
+    Expect.equals(expected.length, c.length);
+  }
+  for (int i = 0; i < expected.length; i++) {
+    final expectedLine = expected[i];
+    final isSymbol = _symbolLineRegExp.hasMatch(expectedLine);
+    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?.group(1);
+
+    final expectedTimestampMatch = _timestampLineRegExp.firstMatch(
+      expectedLine,
+    );
+    if (expectedTimestampMatch != null) {
+      final expectedTimestamp = int.tryParse(expectedTimestampMatch.group(1)!);
+      // The timestamp (value of the N_OSO symbol) in our snapshots is always 0.
+      Expect.equals(0, expectedTimestamp);
+    }
+
+    // Lines that are allowed to have varying field values.
+    final prefixOnlyLinePrefixes = ['binary-path: ', '  - filename: '];
+    var expectedPrefixEnd = -1;
+    if (prefixOnlyLinePrefixes.any((s) => expectedLine.startsWith(s))) {
+      expectedPrefixEnd = expectedLine.indexOf(':');
+    }
+
+    for (final c in cases) {
+      final gotLine = c[i];
+      if (expectedTriple != null) {
+        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?.group(1);
+        Expect.equals(expectedTriple, gotTriple);
+      } else if (isSymbol) {
+        Expect.isTrue(_symbolLineRegExp.hasMatch(gotLine));
+      } else if (expectedPrefixEnd > 0) {
+        // If there's a unhandled field name, check that those match and don't
+        // check the rest of the line (as, say, the filename will differ).
+        Expect.stringEquals(
+          expectedLine.substring(0, expectedLine.indexOf(':')),
+          gotLine.substring(0, expectedLine.indexOf(':')),
+        );
+      } else {
+        // Check line equality for anything not already covered.
+        Expect.stringEquals(expectedLine, gotLine);
+      }
+    }
+  }
+}
+
+// Checks for MachO snapshots (not separate debugging information).
+void checkMachOSnapshots(TestCase unobfuscated, List<TestCase> obfuscateds) {
+  checkMachOSnapshot(unobfuscated);
+  obfuscateds.forEach(checkMachOSnapshot);
+}
+
+void checkMachOSnapshot(TestCase testCase) {
+  // The checks below are only for snapshots, not for debugging information.
+  final snapshot = testCase.container;
+  if (snapshot is! macho.MachO) return;
+  final buildVersion = snapshot
+      .commandsWhereType<macho.BuildVersionCommand>()
+      .singleOrNull;
+  final expectedPlatform = Platform.isMacOS
+      ? macho.Platform.PLATFORM_MACOS
+      : Platform.isIOS
+      ? macho.Platform.PLATFORM_IOS
+      : null;
+  Expect.equals(expectedPlatform, buildVersion?.platform);
+  if (testCase.type == SnapshotType.machoDylib) {
+    Expect.equals(expectedVersion, buildVersion?.minOS);
+    Expect.equals(expectedVersion, buildVersion?.sdk);
+    if (buildVersion != null) {
+      Expect.isEmpty(buildVersion.toolVersions);
+    }
+  }
 }

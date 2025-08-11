@@ -567,6 +567,9 @@ main() {
 
     // JS Emitter stage
     await test(['${Flags.stage}=emit-js', 'foo.dart'], exitCode: 1);
+
+    // Omit memory summary.
+    await test(['--omit-memory-summary', 'foo.dart'], out: 'out.js');
   });
 }
 

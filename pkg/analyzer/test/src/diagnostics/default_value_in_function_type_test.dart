@@ -17,58 +17,66 @@ main() {
 @reflectiveTest
 class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
   test_new_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F = int Function({Map<String, String> m = const {}});
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1),
-    ]);
+''',
+      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1)],
+    );
   }
 
   test_new_named_ambiguous() async {
     // Test that the strong checker does not crash when given an ambiguous set
     // or map literal.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F = int Function({Object m = const {1, 2: 3}});
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 35, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 37, 15),
-    ]);
+''',
+      [
+        error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 35, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 37, 15),
+      ],
+    );
   }
 
   test_new_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F = int Function([Map<String, String> m = const {}]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1),
-    ]);
+''',
+      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1)],
+    );
   }
 
   test_old_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F([x = 0]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
-    ]);
+''',
+      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1)],
+    );
   }
 
   test_old_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F([x = 0]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
-    ]);
+''',
+      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1)],
+    );
   }
 
   test_typeArgument_ofInstanceCreation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {}
 
 void f() {
   A<void Function([int x = 42])>();
 }
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 51, 1),
-    ]);
+''',
+      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 51, 1)],
+    );
     // The expression is resolved, even if it is invalid.
     assertType(findNode.integerLiteral('42'), 'int');
   }

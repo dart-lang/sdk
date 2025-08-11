@@ -19,9 +19,9 @@ class MA = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::MA
     : super core::Object::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+  synthetic mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
     return super.{self::M::noSuchMethod}(i);
-  no-such-method-forwarder method m() → core::int
+  synthetic no-such-method-forwarder method m() → core::int
     return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#m, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static method throws(() → void f) → dynamic

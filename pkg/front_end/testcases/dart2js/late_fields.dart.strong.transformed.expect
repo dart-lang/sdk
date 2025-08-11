@@ -12,7 +12,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::C
+  static synthetic method _#new#tearOff() → self::C
     return new self::C::•();
   get a() → core::int
     return _la::_lateReadCheck<core::int>(this.{self::C::_#C#a#A}{core::int}, "a");
@@ -32,6 +32,7 @@ class C extends core::Object {
   }
   set c(synthesized core::int value) → void
     this.{self::C::_#C#c#AI} = value;
+  @#C3
   get d() → core::int {
     synthesized core::int value = this.{self::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
@@ -68,6 +69,11 @@ static method testInitializedFinalInstanceField() → void {
   core::print(self::c.{self::C::d}{core::int});
 }
 
+constants  {
+  #C1 = "dart2js:allow-cse"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_fields.dart:15:16 -> DoubleConstant(-1.0)

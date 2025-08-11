@@ -39,7 +39,8 @@ config("default_include_dirs") {
 }
 
 if (!is_win) {
-  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan
+  using_sanitizer =
+      is_asan || is_hwasan || is_lsan || is_msan || is_tsan || is_ubsan
 }
 
 # compiler ---------------------------------------------------------------------
@@ -116,6 +117,16 @@ config("compiler") {
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
       ldflags += [ "-fsanitize=address" ]
+      if (is_mac) {
+        ldflags += [
+          "-rpath",
+          "buildtools/mac-$host_cpu/clang/lib/clang/21/lib/darwin",
+        ]
+      }
+    }
+    if (is_hwasan && is_android && current_cpu == "arm64") {
+      cflags += [ "-fsanitize=hwaddress" ]
+      ldflags += [ "-fsanitize=hwaddress" ]
     }
     if (is_lsan) {
       cflags += [ "-fsanitize=leak" ]
@@ -245,7 +256,7 @@ config("compiler") {
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
-      "-Wl,--build-id=none",
+      "-Wl,--build-id=sha1",
     ]
   }
 

@@ -20,13 +20,15 @@ reviver(key, value) {
   return value;
 }
 
-const extendedJson =
-    const JsonCodec(toEncodable: toEncodable, reviver: reviver);
+const extendedJson = const JsonCodec(
+  toEncodable: toEncodable,
+  reviver: reviver,
+);
 
 main() {
   var encoded = extendedJson.encode([
     new A(0),
-    {"2": new A(1)}
+    {"2": new A(1)},
   ]);
   Expect.equals('[{"A":0},{"2":{"A":1}}]', encoded);
   var decoded = extendedJson.decode(encoded);

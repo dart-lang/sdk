@@ -6,6 +6,11 @@
 
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service_no_ssl.h"
+#else  // defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service.h"
+#endif  // defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/isolate_data.h"
 #include "bin/process.h"
 #include "bin/secure_socket_filter.h"
@@ -54,6 +59,7 @@ void Cleanup() {
   bin::SSLFilter::Cleanup();
 #endif
   bin::Process::Cleanup();
+  bin::IOService::Cleanup();
 }
 
 Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
@@ -75,8 +81,9 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
     Dart_ShutdownIsolate();
     return nullptr;
   }
-  result = bin::DartUtils::PrepareForScriptLoading(/*is_service_isolate=*/false,
-                                                   /*trace_loading=*/false);
+  result = bin::DartUtils::PrepareForScriptLoading(
+      /*is_service_isolate=*/false,
+      /*trace_loading=*/false, /*flag_profile_microtasks=*/false);
   Dart_ExitScope();
   Dart_ExitIsolate();
   return kernel_isolate;

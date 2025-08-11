@@ -1040,8 +1040,37 @@ void f() {}
     expectNoRegions();
   }
 
+  Future<void> test_tryCatchFinally() async {
+    var content = '''
+void f/*[0*/() {
+  try {/*[1*/
+    print('');
+    print('');/*1]*/
+  } on ArgumentError catch (_) {/*[2*/
+    print('');
+    print('');/*2]*/
+  } catch (e) {/*[3*/
+    print('');
+    print('');/*3]*/
+  } finally {/*[4*/
+    print('');
+    print('');/*4]*/
+  }
+}/*0]*/
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.BLOCK,
+      2: FoldingKind.BLOCK,
+      3: FoldingKind.BLOCK,
+      4: FoldingKind.BLOCK,
+    });
+  }
+
   Future<void> _computeRegions(String sourceContent) async {
-    code = TestCode.parse(sourceContent);
+    code = TestCode.parse(normalizeSource(sourceContent));
     var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);

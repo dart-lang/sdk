@@ -8,14 +8,14 @@ part of '../fragment.dart';
 ///
 /// This is used to provide lowerings for late fields using synthesized getters
 /// and setters.
-sealed class _FieldEncoding {
+sealed class FieldEncoding {
   /// Creates the members necessary for this field encoding.
   ///
   /// This method is called for both outline and full compilation so the created
   /// members should be without body. The member bodies are created through
   /// [createBodies].
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, FieldReference references,
+      NameScheme nameScheme, PropertyReferences references,
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
@@ -64,7 +64,7 @@ sealed class _FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
-  /// The [Member] built during [SourceFieldBuilder.buildOutlineExpressions].
+  /// The [Member] built during [FieldDeclaration.buildFieldOutlineExpressions].
   Member get builtMember;
 
   /// Returns the members that holds the field annotations.
@@ -100,7 +100,7 @@ sealed class _FieldEncoding {
   void registerSuperCall();
 }
 
-class RegularFieldEncoding implements _FieldEncoding {
+class RegularFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   final bool isEnumElement;
   Field? _field;
@@ -136,11 +136,11 @@ class RegularFieldEncoding implements _FieldEncoding {
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, FieldReference references,
+      NameScheme nameScheme, PropertyReferences references,
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     bool isImmutable = _fragment.modifiers.isLate
-        ? (_fragment.modifiers.isFinal && _fragment.hasInitializer)
+        ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
         : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
     _field = isImmutable
         ? new Field.immutable(dummyName,
@@ -150,7 +150,7 @@ class RegularFieldEncoding implements _FieldEncoding {
             isLate: _fragment.modifiers.isLate,
             fileUri: _fragment.fileUri,
             fieldReference: references.fieldReference,
-            getterReference: references.fieldGetterReference,
+            getterReference: references.getterReference,
             isEnumElement: isEnumElement)
         : new Field.mutable(dummyName,
             type: _type,
@@ -158,8 +158,8 @@ class RegularFieldEncoding implements _FieldEncoding {
             isLate: _fragment.modifiers.isLate,
             fileUri: _fragment.fileUri,
             fieldReference: references.fieldReference,
-            getterReference: references.fieldGetterReference,
-            setterReference: references.fieldSetterReference);
+            getterReference: references.getterReference,
+            setterReference: references.setterReference);
     nameScheme
         .getFieldMemberName(FieldNameType.Field, _fragment.name,
             isSynthesized: false)
@@ -269,7 +269,7 @@ class RegularFieldEncoding implements _FieldEncoding {
   }
 }
 
-abstract class AbstractLateFieldEncoding implements _FieldEncoding {
+abstract class AbstractLateFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   DartType? _type;
   Field? _field;
@@ -475,6 +475,7 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Field get field => _field!;
 
   @override
@@ -516,14 +517,11 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, FieldReference references,
+      NameScheme nameScheme, PropertyReferences references,
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     _field = new Field.mutable(dummyName,
-        fileUri: _fragment.fileUri,
-        fieldReference: references.fieldReference,
-        getterReference: references.fieldGetterReference,
-        setterReference: references.fieldSetterReference)
+        fileUri: _fragment.fileUri, fieldReference: references.fieldReference)
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset
       ..isInternalImplementation = true;
@@ -538,14 +536,11 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
         break;
       case late_lowering.IsSetStrategy.forceUseIsSetField:
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
-        _lateIsSetField = new Field.mutable(dummyName,
-            fileUri: _fragment.fileUri,
-            fieldReference: references.lateIsSetFieldReference,
-            getterReference: references.lateIsSetGetterReference,
-            setterReference: references.lateIsSetSetterReference)
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isInternalImplementation = true;
+        _lateIsSetField =
+            new Field.mutable(dummyName, fileUri: _fragment.fileUri)
+              ..fileOffset = _fragment.nameOffset
+              ..fileEndOffset = _fragment.endOffset
+              ..isInternalImplementation = true;
         nameScheme
             .getFieldMemberName(FieldNameType.IsSetField, _fragment.name,
                 isSynthesized: true)
@@ -559,7 +554,7 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
           ..fileOffset = _fragment.nameOffset
           ..fileEndOffset = _fragment.endOffset,
         fileUri: _fragment.fileUri,
-        reference: references.lateGetterReference)
+        reference: references.getterReference)
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset;
     nameScheme
@@ -567,7 +562,7 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
             isSynthesized: true)
         .attachMember(_lateGetter!);
     _lateSetter = _createSetter(
-        _fragment.fileUri, _fragment.nameOffset, references.lateSetterReference,
+        _fragment.fileUri, _fragment.nameOffset, references.setterReference,
         isCovariantByDeclaration: _fragment.modifiers.isCovariant);
     if (_lateSetter != null) {
       nameScheme
@@ -586,7 +581,6 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
     } else if (isExtensionTypeMember) {
-      // Coverage-ignore-block(suite): Not run.
       _field!
         ..isStatic = _fragment.builder.isStatic
         ..isExtensionTypeMember = true;
@@ -618,12 +612,7 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
 
   @override
   void registerMembers(BuildNodesCallback f) {
-    f(
-        member: _field!,
-        kind: _fragment.builder.isExtensionMember ||
-                _fragment.builder.isExtensionTypeMember
-            ? BuiltMemberKind.ExtensionField
-            : BuiltMemberKind.Field);
+    f(member: _field!, kind: BuiltMemberKind.LateBackingField);
     if (_lateIsSetField != null) {
       _forceIncludeIsSetField = true;
       f(member: _lateIsSetField!, kind: BuiltMemberKind.LateIsSetField);
@@ -635,52 +624,28 @@ abstract class AbstractLateFieldEncoding implements _FieldEncoding {
   }
 
   @override
-  List<ClassMember> get localMembers {
-    List<ClassMember> list = [
-      new _SynthesizedFieldClassMember(_fragment.builder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Getter),
-      new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateGetter!,
-          _fragment.builder.memberName,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
-          ClassMemberKind.Getter)
-    ];
-    if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateIsSetField!,
-          _lateIsSetField!.name,
-          _SynthesizedFieldMemberKind.LateIsSet,
-          ClassMemberKind.Getter));
-    }
-    return list;
-  }
+  List<ClassMember> get localMembers => [
+        new _SynthesizedFieldClassMember(
+            _fragment.builder,
+            _lateGetter!,
+            _fragment.builder.memberName,
+            _SynthesizedFieldMemberKind.LateGetterSetter,
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
+      ];
 
   @override
-  List<ClassMember> get localSetters {
-    List<ClassMember> list = [
-      new _SynthesizedFieldClassMember(_fragment.builder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Setter),
-    ];
-    if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateIsSetField!,
-          _lateIsSetField!.name,
-          _SynthesizedFieldMemberKind.LateIsSet,
-          ClassMemberKind.Setter));
-    }
-    if (_lateSetter != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateSetter!,
-          _fragment.builder.memberName,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
-          ClassMemberKind.Setter));
-    }
-    return list;
-  }
+  List<ClassMember> get localSetters => _lateSetter != null
+      ? [
+          new _SynthesizedFieldClassMember(
+              _fragment.builder,
+              _lateSetter!,
+              _fragment.builder.memberName,
+              _SynthesizedFieldMemberKind.LateGetterSetter,
+              ClassMemberKind.Setter,
+              _fragment.uriOffset)
+        ]
+      : const [];
 
   @override
   void registerSuperCall() {
@@ -849,7 +814,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   }
 }
 
-class AbstractOrExternalFieldEncoding implements _FieldEncoding {
+class AbstractOrExternalFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   final bool isAbstract;
   final bool isExternal;
@@ -969,7 +934,7 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, FieldReference references,
+      NameScheme nameScheme, PropertyReferences references,
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     if (_isExtensionInstanceMember || _isExtensionTypeInstanceMember) {
@@ -982,13 +947,13 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
               ..isLowered = true
           ]),
           fileUri: _fragment.fileUri,
-          reference: references.fieldGetterReference)
+          reference: references.getterReference)
         ..fileOffset = _fragment.nameOffset
         ..fileEndOffset = _fragment.endOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
           .attachMember(_getter!);
-      if (!_fragment.modifiers.isFinal) {
+      if (_fragment.hasSetter) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = _fragment.modifiers.isCovariant
@@ -1007,7 +972,7 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
               ..fileOffset = _fragment.nameOffset
               ..fileEndOffset = _fragment.endOffset,
             fileUri: _fragment.fileUri,
-            reference: references.fieldSetterReference)
+            reference: references.setterReference)
           ..fileOffset = _fragment.nameOffset
           ..fileEndOffset = _fragment.endOffset;
         nameScheme
@@ -1017,8 +982,7 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
     } else {
       _getter = new Procedure(
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
-          fileUri: _fragment.fileUri,
-          reference: references.fieldGetterReference)
+          fileUri: _fragment.fileUri, reference: references.getterReference)
         ..fileOffset = _fragment.nameOffset
         ..fileEndOffset = _fragment.endOffset;
       nameScheme
@@ -1038,7 +1002,7 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
               ..fileOffset = _fragment.nameOffset
               ..fileEndOffset = _fragment.endOffset,
             fileUri: _fragment.fileUri,
-            reference: references.fieldSetterReference)
+            reference: references.setterReference)
           ..fileOffset = _fragment.nameOffset
           ..fileEndOffset = _fragment.endOffset;
         nameScheme
@@ -1151,7 +1115,8 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
             _getter!,
             _fragment.builder.memberName,
             _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-            ClassMemberKind.Getter)
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
       ];
 
   @override
@@ -1162,7 +1127,8 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
               _setter!,
               _fragment.builder.memberName,
               _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-              ClassMemberKind.Setter)
+              ClassMemberKind.Setter,
+              _fragment.uriOffset)
         ]
       : const <ClassMember>[];
 
@@ -1191,8 +1157,8 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
 }
 
 /// The encoding of an extension type declaration representation field.
-class RepresentationFieldEncoding implements _FieldEncoding {
-  final FieldFragment _fragment;
+class RepresentationFieldEncoding implements FieldEncoding {
+  final PrimaryConstructorFieldFragment _fragment;
 
   late Procedure _getter;
   DartType? _type;
@@ -1230,25 +1196,26 @@ class RepresentationFieldEncoding implements _FieldEncoding {
       {required bool isSynthetic}) {
     return <Initializer>[
       new ExtensionTypeRepresentationFieldInitializer(_getter, value)
+        ..fileOffset = fileOffset
     ];
   }
 
   @override
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, FieldReference references,
+      NameScheme nameScheme, PropertyReferences references,
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     _getter = new Procedure(
         dummyName, ProcedureKind.Getter, new FunctionNode(null),
-        fileUri: _fragment.fileUri, reference: references.fieldGetterReference)
+        fileUri: _fragment.fileUri, reference: references.getterReference)
       ..stubKind = ProcedureStubKind.RepresentationField
       ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset;
+      ..fileEndOffset = _fragment.nameOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.RepresentationField, _fragment.name,
             isSynthesized: true)
         .attachMember(_getter);
-    _getter..isConst = _fragment.modifiers.isConst;
+    _getter..isConst = false;
     _getter
       ..isStatic = false
       ..isExtensionMember = false
@@ -1288,6 +1255,7 @@ class RepresentationFieldEncoding implements _FieldEncoding {
   Reference get readTargetReference => _getter.reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -1305,10 +1273,12 @@ class RepresentationFieldEncoding implements _FieldEncoding {
             _getter,
             _fragment.builder.memberName,
             _SynthesizedFieldMemberKind.RepresentationField,
-            ClassMemberKind.Getter)
+            ClassMemberKind.Getter,
+            _fragment.uriOffset)
       ];
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => const [];
 
   @override

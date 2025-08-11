@@ -129,56 +129,36 @@ final class Class7 {
 }
 
 void testInstantiateImmutableHierarchy() {
-  Class8(
-    animal: Cat(
-      numberOfLegs: 4,
-      averageNumberOfMeowsPerDay: 42.0,
-    ),
-  );
-  Class8(
-    animal: Dog(
-      numberOfLegs: 4,
-      averageNumberOfWoofsPerDay: 1337.0,
-    ),
-  );
+  Class8(animal: Cat(numberOfLegs: 4, averageNumberOfMeowsPerDay: 42.0));
+  Class8(animal: Dog(numberOfLegs: 4, averageNumberOfWoofsPerDay: 1337.0));
 }
 
 @pragma('vm:deeply-immutable')
 final class Animal {
   final int numberOfLegs;
 
-  Animal({
-    required this.numberOfLegs,
-  });
+  Animal({required this.numberOfLegs});
 }
 
 @pragma('vm:deeply-immutable')
 final class Cat extends Animal {
   final double averageNumberOfMeowsPerDay;
 
-  Cat({
-    required super.numberOfLegs,
-    required this.averageNumberOfMeowsPerDay,
-  });
+  Cat({required super.numberOfLegs, required this.averageNumberOfMeowsPerDay});
 }
 
 @pragma('vm:deeply-immutable')
 final class Dog extends Animal {
   final double averageNumberOfWoofsPerDay;
 
-  Dog({
-    required super.numberOfLegs,
-    required this.averageNumberOfWoofsPerDay,
-  });
+  Dog({required super.numberOfLegs, required this.averageNumberOfWoofsPerDay});
 }
 
 @pragma('vm:deeply-immutable')
 final class Class8 {
   final Animal animal;
 
-  Class8({
-    required this.animal,
-  });
+  Class8({required this.animal});
 }
 
 @pragma('vm:deeply-immutable')
@@ -195,16 +175,16 @@ sealed class Class11 {}
 
 @pragma('vm:deeply-immutable')
 class NotSealedOrFinalClass {}
-//    ^^^^^^^^^^^^^^^^^^^^^
+//    ^
 // [cfe] Deeply immutable classes must be final or sealed.
 
 final class Class12 extends DeeplyImmutableInterface {}
-//          ^^^^^^^
+//          ^
 // [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 
 final class Class13 implements DeeplyImmutableInterface {
-//          ^^^^^^^
-// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
+  //        ^
+  // [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 }
 
 @pragma('vm:deeply-immutable')
@@ -217,7 +197,7 @@ final class Class14<T extends DeeplyImmutableInterface> {
 @pragma('vm:deeply-immutable')
 final class Class15<T extends NotDeeplyImmutable> {
   final T notDeeplyImmutable;
-  //      ^^^^^^^^^^^^^^^^^^
+  //      ^
   // [cfe] Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.
 
   Class15({required this.notDeeplyImmutable});
@@ -225,5 +205,6 @@ final class Class15<T extends NotDeeplyImmutable> {
 
 @pragma('vm:deeply-immutable')
 abstract mixin class Class17 {}
-//                   ^^^^^^^
+//                   ^
 // [cfe] Deeply immutable classes must be final or sealed.
+

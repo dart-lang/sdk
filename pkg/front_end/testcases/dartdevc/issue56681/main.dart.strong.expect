@@ -26,7 +26,7 @@ class SomeEnum extends mai::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → mai::SomeEnum
     : super mai::_SomeEnum&_Enum&HasSomeField::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "SomeEnum.${this.{core::_Enum::_name}{core::String}}";
   @#C5
   get someField() → core::String
@@ -36,7 +36,7 @@ abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with mai::HasSomeField
   const synthetic constructor •(core::int index, core::String _name) → mai::_SomeEnum&_Enum&HasSomeField
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get someField() → core::String; -> mai::HasSomeField::someField
+  abstract synthetic mixin-stub get someField() → core::String; -> mai::HasSomeField::someField
 }
 
 constants  {

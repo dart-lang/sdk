@@ -21,7 +21,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 class B extends core::Object implements self::A<core::int> {
   synthetic constructor •() → self::B
     ;
-  get x() → dynamic
+  erroneous get x() → dynamic
     ;
 }
 static method foo() → dynamic

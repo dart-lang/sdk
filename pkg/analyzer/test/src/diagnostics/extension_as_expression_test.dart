@@ -19,23 +19,25 @@ class ExtensionAsExpressionTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 var v = p.E;
-''', [
-      error(CompileTimeErrorCode.EXTENSION_AS_EXPRESSION, 30, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_AS_EXPRESSION, 30, 3)],
+    );
     assertTypeDynamic(findNode.simple('E;'));
     assertTypeDynamic(findNode.prefixed('p.E;'));
   }
 
   test_simpleIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {}
 var v = E;
-''', [
-      error(CompileTimeErrorCode.EXTENSION_AS_EXPRESSION, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_AS_EXPRESSION, 30, 1)],
+    );
     assertTypeDynamic(findNode.simple('E;'));
   }
 }

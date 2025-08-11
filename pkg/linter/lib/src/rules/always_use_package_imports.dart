@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,18 +16,16 @@ class AlwaysUsePackageImports extends LintRule {
     : super(name: LintNames.always_use_package_imports, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.always_use_package_imports;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.prefer_relative_imports,
   ];
 
   @override
-  LintCode get lintCode => LinterLintCode.always_use_package_imports;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     // Relative paths from outside of the lib folder are handled by the
     // `avoid_relative_lib_imports` lint rule.
     if (!context.isInLibDir) return;
@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     if (isRelativeImport(node)) {
-      rule.reportLint(node.uri);
+      rule.reportAtNode(node.uri);
     }
   }
 }

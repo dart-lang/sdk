@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -18,13 +20,11 @@ class UnnecessaryStringEscapes extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_string_escapes;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_string_escapes;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         for (var index in escapeIndexes) {
           // case for '''___\'''' : without last backslash it leads a parsing error
           if (contentsEnd != token.end && index + 2 == contentsEnd) continue;
-          rule.reportLintForOffset(index, 1);
+          rule.reportAtOffset(index, 1);
         }
       }
     }
@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (isSingleQuoted && current == '"' ||
             !isSingleQuoted && current == "'" ||
             !allowedEscapedChars.contains(current)) {
-          rule.reportLintForOffset(contentsOffset + i - 1, 1);
+          rule.reportAtOffset(contentsOffset + i - 1, 1);
         }
       }
       if (isSingleQuoted ? current == "'" : current == '"') {

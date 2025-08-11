@@ -27,7 +27,9 @@ class HashThrower {
 }
 
 Future testWithClosure<T>(
-    void Function(SendPort) entrypoint, T expectedResult) async {
+  void Function(SendPort) entrypoint,
+  T expectedResult,
+) async {
   final rp = ReceivePort();
   try {
     await Isolate.spawn(entrypoint, rp.sendPort);

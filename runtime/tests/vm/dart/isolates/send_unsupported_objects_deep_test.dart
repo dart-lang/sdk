@@ -25,19 +25,19 @@ main() async {
   try {
     final nestedList = await buildNestedList(<dynamic>[], NESTED_DEPTH);
     // Send closure capturing nestedList
-    await Isolate.spawn((arg) {
-      arg();
-    }, () {
-      print('$nestedList');
-    });
+    await Isolate.spawn(
+      (arg) {
+        arg();
+      },
+      () {
+        print('$nestedList');
+      },
+    );
   } catch (e) {
     print(e);
-    Expect.isTrue(checkForRetainingPath(e, <String>[
-      'NativeClass',
-      'Baz',
-      'Fu',
-      'closure',
-    ]));
+    Expect.isTrue(
+      checkForRetainingPath(e, <String>['NativeClass', 'Baz', 'Fu', 'closure']),
+    );
 
     final msg = e.toString();
     Expect.isTrue(msg.split('\n').length > NESTED_DEPTH * 2);

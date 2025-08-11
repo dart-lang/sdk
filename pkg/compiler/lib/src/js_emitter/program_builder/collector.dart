@@ -138,8 +138,9 @@ class Collector {
 
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
-    Set<ClassEntity> backendTypeHelpers =
-        getBackendTypeHelpers(_commonElements).toSet();
+    Set<ClassEntity> backendTypeHelpers = getBackendTypeHelpers(
+      _commonElements,
+    ).toSet();
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
@@ -163,11 +164,10 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassEntity> mixinClasses =
-        neededClasses
-            .map(_elementEnvironment.getEffectiveMixinClass)
-            .whereType<ClassEntity>()
-            .toSet();
+    Set<ClassEntity> mixinClasses = neededClasses
+        .map(_elementEnvironment.getEffectiveMixinClass)
+        .whereType<ClassEntity>()
+        .toSet();
     neededClasses.addAll(mixinClasses);
 
     // 3. Add classes only needed for their constructors.

@@ -64,7 +64,7 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(typeArguments?.arguments)) {
         return null;
       }
-      return _TypeArgumentData(typeArguments, node.name2.end);
+      return _TypeArgumentData(typeArguments, node.name.end);
     }
     var parent = node.parent;
     if (parent is InvocationExpression) {

@@ -7,9 +7,11 @@
 
 // Basic test of Symbol class.
 
+import 'package:expect/variations.dart';
+
 main() {
-  var x;
-  print(x = const Symbol('fisk'));
+  var constFiskSymbol;
+  print(constFiskSymbol = const Symbol('fisk'));
   try {
     print(const Symbol(0)); //# 01: compile-time error
   } on NoSuchMethodError {
@@ -23,16 +25,12 @@ main() {
   print(new Symbol('0'));
   print(new Symbol('_'));
 
-  if (!identical(const Symbol('fisk'), x)) {
+  if (!identical(const Symbol('fisk'), constFiskSymbol)) {
     throw 'Symbol constant is not canonicalized';
   }
 
-  if (const Symbol('fisk') != x) {
+  if (const Symbol('fisk') != constFiskSymbol) {
     throw 'Symbol constant is not equal to itself';
-  }
-
-  if (const Symbol('fisk') != new Symbol('fisk')) {
-    throw 'Symbol constant is not equal to its non-const equivalent';
   }
 
   if (new Symbol('fisk') != new Symbol('fisk')) {
@@ -47,15 +45,22 @@ main() {
     throw 'unrelated objects are equal';
   }
 
-  x.hashCode as int;
+  constFiskSymbol.hashCode as int;
 
   new Symbol('fisk').hashCode as int;
 
-  if (new Symbol('fisk').hashCode != x.hashCode) {
-    throw "non-const Symbol's hashCode not equal to its const equivalent";
-  }
 
-  if (new Symbol('') != Symbol.empty) {
-    throw 'empty Symbol not equals to itself';
+  if (!minifiedSymbols) {
+    if (const Symbol('fisk') != new Symbol('fisk')) {
+      throw 'Symbol constant is not equal to its non-const equivalent';
+    }
+
+    if (new Symbol('fisk').hashCode != constFiskSymbol.hashCode) {
+      throw "non-const Symbol's hashCode not equal to its const equivalent";
+    }
+
+    if (new Symbol('') != Symbol.empty) {
+      throw 'empty Symbol not equals to itself';
+    }
   }
 }

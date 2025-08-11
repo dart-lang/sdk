@@ -21,23 +21,31 @@ main() {
   // `catchErrors` it is caught there.
   catchErrors(() {
     catchErrors(() {
-      controller.stream.map((x) {
-        throw x;
-      }).listen((x) {
-        // Should not happen.
-        events.add("bad: $x");
-      });
-    }).listen((x) {
-      events.add("caught: $x");
-      if (x == 4) done.complete(true);
-    }, onDone: () {
+      controller.stream
+          .map((x) {
+            throw x;
+          })
+          .listen((x) {
+            // Should not happen.
+            events.add("bad: $x");
+          });
+    }).listen(
+      (x) {
+        events.add("caught: $x");
+        if (x == 4) done.complete(true);
+      },
+      onDone: () {
+        Expect.fail("Unexpected callback");
+      },
+    );
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+    },
+    onDone: () {
       Expect.fail("Unexpected callback");
-    });
-  }).listen((x) {
-    events.add("outer: $x");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to run.

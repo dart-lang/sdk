@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -42,7 +42,7 @@ LinterNameInScopeResolutionResult resolveNameInScope(
 /// The result of resolving of a basename `id` in a scope.
 class LinterNameInScopeResolutionResult {
   /// The element with the requested basename, `null` is [isNone].
-  final Element2? element;
+  final Element? element;
 
   /// The state of the result.
   final _LinterNameInScopeResolutionResultState _state;

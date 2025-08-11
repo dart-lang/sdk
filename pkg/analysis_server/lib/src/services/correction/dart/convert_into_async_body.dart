@@ -17,7 +17,7 @@ class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_ASYNC_BODY;
+  AssistKind get assistKind => DartAssistKind.convertIntoAsyncBody;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

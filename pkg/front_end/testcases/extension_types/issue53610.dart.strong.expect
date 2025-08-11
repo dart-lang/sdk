@@ -10,7 +10,7 @@ static extension-type-member method N|constructor#(Null _) → self::N% /* erasu
   lowered final self::N% /* erasure=Null, declared=! */ #this = _;
   return #this;
 }
-static extension-type-member method N|constructor#_#new#tearOff(Null _) → self::N% /* erasure=Null, declared=! */
+static extension-type-member synthetic method N|constructor#_#new#tearOff(Null _) → self::N% /* erasure=Null, declared=! */
   return self::N|constructor#(_);
 static method main() → void {
   self::N% /* erasure=Null, declared=! */ n = self::N|constructor#(null);

@@ -69,8 +69,9 @@ class OptimizationDataValidator
     Features expectedLogEntries = Features.fromText(expectedLog);
     List<String> errorsFound = <String>[];
     expectedLogEntries.forEach((String tag, dynamic expectedEntryData) {
-      List<OptimizationLogEntry> actualDataForTag =
-          actualDataEntries.where((data) => data.tag == tag).toList();
+      List<OptimizationLogEntry> actualDataForTag = actualDataEntries
+          .where((data) => data.tag == tag)
+          .toList();
       for (OptimizationLogEntry entry in actualDataForTag) {
         actualDataEntries.remove(entry);
       }

@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class DestructureLocalVariableAssignmentObjectTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+  AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 
   Future<void> test_object() async {
     await resolveTestCode('''
@@ -28,10 +28,10 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
 }
 ''');
-    await assertHasAssistAt('obj', r'''
+    await assertHasAssist(r'''
 class A { }
 
 A f() => A();
@@ -44,50 +44,50 @@ m() {
 
   Future<void> test_object_propertyAssigned_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   set a(int a) {}
 }
 
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj.a = 1;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_propertyPostIncremented_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   int a = 1;
 }
 
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj.a++;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_propertyPreIncremented_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   int a = 1;
 }
 
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   ++obj.a;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_reassigned_noAssist() async {
@@ -97,16 +97,16 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj = A();
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_referenced() async {
     await resolveTestCode('''
-class A { 
+class A {
   String get a => '';
   String get b => '';
   String get c => '';
@@ -115,7 +115,7 @@ class A {
 A f() => A();
 
 m(var c) {
-  var obj = f();
+  var ^obj = f();
   var b = 0;
   print(obj.a);
   print(obj.b);
@@ -123,8 +123,8 @@ m(var c) {
   print(obj.c);
 }
 ''');
-    await assertHasAssistAt('obj', r'''
-class A { 
+    await assertHasAssist(r'''
+class A {
   String get a => '';
   String get b => '';
   String get c => '';
@@ -150,28 +150,28 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   print(obj);
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 }
 
 @reflectiveTest
 class DestructureLocalVariableAssignmentRecordTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+  AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 
   Future<void> test_namedFields() async {
     await resolveTestCode('''
 ({int n, String s}) f() => (n: 1, s: '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 ({int n, String s}) f() => (n: 1, s: '');
 
 m() {
@@ -185,10 +185,10 @@ m() {
 ({int n, String s}) f() => (n: 1, s: '');
 
 m(int n) {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 ({int n, String s}) f() => (n: 1, s: '');
 
 m(int n) {
@@ -206,10 +206,10 @@ m(int n) {
 (bool, {int n, String s}) f() => (false, n: 1, s: '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (bool, {int n, String s}) f() => (false, n: 1, s: '');
 
 m() {
@@ -227,10 +227,10 @@ m() {
 (int, String name) f() => (1, '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (int, String name) f() => (1, '');
 
 m() {
@@ -247,10 +247,10 @@ m() {
 (int, String) f() => (1, '');
 
 m(var $1) {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (int, String) f() => (1, '');
 
 m(var $1) {

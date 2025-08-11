@@ -22,40 +22,82 @@ void testList() {
   Expect.identical(list, const <int>[...set]);
 
   // Spread at beginning.
-  Expect.identical(list, const <int>[...<int>[1, 2], 3, 4]);
+  Expect.identical(list, const <int>[
+    ...<int>[1, 2],
+    3,
+    4,
+  ]);
 
   // Spread in middle.
-  Expect.identical(list, const <int>[1, ...<int>[2, 3], 4]);
+  Expect.identical(list, const <int>[
+    1,
+    ...<int>[2, 3],
+    4,
+  ]);
 
   // Spread at end.
-  Expect.identical(list, const <int>[1, 2, ...<int>[3, 4]]);
+  Expect.identical(list, const <int>[
+    1,
+    2,
+    ...<int>[3, 4],
+  ]);
 
   // Empty spreads.
-  Expect.identical(list,
-      const <int>[...<int>[], 1, 2, ...<int>[], 3, 4, ...<int>[]]);
+  Expect.identical(list, const <int>[
+    ...<int>[],
+    1,
+    2,
+    ...<int>[],
+    3,
+    4,
+    ...<int>[],
+  ]);
 
   // Multiple spreads.
-  Expect.identical(list,
-      const <int>[...<int>[1], 2, ...<int>[3, 4]]);
+  Expect.identical(list, const <int>[
+    ...<int>[1],
+    2,
+    ...<int>[3, 4],
+  ]);
 
   // Nested spreads.
-  Expect.identical(list,
-      const <int>[...<int>[...<int>[1, 2], ...<int>[3, 4]]]);
+  Expect.identical(list, const <int>[
+    ...<int>[
+      ...<int>[1, 2],
+      ...<int>[3, 4],
+    ],
+  ]);
 
   // Null-aware.
   const list23 = <int>[2, 3] as List<int>?;
   const list4 = <int>[4] as List<int>?;
-  Expect.identical(list,
-      const <int>[1, ...?list23, ...?(null), ...?list4]);
+  Expect.identical(list, const <int>[1, ...?list23, ...?(null), ...?list4]);
 
   // Does not deep flatten.
   Expect.identical(
-      const <Object>[1, 2, <int>[3], 4],
-      const <Object>[1, ...<Object>[2, <int>[3], 4]]);
+    const <Object>[
+      1,
+      2,
+      <int>[3],
+      4,
+    ],
+    const <Object>[
+      1,
+      ...<Object>[
+        2,
+        <int>[3],
+        4,
+      ],
+    ],
+  );
 
   // Establishes const context.
-  Expect.identical(const <Symbol>[Symbol("sym")],
-      const <Symbol>[...<Symbol>[Symbol("sym")]]);
+  Expect.identical(
+    const <Symbol>[Symbol("sym")],
+    const <Symbol>[
+      ...<Symbol>[Symbol("sym")],
+    ],
+  );
 }
 
 void testMap() {
@@ -63,16 +105,25 @@ void testMap() {
   Expect.identical(map, const <int, int>{...map});
 
   // Spread at beginning.
-  Expect.identical(map,
-      const <int, int>{...<int, int>{1: 1, 2: 2}, 3: 3, 4: 4});
+  Expect.identical(map, const <int, int>{
+    ...<int, int>{1: 1, 2: 2},
+    3: 3,
+    4: 4,
+  });
 
   // Spread in middle.
-  Expect.identical(map,
-      const <int, int>{1: 1, ...<int, int>{2: 2, 3: 3}, 4: 4});
+  Expect.identical(map, const <int, int>{
+    1: 1,
+    ...<int, int>{2: 2, 3: 3},
+    4: 4,
+  });
 
   // Spread at end.
-  Expect.identical(map,
-      const <int, int>{1: 1, 2: 2, ...<int, int>{3: 3, 4: 4}});
+  Expect.identical(map, const <int, int>{
+    1: 1,
+    2: 2,
+    ...<int, int>{3: 3, 4: 4},
+  });
 
   // Empty spreads.
   Expect.identical(map, const <int, int>{
@@ -82,19 +133,22 @@ void testMap() {
     ...<int, int>{},
     3: 3,
     4: 4,
-    ...<int, int>{}
+    ...<int, int>{},
   });
 
   // Multiple spreads.
-  Expect.identical(map,
-      const <int, int>{...<int, int>{1: 1}, 2: 2, ...<int, int>{3: 3, 4: 4}});
+  Expect.identical(map, const <int, int>{
+    ...<int, int>{1: 1},
+    2: 2,
+    ...<int, int>{3: 3, 4: 4},
+  });
 
   // Nested spreads.
   Expect.identical(map, const <int, int>{
     ...<int, int>{
       ...<int, int>{1: 1, 2: 2},
-      ...<int, int>{3: 3, 4: 4}
-    }
+      ...<int, int>{3: 3, 4: 4},
+    },
   });
 
   // Null-aware.
@@ -104,30 +158,34 @@ void testMap() {
     1: 1,
     ...?map23,
     ...?(null),
-    ...?map4
+    ...?map4,
   });
 
   // Does not deep flatten.
-  Expect.identical(const <int, Object>{
-    1: 1,
-    2: 2,
-    3: <int, int>{3: 3},
-    4: 4
-  }, const <int, Object>{
-    1: 1,
-    ...<int, Object>{
+  Expect.identical(
+    const <int, Object>{
+      1: 1,
       2: 2,
       3: <int, int>{3: 3},
-      4: 4
-    }
-  });
+      4: 4,
+    },
+    const <int, Object>{
+      1: 1,
+      ...<int, Object>{
+        2: 2,
+        3: <int, int>{3: 3},
+        4: 4,
+      },
+    },
+  );
 
   // Establishes const context.
-  Expect.identical(const <Symbol, Symbol>{
-    Symbol("sym"): Symbol("bol")
-  }, const <Symbol, Symbol>{
-    ...<Symbol, Symbol>{Symbol("sym"): Symbol("bol")}
-  });
+  Expect.identical(
+    const <Symbol, Symbol>{Symbol("sym"): Symbol("bol")},
+    const <Symbol, Symbol>{
+      ...<Symbol, Symbol>{Symbol("sym"): Symbol("bol")},
+    },
+  );
 }
 
 void testSet() {
@@ -136,51 +194,123 @@ void testSet() {
   Expect.identical(set, const <int>{...list});
 
   // Spread at beginning.
-  Expect.identical(set, const <int>{...<int>[1, 2], 3, 4});
+  Expect.identical(set, const <int>{
+    ...<int>[1, 2],
+    3,
+    4,
+  });
 
   // Spread in middle.
-  Expect.identical(set, const <int>{1, ...<int>[2, 3], 4});
+  Expect.identical(set, const <int>{
+    1,
+    ...<int>[2, 3],
+    4,
+  });
 
   // Spread at end.
-  Expect.identical(set, const <int>{1, 2, ...<int>[3, 4]});
+  Expect.identical(set, const <int>{
+    1,
+    2,
+    ...<int>[3, 4],
+  });
 
   // Empty spreads.
-  Expect.identical(set,
-      const <int>{...<int>[], 1, 2, ...<int>[], 3, 4, ...<int>[]});
+  Expect.identical(set, const <int>{
+    ...<int>[],
+    1,
+    2,
+    ...<int>[],
+    3,
+    4,
+    ...<int>[],
+  });
 
   // Multiple spreads.
-  Expect.identical(set, const <int>{...<int>[1], 2, ...<int>[3, 4]});
+  Expect.identical(set, const <int>{
+    ...<int>[1],
+    2,
+    ...<int>[3, 4],
+  });
 
   // Nested spreads.
-  Expect.identical(set, const <int>{...<int>{...<int>[1, 2], ...<int>[3, 4]}});
+  Expect.identical(set, const <int>{
+    ...<int>{
+      ...<int>[1, 2],
+      ...<int>[3, 4],
+    },
+  });
 
   // Null-aware.
   const list23 = <int>[2, 3] as List<int>?;
   const list4 = <int>[4] as List<int>?;
-  Expect.identical(set,
-      const <int>{1, ...?list23, ...?(null), ...?list4});
+  Expect.identical(set, const <int>{1, ...?list23, ...?(null), ...?list4});
 
   // Does not deep flatten.
-  Expect.identical(const <Object>{1, 2, <int>{3}, 4},
-      const <Object>{1, ...<Object>{2, <int>{3}, 4}});
+  Expect.identical(
+    const <Object>{
+      1,
+      2,
+      <int>{3},
+      4,
+    },
+    const <Object>{
+      1,
+      ...<Object>{
+        2,
+        <int>{3},
+        4,
+      },
+    },
+  );
 
   // Establishes const context.
-  Expect.identical(const <Symbol>{Symbol("sym")},
-      const <Symbol>{...<Symbol>{Symbol("sym")}});
+  Expect.identical(
+    const <Symbol>{Symbol("sym")},
+    const <Symbol>{
+      ...<Symbol>{Symbol("sym")},
+    },
+  );
 }
 
 void testKeyOrder() {
   // Canonicalization isn't affected by which elements are spread.
-  Expect.identical(map,
-      const <int, int>{1: 1, ...<int, int>{2: 2, 3: 3}, 4: 4});
-  Expect.identical(map,
-      const <int, int>{1: 1, ...<int, int>{2: 2}, 3: 3, ...<int, int>{4: 4}});
+  Expect.identical(map, const <int, int>{
+    1: 1,
+    ...<int, int>{2: 2, 3: 3},
+    4: 4,
+  });
+  Expect.identical(map, const <int, int>{
+    1: 1,
+    ...<int, int>{2: 2},
+    3: 3,
+    ...<int, int>{4: 4},
+  });
 
-  Expect.identical(set, const <int>{1, ...<int>{2, 3}, 4});
-  Expect.identical(set, const <int>{1, ...<int>{2}, 3, ...<int>{4}});
+  Expect.identical(set, const <int>{
+    1,
+    ...<int>{2, 3},
+    4,
+  });
+  Expect.identical(set, const <int>{
+    1,
+    ...<int>{2},
+    3,
+    ...<int>{4},
+  });
 
   // Ordering does affect canonicalization.
-  Expect.notIdentical(const <int, int>{1: 1, 2: 2, 3: 3},
-      const <int, int>{1: 1, ...<int, int>{3: 3, 2: 2}});
-  Expect.notIdentical(const <int>{1, 2, 3}, const <int>{1, ...<int>{3, 2}});
+  Expect.notIdentical(
+    const <int, int>{1: 1, 2: 2, 3: 3},
+    const <int, int>{
+      1: 1,
+      ...<int, int>{3: 3, 2: 2},
+    },
+  );
+  Expect.notIdentical(
+    const <int>{1, 2, 3},
+    const <int>{
+      1,
+      ...<int>{3, 2},
+    },
+  );
 }

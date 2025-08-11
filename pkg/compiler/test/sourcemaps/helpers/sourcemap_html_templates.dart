@@ -120,7 +120,8 @@ void outputJsDartTrace(
   String dartCodeHtml,
   String jsTraceHtml,
 ) {
-  String html = '''
+  String html =
+      '''
 <div class="js-buffer">
 ${jsCodeHtml}
 </div>

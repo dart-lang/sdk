@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   breakInWhile();
   noBreakInWhile();
@@ -18,8 +18,8 @@ main() {
 // A break statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _breakInWhile:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_breakInWhile(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _breakInWhile:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_breakInWhile(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   while (b) {
     if (b) {
@@ -31,7 +31,7 @@ _breakInWhile(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: breakInWhile:[null|powerset=1]*/
+/*member: breakInWhile:[null|powerset={null}]*/
 breakInWhile() {
   _breakInWhile(true);
   _breakInWhile(false);
@@ -41,8 +41,8 @@ breakInWhile() {
 // The while loop above _without_ the break statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _noBreakInWhile:[exact=JSUInt31|powerset=0]*/
-_noBreakInWhile(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _noBreakInWhile:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_noBreakInWhile(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   while (b) {
     if (b) {
@@ -53,7 +53,7 @@ _noBreakInWhile(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: noBreakInWhile:[null|powerset=1]*/
+/*member: noBreakInWhile:[null|powerset={null}]*/
 noBreakInWhile() {
   _noBreakInWhile(true);
   _noBreakInWhile(false);
@@ -63,11 +63,11 @@ noBreakInWhile() {
 // A continue statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _continueInWhile:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_continueInWhile(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _continueInWhile:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_continueInWhile(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   while (b) {
-    local /*invoke: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ +
+    local /*invoke: Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ +
         null;
     if (b) {
       local = '';
@@ -78,7 +78,7 @@ _continueInWhile(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: continueInWhile:[null|powerset=1]*/
+/*member: continueInWhile:[null|powerset={null}]*/
 continueInWhile() {
   _continueInWhile(true);
   _continueInWhile(false);
@@ -88,11 +88,11 @@ continueInWhile() {
 // The while loop above _without_ the continue statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _noContinueInWhile:[exact=JSUInt31|powerset=0]*/
-_noContinueInWhile(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _noContinueInWhile:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_noContinueInWhile(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   while (b) {
-    local /*invoke: [exact=JSUInt31|powerset=0]*/ + null;
+    local /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ + null;
     if (b) {
       local = '';
     }
@@ -101,7 +101,7 @@ _noContinueInWhile(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: noContinueInWhile:[null|powerset=1]*/
+/*member: noContinueInWhile:[null|powerset={null}]*/
 noContinueInWhile() {
   _noContinueInWhile(true);
   _noContinueInWhile(false);
@@ -111,8 +111,8 @@ noContinueInWhile() {
 // A conditional break statement in a labeled statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _breakInIf:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_breakInIf(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _breakInIf:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_breakInIf(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   label:
   {
@@ -125,7 +125,7 @@ _breakInIf(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: breakInIf:[null|powerset=1]*/
+/*member: breakInIf:[null|powerset={null}]*/
 breakInIf() {
   _breakInIf(true);
   _breakInIf(false);
@@ -135,8 +135,8 @@ breakInIf() {
 // The "labeled statement" above _without_ the break statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _noBreakInIf:[exact=JSUInt31|powerset=0]*/
-_noBreakInIf(/*[exact=JSBool|powerset=0]*/ b) {
+/*member: _noBreakInIf:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_noBreakInIf(/*[exact=JSBool|powerset={I}{O}{N}]*/ b) {
   dynamic local = 42;
   {
     local = '';
@@ -146,7 +146,7 @@ _noBreakInIf(/*[exact=JSBool|powerset=0]*/ b) {
   return local;
 }
 
-/*member: noBreakInIf:[null|powerset=1]*/
+/*member: noBreakInIf:[null|powerset={null}]*/
 noBreakInIf() {
   _noBreakInIf(true);
   _noBreakInIf(false);
@@ -156,7 +156,7 @@ noBreakInIf() {
 // An unconditional break statement in a labeled statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: breakInBlock:Value([exact=JSString|powerset=0], value: "", powerset: 0)*/
+/*member: breakInBlock:Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/
 breakInBlock() {
   dynamic local = 42;
   label:
@@ -172,7 +172,7 @@ breakInBlock() {
 // The "labeled statement" above _without_ the break statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: noBreakInBlock:Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/
+/*member: noBreakInBlock:Value([exact=JSBool|powerset={I}{O}{N}], value: false, powerset: {I}{O}{N})*/
 noBreakInBlock() {
   dynamic local = 42;
   label:

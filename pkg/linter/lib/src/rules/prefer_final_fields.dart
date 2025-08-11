@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,29 +19,24 @@ class PreferFinalFields extends LintRule {
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_final_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_fields;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
 
 class _DeclarationsCollector extends RecursiveAstVisitor<void> {
-  final fields = <FieldElement2, VariableDeclaration>{};
-  final InheritanceManager3 inheritanceManager;
+  final fields = <FieldElement, VariableDeclaration>{};
 
-  _DeclarationsCollector(this.inheritanceManager);
-  bool overridesField(FieldElement2 field) {
-    var enclosingElement = field.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return false;
-    return inheritanceManager.getOverridden4(
-          enclosingElement,
-          Name.forLibrary(field.library2, '${field.name3!}='),
+  bool overridesField(FieldElement field) {
+    var enclosingElement = field.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return false;
+
+    return enclosingElement.getOverridden(
+          Name.forLibrary(field.library, '${field.name!}='),
         ) !=
         null;
   }
@@ -54,7 +51,8 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
 
     for (var variable in node.fields.variables) {
       var element = variable.declaredFragment?.element;
-      if (element is FieldElement2 &&
+      if (element is FieldElement &&
+          element.name != null &&
           element.isPrivate &&
           !overridesField(element)) {
         fields[element] = variable;
@@ -67,7 +65,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   /// The collection of fields declared in this library.
   ///
   /// This visitor removes a field when it finds that it is assigned anywhere.
-  final Map<FieldElement2, VariableDeclaration> _fields;
+  final Map<FieldElement, VariableDeclaration> _fields;
 
   _FieldMutationFinder(this._fields);
 
@@ -94,10 +92,10 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    var element = assignment.writeElement2?.canonicalElement2;
+    var element = assignment.writeElement?.canonicalElement2;
     element = element?.baseElement;
 
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       _fields.remove(element);
     }
   }
@@ -106,15 +104,13 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationsCollector = _DeclarationsCollector(
-      context.inheritanceManager,
-    );
+    var declarationsCollector = _DeclarationsCollector();
     node.accept(declarationsCollector);
     var fields = declarationsCollector.fields;
 
@@ -143,16 +139,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
 
         if (isSetInEveryConstructor) {
-          rule.reportLint(variable, arguments: [variable.name.lexeme]);
+          rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
         }
       } else if (field.hasInitializer) {
-        rule.reportLint(variable, arguments: [variable.name.lexeme]);
+        rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
       }
     }
   }
 }
 
-extension on VariableElement2 {
+extension on VariableElement {
   bool isSetInConstructor(ConstructorDeclaration constructor) =>
       constructor.initializers.any(isSetInInitializer) ||
       constructor.parameters.parameters.any(isSetInParameter);
@@ -165,7 +161,7 @@ extension on VariableElement2 {
   /// Whether `this` is initialized with [parameter].
   bool isSetInParameter(FormalParameter parameter) {
     var formalField = parameter.declaredFragment?.element;
-    return formalField is FieldFormalParameterElement2 &&
-        formalField.field2 == this;
+    return formalField is FieldFormalParameterElement &&
+        formalField.field == this;
   }
 }

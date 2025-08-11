@@ -35,7 +35,7 @@ String describeClass(Field object) {
     if (object is Final) 'Final',
     'Field',
     if (object is Checked) 'Checked',
-    if (object is Trusted) 'Trusted'
+    if (object is Trusted) 'Trusted',
   ];
 
   return '$name implements ${interfaces.join(", ")}';
@@ -47,10 +47,14 @@ void test(Field Function() factory) {
   // Get the class description to ensure library name is set.
   final description = describeClass(o1);
   print('-- $description');
-  Expect.isTrue(o1 is Checked || o1 is Trusted,
-      'Test class must implement one of Checked or Trusted: $description');
-  Expect.isFalse(o1 is Checked && o1 is Trusted,
-      'Test class must not implement both of Checked or Trusted: $description');
+  Expect.isTrue(
+    o1 is Checked || o1 is Trusted,
+    'Test class must implement one of Checked or Trusted: $description',
+  );
+  Expect.isFalse(
+    o1 is Checked && o1 is Trusted,
+    'Test class must not implement both of Checked or Trusted: $description',
+  );
 
   // Setter then Getter should not throw.
   final o2 = factory();

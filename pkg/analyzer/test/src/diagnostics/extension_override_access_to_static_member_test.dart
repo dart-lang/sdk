@@ -17,7 +17,8 @@ main() {
 class ExtensionOverrideAccessToStaticMemberTest
     extends PubPackageResolutionTest {
   test_call() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   static void call() {}
 }
@@ -25,10 +26,15 @@ extension E on int {
 void f() {
   E(0)();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 65,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          65,
+          2,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
@@ -49,28 +55,35 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E::@method::call#element
+  element: <testLibrary>::@extension::E::@method::call
   staticInvokeType: void Function()
   staticType: void
 ''');
   }
 
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static String get empty => '';
 }
 void f() {
   E('a').empty;
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 79,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          79,
+          5,
+        ),
+      ],
+    );
   }
 
   test_getterAndSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static String get empty => '';
   static void set empty(String s) {}
@@ -78,24 +91,35 @@ extension E on String {
 void f() {
   E('a').empty += 'b';
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-          116, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          116,
+          5,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static String empty() => '';
 }
 void f() {
   E('a').empty();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 77,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          77,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('empty();');
     assertResolvedNodeText(node, r'''
@@ -114,7 +138,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: empty
-    element: <testLibraryFragment>::@extension::E::@method::empty#element
+    element: <testLibrary>::@extension::E::@method::empty
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -125,16 +149,22 @@ MethodInvocation
   }
 
   test_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static void set empty(String s) {}
 }
 void f() {
   E('a').empty = 'b';
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 83,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          83,
+          5,
+        ),
+      ],
+    );
   }
 }

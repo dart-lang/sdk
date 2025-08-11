@@ -126,8 +126,10 @@ class LibrariesSpecification {
   final Uri specUri;
   final Map<String, TargetLibrariesSpecification> _targets;
 
-  const LibrariesSpecification(this.specUri,
-      [this._targets = const <String, TargetLibrariesSpecification>{}]);
+  const LibrariesSpecification(
+    this.specUri, [
+    this._targets = const <String, TargetLibrariesSpecification>{},
+  ]);
 
   /// The library specification for a given [target], or throws if none is
   /// available.
@@ -135,13 +137,16 @@ class LibrariesSpecification {
     TargetLibrariesSpecification? targetSpec = _targets[target];
     if (targetSpec == null) {
       throw new LibrariesSpecificationException(
-          messageMissingTarget(target, specUri));
+        messageMissingTarget(target, specUri),
+      );
     }
     return targetSpec;
   }
 
   static Future<LibrariesSpecification> load(
-      Uri uri, Future<String> Function(Uri uri) read) {
+    Uri uri,
+    Future<String> Function(Uri uri) read,
+  ) {
     Map<Uri, LibrariesSpecification?> cache = {};
     Future<LibrariesSpecification> loadSpecification(Uri uri) async {
       if (cache.containsKey(uri)) {
@@ -157,10 +162,14 @@ class LibrariesSpecification {
         json = await read(uri);
       } catch (e) {
         throw new LibrariesSpecificationException(
-            messageIncludePathCouldNotBeRead(uri, e));
+          messageIncludePathCouldNotBeRead(uri, e),
+        );
       }
-      return cache[uri] =
-          await LibrariesSpecification.parse(uri, json, loadSpecification);
+      return cache[uri] = await LibrariesSpecification.parse(
+        uri,
+        json,
+        loadSpecification,
+      );
     }
 
     return loadSpecification(uri);
@@ -172,10 +181,10 @@ class LibrariesSpecification {
   /// May throw an exception if [json] is not properly formatted or contains
   /// invalid values.
   static Future<LibrariesSpecification> parse(
-      Uri specUri,
-      String? json,
-      Future<LibrariesSpecification> Function(Uri uri)
-          loadSpecification) async {
+    Uri specUri,
+    String? json,
+    Future<LibrariesSpecification> Function(Uri uri) loadSpecification,
+  ) async {
     if (json == null) return new LibrariesSpecification(specUri);
     Map<String, dynamic> jsonData;
     try {
@@ -193,7 +202,8 @@ class LibrariesSpecification {
     Set<String> currentTargets = {};
 
     Future<TargetLibrariesSpecification> resolveTargetData(
-        String targetName) async {
+      String targetName,
+    ) async {
       TargetLibrariesSpecification? spec = targets[targetName];
       if (spec != null) {
         return spec;
@@ -241,10 +251,11 @@ class LibrariesSpecification {
             if (uri.hasScheme && !uri.isScheme('file')) {
               return _reportError(messageUnsupportedUriScheme(path, specUri));
             }
-            LibrariesSpecification specification =
-                await loadSpecification(specUri.resolveUri(uri));
-            TargetLibrariesSpecification targetSpecification =
-                specification.specificationFor(target);
+            LibrariesSpecification specification = await loadSpecification(
+              specUri.resolveUri(uri),
+            );
+            TargetLibrariesSpecification targetSpecification = specification
+                .specificationFor(target);
             for (LibraryInfo libraryInfo in targetSpecification.allLibraries) {
               libraries[libraryInfo.name] = libraryInfo;
             }
@@ -261,24 +272,33 @@ class LibrariesSpecification {
       librariesData.forEach((String libraryName, Object? data) {
         if (data is! Map<String, dynamic>) {
           _reportError(
-              messageLibraryDataIsNotAMap(libraryName, targetName, specUri));
+            messageLibraryDataIsNotAMap(libraryName, targetName, specUri),
+          );
         }
         Uri checkAndResolve(Object? uriString) {
           if (uriString is! String) {
-            return _reportError(messageLibraryUriIsNotAString(
-                uriString, libraryName, targetName, specUri));
+            return _reportError(
+              messageLibraryUriIsNotAString(
+                uriString,
+                libraryName,
+                targetName,
+                specUri,
+              ),
+            );
           }
           Uri uri = Uri.parse(uriString);
           if (uri.hasScheme && !uri.isScheme('file')) {
             return _reportError(
-                messageUnsupportedUriScheme(uriString, specUri));
+              messageUnsupportedUriScheme(uriString, specUri),
+            );
           }
           return specUri.resolveUri(uri);
         }
 
         if (!data.containsKey('uri')) {
           _reportError(
-              messageLibraryUriMissing(libraryName, targetName, specUri));
+            messageLibraryUriMissing(libraryName, targetName, specUri),
+          );
         }
         Uri uri = checkAndResolve(data['uri']);
         List<Uri> patches;
@@ -297,14 +317,20 @@ class LibrariesSpecification {
         if (supported is! bool) {
           _reportError(messageSupportedIsNotABool(supported));
         }
-        libraries[libraryName] = new LibraryInfo(libraryName, uri, patches,
-            // Internal libraries are never supported through conditional
-            // imports and const `fromEnvironment` expressions.
-            isSupported: supported && !libraryName.startsWith('_'));
+        libraries[libraryName] = new LibraryInfo(
+          libraryName,
+          uri,
+          patches,
+          // Internal libraries are never supported through conditional
+          // imports and const `fromEnvironment` expressions.
+          isSupported: supported && !libraryName.startsWith('_'),
+        );
       });
       currentTargets.remove(targetName);
-      return targets[targetName] =
-          new TargetLibrariesSpecification(targetName, libraries);
+      return targets[targetName] = new TargetLibrariesSpecification(
+        targetName,
+        libraries,
+      );
     }
 
     for (String targetName in jsonData.keys) {
@@ -352,8 +378,10 @@ class TargetLibrariesSpecification {
 
   final Map<String, LibraryInfo> _libraries;
 
-  const TargetLibrariesSpecification(this.targetName,
-      [this._libraries = const <String, LibraryInfo>{}]);
+  const TargetLibrariesSpecification(
+    this.targetName, [
+    this._libraries = const <String, LibraryInfo>{},
+  ]);
 
   /// Details about a library whose import is `dart:$name`.
   LibraryInfo? libraryInfoFor(String name) => _libraries[name];
@@ -377,8 +405,12 @@ class LibraryInfo {
   /// for conditional imports and fromEnvironment constants.
   final bool isSupported;
 
-  const LibraryInfo(this.name, this.uri, this.patches,
-      {this.isSupported = true});
+  const LibraryInfo(
+    this.name,
+    this.uri,
+    this.patches, {
+    this.isSupported = true,
+  });
 
   /// The import uri for the defined library.
   Uri get importUri => Uri.parse('dart:${name}');
@@ -432,17 +464,27 @@ String messageLibrariesEntryIsNotAMap(String targetName, Uri specUri) =>
     '"libraries" entry for "$targetName" is not a map in $specUri.';
 
 String messageLibraryDataIsNotAMap(
-        String libraryName, String targetName, Uri specUri) =>
+  String libraryName,
+  String targetName,
+  Uri specUri,
+) =>
     'Library data for \'$libraryName\' in target "$targetName" is not a map '
     'in $specUri.';
 
 String messageLibraryUriMissing(
-        String libraryName, String targetName, Uri specUri) =>
+  String libraryName,
+  String targetName,
+  Uri specUri,
+) =>
     '"uri" is missing '
     'from library \'$libraryName\' in target "$targetName" in $specUri.';
 
 String messageLibraryUriIsNotAString(
-        Object? uriValue, String libraryName, String targetName, Uri specUri) =>
+  Object? uriValue,
+  String libraryName,
+  String targetName,
+  Uri specUri,
+) =>
     'Uri value `$uriValue` is not a string '
     '(from library \'$libraryName\' in target "$targetName" in $specUri).';
 

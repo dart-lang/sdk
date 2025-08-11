@@ -15,10 +15,11 @@ class AssignedVariablePatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  AssignedVariablePatternResult(
-      {required this.duplicateAssignmentPatternVariableError,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  AssignedVariablePatternResult({
+    required this.duplicateAssignmentPatternVariableError,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a constant pattern in
@@ -34,11 +35,12 @@ class ConstantPatternResult<Error> extends PatternResult {
   /// have a valid type wrt. the switch expression type.
   final Error? caseExpressionTypeMismatchError;
 
-  ConstantPatternResult(
-      {required this.expressionType,
-      required this.refutablePatternInIrrefutableContextError,
-      required this.caseExpressionTypeMismatchError,
-      required super.matchedValueType});
+  ConstantPatternResult({
+    required this.expressionType,
+    required this.refutablePatternInIrrefutableContextError,
+    required this.caseExpressionTypeMismatchError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a declared variable pattern in
@@ -51,10 +53,11 @@ class DeclaredVariablePatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  DeclaredVariablePatternResult(
-      {required this.staticType,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  DeclaredVariablePatternResult({
+    required this.staticType,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Container for the result of running type analysis on an expression.
@@ -82,10 +85,11 @@ class IfCaseStatementResult<Error> {
   /// The type of the guard expression, if present.
   final SharedTypeView? guardType;
 
-  IfCaseStatementResult(
-      {required this.matchedExpressionType,
-      required this.nonBooleanGuardError,
-      required this.guardType});
+  IfCaseStatementResult({
+    required this.matchedExpressionType,
+    required this.nonBooleanGuardError,
+    required this.guardType,
+  });
 }
 
 /// Container for the result of running type analysis on an integer literal.
@@ -112,11 +116,12 @@ class ListPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  ListPatternResult(
-      {required this.requiredType,
-      required this.duplicateRestPatternErrors,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  ListPatternResult({
+    required this.requiredType,
+    required this.duplicateRestPatternErrors,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a logical or pattern in
@@ -125,9 +130,10 @@ class LogicalOrPatternResult<Error> extends PatternResult {
   /// Error for when the pattern occurred in an irrefutable context.
   final Error? refutablePatternInIrrefutableContextError;
 
-  LogicalOrPatternResult(
-      {required this.refutablePatternInIrrefutableContextError,
-      required super.matchedValueType});
+  LogicalOrPatternResult({
+    required this.refutablePatternInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a map pattern in [TypeAnalyzer.analyzeMapPattern].
@@ -147,17 +153,23 @@ class MapPatternResult<Error> extends PatternResult {
   /// The key is the indices it which the rest pattern occurred.
   final Map<int, Error>? restPatternErrors;
 
-  MapPatternResult(
-      {required this.requiredType,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required this.emptyMapPatternError,
-      required this.restPatternErrors,
-      required super.matchedValueType});
+  MapPatternResult({
+    required this.requiredType,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required this.emptyMapPatternError,
+    required this.restPatternErrors,
+    required super.matchedValueType,
+  });
 }
 
 /// Information about the code context surrounding a pattern match.
-class MatchContext<Node extends Object, Expression extends Node,
-    Pattern extends Node, Type extends Object, Variable extends Object> {
+class MatchContext<
+  Node extends Object,
+  Expression extends Node,
+  Pattern extends Node,
+  Type extends Object,
+  Variable extends Object
+> {
   /// If non-`null`, the match is being done in an irrefutable context, and this
   /// is the surrounding AST node that establishes the irrefutable context.
   final Node? irrefutableContext;
@@ -203,32 +215,33 @@ class MatchContext<Node extends Object, Expression extends Node,
       irrefutableContext == null
           ? this
           : new MatchContext(
-              isFinal: isFinal,
-              switchScrutinee: switchScrutinee,
-              assignedVariables: assignedVariables,
-              componentVariables: componentVariables,
-              patternVariablePromotionKeys: patternVariablePromotionKeys,
-            );
+            isFinal: isFinal,
+            switchScrutinee: switchScrutinee,
+            assignedVariables: assignedVariables,
+            componentVariables: componentVariables,
+            patternVariablePromotionKeys: patternVariablePromotionKeys,
+          );
 
   /// Returns a modified version of `this`, with a new value of
   /// [patternVariablePromotionKeys].
   MatchContext<Node, Expression, Pattern, Type, Variable> withPromotionKeys(
-          Map<String, int> patternVariablePromotionKeys) =>
-      new MatchContext(
-        irrefutableContext: irrefutableContext,
-        isFinal: isFinal,
-        switchScrutinee: null,
-        assignedVariables: assignedVariables,
-        componentVariables: componentVariables,
-        patternVariablePromotionKeys: patternVariablePromotionKeys,
-        unnecessaryWildcardKind: unnecessaryWildcardKind,
-      );
+    Map<String, int> patternVariablePromotionKeys,
+  ) => new MatchContext(
+    irrefutableContext: irrefutableContext,
+    isFinal: isFinal,
+    switchScrutinee: null,
+    assignedVariables: assignedVariables,
+    componentVariables: componentVariables,
+    patternVariablePromotionKeys: patternVariablePromotionKeys,
+    unnecessaryWildcardKind: unnecessaryWildcardKind,
+  );
 
   /// Returns a modified version of `this`, with [switchScrutinee] set to `null`
   /// (because this context is not for a top-level pattern anymore).
   MatchContext<Node, Expression, Pattern, Type, Variable>
-      withUnnecessaryWildcardKind(
-          UnnecessaryWildcardKind? unnecessaryWildcardKind) {
+  withUnnecessaryWildcardKind(
+    UnnecessaryWildcardKind? unnecessaryWildcardKind,
+  ) {
     return new MatchContext(
       irrefutableContext: irrefutableContext,
       isFinal: isFinal,
@@ -250,10 +263,11 @@ class NullCheckOrAssertPatternResult<Error> extends PatternResult {
   /// Error for when the matched type is known to be non-null.
   final Error? matchedTypeIsStrictlyNonNullableError;
 
-  NullCheckOrAssertPatternResult(
-      {required this.refutablePatternInIrrefutableContextError,
-      required this.matchedTypeIsStrictlyNonNullableError,
-      required super.matchedValueType});
+  NullCheckOrAssertPatternResult({
+    required this.refutablePatternInIrrefutableContextError,
+    required this.matchedTypeIsStrictlyNonNullableError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing an object pattern in
@@ -274,11 +288,12 @@ class ObjectPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  ObjectPatternResult(
-      {required this.requiredType,
-      required this.duplicateRecordPatternFieldErrors,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  ObjectPatternResult({
+    required this.requiredType,
+    required this.duplicateRecordPatternFieldErrors,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Container for the result of running type analysis on a pattern assignment.
@@ -304,10 +319,11 @@ class PatternForInResult<Error> {
   /// Error for when the expression is not an iterable.
   final Error? patternForInExpressionIsNotIterableError;
 
-  PatternForInResult(
-      {required this.elementType,
-      required this.expressionType,
-      required this.patternForInExpressionIsNotIterableError});
+  PatternForInResult({
+    required this.elementType,
+    required this.expressionType,
+    required this.patternForInExpressionIsNotIterableError,
+  });
 }
 
 /// Result for analyzing a pattern in [TypeAnalyzer].
@@ -351,11 +367,12 @@ class RecordPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  RecordPatternResult(
-      {required this.requiredType,
-      required this.duplicateRecordPatternFieldErrors,
-      required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  RecordPatternResult({
+    required this.requiredType,
+    required this.duplicateRecordPatternFieldErrors,
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a relational pattern in
@@ -374,12 +391,13 @@ class RelationalPatternResult<Error> extends PatternResult {
   /// Error for when the relational operator does not return a bool.
   final Error? operatorReturnTypeNotAssignableToBoolError;
 
-  RelationalPatternResult(
-      {required this.operandType,
-      required this.refutablePatternInIrrefutableContextError,
-      required this.argumentTypeNotAssignableError,
-      required this.operatorReturnTypeNotAssignableToBoolError,
-      required super.matchedValueType});
+  RelationalPatternResult({
+    required this.operandType,
+    required this.refutablePatternInIrrefutableContextError,
+    required this.argumentTypeNotAssignableError,
+    required this.operatorReturnTypeNotAssignableToBoolError,
+    required super.matchedValueType,
+  });
 }
 
 /// Result for analyzing a switch expression in
@@ -399,10 +417,11 @@ class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
   /// This is `null` if no such guards where present.
   final Map<int, SharedTypeView>? guardTypes;
 
-  SwitchExpressionResult(
-      {required super.type,
-      required this.nonBooleanGuardErrors,
-      required this.guardTypes});
+  SwitchExpressionResult({
+    required super.type,
+    required this.nonBooleanGuardErrors,
+    required this.guardTypes,
+  });
 }
 
 /// Container for the result of running type analysis on an integer literal.
@@ -477,7 +496,8 @@ class WildcardPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  WildcardPatternResult(
-      {required this.patternTypeMismatchInIrrefutableContextError,
-      required super.matchedValueType});
+  WildcardPatternResult({
+    required this.patternTypeMismatchInIrrefutableContextError,
+    required super.matchedValueType,
+  });
 }

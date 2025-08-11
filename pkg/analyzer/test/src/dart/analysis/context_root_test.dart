@@ -6,9 +6,9 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -50,8 +50,10 @@ class ContextRootTest with ResourceProviderMixin {
     newFile(cPath, '');
     contextRoot.excluded.add(newFolder(excludePath));
 
-    expect(contextRoot.analyzedFiles(),
-        unorderedEquals([optionsPath, readmePath, aPath, bPath]));
+    expect(
+      contextRoot.analyzedFiles(),
+      unorderedEquals([optionsPath, readmePath, aPath, bPath]),
+    );
   }
 
   test_isAnalyzed_excludedByGlob_includedFile() {
@@ -108,10 +110,7 @@ class ContextRootTest with ResourceProviderMixin {
     // Implicitly included by a folder, not excluded.
     expect(root.isAnalyzed(implicitFile.path), isTrue);
 
-    _assertAnalyzedFiles2(
-      root,
-      [includedFile1, includedFile2, implicitFile],
-    );
+    _assertAnalyzedFiles2(root, [includedFile1, includedFile2, implicitFile]);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFile() {
@@ -244,8 +243,11 @@ class ContextRootTest with ResourceProviderMixin {
   ContextRootImpl _createContextRoot(String posixPath) {
     var rootPath = convertPath(posixPath);
     var rootFolder = newFolder(rootPath);
-    var workspace =
-        BasicWorkspace.find(resourceProvider, Packages.empty, rootPath);
+    var workspace = BasicWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      rootPath,
+    );
     var contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
     return contextRoot;
@@ -255,9 +257,7 @@ class ContextRootTest with ResourceProviderMixin {
     var pathContext = contextRoot.resourceProvider.pathContext;
     var path = pathContext.join(
       contextRoot.root.path,
-      pathContext.joinAll(
-        posix.split(relPosix),
-      ),
+      pathContext.joinAll(posix.split(relPosix)),
     );
     return contextRoot.isAnalyzed(path);
   }

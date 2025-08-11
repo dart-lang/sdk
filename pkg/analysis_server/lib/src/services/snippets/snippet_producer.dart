@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -21,18 +21,18 @@ import 'package:meta/meta.dart';
 abstract class DartSnippetProducer extends SnippetProducer {
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
   final bool useSuperParams;
 
   /// A cache of mappings from Elements to their public Library Elements.
   ///
   /// Callers can share this cache across multiple snippet producers to avoid
   /// repeated searches where they may add imports for the same elements.
-  final Map<Element2, LibraryElement2?> _elementImportCache;
+  final Map<Element, LibraryElement?> _elementImportCache;
 
   DartSnippetProducer(
     super.request, {
-    required Map<Element2, LibraryElement2?> elementImportCache,
+    required Map<Element, LibraryElement?> elementImportCache,
   }) : sessionHelper = AnalysisSessionHelper(request.analysisSession),
        utils = CorrectionUtils(request.unit),
        libraryElement = request.unit.libraryElement2,
@@ -50,14 +50,14 @@ abstract class DartSnippetProducer extends SnippetProducer {
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {
-  late ClassElement2? _classWidget;
-  late ClassElement2? _classPlaceholder;
+  late ClassElement? _classWidget;
+  late ClassElement? _classPlaceholder;
 
   /// Elements that need to be imported for generated code to be valid.
   ///
   /// Calling [addImports] will add any required imports to the supplied
   /// builder.
-  final Set<Element2> _requiredElementImports = {};
+  final Set<Element> _requiredElementImports = {};
 
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
@@ -75,7 +75,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
     );
   }
 
-  Future<ClassElement2?> getClass(String name) async {
+  Future<ClassElement?> getClass(String name) async {
     var class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
       _requiredElementImports.add(class_);
@@ -83,7 +83,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
     return class_;
   }
 
-  Future<MixinElement2?> getMixin(String name) async {
+  Future<MixinElement?> getMixin(String name) async {
     var mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
       _requiredElementImports.add(mixin);
@@ -92,7 +92,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   DartType getType(
-    InterfaceElement2 classElement, [
+    InterfaceElement classElement, [
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none,
   ]) => classElement.instantiate(
     typeArguments: const [],
@@ -117,8 +117,8 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 /// A mixin that provides some common methods for producers that build snippets
 /// for Flutter widget classes.
 mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
-  ClassElement2? get classBuildContext;
-  ClassElement2? get classKey;
+  ClassElement? get classBuildContext;
+  ClassElement? get classKey;
   String get widgetClassName => 'MyWidget';
 
   void writeBuildMethod(DartEditBuilder builder) {

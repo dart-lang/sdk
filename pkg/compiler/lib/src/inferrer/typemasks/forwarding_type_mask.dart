@@ -102,13 +102,16 @@ abstract class ForwardingTypeMask extends TypeMask {
   ) => null;
 
   @override
-  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.isDisjoint(other, closedWorld);
+  bool _isNonTriviallyDisjoint(TypeMask other, JClosedWorld closedWorld) {
+    return forwardTo._isNonTriviallyDisjoint(other, closedWorld);
   }
 
   @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
+  TypeMask _nonEmptyIntersection(TypeMask other, CommonMasks domain) {
+    TypeMask forwardIntersection = forwardTo._nonEmptyIntersection(
+      other,
+      domain,
+    );
     if (forwardIntersection.isEmptyOrSpecial) return forwardIntersection;
     return withPowerset(forwardIntersection.powerset, domain);
   }

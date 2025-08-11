@@ -23,50 +23,72 @@ Future testUpgrade() {
   var upgraded = false;
 
   // Delete any existing DBs.
-  return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
-    return html.window.indexedDB!
-        .open(dbName, version: 1, onUpgradeNeeded: (e) {});
-  }).then((db) {
-    db.close();
-  }).then((_) {
-    return html.window.indexedDB!.open(dbName, version: 2,
-        onUpgradeNeeded: (e) {
-      expect(e.oldVersion, 1);
-      expect(e.newVersion, 2);
-      upgraded = true;
-    });
-  }).then((_) {
-    expect(upgraded, isTrue);
-  });
+  return html.window.indexedDB!
+      .deleteDatabase(dbName)
+      .then((_) {
+        return html.window.indexedDB!.open(
+          dbName,
+          version: 1,
+          onUpgradeNeeded: (e) {},
+        );
+      })
+      .then((db) {
+        db.close();
+      })
+      .then((_) {
+        return html.window.indexedDB!.open(
+          dbName,
+          version: 2,
+          onUpgradeNeeded: (e) {
+            expect(e.oldVersion, 1);
+            expect(e.newVersion, 2);
+            upgraded = true;
+          },
+        );
+      })
+      .then((_) {
+        expect(upgraded, isTrue);
+      });
 }
 
-testReadWrite(key, value, matcher,
-        [dbName,
-        storeName = STORE_NAME,
-        version = VERSION,
-        stringifyResult = false]) =>
-    () {
-      if (dbName == null) {
-        dbName = nextDatabaseName();
-      }
-      createObjectStore(e) {
-        idb.ObjectStore store = e.target.result.createObjectStore(storeName);
-        expect(store, isNotNull);
-      }
+testReadWrite(
+  key,
+  value,
+  matcher, [
+  dbName,
+  storeName = STORE_NAME,
+  version = VERSION,
+  stringifyResult = false,
+]) => () {
+  if (dbName == null) {
+    dbName = nextDatabaseName();
+  }
+  createObjectStore(e) {
+    idb.ObjectStore store = e.target.result.createObjectStore(storeName);
+    expect(store, isNotNull);
+  }
 
-      late idb.Database db;
-      return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
-        return html.window.indexedDB!
-            .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-      }).then((idb.Database result) {
+  late idb.Database db;
+  return html.window.indexedDB!
+      .deleteDatabase(dbName)
+      .then((_) {
+        return html.window.indexedDB!.open(
+          dbName,
+          version: version,
+          onUpgradeNeeded: createObjectStore,
+        );
+      })
+      .then((idb.Database result) {
         db = result;
         var transaction = db.transactionList([storeName], 'readwrite');
         transaction.objectStore(storeName).put(value, key);
         return transaction.completed;
-      }).then((_) {
+      })
+      .then((_) {
         var transaction = db.transaction(storeName, 'readonly');
         return transaction.objectStore(storeName).getObject(key);
-      }).then((object) {
+      })
+      .then((object) {
         db.close();
         if (stringifyResult) {
           // Stringify the numbers to verify that we're correctly returning ints
@@ -75,41 +97,54 @@ testReadWrite(key, value, matcher,
         } else {
           expect(object, matcher);
         }
-      }).whenComplete(() {
+      })
+      .whenComplete(() {
         return html.window.indexedDB!.deleteDatabase(dbName);
       });
-    };
+};
 
-testReadWriteTyped(key, value, matcher,
-        [dbName,
-        String storeName = STORE_NAME,
-        version = VERSION,
-        stringifyResult = false]) =>
-    () {
-      if (dbName == null) {
-        dbName = nextDatabaseName();
-      }
-      void createObjectStore(e) {
-        var store = e.target.result.createObjectStore(storeName);
-        expect(store, isNotNull);
-      }
+testReadWriteTyped(
+  key,
+  value,
+  matcher, [
+  dbName,
+  String storeName = STORE_NAME,
+  version = VERSION,
+  stringifyResult = false,
+]) => () {
+  if (dbName == null) {
+    dbName = nextDatabaseName();
+  }
+  void createObjectStore(e) {
+    var store = e.target.result.createObjectStore(storeName);
+    expect(store, isNotNull);
+  }
 
-      late idb.Database db;
-      // Delete any existing DBs.
-      return html.window.indexedDB!.deleteDatabase(dbName).then((_) {
-        return html.window.indexedDB!
-            .open(dbName, version: version, onUpgradeNeeded: createObjectStore);
-      }).then((idb.Database result) {
+  late idb.Database db;
+  // Delete any existing DBs.
+  return html.window.indexedDB!
+      .deleteDatabase(dbName)
+      .then((_) {
+        return html.window.indexedDB!.open(
+          dbName,
+          version: version,
+          onUpgradeNeeded: createObjectStore,
+        );
+      })
+      .then((idb.Database result) {
         db = result;
-        idb.Transaction transaction =
-            db.transactionList([storeName], 'readwrite');
+        idb.Transaction transaction = db.transactionList([
+          storeName,
+        ], 'readwrite');
         transaction.objectStore(storeName).put(value, key);
 
         return transaction.completed;
-      }).then((idb.Database result) {
+      })
+      .then((idb.Database result) {
         idb.Transaction transaction = db.transaction(storeName, 'readonly');
         return transaction.objectStore(storeName).getObject(key);
-      }).then((object) {
+      })
+      .then((object) {
         db.close();
         if (stringifyResult) {
           // Stringify the numbers to verify that we're correctly returning ints
@@ -118,10 +153,11 @@ testReadWriteTyped(key, value, matcher,
         } else {
           expect(object, matcher);
         }
-      }).whenComplete(() {
+      })
+      .whenComplete(() {
         return html.window.indexedDB!.deleteDatabase(dbName);
       });
-    };
+};
 
 void testTypes(testFunction) {
   test('String', testFunction(123, 'Hoot!', equals('Hoot!')));
@@ -130,25 +166,52 @@ void testTypes(testFunction) {
   test('List 2', testFunction(123, [2, 3, 4], equals([2, 3, 4])));
   test('bool', testFunction(123, [true, false], equals([true, false])));
   test(
-      'largeInt',
-      testFunction(123, 1371854424211, equals("1371854424211"), null,
-          STORE_NAME, VERSION, true));
+    'largeInt',
+    testFunction(
+      123,
+      1371854424211,
+      equals("1371854424211"),
+      null,
+      STORE_NAME,
+      VERSION,
+      true,
+    ),
+  );
   test(
-      'largeDoubleConvertedToInt',
-      testFunction(123, 1371854424211.0, equals("1371854424211"), null,
-          STORE_NAME, VERSION, true));
+    'largeDoubleConvertedToInt',
+    testFunction(
+      123,
+      1371854424211.0,
+      equals("1371854424211"),
+      null,
+      STORE_NAME,
+      VERSION,
+      true,
+    ),
+  );
   test(
-      'largeIntInMap',
-      testFunction(123, {'time': 4503599627370492},
-          equals("{time: 4503599627370492}"), null, STORE_NAME, VERSION, true));
+    'largeIntInMap',
+    testFunction(
+      123,
+      {'time': 4503599627370492},
+      equals("{time: 4503599627370492}"),
+      null,
+      STORE_NAME,
+      VERSION,
+      true,
+    ),
+  );
   var now = new DateTime.now();
   test(
-      'DateTime',
-      testFunction(
-          123,
-          now,
-          predicate((date) =>
-              date.millisecondsSinceEpoch == now.millisecondsSinceEpoch)));
+    'DateTime',
+    testFunction(
+      123,
+      now,
+      predicate(
+        (date) => date.millisecondsSinceEpoch == now.millisecondsSinceEpoch,
+      ),
+    ),
+  );
 }
 
 main() {

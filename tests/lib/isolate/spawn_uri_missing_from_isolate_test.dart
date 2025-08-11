@@ -21,8 +21,10 @@ import 'spawn_uri_missing_test.dart';
 const String SUCCESS = 'Test worked.';
 
 void isolate(SendPort port) {
-  doTest().then((_) => port.send(SUCCESS),
-      onError: (error, stack) => port.send('Test failed: $error\n$stack'));
+  doTest().then(
+    (_) => port.send(SUCCESS),
+    onError: (error, stack) => port.send('Test failed: $error\n$stack'),
+  );
 }
 
 main() {

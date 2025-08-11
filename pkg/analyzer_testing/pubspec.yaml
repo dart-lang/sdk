@@ -1,0 +1,22 @@
+name: analyzer_testing
+
+environment:
+  sdk: ^3.7.0
+
+resolution: workspace
+
+dependencies:
+  # See the release policy for managing this dependency at
+  # pkg/analyzer/doc/implementation/releasing.md.
+  analyzer: ^8.0.0-dev
+  meta: ^1.10.0
+  path: ^1.9.0
+  test: ^1.25.0
+
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
+dev_dependencies:
+  analyzer_utilities: any
+  lints: any

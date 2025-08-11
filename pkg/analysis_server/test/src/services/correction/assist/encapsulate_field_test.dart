@@ -17,18 +17,18 @@ void main() {
 @reflectiveTest
 class EncapsulateFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ENCAPSULATE_FIELD;
+  AssistKind get kind => DartAssistKind.encapsulateField;
 
   Future<void> test_alreadyPrivate() async {
     await resolveTestCode('''
 class A {
-  int _test = 42;
+  int ^_test = 42;
 }
 void f(A a) {
   print(a._test);
 }
 ''');
-    await assertNoAssistAt('_test =');
+    await assertNoAssist();
   }
 
   Future<void> test_annotations_deprecated2() async {
@@ -36,10 +36,10 @@ void f(A a) {
 class A {
   @deprecated
   @deprecated
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 class A {
   int _foo = 0;
 
@@ -66,10 +66,10 @@ class B extends A {
   @deprecated
   @override
   @deprecated
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   int get foo;
 }
@@ -99,10 +99,10 @@ abstract class A {
 
 class B extends A {
   @deprecated @override @deprecated
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   int get foo;
 }
@@ -132,10 +132,10 @@ abstract class A {
 
 class B extends A {
   @override
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   int get foo;
 }
@@ -162,10 +162,10 @@ abstract class A {
 
 class B extends A {
   @override
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   int get foo;
   set foo(int value);
@@ -193,10 +193,10 @@ abstract class A {
 
 class B extends A {
   @override
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   set foo(int value);
 }
@@ -223,10 +223,10 @@ abstract class A {
 
 class B extends A {
   @unresolved
-  int foo = 0;
+  int ^foo = 0;
 }
 ''');
-    await assertHasAssistAt('foo = 0', '''
+    await assertHasAssist('''
 abstract class A {
   int get foo;
 }
@@ -250,10 +250,10 @@ class B extends A {
 class A {
   /// AAA
   /// BBB
-  int test = 0;
+  int ^test = 0;
 }
 ''');
-    await assertHasAssistAt('test', '''
+    await assertHasAssist('''
 class A {
   /// AAA
   /// BBB
@@ -276,30 +276,30 @@ class A {
     await resolveTestCode('''
 enum E {
   v;
-  final int test = 42;
+  final int ^test = 42;
 }
 ''');
     // Enums can have only final fields.
-    await assertNoAssistAt('test = 42');
+    await assertNoAssist();
   }
 
   Future<void> test_extension_hasType() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 extension E on int {
-  int test = 42;
+  int ^test = 42;
 }
 ''');
-    await assertNoAssistAt('test = 42');
+    await assertNoAssist();
   }
 
   Future<void> test_final() async {
     await resolveTestCode('''
 class A {
-  final int test = 42;
+  final int ^test = 42;
 }
 ''');
-    await assertHasAssistAt('test =', '''
+    await assertHasAssist('''
 class A {
   int _test = 42;
 
@@ -311,14 +311,14 @@ class A {
   Future<void> test_hasType() async {
     await resolveTestCode('''
 class A {
-  int test = 42;
+  int ^test = 42;
   A(this.test);
 }
 void f(A a) {
   print(a.test);
 }
 ''');
-    await assertHasAssistAt('test = 42', '''
+    await assertHasAssist('''
 class A {
   int _test = 42;
 
@@ -338,10 +338,10 @@ void f(A a) {
   Future<void> test_mixin_hasType() async {
     await resolveTestCode('''
 mixin M {
-  int test = 42;
+  int ^test = 42;
 }
 ''');
-    await assertHasAssistAt('test = 42', '''
+    await assertHasAssist('''
 mixin M {
   int _test = 42;
 
@@ -357,23 +357,23 @@ mixin M {
   Future<void> test_multipleFields() async {
     await resolveTestCode('''
 class A {
-  int aaa = 0, bbb = 0, ccc = 0;
+  int aaa = 0, ^bbb = 0, ccc = 0;
 }
 void f(A a) {
   print(a.bbb);
 }
 ''');
-    await assertNoAssistAt('bbb ');
+    await assertNoAssist();
   }
 
   Future<void> test_named() async {
     await resolveTestCode('''
 class A {
-  int? field;
+  int? ^field;
   A({int? field}) : field = field;
 }
 ''');
-    await assertHasAssistAt('field', '''
+    await assertHasAssist('''
 class A {
   int? _field;
 
@@ -390,11 +390,11 @@ class A {
   Future<void> test_named_formalParameter() async {
     await resolveTestCode('''
 class A {
-  int? field;
+  int? ^field;
   A({this.field});
 }
 ''');
-    await assertHasAssistAt('field', '''
+    await assertHasAssist('''
 class A {
   int? _field;
 
@@ -411,12 +411,12 @@ class A {
   Future<void> test_named_formalParameter_noType() async {
     await resolveTestCode('''
 class C {
-  var foo;
+  var ^foo;
 
   C({required this.foo});
 }
 ''');
-    await assertHasAssistAt('foo;', '''
+    await assertHasAssist('''
 class C {
   var _foo;
 
@@ -436,12 +436,12 @@ class C {
 import 'dart:math' as math;
 
 class C {
-  math.Random foo;
+  math.Random ^foo;
 
   C({required this.foo});
 }
 ''');
-    await assertHasAssistAt('foo;', '''
+    await assertHasAssist('''
 import 'dart:math' as math;
 
 class C {
@@ -462,11 +462,11 @@ class C {
     await resolveTestCode('''
 class A {}
 class B extends A {
-  int? field;
+  int? ^field;
   B({this.field}) : super();
 }
 ''');
-    await assertHasAssistAt('field', '''
+    await assertHasAssist('''
 class A {}
 class B extends A {
   int? _field;
@@ -484,22 +484,22 @@ class B extends A {
   Future<void> test_notOnName() async {
     await resolveTestCode('''
 class A {
-  int test = 1 + 2 + 3;
+  int test = 1 ^+ 2 + 3;
 }
 ''');
-    await assertNoAssistAt('+ 2');
+    await assertNoAssist();
   }
 
   Future<void> test_noType() async {
     await resolveTestCode('''
 class A {
-  var test = 42;
+  var ^test = 42;
 }
 void f(A a) {
   print(a.test);
 }
 ''');
-    await assertHasAssistAt('test = 42', '''
+    await assertHasAssist('''
 class A {
   var _test = 42;
 
@@ -519,23 +519,23 @@ void f(A a) {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class A {
-  int; // marker
+  int^; // marker
 }
 void f(A a) {
   print(a.test);
 }
 ''');
-    await assertNoAssistAt('; // marker');
+    await assertNoAssist();
   }
 
   Future<void> test_positional() async {
     await resolveTestCode('''
 class A {
-  int? field;
+  int? ^field;
   A([this.field]);
 }
 ''');
-    await assertHasAssistAt('field', '''
+    await assertHasAssist('''
 class A {
   int? _field;
 
@@ -552,9 +552,9 @@ class A {
   Future<void> test_static() async {
     await resolveTestCode('''
 class A {
-  static int test = 42;
+  static int ^test = 42;
 }
 ''');
-    await assertNoAssistAt('test =');
+    await assertNoAssist();
   }
 }

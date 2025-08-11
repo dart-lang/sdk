@@ -17,8 +17,10 @@ extension type Module(JSObject _) implements JSObject {
 external TrustedTypePolicyFactory get trustedTypes;
 
 extension type TrustedTypePolicyFactory._(JSObject _) implements JSObject {
-  external TrustedTypePolicy createPolicy(String policyName,
-      [TrustedTypePolicyOptions policyOptions]);
+  external TrustedTypePolicy createPolicy(
+    String policyName, [
+    TrustedTypePolicyOptions policyOptions,
+  ]);
 }
 
 extension type TrustedTypePolicyOptions._(JSObject _) implements JSObject {
@@ -35,11 +37,14 @@ void main() {
   asyncTest(() async {
     final trustedScriptURL = trustedTypes
         .createPolicy(
-            'scriptUrl',
-            TrustedTypePolicyOptions(
-                createScriptURL: ((JSString url) => url).toJS))
+          'scriptUrl',
+          TrustedTypePolicyOptions(
+            createScriptURL: ((JSString url) => url).toJS,
+          ),
+        )
         .createScriptURL(
-            '/root_dart/tests/lib/js/static_interop_test/import/module.mjs');
+          '/root_dart/tests/lib/js/static_interop_test/import/module.mjs',
+        );
     final module = Module(await importModule(trustedScriptURL).toDart);
     Expect.equals('success', module.testModuleFunction());
   });

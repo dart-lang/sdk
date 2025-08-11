@@ -11,90 +11,231 @@ main() {
 }
 
 testEmpty() {
-  Expect.equals("", "" "" "");
-  Expect.equals("", "" '' "");
-  Expect.equals("", "" "" r"");
+  Expect.equals(
+    "",
+    ""
+        ""
+        "",
+  );
+  Expect.equals(
+    "",
+    ""
+        ''
+        "",
+  );
+  Expect.equals(
+    "",
+    ""
+        ""
+        r"",
+  );
 
-  Expect.equals("a", "a" "");
-  Expect.equals("a", "a" '');
-  Expect.equals("a", "a" r'');
+  Expect.equals(
+    "a",
+    "a"
+        "",
+  );
+  Expect.equals(
+    "a",
+    "a"
+        '',
+  );
+  Expect.equals(
+    "a",
+    "a"
+        r'',
+  );
 
-  Expect.equals("b", 'b' "");
-  Expect.equals("b", 'b' '');
-  Expect.equals("b", 'b' r'');
+  Expect.equals(
+    "b",
+    'b'
+        "",
+  );
+  Expect.equals(
+    "b",
+    'b'
+        '',
+  );
+  Expect.equals(
+    "b",
+    'b'
+        r'',
+  );
 
-  Expect.equals("c", r'c' "");
-  Expect.equals("c", r'c' '');
-  Expect.equals("c", r'c' r'');
+  Expect.equals(
+    "c",
+    r'c'
+        "",
+  );
+  Expect.equals(
+    "c",
+    r'c'
+        '',
+  );
+  Expect.equals(
+    "c",
+    r'c'
+        r'',
+  );
 
-  Expect.equals("a", "" "a");
-  Expect.equals("a", "" 'a');
-  Expect.equals("a", "" r'a');
+  Expect.equals(
+    "a",
+    ""
+        "a",
+  );
+  Expect.equals(
+    "a",
+    ""
+        'a',
+  );
+  Expect.equals(
+    "a",
+    ""
+        r'a',
+  );
 
-  Expect.equals("b", '' "b");
-  Expect.equals("b", '' 'b');
-  Expect.equals("b", '' r'b');
+  Expect.equals(
+    "b",
+    ''
+        "b",
+  );
+  Expect.equals(
+    "b",
+    ''
+        'b',
+  );
+  Expect.equals(
+    "b",
+    ''
+        r'b',
+  );
 
-  Expect.equals("c", r'' "c");
-  Expect.equals("c", r'' 'c');
-  Expect.equals("c", r'' r'c');
+  Expect.equals(
+    "c",
+    r''
+        "c",
+  );
+  Expect.equals(
+    "c",
+    r''
+        'c',
+  );
+  Expect.equals(
+    "c",
+    r''
+        r'c',
+  );
 }
 
 testInterpolation() {
   var s = "a";
-  Expect.equals(r"ab", "$s" "b");
-  Expect.equals(r"ab", '$s' "b");
-  Expect.equals(r"$sb", r'$s' "b");
+  Expect.equals(
+    r"ab",
+    "$s"
+        "b",
+  );
+  Expect.equals(
+    r"ab",
+    '$s'
+        "b",
+  );
+  Expect.equals(
+    r"$sb",
+    r'$s'
+        "b",
+  );
 
-  Expect.equals(r"-a-b", "-$s-" "b");
-  Expect.equals(r"-a-b", '-$s-' "b");
-  Expect.equals(r"-$s-b", r'-$s-' "b");
+  Expect.equals(
+    r"-a-b",
+    "-$s-"
+        "b",
+  );
+  Expect.equals(
+    r"-a-b",
+    '-$s-'
+        "b",
+  );
+  Expect.equals(
+    r"-$s-b",
+    r'-$s-'
+        "b",
+  );
 
-  Expect.equals(r"ba", 'b' "$s");
-  Expect.equals(r"ba", 'b' '$s');
-  Expect.equals(r"b$s", 'b' r'$s');
+  Expect.equals(
+    r"ba",
+    'b'
+        "$s",
+  );
+  Expect.equals(
+    r"ba",
+    'b'
+        '$s',
+  );
+  Expect.equals(
+    r"b$s",
+    'b'
+        r'$s',
+  );
 
-  Expect.equals(r"b-a-", 'b' "-$s-");
-  Expect.equals(r"b-a-", 'b' '-$s-');
-  Expect.equals(r"b-$s-", 'b' r'-$s-');
+  Expect.equals(
+    r"b-a-",
+    'b'
+        "-$s-",
+  );
+  Expect.equals(
+    r"b-a-",
+    'b'
+        '-$s-',
+  );
+  Expect.equals(
+    r"b-$s-",
+    'b'
+        r'-$s-',
+  );
 }
 
 testMultiline() {
   Expect.equals(
-      "abe",
-      "a"
-      "b"
-      "e");
+    "abe",
+    "a"
+        "b"
+        "e",
+  );
   Expect.equals(
-      "a b e",
-      "a "
-      "b "
-      "e");
+    "a b e",
+    "a "
+        "b "
+        "e",
+  );
   Expect.equals(
-      "a b e",
-      "a"
-      " b"
-      " e");
+    "a b e",
+    "a"
+        " b"
+        " e",
+  );
 
   Expect.equals(
-      "abe",
-      """
+    "abe",
+    """
 a"""
-      "b"
-      "e");
+        "b"
+        "e",
+  );
   Expect.equals(
-      "a b e",
-      """
+    "a b e",
+    """
 a"""
-      " b"
-      " e");
+        " b"
+        " e",
+  );
 
   Expect.equals(
-      "abe",
-      """
+    "abe",
+    """
 a"""
-      """
+        """
 b"""
-      """
-e""");
+        """
+e""",
+  );
 }

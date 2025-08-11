@@ -39,60 +39,76 @@ main(List<String> args) {
   }
 
   Expect.throws(
-      () => myNull.foo(),
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The method \'foo\' was called on null.'));
+    () => myNull.foo(),
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The method \'foo\' was called on null.',
+        ),
+  );
 
   Expect.throws(
-      () => myNull.foo,
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The getter \'foo\' was called on null.'));
+    () => myNull.foo,
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The getter \'foo\' was called on null.',
+        ),
+  );
 
   Expect.throws(
-      () => myNull.bar,
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The getter \'bar\' was called on null.'));
+    () => myNull.bar,
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The getter \'bar\' was called on null.',
+        ),
+  );
 
   Expect.throws(
-      () => myNull.bar(),
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The method \'bar\' was called on null.'));
+    () => myNull.bar(),
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The method \'bar\' was called on null.',
+        ),
+  );
 
   Expect.throws(
-      () => myNull!,
-      (e) =>
-          e is TypeError &&
-          e.toString().contains('Null check operator used on a null value'));
-
-  Expect.throws(() {
-    myNull.bazz = 3;
-  },
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The setter \'bazz=\' was called on null.'));
+    () => myNull!,
+    (e) =>
+        e is TypeError &&
+        e.toString().contains('Null check operator used on a null value'),
+  );
 
   Expect.throws(
-      () => doubleNull + 2.17,
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The method \'+\' was called on null.'));
+    () {
+      myNull.bazz = 3;
+    },
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The setter \'bazz=\' was called on null.',
+        ),
+  );
+
+  Expect.throws(
+    () => doubleNull + 2.17,
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The method \'+\' was called on null.',
+        ),
+  );
 
   Expect.throws(() => 9.81 - doubleNull, (e) => e is TypeError);
 
   Expect.throws(
-      () => intNull * 7,
-      (e) =>
-          e is NoSuchMethodError &&
-          e.toString().startsWith(
-              'NoSuchMethodError: The method \'*\' was called on null.'));
+    () => intNull * 7,
+    (e) =>
+        e is NoSuchMethodError &&
+        e.toString().startsWith(
+          'NoSuchMethodError: The method \'*\' was called on null.',
+        ),
+  );
 }

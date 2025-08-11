@@ -12,15 +12,24 @@ main() {
 
   Expect.identical(Zone.root, Zone.current);
   Zone forked;
-  forked = Zone.current.fork(specification: new ZoneSpecification(
-      createPeriodicTimer: (Zone self, ZoneDelegate parent, Zone origin,
-          Duration period, f(Timer timer)) {
-    events.add("forked.createPeriodicTimer");
-    return parent.createPeriodicTimer(origin, period, (Timer timer) {
-      events.add("wrapped function ${period.inMilliseconds}");
-      f(timer);
-    });
-  }));
+  forked = Zone.current.fork(
+    specification: new ZoneSpecification(
+      createPeriodicTimer:
+          (
+            Zone self,
+            ZoneDelegate parent,
+            Zone origin,
+            Duration period,
+            f(Timer timer),
+          ) {
+            events.add("forked.createPeriodicTimer");
+            return parent.createPeriodicTimer(origin, period, (Timer timer) {
+              events.add("wrapped function ${period.inMilliseconds}");
+              f(timer);
+            });
+          },
+    ),
+  );
 
   asyncStart();
   int tickCount = 0;
@@ -51,7 +60,7 @@ main() {
       "wrapped function 5",
       "periodic Timer 2",
       "wrapped function 5",
-      "periodic Timer 3"
+      "periodic Timer 3",
     ], events);
     asyncEnd();
   });

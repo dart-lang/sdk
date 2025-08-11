@@ -20,115 +20,134 @@ main() {
 @reflectiveTest
 class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_await_flattened() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 external Future<Future<int>> ffi();
 f() async {
   Future<int> b = await ffi();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
   }
 
   test_await_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> fi() => Future.value(0);
 f() async {
   String a = await fi(); // Warning: int not assignable to String
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 62, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 62, 10),
+      ],
+    );
   }
 
   test_awaitForIn_declaredVariableRightType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<int> stream) async {
   await for (int i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
   }
 
   test_awaitForIn_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<String> stream) async {
   await for (int i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
+      ],
+    );
   }
 
   test_awaitForIn_downcast() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<num> stream) async {
   await for (int i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 52, 6),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 52, 6),
+      ],
+    );
   }
 
   test_awaitForIn_dynamicVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<int> stream) async {
   await for (var i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
   }
 
   test_awaitForIn_existingVariableRightType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<int> stream) async {
   late int i;
   await for (i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+    );
   }
 
   test_awaitForIn_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<String> stream) async {
   late int i;
   await for (i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 65, 6),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 65, 6),
+      ],
+    );
   }
 
   test_awaitForIn_streamOfDynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream stream) async {
   await for (int i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1)],
+    );
   }
 
   test_awaitForIn_upcast() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<int> stream) async {
   await for (num i in stream) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
   }
 
   test_bug21912() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B extends A {}
 
@@ -147,202 +166,228 @@ void f(
     left = t2;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 263, 4),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 281, 2),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 296, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 263, 4),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 281, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 296, 2),
+      ],
+    );
   }
 
   test_forIn_declaredVariableRightType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (int i in <int>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_forIn_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (int i in <String>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+      ],
+    );
   }
 
   test_forIn_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+    );
   }
 
   test_forIn_dynamicIterable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   dynamic iterable;
   for (int i in iterable) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1)],
+    );
   }
 
   test_forIn_dynamicVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (var i in <int>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_forIn_existingVariableRightType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int i;
   for (i in <int>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_forIn_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int i;
   for (i in <String>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+      ],
+    );
   }
 
   test_forIn_iterableOfDynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (int i in []) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_forIn_object() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(List o) { // Could be [].
   for (var i in o) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1)],
+    );
   }
 
   test_forIn_typeBoundBad() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (String i in iterable) {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+        error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+      ],
+    );
   }
 
   test_forIn_typeBoundGood() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (var i in iterable) {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 78, 1)],
+    );
   }
 
   test_forIn_upcast() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (num i in <int>[]) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 callMe(f()) { f(); }
 f(Object p) {
   (p is String) && callMe(() { p.length; });
   p = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 68, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 68, 6)],
+    );
   }
 
   test_typePromotion_booleanAnd_useInRight_mutatedInLeft() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 6)],
+    );
   }
 
   test_typePromotion_booleanAnd_useInRight_mutatedInRight() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 56, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 56, 6)],
+    );
   }
 
   test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 callMe(f()) { f(); }
 g(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
   p = 42;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 6)],
+    );
   }
 
   test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 callMe(f()) { f(); }
 g(Object p) {
   p = 42;
   p is String ? callMe(() { p.length; }) : 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 6)],
+    );
   }
 
   test_typePromotion_if_accessedInClosure_hasAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 callMe(f()) { f(); }
 f(Object p) {
   if (p is String) {
@@ -352,13 +397,14 @@ f(Object p) {
   }
   p = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 6)],
+    );
   }
 
   test_typePromotion_if_extends_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class V {}
 class A<T> {}
 class B<S> extends A<S> {
@@ -370,13 +416,14 @@ f(A<V> p) {
     p.b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 97, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 97, 1)],
+    );
   }
 
   test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class V {}
 class A<T> {}
 class B<S> extends A<S> {
@@ -388,53 +435,59 @@ f(A<V> p) {
     p.b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 102, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 102, 1)],
+    );
   }
 
   test_typePromotion_if_hasAssignment_before() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Object p) {
   if (p is String) {
     p = 0;
     p.length;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 52, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 52, 6)],
+    );
   }
 
   test_typePromotion_if_hasAssignment_inClosure_anonymous_before() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Object p) {
   () {p = 0;};
   if (p is String) {
     p.length;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 56, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 56, 6)],
+    );
   }
 
   test_typePromotion_if_hasAssignment_inClosure_function_before() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 g(Object p) {
   f() {p = 0;};
   if (p is String) {
     p.length;
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 6),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 16, 1),
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 6),
+      ],
+    );
   }
 
   test_typePromotion_if_implements_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class V {}
 class A<T> {}
 class B<S> implements A<S> {
@@ -446,13 +499,14 @@ f(A<V> p) {
     p.b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 100, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 100, 1)],
+    );
   }
 
   test_typePromotion_if_with_notMoreSpecific_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class V {}
 mixin A<T> {}
 class B<S> extends Object with A<S> {
@@ -464,22 +518,23 @@ f(A<V> p) {
     p.b;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 109, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 109, 1)],
+    );
   }
 
   test_wrongNumberOfTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<E> {
   late E element;
 }
 g(A<NoSuchType> a) {
   a.element.anyGetterExistsInDynamic;
 }
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 37, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 37, 10)],
+    );
   }
 }
 

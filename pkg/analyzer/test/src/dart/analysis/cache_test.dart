@@ -28,9 +28,7 @@ class CacheTest {
     expect(cache.map.entries, isEmpty);
 
     cache.put('1', _b(10));
-    expect(cache.map.entries, [
-      isMapEntry('1', hasLength(10)),
-    ]);
+    expect(cache.map.entries, [isMapEntry('1', hasLength(10))]);
 
     expect(cache.get('1'), hasLength(10));
   }
@@ -92,9 +90,7 @@ class CacheTest {
     // 10 + 80 + 30 > 100
     // So, '1' and '2' are evicted.
     cache.put('3', _b(30));
-    expect(cache.map.entries, [
-      isMapEntry('3', hasLength(30)),
-    ]);
+    expect(cache.map.entries, [isMapEntry('3', hasLength(30))]);
   }
 
   Cache<String, Uint8List> _newBytesCache(int maxSizeBytes) =>

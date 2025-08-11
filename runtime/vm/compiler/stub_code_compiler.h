@@ -190,7 +190,6 @@ class StubCodeCompiler {
 
   // Common function for generating InitLateStaticField,
   // InitLateFinalStaticField, InitSharedLateStaticField,
-  // InitSharedLateFinalStaticField,
   void GenerateInitLateStaticFieldStub(bool is_final, bool is_shared);
 
   // Common function for generating InitLateInstanceField and
@@ -226,6 +225,8 @@ class StubCodeCompiler {
 
   void GenerateRangeError(bool with_fpu_regs);
   void GenerateWriteError(bool with_fpu_regs);
+
+  void GenerateFieldAccessError(bool with_fpu_regs);
 
   void GenerateSuspendStub(bool call_suspend_function,
                            bool pass_type_arguments,

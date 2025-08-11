@@ -14,10 +14,11 @@ import 'package:pool/pool.dart';
 // Iout/DebugX64/gen and passing
 // -Iout/DebugX64/gen/third_party/perfetto/build_config to clang-tidy below.
 Future<void> generatePerfettoBuildFlags() async {
-  final processResult = await Process.run(
-    './tools/build.py',
-    ['-mdebug', '-ax64', 'third_party/perfetto/gn:gen_buildflags'],
-  );
+  final processResult = await Process.run('./tools/build.py', [
+    '-mdebug',
+    '-ax64',
+    'third_party/perfetto/gn:gen_buildflags',
+  ]);
 
   final int exitCode = processResult.exitCode;
   final String stdout = processResult.stdout.trim();
@@ -46,8 +47,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Iruntime',
     '-Ithird_party',
     '-Iruntime/include',
-    if (filepath.contains('samples/embedder'))
-      '-Iruntime/engine',
+    if (filepath.contains('samples/embedder')) '-Iruntime/engine',
     '-Ithird_party/boringssl/src/include',
     '-Ithird_party/perfetto/include',
     '-Ithird_party/zlib',
@@ -153,29 +153,12 @@ final Set<String> excludedFiles = Set<String>.from([
 ]);
 
 final defineSets = [
-  [
-    '-DDEBUG',
-  ],
-  [
-    '-DNDEBUG',
-  ],
-  [
-    '-DNDEBUG',
-    '-DPRODUCT',
-  ],
-  [
-    '-DDART_PRECOMPILER',
-    '-DDEBUG',
-  ],
-  [
-    '-DDART_PRECOMPILER',
-    '-DNDEBUG',
-  ],
-  [
-    '-DDART_PRECOMPILER',
-    '-DNDEBUG',
-    '-DPRODUCT',
-  ],
+  ['-DDEBUG'],
+  ['-DNDEBUG'],
+  ['-DNDEBUG', '-DPRODUCT'],
+  ['-DDART_PRECOMPILER', '-DDEBUG'],
+  ['-DDART_PRECOMPILER', '-DNDEBUG'],
+  ['-DDART_PRECOMPILER', '-DNDEBUG', '-DPRODUCT'],
 ];
 
 main(List<String> files) async {
@@ -187,38 +170,43 @@ main(List<String> files) async {
 
   // Analyze the [files] in parallel.
   for (List<String> defines in defineSets) {
-    await Future.wait(files.map((String filepath) async {
-      // The `runtime/.clang-tidy` file has the enabled checks in it.
-      final args = <String>['-quiet', filepath, '--']
-        ..addAll(compilerFlagsForFile(filepath))
-        ..addAll(defines);
-      final processResult =
-          await pool.withResource(() => Process.run(clangTidy, args));
+    await Future.wait(
+      files.map((String filepath) async {
+        // The `runtime/.clang-tidy` file has the enabled checks in it.
+        final args = <String>['-quiet', filepath, '--']
+          ..addAll(compilerFlagsForFile(filepath))
+          ..addAll(defines);
+        final processResult = await pool.withResource(
+          () => Process.run(clangTidy, args),
+        );
 
-      final int exitCode = processResult.exitCode;
-      final String stdout = processResult.stdout.trim();
-      final String stderr = processResult.stderr.trim();
+        final int exitCode = processResult.exitCode;
+        final String stdout = processResult.stdout.trim();
+        final String stderr = processResult.stderr.trim();
 
-      if (exitCode != 0 || stdout.isNotEmpty) {
-        if (!isFirstFailure) {
-          print('');
-          print('------------------------------------------------------------');
-          print('');
+        if (exitCode != 0 || stdout.isNotEmpty) {
+          if (!isFirstFailure) {
+            print('');
+            print(
+              '------------------------------------------------------------',
+            );
+            print('');
+          }
+          isFirstFailure = false;
         }
-        isFirstFailure = false;
-      }
 
-      if (exitCode != 0) {
-        print('command: $clangTidy ${args.join(" ")}');
-        print('exit-code: $exitCode');
-        print('stdout:');
-        print('${stdout}');
-        print('stderr:');
-        print('${stderr}');
-      } else if (stdout.isNotEmpty) {
-        // The actual lints go to stdout.
-        print(stdout);
-      }
-    }));
+        if (exitCode != 0) {
+          print('command: $clangTidy ${args.join(" ")}');
+          print('exit-code: $exitCode');
+          print('stdout:');
+          print('${stdout}');
+          print('stderr:');
+          print('${stderr}');
+        } else if (stdout.isNotEmpty) {
+          // The actual lints go to stdout.
+          print(stdout);
+        }
+      }),
+    );
   }
 }

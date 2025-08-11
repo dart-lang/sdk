@@ -4,13 +4,20 @@
 
 import '../language_server_benchmark.dart';
 import '../lsp_messages.dart';
-import 'utils.dart';
+import '../run_utils.dart';
+import 'benchmark_utils.dart';
 
 /// Change a file in a big project and reports how long it takes before the
 /// analysis server is responsive again (measured by when it responds to a
 /// completion request) and when it's actually done analysing.
 Future<void> main(List<String> args) async {
-  await runHelper(args, LspCompletionAfterChange.new, runAsLsp: true);
+  await runHelper(
+    args,
+    LspCompletionAfterChange.new,
+    copyData,
+    extraIterations: getExtraIterations,
+    runAsLsp: true,
+  );
 }
 
 class LspCompletionAfterChange extends DartLanguageServerBenchmark {

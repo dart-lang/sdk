@@ -13,8 +13,8 @@ class MapEntryMatcher extends Matcher {
   final Matcher valueMatcher;
 
   MapEntryMatcher(Object? key, Object? value)
-      : keyMatcher = wrapMatcher(key),
-        valueMatcher = wrapMatcher(value);
+    : keyMatcher = wrapMatcher(key),
+      valueMatcher = wrapMatcher(value);
 
   @override
   Description describe(Description description) => description

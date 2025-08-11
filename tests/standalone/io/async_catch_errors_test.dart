@@ -12,27 +12,33 @@ var events = [];
 
 Future testSocketException() {
   var completer = new Completer();
-  runZonedGuarded(() {
-    Socket.connect("4", 1, timeout: Duration(seconds: 5)).then((Socket s) {
-      Expect.fail("Socket should not be able to connect");
-    });
-  }, (err, s) {
-    if (err is! SocketException) Expect.fail("Not expected error: $err");
-    completer.complete("socket test, ok.");
-    events.add("SocketException");
-  });
+  runZonedGuarded(
+    () {
+      Socket.connect("4", 1, timeout: Duration(seconds: 5)).then((Socket s) {
+        Expect.fail("Socket should not be able to connect");
+      });
+    },
+    (err, s) {
+      if (err is! SocketException) Expect.fail("Not expected error: $err");
+      completer.complete("socket test, ok.");
+      events.add("SocketException");
+    },
+  );
   return completer.future;
 }
 
 Future testFileSystemException() {
   var completer = new Completer();
-  runZonedGuarded(() {
-    new File("lol it's not a file\n").openRead().listen(null);
-  }, (err, s) {
-    if (err is! FileSystemException) Expect.fail("Not expected error: $err");
-    completer.complete("file test, ok.");
-    events.add("FileSystemException");
-  });
+  runZonedGuarded(
+    () {
+      new File("lol it's not a file\n").openRead().listen(null);
+    },
+    (err, s) {
+      if (err is! FileSystemException) Expect.fail("Not expected error: $err");
+      completer.complete("file test, ok.");
+      events.add("FileSystemException");
+    },
+  );
   return completer.future;
 }
 

@@ -18,13 +18,13 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   const constructor constructor4(dynamic value) → self::Class<self::Class::T%>
     : self::Class::field = value is self::Class<self::Class::T%>?, super core::Object::•()
     ;
-  static method _#constructor1#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor1#tearOff::T%>
+  static synthetic method _#constructor1#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor1#tearOff::T%>
     return new self::Class::constructor1<self::Class::_#constructor1#tearOff::T%>(value);
-  static method _#constructor2#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor2#tearOff::T%>
+  static synthetic method _#constructor2#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor2#tearOff::T%>
     return new self::Class::constructor2<self::Class::_#constructor2#tearOff::T%>(value);
-  static method _#constructor3#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor3#tearOff::T%>
+  static synthetic method _#constructor3#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor3#tearOff::T%>
     return new self::Class::constructor3<self::Class::_#constructor3#tearOff::T%>(value);
-  static method _#constructor4#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor4#tearOff::T%>
+  static synthetic method _#constructor4#tearOff<T extends core::Object? = dynamic>(dynamic value) → self::Class<self::Class::_#constructor4#tearOff::T%>
     return new self::Class::constructor4<self::Class::_#constructor4#tearOff::T%>(value);
 }
 static final field core::bool isWeakMode = #C1 is core::List<core::Object>;

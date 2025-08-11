@@ -30,27 +30,27 @@ class Class extends core::Object /*hasConstConstructor*/  {
   const constructor named({core::List<self::Const> constants = const <self::Const>[const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<dynamic>(), const self::_ConstImpl::•<core::String>()]}) → self::Class
     : self::Class::constants = constants, super core::Object::•()
     ;
-  static method _#new#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
+  static synthetic method _#new#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
     return new self::Class::•(constants: constants);
-  static method _#named#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
+  static synthetic method _#named#tearOff({has-declared-initializer core::List<self::Const> constants}) → self::Class
     return new self::Class::named(constants: constants);
 }
 abstract class Const extends core::Object {
   static factory impl() → self::Const /* redirection-target: self::_ConstImpl::•<dynamic>*/
     return new self::_ConstImpl::•<dynamic>();
-  static method _#impl#tearOff() → self::Const
+  static synthetic method _#impl#tearOff() → self::Const
     return new self::_ConstImpl::•<dynamic>();
 }
 class _ConstImpl<T extends core::Object? = dynamic> extends core::Object implements self::Const /*hasConstConstructor*/  {
   const constructor •() → self::_ConstImpl<self::_ConstImpl::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::_ConstImpl<self::_ConstImpl::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::_ConstImpl<self::_ConstImpl::_#new#tearOff::T%>
     return new self::_ConstImpl::•<self::_ConstImpl::_#new#tearOff::T%>();
 }
 static method main() → dynamic
   ;
-static method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImpl<self::_#ImplAlias#new#tearOff::T>
+static synthetic method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImpl<self::_#ImplAlias#new#tearOff::T>
   return new self::_ConstImpl::•<self::_#ImplAlias#new#tearOff::T>();
 
 

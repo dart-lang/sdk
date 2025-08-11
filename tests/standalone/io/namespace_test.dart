@@ -196,7 +196,7 @@ void setupTest() {
     args.addAll([
       "--namespace=${namespace.path}",
       Platform.script.toFilePath(),
-      "--run"
+      "--run",
     ]);
     var pr = Process.runSync(Platform.executable, args);
     if (pr.exitCode != 0) {

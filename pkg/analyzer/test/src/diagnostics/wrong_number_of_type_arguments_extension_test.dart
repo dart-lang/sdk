@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class WrongNumberOfTypeArgumentsExtensionTest extends PubPackageResolutionTest {
   test_notGeneric() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   void foo() {}
 }
@@ -24,10 +25,15 @@ extension E on int {
 void f() {
   E<int>(0).foo();
 }
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 54, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          54,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
@@ -56,7 +62,8 @@ ExtensionOverride
   }
 
   test_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E<S, T> on int {
   void foo() {}
 }
@@ -64,10 +71,15 @@ extension E<S, T> on int {
 void f() {
   E<bool>(0).foo();
 }
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 60, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          60,
+          6,
+        ),
+      ],
+    );
 
     var node = findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
@@ -99,7 +111,8 @@ ExtensionOverride
   }
 
   test_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E<T> on int {
   void foo() {}
 }
@@ -107,10 +120,15 @@ extension E<T> on int {
 void f() {
   E<bool, int>(0).foo();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 57,
-          11),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          57,
+          11,
+        ),
+      ],
+    );
 
     var node = findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''

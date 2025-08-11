@@ -16,18 +16,25 @@ main() {
 @reflectiveTest
 class ExtensionTypeDeclaresMemberOfObjectTest extends PubPackageResolutionTest {
   test_instance_differentKind() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int it) {
   int get hashCode => 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 37, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          37,
+          8,
+        ),
+      ],
+    );
   }
 
   test_instance_sameKind() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int it) {
   bool operator==(Object _) => false;
   int get hashCode => 0;
@@ -35,17 +42,34 @@ extension type E(int it) {
   dynamic get runtimeType => null;
   dynamic noSuchMethod(_) => null;
 }
-''', [
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 42, 2),
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 75, 8),
-      error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 99, 8),
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 131,
-          11),
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 162,
-          12),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          42,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          75,
+          8,
+        ),
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          99,
+          8,
+        ),
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          131,
+          11,
+        ),
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          162,
+          12,
+        ),
+      ],
+    );
   }
 }

@@ -16,9 +16,15 @@ void main() {
 }
 
 void test(
-    String template, Map<String, dynamic>? arguments, String expectedResult) {
-  expect(expectedResult, applyArgumentsToTemplate(template, arguments!),
-      'Unexpected result for replacing $arguments in "$template"');
+  String template,
+  Map<String, dynamic>? arguments,
+  String expectedResult,
+) {
+  expect(
+    expectedResult,
+    applyArgumentsToTemplate(template, arguments!),
+    'Unexpected result for replacing $arguments in "$template"',
+  );
 }
 
 void expect(expected, actual, String message) {

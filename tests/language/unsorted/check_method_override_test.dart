@@ -9,13 +9,13 @@ class A {
 
 class C extends A {
   f() {}
-//^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'C.f' has fewer positional arguments than those of overridden method 'A.f'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] The method 'C.f' has fewer positional arguments than those of overridden method 'A.f'.
   foo(var a, [x]) {}
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'C.foo' has fewer positional arguments than those of overridden method 'A.foo'.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] The method 'C.foo' has fewer positional arguments than those of overridden method 'A.foo'.
 }
 
 main() {

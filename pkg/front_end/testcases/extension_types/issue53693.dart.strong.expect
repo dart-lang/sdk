@@ -12,7 +12,7 @@ static extension-type-member method MetadataIndex|constructor#(core::Map<core::S
   lowered final self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */ #this = map;
   return #this;
 }
-static extension-type-member method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
+static extension-type-member synthetic method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
   return self::MetadataIndex|constructor#(map);
 static extension-type-member method MetadataIndex|get#key(lowered final self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */ #this) → core::Map<core::String, dynamic>
   return (#this as{Unchecked} core::Map<core::String, dynamic>).{core::Map::[]}("key"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::Map<core::String, dynamic>;

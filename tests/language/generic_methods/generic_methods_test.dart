@@ -36,9 +36,8 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   BinaryTreeNode<K, V> insert(K key, V value) {
     int c = key.compareTo(_key);
     if (c == 0) return this;
-    var _insert =
-        (BinaryTreeNode<K, V>? node, K key, V value) =>
-            insertOpt<K, V>(node, key, value);
+    var _insert = (BinaryTreeNode<K, V>? node, K key, V value) =>
+        insertOpt<K, V>(node, key, value);
     BinaryTreeNode<K, V>? left = _left;
     BinaryTreeNode<K, V>? right = _right;
     if (c < 0) {
@@ -77,9 +76,8 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   }
 
   S foldPre<S>(S init, S f(V t, S s)) {
-    var _fold =
-        (BinaryTreeNode<K, V>? t, S s, S f(V t, S s)) =>
-            foldPreOpt<K, V, S>(t, s, f);
+    var _fold = (BinaryTreeNode<K, V>? t, S s, S f(V t, S s)) =>
+        foldPreOpt<K, V, S>(t, s, f);
     S s = init;
     s = f(_value, s);
     s = _fold(_left, s, f);

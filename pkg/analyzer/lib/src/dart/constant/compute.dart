@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
+    as graph
     show DependencyWalker, Node;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -67,7 +68,8 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
     for (var node in scc) {
       var constant = node.constant;
       if (constant is ConstructorElementImpl) {
-        constant.isCycleFree = false;
+        // TODO(scheglov): move the flag to the element
+        constant.firstFragment.isCycleFree = false;
       }
       _getEvaluationEngine(node).generateCycleError(constantsInCycle, constant);
     }
@@ -88,9 +90,6 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   }
 
   _ConstantNode _getNode(ConstantEvaluationTarget constant) {
-    return nodeMap.putIfAbsent(
-      constant,
-      () => _ConstantNode(this, constant),
-    );
+    return nodeMap.putIfAbsent(constant, () => _ConstantNode(this, constant));
   }
 }

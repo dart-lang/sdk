@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class ConstConstructorWithMixinWithFieldTest extends PubPackageResolutionTest {
   test_class_instance_abstract() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   abstract int a;
 }
@@ -26,10 +27,15 @@ class B with A {
   int a;
   const B(this.a);
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 77, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          77,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_instance_abstract_final() async {
@@ -47,7 +53,8 @@ class B with A {
   }
 
   test_class_instance_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   final a = 0;
 }
@@ -55,10 +62,15 @@ mixin A {
 class B extends Object with A {
   const B();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 68, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          68,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_instance_getter() async {
@@ -86,7 +98,8 @@ class B extends Object with A {
   }
 
   test_class_instanceField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   var a;
 }
@@ -94,14 +107,20 @@ mixin A {
 class B extends Object with A {
   const B();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          62,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_multipleInstanceFields() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   var a;
   var b;
@@ -110,10 +129,15 @@ mixin A {
 class B extends Object with A {
   const B();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS, 71, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
+          71,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_noFields() async {
@@ -139,7 +163,8 @@ class X extends Object with M {
   }
 
   test_mixin_instance() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   var a;
 }
@@ -147,14 +172,20 @@ mixin M {
 class X extends Object with M {
   const X();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          62,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_instance_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   final a = 0;
 }
@@ -162,10 +193,15 @@ mixin M {
 class X extends Object with M {
   const X();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 68, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+          68,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_noFields() async {

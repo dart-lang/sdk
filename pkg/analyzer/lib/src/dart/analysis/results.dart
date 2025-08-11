@@ -7,8 +7,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -17,17 +16,22 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// This returns the offset used for finding the corresponding AST node.
 ///
-/// If the fragment is named, the [Fragment.nameOffset2] is used. If the
-/// fragment is a a [ConstructorFragment] for an unnamed constructor, the
-/// [ConstructorFragment.typeNameOffset] is used.
+/// - If the fragment is named, the [Fragment.nameOffset2] is used.
+/// - If the fragment is a a [ConstructorFragment] for an unnamed constructor,
+/// the [ConstructorFragment.typeNameOffset] is used.
+/// - If the fragment is an unnamed [ExtensionFragment], the
+/// [ExtensionFragment.offset] is used.
 int? _getFragmentNameOffset(Fragment fragment) {
   var nameOffset = fragment.nameOffset2;
   if (nameOffset == null) {
     if (fragment is ConstructorFragment) {
       nameOffset = fragment.typeNameOffset;
+    } else if (fragment is ExtensionFragment) {
+      nameOffset = fragment.offset;
     }
   }
   return nameOffset;
@@ -37,9 +41,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl({
-    required this.session,
-  });
+  AnalysisResultImpl({required this.session});
 }
 
 /// A visitor which locates the [AstNode] which declares [element].
@@ -98,7 +100,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       }
     } else if (fragment is ExtensionFragment) {
       if (node is ExtensionDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.name ?? node.extensionKeyword)) {
           result = node;
         }
       }
@@ -186,21 +188,16 @@ class ElementDeclarationResultImpl
   final ResolvedUnitResult? resolvedUnit;
 
   ElementDeclarationResultImpl(
-      this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
-
-  @Deprecated('Use fragment instead')
-  @override
-  Element get element {
-    if (fragment case Element element) {
-      return element;
-    }
-    throw UnsupportedError('${fragment.runtimeType}');
-  }
+    this.fragment,
+    this.node,
+    this.parsedUnit,
+    this.resolvedUnit,
+  );
 }
 
 class ErrorsResultImpl implements ErrorsResult {
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> diagnostics;
 
   @override
   final bool isLibrary;
@@ -234,9 +231,12 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.lineInfo,
     required this.isLibrary,
     required this.isPart,
-    required this.errors,
+    required this.diagnostics,
     required this.analysisOptions,
   });
+
+  @override
+  List<Diagnostic> get errors => diagnostics;
 
   @override
   String get path => file.path;
@@ -257,13 +257,11 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
   final bool isPart;
 
-  FileResultImpl({
-    required super.session,
-    required this.fileState,
-  })  : content = fileState.content,
-        lineInfo = fileState.lineInfo,
-        isLibrary = fileState.kind is LibraryFileKind,
-        isPart = fileState.kind is PartFileKind;
+  FileResultImpl({required super.session, required this.fileState})
+    : content = fileState.content,
+      lineInfo = fileState.lineInfo,
+      isLibrary = fileState.kind is LibraryFileKind,
+      isPart = fileState.kind is PartFileKind;
 
   @override
   AnalysisOptions get analysisOptions => fileState.analysisOptions;
@@ -280,12 +278,9 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
 class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final LibraryElementImpl element;
+  final LibraryElementImpl element2;
 
-  LibraryElementResultImpl(this.element);
-
-  @override
-  LibraryElementImpl get element2 => element;
+  LibraryElementResultImpl(this.element2);
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -293,19 +288,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl({
-    required super.session,
-    required this.units,
-  });
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
-    if (element case Fragment fragment) {
-      return getFragmentDeclaration(fragment);
-    }
-    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
-  }
+  ParsedLibraryResultImpl({required super.session, required this.units});
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -325,8 +308,10 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = fragment.element.displayName;
-        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
-            'not defined in this library.');
+        throw ArgumentError(
+          'Element (${fragment.runtimeType}) $elementStr is '
+          'not defined in this library.',
+        );
       },
     );
 
@@ -339,7 +324,11 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(
-        fragment, declaration, unitResult, null);
+      fragment,
+      declaration,
+      unitResult,
+      null,
+    );
   }
 }
 
@@ -348,14 +337,17 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   final CompilationUnit unit;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> diagnostics;
 
   ParsedUnitResultImpl({
     required super.session,
     required super.fileState,
     required this.unit,
-    required this.errors,
+    required this.diagnostics,
   });
+
+  @override
+  List<Diagnostic> get errors => diagnostics;
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -363,7 +355,7 @@ class ParseStringResultImpl implements ParseStringResult {
   final String content;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   @override
   final CompilationUnit unit;
@@ -432,21 +424,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     required this.units,
   });
 
-  @Deprecated('Use element2 instead')
-  @override
-  LibraryElement get element => element2;
-
   @override
   TypeProviderImpl get typeProvider => element2.typeProvider;
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
-    if (element case Fragment fragment) {
-      return getFragmentDeclaration(fragment);
-    }
-    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
-  }
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -465,9 +444,13 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = fragment.element.displayName;
-        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
-            'not defined in this library.');
+        var elementStr = fragment.element.displayName.ifNotEmptyOrElse(
+          fragment.element.displayString(),
+        );
+        throw ArgumentError(
+          'Element (${fragment.runtimeType}) $elementStr is '
+          'not defined in this library.',
+        );
       },
     );
 
@@ -480,7 +463,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(
-        fragment, declaration, null, unitResult);
+      fragment,
+      declaration,
+      null,
+      unitResult,
+    );
   }
 
   @override
@@ -500,23 +487,20 @@ class ResolvedUnitResultImpl extends FileResultImpl
   final CompilationUnitImpl unit;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> diagnostics;
 
   ResolvedUnitResultImpl({
     required super.session,
     required super.fileState,
     required this.unit,
-    required this.errors,
+    required this.diagnostics,
   });
 
   @override
-  bool get exists => fileState.exists;
+  List<Diagnostic> get errors => diagnostics;
 
-  @Deprecated('Use libraryElement2 instead')
   @override
-  LibraryElementImpl get libraryElement {
-    return libraryElement2;
-  }
+  bool get exists => fileState.exists;
 
   @override
   LibraryElementImpl get libraryElement2 {
@@ -524,7 +508,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
-  CompilationUnitElementImpl get libraryFragment => unit.declaredFragment!;
+  LibraryFragmentImpl get libraryFragment => unit.declaredFragment!;
 
   @override
   TypeProviderImpl get typeProvider => libraryElement2.typeProvider;
@@ -536,14 +520,11 @@ class ResolvedUnitResultImpl extends FileResultImpl
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final CompilationUnitElementImpl element;
+  final LibraryFragmentImpl fragment;
 
   UnitElementResultImpl({
     required super.session,
     required super.fileState,
-    required this.element,
+    required this.fragment,
   });
-
-  @override
-  CompilationUnitElementImpl get fragment => element;
 }

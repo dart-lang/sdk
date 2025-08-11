@@ -14,9 +14,12 @@ typedef GG = FF Function();
 @pragma('weak-tearoff-reference')
 GG? weakRef(GG? x) => x;
 
-FF foo1() => ({int x = 100, int y = 10}) => 1000 + x + y;
-FF foo2() => ({int x = 200, int y = 20}) => 2000 + x + y;
-FF foo3() => ({int x = 300, int y = 30}) => 3000 + x + y;
+FF foo1() =>
+    ({int x = 100, int y = 10}) => 1000 + x + y;
+FF foo2() =>
+    ({int x = 200, int y = 20}) => 2000 + x + y;
+FF foo3() =>
+    ({int x = 300, int y = 30}) => 3000 + x + y;
 
 main() {
   print(foo1()());

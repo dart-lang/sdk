@@ -87,10 +87,10 @@ main() {
     dynamic object = {
       'a': [
         1,
-        [2, 3]
+        [2, 3],
       ],
       'b': {'c': 3, 'd': new Foo(42)},
-      'e': null
+      'e': null,
     };
     var jsObject = js_util.jsify(object);
     expect(js_util.getProperty(jsObject, 'a')[0], equals(object['a'][0]));

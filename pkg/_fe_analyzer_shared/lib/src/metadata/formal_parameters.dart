@@ -23,8 +23,13 @@ class FormalParameter {
   final bool isRequired;
 
   FormalParameter(
-      this.metadata, this.typeAnnotation, this.name, this.defaultValue,
-      {required this.isNamed, required this.isRequired});
+    this.metadata,
+    this.typeAnnotation,
+    this.name,
+    this.defaultValue, {
+    required this.isNamed,
+    required this.isRequired,
+  });
 
   /// Returns the [FormalParameter] corresponding to this [FormalParameter] in
   /// which all [UnresolvedIdentifier]s have been resolved within their scope.
@@ -39,12 +44,13 @@ class FormalParameter {
             resolvedDefaultValue == null
         ? null
         : new FormalParameter(
-            resolvedMetadata ?? metadata,
-            resolvedTypeAnnotation ?? typeAnnotation,
-            name,
-            resolvedDefaultValue ?? defaultValue,
-            isNamed: isNamed,
-            isRequired: isRequired);
+          resolvedMetadata ?? metadata,
+          resolvedTypeAnnotation ?? typeAnnotation,
+          name,
+          resolvedDefaultValue ?? defaultValue,
+          isNamed: isNamed,
+          isRequired: isRequired,
+        );
   }
 
   @override

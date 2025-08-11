@@ -25,9 +25,12 @@ applyFun(f) {
 }
 
 closure2() {
-  Expect.equals(499, applyFun(() {
-    return 499;
-  }));
+  Expect.equals(
+    499,
+    applyFun(() {
+      return 499;
+    }),
+  );
 }
 
 closure3() {
@@ -42,9 +45,12 @@ applyFun2(f) {
 }
 
 closure4() {
-  Expect.equals(499, applyFun2((x, y) {
-    return x + y;
-  }));
+  Expect.equals(
+    499,
+    applyFun2((x, y) {
+      return x + y;
+    }),
+  );
 }
 
 main() {

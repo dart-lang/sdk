@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,10 +25,7 @@ class BuildSdkSummaryTest with ResourceProviderMixin {
   Folder get sdkRoot => getFolder('/sdk');
 
   test_embedderYamlPath() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     // The idea of the embedder is probably to replace the SDK.
     // But the current implementation only adds new libraries.
@@ -87,18 +84,15 @@ embedded_libs:
     var dartCore = await analysisSession.getLibrary('dart:core');
     var dartMath = await analysisSession.getLibrary('dart:math');
     var dartUi = await analysisSession.getLibrary('dart:ui');
-    expect(dartAsync.getClass2('Stream'), isNotNull);
-    expect(dartCore.getClass2('String'), isNotNull);
-    expect(dartMath.getClass2('Random'), isNotNull);
-    expect(dartUi.getClass2('FontStyle'), isNotNull);
-    expect(dartUi.getClass2('Offset'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
+    expect(dartUi.getClass('FontStyle'), isNotNull);
+    expect(dartUi.getClass('Offset'), isNotNull);
   }
 
   test_it() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
@@ -133,14 +127,14 @@ embedded_libs:
     var dartAsync = await analysisSession.getLibrary('dart:async');
     var dartCore = await analysisSession.getLibrary('dart:core');
     var dartMath = await analysisSession.getLibrary('dart:math');
-    expect(dartAsync.getClass2('Stream'), isNotNull);
-    expect(dartCore.getClass2('String'), isNotNull);
-    expect(dartMath.getClass2('Random'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
   }
 }
 
 extension on AnalysisSession {
-  Future<LibraryElement2> getLibrary(String uriStr) async {
+  Future<LibraryElement> getLibrary(String uriStr) async {
     var libraryResult = await getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element2;

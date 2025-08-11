@@ -17,53 +17,58 @@ main() {
 @reflectiveTest
 class InvalidConstructorNameTest extends PubPackageResolutionTest {
   test_class_notEnclosingClassName_defined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   B() : super();
 }
 class B {}
-''', [
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1)],
+    );
   }
 
   test_class_notEnclosingClassName_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B {
   A.foo();
   B.foo();
 }
-''', [
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1)],
+    );
   }
 
   test_class_notEnclosingClassName_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B {
   A.new();
   B();
 }
-''', [
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 24, 1),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 24, 1)],
+    );
   }
 
   test_class_notEnclosingClassName_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   B() : super();
 }
-''', [
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1)],
+    );
   }
 
   test_enum_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 enum E {
@@ -71,9 +76,11 @@ enum E {
   const A.foo();
   const E.foo();
 }
-''', [
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 40, 1),
-      error(WarningCode.UNUSED_ELEMENT, 59, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 40, 1),
+        error(WarningCode.UNUSED_ELEMENT, 59, 3),
+      ],
+    );
   }
 }

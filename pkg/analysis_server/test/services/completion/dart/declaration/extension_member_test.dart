@@ -479,6 +479,33 @@ suggestions
 ''');
   }
 
+  Future<void> test_propertyAccess_excludedGetterSuggestion() async {
+    newFile('$testPackageLibPath/other.dart', '''
+extension E on int {
+  bool a0(int b0, int c0) => false;
+  int get b0 => 0;
+  int get b1 => 0;
+  set c0(int d) {}
+}
+''');
+    await computeSuggestions('''
+void f(int p) {
+  var int(: b1, : b^) = p;
+}
+
+extension E on int {
+  int get b1 => 0;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  b0
+    kind: getter
+''');
+  }
+
   Future<void> test_propertyAccess_matches_ignoreNullability() async {
     await computeSuggestions('''
 extension E on int {
@@ -516,7 +543,7 @@ suggestions
   Future<void> test_propertyAccess_matches_partial() async {
     await computeSuggestions('''
 extension E on int {
-  bool a0(int b0, int c0) {}
+  bool a0(int b0, int c0) => false;
   int get b0 => 0;
   set c0(int d) {}
 }
@@ -531,6 +558,49 @@ replacement
 suggestions
   a0
     kind: methodInvocation
+''');
+  }
+
+  Future<void> test_propertyAccess_noMethodSuggestion() async {
+    newFile('$testPackageLibPath/other.dart', '''
+extension E on int {
+  bool a0(int b0, int c0) => false;
+  int get b0 => 0;
+  set c0(int d) {}
+}
+''');
+    await computeSuggestions('''
+void f() {
+  g().^ = 0;
+}
+int g() => 3;
+''');
+    assertResponse(r'''
+suggestions
+  c0
+    kind: setter
+''');
+  }
+
+  Future<void> test_propertyAccess_noSetterSuggestion() async {
+    newFile('$testPackageLibPath/other.dart', '''
+extension E on int {
+  bool a0(int b0, int c0) => false;
+  int get b0 => 0;
+  set c0(int d) {}
+}
+''');
+    await computeSuggestions('''
+void f(int p) {
+  var int(: ^) = p;
+}
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: method
+  b0
+    kind: getter
 ''');
   }
 

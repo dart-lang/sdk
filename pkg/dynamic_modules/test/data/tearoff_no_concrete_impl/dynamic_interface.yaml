@@ -4,24 +4,11 @@
 extendable:
   - library: 'shared/shared.dart'
     class: ['C']
-  - library: 'dart:core'
-    class: 'Object'
 
 can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'C'
     member: 'foo'
 
-# TODO(sigmund): consider implying this for all extendable types.
 callable:
-    # TODO(sigmund): This should be included by default
   - library: 'dart:core'
-    class: 'Object'
-  - library: 'dart:core'
-    class: 'pragma'
-    member: '_'
-  - library: 'dart:core'
-    member: 'override'
-  - library: 'dart:core'
-    member: 'print'
-

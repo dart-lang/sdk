@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,14 +18,12 @@ class AvoidImplementingValueTypes extends LintRule {
     : super(name: LintNames.avoid_implementing_value_types, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_implementing_value_types;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_implementing_value_types;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -32,9 +32,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   static var equalsName = Name(null, '==');
 
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -46,19 +45,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
-          _overridesEquals(interfaceType.element3)) {
-        rule.reportLint(interface);
+          _overridesEquals(interfaceType.element)) {
+        rule.reportAtNode(interface);
       }
     }
   }
 
-  bool _overridesEquals(InterfaceElement2 element) {
-    var member = inheritanceManager.getMember4(
-      element,
-      equalsName,
-      concrete: true,
-    );
-    var definingLibrary = member?.enclosingElement2?.library2;
+  bool _overridesEquals(InterfaceElement element) {
+    var member = element.getInterfaceMember(equalsName);
+    var definingLibrary = member?.enclosingElement?.library;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }
 }

@@ -6,13 +6,17 @@ main() {
   AddIssueSourceMember2 m = new AddIssueSourceMember2();
 }
 
-abstract class RepoListEditorState2<M extends RepoListMember2<M>,
-        S extends RepoListEditorState2<M, S>>
+abstract class RepoListEditorState2<
+  M extends RepoListMember2<M>,
+  S extends RepoListEditorState2<M, S>
+>
     extends AbstractListEditorState2<M, S> {}
 
 abstract class AbstractListEditorState2<
-    M extends AbstractListMember2<Object, M>,
-    S extends AbstractListEditorState2<M, S>> extends ComponentState2<S> {}
+  M extends AbstractListMember2<Object, M>,
+  S extends AbstractListEditorState2<M, S>
+>
+    extends ComponentState2<S> {}
 
 class AddIssueSourceMember2 extends RepoListMember2<AddIssueSourceMember2> {}
 

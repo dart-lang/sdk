@@ -20,6 +20,7 @@ const int _BACKSLASH = 0x5C;
 const int _RIGHT_BRACKET = 0x5D;
 const int _LOWER_CASE_A = 0x61;
 const int _LOWER_CASE_F = 0x66;
+const int _LOWER_CASE_V = 0x76;
 const int _LOWER_CASE_Z = 0x7A;
 
 const String _hexDigits = "0123456789ABCDEF";
@@ -909,6 +910,19 @@ abstract interface class Uri {
     // query         = *( pchar / "/" / "?" )
     //
     // fragment      = *( pchar / "/" / "?" )
+    // Pv6address    =                            6( h16 ":" ) ls32
+    //               /                       "::" 5( h16 ":" ) ls32
+    //               / [               h16 ] "::" 4( h16 ":" ) ls32
+    //               / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+    //               / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+    //               / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+    //               / [ *4( h16 ":" ) h16 ] "::"              ls32
+    //               / [ *5( h16 ":" ) h16 ] "::"              h16
+    //               / [ *6( h16 ":" ) h16 ] "::"
+    // ls32          = ( h16 ":" h16 ) / IPv4address
+    //               ; least-significant 32 bits of address
+    // h16           = 1*4HEXDIG
+    //               ; 16 bits of address represented in hexadecimal
     end ??= uri.length;
 
     // Special case data:URIs. Ignore case when testing.
@@ -1380,10 +1394,8 @@ abstract interface class Uri {
       } else if (index != 0) {
         var key = element.substring(0, index);
         var value = element.substring(index + 1);
-        map[decodeQueryComponent(
-          key,
-          encoding: encoding,
-        )] = decodeQueryComponent(value, encoding: encoding);
+        map[decodeQueryComponent(key, encoding: encoding)] =
+            decodeQueryComponent(value, encoding: encoding);
       }
       return map;
     });
@@ -1439,6 +1451,102 @@ abstract interface class Uri {
     return result;
   }
 
+  /// Checks if a (sub-)string is a valid IPv6 or IPvFuture address.
+  ///
+  /// See [parseIPv6Address] for IPv6 format.
+  ///
+  /// The format of IPvFuture is:
+  /// * 'v' \<hexDigit\>+ '.' (\<unreserved\> | \<sub-delims\> | ':')+
+  ///
+  /// Since 'v' cannot start an IPv6 address, the input is either one
+  /// or the other.
+  /// No attempt is made to interpret an IPvFuture address, not even
+  /// if the hex digit is `4` or `6`.
+  ///
+  /// Throws [FormatException] if the input is not a valid IPv6,
+  /// IPv6+zone or IPvFuture address.
+  ///
+  /// Returns whether a valid input was an IPv6 address,
+  /// rather than an IPvFuture address.
+  static bool _validateIPvAddress(String host, int start, int end) {
+    assert(0 <= start && start <= end && end <= host.length);
+    if (start == end) throw FormatException("Empty IP address", host, start);
+    var firstChar = host.codeUnitAt(start);
+    if (firstChar == _LOWER_CASE_V) {
+      var error = _validateIPvFutureAddress(host, start, end);
+      if (error != null) throw error;
+      return false;
+    }
+    // TODO: Have a validator that is not also parsing into bytes.
+    parseIPv6Address(host, start, end);
+    return true;
+  }
+
+  /// Validate that [start]..[end] of [host] is IPvFuture version and address.
+  ///
+  /// The [start] is at the leading 'v'.
+  ///
+  /// Returns a [FormatException] if input is not valid, and `null` if it
+  /// is valid. The caller can then throw the exception.
+  static FormatException? _validateIPvFutureAddress(
+    String host,
+    int start,
+    int end,
+  ) {
+    assert(host.startsWith('v', start));
+    start++;
+    var cursor = start;
+    var char = 0;
+    while (true) {
+      if (cursor < end) {
+        char = host.codeUnitAt(cursor++);
+        // Continue if ASCII digit.
+        if (char ^ 0x30 <= 9) continue;
+        // Continue if a-f, A-F.
+        var ucChar = char | 0x20;
+        if (ucChar >= _LOWER_CASE_A && ucChar <= _LOWER_CASE_F) continue;
+        if (char == _DOT) {
+          // Done, check if any hex digits were seen.
+          if (cursor - 1 == start) {
+            return FormatException(
+              "Missing hex-digit in IPvFuture address",
+              host,
+              cursor,
+            );
+          }
+          break;
+        }
+        return FormatException("Unexpected character", host, cursor - 1);
+      }
+      // Found non-`.` chracter after zero or more hex digits.
+      if (cursor - 1 == start) {
+        return FormatException(
+          "Missing hex-digit in IPvFuture address",
+          host,
+          cursor,
+        );
+      }
+      return FormatException("Missing '.' in IPvFuture address", host, cursor);
+    }
+    if (cursor == end) {
+      return FormatException(
+        "Missing address in IPvFuture address, host, cursor",
+      );
+    }
+    while (true) {
+      var char = host.codeUnitAt(cursor);
+      if (_charTables.codeUnitAt(char) & _ipvFutureAddressCharsMask != 0) {
+        if (++cursor < end) continue;
+        return null;
+      }
+      return FormatException(
+        "Invalid IPvFuture address character",
+        host,
+        cursor,
+      );
+    }
+  }
+
   /// Parses the [host] as an IP version 6 (IPv6) address.
   ///
   /// Returns the address as a list of 16 bytes in network byte order
@@ -1456,6 +1564,36 @@ abstract interface class Uri {
   ///  * `3ffe:2a00:100:7031::1`
   ///  * `::FFFF:129.144.52.38`
   ///  * `2010:836B:4179::836B:4179`
+  ///
+  /// The grammar for IPv6 addresses are:
+  /// ```
+  /// IPv6address ::=                           (h16 ":"){6} ls32
+  ///               |                      "::" (h16 ":"){5} ls32
+  ///               | (               h16) "::" (h16 ":"){4} ls32
+  ///               | ((h16 ":"){0,1} h16) "::" (h16 ":"){3} ls32
+  ///               | ((h16 ":"){0,2} h16) "::" (h16 ":"){2} ls32
+  ///               | ((h16 ":"){0,3} h16) "::"  h16 ":"     ls32
+  ///               | ((h16 ":"){0,4} h16) "::"              ls32
+  ///               | ((h16 ":"){0,5} h16) "::"              h16
+  ///               | ((h16 ":"){0,6} h16) "::"
+  /// ls32        ::= (h16 ":" h16) | IPv4address
+  ///                 ;; least-significant 32 bits of address
+  /// h16         ::= HEXDIG{1,4}
+  ///                 ;; 16 bits of address represented in hexadecimal
+  /// ```
+  /// That is
+  /// - eight 1-to-4-digit hexadecimal numerals separated by `:`, or
+  /// - one to seven such `:`-separated numerals, with either one pair is
+  ///   separated by `::`, or a leading or trailing `::`.
+  /// - either of the above with a trailing two `:`-separated numerals
+  ///   replaced by an IPv4 addresss.
+  ///
+  /// An IPv6 address with a zone ID (from RFC 6874) is an IPv6 address followed
+  /// by `%25` (an escaped `%`) and valid zone characters.
+  /// ```
+  /// IPv6addrz ::= IPv6address "%25" ZoneID
+  /// ZoneID    ::= (unreserved | pct-encoded)+
+  /// ```.
   static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
     end ??= host.length;
     // An IPv6 address consists of exactly 8 parts of 1-4 hex digits, separated
@@ -1782,7 +1920,7 @@ final class _Uri implements _PlatformUri {
   String get host {
     String? host = _host;
     if (host == null) return "";
-    if (host.startsWith('[')) {
+    if (host.startsWith('[') && !host.startsWith('v', 1)) {
       return host.substring(1, host.length - 1);
     }
     return host;
@@ -1839,7 +1977,7 @@ final class _Uri implements _PlatformUri {
       var hostEnd = hostStart;
       if (hostStart < authority.length &&
           authority.codeUnitAt(hostStart) == _LEFT_BRACKET) {
-        // IPv6 host.
+        // IPv6 or IPvFuture host.
         int escapeForZoneID = -1;
         for (; hostEnd < authority.length; hostEnd++) {
           int char = authority.codeUnitAt(hostEnd);
@@ -1859,7 +1997,7 @@ final class _Uri implements _PlatformUri {
             hostStart,
           );
         }
-        Uri.parseIPv6Address(
+        bool isIPv6 = Uri._validateIPvAddress(
           authority,
           hostStart + 1,
           (escapeForZoneID < 0) ? hostEnd : escapeForZoneID,
@@ -2012,8 +2150,9 @@ final class _Uri implements _PlatformUri {
       if (path.startsWith(sep, 1)) {
         // Absolute file:// URI with host.
         int pathStart = path.indexOf(r'\', 2);
-        String hostPart =
-            (pathStart < 0) ? path.substring(2) : path.substring(2, pathStart);
+        String hostPart = (pathStart < 0)
+            ? path.substring(2)
+            : path.substring(2, pathStart);
         String pathPart = (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
@@ -2135,8 +2274,8 @@ final class _Uri implements _PlatformUri {
     return (pathToSplit.isEmpty)
         ? const <String>[]
         : List<String>.unmodifiable(
-          pathToSplit.split("/").map(Uri.decodeComponent),
-        );
+            pathToSplit.split("/").map(Uri.decodeComponent),
+          );
   }
 
   static Map<String, List<String>> _computeQueryParametersAll(String? query) {
@@ -2161,45 +2300,56 @@ final class _Uri implements _PlatformUri {
   /// Check and normalize a host name.
   ///
   /// If the host name starts and ends with '[' and ']', it is considered an
-  /// IPv6 address. If [strictIPv6] is false, the address is also considered
+  /// IPv6 address (with or without a zone) or an IPvFuture address.
+  /// If [strictIPv6] is false, the address is also considered
   /// an IPv6 address if it contains any ':' character.
   ///
-  /// If it is not an IPv6 address, it is case- and escape-normalized.
+  /// If it is not an IPv6/IPvFUture address, it is case- and escape-normalized.
   /// This escapes all characters not valid in a reg-name,
   /// and converts all non-escape upper-case letters to lower-case.
   static String? _makeHost(String? host, int start, int end, bool strictIPv6) {
     // TODO(lrn): Should we normalize IPv6 addresses according to RFC 5952?
     if (host == null) return null;
     if (start == end) return "";
-    // Host is an IPv6 address if it starts with '[' or contains a colon.
+    // Host is an IPv6 or IPvFuture address if it starts with '[',
+    // or an IPv6 address if it contains a colon.
     if (host.codeUnitAt(start) == _LEFT_BRACKET) {
       if (host.codeUnitAt(end - 1) != _RIGHT_BRACKET) {
         _fail(host, start, 'Missing end `]` to match `[` in host');
       }
       String zoneID = "";
-      int index = _checkZoneID(host, start + 1, end - 1);
-      if (index < end - 1) {
-        int zoneIDstart =
-            (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
-        zoneID = _normalizeZoneID(host, zoneIDstart, end - 1, "%25");
+      int index = end - 1;
+      if (host.codeUnitAt(start + 1) != _LOWER_CASE_V) {
+        index = _checkZoneID(host, start + 1, end - 1);
+        if (index < end - 1) {
+          int zoneIDstart = (host.startsWith("25", index + 1))
+              ? index + 3
+              : index + 1;
+          zoneID = _normalizeZoneID(host, zoneIDstart, end - 1, "%25");
+        }
       }
-      Uri.parseIPv6Address(host, start + 1, index);
-      // RFC 5952 requires hex digits to be lower case.
-      return host.substring(start, index).toLowerCase() + zoneID + ']';
+      bool isIPv6 = Uri._validateIPvAddress(host, start + 1, index);
+      var hostChars = host.substring(start + 1, index);
+      // RFC 5952 requires IPv6 hex digits to be lower case.
+      if (isIPv6) hostChars = hostChars.toLowerCase();
+      return '[$hostChars$zoneID]';
     }
     if (!strictIPv6) {
+      // IPv6 addresses allowed without `[...]` brackets.
+      // Used when called from `Uri` constructor.
       // TODO(lrn): skip if too short to be a valid IPv6 address?
       for (int i = start; i < end; i++) {
         if (host.codeUnitAt(i) == _COLON) {
           String zoneID = "";
           int index = _checkZoneID(host, start, end);
           if (index < end) {
-            int zoneIDstart =
-                (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
+            int zoneIDstart = (host.startsWith("25", index + 1))
+                ? index + 3
+                : index + 1;
             zoneID = _normalizeZoneID(host, zoneIDstart, end, "%25");
           }
           Uri.parseIPv6Address(host, start, index);
-          return '[${host.substring(start, index)}' + zoneID + ']';
+          return '[${host.substring(start, index)}$zoneID]';
         }
       }
     }
@@ -4008,8 +4158,7 @@ final class UriData {
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
       byteOr |= byte;
-      if (byte < 128 &&
-          ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
+      if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         buffer.writeCharCode(byte);
       } else {
         buffer.writeCharCode(_PERCENT);
@@ -4029,7 +4178,6 @@ final class UriData {
 
   String toString() =>
       (_separatorIndices[0] == _noScheme) ? "data:$_text" : _text;
-
 }
 
 // --- URI PARSER TABLE --- start --- generated code, do not edit ---
@@ -4097,7 +4245,8 @@ const int _schemeStart = 20;
 /// which maps the range U+0020 .. U+007F into positions 0 .. 95.
 /// All remaining characters are mapped to position 0x1f (`0x7f ^ 0x60`), which
 /// represents the transition for all remaining characters.
-const String _scannerTables = "\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+const String _scannerTables =
+    "\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
     "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE1\xE1"
     "\x01\xE1\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
     "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE3\xE1\xE1\x01\xE1\x01"
@@ -4320,10 +4469,9 @@ final class _SimpleUri implements _PlatformUri {
 
   String get authority =>
       _hostStart > 0 ? _uri.substring(_schemeEnd + 3, _pathStart) : "";
-  String get userInfo =>
-      (_hostStart > _schemeEnd + 3)
-          ? _uri.substring(_schemeEnd + 3, _hostStart - 1)
-          : "";
+  String get userInfo => (_hostStart > _schemeEnd + 3)
+      ? _uri.substring(_schemeEnd + 3, _hostStart - 1)
+      : "";
   String get host =>
       _hostStart > 0 ? _uri.substring(_hostStart, _portStart) : "";
   int get port {
@@ -4334,10 +4482,9 @@ final class _SimpleUri implements _PlatformUri {
   }
 
   String get path => _uri.substring(_pathStart, _queryStart);
-  String get query =>
-      (_queryStart < _fragmentStart)
-          ? _uri.substring(_queryStart + 1, _fragmentStart)
-          : "";
+  String get query => (_queryStart < _fragmentStart)
+      ? _uri.substring(_queryStart + 1, _fragmentStart)
+      : "";
   String get fragment =>
       (_fragmentStart < _uri.length) ? _uri.substring(_fragmentStart + 1) : "";
 
@@ -4897,7 +5044,6 @@ bool _caseInsensitiveEquals(String string1, String string2) =>
     string1.length == string2.length &&
     _caseInsensitiveStartsWith(string1, string2, 0);
 
-
 // --- URI CHARSET TABLE --- start --- generated code, do not edit ---
 // Use tools/generate_uri_parser_tables.dart to generate this code
 // if necessary.
@@ -4927,7 +5073,7 @@ const _userinfoMask = 0x0010;
 // Characters allowed in the reg-name as of RFC 3986.
 // RFC 3986 Appendix A
 // reg-name = *( unreserved / pct-encoded / sub-delims )
-// Same as `_userInfoMask` without the `:`.
+// Same as `_userinfoMask` without the `:`.
 // // [A-Za-z0-9!$%&'()*+,\-.;=_~] (including '%')
 const _regNameMask = 0x0020;
 
@@ -4979,7 +5125,13 @@ const _uricMask = _queryCharMask;
 // [:/?#[]@]
 const _genDelimitersMask = 0x0400;
 
-const String _charTables = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+// Characters valid in an IPvFuture address, RFC 3986 section 3.2.2.
+// 1*( unreserved / sub-delims / ":" )
+// [A-Za-z0-9\-._~]|[!$&'()*+,;=]|:
+const _ipvFutureAddressCharsMask = _userinfoMask;
+
+const String _charTables =
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     "\x00\x00\x00\u03f6\x00\u0404\u03f4\x20\u03f4\u03f6\u01f6\u01f6\u03f6\u03fc"
     "\u01f4\u03ff\u03ff\u0584\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff\u03ff"

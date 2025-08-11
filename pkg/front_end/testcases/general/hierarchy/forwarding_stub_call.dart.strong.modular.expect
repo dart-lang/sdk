@@ -15,7 +15,7 @@ class Class = self::Super<core::int> with self::Mixin {
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
-  forwarding-stub method method(covariant-by-class core::int t) → void
+  forwarding-stub synthetic method method(covariant-by-class core::int t) → void
     return super.{self::Mixin::method}(t);
 }
 class Subclass extends self::Class {

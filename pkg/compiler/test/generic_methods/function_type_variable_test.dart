@@ -55,7 +55,8 @@ main() {
     var env = await TypeEnvironment.create(
       createTypedefs(
         existentialTypeData,
-        additionalData: """
+        additionalData:
+            """
     class C1 {}
     class C2 {}
     class C3<T> {

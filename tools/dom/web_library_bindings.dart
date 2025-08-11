@@ -10,20 +10,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
   'ANGLEInstancedArrays': {
     'drawArraysInstancedANGLE': {'drawArraysInstancedAngle'},
     'drawElementsInstancedANGLE': {'drawElementsInstancedAngle'},
-    'vertexAttribDivisorANGLE': {'vertexAttribDivisorAngle'},
+    'vertexAttribDivisorANGLE': {'vertexAttribDivisorAngle'}
   },
   'ANGLE_instanced_arrays': {
     'drawArraysInstancedANGLE': {'drawArraysInstancedAngle'},
     'drawElementsInstancedANGLE': {'drawElementsInstancedAngle'},
-    'vertexAttribDivisorANGLE': {'vertexAttribDivisorAngle'},
+    'vertexAttribDivisorANGLE': {'vertexAttribDivisorAngle'}
   },
   'AbortPaymentEvent': {
-    'respondWith': {'respondWith'},
+    'respondWith': {'respondWith'}
   },
   'Accelerometer': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'AccessibleNode': {
     'activeDescendant': {'activeDescendant'},
@@ -73,16 +73,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'valueMax': {'valueMax'},
     'valueMin': {'valueMin'},
     'valueNow': {'valueNow'},
-    'valueText': {'valueText'},
+    'valueText': {'valueText'}
   },
   'AccessibleNodeList': {
     'add': {'add'},
     'item': {'item'},
     'length': {'length'},
-    'remove': {'remove'},
+    'remove': {'remove'}
   },
   'AmbientLightSensor': {
-    'illuminance': {'illuminance'},
+    'illuminance': {'illuminance'}
   },
   'AnalyserNode': {
     'fftSize': {'fftSize'},
@@ -93,7 +93,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getFloatTimeDomainData': {'getFloatTimeDomainData'},
     'maxDecibels': {'maxDecibels'},
     'minDecibels': {'minDecibels'},
-    'smoothingTimeConstant': {'smoothingTimeConstant'},
+    'smoothingTimeConstant': {'smoothingTimeConstant'}
   },
   'Animation': {
     'cancel': {'cancel'},
@@ -107,10 +107,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'playbackRate': {'playbackRate'},
     'reverse': {'reverse'},
     'startTime': {'startTime'},
-    'timeline': {'timeline'},
+    'timeline': {'timeline'}
   },
   'AnimationEffectReadOnly': {
-    'timing': {'timing'},
+    'timing': {'timing'}
   },
   'AnimationEffectTiming': {
     'delay': {'delay'},
@@ -120,7 +120,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'endDelay': {'endDelay'},
     'fill': {'fill'},
     'iterationStart': {'iterationStart'},
-    'iterations': {'iterations'},
+    'iterations': {'iterations'}
   },
   'AnimationEffectTimingReadOnly': {
     'delay': {'delay'},
@@ -130,37 +130,37 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'endDelay': {'endDelay'},
     'fill': {'fill'},
     'iterationStart': {'iterationStart'},
-    'iterations': {'iterations'},
+    'iterations': {'iterations'}
   },
   'AnimationEvent': {
     'animationName': {'animationName'},
-    'elapsedTime': {'elapsedTime'},
+    'elapsedTime': {'elapsedTime'}
   },
   'AnimationPlaybackEvent': {
     'currentTime': {'currentTime'},
-    'timelineTime': {'timelineTime'},
+    'timelineTime': {'timelineTime'}
   },
   'AnimationTimeline': {
-    'currentTime': {'currentTime'},
+    'currentTime': {'currentTime'}
   },
   'AnimationWorkletGlobalScope': {
-    'registerAnimator': {'registerAnimator'},
+    'registerAnimator': {'registerAnimator'}
   },
   'ApplicationCache': {
     'abort': {'abort'},
     'status': {'status'},
     'swapCache': {'swapCache'},
-    'update': {'update'},
+    'update': {'update'}
   },
   'ApplicationCacheErrorEvent': {
     'message': {'message'},
     'reason': {'reason'},
     'status': {'status'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'Attr': {
     'name': {'name'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'AudioBuffer': {
     'copyFromChannel': {'copyFromChannel'},
@@ -169,7 +169,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getChannelData': {'getChannelData'},
     'length': {'length'},
     'numberOfChannels': {'numberOfChannels'},
-    'sampleRate': {'sampleRate'},
+    'sampleRate': {'sampleRate'}
   },
   'AudioBufferSourceNode': {
     'buffer': {'buffer'},
@@ -178,16 +178,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'loopEnd': {'loopEnd'},
     'loopStart': {'loopStart'},
     'playbackRate': {'playbackRate'},
-    'start': {'start'},
+    'start': {'start'}
   },
   'AudioContext': {
-    'baseLatency': {'baseLatency'},
+    'baseLatency': {'baseLatency'}
   },
   'AudioDestinationNode': {
-    'maxChannelCount': {'maxChannelCount'},
+    'maxChannelCount': {'maxChannelCount'}
   },
   'AudioGainNode': {
-    'gain': {'gain'},
+    'gain': {'gain'}
   },
   'AudioListener': {
     'forwardX': {'forwardX'},
@@ -200,7 +200,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'setPosition': {'setPosition'},
     'upX': {'upX'},
     'upY': {'upY'},
-    'upZ': {'upZ'},
+    'upZ': {'upZ'}
   },
   'AudioNode': {
     'channelCount': {'channelCount'},
@@ -209,7 +209,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'context': {'context'},
     'disconnect': {'disconnect'},
     'numberOfInputs': {'numberOfInputs'},
-    'numberOfOutputs': {'numberOfOutputs'},
+    'numberOfOutputs': {'numberOfOutputs'}
   },
   'AudioPannerNode': {
     'coneInnerAngle': {'coneInnerAngle'},
@@ -227,7 +227,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'refDistance': {'refDistance'},
     'rolloffFactor': {'rolloffFactor'},
     'setOrientation': {'setOrientation'},
-    'setPosition': {'setPosition'},
+    'setPosition': {'setPosition'}
   },
   'AudioParam': {
     'cancelAndHoldAtTime': {'cancelAndHoldAtTime'},
@@ -240,16 +240,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'setTargetAtTime': {'setTargetAtTime'},
     'setValueAtTime': {'setValueAtTime'},
     'setValueCurveAtTime': {'setValueCurveAtTime'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'AudioProcessingEvent': {
     'inputBuffer': {'inputBuffer'},
     'outputBuffer': {'outputBuffer'},
-    'playbackTime': {'playbackTime'},
+    'playbackTime': {'playbackTime'}
   },
   'AudioScheduledSourceNode': {
     'start': {'start2'},
-    'stop': {'stop'},
+    'stop': {'stop'}
   },
   'AudioTrack': {
     'enabled': {'enabled'},
@@ -257,41 +257,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'kind': {'kind'},
     'label': {'label'},
     'language': {'language'},
-    'sourceBuffer': {'sourceBuffer'},
+    'sourceBuffer': {'sourceBuffer'}
   },
   'AudioTrackList': {
     'getTrackById': {'getTrackById'},
-    'length': {'length'},
+    'length': {'length'}
   },
   'AudioWorkletGlobalScope': {
     'currentTime': {'currentTime'},
     'registerProcessor': {'registerProcessor'},
-    'sampleRate': {'sampleRate'},
+    'sampleRate': {'sampleRate'}
   },
   'AudioWorkletNode': {
-    'parameters': {'parameters'},
+    'parameters': {'parameters'}
   },
   'AuthenticatorAssertionResponse': {
     'authenticatorData': {'authenticatorData'},
-    'signature': {'signature'},
+    'signature': {'signature'}
   },
   'AuthenticatorAttestationResponse': {
-    'attestationObject': {'attestationObject'},
+    'attestationObject': {'attestationObject'}
   },
   'AuthenticatorResponse': {
-    'clientDataJSON': {'clientDataJson'},
+    'clientDataJSON': {'clientDataJson'}
   },
   'BackgroundFetchClickEvent': {
-    'state': {'state'},
+    'state': {'state'}
   },
   'BackgroundFetchEvent': {
-    'id': {'id'},
+    'id': {'id'}
   },
   'BackgroundFetchFailEvent': {
-    'fetches': {'fetches'},
+    'fetches': {'fetches'}
   },
   'BackgroundFetchFetch': {
-    'request': {'request'},
+    'request': {'request'}
   },
   'BackgroundFetchRegistration': {
     'downloadTotal': {'downloadTotal'},
@@ -300,16 +300,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'title': {'title'},
     'totalDownloadSize': {'totalDownloadSize'},
     'uploadTotal': {'uploadTotal'},
-    'uploaded': {'uploaded'},
+    'uploaded': {'uploaded'}
   },
   'BackgroundFetchSettledFetch': {
-    'response': {'response'},
+    'response': {'response'}
   },
   'BackgroundFetchedEvent': {
-    'fetches': {'fetches'},
+    'fetches': {'fetches'}
   },
   'BarProp': {
-    'visible': {'visible'},
+    'visible': {'visible'}
   },
   'BaseAudioContext': {
     'createAnalyser': {'createAnalyser'},
@@ -336,19 +336,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'destination': {'destination'},
     'listener': {'listener'},
     'sampleRate': {'sampleRate'},
-    'state': {'state'},
+    'state': {'state'}
   },
   'BatteryManager': {
     'charging': {'charging'},
     'chargingTime': {'chargingTime'},
     'dischargingTime': {'dischargingTime'},
-    'level': {'level'},
+    'level': {'level'}
   },
   'BeforeInstallPromptEvent': {
-    'platforms': {'platforms'},
+    'platforms': {'platforms'}
   },
   'BeforeUnloadEvent': {
-    'returnValue': {'returnValue'},
+    'returnValue': {'returnValue'}
   },
   'BiquadFilterNode': {
     'Q': {'Q'},
@@ -356,33 +356,33 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'frequency': {'frequency'},
     'gain': {'gain'},
     'getFrequencyResponse': {'getFrequencyResponse'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'Blob': {
     'size': {'size'},
     'slice': {'slice'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'BlobEvent': {
     'data': {'data'},
-    'timecode': {'timecode'},
+    'timecode': {'timecode'}
   },
   'BluetoothRemoteGATTDescriptor': {
     'characteristic': {'characteristic'},
     'uuid': {'uuid'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'Body': {
-    'bodyUsed': {'bodyUsed'},
+    'bodyUsed': {'bodyUsed'}
   },
   'BroadcastChannel': {
     'close': {'close'},
     'name': {'name'},
-    'postMessage': {'postMessage'},
+    'postMessage': {'postMessage'}
   },
   'BudgetState': {
     'budgetAt': {'budgetAt'},
-    'time': {'time'},
+    'time': {'time'}
   },
   'CSS': {
     'Hz': {'Hz'},
@@ -415,7 +415,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'vh': {'vh'},
     'vmax': {'vmax'},
     'vmin': {'vmin'},
-    'vw': {'vw'},
+    'vw': {'vw'}
   },
   'CSS2Properties': {
     'cssFloat': {'cssFloat'},
@@ -424,55 +424,55 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'item': {'item'},
     'length': {'length'},
     'parentRule': {'parentRule'},
-    'removeProperty': {'removeProperty'},
+    'removeProperty': {'removeProperty'}
   },
   'CSSCharsetRule': {
-    'encoding': {'encoding'},
+    'encoding': {'encoding'}
   },
   'CSSConditionRule': {
-    'conditionText': {'conditionText'},
+    'conditionText': {'conditionText'}
   },
   'CSSFontFaceRule': {
-    'style': {'style'},
+    'style': {'style'}
   },
   'CSSGroupingRule': {
     'cssRules': {'cssRules'},
     'deleteRule': {'deleteRule'},
-    'insertRule': {'insertRule'},
+    'insertRule': {'insertRule'}
   },
   'CSSImageValue': {
     'intrinsicHeight': {'intrinsicHeight'},
     'intrinsicRatio': {'intrinsicRatio'},
-    'intrinsicWidth': {'intrinsicWidth'},
+    'intrinsicWidth': {'intrinsicWidth'}
   },
   'CSSImportRule': {
     'href': {'href'},
     'media': {'media'},
-    'styleSheet': {'styleSheet'},
+    'styleSheet': {'styleSheet'}
   },
   'CSSKeyframeRule': {
     'keyText': {'keyText'},
-    'style': {'style'},
+    'style': {'style'}
   },
   'CSSKeyframesRule': {
     'appendRule': {'appendRule'},
     'cssRules': {'cssRules'},
     'deleteRule': {'deleteRule'},
     'findRule': {'findRule'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'CSSKeywordValue': {
-    'value': {'value'},
+    'value': {'value'}
   },
   'CSSMatrixComponent': {
-    'matrix': {'matrix'},
+    'matrix': {'matrix'}
   },
   'CSSMediaRule': {
-    'media': {'media'},
+    'media': {'media'}
   },
   'CSSNamespaceRule': {
     'namespaceURI': {'namespaceUri'},
-    'prefix': {'prefix'},
+    'prefix': {'prefix'}
   },
   'CSSNumericValue': {
     'add': {'add'},
@@ -480,45 +480,45 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'mul': {'mul'},
     'parse': {'parse'},
     'sub': {'sub'},
-    'to': {'to'},
+    'to': {'to'}
   },
   'CSSPageRule': {
     'selectorText': {'selectorText'},
-    'style': {'style'},
+    'style': {'style'}
   },
   'CSSPerspective': {
-    'length': {'length'},
+    'length': {'length'}
   },
   'CSSPositionValue': {
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'CSSResourceValue': {
-    'state': {'state'},
+    'state': {'state'}
   },
   'CSSRotation': {
     'angle': {'angle'},
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'CSSRule': {
     'cssText': {'cssText'},
     'parentRule': {'parentRule'},
     'parentStyleSheet': {'parentStyleSheet'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'CSSRuleList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'CSSScale': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'CSSSkew': {
     'ax': {'ax'},
-    'ay': {'ay'},
+    'ay': {'ay'}
   },
   'CSSStyleDeclaration': {
     'cssFloat': {'cssFloat'},
@@ -527,11 +527,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'item': {'item'},
     'length': {'length'},
     'parentRule': {'parentRule'},
-    'removeProperty': {'removeProperty'},
+    'removeProperty': {'removeProperty'}
   },
   'CSSStyleRule': {
     'selectorText': {'selectorText'},
-    'style': {'style'},
+    'style': {'style'}
   },
   'CSSStyleSheet': {
     'addRule': {'addRule'},
@@ -540,60 +540,60 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertRule': {'insertRule'},
     'ownerRule': {'ownerRule'},
     'removeRule': {'removeRule'},
-    'rules': {'rules'},
+    'rules': {'rules'}
   },
   'CSSStyleValue': {
-    'parse': {'parse'},
+    'parse': {'parse'}
   },
   'CSSTransformComponent': {
-    'is2D': {'is2D'},
+    'is2D': {'is2D'}
   },
   'CSSTransformValue': {
     'componentAtIndex': {'componentAtIndex'},
     'is2D': {'is2D'},
     'length': {'length'},
-    'toMatrix': {'toMatrix'},
+    'toMatrix': {'toMatrix'}
   },
   'CSSTranslation': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'CSSURLImageValue': {
-    'url': {'url'},
+    'url': {'url'}
   },
   'CSSUnitValue': {
     'type': {'type'},
     'unit': {'unit'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'CSSUnparsedValue': {
     'fragmentAtIndex': {'fragmentAtIndex'},
-    'length': {'length'},
+    'length': {'length'}
   },
   'CSSVariableReferenceValue': {
     'fallback': {'fallback'},
-    'variable': {'variable'},
+    'variable': {'variable'}
   },
   'CSSViewportRule': {
-    'style': {'style'},
+    'style': {'style'}
   },
   'CanMakePaymentEvent': {
     'methodData': {'methodData'},
     'modifiers': {'modifiers'},
     'paymentRequestOrigin': {'paymentRequestOrigin'},
     'respondWith': {'respondWith'},
-    'topLevelOrigin': {'topLevelOrigin'},
+    'topLevelOrigin': {'topLevelOrigin'}
   },
   'CanvasCaptureMediaStreamTrack': {
     'canvas': {'canvas'},
-    'requestFrame': {'requestFrame'},
+    'requestFrame': {'requestFrame'}
   },
   'CanvasGradient': {
-    'addColorStop': {'addColorStop'},
+    'addColorStop': {'addColorStop'}
   },
   'CanvasPattern': {
-    'setTransform': {'setTransform'},
+    'setTransform': {'setTransform'}
   },
   'CanvasRenderingContext2D': {
     'arcTo': {'arcTo'},
@@ -652,7 +652,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'textAlign': {'textAlign'},
     'textBaseline': {'textBaseline'},
     'transform': {'transform'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'CharacterData': {
     'after': {'after'},
@@ -665,41 +665,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'nextElementSibling': {'nextElementSibling'},
     'previousElementSibling': {'previousElementSibling'},
     'replaceData': {'replaceData'},
-    'substringData': {'substringData'},
+    'substringData': {'substringData'}
   },
   'Client': {
     'frameType': {'frameType'},
     'id': {'id'},
     'postMessage': {'postMessage'},
     'type': {'type'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'ClientRect': {
     'height': {'height'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'ClientRectList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'ClipboardEvent': {
-    'clipboardData': {'clipboardData'},
+    'clipboardData': {'clipboardData'}
   },
   'CloseEvent': {
     'code': {'code'},
     'reason': {'reason'},
-    'wasClean': {'wasClean'},
+    'wasClean': {'wasClean'}
   },
   'CompositionEvent': {
-    'data': {'data'},
+    'data': {'data'}
   },
   'ConstantSourceNode': {
-    'offset': {'offset'},
+    'offset': {'offset'}
   },
   'ConvolverNode': {
     'buffer': {'buffer'},
-    'normalize': {'normalize'},
+    'normalize': {'normalize'}
   },
   'Coordinates': {
     'accuracy': {'accuracy'},
@@ -708,50 +708,50 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'heading': {'heading'},
     'latitude': {'latitude'},
     'longitude': {'longitude'},
-    'speed': {'speed'},
+    'speed': {'speed'}
   },
   'Credential': {
     'id': {'id'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'CredentialUserData': {
     'iconURL': {'iconUrl'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'Crypto': {
-    'subtle': {'subtle'},
+    'subtle': {'subtle'}
   },
   'CryptoKey': {
     'algorithm': {'algorithm'},
     'extractable': {'extractable'},
     'type': {'type'},
-    'usages': {'usages'},
+    'usages': {'usages'}
   },
   'CustomElementRegistry': {
-    'get': {'get'},
+    'get': {'get'}
   },
   'DOMApplicationCache': {
     'abort': {'abort'},
     'status': {'status'},
     'swapCache': {'swapCache'},
-    'update': {'update'},
+    'update': {'update'}
   },
   'DOMError': {
     'message': {'message'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'DOMException': {
-    'message': {'message'},
+    'message': {'message'}
   },
   'DOMFileSystem': {
     'name': {'name'},
-    'root': {'root'},
+    'root': {'root'}
   },
   'DOMImplementation': {
     'createDocument': {'createDocument'},
     'createDocumentType': {'createDocumentType'},
     'createHTMLDocument': {'createHtmlDocument'},
-    'hasFeature': {'hasFeature'},
+    'hasFeature': {'hasFeature'}
   },
   'DOMMatrix': {
     'a': {'a'},
@@ -787,7 +787,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'setMatrixValue': {'setMatrixValue'},
     'skewXSelf': {'skewXSelf'},
     'skewYSelf': {'skewYSelf'},
-    'translateSelf': {'translateSelf'},
+    'translateSelf': {'translateSelf'}
   },
   'DOMMatrixReadOnly': {
     'a': {'a'},
@@ -828,48 +828,48 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'skewY': {'skewY'},
     'toFloat32Array': {'toFloat32Array'},
     'toFloat64Array': {'toFloat64Array'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'DOMParser': {
-    'parseFromString': {'parseFromString'},
+    'parseFromString': {'parseFromString'}
   },
   'DOMPoint': {
     'w': {'w'},
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'DOMPointReadOnly': {
     'w': {'w'},
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'DOMQuad': {
     'getBounds': {'getBounds'},
     'p1': {'p1'},
     'p2': {'p2'},
     'p3': {'p3'},
-    'p4': {'p4'},
+    'p4': {'p4'}
   },
   'DOMRect': {
     'height': {'height'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'DOMRectList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'DOMRectReadOnly': {
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'DOMStringList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'DOMStringMap': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'DOMTokenList': {
     'add': {'add'},
@@ -880,7 +880,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'replace': {'replace'},
     'supports': {'supports'},
     'toggle': {'toggle'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'DOMWindow': {
     'alert': {'alert'},
@@ -939,7 +939,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stop': {'stop'},
     'styleMedia': {'styleMedia'},
     'toolbar': {'toolbar'},
-    'visualViewport': {'visualViewport'},
+    'visualViewport': {'visualViewport'}
   },
   'DataChannel': {
     'binaryType': {'binaryType'},
@@ -960,8 +960,8 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
       'sendBlob',
       'sendByteBuffer',
       'sendString',
-      'sendTypedData',
-    },
+      'sendTypedData'
+    }
   },
   'DataTransfer': {
     'clearData': {'clearData'},
@@ -972,76 +972,76 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'items': {'items'},
     'setData': {'setData'},
     'setDragImage': {'setDragImage'},
-    'types': {'types'},
+    'types': {'types'}
   },
   'DataTransferItem': {
     'getAsFile': {'getAsFile'},
     'kind': {'kind'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'DataTransferItemList': {
     'add': {'add', 'addData', 'addFile'},
     'clear': {'clear'},
     'item': {'item'},
     'length': {'length'},
-    'remove': {'remove'},
+    'remove': {'remove'}
   },
   'DedicatedWorkerGlobalScope': {
     'close': {'close'},
     'webkitRequestFileSystemSync': {'requestFileSystemSync'},
-    'webkitResolveLocalFileSystemSyncURL': {'resolveLocalFileSystemSyncUrl'},
+    'webkitResolveLocalFileSystemSyncURL': {'resolveLocalFileSystemSyncUrl'}
   },
   'DelayNode': {
-    'delayTime': {'delayTime'},
+    'delayTime': {'delayTime'}
   },
   'DeprecatedStorageInfo': {
     'queryUsageAndQuota': {'queryUsageAndQuota'},
-    'requestQuota': {'requestQuota'},
+    'requestQuota': {'requestQuota'}
   },
   'DeprecatedStorageQuota': {
     'queryUsageAndQuota': {'queryUsageAndQuota'},
-    'requestQuota': {'requestQuota'},
+    'requestQuota': {'requestQuota'}
   },
   'DeprecationReport': {
     'lineNumber': {'lineNumber'},
     'message': {'message'},
-    'sourceFile': {'sourceFile'},
+    'sourceFile': {'sourceFile'}
   },
   'DetectedBarcode': {
     'boundingBox': {'boundingBox'},
     'cornerPoints': {'cornerPoints'},
-    'rawValue': {'rawValue'},
+    'rawValue': {'rawValue'}
   },
   'DetectedFace': {
     'boundingBox': {'boundingBox'},
-    'landmarks': {'landmarks'},
+    'landmarks': {'landmarks'}
   },
   'DetectedText': {
     'boundingBox': {'boundingBox'},
     'cornerPoints': {'cornerPoints'},
-    'rawValue': {'rawValue'},
+    'rawValue': {'rawValue'}
   },
   'DeviceAcceleration': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'DeviceMotionEvent': {
     'acceleration': {'acceleration'},
     'accelerationIncludingGravity': {'accelerationIncludingGravity'},
     'interval': {'interval'},
-    'rotationRate': {'rotationRate'},
+    'rotationRate': {'rotationRate'}
   },
   'DeviceOrientationEvent': {
     'absolute': {'absolute'},
     'alpha': {'alpha'},
     'beta': {'beta'},
-    'gamma': {'gamma'},
+    'gamma': {'gamma'}
   },
   'DeviceRotationRate': {
     'alpha': {'alpha'},
     'beta': {'beta'},
-    'gamma': {'gamma'},
+    'gamma': {'gamma'}
   },
   'Document': {
     'activeElement': {'activeElement'},
@@ -1082,11 +1082,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'rootScroller': {'rootScroller'},
     'scrollingElement': {'scrollingElement'},
     'suborigin': {'suborigin'},
-    'timeline': {'timeline'},
+    'timeline': {'timeline'}
   },
   'DocumentFragment': {
     'getElementById': {'getElementById'},
-    'querySelector': {'querySelector'},
+    'querySelector': {'querySelector'}
   },
   'DocumentOrShadowRoot': {
     'activeElement': {'activeElement'},
@@ -1095,7 +1095,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'fullscreenElement': {'fullscreenElement'},
     'getSelection': {'getSelection'},
     'pointerLockElement': {'pointerLockElement'},
-    'styleSheets': {'styleSheets'},
+    'styleSheets': {'styleSheets'}
   },
   'DragEvent': {
     'altKey': {'altKey'},
@@ -1107,7 +1107,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'metaKey': {'metaKey'},
     'region': {'region'},
     'shiftKey': {'shiftKey'},
-    'toElement': {'toElement'},
+    'toElement': {'toElement'}
   },
   'DynamicsCompressorNode': {
     'attack': {'attack'},
@@ -1115,7 +1115,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'ratio': {'ratio'},
     'reduction': {'reduction'},
     'release': {'release'},
-    'threshold': {'threshold'},
+    'threshold': {'threshold'}
   },
   'EXTDisjointTimerQuery': {
     'beginQueryEXT': {'beginQueryExt'},
@@ -1125,10 +1125,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getQueryEXT': {'getQueryExt'},
     'getQueryObjectEXT': {'getQueryObjectExt'},
     'isQueryEXT': {'isQueryExt'},
-    'queryCounterEXT': {'queryCounterExt'},
+    'queryCounterEXT': {'queryCounterExt'}
   },
   'EXTDisjointTimerQueryWebGL2': {
-    'queryCounterEXT': {'queryCounterExt'},
+    'queryCounterEXT': {'queryCounterExt'}
   },
   'Element': {
     'accessibleNode': {'accessibleNode'},
@@ -1178,7 +1178,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'tabIndex': {'tabIndex'},
     'tagName': {'tagName'},
     'title': {'title'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'Entry': {
     'filesystem': {'filesystem'},
@@ -1186,14 +1186,14 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'isDirectory': {'isDirectory'},
     'isFile': {'isFile'},
     'name': {'name'},
-    'toURL': {'toUrl'},
+    'toURL': {'toUrl'}
   },
   'ErrorEvent': {
     'colno': {'colno'},
     'error': {'error'},
     'filename': {'filename'},
     'lineno': {'lineno'},
-    'message': {'message'},
+    'message': {'message'}
   },
   'Event': {
     'bubbles': {'bubbles'},
@@ -1207,50 +1207,50 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stopImmediatePropagation': {'stopImmediatePropagation'},
     'stopPropagation': {'stopPropagation'},
     'timeStamp': {'timeStamp'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'EventSource': {
     'close': {'close'},
     'readyState': {'readyState'},
     'url': {'url'},
-    'withCredentials': {'withCredentials'},
+    'withCredentials': {'withCredentials'}
   },
   'EventTarget': {
-    'dispatchEvent': {'dispatchEvent'},
+    'dispatchEvent': {'dispatchEvent'}
   },
   'ExtendableEvent': {
-    'waitUntil': {'waitUntil'},
+    'waitUntil': {'waitUntil'}
   },
   'ExtendableMessageEvent': {
     'data': {'data'},
     'lastEventId': {'lastEventId'},
     'origin': {'origin'},
     'ports': {'ports'},
-    'source': {'source'},
+    'source': {'source'}
   },
   'External': {
     'AddSearchProvider': {'AddSearchProvider'},
-    'IsSearchProviderInstalled': {'IsSearchProviderInstalled'},
+    'IsSearchProviderInstalled': {'IsSearchProviderInstalled'}
   },
   'FederatedCredential': {
     'iconURL': {'iconUrl'},
     'name': {'name'},
     'protocol': {'protocol'},
-    'provider': {'provider'},
+    'provider': {'provider'}
   },
   'FetchEvent': {
     'clientId': {'clientId'},
     'isReload': {'isReload'},
     'request': {'request'},
-    'respondWith': {'respondWith'},
+    'respondWith': {'respondWith'}
   },
   'File': {
     'lastModified': {'lastModified'},
     'name': {'name'},
-    'webkitRelativePath': {'relativePath'},
+    'webkitRelativePath': {'relativePath'}
   },
   'FileList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'FileReader': {
     'abort': {'abort'},
@@ -1258,11 +1258,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'readAsArrayBuffer': {'readAsArrayBuffer'},
     'readAsDataURL': {'readAsDataUrl'},
     'readAsText': {'readAsText'},
-    'readyState': {'readyState'},
+    'readyState': {'readyState'}
   },
   'FileSystem': {
     'name': {'name'},
-    'root': {'root'},
+    'root': {'root'}
   },
   'FileSystemEntry': {
     'filesystem': {'filesystem'},
@@ -1270,7 +1270,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'isDirectory': {'isDirectory'},
     'isFile': {'isFile'},
     'name': {'name'},
-    'toURL': {'toUrl'},
+    'toURL': {'toUrl'}
   },
   'FileWriter': {
     'abort': {'abort'},
@@ -1280,18 +1280,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'readyState': {'readyState'},
     'seek': {'seek'},
     'truncate': {'truncate'},
-    'write': {'write'},
+    'write': {'write'}
   },
   'FilterPrimitiveStandardAttributes': {
     'height': {'height'},
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'FitToViewBox': {
     'preserveAspectRatio': {'preserveAspectRatio'},
-    'viewBox': {'viewBox'},
+    'viewBox': {'viewBox'}
   },
   'FontFace': {
     'display': {'display'},
@@ -1302,7 +1302,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'style': {'style'},
     'unicodeRange': {'unicodeRange'},
     'variant': {'variant'},
-    'weight': {'weight'},
+    'weight': {'weight'}
   },
   'FontFaceSet': {
     'add': {'add'},
@@ -1311,18 +1311,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'delete': {'delete'},
     'forEach': {'forEach'},
     'has': {'has'},
-    'status': {'status'},
+    'status': {'status'}
   },
   'FontFaceSetLoadEvent': {
-    'fontfaces': {'fontfaces'},
+    'fontfaces': {'fontfaces'}
   },
   'FontFaceSource': {
-    'fonts': {'fonts'},
+    'fonts': {'fonts'}
   },
   'ForeignFetchEvent': {
     'origin': {'origin'},
     'request': {'request'},
-    'respondWith': {'respondWith'},
+    'respondWith': {'respondWith'}
   },
   'FormData': {
     'append': {'append', 'appendBlob'},
@@ -1330,10 +1330,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'get': {'get'},
     'getAll': {'getAll'},
     'has': {'has'},
-    'set': {'set'},
+    'set': {'set'}
   },
   'GainNode': {
-    'gain': {'gain'},
+    'gain': {'gain'}
   },
   'Gamepad': {
     'axes': {'axes'},
@@ -1345,18 +1345,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'index': {'index'},
     'mapping': {'mapping'},
     'pose': {'pose'},
-    'timestamp': {'timestamp'},
+    'timestamp': {'timestamp'}
   },
   'GamepadButton': {
     'pressed': {'pressed'},
     'touched': {'touched'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'GamepadEvent': {
-    'gamepad': {'gamepad'},
+    'gamepad': {'gamepad'}
   },
   'GamepadList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'GamepadPose': {
     'angularAcceleration': {'angularAcceleration'},
@@ -1366,20 +1366,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'linearAcceleration': {'linearAcceleration'},
     'linearVelocity': {'linearVelocity'},
     'orientation': {'orientation'},
-    'position': {'position'},
+    'position': {'position'}
   },
   'GeolocationPosition': {
     'coords': {'coords'},
-    'timestamp': {'timestamp'},
+    'timestamp': {'timestamp'}
   },
   'GeolocationPositionError': {
     'code': {'code'},
-    'message': {'message'},
+    'message': {'message'}
   },
   'Gyroscope': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'HTMLAnchorElement': {
     'download': {'download'},
@@ -1398,7 +1398,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'search': {'search'},
     'target': {'target'},
     'type': {'type'},
-    'username': {'username'},
+    'username': {'username'}
   },
   'HTMLAreaElement': {
     'alt': {'alt'},
@@ -1418,11 +1418,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'search': {'search'},
     'shape': {'shape'},
     'target': {'target'},
-    'username': {'username'},
+    'username': {'username'}
   },
   'HTMLBaseElement': {
     'href': {'href'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'HTMLButtonElement': {
     'autofocus': {'autofocus'},
@@ -1442,50 +1442,50 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'validationMessage': {'validationMessage'},
     'validity': {'validity'},
     'value': {'value'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLCanvasElement': {
     'captureStream': {'captureStream'},
     'height': {'height'},
     'transferControlToOffscreen': {'transferControlToOffscreen'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'HTMLCollection': {
     'item': {'item'},
-    'namedItem': {'namedItem'},
+    'namedItem': {'namedItem'}
   },
   'HTMLContentElement': {
     'getDistributedNodes': {'getDistributedNodes'},
-    'select': {'select'},
+    'select': {'select'}
   },
   'HTMLDataElement': {
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLDataListElement': {
-    'options': {'options'},
+    'options': {'options'}
   },
   'HTMLDetailsElement': {
-    'open': {'open'},
+    'open': {'open'}
   },
   'HTMLDialogElement': {
     'close': {'close'},
     'open': {'open'},
     'returnValue': {'returnValue'},
     'show': {'show'},
-    'showModal': {'showModal'},
+    'showModal': {'showModal'}
   },
   'HTMLDocument': {
-    'body': {'body'},
+    'body': {'body'}
   },
   'HTMLElement': {
-    'nonce': {'nonce'},
+    'nonce': {'nonce'}
   },
   'HTMLEmbedElement': {
     'height': {'height'},
     'name': {'name'},
     'src': {'src'},
     'type': {'type'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'HTMLFieldSetElement': {
     'checkValidity': {'checkValidity'},
@@ -1498,10 +1498,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'type': {'type'},
     'validationMessage': {'validationMessage'},
     'validity': {'validity'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLFormControlsCollection': {
-    'namedItem': {'namedItem'},
+    'namedItem': {'namedItem'}
   },
   'HTMLFormElement': {
     'acceptCharset': {'acceptCharset'},
@@ -1518,10 +1518,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'reportValidity': {'reportValidity'},
     'reset': {'reset'},
     'submit': {'submit'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'HTMLHRElement': {
-    'color': {'color'},
+    'color': {'color'}
   },
   'HTMLHyperlinkElementUtils': {
     'hash': {'hash'},
@@ -1534,7 +1534,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'port': {'port'},
     'protocol': {'protocol'},
     'search': {'search'},
-    'username': {'username'},
+    'username': {'username'}
   },
   'HTMLIFrameElement': {
     'allow': {'allow'},
@@ -1547,7 +1547,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'sandbox': {'sandbox'},
     'src': {'src'},
     'srcdoc': {'srcdoc'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'HTMLImageElement': {
     'alt': {'alt'},
@@ -1564,7 +1564,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'src': {'src'},
     'srcset': {'srcset'},
     'useMap': {'useMap'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'HTMLInputElement': {
     'accept': {'accept'},
@@ -1622,18 +1622,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'webkitEntries': {'entries'},
     'webkitdirectory': {'directory'},
     'width': {'width'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLLIElement': {
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLLabelElement': {
     'control': {'control'},
     'form': {'form'},
-    'htmlFor': {'htmlFor'},
+    'htmlFor': {'htmlFor'}
   },
   'HTMLLegendElement': {
-    'form': {'form'},
+    'form': {'form'}
   },
   'HTMLLinkElement': {
     'as': {'as'},
@@ -1650,11 +1650,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'scope': {'scope'},
     'sheet': {'sheet'},
     'sizes': {'sizes'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'HTMLMapElement': {
     'areas': {'areas'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'HTMLMediaElement': {
     'addTextTrack': {'addTextTrack'},
@@ -1695,12 +1695,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'videoTracks': {'videoTracks'},
     'volume': {'volume'},
     'webkitAudioDecodedByteCount': {'audioDecodedByteCount'},
-    'webkitVideoDecodedByteCount': {'videoDecodedByteCount'},
+    'webkitVideoDecodedByteCount': {'videoDecodedByteCount'}
   },
   'HTMLMetaElement': {
     'content': {'content'},
     'httpEquiv': {'httpEquiv'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'HTMLMeterElement': {
     'high': {'high'},
@@ -1709,16 +1709,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'max': {'max'},
     'min': {'min'},
     'optimum': {'optimum'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLModElement': {
     'cite': {'cite'},
-    'dateTime': {'dateTime'},
+    'dateTime': {'dateTime'}
   },
   'HTMLOListElement': {
     'reversed': {'reversed'},
     'start': {'start'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'HTMLObjectElement': {
     'checkValidity': {'checkValidity'},
@@ -1733,11 +1733,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'validationMessage': {'validationMessage'},
     'validity': {'validity'},
     'width': {'width'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLOptGroupElement': {
     'disabled': {'disabled'},
-    'label': {'label'},
+    'label': {'label'}
   },
   'HTMLOptionElement': {
     'defaultSelected': {'defaultSelected'},
@@ -1746,7 +1746,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'index': {'index'},
     'label': {'label'},
     'selected': {'selected'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLOutputElement': {
     'checkValidity': {'checkValidity'},
@@ -1761,20 +1761,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'validationMessage': {'validationMessage'},
     'validity': {'validity'},
     'value': {'value'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLParamElement': {
     'name': {'name'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLProgressElement': {
     'labels': {'labels'},
     'max': {'max'},
     'position': {'position'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'HTMLQuoteElement': {
-    'cite': {'cite'},
+    'cite': {'cite'}
   },
   'HTMLScriptElement': {
     'async': {'async'},
@@ -1784,7 +1784,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'integrity': {'integrity'},
     'noModule': {'noModule'},
     'src': {'src'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'HTMLSelectElement': {
     'add': {'add'},
@@ -1807,41 +1807,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'validationMessage': {'validationMessage'},
     'validity': {'validity'},
     'value': {'value'},
-    'willValidate': {'willValidate'},
+    'willValidate': {'willValidate'}
   },
   'HTMLShadowElement': {
-    'getDistributedNodes': {'getDistributedNodes'},
+    'getDistributedNodes': {'getDistributedNodes'}
   },
   'HTMLSlotElement': {
-    'name': {'name'},
+    'name': {'name'}
   },
   'HTMLSourceElement': {
     'media': {'media'},
     'sizes': {'sizes'},
     'src': {'src'},
     'srcset': {'srcset'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'HTMLStyleElement': {
     'disabled': {'disabled'},
     'media': {'media'},
     'sheet': {'sheet'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'HTMLTableCellElement': {
     'cellIndex': {'cellIndex'},
     'colSpan': {'colSpan'},
     'headers': {'headers'},
-    'rowSpan': {'rowSpan'},
+    'rowSpan': {'rowSpan'}
   },
   'HTMLTableColElement': {
-    'span': {'span'},
+    'span': {'span'}
   },
   'HTMLTableDataCellElement': {
     'cellIndex': {'cellIndex'},
     'colSpan': {'colSpan'},
     'headers': {'headers'},
-    'rowSpan': {'rowSpan'},
+    'rowSpan': {'rowSpan'}
   },
   'HTMLTableElement': {
     'caption': {'caption'},
@@ -1850,24 +1850,24 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'deleteTFoot': {'deleteTFoot'},
     'deleteTHead': {'deleteTHead'},
     'tFoot': {'tFoot'},
-    'tHead': {'tHead'},
+    'tHead': {'tHead'}
   },
   'HTMLTableHeaderCellElement': {
     'cellIndex': {'cellIndex'},
     'colSpan': {'colSpan'},
     'headers': {'headers'},
-    'rowSpan': {'rowSpan'},
+    'rowSpan': {'rowSpan'}
   },
   'HTMLTableRowElement': {
     'deleteCell': {'deleteCell'},
     'rowIndex': {'rowIndex'},
-    'sectionRowIndex': {'sectionRowIndex'},
+    'sectionRowIndex': {'sectionRowIndex'}
   },
   'HTMLTableSectionElement': {
-    'deleteRow': {'deleteRow'},
+    'deleteRow': {'deleteRow'}
   },
   'HTMLTemplateElement': {
-    'content': {'content'},
+    'content': {'content'}
   },
   'HTMLTextAreaElement': {
     'autocapitalize': {'autocapitalize'},
@@ -1900,10 +1900,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'validity': {'validity'},
     'value': {'value'},
     'willValidate': {'willValidate'},
-    'wrap': {'wrap'},
+    'wrap': {'wrap'}
   },
   'HTMLTimeElement': {
-    'dateTime': {'dateTime'},
+    'dateTime': {'dateTime'}
   },
   'HTMLTrackElement': {
     'default': {'defaultValue'},
@@ -1912,7 +1912,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'readyState': {'readyState'},
     'src': {'src'},
     'srclang': {'srclang'},
-    'track': {'track'},
+    'track': {'track'}
   },
   'HTMLVideoElement': {
     'getVideoPlaybackQuality': {'getVideoPlaybackQuality'},
@@ -1924,18 +1924,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'webkitDroppedFrameCount': {'droppedFrameCount'},
     'webkitEnterFullscreen': {'enterFullscreen'},
     'webkitExitFullscreen': {'exitFullscreen'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'HashChangeEvent': {
     'newURL': {'newUrl'},
-    'oldURL': {'oldUrl'},
+    'oldURL': {'oldUrl'}
   },
   'History': {
     'back': {'back'},
     'forward': {'forward'},
     'go': {'go'},
     'length': {'length'},
-    'scrollRestoration': {'scrollRestoration'},
+    'scrollRestoration': {'scrollRestoration'}
   },
   'IDBCursor': {
     'advance': {'advance'},
@@ -1943,17 +1943,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'direction': {'direction'},
     'key': {'key'},
     'primaryKey': {'primaryKey'},
-    'source': {'source'},
+    'source': {'source'}
   },
   'IDBDatabase': {
     'close': {'close'},
     'deleteObjectStore': {'deleteObjectStore'},
     'name': {'name'},
     'objectStoreNames': {'objectStoreNames'},
-    'version': {'version'},
+    'version': {'version'}
   },
   'IDBFactory': {
-    'cmp': {'cmp'},
+    'cmp': {'cmp'}
   },
   'IDBIndex': {
     'getAll': {'getAll'},
@@ -1962,7 +1962,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'multiEntry': {'multiEntry'},
     'name': {'name'},
     'objectStore': {'objectStore'},
-    'unique': {'unique'},
+    'unique': {'unique'}
   },
   'IDBKeyRange': {
     'bound': {'bound_'},
@@ -1973,7 +1973,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'only': {'only_'},
     'upper': {'upper'},
     'upperBound': {'upperBound_'},
-    'upperOpen': {'upperOpen'},
+    'upperOpen': {'upperOpen'}
   },
   'IDBObjectStore': {
     'autoIncrement': {'autoIncrement'},
@@ -1986,26 +1986,26 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'keyPath': {'keyPath'},
     'name': {'name'},
     'openKeyCursor': {'openKeyCursor'},
-    'transaction': {'transaction'},
+    'transaction': {'transaction'}
   },
   'IDBObservation': {
     'key': {'key'},
     'type': {'type'},
-    'value': {'value'},
+    'value': {'value'}
   },
   'IDBObserver': {
-    'unobserve': {'unobserve'},
+    'unobserve': {'unobserve'}
   },
   'IDBObserverChanges': {
     'database': {'database'},
     'records': {'records'},
-    'transaction': {'transaction'},
+    'transaction': {'transaction'}
   },
   'IDBRequest': {
     'error': {'error'},
     'readyState': {'readyState'},
     'source': {'source'},
-    'transaction': {'transaction'},
+    'transaction': {'transaction'}
   },
   'IDBTransaction': {
     'abort': {'abort'},
@@ -2013,41 +2013,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'error': {'error'},
     'mode': {'mode'},
     'objectStore': {'objectStore'},
-    'objectStoreNames': {'objectStoreNames'},
+    'objectStoreNames': {'objectStoreNames'}
   },
   'IDBVersionChangeEvent': {
     'dataLoss': {'dataLoss'},
     'dataLossMessage': {'dataLossMessage'},
     'newVersion': {'newVersion'},
     'oldVersion': {'oldVersion'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'IIRFilterNode': {
-    'getFrequencyResponse': {'getFrequencyResponse'},
+    'getFrequencyResponse': {'getFrequencyResponse'}
   },
   'IdleDeadline': {
     'didTimeout': {'didTimeout'},
-    'timeRemaining': {'timeRemaining'},
+    'timeRemaining': {'timeRemaining'}
   },
   'ImageBitmap': {
     'close': {'close'},
     'height': {'height'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'ImageBitmapRenderingContext': {
     'canvas': {'canvas'},
-    'transferFromImageBitmap': {'transferFromImageBitmap'},
+    'transferFromImageBitmap': {'transferFromImageBitmap'}
   },
   'ImageCapture': {
-    'track': {'track'},
+    'track': {'track'}
   },
   'ImageData': {
     'data': {'data'},
     'height': {'height'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'InputDeviceCapabilities': {
-    'firesTouchEvents': {'firesTouchEvents'},
+    'firesTouchEvents': {'firesTouchEvents'}
   },
   'InputEvent': {
     'bubbles': {'bubbles'},
@@ -2061,7 +2061,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stopImmediatePropagation': {'stopImmediatePropagation'},
     'stopPropagation': {'stopPropagation'},
     'timeStamp': {'timeStamp'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'IntersectionObserver': {
     'disconnect': {'disconnect'},
@@ -2070,7 +2070,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'rootMargin': {'rootMargin'},
     'takeRecords': {'takeRecords'},
     'thresholds': {'thresholds'},
-    'unobserve': {'unobserve'},
+    'unobserve': {'unobserve'}
   },
   'IntersectionObserverEntry': {
     'boundingClientRect': {'boundingClientRect'},
@@ -2079,19 +2079,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'isIntersecting': {'isIntersecting'},
     'rootBounds': {'rootBounds'},
     'target': {'target'},
-    'time': {'time'},
+    'time': {'time'}
   },
   'InterventionReport': {
     'lineNumber': {'lineNumber'},
     'message': {'message'},
-    'sourceFile': {'sourceFile'},
+    'sourceFile': {'sourceFile'}
   },
   'Iterator': {
-    'next': {'next'},
+    'next': {'next'}
   },
   'JavaScriptAudioNode': {
     'bufferSize': {'bufferSize'},
-    'setEventListener': {'setEventListener'},
+    'setEventListener': {'setEventListener'}
   },
   'KeyboardEvent': {
     'altKey': {'altKey'},
@@ -2105,7 +2105,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'location': {'location'},
     'metaKey': {'metaKey'},
     'repeat': {'repeat'},
-    'shiftKey': {'shiftKey'},
+    'shiftKey': {'shiftKey'}
   },
   'Location': {
     'ancestorOrigins': {'ancestorOrigins'},
@@ -2120,21 +2120,21 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'reload': {'reload'},
     'replace': {'replace'},
     'search': {'search'},
-    'trustedHref': {'trustedHref'},
+    'trustedHref': {'trustedHref'}
   },
   'MIDIAccess': {
     'inputs': {'inputs'},
     'outputs': {'outputs'},
-    'sysexEnabled': {'sysexEnabled'},
+    'sysexEnabled': {'sysexEnabled'}
   },
   'MIDIConnectionEvent': {
-    'port': {'port'},
+    'port': {'port'}
   },
   'MIDIMessageEvent': {
-    'data': {'data'},
+    'data': {'data'}
   },
   'MIDIOutput': {
-    'send': {'send'},
+    'send': {'send'}
   },
   'MIDIPort': {
     'connection': {'connection'},
@@ -2143,7 +2143,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'name': {'name'},
     'state': {'state'},
     'type': {'type'},
-    'version': {'version'},
+    'version': {'version'}
   },
   'MSStyleCSSProperties': {
     'cssFloat': {'cssFloat'},
@@ -2152,77 +2152,77 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'item': {'item'},
     'length': {'length'},
     'parentRule': {'parentRule'},
-    'removeProperty': {'removeProperty'},
+    'removeProperty': {'removeProperty'}
   },
   'Magnetometer': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'MediaCapabilitiesInfo': {
     'powerEfficient': {'powerEfficient'},
     'smooth': {'smooth'},
-    'supported': {'supported'},
+    'supported': {'supported'}
   },
   'MediaDeviceInfo': {
     'deviceId': {'deviceId'},
     'groupId': {'groupId'},
     'kind': {'kind'},
-    'label': {'label'},
+    'label': {'label'}
   },
   'MediaElementAudioSourceNode': {
-    'mediaElement': {'mediaElement'},
+    'mediaElement': {'mediaElement'}
   },
   'MediaEncryptedEvent': {
     'initData': {'initData'},
-    'initDataType': {'initDataType'},
+    'initDataType': {'initDataType'}
   },
   'MediaError': {
     'code': {'code'},
-    'message': {'message'},
+    'message': {'message'}
   },
   'MediaKeyMessageEvent': {
     'message': {'message'},
-    'messageType': {'messageType'},
+    'messageType': {'messageType'}
   },
   'MediaKeySession': {
     'expiration': {'expiration'},
     'keyStatuses': {'keyStatuses'},
-    'sessionId': {'sessionId'},
+    'sessionId': {'sessionId'}
   },
   'MediaKeyStatusMap': {
     'get': {'get'},
     'has': {'has'},
-    'size': {'size'},
+    'size': {'size'}
   },
   'MediaKeySystemAccess': {
-    'keySystem': {'keySystem'},
+    'keySystem': {'keySystem'}
   },
   'MediaKeysPolicy': {
-    'minHdcpVersion': {'minHdcpVersion'},
+    'minHdcpVersion': {'minHdcpVersion'}
   },
   'MediaList': {
     'appendMedium': {'appendMedium'},
     'deleteMedium': {'deleteMedium'},
     'item': {'item'},
     'length': {'length'},
-    'mediaText': {'mediaText'},
+    'mediaText': {'mediaText'}
   },
   'MediaMetadata': {
     'album': {'album'},
     'artist': {'artist'},
     'artwork': {'artwork'},
-    'title': {'title'},
+    'title': {'title'}
   },
   'MediaQueryList': {
     'addListener': {'addListener'},
     'matches': {'matches'},
     'media': {'media'},
-    'removeListener': {'removeListener'},
+    'removeListener': {'removeListener'}
   },
   'MediaQueryListEvent': {
     'matches': {'matches'},
-    'media': {'media'},
+    'media': {'media'}
   },
   'MediaRecorder': {
     'audioBitsPerSecond': {'audioBitsPerSecond'},
@@ -2235,17 +2235,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'state': {'state'},
     'stop': {'stop'},
     'stream': {'stream'},
-    'videoBitsPerSecond': {'videoBitsPerSecond'},
+    'videoBitsPerSecond': {'videoBitsPerSecond'}
   },
   'MediaSession': {
     'metadata': {'metadata'},
     'playbackState': {'playbackState'},
-    'setActionHandler': {'setActionHandler'},
+    'setActionHandler': {'setActionHandler'}
   },
   'MediaSettingsRange': {
     'max': {'max'},
     'min': {'min'},
-    'step': {'step'},
+    'step': {'step'}
   },
   'MediaSource': {
     'activeSourceBuffers': {'activeSourceBuffers'},
@@ -2257,7 +2257,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'readyState': {'readyState'},
     'removeSourceBuffer': {'removeSourceBuffer'},
     'setLiveSeekableRange': {'setLiveSeekableRange'},
-    'sourceBuffers': {'sourceBuffers'},
+    'sourceBuffers': {'sourceBuffers'}
   },
   'MediaStream': {
     'active': {'active'},
@@ -2268,16 +2268,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getTracks': {'getTracks'},
     'getVideoTracks': {'getVideoTracks'},
     'id': {'id'},
-    'removeTrack': {'removeTrack'},
+    'removeTrack': {'removeTrack'}
   },
   'MediaStreamAudioDestinationNode': {
-    'stream': {'stream'},
+    'stream': {'stream'}
   },
   'MediaStreamAudioSourceNode': {
-    'mediaStream': {'mediaStream'},
+    'mediaStream': {'mediaStream'}
   },
   'MediaStreamEvent': {
-    'stream': {'stream'},
+    'stream': {'stream'}
   },
   'MediaStreamTrack': {
     'clone': {'clone'},
@@ -2288,41 +2288,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'label': {'label'},
     'muted': {'muted'},
     'readyState': {'readyState'},
-    'stop': {'stop'},
+    'stop': {'stop'}
   },
   'MediaStreamTrackEvent': {
-    'track': {'track'},
+    'track': {'track'}
   },
   'MemoryInfo': {
     'jsHeapSizeLimit': {'jsHeapSizeLimit'},
     'totalJSHeapSize': {'totalJSHeapSize'},
-    'usedJSHeapSize': {'usedJSHeapSize'},
+    'usedJSHeapSize': {'usedJSHeapSize'}
   },
   'MessageChannel': {
     'port1': {'port1'},
-    'port2': {'port2'},
+    'port2': {'port2'}
   },
   'MessageEvent': {
     'lastEventId': {'lastEventId'},
     'origin': {'origin'},
     'ports': {'ports'},
-    'suborigin': {'suborigin'},
+    'suborigin': {'suborigin'}
   },
   'MessagePort': {
-    'close': {'close'},
+    'close': {'close'}
   },
   'Metadata': {
-    'size': {'size'},
+    'size': {'size'}
   },
   'MimeType': {
     'description': {'description'},
     'enabledPlugin': {'enabledPlugin'},
     'suffixes': {'suffixes'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'MimeTypeArray': {
     'item': {'item'},
-    'namedItem': {'namedItem'},
+    'namedItem': {'namedItem'}
   },
   'MouseEvent': {
     'altKey': {'altKey'},
@@ -2334,18 +2334,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'metaKey': {'metaKey'},
     'region': {'region'},
     'shiftKey': {'shiftKey'},
-    'toElement': {'toElement'},
+    'toElement': {'toElement'}
   },
   'MozCSSKeyframeRule': {
     'keyText': {'keyText'},
-    'style': {'style'},
+    'style': {'style'}
   },
   'MozCSSKeyframesRule': {
     'appendRule': {'appendRule'},
     'cssRules': {'cssRules'},
     'deleteRule': {'deleteRule'},
     'findRule': {'findRule'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'MozNamedAttrMap': {
     'getNamedItem': {'getNamedItem'},
@@ -2354,7 +2354,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'removeNamedItem': {'removeNamedItem'},
     'removeNamedItemNS': {'removeNamedItemNS'},
     'setNamedItem': {'setNamedItem'},
-    'setNamedItemNS': {'setNamedItemNS'},
+    'setNamedItemNS': {'setNamedItemNS'}
   },
   'MutationEvent': {
     'attrChange': {'attrChange'},
@@ -2362,11 +2362,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'initMutationEvent': {'initMutationEvent'},
     'newValue': {'newValue'},
     'prevValue': {'prevValue'},
-    'relatedNode': {'relatedNode'},
+    'relatedNode': {'relatedNode'}
   },
   'MutationObserver': {
     'disconnect': {'disconnect'},
-    'takeRecords': {'takeRecords'},
+    'takeRecords': {'takeRecords'}
   },
   'MutationRecord': {
     'addedNodes': {'addedNodes'},
@@ -2377,7 +2377,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'previousSibling': {'previousSibling'},
     'removedNodes': {'removedNodes'},
     'target': {'target'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'NamedNodeMap': {
     'getNamedItem': {'getNamedItem'},
@@ -2386,7 +2386,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'removeNamedItem': {'removeNamedItem'},
     'removeNamedItemNS': {'removeNamedItemNS'},
     'setNamedItem': {'setNamedItem'},
-    'setNamedItemNS': {'setNamedItemNS'},
+    'setNamedItemNS': {'setNamedItemNS'}
   },
   'Navigator': {
     'appCodeName': {'appCodeName'},
@@ -2425,16 +2425,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'vr': {'vr'},
     'webdriver': {'webdriver'},
     'webkitPersistentStorage': {'persistentStorage'},
-    'webkitTemporaryStorage': {'temporaryStorage'},
+    'webkitTemporaryStorage': {'temporaryStorage'}
   },
   'NavigatorAutomationInformation': {
-    'webdriver': {'webdriver'},
+    'webdriver': {'webdriver'}
   },
   'NavigatorConcurrentHardware': {
-    'hardwareConcurrency': {'hardwareConcurrency'},
+    'hardwareConcurrency': {'hardwareConcurrency'}
   },
   'NavigatorCookies': {
-    'cookieEnabled': {'cookieEnabled'},
+    'cookieEnabled': {'cookieEnabled'}
   },
   'NavigatorID': {
     'appCodeName': {'appCodeName'},
@@ -2443,26 +2443,26 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'dartEnabled': {'dartEnabled'},
     'platform': {'platform'},
     'product': {'product'},
-    'userAgent': {'userAgent'},
+    'userAgent': {'userAgent'}
   },
   'NavigatorLanguage': {
     'language': {'language'},
-    'languages': {'languages'},
+    'languages': {'languages'}
   },
   'NavigatorOnLine': {
-    'onLine': {'onLine'},
+    'onLine': {'onLine'}
   },
   'NavigatorUserMediaError': {
     'constraintName': {'constraintName'},
     'message': {'message'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'NetworkInformation': {
     'downlink': {'downlink'},
     'downlinkMax': {'downlinkMax'},
     'effectiveType': {'effectiveType'},
     'rtt': {'rtt'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'Node': {
     'appendChild': {'append'},
@@ -2483,7 +2483,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'parentElement': {'parent'},
     'parentNode': {'parentNode'},
     'previousSibling': {'previousNode'},
-    'textContent': {'text'},
+    'textContent': {'text'}
   },
   'NodeIterator': {
     'detach': {'detach'},
@@ -2492,17 +2492,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'previousNode': {'previousNode'},
     'referenceNode': {'referenceNode'},
     'root': {'root'},
-    'whatToShow': {'whatToShow'},
+    'whatToShow': {'whatToShow'}
   },
   'NonDocumentTypeChildNode': {
     'nextElementSibling': {'nextElementSibling'},
-    'previousElementSibling': {'previousElementSibling'},
+    'previousElementSibling': {'previousElementSibling'}
   },
   'NonElementParentNode': {
-    'getElementById': {'getElementById'},
+    'getElementById': {'getElementById'}
   },
   'NoncedElement': {
-    'nonce': {'nonce'},
+    'nonce': {'nonce'}
   },
   'Notification': {
     'actions': {'actions'},
@@ -2522,41 +2522,41 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'tag': {'tag'},
     'timestamp': {'timestamp'},
     'title': {'title'},
-    'vibrate': {'vibrate'},
+    'vibrate': {'vibrate'}
   },
   'NotificationEvent': {
     'action': {'action'},
     'notification': {'notification'},
-    'reply': {'reply'},
+    'reply': {'reply'}
   },
   'OESVertexArrayObject': {
     'bindVertexArrayOES': {'bindVertexArray'},
     'createVertexArrayOES': {'createVertexArray'},
     'deleteVertexArrayOES': {'deleteVertexArray'},
-    'isVertexArrayOES': {'isVertexArray'},
+    'isVertexArrayOES': {'isVertexArray'}
   },
   'OES_vertex_array_object': {
     'bindVertexArrayOES': {'bindVertexArray'},
     'createVertexArrayOES': {'createVertexArray'},
     'deleteVertexArrayOES': {'deleteVertexArray'},
-    'isVertexArrayOES': {'isVertexArray'},
+    'isVertexArrayOES': {'isVertexArray'}
   },
   'OfflineAudioCompletionEvent': {
-    'renderedBuffer': {'renderedBuffer'},
+    'renderedBuffer': {'renderedBuffer'}
   },
   'OfflineAudioContext': {
-    'length': {'length'},
+    'length': {'length'}
   },
   'OfflineResourceList': {
     'abort': {'abort'},
     'status': {'status'},
     'swapCache': {'swapCache'},
-    'update': {'update'},
+    'update': {'update'}
   },
   'OffscreenCanvas': {
     'height': {'height'},
     'transferToImageBitmap': {'transferToImageBitmap'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'OffscreenCanvasRenderingContext2D': {
     'arc': {'arc'},
@@ -2614,31 +2614,31 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'textAlign': {'textAlign'},
     'textBaseline': {'textBaseline'},
     'transform': {'transform'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'OrientationSensor': {
     'populateMatrix': {'populateMatrix'},
-    'quaternion': {'quaternion'},
+    'quaternion': {'quaternion'}
   },
   'Oscillator': {
     'detune': {'detune'},
     'frequency': {'frequency'},
     'setPeriodicWave': {'setPeriodicWave'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'OscillatorNode': {
     'detune': {'detune'},
     'frequency': {'frequency'},
     'setPeriodicWave': {'setPeriodicWave'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'OverconstrainedError': {
     'constraint': {'constraint'},
     'message': {'message'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'PageTransitionEvent': {
-    'persisted': {'persisted'},
+    'persisted': {'persisted'}
   },
   'PaintRenderingContext2D': {
     'arc': {'arc'},
@@ -2689,15 +2689,15 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'strokeRect': {'strokeRect'},
     'strokeStyle': {'strokeStyle'},
     'transform': {'transform'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'PaintSize': {
     'height': {'height'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'PaintWorkletGlobalScope': {
     'devicePixelRatio': {'devicePixelRatio'},
-    'registerPaint': {'registerPaint'},
+    'registerPaint': {'registerPaint'}
   },
   'PannerNode': {
     'coneInnerAngle': {'coneInnerAngle'},
@@ -2715,7 +2715,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'refDistance': {'refDistance'},
     'rolloffFactor': {'rolloffFactor'},
     'setOrientation': {'setOrientation'},
-    'setPosition': {'setPosition'},
+    'setPosition': {'setPosition'}
   },
   'PasswordCredential': {
     'additionalData': {'additionalData'},
@@ -2723,7 +2723,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'idName': {'idName'},
     'name': {'name'},
     'password': {'password'},
-    'passwordName': {'passwordName'},
+    'passwordName': {'passwordName'}
   },
   'Path2D': {
     'addPath': {'addPath'},
@@ -2735,7 +2735,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'lineTo': {'lineTo'},
     'moveTo': {'moveTo'},
     'quadraticCurveTo': {'quadraticCurveTo'},
-    'rect': {'rect'},
+    'rect': {'rect'}
   },
   'PaymentAddress': {
     'addressLine': {'addressLine'},
@@ -2748,17 +2748,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'postalCode': {'postalCode'},
     'recipient': {'recipient'},
     'region': {'region'},
-    'sortingCode': {'sortingCode'},
+    'sortingCode': {'sortingCode'}
   },
   'PaymentManager': {
     'instruments': {'instruments'},
-    'userHint': {'userHint'},
+    'userHint': {'userHint'}
   },
   'PaymentRequest': {
     'id': {'id'},
     'shippingAddress': {'shippingAddress'},
     'shippingOption': {'shippingOption'},
-    'shippingType': {'shippingType'},
+    'shippingType': {'shippingType'}
   },
   'PaymentRequestEvent': {
     'instrumentKey': {'instrumentKey'},
@@ -2768,10 +2768,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'paymentRequestOrigin': {'paymentRequestOrigin'},
     'respondWith': {'respondWith'},
     'topLevelOrigin': {'topLevelOrigin'},
-    'total': {'total'},
+    'total': {'total'}
   },
   'PaymentRequestUpdateEvent': {
-    'updateWith': {'updateWith'},
+    'updateWith': {'updateWith'}
   },
   'PaymentResponse': {
     'details': {'details'},
@@ -2781,7 +2781,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'payerPhone': {'payerPhone'},
     'requestId': {'requestId'},
     'shippingAddress': {'shippingAddress'},
-    'shippingOption': {'shippingOption'},
+    'shippingOption': {'shippingOption'}
   },
   'Performance': {
     'clearMarks': {'clearMarks'},
@@ -2795,20 +2795,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'now': {'now'},
     'setResourceTimingBufferSize': {'setResourceTimingBufferSize'},
     'timeOrigin': {'timeOrigin'},
-    'timing': {'timing'},
+    'timing': {'timing'}
   },
   'PerformanceEntry': {
     'duration': {'duration'},
     'entryType': {'entryType'},
     'name': {'name'},
-    'startTime': {'startTime'},
+    'startTime': {'startTime'}
   },
   'PerformanceLongTaskTiming': {
-    'attribution': {'attribution'},
+    'attribution': {'attribution'}
   },
   'PerformanceNavigation': {
     'redirectCount': {'redirectCount'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'PerformanceNavigationTiming': {
     'domComplete': {'domComplete'},
@@ -2820,15 +2820,15 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'redirectCount': {'redirectCount'},
     'type': {'type'},
     'unloadEventEnd': {'unloadEventEnd'},
-    'unloadEventStart': {'unloadEventStart'},
+    'unloadEventStart': {'unloadEventStart'}
   },
   'PerformanceObserver': {
-    'disconnect': {'disconnect'},
+    'disconnect': {'disconnect'}
   },
   'PerformanceObserverEntryList': {
     'getEntries': {'getEntries'},
     'getEntriesByName': {'getEntriesByName'},
-    'getEntriesByType': {'getEntriesByType'},
+    'getEntriesByType': {'getEntriesByType'}
   },
   'PerformanceResourceTiming': {
     'connectEnd': {'connectEnd'},
@@ -2848,12 +2848,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'secureConnectionStart': {'secureConnectionStart'},
     'serverTiming': {'serverTiming'},
     'transferSize': {'transferSize'},
-    'workerStart': {'workerStart'},
+    'workerStart': {'workerStart'}
   },
   'PerformanceServerTiming': {
     'description': {'description'},
     'duration': {'duration'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'PerformanceTiming': {
     'connectEnd': {'connectEnd'},
@@ -2876,16 +2876,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'responseStart': {'responseStart'},
     'secureConnectionStart': {'secureConnectionStart'},
     'unloadEventEnd': {'unloadEventEnd'},
-    'unloadEventStart': {'unloadEventStart'},
+    'unloadEventStart': {'unloadEventStart'}
   },
   'PermissionStatus': {
-    'state': {'state'},
+    'state': {'state'}
   },
   'PhotoCapabilities': {
     'fillLightMode': {'fillLightMode'},
     'imageHeight': {'imageHeight'},
     'imageWidth': {'imageWidth'},
-    'redEyeReduction': {'redEyeReduction'},
+    'redEyeReduction': {'redEyeReduction'}
   },
   'Plugin': {
     'description': {'description'},
@@ -2893,12 +2893,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'item': {'item'},
     'length': {'length'},
     'name': {'name'},
-    'namedItem': {'namedItem'},
+    'namedItem': {'namedItem'}
   },
   'PluginArray': {
     'item': {'item'},
     'namedItem': {'namedItem'},
-    'refresh': {'refresh'},
+    'refresh': {'refresh'}
   },
   'PointerEvent': {
     'getCoalescedEvents': {'getCoalescedEvents'},
@@ -2911,22 +2911,22 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'tiltX': {'tiltX'},
     'tiltY': {'tiltY'},
     'twist': {'twist'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'Position': {
     'coords': {'coords'},
-    'timestamp': {'timestamp'},
+    'timestamp': {'timestamp'}
   },
   'PositionError': {
     'code': {'code'},
-    'message': {'message'},
+    'message': {'message'}
   },
   'Presentation': {
     'defaultRequest': {'defaultRequest'},
-    'receiver': {'receiver'},
+    'receiver': {'receiver'}
   },
   'PresentationAvailability': {
-    'value': {'value'},
+    'value': {'value'}
   },
   'PresentationConnection': {
     'binaryType': {'binaryType'},
@@ -2935,59 +2935,59 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'send': {'send'},
     'state': {'state'},
     'terminate': {'terminate'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'PresentationConnectionAvailableEvent': {
-    'connection': {'connection'},
+    'connection': {'connection'}
   },
   'PresentationConnectionCloseEvent': {
     'message': {'message'},
-    'reason': {'reason'},
+    'reason': {'reason'}
   },
   'PresentationConnectionList': {
-    'connections': {'connections'},
+    'connections': {'connections'}
   },
   'ProcessingInstruction': {
     'sheet': {'sheet'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'ProgressEvent': {
     'lengthComputable': {'lengthComputable'},
     'loaded': {'loaded'},
-    'total': {'total'},
+    'total': {'total'}
   },
   'PromiseRejectionEvent': {
-    'reason': {'reason'},
+    'reason': {'reason'}
   },
   'PublicKeyCredential': {
     'rawId': {'rawId'},
-    'response': {'response'},
+    'response': {'response'}
   },
   'PushEvent': {
-    'data': {'data'},
+    'data': {'data'}
   },
   'PushManager': {
-    'supportedContentEncodings': {'supportedContentEncodings'},
+    'supportedContentEncodings': {'supportedContentEncodings'}
   },
   'PushMessageData': {
     'arrayBuffer': {'arrayBuffer'},
     'blob': {'blob'},
     'json': {'json'},
-    'text': {'text'},
+    'text': {'text'}
   },
   'PushSubscription': {
     'endpoint': {'endpoint'},
     'expirationTime': {'expirationTime'},
     'getKey': {'getKey'},
-    'options': {'options'},
+    'options': {'options'}
   },
   'PushSubscriptionOptions': {
     'applicationServerKey': {'applicationServerKey'},
-    'userVisibleOnly': {'userVisibleOnly'},
+    'userVisibleOnly': {'userVisibleOnly'}
   },
   'RTCCertificate': {
     'expires': {'expires'},
-    'getFingerprints': {'getFingerprints'},
+    'getFingerprints': {'getFingerprints'}
   },
   'RTCDTMFSender': {
     'canInsertDTMF': {'canInsertDtmf'},
@@ -2995,10 +2995,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertDTMF': {'insertDtmf'},
     'interToneGap': {'interToneGap'},
     'toneBuffer': {'toneBuffer'},
-    'track': {'track'},
+    'track': {'track'}
   },
   'RTCDTMFToneChangeEvent': {
-    'tone': {'tone'},
+    'tone': {'tone'}
   },
   'RTCDataChannel': {
     'binaryType': {'binaryType'},
@@ -3019,22 +3019,22 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
       'sendBlob',
       'sendByteBuffer',
       'sendString',
-      'sendTypedData',
-    },
+      'sendTypedData'
+    }
   },
   'RTCDataChannelEvent': {
-    'channel': {'channel'},
+    'channel': {'channel'}
   },
   'RTCIceCandidate': {
     'candidate': {'candidate'},
     'sdpMLineIndex': {'sdpMLineIndex'},
-    'sdpMid': {'sdpMid'},
+    'sdpMid': {'sdpMid'}
   },
   'RTCLegacyStatsReport': {
     'id': {'id'},
     'names': {'names'},
     'stat': {'stat'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'RTCPeerConnection': {
     'addTrack': {'addTrack'},
@@ -3051,34 +3051,34 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'remoteDescription': {'remoteDescription'},
     'removeStream': {'removeStream'},
     'removeTrack': {'removeTrack'},
-    'signalingState': {'signalingState'},
+    'signalingState': {'signalingState'}
   },
   'RTCPeerConnectionIceEvent': {
-    'candidate': {'candidate'},
+    'candidate': {'candidate'}
   },
   'RTCRtpContributingSource': {
     'source': {'source'},
-    'timestamp': {'timestamp'},
+    'timestamp': {'timestamp'}
   },
   'RTCRtpReceiver': {
     'getContributingSources': {'getContributingSources'},
-    'track': {'track'},
+    'track': {'track'}
   },
   'RTCRtpSender': {
-    'track': {'track'},
+    'track': {'track'}
   },
   'RTCSessionDescription': {
     'sdp': {'sdp'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'RTCStatsResponse': {
     'namedItem': {'namedItem'},
-    'result': {'result'},
+    'result': {'result'}
   },
   'RTCTrackEvent': {
     'receiver': {'receiver'},
     'streams': {'streams'},
-    'track': {'track'},
+    'track': {'track'}
   },
   'Range': {
     'cloneContents': {'cloneContents'},
@@ -3108,7 +3108,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'setStartBefore': {'setStartBefore'},
     'startContainer': {'startContainer'},
     'startOffset': {'startOffset'},
-    'surroundContents': {'surroundContents'},
+    'surroundContents': {'surroundContents'}
   },
   'RealtimeAnalyserNode': {
     'fftSize': {'fftSize'},
@@ -3119,24 +3119,24 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getFloatTimeDomainData': {'getFloatTimeDomainData'},
     'maxDecibels': {'maxDecibels'},
     'minDecibels': {'minDecibels'},
-    'smoothingTimeConstant': {'smoothingTimeConstant'},
+    'smoothingTimeConstant': {'smoothingTimeConstant'}
   },
   'RelatedApplication': {
     'id': {'id'},
     'platform': {'platform'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'RemotePlayback': {
-    'state': {'state'},
+    'state': {'state'}
   },
   'Report': {
     'body': {'body'},
     'type': {'type'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'ReportingObserver': {
     'disconnect': {'disconnect'},
-    'observe': {'observe'},
+    'observe': {'observe'}
   },
   'Request': {
     'cache': {'cache'},
@@ -3148,20 +3148,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'redirect': {'redirect'},
     'referrer': {'referrer'},
     'referrerPolicy': {'referrerPolicy'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'ResizeObserver': {
     'disconnect': {'disconnect'},
     'observe': {'observe'},
-    'unobserve': {'unobserve'},
+    'unobserve': {'unobserve'}
   },
   'ResizeObserverEntry': {
     'contentRect': {'contentRect'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'SVGAElement': {
     'href': {'href'},
-    'target': {'target'},
+    'target': {'target'}
   },
   'SVGAngle': {
     'convertToSpecifiedUnits': {'convertToSpecifiedUnits'},
@@ -3169,55 +3169,55 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'unitType': {'unitType'},
     'value': {'value'},
     'valueAsString': {'valueAsString'},
-    'valueInSpecifiedUnits': {'valueInSpecifiedUnits'},
+    'valueInSpecifiedUnits': {'valueInSpecifiedUnits'}
   },
   'SVGAnimatedAngle': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedBoolean': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedEnumeration': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedInteger': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedLength': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedLengthList': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedNumber': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedNumberList': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedPreserveAspectRatio': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedRect': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedString': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimatedTransformList': {
     'animVal': {'animVal'},
-    'baseVal': {'baseVal'},
+    'baseVal': {'baseVal'}
   },
   'SVGAnimationElement': {
     'beginElement': {'beginElement'},
@@ -3229,28 +3229,28 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getStartTime': {'getStartTime'},
     'requiredExtensions': {'requiredExtensions'},
     'systemLanguage': {'systemLanguage'},
-    'targetElement': {'targetElement'},
+    'targetElement': {'targetElement'}
   },
   'SVGCircleElement': {
     'cx': {'cx'},
     'cy': {'cy'},
-    'r': {'r'},
+    'r': {'r'}
   },
   'SVGClipPathElement': {
-    'clipPathUnits': {'clipPathUnits'},
+    'clipPathUnits': {'clipPathUnits'}
   },
   'SVGElement': {
     'blur': {'blur'},
     'focus': {'focus'},
     'nonce': {'nonce'},
     'ownerSVGElement': {'ownerSvgElement'},
-    'viewportElement': {'viewportElement'},
+    'viewportElement': {'viewportElement'}
   },
   'SVGEllipseElement': {
     'cx': {'cx'},
     'cy': {'cy'},
     'rx': {'rx'},
-    'ry': {'ry'},
+    'ry': {'ry'}
   },
   'SVGFEBlendElement': {
     'height': {'height'},
@@ -3260,7 +3260,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEColorMatrixElement': {
     'height': {'height'},
@@ -3270,7 +3270,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'values': {'values'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEComponentTransferElement': {
     'height': {'height'},
@@ -3278,7 +3278,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFECompositeElement': {
     'height': {'height'},
@@ -3292,7 +3292,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEConvolveMatrixElement': {
     'bias': {'bias'},
@@ -3311,7 +3311,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'targetY': {'targetY'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEDiffuseLightingElement': {
     'diffuseConstant': {'diffuseConstant'},
@@ -3323,7 +3323,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'surfaceScale': {'surfaceScale'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEDisplacementMapElement': {
     'height': {'height'},
@@ -3335,18 +3335,18 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'x': {'x'},
     'xChannelSelector': {'xChannelSelector'},
     'y': {'y'},
-    'yChannelSelector': {'yChannelSelector'},
+    'yChannelSelector': {'yChannelSelector'}
   },
   'SVGFEDistantLightElement': {
     'azimuth': {'azimuth'},
-    'elevation': {'elevation'},
+    'elevation': {'elevation'}
   },
   'SVGFEFloodElement': {
     'height': {'height'},
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEGaussianBlurElement': {
     'height': {'height'},
@@ -3357,7 +3357,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stdDeviationY': {'stdDeviationY'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEImageElement': {
     'height': {'height'},
@@ -3366,17 +3366,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEMergeElement': {
     'height': {'height'},
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEMergeNodeElement': {
-    'in1': {'in1'},
+    'in1': {'in1'}
   },
   'SVGFEMorphologyElement': {
     'height': {'height'},
@@ -3387,7 +3387,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEOffsetElement': {
     'dx': {'dx'},
@@ -3397,12 +3397,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFEPointLightElement': {
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'SVGFESpecularLightingElement': {
     'height': {'height'},
@@ -3415,7 +3415,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'surfaceScale': {'surfaceScale'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFESpotLightElement': {
     'limitingConeAngle': {'limitingConeAngle'},
@@ -3425,7 +3425,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'specularExponent': {'specularExponent'},
     'x': {'x'},
     'y': {'y'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'SVGFETileElement': {
     'height': {'height'},
@@ -3433,7 +3433,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'result': {'result'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFETurbulenceElement': {
     'baseFrequencyX': {'baseFrequencyX'},
@@ -3446,7 +3446,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'type': {'type'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGFilterElement': {
     'filterUnits': {'filterUnits'},
@@ -3455,26 +3455,26 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'primitiveUnits': {'primitiveUnits'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGForeignObjectElement': {
     'height': {'height'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGGeometryElement': {
     'getPointAtLength': {'getPointAtLength'},
     'getTotalLength': {'getTotalLength'},
     'isPointInFill': {'isPointInFill'},
     'isPointInStroke': {'isPointInStroke'},
-    'pathLength': {'pathLength'},
+    'pathLength': {'pathLength'}
   },
   'SVGGradientElement': {
     'gradientTransform': {'gradientTransform'},
     'gradientUnits': {'gradientUnits'},
     'href': {'href'},
-    'spreadMethod': {'spreadMethod'},
+    'spreadMethod': {'spreadMethod'}
   },
   'SVGGraphicsElement': {
     'farthestViewportElement': {'farthestViewportElement'},
@@ -3484,7 +3484,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'nearestViewportElement': {'nearestViewportElement'},
     'requiredExtensions': {'requiredExtensions'},
     'systemLanguage': {'systemLanguage'},
-    'transform': {'transform'},
+    'transform': {'transform'}
   },
   'SVGLength': {
     'convertToSpecifiedUnits': {'convertToSpecifiedUnits'},
@@ -3492,7 +3492,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'unitType': {'unitType'},
     'value': {'value'},
     'valueAsString': {'valueAsString'},
-    'valueInSpecifiedUnits': {'valueInSpecifiedUnits'},
+    'valueInSpecifiedUnits': {'valueInSpecifiedUnits'}
   },
   'SVGLengthList': {
     'appendItem': {'appendItem'},
@@ -3502,19 +3502,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertItemBefore': {'insertItemBefore'},
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
-    'replaceItem': {'replaceItem'},
+    'replaceItem': {'replaceItem'}
   },
   'SVGLineElement': {
     'x1': {'x1'},
     'x2': {'x2'},
     'y1': {'y1'},
-    'y2': {'y2'},
+    'y2': {'y2'}
   },
   'SVGLinearGradientElement': {
     'x1': {'x1'},
     'x2': {'x2'},
     'y1': {'y1'},
-    'y2': {'y2'},
+    'y2': {'y2'}
   },
   'SVGMarkerElement': {
     'markerHeight': {'markerHeight'},
@@ -3527,7 +3527,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'refY': {'refY'},
     'setOrientToAngle': {'setOrientToAngle'},
     'setOrientToAuto': {'setOrientToAuto'},
-    'viewBox': {'viewBox'},
+    'viewBox': {'viewBox'}
   },
   'SVGMaskElement': {
     'height': {'height'},
@@ -3537,7 +3537,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'systemLanguage': {'systemLanguage'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGMatrix': {
     'a': {'a'},
@@ -3556,10 +3556,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'scaleNonUniform': {'scaleNonUniform'},
     'skewX': {'skewX'},
     'skewY': {'skewY'},
-    'translate': {'translate'},
+    'translate': {'translate'}
   },
   'SVGNumber': {
-    'value': {'value'},
+    'value': {'value'}
   },
   'SVGNumberList': {
     'appendItem': {'appendItem'},
@@ -3569,7 +3569,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertItemBefore': {'insertItemBefore'},
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
-    'replaceItem': {'replaceItem'},
+    'replaceItem': {'replaceItem'}
   },
   'SVGPatternElement': {
     'height': {'height'},
@@ -3583,12 +3583,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'viewBox': {'viewBox'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGPoint': {
     'matrixTransform': {'matrixTransform'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGPointList': {
     'appendItem': {'appendItem'},
@@ -3599,19 +3599,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'length': {'length'},
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
-    'replaceItem': {'replaceItem'},
+    'replaceItem': {'replaceItem'}
   },
   'SVGPolygonElement': {
     'animatedPoints': {'animatedPoints'},
-    'points': {'points'},
+    'points': {'points'}
   },
   'SVGPolylineElement': {
     'animatedPoints': {'animatedPoints'},
-    'points': {'points'},
+    'points': {'points'}
   },
   'SVGPreserveAspectRatio': {
     'align': {'align'},
-    'meetOrSlice': {'meetOrSlice'},
+    'meetOrSlice': {'meetOrSlice'}
   },
   'SVGRadialGradientElement': {
     'cx': {'cx'},
@@ -3619,13 +3619,13 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'fr': {'fr'},
     'fx': {'fx'},
     'fy': {'fy'},
-    'r': {'r'},
+    'r': {'r'}
   },
   'SVGRect': {
     'height': {'height'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGRectElement': {
     'height': {'height'},
@@ -3633,7 +3633,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'ry': {'ry'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGSVGElement': {
     'animationsPaused': {'animationsPaused'},
@@ -3667,10 +3667,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'width': {'width'},
     'x': {'x'},
     'y': {'y'},
-    'zoomAndPan': {'zoomAndPan'},
+    'zoomAndPan': {'zoomAndPan'}
   },
   'SVGStopElement': {
-    'offset': {'gradientOffset'},
+    'offset': {'gradientOffset'}
   },
   'SVGStringList': {
     'appendItem': {'appendItem'},
@@ -3680,11 +3680,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertItemBefore': {'insertItemBefore'},
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
-    'replaceItem': {'replaceItem'},
+    'replaceItem': {'replaceItem'}
   },
   'SVGSymbolElement': {
     'preserveAspectRatio': {'preserveAspectRatio'},
-    'viewBox': {'viewBox'},
+    'viewBox': {'viewBox'}
   },
   'SVGTextContentElement': {
     'getCharNumAtPosition': {'getCharNumAtPosition'},
@@ -3697,20 +3697,20 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getSubStringLength': {'getSubStringLength'},
     'lengthAdjust': {'lengthAdjust'},
     'selectSubString': {'selectSubString'},
-    'textLength': {'textLength'},
+    'textLength': {'textLength'}
   },
   'SVGTextPathElement': {
     'href': {'href'},
     'method': {'method'},
     'spacing': {'spacing'},
-    'startOffset': {'startOffset'},
+    'startOffset': {'startOffset'}
   },
   'SVGTextPositioningElement': {
     'dx': {'dx'},
     'dy': {'dy'},
     'rotate': {'rotate'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGTransform': {
     'angle': {'angle'},
@@ -3721,7 +3721,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'setSkewX': {'setSkewX'},
     'setSkewY': {'setSkewY'},
     'setTranslate': {'setTranslate'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'SVGTransformList': {
     'appendItem': {'appendItem'},
@@ -3733,19 +3733,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'insertItemBefore': {'insertItemBefore'},
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
-    'replaceItem': {'replaceItem'},
+    'replaceItem': {'replaceItem'}
   },
   'SVGUseElement': {
     'height': {'height'},
     'href': {'href'},
     'width': {'width'},
     'x': {'x'},
-    'y': {'y'},
+    'y': {'y'}
   },
   'SVGViewElement': {
     'preserveAspectRatio': {'preserveAspectRatio'},
     'viewBox': {'viewBox'},
-    'zoomAndPan': {'zoomAndPan'},
+    'zoomAndPan': {'zoomAndPan'}
   },
   'Screen': {
     'colorDepth': {'colorDepth'},
@@ -3753,16 +3753,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'keepAwake': {'keepAwake'},
     'orientation': {'orientation'},
     'pixelDepth': {'pixelDepth'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'ScreenOrientation': {
     'angle': {'angle'},
     'type': {'type'},
-    'unlock': {'unlock'},
+    'unlock': {'unlock'}
   },
   'ScriptProcessorNode': {
     'bufferSize': {'bufferSize'},
-    'setEventListener': {'setEventListener'},
+    'setEventListener': {'setEventListener'}
   },
   'ScrollState': {
     'consumeDelta': {'consumeDelta'},
@@ -3778,12 +3778,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'positionX': {'positionX'},
     'positionY': {'positionY'},
     'velocityX': {'velocityX'},
-    'velocityY': {'velocityY'},
+    'velocityY': {'velocityY'}
   },
   'ScrollTimeline': {
     'orientation': {'orientation'},
     'scrollSource': {'scrollSource'},
-    'timeRange': {'timeRange'},
+    'timeRange': {'timeRange'}
   },
   'SecurityPolicyViolationEvent': {
     'blockedURI': {'blockedUri'},
@@ -3797,7 +3797,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'sample': {'sample'},
     'sourceFile': {'sourceFile'},
     'statusCode': {'statusCode'},
-    'violatedDirective': {'violatedDirective'},
+    'violatedDirective': {'violatedDirective'}
   },
   'Selection': {
     'addRange': {'addRange'},
@@ -3825,28 +3825,28 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'selectAllChildren': {'selectAllChildren'},
     'setBaseAndExtent': {'setBaseAndExtent'},
     'setPosition': {'setPosition'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'Sensor': {
     'activated': {'activated'},
     'hasReading': {'hasReading'},
     'start': {'start'},
     'stop': {'stop'},
-    'timestamp': {'timestamp'},
+    'timestamp': {'timestamp'}
   },
   'SensorErrorEvent': {
-    'error': {'error'},
+    'error': {'error'}
   },
   'ServiceWorker': {
     'scriptURL': {'scriptUrl'},
-    'state': {'state'},
+    'state': {'state'}
   },
   'ServiceWorkerContainer': {
-    'controller': {'controller'},
+    'controller': {'controller'}
   },
   'ServiceWorkerGlobalScope': {
     'clients': {'clients'},
-    'registration': {'registration'},
+    'registration': {'registration'}
   },
   'ServiceWorkerRegistration': {
     'active': {'active'},
@@ -3857,7 +3857,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'pushManager': {'pushManager'},
     'scope': {'scope'},
     'sync': {'sync'},
-    'waiting': {'waiting'},
+    'waiting': {'waiting'}
   },
   'ShadowRoot': {
     'activeElement': {'activeElement'},
@@ -3871,20 +3871,16 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'mode': {'mode'},
     'olderShadowRoot': {'olderShadowRoot'},
     'pointerLockElement': {'pointerLockElement'},
-    'styleSheets': {'styleSheets'},
-  },
-  'SharedArrayBuffer': {
-    'byteLength': {'byteLength'},
-    'slice': {'slice'},
+    'styleSheets': {'styleSheets'}
   },
   'SharedWorker': {
-    'port': {'port'},
+    'port': {'port'}
   },
   'SharedWorkerGlobalScope': {
     'close': {'close'},
     'name': {'name'},
     'webkitRequestFileSystemSync': {'requestFileSystemSync'},
-    'webkitResolveLocalFileSystemSyncURL': {'resolveLocalFileSystemSyncUrl'},
+    'webkitResolveLocalFileSystemSyncURL': {'resolveLocalFileSystemSyncUrl'}
   },
   'SourceBuffer': {
     'abort': {'abort'},
@@ -3898,19 +3894,19 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'timestampOffset': {'timestampOffset'},
     'trackDefaults': {'trackDefaults'},
     'updating': {'updating'},
-    'videoTracks': {'videoTracks'},
+    'videoTracks': {'videoTracks'}
   },
   'SourceBufferList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'SpeechGrammar': {
     'src': {'src'},
-    'weight': {'weight'},
+    'weight': {'weight'}
   },
   'SpeechGrammarList': {
     'addFromString': {'addFromString'},
     'addFromUri': {'addFromUri'},
-    'item': {'item'},
+    'item': {'item'}
   },
   'SpeechRecognition': {
     'abort': {'abort'},
@@ -3921,29 +3917,29 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'lang': {'lang'},
     'maxAlternatives': {'maxAlternatives'},
     'start': {'start'},
-    'stop': {'stop'},
+    'stop': {'stop'}
   },
   'SpeechRecognitionAlternative': {
     'confidence': {'confidence'},
-    'transcript': {'transcript'},
+    'transcript': {'transcript'}
   },
   'SpeechRecognitionError': {
     'error': {'error'},
-    'message': {'message'},
+    'message': {'message'}
   },
   'SpeechRecognitionEvent': {
     'emma': {'emma'},
     'interpretation': {'interpretation'},
     'resultIndex': {'resultIndex'},
-    'results': {'results'},
+    'results': {'results'}
   },
   'SpeechRecognitionResult': {
     'isFinal': {'isFinal'},
     'item': {'item'},
-    'length': {'length'},
+    'length': {'length'}
   },
   'SpeechRecognitionResultList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'SpeechSynthesis': {
     'cancel': {'cancel'},
@@ -3952,13 +3948,13 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'pending': {'pending'},
     'resume': {'resume'},
     'speak': {'speak'},
-    'speaking': {'speaking'},
+    'speaking': {'speaking'}
   },
   'SpeechSynthesisEvent': {
     'charIndex': {'charIndex'},
     'elapsedTime': {'elapsedTime'},
     'name': {'name'},
-    'utterance': {'utterance'},
+    'utterance': {'utterance'}
   },
   'SpeechSynthesisUtterance': {
     'lang': {'lang'},
@@ -3966,46 +3962,46 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'rate': {'rate'},
     'text': {'text'},
     'voice': {'voice'},
-    'volume': {'volume'},
+    'volume': {'volume'}
   },
   'SpeechSynthesisVoice': {
     'default': {'defaultValue'},
     'lang': {'lang'},
     'localService': {'localService'},
     'name': {'name'},
-    'voiceURI': {'voiceUri'},
+    'voiceURI': {'voiceUri'}
   },
   'StaticRange': {
     'collapsed': {'collapsed'},
     'endContainer': {'endContainer'},
     'endOffset': {'endOffset'},
     'startContainer': {'startContainer'},
-    'startOffset': {'startOffset'},
+    'startOffset': {'startOffset'}
   },
   'StereoPannerNode': {
-    'pan': {'pan'},
+    'pan': {'pan'}
   },
   'StorageEvent': {
     'key': {'key'},
     'newValue': {'newValue'},
     'oldValue': {'oldValue'},
     'storageArea': {'storageArea'},
-    'url': {'url'},
+    'url': {'url'}
   },
   'StyleMedia': {
     'matchMedium': {'matchMedium'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'StylePropertyMap': {
     'append': {'append'},
     'delete': {'delete'},
-    'set': {'set'},
+    'set': {'set'}
   },
   'StylePropertyMapReadonly': {
     'get': {'get'},
     'getAll': {'getAll'},
     'getProperties': {'getProperties'},
-    'has': {'has'},
+    'has': {'has'}
   },
   'StyleSheet': {
     'disabled': {'disabled'},
@@ -4014,10 +4010,10 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'ownerNode': {'ownerNode'},
     'parentStyleSheet': {'parentStyleSheet'},
     'title': {'title'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'StyleSheetList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'SubmitEvent': {
     'bubbles': {'bubbles'},
@@ -4031,31 +4027,31 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stopImmediatePropagation': {'stopImmediatePropagation'},
     'stopPropagation': {'stopPropagation'},
     'timeStamp': {'timeStamp'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'SyncEvent': {
     'lastChance': {'lastChance'},
-    'tag': {'tag'},
+    'tag': {'tag'}
   },
   'TaskAttributionTiming': {
     'containerId': {'containerId'},
     'containerName': {'containerName'},
     'containerSrc': {'containerSrc'},
     'containerType': {'containerType'},
-    'scriptURL': {'scriptUrl'},
+    'scriptURL': {'scriptUrl'}
   },
   'Tests': {
     'requiredExtensions': {'requiredExtensions'},
-    'systemLanguage': {'systemLanguage'},
+    'systemLanguage': {'systemLanguage'}
   },
   'Text': {
     'assignedSlot': {'assignedSlot'},
     'getDestinationInsertionPoints': {'getDestinationInsertionPoints'},
     'splitText': {'splitText'},
-    'wholeText': {'wholeText'},
+    'wholeText': {'wholeText'}
   },
   'TextEvent': {
-    'data': {'data'},
+    'data': {'data'}
   },
   'TextMetrics': {
     'actualBoundingBoxAscent': {'actualBoundingBoxAscent'},
@@ -4069,7 +4065,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'fontBoundingBoxDescent': {'fontBoundingBoxDescent'},
     'hangingBaseline': {'hangingBaseline'},
     'ideographicBaseline': {'ideographicBaseline'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'TextTrack': {
     'activeCues': {'activeCues'},
@@ -4080,31 +4076,31 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'label': {'label'},
     'language': {'language'},
     'mode': {'mode'},
-    'removeCue': {'removeCue'},
+    'removeCue': {'removeCue'}
   },
   'TextTrackCue': {
     'endTime': {'endTime'},
     'id': {'id'},
     'pauseOnExit': {'pauseOnExit'},
     'startTime': {'startTime'},
-    'track': {'track'},
+    'track': {'track'}
   },
   'TextTrackCueList': {
-    'getCueById': {'getCueById'},
+    'getCueById': {'getCueById'}
   },
   'TextTrackList': {
-    'getTrackById': {'getTrackById'},
+    'getTrackById': {'getTrackById'}
   },
   'TimeRanges': {
     'end': {'end'},
     'length': {'length'},
-    'start': {'start'},
+    'start': {'start'}
   },
   'Touch': {
     'force': {'force'},
     'identifier': {'identifier'},
     'region': {'region'},
-    'rotationAngle': {'rotationAngle'},
+    'rotationAngle': {'rotationAngle'}
   },
   'TouchEvent': {
     'altKey': {'altKey'},
@@ -4113,29 +4109,29 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'metaKey': {'metaKey'},
     'shiftKey': {'shiftKey'},
     'targetTouches': {'targetTouches'},
-    'touches': {'touches'},
+    'touches': {'touches'}
   },
   'TouchList': {
-    'item': {'item'},
+    'item': {'item'}
   },
   'TrackDefault': {
     'byteStreamTrackID': {'byteStreamTrackID'},
     'kinds': {'kinds'},
     'label': {'label'},
     'language': {'language'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'TrackDefaultList': {
     'item': {'item'},
-    'length': {'length'},
+    'length': {'length'}
   },
   'TrackEvent': {
-    'track': {'track'},
+    'track': {'track'}
   },
   'TransitionEvent': {
     'elapsedTime': {'elapsedTime'},
     'propertyName': {'propertyName'},
-    'pseudoElement': {'pseudoElement'},
+    'pseudoElement': {'pseudoElement'}
   },
   'TreeWalker': {
     'currentNode': {'currentNode'},
@@ -4148,22 +4144,22 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'previousNode': {'previousNode'},
     'previousSibling': {'previousSibling'},
     'root': {'root'},
-    'whatToShow': {'whatToShow'},
+    'whatToShow': {'whatToShow'}
   },
   'TrustedHTML': {
     'escape': {'escape'},
-    'unsafelyCreate': {'unsafelyCreate'},
+    'unsafelyCreate': {'unsafelyCreate'}
   },
   'TrustedScriptURL': {
-    'unsafelyCreate': {'unsafelyCreate'},
+    'unsafelyCreate': {'unsafelyCreate'}
   },
   'TrustedURL': {
     'create': {'create'},
-    'unsafelyCreate': {'unsafelyCreate'},
+    'unsafelyCreate': {'unsafelyCreate'}
   },
   'UIEvent': {
     'detail': {'detail'},
-    'sourceCapabilities': {'sourceCapabilities'},
+    'sourceCapabilities': {'sourceCapabilities'}
   },
   'URL': {
     'hash': {'hash'},
@@ -4177,7 +4173,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'protocol': {'protocol'},
     'search': {'search'},
     'searchParams': {'searchParams'},
-    'username': {'username'},
+    'username': {'username'}
   },
   'URLSearchParams': {
     'append': {'append'},
@@ -4186,14 +4182,14 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'getAll': {'getAll'},
     'has': {'has'},
     'set': {'set'},
-    'sort': {'sort'},
+    'sort': {'sort'}
   },
   'UnderlyingSourceBase': {
     'notifyLockAcquired': {'notifyLockAcquired'},
-    'notifyLockReleased': {'notifyLockReleased'},
+    'notifyLockReleased': {'notifyLockReleased'}
   },
   'UriReference': {
-    'href': {'href'},
+    'href': {'href'}
   },
   'UrlUtilsReadOnly': {
     'hash': {'hash'},
@@ -4204,17 +4200,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'pathname': {'pathname'},
     'port': {'port'},
     'protocol': {'protocol'},
-    'search': {'search'},
+    'search': {'search'}
   },
   'VRCoordinateSystem': {
-    'getTransformTo': {'getTransformTo'},
+    'getTransformTo': {'getTransformTo'}
   },
   'VRDevice': {
     'deviceName': {'deviceName'},
-    'isExternal': {'isExternal'},
+    'isExternal': {'isExternal'}
   },
   'VRDeviceEvent': {
-    'device': {'device'},
+    'device': {'device'}
   },
   'VRDisplay': {
     'cancelAnimationFrame': {'cancelAnimationFrame'},
@@ -4229,33 +4225,33 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'isPresenting': {'isPresenting'},
     'requestAnimationFrame': {'requestAnimationFrame'},
     'stageParameters': {'stageParameters'},
-    'submitFrame': {'submitFrame'},
+    'submitFrame': {'submitFrame'}
   },
   'VRDisplayCapabilities': {
     'canPresent': {'canPresent'},
     'hasExternalDisplay': {'hasExternalDisplay'},
     'hasPosition': {'hasPosition'},
-    'maxLayers': {'maxLayers'},
+    'maxLayers': {'maxLayers'}
   },
   'VRDisplayEvent': {
     'display': {'display'},
-    'reason': {'reason'},
+    'reason': {'reason'}
   },
   'VREyeParameters': {
     'offset': {'offset'},
     'renderHeight': {'renderHeight'},
-    'renderWidth': {'renderWidth'},
+    'renderWidth': {'renderWidth'}
   },
   'VRFrameData': {
     'leftProjectionMatrix': {'leftProjectionMatrix'},
     'leftViewMatrix': {'leftViewMatrix'},
     'pose': {'pose'},
     'rightProjectionMatrix': {'rightProjectionMatrix'},
-    'rightViewMatrix': {'rightViewMatrix'},
+    'rightViewMatrix': {'rightViewMatrix'}
   },
   'VRFrameOfReference': {
     'bounds': {'bounds'},
-    'emulatedHeight': {'emulatedHeight'},
+    'emulatedHeight': {'emulatedHeight'}
   },
   'VRPose': {
     'angularAcceleration': {'angularAcceleration'},
@@ -4263,28 +4259,28 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'linearAcceleration': {'linearAcceleration'},
     'linearVelocity': {'linearVelocity'},
     'orientation': {'orientation'},
-    'position': {'position'},
+    'position': {'position'}
   },
   'VRSession': {
     'depthFar': {'depthFar'},
     'depthNear': {'depthNear'},
     'device': {'device'},
-    'exclusive': {'exclusive'},
+    'exclusive': {'exclusive'}
   },
   'VRSessionEvent': {
-    'session': {'session'},
+    'session': {'session'}
   },
   'VRStageBounds': {
-    'geometry': {'geometry'},
+    'geometry': {'geometry'}
   },
   'VRStageBoundsPoint': {
     'x': {'x'},
-    'z': {'z'},
+    'z': {'z'}
   },
   'VRStageParameters': {
     'sittingToStandingTransform': {'sittingToStandingTransform'},
     'sizeX': {'sizeX'},
-    'sizeZ': {'sizeZ'},
+    'sizeZ': {'sizeZ'}
   },
   'VTTCue': {
     'align': {'align'},
@@ -4295,7 +4291,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'size': {'size'},
     'snapToLines': {'snapToLines'},
     'text': {'text'},
-    'vertical': {'vertical'},
+    'vertical': {'vertical'}
   },
   'VTTRegion': {
     'id': {'id'},
@@ -4305,7 +4301,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'scroll': {'scroll'},
     'viewportAnchorX': {'viewportAnchorX'},
     'viewportAnchorY': {'viewportAnchorY'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'ValidityState': {
     'badInput': {'badInput'},
@@ -4318,13 +4314,13 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'tooShort': {'tooShort'},
     'typeMismatch': {'typeMismatch'},
     'valid': {'valid'},
-    'valueMissing': {'valueMissing'},
+    'valueMissing': {'valueMissing'}
   },
   'VideoPlaybackQuality': {
     'corruptedVideoFrames': {'corruptedVideoFrames'},
     'creationTime': {'creationTime'},
     'droppedVideoFrames': {'droppedVideoFrames'},
-    'totalVideoFrames': {'totalVideoFrames'},
+    'totalVideoFrames': {'totalVideoFrames'}
   },
   'VideoTrack': {
     'id': {'id'},
@@ -4332,12 +4328,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'label': {'label'},
     'language': {'language'},
     'selected': {'selected'},
-    'sourceBuffer': {'sourceBuffer'},
+    'sourceBuffer': {'sourceBuffer'}
   },
   'VideoTrackList': {
     'getTrackById': {'getTrackById'},
     'length': {'length'},
-    'selectedIndex': {'selectedIndex'},
+    'selectedIndex': {'selectedIndex'}
   },
   'VisualViewport': {
     'height': {'height'},
@@ -4346,21 +4342,21 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'pageLeft': {'pageLeft'},
     'pageTop': {'pageTop'},
     'scale': {'scale'},
-    'width': {'width'},
+    'width': {'width'}
   },
   'WEBGL_debug_shaders': {
-    'getTranslatedShaderSource': {'getTranslatedShaderSource'},
+    'getTranslatedShaderSource': {'getTranslatedShaderSource'}
   },
   'WEBGL_draw_buffers': {
-    'drawBuffersWEBGL': {'drawBuffersWebgl'},
+    'drawBuffersWEBGL': {'drawBuffersWebgl'}
   },
   'WEBGL_lose_context': {
     'loseContext': {'loseContext'},
-    'restoreContext': {'restoreContext'},
+    'restoreContext': {'restoreContext'}
   },
   'WaveShaperNode': {
     'curve': {'curve'},
-    'oversample': {'oversample'},
+    'oversample': {'oversample'}
   },
   'WebGL2RenderingContext': {
     'activeTexture': {'activeTexture'},
@@ -4401,17 +4397,17 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'compressedTexImage2D': {
       'compressedTexImage2D',
       'compressedTexImage2D2',
-      'compressedTexImage2D3',
+      'compressedTexImage2D3'
     },
     'compressedTexImage3D': {'compressedTexImage3D', 'compressedTexImage3D2'},
     'compressedTexSubImage2D': {
       'compressedTexSubImage2D',
       'compressedTexSubImage2D2',
-      'compressedTexSubImage2D3',
+      'compressedTexSubImage2D3'
     },
     'compressedTexSubImage3D': {
       'compressedTexSubImage3D',
-      'compressedTexSubImage3D2',
+      'compressedTexSubImage3D2'
     },
     'copyBufferSubData': {'copyBufferSubData'},
     'copyTexImage2D': {'copyTexImage2D'},
@@ -4593,32 +4589,32 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'vertexAttribIPointer': {'vertexAttribIPointer'},
     'vertexAttribPointer': {'vertexAttribPointer'},
     'viewport': {'viewport'},
-    'waitSync': {'waitSync'},
+    'waitSync': {'waitSync'}
   },
   'WebGLActiveInfo': {
     'name': {'name'},
     'size': {'size'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'WebGLCanvas': {
-    'canvas': {'canvas', 'offscreenCanvas'},
+    'canvas': {'canvas', 'offscreenCanvas'}
   },
   'WebGLContextEvent': {
-    'statusMessage': {'statusMessage'},
+    'statusMessage': {'statusMessage'}
   },
   'WebGLDebugShaders': {
-    'getTranslatedShaderSource': {'getTranslatedShaderSource'},
+    'getTranslatedShaderSource': {'getTranslatedShaderSource'}
   },
   'WebGLDrawBuffers': {
-    'drawBuffersWEBGL': {'drawBuffersWebgl'},
+    'drawBuffersWEBGL': {'drawBuffersWebgl'}
   },
   'WebGLExtensionLoseContext': {
     'loseContext': {'loseContext'},
-    'restoreContext': {'restoreContext'},
+    'restoreContext': {'restoreContext'}
   },
   'WebGLLoseContext': {
     'loseContext': {'loseContext'},
-    'restoreContext': {'restoreContext'},
+    'restoreContext': {'restoreContext'}
   },
   'WebGLRenderingContext': {
     'activeTexture': {'activeTexture'},
@@ -4755,42 +4751,42 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'vertexAttrib4f': {'vertexAttrib4f'},
     'vertexAttrib4fv': {'vertexAttrib4fv'},
     'vertexAttribPointer': {'vertexAttribPointer'},
-    'viewport': {'viewport'},
+    'viewport': {'viewport'}
   },
   'WebGLShaderPrecisionFormat': {
     'precision': {'precision'},
     'rangeMax': {'rangeMax'},
-    'rangeMin': {'rangeMin'},
+    'rangeMin': {'rangeMin'}
   },
   'WebGLTexture': {
     'lastUploadedVideoFrameWasSkipped': {'lastUploadedVideoFrameWasSkipped'},
     'lastUploadedVideoHeight': {'lastUploadedVideoHeight'},
     'lastUploadedVideoTimestamp': {'lastUploadedVideoTimestamp'},
-    'lastUploadedVideoWidth': {'lastUploadedVideoWidth'},
+    'lastUploadedVideoWidth': {'lastUploadedVideoWidth'}
   },
   'WebKitCSSKeyframeRule': {
     'keyText': {'keyText'},
-    'style': {'style'},
+    'style': {'style'}
   },
   'WebKitCSSKeyframesRule': {
     'appendRule': {'appendRule'},
     'cssRules': {'cssRules'},
     'deleteRule': {'deleteRule'},
     'findRule': {'findRule'},
-    'name': {'name'},
+    'name': {'name'}
   },
   'WebKitFileSystem': {
     'name': {'name'},
-    'root': {'root'},
+    'root': {'root'}
   },
   'WebKitMutationObserver': {
     'disconnect': {'disconnect'},
-    'takeRecords': {'takeRecords'},
+    'takeRecords': {'takeRecords'}
   },
   'WebKitTransitionEvent': {
     'elapsedTime': {'elapsedTime'},
     'propertyName': {'propertyName'},
-    'pseudoElement': {'pseudoElement'},
+    'pseudoElement': {'pseudoElement'}
   },
   'WebSocket': {
     'binaryType': {'binaryType'},
@@ -4804,12 +4800,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
       'sendBlob',
       'sendByteBuffer',
       'sendString',
-      'sendTypedData',
+      'sendTypedData'
     },
-    'url': {'url'},
+    'url': {'url'}
   },
   'WheelEvent': {
-    'deltaZ': {'deltaZ'},
+    'deltaZ': {'deltaZ'}
   },
   'Window': {
     'alert': {'alert'},
@@ -4868,14 +4864,14 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'stop': {'stop'},
     'styleMedia': {'styleMedia'},
     'toolbar': {'toolbar'},
-    'visualViewport': {'visualViewport'},
+    'visualViewport': {'visualViewport'}
   },
   'WindowClient': {
     'focused': {'focused'},
-    'visibilityState': {'visibilityState'},
+    'visibilityState': {'visibilityState'}
   },
   'Worker': {
-    'terminate': {'terminate'},
+    'terminate': {'terminate'}
   },
   'WorkerGlobalScope': {
     'addressSpace': {'addressSpace'},
@@ -4890,7 +4886,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'navigator': {'navigator'},
     'origin': {'origin'},
     'performance': {'performance'},
-    'self': {'self'},
+    'self': {'self'}
   },
   'WorkerPerformance': {
     'clearMarks': {'clearMarks'},
@@ -4904,12 +4900,12 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'memory': {'memory'},
     'now': {'now'},
     'setResourceTimingBufferSize': {'setResourceTimingBufferSize'},
-    'timeOrigin': {'timeOrigin'},
+    'timeOrigin': {'timeOrigin'}
   },
   'WorkletAnimation': {
     'cancel': {'cancel'},
     'play': {'play'},
-    'playState': {'playState'},
+    'playState': {'playState'}
   },
   'XMLHttpRequest': {
     'abort': {'abort'},
@@ -4928,21 +4924,21 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'statusText': {'statusText'},
     'timeout': {'timeout'},
     'upload': {'upload'},
-    'withCredentials': {'withCredentials'},
+    'withCredentials': {'withCredentials'}
   },
   'XMLSerializer': {
-    'serializeToString': {'serializeToString'},
+    'serializeToString': {'serializeToString'}
   },
   'XPathEvaluator': {
     'createExpression': {'createExpression'},
     'createNSResolver': {'createNSResolver'},
-    'evaluate': {'evaluate'},
+    'evaluate': {'evaluate'}
   },
   'XPathExpression': {
-    'evaluate': {'evaluate'},
+    'evaluate': {'evaluate'}
   },
   'XPathNSResolver': {
-    'lookupNamespaceURI': {'lookupNamespaceUri'},
+    'lookupNamespaceURI': {'lookupNamespaceUri'}
   },
   'XPathResult': {
     'booleanValue': {'booleanValue'},
@@ -4953,7 +4949,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'singleNodeValue': {'singleNodeValue'},
     'snapshotItem': {'snapshotItem'},
     'snapshotLength': {'snapshotLength'},
-    'stringValue': {'stringValue'},
+    'stringValue': {'stringValue'}
   },
   'XSLTProcessor': {
     'clearParameters': {'clearParameters'},
@@ -4963,15 +4959,15 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'reset': {'reset'},
     'setParameter': {'setParameter'},
     'transformToDocument': {'transformToDocument'},
-    'transformToFragment': {'transformToFragment'},
+    'transformToFragment': {'transformToFragment'}
   },
   'ZoomAndPan': {
-    'zoomAndPan': {'zoomAndPan'},
+    'zoomAndPan': {'zoomAndPan'}
   },
   'mozRTCIceCandidate': {
     'candidate': {'candidate'},
     'sdpMLineIndex': {'sdpMLineIndex'},
-    'sdpMid': {'sdpMid'},
+    'sdpMid': {'sdpMid'}
   },
   'mozRTCPeerConnection': {
     'addTrack': {'addTrack'},
@@ -4988,14 +4984,14 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'remoteDescription': {'remoteDescription'},
     'removeStream': {'removeStream'},
     'removeTrack': {'removeTrack'},
-    'signalingState': {'signalingState'},
+    'signalingState': {'signalingState'}
   },
   'mozRTCSessionDescription': {
     'sdp': {'sdp'},
-    'type': {'type'},
+    'type': {'type'}
   },
   'webkitAudioContext': {
-    'baseLatency': {'baseLatency'},
+    'baseLatency': {'baseLatency'}
   },
   'webkitAudioPannerNode': {
     'coneInnerAngle': {'coneInnerAngle'},
@@ -5013,11 +5009,11 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'refDistance': {'refDistance'},
     'rolloffFactor': {'rolloffFactor'},
     'setOrientation': {'setOrientation'},
-    'setPosition': {'setPosition'},
+    'setPosition': {'setPosition'}
   },
   'webkitFileSystem': {
     'name': {'name'},
-    'root': {'root'},
+    'root': {'root'}
   },
   'webkitFileSystemEntry': {
     'filesystem': {'filesystem'},
@@ -5025,7 +5021,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'isDirectory': {'isDirectory'},
     'isFile': {'isFile'},
     'name': {'name'},
-    'toURL': {'toUrl'},
+    'toURL': {'toUrl'}
   },
   'webkitRTCPeerConnection': {
     'addTrack': {'addTrack'},
@@ -5042,7 +5038,7 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'remoteDescription': {'remoteDescription'},
     'removeStream': {'removeStream'},
     'removeTrack': {'removeTrack'},
-    'signalingState': {'signalingState'},
+    'signalingState': {'signalingState'}
   },
   'webkitSpeechRecognition': {
     'abort': {'abort'},
@@ -5053,8 +5049,8 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'lang': {'lang'},
     'maxAlternatives': {'maxAlternatives'},
     'start': {'start'},
-    'stop': {'stop'},
-  },
+    'stop': {'stop'}
+  }
 };
 
 /// Mapping of `@Native` types in the web libraries to a map of their
@@ -5111,13 +5107,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'valueMax': 'valueMax',
     'valueMin': 'valueMin',
     'valueNow': 'valueNow',
-    'valueText': 'valueText',
+    'valueText': 'valueText'
   },
   'AccessibleNodeList': {
     'add': 'add',
     'item': 'item',
     'length': 'length',
-    'remove': 'remove',
+    'remove': 'remove'
   },
   'ActiveInfo': {'name': 'name', 'size': 'size', 'type': 'type'},
   'AmbientLightSensor': {'illuminance': 'illuminance'},
@@ -5130,7 +5126,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getFloatTimeDomainData': 'getFloatTimeDomainData',
     'maxDecibels': 'maxDecibels',
     'minDecibels': 'minDecibels',
-    'smoothingTimeConstant': 'smoothingTimeConstant',
+    'smoothingTimeConstant': 'smoothingTimeConstant'
   },
   'AnchorElement': {
     'download': 'download',
@@ -5149,7 +5145,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'search': 'search',
     'target': 'target',
     'type': 'type',
-    'username': 'username',
+    'username': 'username'
   },
   'Angle': {
     'convertToSpecifiedUnits': 'convertToSpecifiedUnits',
@@ -5157,12 +5153,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'unitType': 'unitType',
     'value': 'value',
     'valueAsString': 'valueAsString',
-    'valueInSpecifiedUnits': 'valueInSpecifiedUnits',
+    'valueInSpecifiedUnits': 'valueInSpecifiedUnits'
   },
   'AngleInstancedArrays': {
     'drawArraysInstancedAngle': 'drawArraysInstancedANGLE',
     'drawElementsInstancedAngle': 'drawElementsInstancedANGLE',
-    'vertexAttribDivisorAngle': 'vertexAttribDivisorANGLE',
+    'vertexAttribDivisorAngle': 'vertexAttribDivisorANGLE'
   },
   'AnimatedAngle': {'animVal': 'animVal', 'baseVal': 'baseVal'},
   'AnimatedBoolean': {'animVal': 'animVal', 'baseVal': 'baseVal'},
@@ -5188,7 +5184,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'playbackRate': 'playbackRate',
     'reverse': 'reverse',
     'startTime': 'startTime',
-    'timeline': 'timeline',
+    'timeline': 'timeline'
   },
   'AnimationEffectReadOnly': {'timing': 'timing'},
   'AnimationEffectTiming': {
@@ -5199,7 +5195,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'endDelay': 'endDelay',
     'fill': 'fill',
     'iterationStart': 'iterationStart',
-    'iterations': 'iterations',
+    'iterations': 'iterations'
   },
   'AnimationEffectTimingReadOnly': {
     'delay': 'delay',
@@ -5209,7 +5205,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'endDelay': 'endDelay',
     'fill': 'fill',
     'iterationStart': 'iterationStart',
-    'iterations': 'iterations',
+    'iterations': 'iterations'
   },
   'AnimationElement': {
     'beginElement': 'beginElement',
@@ -5221,15 +5217,15 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getStartTime': 'getStartTime',
     'requiredExtensions': 'requiredExtensions',
     'systemLanguage': 'systemLanguage',
-    'targetElement': 'targetElement',
+    'targetElement': 'targetElement'
   },
   'AnimationEvent': {
     'animationName': 'animationName',
-    'elapsedTime': 'elapsedTime',
+    'elapsedTime': 'elapsedTime'
   },
   'AnimationPlaybackEvent': {
     'currentTime': 'currentTime',
-    'timelineTime': 'timelineTime',
+    'timelineTime': 'timelineTime'
   },
   'AnimationTimeline': {'currentTime': 'currentTime'},
   'AnimationWorkletGlobalScope': {'registerAnimator': 'registerAnimator'},
@@ -5237,13 +5233,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'abort': 'abort',
     'status': 'status',
     'swapCache': 'swapCache',
-    'update': 'update',
+    'update': 'update'
   },
   'ApplicationCacheErrorEvent': {
     'message': 'message',
     'reason': 'reason',
     'status': 'status',
-    'url': 'url',
+    'url': 'url'
   },
   'AreaElement': {
     'alt': 'alt',
@@ -5263,7 +5259,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'search': 'search',
     'shape': 'shape',
     'target': 'target',
-    'username': 'username',
+    'username': 'username'
   },
   'AudioBuffer': {
     'copyFromChannel': 'copyFromChannel',
@@ -5272,7 +5268,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getChannelData': 'getChannelData',
     'length': 'length',
     'numberOfChannels': 'numberOfChannels',
-    'sampleRate': 'sampleRate',
+    'sampleRate': 'sampleRate'
   },
   'AudioBufferSourceNode': {
     'buffer': 'buffer',
@@ -5281,7 +5277,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'loopEnd': 'loopEnd',
     'loopStart': 'loopStart',
     'playbackRate': 'playbackRate',
-    'start': 'start',
+    'start': 'start'
   },
   'AudioContext': {'baseLatency': 'baseLatency'},
   'AudioDestinationNode': {'maxChannelCount': 'maxChannelCount'},
@@ -5296,7 +5292,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'setPosition': 'setPosition',
     'upX': 'upX',
     'upY': 'upY',
-    'upZ': 'upZ',
+    'upZ': 'upZ'
   },
   'AudioNode': {
     'channelCount': 'channelCount',
@@ -5305,7 +5301,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'context': 'context',
     'disconnect': 'disconnect',
     'numberOfInputs': 'numberOfInputs',
-    'numberOfOutputs': 'numberOfOutputs',
+    'numberOfOutputs': 'numberOfOutputs'
   },
   'AudioParam': {
     'cancelAndHoldAtTime': 'cancelAndHoldAtTime',
@@ -5318,12 +5314,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'setTargetAtTime': 'setTargetAtTime',
     'setValueAtTime': 'setValueAtTime',
     'setValueCurveAtTime': 'setValueCurveAtTime',
-    'value': 'value',
+    'value': 'value'
   },
   'AudioProcessingEvent': {
     'inputBuffer': 'inputBuffer',
     'outputBuffer': 'outputBuffer',
-    'playbackTime': 'playbackTime',
+    'playbackTime': 'playbackTime'
   },
   'AudioScheduledSourceNode': {'start2': 'start', 'stop': 'stop'},
   'AudioTrack': {
@@ -5332,21 +5328,21 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'kind': 'kind',
     'label': 'label',
     'language': 'language',
-    'sourceBuffer': 'sourceBuffer',
+    'sourceBuffer': 'sourceBuffer'
   },
   'AudioTrackList': {'getTrackById': 'getTrackById', 'length': 'length'},
   'AudioWorkletGlobalScope': {
     'currentTime': 'currentTime',
     'registerProcessor': 'registerProcessor',
-    'sampleRate': 'sampleRate',
+    'sampleRate': 'sampleRate'
   },
   'AudioWorkletNode': {'parameters': 'parameters'},
   'AuthenticatorAssertionResponse': {
     'authenticatorData': 'authenticatorData',
-    'signature': 'signature',
+    'signature': 'signature'
   },
   'AuthenticatorAttestationResponse': {
-    'attestationObject': 'attestationObject',
+    'attestationObject': 'attestationObject'
   },
   'AuthenticatorResponse': {'clientDataJson': 'clientDataJSON'},
   'BackgroundFetchClickEvent': {'state': 'state'},
@@ -5360,7 +5356,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'title': 'title',
     'totalDownloadSize': 'totalDownloadSize',
     'uploadTotal': 'uploadTotal',
-    'uploaded': 'uploaded',
+    'uploaded': 'uploaded'
   },
   'BackgroundFetchSettledFetch': {'response': 'response'},
   'BackgroundFetchedEvent': {'fetches': 'fetches'},
@@ -5390,14 +5386,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'destination': 'destination',
     'listener': 'listener',
     'sampleRate': 'sampleRate',
-    'state': 'state',
+    'state': 'state'
   },
   'BaseElement': {'href': 'href', 'target': 'target'},
   'BatteryManager': {
     'charging': 'charging',
     'chargingTime': 'chargingTime',
     'dischargingTime': 'dischargingTime',
-    'level': 'level',
+    'level': 'level'
   },
   'BeforeInstallPromptEvent': {'platforms': 'platforms'},
   'BeforeUnloadEvent': {'returnValue': 'returnValue'},
@@ -5407,20 +5403,20 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'frequency': 'frequency',
     'gain': 'gain',
     'getFrequencyResponse': 'getFrequencyResponse',
-    'type': 'type',
+    'type': 'type'
   },
   'Blob': {'size': 'size', 'slice': 'slice', 'type': 'type'},
   'BlobEvent': {'data': 'data', 'timecode': 'timecode'},
   'BluetoothRemoteGattDescriptor': {
     'characteristic': 'characteristic',
     'uuid': 'uuid',
-    'value': 'value',
+    'value': 'value'
   },
   'Body': {'bodyUsed': 'bodyUsed'},
   'BroadcastChannel': {
     'close': 'close',
     'name': 'name',
-    'postMessage': 'postMessage',
+    'postMessage': 'postMessage'
   },
   'BudgetState': {'budgetAt': 'budgetAt', 'time': 'time'},
   'ButtonElement': {
@@ -5441,25 +5437,25 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'validationMessage': 'validationMessage',
     'validity': 'validity',
     'value': 'value',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'CanMakePaymentEvent': {
     'methodData': 'methodData',
     'modifiers': 'modifiers',
     'paymentRequestOrigin': 'paymentRequestOrigin',
     'respondWith': 'respondWith',
-    'topLevelOrigin': 'topLevelOrigin',
+    'topLevelOrigin': 'topLevelOrigin'
   },
   'Canvas': {'canvas': 'canvas', 'offscreenCanvas': 'canvas'},
   'CanvasCaptureMediaStreamTrack': {
     'canvas': 'canvas',
-    'requestFrame': 'requestFrame',
+    'requestFrame': 'requestFrame'
   },
   'CanvasElement': {
     'captureStream': 'captureStream',
     'height': 'height',
     'transferControlToOffscreen': 'transferControlToOffscreen',
-    'width': 'width',
+    'width': 'width'
   },
   'CanvasGradient': {'addColorStop': 'addColorStop'},
   'CanvasPattern': {'setTransform': 'setTransform'},
@@ -5522,7 +5518,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'textAlign': 'textAlign',
     'textBaseline': 'textBaseline',
     'transform': 'transform',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'CharacterData': {
     'after': 'after',
@@ -5535,7 +5531,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'nextElementSibling': 'nextElementSibling',
     'previousElementSibling': 'previousElementSibling',
     'replaceData': 'replaceData',
-    'substringData': 'substringData',
+    'substringData': 'substringData'
   },
   'CircleElement': {'cx': 'cx', 'cy': 'cy', 'r': 'r'},
   'Client': {
@@ -5543,7 +5539,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'id': 'id',
     'postMessage': 'postMessage',
     'type': 'type',
-    'url': 'url',
+    'url': 'url'
   },
   'ClipPathElement': {'clipPathUnits': 'clipPathUnits'},
   'ClipboardEvent': {'clipboardData': 'clipboardData'},
@@ -5552,7 +5548,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'ConstantSourceNode': {'offset': 'offset'},
   'ContentElement': {
     'getDistributedNodes': 'getDistributedNodes',
-    'select': 'select',
+    'select': 'select'
   },
   'ContextEvent': {'statusMessage': 'statusMessage'},
   'ConvolverNode': {'buffer': 'buffer', 'normalize': 'normalize'},
@@ -5563,7 +5559,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'heading': 'heading',
     'latitude': 'latitude',
     'longitude': 'longitude',
-    'speed': 'speed',
+    'speed': 'speed'
   },
   'Credential': {'id': 'id', 'type': 'type'},
   'CredentialUserData': {'iconUrl': 'iconURL', 'name': 'name'},
@@ -5572,7 +5568,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'algorithm': 'algorithm',
     'extractable': 'extractable',
     'type': 'type',
-    'usages': 'usages',
+    'usages': 'usages'
   },
   'Css': {
     'Hz': 'Hz',
@@ -5606,7 +5602,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'vh': 'vh',
     'vmax': 'vmax',
     'vmin': 'vmin',
-    'vw': 'vw',
+    'vw': 'vw'
   },
   'CssCharsetRule': {'encoding': 'encoding'},
   'CssConditionRule': {'conditionText': 'conditionText'},
@@ -5614,17 +5610,17 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'CssGroupingRule': {
     'cssRules': 'cssRules',
     'deleteRule': 'deleteRule',
-    'insertRule': 'insertRule',
+    'insertRule': 'insertRule'
   },
   'CssImageValue': {
     'intrinsicHeight': 'intrinsicHeight',
     'intrinsicRatio': 'intrinsicRatio',
-    'intrinsicWidth': 'intrinsicWidth',
+    'intrinsicWidth': 'intrinsicWidth'
   },
   'CssImportRule': {
     'href': 'href',
     'media': 'media',
-    'styleSheet': 'styleSheet',
+    'styleSheet': 'styleSheet'
   },
   'CssKeyframeRule': {'keyText': 'keyText', 'style': 'style'},
   'CssKeyframesRule': {
@@ -5632,7 +5628,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'cssRules': 'cssRules',
     'deleteRule': 'deleteRule',
     'findRule': 'findRule',
-    'name': 'name',
+    'name': 'name'
   },
   'CssKeywordValue': {'value': 'value'},
   'CssMatrixComponent': {'matrix': 'matrix'},
@@ -5644,7 +5640,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'mul': 'mul',
     'parse': 'parse',
     'sub': 'sub',
-    'to': 'to',
+    'to': 'to'
   },
   'CssPageRule': {'selectorText': 'selectorText', 'style': 'style'},
   'CssPerspective': {'length': 'length'},
@@ -5655,7 +5651,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'cssText': 'cssText',
     'parentRule': 'parentRule',
     'parentStyleSheet': 'parentStyleSheet',
-    'type': 'type',
+    'type': 'type'
   },
   'CssScale': {'x': 'x', 'y': 'y', 'z': 'z'},
   'CssSkew': {'ax': 'ax', 'ay': 'ay'},
@@ -5666,7 +5662,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'item': 'item',
     'length': 'length',
     'parentRule': 'parentRule',
-    'removeProperty': 'removeProperty',
+    'removeProperty': 'removeProperty'
   },
   'CssStyleRule': {'selectorText': 'selectorText', 'style': 'style'},
   'CssStyleSheet': {
@@ -5676,7 +5672,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertRule': 'insertRule',
     'ownerRule': 'ownerRule',
     'removeRule': 'removeRule',
-    'rules': 'rules',
+    'rules': 'rules'
   },
   'CssStyleValue': {'parse': 'parse'},
   'CssTransformComponent': {'is2D': 'is2D'},
@@ -5684,13 +5680,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'componentAtIndex': 'componentAtIndex',
     'is2D': 'is2D',
     'length': 'length',
-    'toMatrix': 'toMatrix',
+    'toMatrix': 'toMatrix'
   },
   'CssTranslation': {'x': 'x', 'y': 'y', 'z': 'z'},
   'CssUnitValue': {'type': 'type', 'unit': 'unit', 'value': 'value'},
   'CssUnparsedValue': {
     'fragmentAtIndex': 'fragmentAtIndex',
-    'length': 'length',
+    'length': 'length'
   },
   'CssVariableReferenceValue': {'fallback': 'fallback', 'variable': 'variable'},
   'CssViewportRule': {'style': 'style'},
@@ -5701,7 +5697,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'direction': 'direction',
     'key': 'key',
     'primaryKey': 'primaryKey',
-    'source': 'source',
+    'source': 'source'
   },
   'CustomElementRegistry': {'get': 'get'},
   'DataElement': {'value': 'value'},
@@ -5715,12 +5711,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'items': 'items',
     'setData': 'setData',
     'setDragImage': 'setDragImage',
-    'types': 'types',
+    'types': 'types'
   },
   'DataTransferItem': {
     'getAsFile': 'getAsFile',
     'kind': 'kind',
-    'type': 'type',
+    'type': 'type'
   },
   'DataTransferItemList': {
     'add': 'add',
@@ -5729,59 +5725,59 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'clear': 'clear',
     'item': 'item',
     'length': 'length',
-    'remove': 'remove',
+    'remove': 'remove'
   },
   'Database': {
     'close': 'close',
     'deleteObjectStore': 'deleteObjectStore',
     'name': 'name',
     'objectStoreNames': 'objectStoreNames',
-    'version': 'version',
+    'version': 'version'
   },
   'DebugShaders': {'getTranslatedShaderSource': 'getTranslatedShaderSource'},
   'DedicatedWorkerGlobalScope': {
     'close': 'close',
     'requestFileSystemSync': 'webkitRequestFileSystemSync',
-    'resolveLocalFileSystemSyncUrl': 'webkitResolveLocalFileSystemSyncURL',
+    'resolveLocalFileSystemSyncUrl': 'webkitResolveLocalFileSystemSyncURL'
   },
   'DelayNode': {'delayTime': 'delayTime'},
   'DeprecatedStorageInfo': {
     'queryUsageAndQuota': 'queryUsageAndQuota',
-    'requestQuota': 'requestQuota',
+    'requestQuota': 'requestQuota'
   },
   'DeprecatedStorageQuota': {
     'queryUsageAndQuota': 'queryUsageAndQuota',
-    'requestQuota': 'requestQuota',
+    'requestQuota': 'requestQuota'
   },
   'DeprecationReport': {
     'lineNumber': 'lineNumber',
     'message': 'message',
-    'sourceFile': 'sourceFile',
+    'sourceFile': 'sourceFile'
   },
   'DetailsElement': {'open': 'open'},
   'DetectedBarcode': {
     'boundingBox': 'boundingBox',
     'cornerPoints': 'cornerPoints',
-    'rawValue': 'rawValue',
+    'rawValue': 'rawValue'
   },
   'DetectedFace': {'boundingBox': 'boundingBox', 'landmarks': 'landmarks'},
   'DetectedText': {
     'boundingBox': 'boundingBox',
     'cornerPoints': 'cornerPoints',
-    'rawValue': 'rawValue',
+    'rawValue': 'rawValue'
   },
   'DeviceAcceleration': {'x': 'x', 'y': 'y', 'z': 'z'},
   'DeviceMotionEvent': {
     'acceleration': 'acceleration',
     'accelerationIncludingGravity': 'accelerationIncludingGravity',
     'interval': 'interval',
-    'rotationRate': 'rotationRate',
+    'rotationRate': 'rotationRate'
   },
   'DeviceOrientationEvent': {
     'absolute': 'absolute',
     'alpha': 'alpha',
     'beta': 'beta',
-    'gamma': 'gamma',
+    'gamma': 'gamma'
   },
   'DeviceRotationRate': {'alpha': 'alpha', 'beta': 'beta', 'gamma': 'gamma'},
   'DialogElement': {
@@ -5789,7 +5785,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'open': 'open',
     'returnValue': 'returnValue',
     'show': 'show',
-    'showModal': 'showModal',
+    'showModal': 'showModal'
   },
   'Document': {
     'activeElement': 'activeElement',
@@ -5830,11 +5826,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'rootScroller': 'rootScroller',
     'scrollingElement': 'scrollingElement',
     'suborigin': 'suborigin',
-    'timeline': 'timeline',
+    'timeline': 'timeline'
   },
   'DocumentFragment': {
     'getElementById': 'getElementById',
-    'querySelector': 'querySelector',
+    'querySelector': 'querySelector'
   },
   'DocumentOrShadowRoot': {
     'activeElement': 'activeElement',
@@ -5843,7 +5839,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'fullscreenElement': 'fullscreenElement',
     'getSelection': 'getSelection',
     'pointerLockElement': 'pointerLockElement',
-    'styleSheets': 'styleSheets',
+    'styleSheets': 'styleSheets'
   },
   'DomError': {'message': 'message', 'name': 'name'},
   'DomException': {'message': 'message'},
@@ -5851,7 +5847,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'createDocument': 'createDocument',
     'createDocumentType': 'createDocumentType',
     'createHtmlDocument': 'createHTMLDocument',
-    'hasFeature': 'hasFeature',
+    'hasFeature': 'hasFeature'
   },
   'DomIterator': {'next': 'next'},
   'DomMatrix': {
@@ -5888,7 +5884,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'setMatrixValue': 'setMatrixValue',
     'skewXSelf': 'skewXSelf',
     'skewYSelf': 'skewYSelf',
-    'translateSelf': 'translateSelf',
+    'translateSelf': 'translateSelf'
   },
   'DomMatrixReadOnly': {
     'a': 'a',
@@ -5929,7 +5925,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'skewY': 'skewY',
     'toFloat32Array': 'toFloat32Array',
     'toFloat64Array': 'toFloat64Array',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'DomParser': {'parseFromString': 'parseFromString'},
   'DomPoint': {'w': 'w', 'x': 'x', 'y': 'y', 'z': 'z'},
@@ -5939,7 +5935,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'p1': 'p1',
     'p2': 'p2',
     'p3': 'p3',
-    'p4': 'p4',
+    'p4': 'p4'
   },
   'DomRectList': {'item': 'item'},
   'DomRectReadOnly': {'x': 'x', 'y': 'y'},
@@ -5954,7 +5950,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'replace': 'replace',
     'supports': 'supports',
     'toggle': 'toggle',
-    'value': 'value',
+    'value': 'value'
   },
   'DrawBuffers': {'drawBuffersWebgl': 'drawBuffersWEBGL'},
   'DynamicsCompressorNode': {
@@ -5963,7 +5959,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'ratio': 'ratio',
     'reduction': 'reduction',
     'release': 'release',
-    'threshold': 'threshold',
+    'threshold': 'threshold'
   },
   'Element': {
     'accessibleNode': 'accessibleNode',
@@ -6013,7 +6009,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'tabIndex': 'tabIndex',
     'tagName': 'tagName',
     'title': 'title',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'EllipseElement': {'cx': 'cx', 'cy': 'cy', 'rx': 'rx', 'ry': 'ry'},
   'EmbedElement': {
@@ -6021,7 +6017,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'name': 'name',
     'src': 'src',
     'type': 'type',
-    'width': 'width',
+    'width': 'width'
   },
   'Entry': {
     'filesystem': 'filesystem',
@@ -6029,14 +6025,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'isDirectory': 'isDirectory',
     'isFile': 'isFile',
     'name': 'name',
-    'toUrl': 'toURL',
+    'toUrl': 'toURL'
   },
   'ErrorEvent': {
     'colno': 'colno',
     'error': 'error',
     'filename': 'filename',
     'lineno': 'lineno',
-    'message': 'message',
+    'message': 'message'
   },
   'Event': {
     'bubbles': 'bubbles',
@@ -6050,13 +6046,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'stopImmediatePropagation': 'stopImmediatePropagation',
     'stopPropagation': 'stopPropagation',
     'timeStamp': 'timeStamp',
-    'type': 'type',
+    'type': 'type'
   },
   'EventSource': {
     'close': 'close',
     'readyState': 'readyState',
     'url': 'url',
-    'withCredentials': 'withCredentials',
+    'withCredentials': 'withCredentials'
   },
   'EventTarget': {'dispatchEvent': 'dispatchEvent'},
   'ExtDisjointTimerQuery': {
@@ -6067,7 +6063,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getQueryExt': 'getQueryEXT',
     'getQueryObjectExt': 'getQueryObjectEXT',
     'isQueryExt': 'isQueryEXT',
-    'queryCounterExt': 'queryCounterEXT',
+    'queryCounterExt': 'queryCounterEXT'
   },
   'ExtDisjointTimerQueryWebGL2': {'queryCounterExt': 'queryCounterEXT'},
   'ExtendableEvent': {'waitUntil': 'waitUntil'},
@@ -6076,11 +6072,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'lastEventId': 'lastEventId',
     'origin': 'origin',
     'ports': 'ports',
-    'source': 'source',
+    'source': 'source'
   },
   'External': {
     'AddSearchProvider': 'AddSearchProvider',
-    'IsSearchProviderInstalled': 'IsSearchProviderInstalled',
+    'IsSearchProviderInstalled': 'IsSearchProviderInstalled'
   },
   'FEBlendElement': {
     'height': 'height',
@@ -6090,7 +6086,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEColorMatrixElement': {
     'height': 'height',
@@ -6100,7 +6096,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'values': 'values',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEComponentTransferElement': {
     'height': 'height',
@@ -6108,7 +6104,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FECompositeElement': {
     'height': 'height',
@@ -6122,7 +6118,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEConvolveMatrixElement': {
     'bias': 'bias',
@@ -6141,7 +6137,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'targetY': 'targetY',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEDiffuseLightingElement': {
     'diffuseConstant': 'diffuseConstant',
@@ -6153,7 +6149,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'surfaceScale': 'surfaceScale',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEDisplacementMapElement': {
     'height': 'height',
@@ -6165,7 +6161,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'x': 'x',
     'xChannelSelector': 'xChannelSelector',
     'y': 'y',
-    'yChannelSelector': 'yChannelSelector',
+    'yChannelSelector': 'yChannelSelector'
   },
   'FEDistantLightElement': {'azimuth': 'azimuth', 'elevation': 'elevation'},
   'FEFloodElement': {
@@ -6173,7 +6169,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEGaussianBlurElement': {
     'height': 'height',
@@ -6184,7 +6180,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'stdDeviationY': 'stdDeviationY',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEImageElement': {
     'height': 'height',
@@ -6193,14 +6189,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEMergeElement': {
     'height': 'height',
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEMergeNodeElement': {'in1': 'in1'},
   'FEMorphologyElement': {
@@ -6212,7 +6208,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEOffsetElement': {
     'dx': 'dx',
@@ -6222,7 +6218,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FEPointLightElement': {'x': 'x', 'y': 'y', 'z': 'z'},
   'FESpecularLightingElement': {
@@ -6236,7 +6232,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'surfaceScale': 'surfaceScale',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FESpotLightElement': {
     'limitingConeAngle': 'limitingConeAngle',
@@ -6246,7 +6242,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'specularExponent': 'specularExponent',
     'x': 'x',
     'y': 'y',
-    'z': 'z',
+    'z': 'z'
   },
   'FETileElement': {
     'height': 'height',
@@ -6254,7 +6250,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FETurbulenceElement': {
     'baseFrequencyX': 'baseFrequencyX',
@@ -6267,19 +6263,19 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'type': 'type',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FederatedCredential': {
     'iconUrl': 'iconURL',
     'name': 'name',
     'protocol': 'protocol',
-    'provider': 'provider',
+    'provider': 'provider'
   },
   'FetchEvent': {
     'clientId': 'clientId',
     'isReload': 'isReload',
     'request': 'request',
-    'respondWith': 'respondWith',
+    'respondWith': 'respondWith'
   },
   'FieldSetElement': {
     'checkValidity': 'checkValidity',
@@ -6292,12 +6288,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'type': 'type',
     'validationMessage': 'validationMessage',
     'validity': 'validity',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'File': {
     'lastModified': 'lastModified',
     'name': 'name',
-    'relativePath': 'webkitRelativePath',
+    'relativePath': 'webkitRelativePath'
   },
   'FileList': {'item': 'item'},
   'FileReader': {
@@ -6306,7 +6302,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'readAsArrayBuffer': 'readAsArrayBuffer',
     'readAsDataUrl': 'readAsDataURL',
     'readAsText': 'readAsText',
-    'readyState': 'readyState',
+    'readyState': 'readyState'
   },
   'FileSystem': {'name': 'name', 'root': 'root'},
   'FileWriter': {
@@ -6317,7 +6313,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'readyState': 'readyState',
     'seek': 'seek',
     'truncate': 'truncate',
-    'write': 'write',
+    'write': 'write'
   },
   'FilterElement': {
     'filterUnits': 'filterUnits',
@@ -6326,18 +6322,18 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'primitiveUnits': 'primitiveUnits',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FilterPrimitiveStandardAttributes': {
     'height': 'height',
     'result': 'result',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FitToViewBox': {
     'preserveAspectRatio': 'preserveAspectRatio',
-    'viewBox': 'viewBox',
+    'viewBox': 'viewBox'
   },
   'FontFace': {
     'display': 'display',
@@ -6348,7 +6344,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'style': 'style',
     'unicodeRange': 'unicodeRange',
     'variant': 'variant',
-    'weight': 'weight',
+    'weight': 'weight'
   },
   'FontFaceSet': {
     'add': 'add',
@@ -6357,20 +6353,20 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'delete': 'delete',
     'forEach': 'forEach',
     'has': 'has',
-    'status': 'status',
+    'status': 'status'
   },
   'FontFaceSetLoadEvent': {'fontfaces': 'fontfaces'},
   'FontFaceSource': {'fonts': 'fonts'},
   'ForeignFetchEvent': {
     'origin': 'origin',
     'request': 'request',
-    'respondWith': 'respondWith',
+    'respondWith': 'respondWith'
   },
   'ForeignObjectElement': {
     'height': 'height',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'FormData': {
     'append': 'append',
@@ -6379,7 +6375,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'get': 'get',
     'getAll': 'getAll',
     'has': 'has',
-    'set': 'set',
+    'set': 'set'
   },
   'FormElement': {
     'acceptCharset': 'acceptCharset',
@@ -6396,7 +6392,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'reportValidity': 'reportValidity',
     'reset': 'reset',
     'submit': 'submit',
-    'target': 'target',
+    'target': 'target'
   },
   'GainNode': {'gain': 'gain'},
   'Gamepad': {
@@ -6409,12 +6405,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'index': 'index',
     'mapping': 'mapping',
     'pose': 'pose',
-    'timestamp': 'timestamp',
+    'timestamp': 'timestamp'
   },
   'GamepadButton': {
     'pressed': 'pressed',
     'touched': 'touched',
-    'value': 'value',
+    'value': 'value'
   },
   'GamepadEvent': {'gamepad': 'gamepad'},
   'GamepadPose': {
@@ -6425,14 +6421,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'linearAcceleration': 'linearAcceleration',
     'linearVelocity': 'linearVelocity',
     'orientation': 'orientation',
-    'position': 'position',
+    'position': 'position'
   },
   'GeometryElement': {
     'getPointAtLength': 'getPointAtLength',
     'getTotalLength': 'getTotalLength',
     'isPointInFill': 'isPointInFill',
     'isPointInStroke': 'isPointInStroke',
-    'pathLength': 'pathLength',
+    'pathLength': 'pathLength'
   },
   'Geoposition': {'coords': 'coords', 'timestamp': 'timestamp'},
   'GraphicsElement': {
@@ -6443,7 +6439,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'nearestViewportElement': 'nearestViewportElement',
     'requiredExtensions': 'requiredExtensions',
     'systemLanguage': 'systemLanguage',
-    'transform': 'transform',
+    'transform': 'transform'
   },
   'Gyroscope': {'x': 'x', 'y': 'y', 'z': 'z'},
   'HRElement': {'color': 'color'},
@@ -6453,7 +6449,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'forward': 'forward',
     'go': 'go',
     'length': 'length',
-    'scrollRestoration': 'scrollRestoration',
+    'scrollRestoration': 'scrollRestoration'
   },
   'HtmlCollection': {'item': 'item', 'namedItem': 'namedItem'},
   'HtmlDocument': {'body': 'body'},
@@ -6470,7 +6466,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'port': 'port',
     'protocol': 'protocol',
     'search': 'search',
-    'username': 'username',
+    'username': 'username'
   },
   'HttpRequest': {
     'abort': 'abort',
@@ -6489,7 +6485,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'statusText': 'statusText',
     'timeout': 'timeout',
     'upload': 'upload',
-    'withCredentials': 'withCredentials',
+    'withCredentials': 'withCredentials'
   },
   'IFrameElement': {
     'allow': 'allow',
@@ -6502,18 +6498,18 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'sandbox': 'sandbox',
     'src': 'src',
     'srcdoc': 'srcdoc',
-    'width': 'width',
+    'width': 'width'
   },
   'IdbFactory': {'cmp': 'cmp'},
   'IdleDeadline': {
     'didTimeout': 'didTimeout',
-    'timeRemaining': 'timeRemaining',
+    'timeRemaining': 'timeRemaining'
   },
   'IirFilterNode': {'getFrequencyResponse': 'getFrequencyResponse'},
   'ImageBitmap': {'close': 'close', 'height': 'height', 'width': 'width'},
   'ImageBitmapRenderingContext': {
     'canvas': 'canvas',
-    'transferFromImageBitmap': 'transferFromImageBitmap',
+    'transferFromImageBitmap': 'transferFromImageBitmap'
   },
   'ImageCapture': {'track': 'track'},
   'ImageData': {'data': 'data', 'height': 'height', 'width': 'width'},
@@ -6532,7 +6528,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'src': 'src',
     'srcset': 'srcset',
     'useMap': 'useMap',
-    'width': 'width',
+    'width': 'width'
   },
   'Index': {
     'getAll': 'getAll',
@@ -6541,7 +6537,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'multiEntry': 'multiEntry',
     'name': 'name',
     'objectStore': 'objectStore',
-    'unique': 'unique',
+    'unique': 'unique'
   },
   'InputDeviceCapabilities': {'firesTouchEvents': 'firesTouchEvents'},
   'InputElement': {
@@ -6600,7 +6596,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'value': 'value',
     'valueAsNumber': 'valueAsNumber',
     'width': 'width',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'IntersectionObserver': {
     'disconnect': 'disconnect',
@@ -6609,7 +6605,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'rootMargin': 'rootMargin',
     'takeRecords': 'takeRecords',
     'thresholds': 'thresholds',
-    'unobserve': 'unobserve',
+    'unobserve': 'unobserve'
   },
   'IntersectionObserverEntry': {
     'boundingClientRect': 'boundingClientRect',
@@ -6618,12 +6614,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'isIntersecting': 'isIntersecting',
     'rootBounds': 'rootBounds',
     'target': 'target',
-    'time': 'time',
+    'time': 'time'
   },
   'InterventionReport': {
     'lineNumber': 'lineNumber',
     'message': 'message',
-    'sourceFile': 'sourceFile',
+    'sourceFile': 'sourceFile'
   },
   'KeyRange': {
     'bound_': 'bound',
@@ -6634,7 +6630,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'only_': 'only',
     'upper': 'upper',
     'upperBound_': 'upperBound',
-    'upperOpen': 'upperOpen',
+    'upperOpen': 'upperOpen'
   },
   'KeyboardEvent': {
     'altKey': 'altKey',
@@ -6648,7 +6644,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'location': 'location',
     'metaKey': 'metaKey',
     'repeat': 'repeat',
-    'shiftKey': 'shiftKey',
+    'shiftKey': 'shiftKey'
   },
   'LIElement': {'value': 'value'},
   'LabelElement': {'control': 'control', 'form': 'form', 'htmlFor': 'htmlFor'},
@@ -6659,7 +6655,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'unitType': 'unitType',
     'value': 'value',
     'valueAsString': 'valueAsString',
-    'valueInSpecifiedUnits': 'valueInSpecifiedUnits',
+    'valueInSpecifiedUnits': 'valueInSpecifiedUnits'
   },
   'LengthList': {
     'appendItem': 'appendItem',
@@ -6669,7 +6665,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertItemBefore': 'insertItemBefore',
     'numberOfItems': 'numberOfItems',
     'removeItem': 'removeItem',
-    'replaceItem': 'replaceItem',
+    'replaceItem': 'replaceItem'
   },
   'LineElement': {'x1': 'x1', 'x2': 'x2', 'y1': 'y1', 'y2': 'y2'},
   'LinearGradientElement': {'x1': 'x1', 'x2': 'x2', 'y1': 'y1', 'y2': 'y2'},
@@ -6688,7 +6684,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'scope': 'scope',
     'sheet': 'sheet',
     'sizes': 'sizes',
-    'type': 'type',
+    'type': 'type'
   },
   'Location': {
     'ancestorOrigins': 'ancestorOrigins',
@@ -6703,11 +6699,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'reload': 'reload',
     'replace': 'replace',
     'search': 'search',
-    'trustedHref': 'trustedHref',
+    'trustedHref': 'trustedHref'
   },
   'LoseContext': {
     'loseContext': 'loseContext',
-    'restoreContext': 'restoreContext',
+    'restoreContext': 'restoreContext'
   },
   'Magnetometer': {'x': 'x', 'y': 'y', 'z': 'z'},
   'MapElement': {'areas': 'areas', 'name': 'name'},
@@ -6722,7 +6718,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'refY': 'refY',
     'setOrientToAngle': 'setOrientToAngle',
     'setOrientToAuto': 'setOrientToAuto',
-    'viewBox': 'viewBox',
+    'viewBox': 'viewBox'
   },
   'MaskElement': {
     'height': 'height',
@@ -6732,7 +6728,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'systemLanguage': 'systemLanguage',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'Matrix': {
     'a': 'a',
@@ -6751,18 +6747,18 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'scaleNonUniform': 'scaleNonUniform',
     'skewX': 'skewX',
     'skewY': 'skewY',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'MediaCapabilitiesInfo': {
     'powerEfficient': 'powerEfficient',
     'smooth': 'smooth',
-    'supported': 'supported',
+    'supported': 'supported'
   },
   'MediaDeviceInfo': {
     'deviceId': 'deviceId',
     'groupId': 'groupId',
     'kind': 'kind',
-    'label': 'label',
+    'label': 'label'
   },
   'MediaElement': {
     'addTextTrack': 'addTextTrack',
@@ -6803,19 +6799,19 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'textTracks': 'textTracks',
     'videoDecodedByteCount': 'webkitVideoDecodedByteCount',
     'videoTracks': 'videoTracks',
-    'volume': 'volume',
+    'volume': 'volume'
   },
   'MediaElementAudioSourceNode': {'mediaElement': 'mediaElement'},
   'MediaEncryptedEvent': {
     'initData': 'initData',
-    'initDataType': 'initDataType',
+    'initDataType': 'initDataType'
   },
   'MediaError': {'code': 'code', 'message': 'message'},
   'MediaKeyMessageEvent': {'message': 'message', 'messageType': 'messageType'},
   'MediaKeySession': {
     'expiration': 'expiration',
     'keyStatuses': 'keyStatuses',
-    'sessionId': 'sessionId',
+    'sessionId': 'sessionId'
   },
   'MediaKeyStatusMap': {'get': 'get', 'has': 'has', 'size': 'size'},
   'MediaKeySystemAccess': {'keySystem': 'keySystem'},
@@ -6825,19 +6821,19 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'deleteMedium': 'deleteMedium',
     'item': 'item',
     'length': 'length',
-    'mediaText': 'mediaText',
+    'mediaText': 'mediaText'
   },
   'MediaMetadata': {
     'album': 'album',
     'artist': 'artist',
     'artwork': 'artwork',
-    'title': 'title',
+    'title': 'title'
   },
   'MediaQueryList': {
     'addListener': 'addListener',
     'matches': 'matches',
     'media': 'media',
-    'removeListener': 'removeListener',
+    'removeListener': 'removeListener'
   },
   'MediaQueryListEvent': {'matches': 'matches', 'media': 'media'},
   'MediaRecorder': {
@@ -6851,12 +6847,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'state': 'state',
     'stop': 'stop',
     'stream': 'stream',
-    'videoBitsPerSecond': 'videoBitsPerSecond',
+    'videoBitsPerSecond': 'videoBitsPerSecond'
   },
   'MediaSession': {
     'metadata': 'metadata',
     'playbackState': 'playbackState',
-    'setActionHandler': 'setActionHandler',
+    'setActionHandler': 'setActionHandler'
   },
   'MediaSettingsRange': {'max': 'max', 'min': 'min', 'step': 'step'},
   'MediaSource': {
@@ -6869,7 +6865,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'readyState': 'readyState',
     'removeSourceBuffer': 'removeSourceBuffer',
     'setLiveSeekableRange': 'setLiveSeekableRange',
-    'sourceBuffers': 'sourceBuffers',
+    'sourceBuffers': 'sourceBuffers'
   },
   'MediaStream': {
     'active': 'active',
@@ -6880,7 +6876,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getTracks': 'getTracks',
     'getVideoTracks': 'getVideoTracks',
     'id': 'id',
-    'removeTrack': 'removeTrack',
+    'removeTrack': 'removeTrack'
   },
   'MediaStreamAudioDestinationNode': {'stream': 'stream'},
   'MediaStreamAudioSourceNode': {'mediaStream': 'mediaStream'},
@@ -6894,26 +6890,26 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'label': 'label',
     'muted': 'muted',
     'readyState': 'readyState',
-    'stop': 'stop',
+    'stop': 'stop'
   },
   'MediaStreamTrackEvent': {'track': 'track'},
   'MemoryInfo': {
     'jsHeapSizeLimit': 'jsHeapSizeLimit',
     'totalJSHeapSize': 'totalJSHeapSize',
-    'usedJSHeapSize': 'usedJSHeapSize',
+    'usedJSHeapSize': 'usedJSHeapSize'
   },
   'MessageChannel': {'port1': 'port1', 'port2': 'port2'},
   'MessageEvent': {
     'lastEventId': 'lastEventId',
     'origin': 'origin',
     'ports': 'ports',
-    'suborigin': 'suborigin',
+    'suborigin': 'suborigin'
   },
   'MessagePort': {'close': 'close'},
   'MetaElement': {
     'content': 'content',
     'httpEquiv': 'httpEquiv',
-    'name': 'name',
+    'name': 'name'
   },
   'Metadata': {'size': 'size'},
   'MeterElement': {
@@ -6923,12 +6919,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'max': 'max',
     'min': 'min',
     'optimum': 'optimum',
-    'value': 'value',
+    'value': 'value'
   },
   'MidiAccess': {
     'inputs': 'inputs',
     'outputs': 'outputs',
-    'sysexEnabled': 'sysexEnabled',
+    'sysexEnabled': 'sysexEnabled'
   },
   'MidiConnectionEvent': {'port': 'port'},
   'MidiMessageEvent': {'data': 'data'},
@@ -6940,13 +6936,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'name': 'name',
     'state': 'state',
     'type': 'type',
-    'version': 'version',
+    'version': 'version'
   },
   'MimeType': {
     'description': 'description',
     'enabledPlugin': 'enabledPlugin',
     'suffixes': 'suffixes',
-    'type': 'type',
+    'type': 'type'
   },
   'MimeTypeArray': {'item': 'item', 'namedItem': 'namedItem'},
   'ModElement': {'cite': 'cite', 'dateTime': 'dateTime'},
@@ -6960,7 +6956,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'metaKey': 'metaKey',
     'region': 'region',
     'shiftKey': 'shiftKey',
-    'toElement': 'toElement',
+    'toElement': 'toElement'
   },
   'MutationEvent': {
     'attrChange': 'attrChange',
@@ -6968,11 +6964,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'initMutationEvent': 'initMutationEvent',
     'newValue': 'newValue',
     'prevValue': 'prevValue',
-    'relatedNode': 'relatedNode',
+    'relatedNode': 'relatedNode'
   },
   'MutationObserver': {
     'disconnect': 'disconnect',
-    'takeRecords': 'takeRecords',
+    'takeRecords': 'takeRecords'
   },
   'MutationRecord': {
     'addedNodes': 'addedNodes',
@@ -6983,7 +6979,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'previousSibling': 'previousSibling',
     'removedNodes': 'removedNodes',
     'target': 'target',
-    'type': 'type',
+    'type': 'type'
   },
   'Navigator': {
     'appCodeName': 'appCodeName',
@@ -7022,7 +7018,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'vendor': 'vendor',
     'vendorSub': 'vendorSub',
     'vr': 'vr',
-    'webdriver': 'webdriver',
+    'webdriver': 'webdriver'
   },
   'NavigatorAutomationInformation': {'webdriver': 'webdriver'},
   'NavigatorConcurrentHardware': {'hardwareConcurrency': 'hardwareConcurrency'},
@@ -7034,21 +7030,21 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'dartEnabled': 'dartEnabled',
     'platform': 'platform',
     'product': 'product',
-    'userAgent': 'userAgent',
+    'userAgent': 'userAgent'
   },
   'NavigatorLanguage': {'language': 'language', 'languages': 'languages'},
   'NavigatorOnLine': {'onLine': 'onLine'},
   'NavigatorUserMediaError': {
     'constraintName': 'constraintName',
     'message': 'message',
-    'name': 'name',
+    'name': 'name'
   },
   'NetworkInformation': {
     'downlink': 'downlink',
     'downlinkMax': 'downlinkMax',
     'effectiveType': 'effectiveType',
     'rtt': 'rtt',
-    'type': 'type',
+    'type': 'type'
   },
   'Node': {
     'append': 'appendChild',
@@ -7069,7 +7065,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'parent': 'parentElement',
     'parentNode': 'parentNode',
     'previousNode': 'previousSibling',
-    'text': 'textContent',
+    'text': 'textContent'
   },
   'NodeIterator': {
     'detach': 'detach',
@@ -7078,11 +7074,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'previousNode': 'previousNode',
     'referenceNode': 'referenceNode',
     'root': 'root',
-    'whatToShow': 'whatToShow',
+    'whatToShow': 'whatToShow'
   },
   'NonDocumentTypeChildNode': {
     'nextElementSibling': 'nextElementSibling',
-    'previousElementSibling': 'previousElementSibling',
+    'previousElementSibling': 'previousElementSibling'
   },
   'NonElementParentNode': {'getElementById': 'getElementById'},
   'NoncedElement': {'nonce': 'nonce'},
@@ -7104,12 +7100,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'tag': 'tag',
     'timestamp': 'timestamp',
     'title': 'title',
-    'vibrate': 'vibrate',
+    'vibrate': 'vibrate'
   },
   'NotificationEvent': {
     'action': 'action',
     'notification': 'notification',
-    'reply': 'reply',
+    'reply': 'reply'
   },
   'Number': {'value': 'value'},
   'NumberList': {
@@ -7120,7 +7116,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertItemBefore': 'insertItemBefore',
     'numberOfItems': 'numberOfItems',
     'removeItem': 'removeItem',
-    'replaceItem': 'replaceItem',
+    'replaceItem': 'replaceItem'
   },
   'OListElement': {'reversed': 'reversed', 'start': 'start', 'type': 'type'},
   'ObjectElement': {
@@ -7136,7 +7132,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'validationMessage': 'validationMessage',
     'validity': 'validity',
     'width': 'width',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'ObjectStore': {
     'autoIncrement': 'autoIncrement',
@@ -7149,27 +7145,27 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'keyPath': 'keyPath',
     'name': 'name',
     'openKeyCursor': 'openKeyCursor',
-    'transaction': 'transaction',
+    'transaction': 'transaction'
   },
   'Observation': {'key': 'key', 'type': 'type', 'value': 'value'},
   'Observer': {'unobserve': 'unobserve'},
   'ObserverChanges': {
     'database': 'database',
     'records': 'records',
-    'transaction': 'transaction',
+    'transaction': 'transaction'
   },
   'OesVertexArrayObject': {
     'bindVertexArray': 'bindVertexArrayOES',
     'createVertexArray': 'createVertexArrayOES',
     'deleteVertexArray': 'deleteVertexArrayOES',
-    'isVertexArray': 'isVertexArrayOES',
+    'isVertexArray': 'isVertexArrayOES'
   },
   'OfflineAudioCompletionEvent': {'renderedBuffer': 'renderedBuffer'},
   'OfflineAudioContext': {'length': 'length'},
   'OffscreenCanvas': {
     'height': 'height',
     'transferToImageBitmap': 'transferToImageBitmap',
-    'width': 'width',
+    'width': 'width'
   },
   'OffscreenCanvasRenderingContext2D': {
     'arc': 'arc',
@@ -7227,7 +7223,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'textAlign': 'textAlign',
     'textBaseline': 'textBaseline',
     'transform': 'transform',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'OptGroupElement': {'disabled': 'disabled', 'label': 'label'},
   'OptionElement': {
@@ -7237,17 +7233,17 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'index': 'index',
     'label': 'label',
     'selected': 'selected',
-    'value': 'value',
+    'value': 'value'
   },
   'OrientationSensor': {
     'populateMatrix': 'populateMatrix',
-    'quaternion': 'quaternion',
+    'quaternion': 'quaternion'
   },
   'OscillatorNode': {
     'detune': 'detune',
     'frequency': 'frequency',
     'setPeriodicWave': 'setPeriodicWave',
-    'type': 'type',
+    'type': 'type'
   },
   'OutputElement': {
     'checkValidity': 'checkValidity',
@@ -7262,12 +7258,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'validationMessage': 'validationMessage',
     'validity': 'validity',
     'value': 'value',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'OverconstrainedError': {
     'constraint': 'constraint',
     'message': 'message',
-    'name': 'name',
+    'name': 'name'
   },
   'PageTransitionEvent': {'persisted': 'persisted'},
   'PaintRenderingContext2D': {
@@ -7319,12 +7315,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'strokeRect': 'strokeRect',
     'strokeStyle': 'strokeStyle',
     'transform': 'transform',
-    'translate': 'translate',
+    'translate': 'translate'
   },
   'PaintSize': {'height': 'height', 'width': 'width'},
   'PaintWorkletGlobalScope': {
     'devicePixelRatio': 'devicePixelRatio',
-    'registerPaint': 'registerPaint',
+    'registerPaint': 'registerPaint'
   },
   'PannerNode': {
     'coneInnerAngle': 'coneInnerAngle',
@@ -7342,7 +7338,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'refDistance': 'refDistance',
     'rolloffFactor': 'rolloffFactor',
     'setOrientation': 'setOrientation',
-    'setPosition': 'setPosition',
+    'setPosition': 'setPosition'
   },
   'ParamElement': {'name': 'name', 'value': 'value'},
   'PasswordCredential': {
@@ -7351,7 +7347,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'idName': 'idName',
     'name': 'name',
     'password': 'password',
-    'passwordName': 'passwordName',
+    'passwordName': 'passwordName'
   },
   'Path2D': {
     'addPath': 'addPath',
@@ -7363,7 +7359,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'lineTo': 'lineTo',
     'moveTo': 'moveTo',
     'quadraticCurveTo': 'quadraticCurveTo',
-    'rect': 'rect',
+    'rect': 'rect'
   },
   'PatternElement': {
     'height': 'height',
@@ -7377,7 +7373,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'viewBox': 'viewBox',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'PaymentAddress': {
     'addressLine': 'addressLine',
@@ -7390,14 +7386,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'postalCode': 'postalCode',
     'recipient': 'recipient',
     'region': 'region',
-    'sortingCode': 'sortingCode',
+    'sortingCode': 'sortingCode'
   },
   'PaymentManager': {'instruments': 'instruments', 'userHint': 'userHint'},
   'PaymentRequest': {
     'id': 'id',
     'shippingAddress': 'shippingAddress',
     'shippingOption': 'shippingOption',
-    'shippingType': 'shippingType',
+    'shippingType': 'shippingType'
   },
   'PaymentRequestEvent': {
     'instrumentKey': 'instrumentKey',
@@ -7407,7 +7403,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'paymentRequestOrigin': 'paymentRequestOrigin',
     'respondWith': 'respondWith',
     'topLevelOrigin': 'topLevelOrigin',
-    'total': 'total',
+    'total': 'total'
   },
   'PaymentRequestUpdateEvent': {'updateWith': 'updateWith'},
   'PaymentResponse': {
@@ -7418,7 +7414,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'payerPhone': 'payerPhone',
     'requestId': 'requestId',
     'shippingAddress': 'shippingAddress',
-    'shippingOption': 'shippingOption',
+    'shippingOption': 'shippingOption'
   },
   'Performance': {
     'clearMarks': 'clearMarks',
@@ -7432,13 +7428,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'now': 'now',
     'setResourceTimingBufferSize': 'setResourceTimingBufferSize',
     'timeOrigin': 'timeOrigin',
-    'timing': 'timing',
+    'timing': 'timing'
   },
   'PerformanceEntry': {
     'duration': 'duration',
     'entryType': 'entryType',
     'name': 'name',
-    'startTime': 'startTime',
+    'startTime': 'startTime'
   },
   'PerformanceLongTaskTiming': {'attribution': 'attribution'},
   'PerformanceNavigation': {'redirectCount': 'redirectCount', 'type': 'type'},
@@ -7452,13 +7448,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'redirectCount': 'redirectCount',
     'type': 'type',
     'unloadEventEnd': 'unloadEventEnd',
-    'unloadEventStart': 'unloadEventStart',
+    'unloadEventStart': 'unloadEventStart'
   },
   'PerformanceObserver': {'disconnect': 'disconnect'},
   'PerformanceObserverEntryList': {
     'getEntries': 'getEntries',
     'getEntriesByName': 'getEntriesByName',
-    'getEntriesByType': 'getEntriesByType',
+    'getEntriesByType': 'getEntriesByType'
   },
   'PerformanceResourceTiming': {
     'connectEnd': 'connectEnd',
@@ -7478,12 +7474,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'secureConnectionStart': 'secureConnectionStart',
     'serverTiming': 'serverTiming',
     'transferSize': 'transferSize',
-    'workerStart': 'workerStart',
+    'workerStart': 'workerStart'
   },
   'PerformanceServerTiming': {
     'description': 'description',
     'duration': 'duration',
-    'name': 'name',
+    'name': 'name'
   },
   'PerformanceTiming': {
     'connectEnd': 'connectEnd',
@@ -7506,14 +7502,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'responseStart': 'responseStart',
     'secureConnectionStart': 'secureConnectionStart',
     'unloadEventEnd': 'unloadEventEnd',
-    'unloadEventStart': 'unloadEventStart',
+    'unloadEventStart': 'unloadEventStart'
   },
   'PermissionStatus': {'state': 'state'},
   'PhotoCapabilities': {
     'fillLightMode': 'fillLightMode',
     'imageHeight': 'imageHeight',
     'imageWidth': 'imageWidth',
-    'redEyeReduction': 'redEyeReduction',
+    'redEyeReduction': 'redEyeReduction'
   },
   'Plugin': {
     'description': 'description',
@@ -7521,12 +7517,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'item': 'item',
     'length': 'length',
     'name': 'name',
-    'namedItem': 'namedItem',
+    'namedItem': 'namedItem'
   },
   'PluginArray': {
     'item': 'item',
     'namedItem': 'namedItem',
-    'refresh': 'refresh',
+    'refresh': 'refresh'
   },
   'Point': {'matrixTransform': 'matrixTransform', 'x': 'x', 'y': 'y'},
   'PointList': {
@@ -7538,7 +7534,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'length': 'length',
     'numberOfItems': 'numberOfItems',
     'removeItem': 'removeItem',
-    'replaceItem': 'replaceItem',
+    'replaceItem': 'replaceItem'
   },
   'PointerEvent': {
     'getCoalescedEvents': 'getCoalescedEvents',
@@ -7551,7 +7547,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'tiltX': 'tiltX',
     'tiltY': 'tiltY',
     'twist': 'twist',
-    'width': 'width',
+    'width': 'width'
   },
   'PolygonElement': {'animatedPoints': 'animatedPoints', 'points': 'points'},
   'PolylineElement': {'animatedPoints': 'animatedPoints', 'points': 'points'},
@@ -7565,12 +7561,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'send': 'send',
     'state': 'state',
     'terminate': 'terminate',
-    'url': 'url',
+    'url': 'url'
   },
   'PresentationConnectionAvailableEvent': {'connection': 'connection'},
   'PresentationConnectionCloseEvent': {
     'message': 'message',
-    'reason': 'reason',
+    'reason': 'reason'
   },
   'PresentationConnectionList': {'connections': 'connections'},
   'PreserveAspectRatio': {'align': 'align', 'meetOrSlice': 'meetOrSlice'},
@@ -7579,12 +7575,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'labels': 'labels',
     'max': 'max',
     'position': 'position',
-    'value': 'value',
+    'value': 'value'
   },
   'ProgressEvent': {
     'lengthComputable': 'lengthComputable',
     'loaded': 'loaded',
-    'total': 'total',
+    'total': 'total'
   },
   'PromiseRejectionEvent': {'reason': 'reason'},
   'PublicKeyCredential': {'rawId': 'rawId', 'response': 'response'},
@@ -7594,17 +7590,17 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'arrayBuffer': 'arrayBuffer',
     'blob': 'blob',
     'json': 'json',
-    'text': 'text',
+    'text': 'text'
   },
   'PushSubscription': {
     'endpoint': 'endpoint',
     'expirationTime': 'expirationTime',
     'getKey': 'getKey',
-    'options': 'options',
+    'options': 'options'
   },
   'PushSubscriptionOptions': {
     'applicationServerKey': 'applicationServerKey',
-    'userVisibleOnly': 'userVisibleOnly',
+    'userVisibleOnly': 'userVisibleOnly'
   },
   'QuoteElement': {'cite': 'cite'},
   'RadialGradientElement': {
@@ -7613,7 +7609,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'fr': 'fr',
     'fx': 'fx',
     'fy': 'fy',
-    'r': 'r',
+    'r': 'r'
   },
   'Range': {
     'cloneContents': 'cloneContents',
@@ -7643,7 +7639,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'setStartBefore': 'setStartBefore',
     'startContainer': 'startContainer',
     'startOffset': 'startOffset',
-    'surroundContents': 'surroundContents',
+    'surroundContents': 'surroundContents'
   },
   'Rect': {'height': 'height', 'width': 'width', 'x': 'x', 'y': 'y'},
   'RectElement': {
@@ -7652,7 +7648,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'ry': 'ry',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'RelatedApplication': {'id': 'id', 'platform': 'platform', 'url': 'url'},
   'RemotePlayback': {'state': 'state'},
@@ -7791,7 +7787,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'vertexAttrib4f': 'vertexAttrib4f',
     'vertexAttrib4fv': 'vertexAttrib4fv',
     'vertexAttribPointer': 'vertexAttribPointer',
-    'viewport': 'viewport',
+    'viewport': 'viewport'
   },
   'RenderingContext2': {
     'activeTexture': 'activeTexture',
@@ -8032,24 +8028,24 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'vertexAttribIPointer': 'vertexAttribIPointer',
     'vertexAttribPointer': 'vertexAttribPointer',
     'viewport': 'viewport',
-    'waitSync': 'waitSync',
+    'waitSync': 'waitSync'
   },
   'ReportingObserver': {'disconnect': 'disconnect', 'observe': 'observe'},
   'Request': {
     'error': 'error',
     'readyState': 'readyState',
     'source': 'source',
-    'transaction': 'transaction',
+    'transaction': 'transaction'
   },
   'ResizeObserver': {
     'disconnect': 'disconnect',
     'observe': 'observe',
-    'unobserve': 'unobserve',
+    'unobserve': 'unobserve'
   },
   'ResizeObserverEntry': {'contentRect': 'contentRect', 'target': 'target'},
   'RtcCertificate': {
     'expires': 'expires',
-    'getFingerprints': 'getFingerprints',
+    'getFingerprints': 'getFingerprints'
   },
   'RtcDataChannel': {
     'binaryType': 'binaryType',
@@ -8069,7 +8065,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'sendBlob': 'send',
     'sendByteBuffer': 'send',
     'sendString': 'send',
-    'sendTypedData': 'send',
+    'sendTypedData': 'send'
   },
   'RtcDataChannelEvent': {'channel': 'channel'},
   'RtcDtmfSender': {
@@ -8078,19 +8074,19 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertDtmf': 'insertDTMF',
     'interToneGap': 'interToneGap',
     'toneBuffer': 'toneBuffer',
-    'track': 'track',
+    'track': 'track'
   },
   'RtcDtmfToneChangeEvent': {'tone': 'tone'},
   'RtcIceCandidate': {
     'candidate': 'candidate',
     'sdpMLineIndex': 'sdpMLineIndex',
-    'sdpMid': 'sdpMid',
+    'sdpMid': 'sdpMid'
   },
   'RtcLegacyStatsReport': {
     'id': 'id',
     'names': 'names',
     'stat': 'stat',
-    'type': 'type',
+    'type': 'type'
   },
   'RtcPeerConnection': {
     'addTrack': 'addTrack',
@@ -8107,13 +8103,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'remoteDescription': 'remoteDescription',
     'removeStream': 'removeStream',
     'removeTrack': 'removeTrack',
-    'signalingState': 'signalingState',
+    'signalingState': 'signalingState'
   },
   'RtcPeerConnectionIceEvent': {'candidate': 'candidate'},
   'RtcRtpContributingSource': {'source': 'source', 'timestamp': 'timestamp'},
   'RtcRtpReceiver': {
     'getContributingSources': 'getContributingSources',
-    'track': 'track',
+    'track': 'track'
   },
   'RtcRtpSender': {'track': 'track'},
   'RtcSessionDescription': {'sdp': 'sdp', 'type': 'type'},
@@ -8121,7 +8117,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'RtcTrackEvent': {
     'receiver': 'receiver',
     'streams': 'streams',
-    'track': 'track',
+    'track': 'track'
   },
   'Screen': {
     'colorDepth': 'colorDepth',
@@ -8129,7 +8125,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'keepAwake': 'keepAwake',
     'orientation': 'orientation',
     'pixelDepth': 'pixelDepth',
-    'width': 'width',
+    'width': 'width'
   },
   'ScreenOrientation': {'angle': 'angle', 'type': 'type', 'unlock': 'unlock'},
   'ScriptElement': {
@@ -8140,11 +8136,11 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'integrity': 'integrity',
     'noModule': 'noModule',
     'src': 'src',
-    'type': 'type',
+    'type': 'type'
   },
   'ScriptProcessorNode': {
     'bufferSize': 'bufferSize',
-    'setEventListener': 'setEventListener',
+    'setEventListener': 'setEventListener'
   },
   'ScrollState': {
     'consumeDelta': 'consumeDelta',
@@ -8160,12 +8156,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'positionX': 'positionX',
     'positionY': 'positionY',
     'velocityX': 'velocityX',
-    'velocityY': 'velocityY',
+    'velocityY': 'velocityY'
   },
   'ScrollTimeline': {
     'orientation': 'orientation',
     'scrollSource': 'scrollSource',
-    'timeRange': 'timeRange',
+    'timeRange': 'timeRange'
   },
   'SecurityPolicyViolationEvent': {
     'blockedUri': 'blockedURI',
@@ -8179,7 +8175,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'sample': 'sample',
     'sourceFile': 'sourceFile',
     'statusCode': 'statusCode',
-    'violatedDirective': 'violatedDirective',
+    'violatedDirective': 'violatedDirective'
   },
   'SelectElement': {
     'add': 'add',
@@ -8202,7 +8198,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'validationMessage': 'validationMessage',
     'validity': 'validity',
     'value': 'value',
-    'willValidate': 'willValidate',
+    'willValidate': 'willValidate'
   },
   'Selection': {
     'addRange': 'addRange',
@@ -8230,21 +8226,21 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'selectAllChildren': 'selectAllChildren',
     'setBaseAndExtent': 'setBaseAndExtent',
     'setPosition': 'setPosition',
-    'type': 'type',
+    'type': 'type'
   },
   'Sensor': {
     'activated': 'activated',
     'hasReading': 'hasReading',
     'start': 'start',
     'stop': 'stop',
-    'timestamp': 'timestamp',
+    'timestamp': 'timestamp'
   },
   'SensorErrorEvent': {'error': 'error'},
   'ServiceWorker': {'scriptUrl': 'scriptURL', 'state': 'state'},
   'ServiceWorkerContainer': {'controller': 'controller'},
   'ServiceWorkerGlobalScope': {
     'clients': 'clients',
-    'registration': 'registration',
+    'registration': 'registration'
   },
   'ServiceWorkerRegistration': {
     'active': 'active',
@@ -8255,12 +8251,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'pushManager': 'pushManager',
     'scope': 'scope',
     'sync': 'sync',
-    'waiting': 'waiting',
+    'waiting': 'waiting'
   },
   'ShaderPrecisionFormat': {
     'precision': 'precision',
     'rangeMax': 'rangeMax',
-    'rangeMin': 'rangeMin',
+    'rangeMin': 'rangeMin'
   },
   'ShadowElement': {'getDistributedNodes': 'getDistributedNodes'},
   'ShadowRoot': {
@@ -8275,15 +8271,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'mode': 'mode',
     'olderShadowRoot': 'olderShadowRoot',
     'pointerLockElement': 'pointerLockElement',
-    'styleSheets': 'styleSheets',
+    'styleSheets': 'styleSheets'
   },
-  'SharedArrayBuffer': {'byteLength': 'byteLength', 'slice': 'slice'},
   'SharedWorker': {'port': 'port'},
   'SharedWorkerGlobalScope': {
     'close': 'close',
     'name': 'name',
     'requestFileSystemSync': 'webkitRequestFileSystemSync',
-    'resolveLocalFileSystemSyncUrl': 'webkitResolveLocalFileSystemSyncURL',
+    'resolveLocalFileSystemSyncUrl': 'webkitResolveLocalFileSystemSyncURL'
   },
   'SlotElement': {'name': 'name'},
   'SourceBuffer': {
@@ -8299,7 +8294,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'timestampOffset': 'timestampOffset',
     'trackDefaults': 'trackDefaults',
     'updating': 'updating',
-    'videoTracks': 'videoTracks',
+    'videoTracks': 'videoTracks'
   },
   'SourceBufferList': {'item': 'item'},
   'SourceElement': {
@@ -8307,13 +8302,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'sizes': 'sizes',
     'src': 'src',
     'srcset': 'srcset',
-    'type': 'type',
+    'type': 'type'
   },
   'SpeechGrammar': {'src': 'src', 'weight': 'weight'},
   'SpeechGrammarList': {
     'addFromString': 'addFromString',
     'addFromUri': 'addFromUri',
-    'item': 'item',
+    'item': 'item'
   },
   'SpeechRecognition': {
     'abort': 'abort',
@@ -8324,23 +8319,23 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'lang': 'lang',
     'maxAlternatives': 'maxAlternatives',
     'start': 'start',
-    'stop': 'stop',
+    'stop': 'stop'
   },
   'SpeechRecognitionAlternative': {
     'confidence': 'confidence',
-    'transcript': 'transcript',
+    'transcript': 'transcript'
   },
   'SpeechRecognitionError': {'error': 'error', 'message': 'message'},
   'SpeechRecognitionEvent': {
     'emma': 'emma',
     'interpretation': 'interpretation',
     'resultIndex': 'resultIndex',
-    'results': 'results',
+    'results': 'results'
   },
   'SpeechRecognitionResult': {
     'isFinal': 'isFinal',
     'item': 'item',
-    'length': 'length',
+    'length': 'length'
   },
   'SpeechSynthesis': {
     'cancel': 'cancel',
@@ -8349,13 +8344,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'pending': 'pending',
     'resume': 'resume',
     'speak': 'speak',
-    'speaking': 'speaking',
+    'speaking': 'speaking'
   },
   'SpeechSynthesisEvent': {
     'charIndex': 'charIndex',
     'elapsedTime': 'elapsedTime',
     'name': 'name',
-    'utterance': 'utterance',
+    'utterance': 'utterance'
   },
   'SpeechSynthesisUtterance': {
     'lang': 'lang',
@@ -8363,21 +8358,21 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'rate': 'rate',
     'text': 'text',
     'voice': 'voice',
-    'volume': 'volume',
+    'volume': 'volume'
   },
   'SpeechSynthesisVoice': {
     'defaultValue': 'default',
     'lang': 'lang',
     'localService': 'localService',
     'name': 'name',
-    'voiceUri': 'voiceURI',
+    'voiceUri': 'voiceURI'
   },
   'StaticRange': {
     'collapsed': 'collapsed',
     'endContainer': 'endContainer',
     'endOffset': 'endOffset',
     'startContainer': 'startContainer',
-    'startOffset': 'startOffset',
+    'startOffset': 'startOffset'
   },
   'StereoPannerNode': {'pan': 'pan'},
   'StopElement': {'gradientOffset': 'offset'},
@@ -8386,7 +8381,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'newValue': 'newValue',
     'oldValue': 'oldValue',
     'storageArea': 'storageArea',
-    'url': 'url',
+    'url': 'url'
   },
   'StringList': {
     'appendItem': 'appendItem',
@@ -8396,13 +8391,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertItemBefore': 'insertItemBefore',
     'numberOfItems': 'numberOfItems',
     'removeItem': 'removeItem',
-    'replaceItem': 'replaceItem',
+    'replaceItem': 'replaceItem'
   },
   'StyleElement': {
     'disabled': 'disabled',
     'media': 'media',
     'sheet': 'sheet',
-    'type': 'type',
+    'type': 'type'
   },
   'StyleMedia': {'matchMedium': 'matchMedium', 'type': 'type'},
   'StylePropertyMap': {'append': 'append', 'delete': 'delete', 'set': 'set'},
@@ -8410,7 +8405,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'get': 'get',
     'getAll': 'getAll',
     'getProperties': 'getProperties',
-    'has': 'has',
+    'has': 'has'
   },
   'StyleSheet': {
     'disabled': 'disabled',
@@ -8419,14 +8414,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'ownerNode': 'ownerNode',
     'parentStyleSheet': 'parentStyleSheet',
     'title': 'title',
-    'type': 'type',
+    'type': 'type'
   },
   'SvgElement': {
     'blur': 'blur',
     'focus': 'focus',
     'nonce': 'nonce',
     'ownerSvgElement': 'ownerSVGElement',
-    'viewportElement': 'viewportElement',
+    'viewportElement': 'viewportElement'
   },
   'SvgSvgElement': {
     'animationsPaused': 'animationsPaused',
@@ -8460,18 +8455,18 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'width': 'width',
     'x': 'x',
     'y': 'y',
-    'zoomAndPan': 'zoomAndPan',
+    'zoomAndPan': 'zoomAndPan'
   },
   'SymbolElement': {
     'preserveAspectRatio': 'preserveAspectRatio',
-    'viewBox': 'viewBox',
+    'viewBox': 'viewBox'
   },
   'SyncEvent': {'lastChance': 'lastChance', 'tag': 'tag'},
   'TableCellElement': {
     'cellIndex': 'cellIndex',
     'colSpan': 'colSpan',
     'headers': 'headers',
-    'rowSpan': 'rowSpan',
+    'rowSpan': 'rowSpan'
   },
   'TableColElement': {'span': 'span'},
   'TableElement': {
@@ -8481,12 +8476,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'deleteTFoot': 'deleteTFoot',
     'deleteTHead': 'deleteTHead',
     'tFoot': 'tFoot',
-    'tHead': 'tHead',
+    'tHead': 'tHead'
   },
   'TableRowElement': {
     'deleteCell': 'deleteCell',
     'rowIndex': 'rowIndex',
-    'sectionRowIndex': 'sectionRowIndex',
+    'sectionRowIndex': 'sectionRowIndex'
   },
   'TableSectionElement': {'deleteRow': 'deleteRow'},
   'TaskAttributionTiming': {
@@ -8494,18 +8489,18 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'containerName': 'containerName',
     'containerSrc': 'containerSrc',
     'containerType': 'containerType',
-    'scriptUrl': 'scriptURL',
+    'scriptUrl': 'scriptURL'
   },
   'TemplateElement': {'content': 'content'},
   'Tests': {
     'requiredExtensions': 'requiredExtensions',
-    'systemLanguage': 'systemLanguage',
+    'systemLanguage': 'systemLanguage'
   },
   'Text': {
     'assignedSlot': 'assignedSlot',
     'getDestinationInsertionPoints': 'getDestinationInsertionPoints',
     'splitText': 'splitText',
-    'wholeText': 'wholeText',
+    'wholeText': 'wholeText'
   },
   'TextAreaElement': {
     'autocapitalize': 'autocapitalize',
@@ -8538,7 +8533,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'validity': 'validity',
     'value': 'value',
     'willValidate': 'willValidate',
-    'wrap': 'wrap',
+    'wrap': 'wrap'
   },
   'TextContentElement': {
     'getCharNumAtPosition': 'getCharNumAtPosition',
@@ -8551,7 +8546,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getSubStringLength': 'getSubStringLength',
     'lengthAdjust': 'lengthAdjust',
     'selectSubString': 'selectSubString',
-    'textLength': 'textLength',
+    'textLength': 'textLength'
   },
   'TextEvent': {'data': 'data'},
   'TextMetrics': {
@@ -8566,20 +8561,20 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'fontBoundingBoxDescent': 'fontBoundingBoxDescent',
     'hangingBaseline': 'hangingBaseline',
     'ideographicBaseline': 'ideographicBaseline',
-    'width': 'width',
+    'width': 'width'
   },
   'TextPathElement': {
     'href': 'href',
     'method': 'method',
     'spacing': 'spacing',
-    'startOffset': 'startOffset',
+    'startOffset': 'startOffset'
   },
   'TextPositioningElement': {
     'dx': 'dx',
     'dy': 'dy',
     'rotate': 'rotate',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'TextTrack': {
     'activeCues': 'activeCues',
@@ -8590,14 +8585,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'label': 'label',
     'language': 'language',
     'mode': 'mode',
-    'removeCue': 'removeCue',
+    'removeCue': 'removeCue'
   },
   'TextTrackCue': {
     'endTime': 'endTime',
     'id': 'id',
     'pauseOnExit': 'pauseOnExit',
     'startTime': 'startTime',
-    'track': 'track',
+    'track': 'track'
   },
   'TextTrackCueList': {'getCueById': 'getCueById'},
   'TextTrackList': {'getTrackById': 'getTrackById'},
@@ -8605,7 +8600,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'lastUploadedVideoFrameWasSkipped': 'lastUploadedVideoFrameWasSkipped',
     'lastUploadedVideoHeight': 'lastUploadedVideoHeight',
     'lastUploadedVideoTimestamp': 'lastUploadedVideoTimestamp',
-    'lastUploadedVideoWidth': 'lastUploadedVideoWidth',
+    'lastUploadedVideoWidth': 'lastUploadedVideoWidth'
   },
   'TimeElement': {'dateTime': 'dateTime'},
   'TimeRanges': {'end': 'end', 'length': 'length', 'start': 'start'},
@@ -8613,7 +8608,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'force': 'force',
     'identifier': 'identifier',
     'region': 'region',
-    'rotationAngle': 'rotationAngle',
+    'rotationAngle': 'rotationAngle'
   },
   'TouchEvent': {
     'altKey': 'altKey',
@@ -8622,7 +8617,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'metaKey': 'metaKey',
     'shiftKey': 'shiftKey',
     'targetTouches': 'targetTouches',
-    'touches': 'touches',
+    'touches': 'touches'
   },
   'TouchList': {'item': 'item'},
   'TrackDefault': {
@@ -8630,7 +8625,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'kinds': 'kinds',
     'label': 'label',
     'language': 'language',
-    'type': 'type',
+    'type': 'type'
   },
   'TrackDefaultList': {'item': 'item', 'length': 'length'},
   'TrackElement': {
@@ -8640,7 +8635,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'readyState': 'readyState',
     'src': 'src',
     'srclang': 'srclang',
-    'track': 'track',
+    'track': 'track'
   },
   'TrackEvent': {'track': 'track'},
   'Transaction': {
@@ -8649,7 +8644,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'error': 'error',
     'mode': 'mode',
     'objectStore': 'objectStore',
-    'objectStoreNames': 'objectStoreNames',
+    'objectStoreNames': 'objectStoreNames'
   },
   'Transform': {
     'angle': 'angle',
@@ -8660,7 +8655,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'setSkewX': 'setSkewX',
     'setSkewY': 'setSkewY',
     'setTranslate': 'setTranslate',
-    'type': 'type',
+    'type': 'type'
   },
   'TransformList': {
     'appendItem': 'appendItem',
@@ -8672,12 +8667,12 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'insertItemBefore': 'insertItemBefore',
     'numberOfItems': 'numberOfItems',
     'removeItem': 'removeItem',
-    'replaceItem': 'replaceItem',
+    'replaceItem': 'replaceItem'
   },
   'TransitionEvent': {
     'elapsedTime': 'elapsedTime',
     'propertyName': 'propertyName',
-    'pseudoElement': 'pseudoElement',
+    'pseudoElement': 'pseudoElement'
   },
   'TreeWalker': {
     'currentNode': 'currentNode',
@@ -8690,7 +8685,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'previousNode': 'previousNode',
     'previousSibling': 'previousSibling',
     'root': 'root',
-    'whatToShow': 'whatToShow',
+    'whatToShow': 'whatToShow'
   },
   'TrustedHtml': {'escape': 'escape', 'unsafelyCreate': 'unsafelyCreate'},
   'TrustedScriptUrl': {'unsafelyCreate': 'unsafelyCreate'},
@@ -8698,7 +8693,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'UIEvent': {'detail': 'detail', 'sourceCapabilities': 'sourceCapabilities'},
   'UnderlyingSourceBase': {
     'notifyLockAcquired': 'notifyLockAcquired',
-    'notifyLockReleased': 'notifyLockReleased',
+    'notifyLockReleased': 'notifyLockReleased'
   },
   'UriReference': {'href': 'href'},
   'Url': {
@@ -8713,7 +8708,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'protocol': 'protocol',
     'search': 'search',
     'searchParams': 'searchParams',
-    'username': 'username',
+    'username': 'username'
   },
   'UrlSearchParams': {
     'append': 'append',
@@ -8722,7 +8717,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'getAll': 'getAll',
     'has': 'has',
     'set': 'set',
-    'sort': 'sort',
+    'sort': 'sort'
   },
   'UrlUtilsReadOnly': {
     'hash': 'hash',
@@ -8733,14 +8728,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'pathname': 'pathname',
     'port': 'port',
     'protocol': 'protocol',
-    'search': 'search',
+    'search': 'search'
   },
   'UseElement': {
     'height': 'height',
     'href': 'href',
     'width': 'width',
     'x': 'x',
-    'y': 'y',
+    'y': 'y'
   },
   'VRCoordinateSystem': {'getTransformTo': 'getTransformTo'},
   'VRDevice': {'deviceName': 'deviceName', 'isExternal': 'isExternal'},
@@ -8758,30 +8753,30 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'isPresenting': 'isPresenting',
     'requestAnimationFrame': 'requestAnimationFrame',
     'stageParameters': 'stageParameters',
-    'submitFrame': 'submitFrame',
+    'submitFrame': 'submitFrame'
   },
   'VRDisplayCapabilities': {
     'canPresent': 'canPresent',
     'hasExternalDisplay': 'hasExternalDisplay',
     'hasPosition': 'hasPosition',
-    'maxLayers': 'maxLayers',
+    'maxLayers': 'maxLayers'
   },
   'VRDisplayEvent': {'display': 'display', 'reason': 'reason'},
   'VREyeParameters': {
     'offset': 'offset',
     'renderHeight': 'renderHeight',
-    'renderWidth': 'renderWidth',
+    'renderWidth': 'renderWidth'
   },
   'VRFrameData': {
     'leftProjectionMatrix': 'leftProjectionMatrix',
     'leftViewMatrix': 'leftViewMatrix',
     'pose': 'pose',
     'rightProjectionMatrix': 'rightProjectionMatrix',
-    'rightViewMatrix': 'rightViewMatrix',
+    'rightViewMatrix': 'rightViewMatrix'
   },
   'VRFrameOfReference': {
     'bounds': 'bounds',
-    'emulatedHeight': 'emulatedHeight',
+    'emulatedHeight': 'emulatedHeight'
   },
   'VRPose': {
     'angularAcceleration': 'angularAcceleration',
@@ -8789,13 +8784,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'linearAcceleration': 'linearAcceleration',
     'linearVelocity': 'linearVelocity',
     'orientation': 'orientation',
-    'position': 'position',
+    'position': 'position'
   },
   'VRSession': {
     'depthFar': 'depthFar',
     'depthNear': 'depthNear',
     'device': 'device',
-    'exclusive': 'exclusive',
+    'exclusive': 'exclusive'
   },
   'VRSessionEvent': {'session': 'session'},
   'VRStageBounds': {'geometry': 'geometry'},
@@ -8803,7 +8798,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'VRStageParameters': {
     'sittingToStandingTransform': 'sittingToStandingTransform',
     'sizeX': 'sizeX',
-    'sizeZ': 'sizeZ',
+    'sizeZ': 'sizeZ'
   },
   'ValidityState': {
     'badInput': 'badInput',
@@ -8816,14 +8811,14 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'tooShort': 'tooShort',
     'typeMismatch': 'typeMismatch',
     'valid': 'valid',
-    'valueMissing': 'valueMissing',
+    'valueMissing': 'valueMissing'
   },
   'VersionChangeEvent': {
     'dataLoss': 'dataLoss',
     'dataLossMessage': 'dataLossMessage',
     'newVersion': 'newVersion',
     'oldVersion': 'oldVersion',
-    'target': 'target',
+    'target': 'target'
   },
   'VideoElement': {
     'decodedFrameCount': 'webkitDecodedFrameCount',
@@ -8835,13 +8830,13 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'poster': 'poster',
     'videoHeight': 'videoHeight',
     'videoWidth': 'videoWidth',
-    'width': 'width',
+    'width': 'width'
   },
   'VideoPlaybackQuality': {
     'corruptedVideoFrames': 'corruptedVideoFrames',
     'creationTime': 'creationTime',
     'droppedVideoFrames': 'droppedVideoFrames',
-    'totalVideoFrames': 'totalVideoFrames',
+    'totalVideoFrames': 'totalVideoFrames'
   },
   'VideoTrack': {
     'id': 'id',
@@ -8849,17 +8844,17 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'label': 'label',
     'language': 'language',
     'selected': 'selected',
-    'sourceBuffer': 'sourceBuffer',
+    'sourceBuffer': 'sourceBuffer'
   },
   'VideoTrackList': {
     'getTrackById': 'getTrackById',
     'length': 'length',
-    'selectedIndex': 'selectedIndex',
+    'selectedIndex': 'selectedIndex'
   },
   'ViewElement': {
     'preserveAspectRatio': 'preserveAspectRatio',
     'viewBox': 'viewBox',
-    'zoomAndPan': 'zoomAndPan',
+    'zoomAndPan': 'zoomAndPan'
   },
   'VisualViewport': {
     'height': 'height',
@@ -8868,7 +8863,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'pageLeft': 'pageLeft',
     'pageTop': 'pageTop',
     'scale': 'scale',
-    'width': 'width',
+    'width': 'width'
   },
   'VttCue': {
     'align': 'align',
@@ -8879,7 +8874,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'size': 'size',
     'snapToLines': 'snapToLines',
     'text': 'text',
-    'vertical': 'vertical',
+    'vertical': 'vertical'
   },
   'VttRegion': {
     'id': 'id',
@@ -8889,7 +8884,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'scroll': 'scroll',
     'viewportAnchorX': 'viewportAnchorX',
     'viewportAnchorY': 'viewportAnchorY',
-    'width': 'width',
+    'width': 'width'
   },
   'WaveShaperNode': {'curve': 'curve', 'oversample': 'oversample'},
   'WebSocket': {
@@ -8904,7 +8899,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'sendByteBuffer': 'send',
     'sendString': 'send',
     'sendTypedData': 'send',
-    'url': 'url',
+    'url': 'url'
   },
   'WheelEvent': {'deltaZ': 'deltaZ'},
   'Window': {
@@ -8964,7 +8959,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'stop': 'stop',
     'styleMedia': 'styleMedia',
     'toolbar': 'toolbar',
-    'visualViewport': 'visualViewport',
+    'visualViewport': 'visualViewport'
   },
   'WindowClient': {'focused': 'focused', 'visibilityState': 'visibilityState'},
   'Worker': {'terminate': 'terminate'},
@@ -8981,7 +8976,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'navigator': 'navigator',
     'origin': 'origin',
     'performance': 'performance',
-    'self': 'self',
+    'self': 'self'
   },
   'WorkerPerformance': {
     'clearMarks': 'clearMarks',
@@ -8995,17 +8990,17 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'memory': 'memory',
     'now': 'now',
     'setResourceTimingBufferSize': 'setResourceTimingBufferSize',
-    'timeOrigin': 'timeOrigin',
+    'timeOrigin': 'timeOrigin'
   },
   'WorkletAnimation': {
     'cancel': 'cancel',
     'play': 'play',
-    'playState': 'playState',
+    'playState': 'playState'
   },
   'XPathEvaluator': {
     'createExpression': 'createExpression',
     'createNSResolver': 'createNSResolver',
-    'evaluate': 'evaluate',
+    'evaluate': 'evaluate'
   },
   'XPathExpression': {'evaluate': 'evaluate'},
   'XPathNSResolver': {'lookupNamespaceUri': 'lookupNamespaceURI'},
@@ -9018,7 +9013,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'singleNodeValue': 'singleNodeValue',
     'snapshotItem': 'snapshotItem',
     'snapshotLength': 'snapshotLength',
-    'stringValue': 'stringValue',
+    'stringValue': 'stringValue'
   },
   'XmlSerializer': {'serializeToString': 'serializeToString'},
   'XsltProcessor': {
@@ -9029,7 +9024,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'reset': 'reset',
     'setParameter': 'setParameter',
     'transformToDocument': 'transformToDocument',
-    'transformToFragment': 'transformToFragment',
+    'transformToFragment': 'transformToFragment'
   },
   'ZoomAndPan': {'zoomAndPan': 'zoomAndPan'},
   '_Attr': {'name': 'name', 'value': 'value'},
@@ -9040,7 +9035,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'gradientTransform': 'gradientTransform',
     'gradientUnits': 'gradientUnits',
     'href': 'href',
-    'spreadMethod': 'spreadMethod',
+    'spreadMethod': 'spreadMethod'
   },
   '_NamedNodeMap': {
     'getNamedItem': 'getNamedItem',
@@ -9049,7 +9044,7 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'removeNamedItem': 'removeNamedItem',
     'removeNamedItemNS': 'removeNamedItemNS',
     'setNamedItem': 'setNamedItem',
-    'setNamedItemNS': 'setNamedItemNS',
+    'setNamedItemNS': 'setNamedItemNS'
   },
   '_Report': {'body': 'body', 'type': 'type', 'url': 'url'},
   '_Request': {
@@ -9062,10 +9057,10 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'redirect': 'redirect',
     'referrer': 'referrer',
     'referrerPolicy': 'referrerPolicy',
-    'url': 'url',
+    'url': 'url'
   },
   '_SpeechRecognitionResultList': {'item': 'item'},
-  '_StyleSheetList': {'item': 'item'},
+  '_StyleSheetList': {'item': 'item'}
 };
 
 /// Mapping of `@Native` types in the web libraries to the native types they
@@ -9111,7 +9106,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'ApplicationCache': {
     'ApplicationCache',
     'DOMApplicationCache',
-    'OfflineResourceList',
+    'OfflineResourceList'
   },
   'ApplicationCacheErrorEvent': {'ApplicationCacheErrorEvent'},
   'AreaElement': {'HTMLAreaElement'},
@@ -9190,20 +9185,20 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'CompressedTextureAstc': {'WebGLCompressedTextureASTC'},
   'CompressedTextureAtc': {
     'WEBGL_compressed_texture_atc',
-    'WebGLCompressedTextureATC',
+    'WebGLCompressedTextureATC'
   },
   'CompressedTextureETC1': {
     'WEBGL_compressed_texture_etc1',
-    'WebGLCompressedTextureETC1',
+    'WebGLCompressedTextureETC1'
   },
   'CompressedTextureEtc': {'WebGLCompressedTextureETC'},
   'CompressedTexturePvrtc': {
     'WEBGL_compressed_texture_pvrtc',
-    'WebGLCompressedTexturePVRTC',
+    'WebGLCompressedTexturePVRTC'
   },
   'CompressedTextureS3TC': {
     'WEBGL_compressed_texture_s3tc',
-    'WebGLCompressedTextureS3TC',
+    'WebGLCompressedTextureS3TC'
   },
   'CompressedTextureS3TCsRgb': {'WebGLCompressedTextureS3TCsRGB'},
   'Console': {'Console'},
@@ -9229,12 +9224,12 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'CssKeyframeRule': {
     'CSSKeyframeRule',
     'MozCSSKeyframeRule',
-    'WebKitCSSKeyframeRule',
+    'WebKitCSSKeyframeRule'
   },
   'CssKeyframesRule': {
     'CSSKeyframesRule',
     'MozCSSKeyframesRule',
-    'WebKitCSSKeyframesRule',
+    'WebKitCSSKeyframesRule'
   },
   'CssKeywordValue': {'CSSKeywordValue'},
   'CssMatrixComponent': {'CSSMatrixComponent'},
@@ -9253,7 +9248,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'CssStyleDeclaration': {
     'CSS2Properties',
     'CSSStyleDeclaration',
-    'MSStyleCSSProperties',
+    'MSStyleCSSProperties'
   },
   'CssStyleDeclarationBase': {'CssStyleDeclarationBase'},
   'CssStyleRule': {'CSSStyleRule'},
@@ -9304,13 +9299,13 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'DirectoryEntry': {
     'DirectoryEntry',
     'FileSystemDirectoryEntry',
-    'webkitFileSystemDirectoryEntry',
+    'webkitFileSystemDirectoryEntry'
   },
   'DirectoryReader': {
     'DirectoryReader',
     'FileSystemDirectoryReader',
     'WebKitDirectoryReader',
-    'webkitFileSystemDirectoryReader',
+    'webkitFileSystemDirectoryReader'
   },
   'DiscardElement': {'SVGDiscardElement'},
   'DivElement': {'HTMLDivElement'},
@@ -9360,7 +9355,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'ExtShaderTextureLod': {'EXTShaderTextureLOD', 'EXT_shader_texture_lod'},
   'ExtTextureFilterAnisotropic': {
     'EXTTextureFilterAnisotropic',
-    'EXT_texture_filter_anisotropic',
+    'EXT_texture_filter_anisotropic'
   },
   'ExtendableEvent': {'ExtendableEvent'},
   'ExtendableMessageEvent': {'ExtendableMessageEvent'},
@@ -9397,7 +9392,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'FileEntry': {
     'FileEntry',
     'FileSystemFileEntry',
-    'webkitFileSystemFileEntry',
+    'webkitFileSystemFileEntry'
   },
   'FileList': {'FileList'},
   'FileReader': {'FileReader'},
@@ -9405,7 +9400,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
     'DOMFileSystem',
     'FileSystem',
     'WebKitFileSystem',
-    'webkitFileSystem',
+    'webkitFileSystem'
   },
   'FileUploadInputElement': {'FileUploadInputElement'},
   'FileWriter': {'FileWriter'},
@@ -9496,7 +9491,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'LoseContext': {
     'WEBGL_lose_context',
     'WebGLExtensionLoseContext',
-    'WebGLLoseContext',
+    'WebGLLoseContext'
   },
   'Magnetometer': {'Magnetometer'},
   'MapElement': {'HTMLMapElement'},
@@ -9592,17 +9587,17 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'OesElementIndexUint': {'OESElementIndexUint', 'OES_element_index_uint'},
   'OesStandardDerivatives': {
     'OESStandardDerivatives',
-    'OES_standard_derivatives',
+    'OES_standard_derivatives'
   },
   'OesTextureFloat': {'OESTextureFloat', 'OES_texture_float'},
   'OesTextureFloatLinear': {
     'OESTextureFloatLinear',
-    'OES_texture_float_linear',
+    'OES_texture_float_linear'
   },
   'OesTextureHalfFloat': {'OESTextureHalfFloat', 'OES_texture_half_float'},
   'OesTextureHalfFloatLinear': {
     'OESTextureHalfFloatLinear',
-    'OES_texture_half_float_linear',
+    'OES_texture_half_float_linear'
   },
   'OesVertexArrayObject': {'OESVertexArrayObject', 'OES_vertex_array_object'},
   'OfflineAudioCompletionEvent': {'OfflineAudioCompletionEvent'},
@@ -9669,7 +9664,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'PresentationAvailability': {'PresentationAvailability'},
   'PresentationConnection': {'PresentationConnection'},
   'PresentationConnectionAvailableEvent': {
-    'PresentationConnectionAvailableEvent',
+    'PresentationConnectionAvailableEvent'
   },
   'PresentationConnectionCloseEvent': {'PresentationConnectionCloseEvent'},
   'PresentationConnectionList': {'PresentationConnectionList'},
@@ -9719,7 +9714,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'RtcPeerConnection': {
     'RTCPeerConnection',
     'mozRTCPeerConnection',
-    'webkitRTCPeerConnection',
+    'webkitRTCPeerConnection'
   },
   'RtcPeerConnectionIceEvent': {'RTCPeerConnectionIceEvent'},
   'RtcRtpContributingSource': {'RTCRtpContributingSource'},
@@ -9727,7 +9722,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'RtcRtpSender': {'RTCRtpSender'},
   'RtcSessionDescription': {
     'RTCSessionDescription',
-    'mozRTCSessionDescription',
+    'mozRTCSessionDescription'
   },
   'RtcStatsReport': {'RTCStatsReport'},
   'RtcStatsResponse': {'RTCStatsResponse'},
@@ -9755,7 +9750,6 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'ShaderPrecisionFormat': {'WebGLShaderPrecisionFormat'},
   'ShadowElement': {'HTMLShadowElement'},
   'ShadowRoot': {'ShadowRoot'},
-  'SharedArrayBuffer': {'SharedArrayBuffer'},
   'SharedWorker': {'SharedWorker'},
   'SharedWorkerGlobalScope': {'SharedWorkerGlobalScope'},
   'SlotElement': {'HTMLSlotElement'},
@@ -9799,7 +9793,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'TableCellElement': {
     'HTMLTableCellElement',
     'HTMLTableDataCellElement',
-    'HTMLTableHeaderCellElement',
+    'HTMLTableHeaderCellElement'
   },
   'TableColElement': {'HTMLTableColElement'},
   'TableElement': {'HTMLTableElement'},
@@ -9987,7 +9981,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   '_ResourceProgressEvent': {'ResourceProgressEvent'},
   '_Response': {'Response'},
   '_SVGComponentTransferFunctionElement': {
-    'SVGComponentTransferFunctionElement',
+    'SVGComponentTransferFunctionElement'
   },
   '_SVGFEDropShadowElement': {'SVGFEDropShadowElement'},
   '_SVGMPathElement': {'SVGMPathElement'},
@@ -10025,5 +10019,5 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   '_Worklet': {'Worklet'},
   '_WrappedEvent': {'_WrappedEvent'},
   '_WrappedIterator': {'_WrappedIterator'},
-  '_WrappedList': {'_WrappedList'},
+  '_WrappedList': {'_WrappedList'}
 };

@@ -764,42 +764,39 @@ main() {
     "origin for uri with empty host should fail",
   );
   Expect.throwsStateError(
-    () =>
-        new Uri(
-          scheme: "http",
-          userInfo: null,
-          host: "",
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment",
-        ).origin,
+    () => new Uri(
+      scheme: "http",
+      userInfo: null,
+      host: "",
+      port: 80,
+      path: "/a/b/c",
+      query: "query",
+      fragment: "fragment",
+    ).origin,
     "origin for uri with empty host should fail",
   );
   Expect.throwsStateError(
-    () =>
-        new Uri(
-          scheme: null,
-          userInfo: null,
-          host: "",
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment",
-        ).origin,
+    () => new Uri(
+      scheme: null,
+      userInfo: null,
+      host: "",
+      port: 80,
+      path: "/a/b/c",
+      query: "query",
+      fragment: "fragment",
+    ).origin,
     "origin for uri with empty scheme should fail",
   );
   Expect.throwsStateError(
-    () =>
-        new Uri(
-          scheme: "http",
-          userInfo: null,
-          host: null,
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment",
-        ).origin,
+    () => new Uri(
+      scheme: "http",
+      userInfo: null,
+      host: null,
+      port: 80,
+      path: "/a/b/c",
+      query: "query",
+      fragment: "fragment",
+    ).origin,
     "origin for uri with empty host should fail",
   );
   Expect.throwsStateError(
@@ -889,10 +886,13 @@ void testNonBmpEncodingRegression() {
   // the 0x10000 bit set in its code point, and which is not in the BMP.
   const char = "\u{2003E}"; // CJK Unified Ideo­graph.
   const echar = "%F0%A0%80%BE"; // UTF-8 encoding of page2Char, %-encoded.
-  var nonBmpUri =
-      Uri.parse("http://$char.example.com/x${char}x?y${char}y#z${char}z");
-  Expect.equals("http://$echar.example.com/x${echar}x?y${echar}y#z${echar}z",
-      nonBmpUri.toString());
+  var nonBmpUri = Uri.parse(
+    "http://$char.example.com/x${char}x?y${char}y#z${char}z",
+  );
+  Expect.equals(
+    "http://$echar.example.com/x${echar}x?y${echar}y#z${echar}z",
+    nonBmpUri.toString(),
+  );
   Expect.equals("$echar.example.com", nonBmpUri.host);
   Expect.equals("$char.example.com", Uri.decodeComponent(nonBmpUri.host));
   Expect.equals("/x${echar}x", nonBmpUri.path);

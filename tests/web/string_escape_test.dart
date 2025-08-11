@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Test that string escapes work correctly.
 
 testSingleCharacterEscapes() {
-  List/*<String>*/ examples = [
+  List /*<String>*/ examples = [
     "\b\f\n\r\t\v",
     '\b\f\n\r\t\v',
     """\b\f\n\r\t\v""",
@@ -63,9 +63,9 @@ testUEscapes() {
     """\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff"""
         """\u0100\u1000\ud7ff\ue000\uffff""",
     '''\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff'''
-        '''\u0100\u1000\ud7ff\ue000\uffff'''
+        '''\u0100\u1000\ud7ff\ue000\uffff''',
   ];
-  List/*<int>*/ values = [
+  List /*<int>*/ values = [
     0,
     1,
     0x22,
@@ -78,7 +78,7 @@ testUEscapes() {
     0x1000,
     0xd7ff,
     0xe000,
-    0xffff
+    0xffff,
   ];
   for (String s in examples) {
     Expect.equals(values.length, s.length);
@@ -87,7 +87,8 @@ testUEscapes() {
     }
   }
   // No characters above 0xffff until Leg supports that.
-  var long = "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}"
+  var long =
+      "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}"
       "\u{1}\u{01}\u{001}\u{00001}"
       "\u{ffff}\u{0ffff}\u{00ffff}";
   var longValues = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0xffff, 0xffff, 0xffff];
@@ -117,7 +118,9 @@ testIdentityEscapes() {
 
 testQuotes() {
   // The string [ "' ].
-  String bothQuotes = ' "' "' ";
+  String bothQuotes =
+      ' "'
+      "' ";
   Expect.equals(bothQuotes, " \"' ");
   Expect.equals(bothQuotes, ' "\' ');
   Expect.equals(bothQuotes, """ "' """);

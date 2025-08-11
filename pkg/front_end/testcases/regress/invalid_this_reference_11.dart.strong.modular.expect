@@ -30,7 +30,7 @@ static extension-type-member method Foo|constructor#(dynamic _foo) → self::Foo
   lowered final self::Foo% /* erasure=dynamic, declared=! */ #this = _foo;
   return #this;
 }
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(_foo);
 static extension-type-member method Foo|constructor#bar() → self::Foo% /* erasure=dynamic, declared=! */ {
   lowered final self::Foo% /* erasure=dynamic, declared=! */ #this = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_11.dart:6:22: Error: Expected identifier, but got 'this'.
@@ -38,5 +38,5 @@ static extension-type-member method Foo|constructor#bar() → self::Foo% /* eras
                      ^^^^";
   return #this;
 }
-static extension-type-member method Foo|constructor#_#bar#tearOff() → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#bar#tearOff() → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#bar();

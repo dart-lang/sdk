@@ -57,9 +57,9 @@ class D extends self::C {
     ;
   method f3(covariant-by-declaration self::B x) → void
     ;
-  method f4(self::B x) → void
+  erroneous method f4(self::B x) → void
     ;
-  method f5(covariant-by-declaration core::String x) → void
+  erroneous method f5(covariant-by-declaration core::String x) → void
     ;
   method f6(covariant-by-declaration self::A x) → void
     ;

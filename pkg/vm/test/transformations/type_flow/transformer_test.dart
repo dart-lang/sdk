@@ -50,7 +50,7 @@ void runTestCase(
   if (target is WasmTarget) {
     // Keep these flags in-sync with pkg/dart2wasm/lib/compile.dart
     useRapidTypeAnalysis = false;
-    target.recordClasses = generateRecordClasses(component, coreTypes, false);
+    target.recordClasses = generateRecordClasses(component, coreTypes);
   }
 
   component = transformComponent(

@@ -17,6 +17,7 @@ void main() async {
     Expect.isTrue(e is SocketException);
     final socketException = e as SocketException;
     Expect.isTrue(
-        socketException.message.startsWith('Connection attempt cancelled'));
+      socketException.message.startsWith('Connection attempt cancelled'),
+    );
   }
 }

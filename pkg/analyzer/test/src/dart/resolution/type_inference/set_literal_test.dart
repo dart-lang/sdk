@@ -21,11 +21,12 @@ class SetLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Set<int> a = {'a'};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3)],
+    );
     assertType(setLiteral('{'), 'Set<int>');
   }
 
@@ -73,24 +74,26 @@ FutureOr<Set<int>> f() {
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends Set<int>> {
   E a = {};
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 38, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 38, 2)],
+    );
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends Set<dynamic>> {
   E a = {};
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 42, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 42, 2)],
+    );
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
 
@@ -117,11 +120,12 @@ class C<T extends Object?> {
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Set<String> a = <String>{0};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 1)],
+    );
     assertType(setLiteral('{'), 'Set<String>');
   }
 
@@ -141,11 +145,12 @@ Set<String> a = <String>{'a'};
   }
 
   test_context_typeArgs_noElements_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Set<String> a = <int>{};
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 16, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 16, 7)],
+    );
     assertType(setLiteral('{'), 'Set<int>');
   }
 
@@ -298,27 +303,31 @@ var a = {if (0 < 1) ...c else ...d};
   }
 
   test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 87, 12),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 87, 12)],
+    );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(WarningCode.DEAD_CODE, 88, 12),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
+        error(WarningCode.DEAD_CODE, 88, 12),
+      ],
+    );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
@@ -343,15 +352,18 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0};
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(WarningCode.DEAD_CODE, 101, 12),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
+        error(WarningCode.DEAD_CODE, 101, 12),
+      ],
+    );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
@@ -376,47 +388,51 @@ void f<T extends List<int>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 100, 12),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 100, 12)],
+    );
     assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 6)],
+    );
     assertType(setLiteral('{...'), 'dynamic');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a, 0};
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 9)],
+    );
     assertType(setLiteral('{...'), 'dynamic');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <String>{1};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1)],
+    );
     assertType(setLiteral('{'), 'Set<String>');
   }
 

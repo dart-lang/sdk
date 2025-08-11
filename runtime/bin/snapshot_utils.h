@@ -29,6 +29,9 @@ class AppSnapshot {
   bool IsKernelList() const {
     return magic_number_ == DartUtils::kKernelListMagicNumber;
   }
+  bool IsBytecode() const {
+    return magic_number_ == DartUtils::kBytecodeMagicNumber;
+  }
 
  protected:
   explicit AppSnapshot(DartUtils::MagicNumber num) : magic_number_(num) {}
@@ -46,18 +49,16 @@ class Snapshot {
   static void GenerateAppJIT(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
-#if defined(DART_TARGET_OS_MACOS)
-  static bool IsMachOFormattedBinary(const char* container_path);
-#endif
+  static bool IsMachOFormattedBinary(const char* container_path,
+                                     DartUtils::MagicNumber* out = nullptr);
 #if defined(DART_TARGET_OS_WINDOWS)
   static bool IsPEFormattedBinary(const char* container_path);
 #endif
 
-  static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
-  static AppSnapshot* TryReadAppSnapshot(
-      const char* script_uri,
-      bool force_load_elf_from_memory = false,
-      bool decode_uri = true);
+  static AppSnapshot* TryReadAppendedAppSnapshot(const char* container_path);
+  static AppSnapshot* TryReadAppSnapshot(const char* script_uri,
+                                         bool force_load_from_memory = false,
+                                         bool decode_uri = true);
   static void WriteAppSnapshot(const char* filename,
                                uint8_t* isolate_data_buffer,
                                intptr_t isolate_data_size,
@@ -66,11 +67,11 @@ class Snapshot {
 
  private:
 #if defined(DART_TARGET_OS_MACOS)
-  static AppSnapshot* TryReadAppendedAppSnapshotElfFromMachO(
+  static AppSnapshot* TryReadAppendedAppSnapshotFromMachO(
       const char* container_path);
 #endif
 #if defined(DART_TARGET_OS_WINDOWS)
-  static AppSnapshot* TryReadAppendedAppSnapshotElfFromPE(
+  static AppSnapshot* TryReadAppendedAppSnapshotFromPE(
       const char* container_path);
 #endif
 

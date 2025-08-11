@@ -51,8 +51,8 @@ Future<void> runTest(
     final testFiles = testDir.listSync();
     final sourceFiles = <String, String>{};
     for (final testFile in testFiles) {
-      sourceFiles[testFile.uri.pathSegments.last] =
-          await (testFile as File).readAsString();
+      sourceFiles[testFile.uri.pathSegments.last] = await (testFile as File)
+          .readAsString();
     }
     final cfeCollector = OutputCollector();
     await runCompiler(

@@ -21,27 +21,29 @@ class DefinitelyUnassignedLateLocalVariableTest
   }
 
   test_definitelyAssigned_after_compoundAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v += 1;
   v;
 }
-''', [
-      error(_errorCode, 27, 1),
-    ]);
+''',
+      [error(_errorCode, 27, 1)],
+    );
   }
 
   test_definitelyAssigned_after_postfixExpression_increment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v++;
   v;
 }
-''', [
-      error(_errorCode, 27, 1),
-    ]);
+''',
+      [error(_errorCode, 27, 1)],
+    );
   }
 
   test_mightBeAssigned_byPatternAssignment() async {
@@ -95,71 +97,83 @@ void f(bool c) {
   }
 
   test_neverAssigned_assignment_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v += 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(_errorCode, 27, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(_errorCode, 27, 1),
+      ],
+    );
   }
 
   test_neverAssigned_assignment_pure() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
   }
 
   test_neverAssigned_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int? v;
   v;
 }
-''', [
-      error(_errorCode, 28, 1),
-    ]);
+''',
+      [error(_errorCode, 28, 1)],
+    );
   }
 
   test_neverAssigned_prefixExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   ++v;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(_errorCode, 29, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(_errorCode, 29, 1),
+      ],
+    );
   }
 
   test_neverAssigned_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v;
 }
-''', [
-      error(_errorCode, 27, 1),
-    ]);
+''',
+      [error(_errorCode, 27, 1)],
+    );
   }
 
   test_neverAssigned_suffixExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int v;
   v++;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(_errorCode, 27, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(_errorCode, 27, 1),
+      ],
+    );
   }
 }

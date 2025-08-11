@@ -11,7 +11,8 @@ doLoop(Object o, bool f()) {
     if (o is int) print('');
   } while (f());
   o = 1;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 forEachLoop(Object o, List values) {
@@ -19,7 +20,8 @@ forEachLoop(Object o, List values) {
     if (o is int) print('');
   }
   o = 1;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 forLoop(Object o, int count) {
@@ -27,7 +29,8 @@ forLoop(Object o, int count) {
     if (o is int) print('');
   }
   o = 1;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 whileloop(Object o, bool f()) {
@@ -35,5 +38,6 @@ whileloop(Object o, bool f()) {
     if (o is int) print('');
   }
   o = 1;
-  /*int*/ o;
+  /*int*/
+  o;
 }

@@ -6,7 +6,13 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
+    show
+        DartType,
+        DynamicType,
+        Expression,
+        InvalidExpression,
+        NullLiteral,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
@@ -16,8 +22,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/wildcard_lowering.dart';
-import '../source/builder_factory.dart';
-import '../source/constructor_declaration.dart';
+import '../source/fragment_factory.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_property_builder.dart';
@@ -26,6 +32,7 @@ import 'constructor_builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'omitted_type_builder.dart';
+import 'property_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
@@ -49,7 +56,7 @@ abstract class ParameterBuilder {
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends BuilderImpl
+class FormalParameterBuilder extends NamedBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -126,9 +133,6 @@ class FormalParameterBuilder extends BuilderImpl
 
   bool get isOptional => kind.isOptional;
 
-  @override
-  bool get isLocal => true;
-
   bool get isInitializingFormal => modifiers.isInitializingFormal;
 
   bool get isSuperInitializingFormal => modifiers.isSuperInitializingFormal;
@@ -146,6 +150,12 @@ class FormalParameterBuilder extends BuilderImpl
       variable!.isAssignable &&
       !isInitializingFormal &&
       !isSuperInitializingFormal;
+
+  @override
+  NamedBuilder get getable => this;
+
+  @override
+  NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -182,7 +192,7 @@ class FormalParameterBuilder extends BuilderImpl
     }
   }
 
-  FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
+  FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
         kind,
         modifiers | Modifiers.InitializingFormal,
@@ -225,13 +235,13 @@ class FormalParameterBuilder extends BuilderImpl
 
   void finalizeInitializingFormal(
       DeclarationBuilder declarationBuilder,
-      ConstructorDeclarationBuilder constructorDeclaration,
+      SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
-    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.isField) {
+    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
       DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
-      fieldType = constructorDeclaration.substituteFieldType(fieldType);
+      fieldType = constructorBuilder.substituteFieldType(fieldType);
       type.registerInferredType(fieldType);
     } else {
       type.registerInferredType(const DynamicType());
@@ -252,7 +262,7 @@ class FormalParameterBuilder extends BuilderImpl
     if (memberBuilder is ConstructorBuilder) {
       return true;
     } else if (memberBuilder is SourceFactoryBuilder) {
-      return memberBuilder.isFactory;
+      return true;
     } else {
       // Coverage-ignore-block(suite): Not run.
       return memberBuilder.isClassInstanceMember;
@@ -278,6 +288,9 @@ class FormalParameterBuilder extends BuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
+        if (initializer is InvalidExpression) {
+          variable!.isErroneouslyInitialized = true;
+        }
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {

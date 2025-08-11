@@ -16,7 +16,7 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -106,12 +106,12 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       // Find the parameter we're editing the argument for.
       var parameterName = params.edit.name;
       var parameter = parameters.firstWhereOrNull(
-        (p) => p.name3 == parameterName,
+        (p) => p.name == parameterName,
       );
       if (parameter == null) {
         return error(
           ServerErrorCodes.EditArgumentInvalidParameter,
-          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name3).join(', ')}",
+          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name).join(', ')}",
         );
       }
 
@@ -210,9 +210,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         ),
       );
     } else if (parameter.type case InterfaceType(
-      :EnumElement2 element3,
+      :EnumElement element,
     ) when value is String?) {
-      var allowedValues = getQualifiedEnumConstantNames(element3);
+      var allowedValues = getQualifiedEnumConstantNames(element);
       if (allowedValues.contains(value)) {
         return success(value.toString());
       } else {
@@ -392,7 +392,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
     }
 
-    var parameterName = parameter.name3;
+    var parameterName = parameter.name;
     var argumentNamePrefix =
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
     var argumentCode = '$argumentNamePrefix$newValueCode';

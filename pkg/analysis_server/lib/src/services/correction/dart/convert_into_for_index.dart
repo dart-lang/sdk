@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -21,7 +21,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
+  AssistKind get assistKind => DartAssistKind.convertIntoForIndex;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -51,7 +51,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     // iterable should be VariableElement
     String listName;
     var iterable = forEachParts.iterable;
-    if (iterable is SimpleIdentifier && iterable.element is VariableElement2) {
+    if (iterable is SimpleIdentifier && iterable.element is VariableElement) {
       listName = iterable.name;
     } else {
       return;
@@ -60,7 +60,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
-          iterableType.element3 != typeProvider.listElement2) {
+          iterableType.element != typeProvider.listElement) {
         return;
       }
     }

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.16
+# Dart VM Service Protocol 4.19
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.16_ of the Dart VM Service Protocol. This
+This document describes of _version 4.19_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -57,6 +57,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getPerfettoVMTimeline](#getperfettovmtimeline)
   - [getPorts](#getports)
   - [getProcessMemoryUsage](#getprocessmemoryusage)
+  - [getQueuedMicrotasks](#getqueuedmicrotasks)
   - [getRetainingPath](#getretainingpath)
   - [getScripts](#getscripts)
   - [getSourceReport](#getsourcereport)
@@ -126,6 +127,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [LibraryDependency](#librarydependency)
   - [LogRecord](#logrecord)
   - [MapAssociation](#mapassociation)
+  - [Microtask](#microtask)
   - [MemoryUsage](#memoryusage)
   - [Message](#message)
   - [NativeFunction](#nativefunction)
@@ -135,6 +137,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [PerfettoCpuSamples](#perfettocpusamples)
   - [PerfettoTimeline](#perfettotimeline)
   - [PortList](#portlist)
+  - [QueuedMicrotasks](#queuedmicrotasks)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
   - [RetainingObject](#retainingobject)
@@ -264,6 +267,7 @@ code | message | meaning
 112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available
 113 | Expression compilation error | Request to compile expression failed
 114 | Invalid timeline request | The timeline related request could not be completed due to the current configuration
+115 | Cannot get queued microtasks | Information about the microtasks queued in the specified isolate cannot be retrieved
 
 ## Events
 
@@ -1303,6 +1307,31 @@ Adding or removing buckets is considered a backwards-compatible change
 for the purposes of versioning. A client must gracefully handle the
 removal or addition of any bucket.
 
+### getQueuedMicrotasks
+
+```
+QueuedMicrotasks getQueuedMicrotasks(string isolateId)
+```
+
+The _getQueuedMicrotasks_ RPC returns a snapshot containing information about
+the microtasks that were queued in the specified isolate when the snapshot was
+taken.
+
+If the VM was not started with the flag `--profile-microtasks`, this RPC will
+return [RPC error](#rpc-error) 100 "Feature is disabled".
+
+If an exception has gone unhandled in the specified isolate, this RPC will
+return [RPC error](#rpc-error) 115 "Cannot get queued microtasks".
+
+If custom `dart:async` `Zone`s are used to redirect microtasks to be queued
+elsewhere than the root `dart:async` `Zone`'s microtask queue, information about
+those redirected microtasks will not be returned by this function.
+
+If _isolateId_ refers to an isolate that has exited, then the _Collected_
+[Sentinel](#sentinel) will be returned.
+
+See [QueuedMicrotasks](#queuedmicrotasks).
+
 ### getStack
 
 ```
@@ -1892,6 +1921,7 @@ Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
 HeapSnapshot | HeapSnapshot
+Timer | TimerSignificantlyOverdue
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -2602,6 +2632,17 @@ class Event extends Response {
   // This is provided for the Logging event.
   LogRecord logRecord [optional];
 
+
+  // Details about this event.
+  //
+  // For events of kind TimerSignifcantlyOverdue, this is a message stating how
+  // many milliseconds late the timer fired, and giving possible reasons for why
+  // it fired late.
+  //
+  // Only provided for events of kind TimerSignificantlyOverdue.
+  string details [optional];
+
+
   // The service identifier.
   //
   // This is provided for the event kinds:
@@ -2739,6 +2780,9 @@ enum EventKind {
 
   // Event from dart:developer.log.
   Logging,
+
+  // A timer fired significantly later than expected.
+  TimerSignificantlyOverdue,
 
   // A block of timeline events has been completed.
   //
@@ -4008,6 +4052,24 @@ class Message extends Response {
 A _Message_ provides information about a pending isolate message and the
 function that will be invoked to handle it.
 
+### Microtask
+
+```
+class Microtask extends Response {
+  // The numeric ID for this microtask.
+  //
+  // This ID uniquely identifies a microtask within an isolate.
+  int id;
+
+  // A stack trace that was collected when this microtask was enqueued.
+  string stackTrace;
+}
+```
+
+A _Microtask_ represents a Dart microtask.
+
+See [QueuedMicrotasks](#queuedmicrotasks).
+
 ### NativeFunction
 
 ```
@@ -4263,6 +4325,26 @@ class ProcessMemoryItem {
   ProcessMemoryItem[] children;
 }
 ```
+
+### QueuedMicrotasks
+
+```
+class QueuedMicrotasks extends Response {
+  // The time at which this snapshot of the microtask queue was taken,
+  // represented as microseconds since the "Unix epoch".
+  int timestamp;
+
+  // The microtasks that were in the queue when this snapshot was taken. The
+  // microtask at the front of the queue (i.e. the one that will run earliest)
+  // is the one at index 0 of this list.
+  Microtask[] microtasks;
+}
+```
+
+A _QueuedMicrotasks_ object is a snapshot containing information about the
+microtasks that were queued in a certain isolate at a certain time.
+
+See [getQueuedMicrotasks](#getqueuedmicrotasks) and [Microtask](#microtask).
 
 ### ReloadReport
 
@@ -4981,5 +5063,8 @@ version | comments
 4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
 4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
 4.16 | Added `reloadFailureReason` property to `Event`. Added `createIdZone`, `deleteIdZone`, and `invalidateIdZone` RPCs. Added optional `idZoneId` parameter to `evaluate`, `evaluateInFrame`, `getInboundReferences`, `getInstances`, `getInstancesAsList`, `getObject`, `getRetainingPath`, `getStack`, and `invoke` RPCs.
+4.17 | Added `Timer` stream, added `TimerSignificantlyOverdue` event kind, and added `details` property to `Event`.
+4.18 | Added `Microtask` timeline stream.
+4.19 | Added `getQueuedMicrotasks` RPC, added `Microtask` and `QueuedMicrotasks` types, and added RPC error 115 "Cannot get queued microtasks".
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -25,14 +25,16 @@ main() {
         .then((e) => Expect.isTrue(e))
         .then((_) => new Directory("${tempDir.path}/æøå").createTemp('temp'))
         .then((temp) {
-          Expect.isTrue(temp.path.contains(precomposed) ||
-              temp.path.contains(decomposed));
+          Expect.isTrue(
+            temp.path.contains(precomposed) || temp.path.contains(decomposed),
+          );
           return temp.delete();
         })
         .then((_) => tempDir.createTemp('æøå'))
         .then((temp) {
-          Expect.isTrue(temp.path.contains(precomposed) ||
-              temp.path.contains(decomposed));
+          Expect.isTrue(
+            temp.path.contains(precomposed) || temp.path.contains(decomposed),
+          );
           return temp.delete();
         })
         .then((temp) => Expect.isFalse(temp.existsSync()))

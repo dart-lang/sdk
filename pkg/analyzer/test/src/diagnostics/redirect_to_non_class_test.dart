@@ -16,21 +16,23 @@ main() {
 @reflectiveTest
 class RedirectToNonClassTest extends PubPackageResolutionTest {
   test_notAType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {
   int A = 0;
   factory B() = A;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1)],
+    );
   }
 
   test_undefinedIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {
   factory B() = A;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 26, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 26, 1)],
+    );
   }
 }

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:test/test.dart';
 
 /// The purpose of this test is to validate that all elements
@@ -76,13 +76,12 @@ void buildTests({
 
 void buildTestsForAnalysisServer() {
   var excludedPaths = <String>[
-    'test/mock_packages',
     // TODO(brianwilkerson): Fix the generator to sort the generated files and
     //  remove these exclusions.
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
-    'test/integration/support/integration_test_methods.dart',
-    'test/integration/support/protocol_matchers.dart',
+    'integration_test/support/integration_test_methods.dart',
+    'integration_test/support/protocol_matchers.dart',
     // The following are not generated, but can't be sorted because they contain
     // ignore comments in the directives, which sorting deletes.
     'lib/src/services/kythe/schema.dart',
@@ -151,9 +150,9 @@ void buildTestsIn(
         }
         var code = result.content;
         var unit = result.unit;
-        var errors = result.errors;
-        if (errors.isNotEmpty) {
-          fail('Errors found when parsing $path');
+        var diagnostics = result.diagnostics;
+        if (diagnostics.isNotEmpty) {
+          fail('Diagnostics found when parsing $path');
         }
         var sorter = MemberSorter(
           code,

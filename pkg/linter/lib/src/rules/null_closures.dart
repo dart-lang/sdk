@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -189,13 +191,10 @@ class NullClosures extends LintRule {
   NullClosures() : super(name: LintNames.null_closures, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.null_closures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.null_closures;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -229,11 +228,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     var methodName = node.methodName.name;
     var element = target is Identifier ? target.element : null;
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
-          if (element.name3 == function.type) {
+          if (element.name == function.type) {
             _checkNullArgForClosure(
               node.argumentList,
               function.positional,
@@ -268,11 +267,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (arg is NamedExpression) {
         if (arg.expression is NullLiteral &&
             names.contains(arg.name.label.name)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       } else {
         if (arg is NullLiteral && positions.contains(i)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       }
     }
@@ -291,21 +290,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
 
-    var element = type.element3;
+    var element = type.element;
     if (element.isSynthetic) return null;
 
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) {
       return null;
     }
 
-    var method = getMethod(element.library2.name3, elementName);
+    var method = getMethod(element.library.name, elementName);
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
-      var superElement = supertype.element3;
-      if (superElement.name3 case var superElementName?) {
-        method = getMethod(superElement.library2.name3, superElementName);
+      var superElement = supertype.element;
+      if (superElement.name case var superElementName?) {
+        method = getMethod(superElement.library.name, superElementName);
         if (method != null) return method;
       }
     }

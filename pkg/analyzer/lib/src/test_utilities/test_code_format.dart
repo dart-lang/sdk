@@ -91,10 +91,12 @@ class TestCode {
     void recordPosition(int number) {
       if (positionOffsets.containsKey(number)) {
         throw ArgumentError(
-            'Code contains multiple positions numbered $number');
+          'Code contains multiple positions numbered $number',
+        );
       } else if (number > positionOffsets.length) {
         throw ArgumentError(
-            'Code contains position numbered $number but expected ${positionOffsets.length}');
+          'Code contains position numbered $number but expected ${positionOffsets.length}',
+        );
       }
       positionOffsets[number] = start;
     }
@@ -102,10 +104,12 @@ class TestCode {
     void recordRangeStart(int number) {
       if (rangeStartOffsets.containsKey(number)) {
         throw ArgumentError(
-            'Code contains multiple range starts numbered $number');
+          'Code contains multiple range starts numbered $number',
+        );
       } else if (number > rangeStartOffsets.length) {
         throw ArgumentError(
-            'Code contains range start numbered $number but expected ${rangeStartOffsets.length}');
+          'Code contains range start numbered $number but expected ${rangeStartOffsets.length}',
+        );
       }
       rangeStartOffsets[number] = start;
     }
@@ -113,11 +117,13 @@ class TestCode {
     void recordRangeEnd(int number) {
       if (rangeEndOffsets.containsKey(number)) {
         throw ArgumentError(
-            'Code contains multiple range ends numbered $number');
+          'Code contains multiple range ends numbered $number',
+        );
       }
       if (!rangeStartOffsets.containsKey(number)) {
         throw ArgumentError(
-            'Code contains range end numbered $number without a preceeding start');
+          'Code contains range end numbered $number without a preceeding start',
+        );
       }
       rangeEndOffsets[number] = start;
     }
@@ -148,17 +154,15 @@ class TestCode {
         rangeStartOffsets.keys.whereNot(rangeEndOffsets.keys.contains).toList();
     if (unendedRanges.isNotEmpty) {
       throw ArgumentError(
-          'Code contains range starts numbered $unendedRanges without ends');
+        'Code contains range starts numbered $unendedRanges without ends',
+      );
     }
 
     var code = codeBuffer.toString();
     var lineInfo = LineInfo.fromContent(code);
 
     var positions = positionOffsets.map(
-      (number, offset) => MapEntry(
-        number,
-        TestCodePosition(lineInfo, offset),
-      ),
+      (number, offset) => MapEntry(number, TestCodePosition(lineInfo, offset)),
     );
 
     var ranges = rangeStartOffsets.map(

@@ -5,21 +5,21 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-/*member: myList:Container([exact=JSExtendableArray|powerset=0], element: Union([exact=JSString|powerset=0], [subclass=JSNumber|powerset=0], powerset: 0), length: null, powerset: 0)*/
+/*member: myList:Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=JSString|powerset={I}{O}{I}], [subclass=JSNumber|powerset={I}{O}{N}], powerset: {I}{O}{IN}), length: null, powerset: {I}{G}{M})*/
 var myList = [];
 
-/*member: otherList:Container([exact=JSExtendableArray|powerset=0], element: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0), length: 2, powerset: 0)*/
+/*member: otherList:Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN}), length: 2, powerset: {I}{G}{M})*/
 var otherList = ['foo', 42];
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   dynamic a =
       otherList
-      /*Container([exact=JSExtendableArray|powerset=0], element: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0), length: 2, powerset: 0)*/
+      /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN}), length: 2, powerset: {I}{G}{M})*/
       [0];
-  a /*invoke: Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ +=
+  a /*invoke: Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ +=
       54;
   myList.
-  /*invoke: Container([exact=JSExtendableArray|powerset=0], element: Union([exact=JSString|powerset=0], [subclass=JSNumber|powerset=0], powerset: 0), length: null, powerset: 0)*/
+  /*invoke: Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=JSString|powerset={I}{O}{I}], [subclass=JSNumber|powerset={I}{O}{N}], powerset: {I}{O}{IN}), length: null, powerset: {I}{G}{M})*/
   add(a);
 }

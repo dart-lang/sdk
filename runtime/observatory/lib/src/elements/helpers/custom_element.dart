@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
 
-HtmlElement element(CustomElement e) => e.element;
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+
+HTMLElement element(CustomElement e) => e.element;
 
 class CustomElement {
   static Expando reverseElements = new Expando();
-  static CustomElement reverse(HtmlElement element) =>
+  static CustomElement reverse(HTMLElement element) =>
       reverseElements[element] as CustomElement;
 
   static List<CustomElement> toBeAttached = <CustomElement>[];
@@ -17,7 +20,7 @@ class CustomElement {
     // Send 'attached' to elements that have been attached to the document.
     bool fired = false;
     var connectedElements = toBeAttached
-        .where((CustomElement element) => element.element.isConnected!)
+        .where((CustomElement element) => element.element.isConnected)
         .toList();
     for (CustomElement element in connectedElements) {
       toBeAttached.remove(element);
@@ -46,11 +49,11 @@ class CustomElement {
     }
   }
 
-  final HtmlElement element;
+  final HTMLElement element;
   CustomElement.created(String elementClass)
-      : element = document.createElement("shadow") as HtmlElement {
+      : element = document.createElement("shadow") as HTMLElement {
     reverseElements[element] = this;
-    element.classes = [elementClass];
+    element.className = elementClass;
 
     if (toBeAttached.isEmpty) {
       scheduleMicrotask(() => drainAttached());
@@ -61,27 +64,62 @@ class CustomElement {
   void attached() {}
   void detached() {}
 
-  Element? get parent => element.parent;
+  HTMLElement? get parent => element.parentElement as HTMLElement?;
 
-  List<Element> get children => element.children;
-  set children(List<Element> c) => element.children = c;
+  List<Node> get children {
+    final list = <Node>[];
+    for (var i = 0; i < element.children.length; i++) {
+      final child = element.children.item(i);
+      if (child != null) {
+        list.add(child);
+      }
+    }
+    return list;
+  }
 
-  CssClassSet get classes => element.classes;
-  set classes(dynamic c) => element.classes = c;
+  set children(List<Node> nodes) {
+    element.removeChildren();
+    for (var node in nodes) {
+      element.appendChild(node);
+    }
+  }
 
-  String? get title => element.title;
-  set title(String? t) => element.title = t;
+  CustomElement appendChild(Node node) {
+    element.appendChild(node);
+    return this;
+  }
 
-  String? get text => element.text;
-  set text(String? t) => element.text = t;
+  CustomElement removeChildren() {
+    element.removeChildren();
+    return this;
+  }
 
-  CssStyleDeclaration get style => element.style;
+  CustomElement appendChildren(Iterable<Node> nodes) {
+    element.appendChildren(nodes);
+    return this;
+  }
+
+  CustomElement setChildren(Iterable<Node> nodes) {
+    element.setChildren(nodes);
+    return this;
+  }
+
+  String get className => element.className;
+  set className(String c) => element.className = c;
+
+  String get title => element.title;
+  set title(String t) => element.title = t;
+
+  String get innerText => element.innerText;
+  set innerText(String t) => element.innerText = t;
+
+  CSSStyleDeclaration get style => element.style;
 
   ElementStream<MouseEvent> get onClick => element.onClick;
 
-  Rectangle getBoundingClientRect() => element.getBoundingClientRect();
+  DOMRect getBoundingClientRect() => element.getBoundingClientRect();
 
-  List<Node> getElementsByClassName(String c) =>
+  HTMLCollection getElementsByClassName(String c) =>
       element.getElementsByClassName(c);
 
   void scrollIntoView() => element.scrollIntoView();

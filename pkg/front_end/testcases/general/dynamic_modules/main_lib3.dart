@@ -7,3 +7,9 @@ class Lib3Class {}
 void lib3Method() {}
 
 int? lib3Field;
+
+extension type Lib3ExtType(int raw) {}
+
+extension Lib3Ext on int {
+  bool get lib3IsPositive => this > 0;
+}

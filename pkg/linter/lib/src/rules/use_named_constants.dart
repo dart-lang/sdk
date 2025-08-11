@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,13 +18,10 @@ class UseNamedConstants extends LintRule {
     : super(name: LintNames.use_named_constants, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_named_constants;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_named_constants;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -39,8 +37,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isConst) {
       var type = node.staticType;
       if (type is! InterfaceType) return;
-      var element = type.element3;
-      if (element is ClassElement2) {
+      var element = type.element;
+      if (element is ClassElement) {
         var nodeField =
             node
                 .thisOrAncestorOfType<VariableDeclaration>()
@@ -53,20 +51,20 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement2 == element) return;
+        if (nodeField?.enclosingElement == element) return;
 
         var library =
-            (node.root as CompilationUnit).declaredFragment?.element.library2;
+            (node.root as CompilationUnit).declaredFragment?.element.library;
         if (library == null) return;
-        var value = node.computeConstantValue().value;
-        for (var field in element.fields2.where(
+        var value = node.computeConstantValue()?.value;
+        for (var field in element.fields.where(
           (e) => e.isStatic && e.isConst,
         )) {
-          if (field.isAccessibleIn2(library) &&
+          if (field.isAccessibleIn(library) &&
               field.computeConstantValue() == value) {
-            rule.reportLint(
+            rule.reportAtNode(
               node,
-              arguments: ['${element.name3}.${field.name3}'],
+              arguments: ['${element.name}.${field.name}'],
             );
             return;
           }

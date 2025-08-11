@@ -119,6 +119,9 @@ class BaseTextBuffer;
   object##Ptr ptr() const {                                                    \
     return static_cast<object##Ptr>(ptr_);                                     \
   }                                                                            \
+  intptr_t HandleTag() const {                                                 \
+    return k##object##Cid;                                                     \
+  }                                                                            \
   bool Is##object() const {                                                    \
     return true;                                                               \
   }                                                                            \
@@ -256,7 +259,7 @@ class BaseTextBuffer;
   OBJECT_SERVICE_SUPPORT(object)                                               \
   friend class Object;
 
-extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+extern "C" void DLRT_ExitSafepoint();
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -267,7 +270,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -296,7 +299,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;                                                         \
-  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+  friend void DLRT_ExitSafepoint();
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)
@@ -356,9 +359,42 @@ class Object {
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
 
+  virtual intptr_t HandleTag() const { return kObjectCid; }
+
+#define DEFINE_LEAF_CHECK(clazz)                                               \
+  bool Is##clazz() const { return HandleTag() == k##clazz##Cid; }
+  LEAF_HANDLE_LIST(DEFINE_LEAF_CHECK)
+#undef DEFINE_LEAF_CHECK
+  bool IsTypedDataBase() const {
+    switch (HandleTag()) {
+      case kTypedDataBaseCid:
+      case kTypedDataCid:
+      case kExternalTypedDataCid:
+      case kTypedDataViewCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+  bool IsFinalizerBase() const {
+    switch (HandleTag()) {
+      case kFinalizerBaseCid:
+      case kFinalizerCid:
+      case kNativeFinalizerCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+  bool IsCallSiteData() const { return IsCallSiteDataClassId(HandleTag()); }
+  bool IsError() const { return IsErrorClassId(HandleTag()); }
+  bool IsNumber() const { return IsNumberClassId(HandleTag()); }
+  bool IsInteger() const { return IsIntegerClassId(HandleTag()); }
+  bool IsInstance() const { return HandleTag() >= kInstanceCid; }
+  bool IsAbstractType() const { return IsAbstractTypeClassId(HandleTag()); }
+
 // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
-  virtual bool Is##clazz() const { return false; }                             \
   static bool Is##clazz##NoHandle(ObjectPtr ptr) {                             \
     /* Use a stack handle to make RawCast safe in contexts where handles   */  \
     /* should not be allocated, such as GC or runtime transitions. Not     */  \
@@ -2954,7 +2990,9 @@ struct NameFormattingParams {
 
 enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
+  kIsolateGroupSharedStaticCallback,
   kIsolateLocalClosureCallback,
+  kIsolateGroupSharedClosureCallback,
   kAsyncCallback,
 };
 
@@ -3235,6 +3273,7 @@ class Function : public Object {
 
 #if defined(DART_DYNAMIC_MODULES)
   void AttachBytecode(const Bytecode& bytecode) const;
+  void ClearBytecode() const;
   inline BytecodePtr GetBytecode() const;
   static inline BytecodePtr GetBytecode(FunctionPtr function);
   inline bool HasBytecode() const;
@@ -4062,6 +4101,12 @@ class Function : public Object {
       const String& mangled_name) const;
 
   FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name) const;
+
+  // Returns true if this function needs dynamic invocation forwarder:
+  // that is if any of the arguments require checking on the dynamic
+  // call-site: if function has no parameters or has only covariant parameters
+  // as such function already checks all of its parameters.
+  bool NeedsDynamicInvocationForwarder() const;
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of function parameters.
@@ -4965,6 +5010,10 @@ class Script : public Object {
                             intptr_t script_index,
                             const TypedData& line_starts,
                             const TypedDataView& constant_coverage) const;
+
+  KernelProgramInfoPtr kernel_program_info() const {
+    return untag()->kernel_program_info();
+  }
 #endif
 
   // The index of this script into the [KernelProgramInfo] object's source
@@ -4976,6 +5025,7 @@ class Script : public Object {
   }
 
   TypedDataPtr line_starts() const;
+  void set_line_starts(const TypedData& value) const;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   TypedDataViewPtr constant_coverage() const;
@@ -5023,16 +5073,13 @@ class Script : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
                             intptr_t kernel_buffer_len) const;
+
+  void CollectDebugTokenPositions() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  void CollectTokenPositionsFor() const;
   ArrayPtr CollectConstConstructorCoverageFrom() const;
 
  private:
-  KernelProgramInfoPtr kernel_program_info() const {
-    return untag()->kernel_program_info();
-  }
-
   void set_debug_positions(const Array& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5188,6 +5235,8 @@ class Library : public Object {
   void AddExport(const Namespace& ns) const;
 
   void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
+  void AddMetadata(const Object& declaration,
+                   const Object& metadata_value) const;
   ObjectPtr GetMetadata(const Object& declaration) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5397,11 +5446,6 @@ class Library : public Object {
 
   void CheckReload(const Library& replacement,
                    ProgramReloadContext* context) const;
-
-  // Returns a closure of top level function 'name' in the exported namespace
-  // of this library. If a top level function 'name' does not exist we look
-  // for a top level getter 'name' that returns a closure.
-  ObjectPtr GetFunctionClosure(const String& name) const;
 
   // Ensures that all top-level functions and variables (fields) are loaded.
   void EnsureTopLevelClassIsFinalized() const;
@@ -5749,10 +5793,30 @@ class Instructions : public Object {
     return SizeBits::decode(instr->untag()->size_and_flags_);
   }
 
+  // When dual mapping all GC references (e.g. instruction fields inside
+  // Code) point into R/RW mapping. Entry points however all point into RX
+  // memory. This makes marking simpler: because marker does not need to
+  // translate RX mapping into RW mapping.
   uword PayloadStart() const { return PayloadStart(ptr()); }
   uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(ptr()); }
   uword EntryPoint() const { return EntryPoint(ptr()); }
   static uword PayloadStart(const InstructionsPtr instr) {
+    if (VirtualMemory::ShouldDualMapExecutablePages()) {
+      // Caveat: we assume that dual mapping is currently only enabled in iOS
+      // in Flutter development mode. This mode does not use snapshots which
+      // include image pages which means we can assume that all Instruction
+      // objects are allocated on VM owned pages.
+      // There is a check in |PageSpace::SetupImagePage| which enforces this.
+      auto page = Page::Of(instr);
+      RELEASE_ASSERT(page->Contains(reinterpret_cast<uword>(instr->untag())));
+      return reinterpret_cast<uword>(instr->untag()) +
+             page->OffsetToExecutableAlias() + HeaderSize();
+    }
+    return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
+  }
+
+  word WritablePayloadStart() const { return WritablePayloadStart(ptr()); }
+  static word WritablePayloadStart(const InstructionsPtr instr) {
     return reinterpret_cast<uword>(instr->untag()) + HeaderSize();
   }
 
@@ -6008,6 +6072,12 @@ class InstructionsTable : public Object {
   // Returns entry point of the instructions with given index.
   uword EntryPointAt(intptr_t index) const;
 
+  ArrayPtr code_objects() const { return untag()->code_objects_; }
+
+  intptr_t FirstEntryWithCode() const {
+    return static_cast<intptr_t>(rodata()->first_entry_with_code);
+  }
+
  private:
   uword start_pc() const { return InstructionsTable::start_pc(this->ptr()); }
   static uword start_pc(InstructionsTablePtr table) {
@@ -6018,8 +6088,6 @@ class InstructionsTable : public Object {
   static uword end_pc(InstructionsTablePtr table) {
     return table->untag()->end_pc_;
   }
-
-  ArrayPtr code_objects() const { return untag()->code_objects_; }
 
   void set_length(intptr_t value) const;
   void set_start_pc(uword value) const;
@@ -7485,6 +7553,29 @@ class Bytecode : public Object {
     return (source_positions_binary_offset() != 0);
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t local_variables_binary_offset() const {
+    return untag()->local_variables_binary_offset_;
+  }
+  void set_local_variables_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->local_variables_binary_offset_, value);
+  }
+  bool HasLocalVariablesInfo() const {
+    return (local_variables_binary_offset() != 0);
+  }
+
+  LocalVarDescriptorsPtr var_descriptors() const {
+    return untag()->var_descriptors<std::memory_order_acquire>();
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+    ASSERT(value.IsOld());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
+  }
+
+  // Will compute local var descriptors if necessary.
+  LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;
@@ -8777,7 +8868,10 @@ class TypeArguments : public Instance {
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
+    if (ptr() == other.ptr()) {
+      return true;
+    }
+    return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  TypeEquality::kCanonical);
   }
 
@@ -8785,6 +8879,9 @@ class TypeArguments : public Instance {
       const TypeArguments& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const {
+    if (ptr() == other.ptr()) {
+      return true;
+    }
     // Make a null vector a vector of dynamic as long as the other vector.
     return IsSubvectorEquivalent(other, 0, IsNull() ? other.Length() : Length(),
                                  kind, function_type_equivalence);
@@ -13359,7 +13456,9 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 
 ObjectPtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
-  return Isolate::Current()->field_table()->At(field_id());
+  return is_shared()
+             ? IsolateGroup::Current()->shared_field_table()->At(field_id())
+             : Isolate::Current()->field_table()->At(field_id());
 }
 
 inline intptr_t Field::field_id() const {

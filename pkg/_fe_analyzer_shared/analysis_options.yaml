@@ -10,6 +10,7 @@ linter:
     - annotate_overrides
     - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
+    - discarded_futures
     - prefer_adjacent_string_concatenation
     - unawaited_futures
     - recursive_getters

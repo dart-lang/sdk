@@ -55,17 +55,13 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   test_typeParameterType_none() {
     // T extends Future<int>
     _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: futureNone(intNone)),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: futureNone(intNone))),
       'int',
     );
 
     // T extends FutureOr<int>
     _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: futureOrNone(intNone)),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: futureOrNone(intNone))),
       'int',
     );
 
@@ -88,19 +84,11 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
     );
 
     // T extends int
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: intNone),
-      ),
-      'T',
-    );
+    _check(typeParameterTypeNone(typeParameter('T', bound: intNone)), 'T');
 
     // T & int
     _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: intNone,
-      ),
+      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
       'T',
     );
   }
@@ -108,9 +96,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   test_typeParameterType_question() {
     // T extends Future<int>
     _check(
-      typeParameterTypeQuestion(
-        typeParameter('T', bound: futureNone(intNone)),
-      ),
+      typeParameterTypeQuestion(typeParameter('T', bound: futureNone(intNone))),
       'int?',
     );
 
@@ -130,10 +116,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
 
   void _check(TypeImpl T, String expected) {
     var result = typeSystem.flatten(T);
-    expect(
-      result.getDisplayString(),
-      expected,
-    );
+    expect(result.getDisplayString(), expected);
   }
 }
 
@@ -148,12 +131,10 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    var A = class_2(name: 'A', interfaces: [
-      futureNone(intNone),
-    ]);
+    var A = class_2(name: 'A', interfaces: [futureNone(intNone)]);
 
     _check(interfaceTypeNone(A), 'Future<int>');
-    _check(interfaceTypeQuestion2(A), null);
+    _check(interfaceTypeQuestion(A), null);
   }
 
   test_interfaceType() {
@@ -190,17 +171,13 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   test_typeParameterType_none() {
     // T extends Future<int>
     _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: futureNone(intNone)),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: futureNone(intNone))),
       'Future<int>',
     );
 
     // T extends FutureOr<int>
     _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: futureOrNone(intNone)),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: futureOrNone(intNone))),
       'FutureOr<int>',
     );
 
@@ -223,19 +200,11 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     );
 
     // T extends int
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: intNone),
-      ),
-      null,
-    );
+    _check(typeParameterTypeNone(typeParameter('T', bound: intNone)), null);
 
     // T & int
     _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: intNone,
-      ),
+      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
       null,
     );
   }
@@ -249,10 +218,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     if (result == null) {
       expect(expected, isNull);
     } else {
-      expect(
-        result.getDisplayString(),
-        expected,
-      );
+      expect(result.getDisplayString(), expected);
     }
   }
 }

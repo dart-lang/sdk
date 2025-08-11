@@ -76,12 +76,13 @@ TypeLiteral
   }
 
   test_class_tooFewTypeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T, U> {}
 var t = C<int>;
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 26, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 26, 5)],
+    );
 
     var node = findNode.typeLiteral('C<int>;');
     assertResolvedNodeText(node, r'''
@@ -103,12 +104,13 @@ TypeLiteral
   }
 
   test_class_tooManyTypeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {}
 var t = C<int, int>;
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 23, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 23, 10)],
+    );
 
     var node = findNode.typeLiteral('C<int, int>;');
     assertResolvedNodeText(node, r'''
@@ -134,13 +136,20 @@ TypeLiteral
   }
 
   test_class_typeArgumentDoesNotMatchBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T extends num> {}
 var t = C<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
-          contextMessages: [message(testFile, 34, 9)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          36,
+          6,
+          contextMessages: [message(testFile, 34, 9)],
+        ),
+      ],
+    );
 
     var node = findNode.typeLiteral('C<String>;');
     assertResolvedNodeText(node, r'''
@@ -295,14 +304,21 @@ TypeLiteral
   }
 
   test_classAlias_typeArgumentDoesNotMatchBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {}
 typedef CA<T extends num> = C<T>;
 var t = CA<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 59, 6,
-          contextMessages: [message(testFile, 56, 10)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          59,
+          6,
+          contextMessages: [message(testFile, 56, 10)],
+        ),
+      ],
+    );
 
     var node = findNode.typeLiteral('CA<String>;');
     assertResolvedNodeText(node, r'''
@@ -448,7 +464,8 @@ TypeLiteral
   }
 
   test_functionAlias_targetOfMethodCall() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -458,9 +475,9 @@ void bar() {
 extension E on Type {
   void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3)],
+    );
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -488,7 +505,8 @@ TypeLiteral
     newFile('$testPackageLibPath/a.dart', '''
 typedef Fn<T> = void Function(T);
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as a;
 
 void bar() {
@@ -498,9 +516,9 @@ void bar() {
 extension E on Type {
   void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 48, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 48, 3)],
+    );
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -564,7 +582,8 @@ TypeLiteral
   }
 
   test_functionAlias_targetOfPropertyAccess_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -574,9 +593,9 @@ void bar() {
 extension E on Type {
   int get foo => 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3)],
+    );
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -636,7 +655,8 @@ TypeLiteral
   }
 
   test_functionAlias_targetOfPropertyAccess_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -646,9 +666,9 @@ void bar() {
 extension E on Type {
   set foo(int value) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3)],
+    );
 
     var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
@@ -708,12 +728,13 @@ TypeLiteral
   }
 
   test_functionAlias_tooFewTypeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T, U> = void Function(T, U);
 var t = Fn<int>;
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5)],
+    );
 
     var node = findNode.typeLiteral('Fn<int>;');
     assertResolvedNodeText(node, r'''
@@ -739,12 +760,13 @@ TypeLiteral
   }
 
   test_functionAlias_tooManyTypeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 var t = Fn<int, String>;
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 13)],
+    );
 
     var node = findNode.typeLiteral('Fn<int, String>;');
     assertResolvedNodeText(node, r'''
@@ -773,13 +795,20 @@ TypeLiteral
   }
 
   test_functionAlias_typeArgumentDoesNotMatchBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T extends num> = void Function(T);
 var t = Fn<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 57, 6,
-          contextMessages: [message(testFile, 54, 10)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          57,
+          6,
+          contextMessages: [message(testFile, 54, 10)],
+        ),
+      ],
+    );
 
     var node = findNode.typeLiteral('Fn<String>;');
     assertResolvedNodeText(node, r'''
@@ -897,25 +926,28 @@ TypeLiteral
 
 @reflectiveTest
 class TypeLiteralResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+    extends PubPackageResolutionTest
+    with WithoutConstructorTearoffsMixin {
   test_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {}
 var t = C<int>;
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 5),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 5)],
+    );
   }
 
   test_class_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
 class C<T> {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as a;
 var t = a.C<int>;
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 33, 5),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 33, 5)],
+    );
   }
 }

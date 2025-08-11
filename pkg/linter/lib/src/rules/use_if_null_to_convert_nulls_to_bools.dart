@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -19,13 +21,11 @@ class UseIfNullToConvertNullsToBools extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.use_if_null_to_convert_nulls_to_bools;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_if_null_to_convert_nulls_to_bools;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
@@ -33,7 +33,7 @@ class UseIfNullToConvertNullsToBools extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -50,13 +50,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         isNullableBool(type) &&
         right is BooleanLiteral &&
         right.value) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     if (node.operator.type == TokenType.BANG_EQ &&
         isNullableBool(type) &&
         right is BooleanLiteral &&
         !right.value) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

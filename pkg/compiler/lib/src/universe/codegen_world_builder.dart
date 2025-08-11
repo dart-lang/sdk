@@ -346,8 +346,8 @@ class CodegenWorldBuilder extends WorldBuilder {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
     Object? constraint = dynamicUse.receiverConstraint;
-    Map<Selector, SelectorConstraints> selectors =
-        selectorMap[name] ??= Maplet<Selector, SelectorConstraints>();
+    Map<Selector, SelectorConstraints> selectors = selectorMap[name] ??=
+        Maplet<Selector, SelectorConstraints>();
     UniverseSelectorConstraints? constraints =
         selectors[selector] as UniverseSelectorConstraints?;
     if (constraints == null) {
@@ -971,10 +971,9 @@ class CodegenWorldImpl implements CodegenWorld {
     required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
     required this.oneShotInterceptorData,
   }) : _parameterStubs = parameterStubs,
-       _reachableLazyMemberBodies =
-           processedEntities
-               .where((e) => e is JGeneratorBody || e is JConstructorBody)
-               .toSet(),
+       _reachableLazyMemberBodies = processedEntities
+           .where((e) => e is JGeneratorBody || e is JConstructorBody)
+           .toSet(),
        _compiledConstants = compiledConstants,
        _invokedNames = invokedNames,
        _invokedGetters = invokedGetters,
@@ -1053,69 +1052,61 @@ class CodegenWorldImpl implements CodegenWorld {
   Iterable<Local> get genericLocalFunctions => const [];
 
   @override
-  late final Iterable<FunctionEntity> closurizedMembers =
-      (() {
-        final result = <FunctionEntity>{};
-        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-          if ((member.isFunction || member is JGeneratorBody) &&
-              member.isInstanceMember &&
-              usage.hasRead) {
-            result.add(member as FunctionEntity);
-          }
-        });
-        return result;
-      })();
+  late final Iterable<FunctionEntity> closurizedMembers = (() {
+    final result = <FunctionEntity>{};
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if ((member.isFunction || member is JGeneratorBody) &&
+          member.isInstanceMember &&
+          usage.hasRead) {
+        result.add(member as FunctionEntity);
+      }
+    });
+    return result;
+  })();
 
   @override
-  late final Iterable<FunctionEntity> closurizedStatics =
-      (() {
-        final result = <FunctionEntity>{};
-        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-          if (member.isFunction &&
-              (member.isStatic || member.isTopLevel) &&
-              usage.hasRead) {
-            result.add(member as FunctionEntity);
-          }
-        });
-        return result;
-      })();
+  late final Iterable<FunctionEntity> closurizedStatics = (() {
+    final result = <FunctionEntity>{};
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member.isFunction &&
+          (member.isStatic || member.isTopLevel) &&
+          usage.hasRead) {
+        result.add(member as FunctionEntity);
+      }
+    });
+    return result;
+  })();
 
   @override
-  late final Map<MemberEntity, DartType> genericCallableProperties =
-      (() {
-        final result = <MemberEntity, DartType>{};
-        _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
-          if (usage.hasRead) {
-            DartType? type;
-            if (member is FieldEntity) {
-              type = _closedWorld.elementEnvironment.getFieldType(member);
-            } else if (member.isGetter) {
-              type =
-                  _closedWorld.elementEnvironment
-                      .getFunctionType(member as FunctionEntity)
-                      .returnType;
-            }
-            if (type == null) return;
-            if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
-              result[member] = type;
-            } else {
-              type = type.withoutNullability;
-              if (type is InterfaceType) {
-                FunctionType? callType = _closedWorld.dartTypes.getCallType(
-                  type,
-                );
-                if (callType != null &&
-                    _closedWorld.dartTypes.canAssignGenericFunctionTo(
-                      callType,
-                    )) {
-                  result[member] = callType;
-                }
-              }
+  late final Map<MemberEntity, DartType> genericCallableProperties = (() {
+    final result = <MemberEntity, DartType>{};
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (usage.hasRead) {
+        DartType? type;
+        if (member is FieldEntity) {
+          type = _closedWorld.elementEnvironment.getFieldType(member);
+        } else if (member.isGetter) {
+          type = _closedWorld.elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .returnType;
+        }
+        if (type == null) return;
+        if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
+          result[member] = type;
+        } else {
+          type = type.withoutNullability;
+          if (type is InterfaceType) {
+            FunctionType? callType = _closedWorld.dartTypes.getCallType(type);
+            if (callType != null &&
+                _closedWorld.dartTypes.canAssignGenericFunctionTo(callType)) {
+              result[member] = callType;
             }
           }
-        });
-        return result;
-      })();
+        }
+      }
+    });
+    return result;
+  })();
 
   @override
   void forEachStaticTypeArgument(

@@ -63,17 +63,25 @@ main() {
   // Typedef.
   testType(Func, ["Func", "(bool) => int"]);
   testType(Func2, ["Func2", "(bool) => int"]);
-  testType(GenericTypedef,
-      ["GenericTypedef", "GenericTypedef<dynamic>", "(dynamic) => int"]);
-  testType(GenericTypedef2,
-      ["GenericTypedef2", "GenericTypedef2<dynamic>", "(dynamic) => int"]);
-  testType(new Box<GenericTypedef<int>>().typeArg,
-      ["GenericTypedef<int>", "(int) => int"]);
+  testType(GenericTypedef, [
+    "GenericTypedef",
+    "GenericTypedef<dynamic>",
+    "(dynamic) => int",
+  ]);
+  testType(GenericTypedef2, [
+    "GenericTypedef2",
+    "GenericTypedef2<dynamic>",
+    "(dynamic) => int",
+  ]);
+  testType(new Box<GenericTypedef<int>>().typeArg, [
+    "GenericTypedef<int>",
+    "(int) => int",
+  ]);
   testType(GenericFunc, ["GenericFunc", RegExp(r'<(\w+)>\((\1)\) => int')]);
   testType(GenericTypedefAndFunc, [
     "GenericTypedefAndFunc",
     "GenericTypedefAndFunc<dynamic>",
-    RegExp(r'<(\w+)>\((\1)\) => dynamic')
+    RegExp(r'<(\w+)>\((\1)\) => dynamic'),
   ]);
 
   // Literals are canonicalized.
@@ -110,8 +118,10 @@ void testType(Type type, Object expectedToStringValues) {
         matched = matched || value.hasMatch(text);
       }
     }
-    Expect.isTrue(matched,
-        'type `$type`.toString() should be one of: $expectedToStringValues.');
+    Expect.isTrue(
+      matched,
+      'type `$type`.toString() should be one of: $expectedToStringValues.',
+    );
   } else {
     var string = expectedToStringValues as String;
     Expect.equals(string, text);

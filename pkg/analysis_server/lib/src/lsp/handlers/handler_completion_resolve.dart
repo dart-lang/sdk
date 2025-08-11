@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -93,10 +94,15 @@ class CompletionResolveHandler
                 ).locateIn(session)
                 : null;
 
+        var showName = element?.name;
+        if (element?.enclosingElement case InstanceElement(:var name)) {
+          showName = name;
+        }
+
         var builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
           for (var uri in importUris) {
-            builder.importLibraryElement(uri, showName: element?.name3);
+            builder.importLibraryElement(uri, showName: showName);
           }
         });
 

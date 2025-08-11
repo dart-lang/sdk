@@ -22,7 +22,8 @@ class MissingOverrideOfMustBeOverriddenTest extends PubPackageResolutionTest {
   }
 
   test_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -31,13 +32,14 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1)],
+    );
   }
 
   test_field_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -49,10 +51,16 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 121, 1,
-          messageContains: ["'f'", "'m'"]),
-    ]);
+''',
+      [
+        error(
+          WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+          121,
+          1,
+          messageContains: ["'f'", "'m'"],
+        ),
+      ],
+    );
   }
 
   test_field_overriddenWithField() async {
@@ -88,7 +96,8 @@ class B extends A {
   }
 
   test_field_overriddenWithOnlyGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -99,9 +108,9 @@ class A {
 class B extends A {
   int get f => 0;
 }
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1)],
+    );
   }
 
   test_finalField_overriddenWithOnlyGetter() async {
@@ -120,7 +129,8 @@ class B extends A {
   }
 
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -129,9 +139,9 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 91, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 91, 1)],
+    );
   }
 
   test_getter_overriddenWithField() async {
@@ -165,7 +175,8 @@ class B extends A {
   }
 
   test_method_directMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -174,13 +185,14 @@ mixin M {
 }
 
 class A with M {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+    );
   }
 
   test_method_directSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -189,13 +201,14 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+    );
   }
 
   test_method_directSuperclass_three() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -210,14 +223,20 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS, 157,
-          1),
-    ]);
+''',
+      [
+        error(
+          WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+          157,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_directSuperclass_two() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -229,9 +248,9 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 122, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 122, 1)],
+    );
   }
 
   test_method_hasAbstractOverride_isOkBecauseNotConcreteClass() async {
@@ -280,7 +299,8 @@ class B extends A {
   }
 
   test_method_indirectMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -293,13 +313,14 @@ class A with M {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 121, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 121, 1)],
+    );
   }
 
   test_method_indirectSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -312,13 +333,14 @@ class B extends A {
 }
 
 class C extends B {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 124, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 124, 1)],
+    );
   }
 
   test_method_indirectSuperclass_oneErrorPerName() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -332,13 +354,14 @@ class B extends A {
 }
 
 class C extends B {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 144, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 144, 1)],
+    );
   }
 
   test_method_mixinApplication() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 mixin A {
@@ -347,9 +370,9 @@ mixin A {
 }
 
 class B = Object with A;
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+    );
   }
 
   test_method_notVisible() async {
@@ -431,7 +454,8 @@ mixin M on A {}
   }
 
   test_operator_directSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -440,13 +464,14 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 107, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 107, 1)],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 class A {
@@ -455,8 +480,8 @@ class A {
 }
 
 class B extends A {}
-''', [
-      error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 100, 1),
-    ]);
+''',
+      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 100, 1)],
+    );
   }
 }

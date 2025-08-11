@@ -18,7 +18,6 @@ linter:
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
     - flutter_style_todos
-    - library_annotations
     - prefer_single_quotes
     - unawaited_futures
     - unnecessary_breaks

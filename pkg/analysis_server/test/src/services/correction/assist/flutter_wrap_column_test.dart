@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapColumnTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_COLUMN;
+  AssistKind get kind => DartAssistKind.flutterWrapColumn;
 
   @override
   void setUp() {
@@ -158,12 +158,12 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Container(
-      child: Text('aaa'),
+      child: /*[0*/Text/*0]*/('aaa'),
     );
   }
 }
 ''');
-    await assertHasAssistAt('Text(', '''
+    await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -177,6 +177,6 @@ class FakeFlutter {
     );
   }
 }
-''', length: 4);
+''');
   }
 }

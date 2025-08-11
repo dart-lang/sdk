@@ -9,9 +9,7 @@ import 'package:collection/collection.dart';
 extension IterableExtension<E> on Iterable<E> {
   /// Note, elements must be unique.
   Map<E, int> get asElementToIndexMap {
-    return {
-      for (var (index, element) in indexed) element: index,
-    };
+    return {for (var (index, element) in indexed) element: index};
   }
 
   /// Returns the fixed-length [List] with elements of `this`.
@@ -27,8 +25,17 @@ extension IterableExtension<E> on Iterable<E> {
   }
 }
 
-extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
+extension IterableOfMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
   Map<K, V> get mapFromEntries => Map.fromEntries(this);
+
+  Iterable<MapEntry<K, V2>> mapValue<V2>(V2 Function(V) convert) {
+    return map((entry) {
+      var key = entry.key;
+      var value = entry.value;
+      var value2 = convert(value);
+      return MapEntry(key, value2);
+    });
+  }
 }
 
 extension ListExtension<E> on List<E> {
@@ -90,10 +97,7 @@ extension ListExtension<E> on List<E> {
   /// before those for which the [predicate] returns `false`. The partitioning
   /// is stable, i.e. the relative ordering of the elements is preserved.
   List<E> stablePartition(bool Function(E element) predicate) {
-    return [
-      ...where(predicate),
-      ...whereNot(predicate),
-    ];
+    return [...where(predicate), ...whereNot(predicate)];
   }
 }
 

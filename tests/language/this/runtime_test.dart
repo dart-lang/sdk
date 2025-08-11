@@ -9,16 +9,7 @@ class Foo {
   var x;
   f() {}
 
-  testMe() {
-
-
-
-
-
-
-
-
-  }
+  testMe() {}
 }
 
 main() {

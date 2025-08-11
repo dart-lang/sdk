@@ -69,18 +69,14 @@ ResultClass forwardedClass() => notInlinedClass();
 @pragma('vm:prefer-inline')
 @pragma('wasm:prefer-inline')
 @pragma('dart2js:prefer-inline')
-({int result0, String result1}) inlinedRecordNamed() => (
-  result0: input1,
-  result1: input2,
-);
+({int result0, String result1}) inlinedRecordNamed() =>
+    (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
 @pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
-({int result0, String result1}) notInlinedRecordNamed() => (
-  result0: input1,
-  result1: input2,
-);
+({int result0, String result1}) notInlinedRecordNamed() =>
+    (result0: input1, result1: input2);
 
 @pragma('vm:never-inline')
 @pragma('wasm:never-inline')

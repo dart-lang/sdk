@@ -18,10 +18,7 @@ enum Enum {
   static void genericMethod<T>() {}
 }
 
-enum GenericEnum<T> {
-  a<int>(),
-  b<String>()
-}
+enum GenericEnum<T> { a<int>(), b<String>() }
 
 @Enum.a
 /*member: enumConstant1:
@@ -240,6 +237,3 @@ resolved=UnresolvedExpression(UnresolvedInstantiate(
   UnresolvedAccess(
     EnumProto(Enum).unresolved)<int>))*/
 void enumConstant24() {}
-
-
-

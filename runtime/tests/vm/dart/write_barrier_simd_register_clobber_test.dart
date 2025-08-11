@@ -71,8 +71,9 @@ Float64x2 crashy(Float64x2 v, List<Old> oldies) {
 }
 
 void main(List<String> args) {
-  final init =
-      args.contains('impossible') ? Float64x2(1.0, 1.0) : Float64x2(0.0, 0.0);
+  final init = args.contains('impossible')
+      ? Float64x2(1.0, 1.0)
+      : Float64x2(0.0, 0.0);
   final oldies = List<Old>.generate(100000, (i) => Old(""));
   VMInternalsForTesting.collectAllGarbage();
   VMInternalsForTesting.collectAllGarbage();

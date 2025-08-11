@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 const numRuns = 10;
-final script = Platform.script.resolve('smoke.dart').toString();
 
 void main() {
   group(
@@ -51,7 +50,7 @@ void main() {
             ],
           );
           expect(result.exitCode, 64);
-          expect(result.stdout, contains('Observatory listening'));
+          expect(result.stdout, contains('The Dart VM service is listening'));
           expect(
             result.stderr,
             contains(
@@ -101,7 +100,7 @@ void main() {
             ],
           );
           expect(result.exitCode, 254);
-          expect(result.stdout, contains('Observatory listening'));
+          expect(result.stdout, contains('The Dart VM service is listening'));
           expect(
             result.stderr,
             contains(

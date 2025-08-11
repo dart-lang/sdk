@@ -172,10 +172,17 @@ source_set("libprotozero") {
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
   extra_product_deps = []
-  extra_nonproduct_deps = [ ":libprotozero" ]
+  extra_nonproduct_deps = []
+  if (dart_support_perfetto) {
+    extra_nonproduct_deps += [ ":libprotozero" ]
+  }
   extra_deps = [
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
+  ]
+  extra_precompiler_deps = [
+    # The Mach-O writer uses BoringSSL's SHA256 function for code signatures.
+    "//third_party/boringssl",
   ]
   if (is_fuchsia) {
     extra_deps += [
@@ -213,7 +220,11 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   public_configs = [ ":libdart_vm_config" ]
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
-  extra_nonproduct_deps = [ ":libprotozero" ]
+
+  extra_nonproduct_deps = []
+  if (dart_support_perfetto) {
+    extra_nonproduct_deps += [ ":libprotozero" ]
+  }
   extra_deps = []
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
@@ -222,7 +233,10 @@ library_for_all_configs_with_compiler("libdart_compiler") {
 
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
-  extra_nonproduct_deps = [ ":libprotozero" ]
+  extra_nonproduct_deps = []
+  if (dart_support_perfetto) {
+    extra_nonproduct_deps += [ ":libprotozero" ]
+  }
   extra_deps = []
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
@@ -273,13 +287,13 @@ template("gen_vm_platform") {
 gen_vm_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
-  output_postfix = "_strong"
+  output_postfix = ""
 }
 
 gen_vm_platform("vm_platform_product") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
-  output_postfix = "_strong_product"
+  output_postfix = "_product"
 
   # In Debug mode we use debug binaries for dart2native.
   # (see also the "dart_product_config" config)
@@ -289,7 +303,7 @@ gen_vm_platform("vm_platform_product") {
 gen_vm_platform("vm_platform_stripped") {
   add_implicit_vm_platform_dependency = false
   exclude_source = true
-  output_postfix = "_strong_stripped"
+  output_postfix = "_stripped"
 }
 
 group("kernel_platform_files") {

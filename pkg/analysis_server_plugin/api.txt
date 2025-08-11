@@ -1,0 +1,220 @@
+package:analysis_server_plugin/edit/assist/assist.dart:
+  Assist (class extends Object):
+    compareAssists (static method: int Function(Assist, Assist))
+    new (constructor: Assist Function(AssistKind, SourceChange))
+    change (getter: SourceChange)
+    kind (getter: AssistKind)
+    toString (method: String Function())
+package:analysis_server_plugin/edit/assist/dart_assist_context.dart:
+  DartAssistContext (class extends Object):
+    new (constructor: DartAssistContext Function(InstrumentationService, ChangeWorkspace, ResolvedLibraryResult, ResolvedUnitResult, int, int))
+    instrumentationService (getter: InstrumentationService)
+    libraryResult (getter: ResolvedLibraryResult)
+    selectionLength (getter: int)
+    selectionOffset (getter: int)
+    unitResult (getter: ResolvedUnitResult)
+    workspace (getter: ChangeWorkspace)
+package:analysis_server_plugin/edit/correction_utils.dart:
+  CorrectionUtils (class extends Object):
+    new (constructor: CorrectionUtils Function(ParsedUnitResult))
+    endOfLine (getter: String)
+    oneIndent (getter: String)
+    twoIndents (getter: String)
+    findNode (method: AstNode? Function(int))
+    getLineContentEnd (method: int Function(int))
+    getLineContentStart (method: int Function(int))
+    getLineNext (method: int Function(int))
+    getLinePrefix (method: String Function(int))
+    getLineThis (method: int Function(int))
+    getLinesRange (method: SourceRange Function(SourceRange, {bool skipLeadingEmptyLines}))
+    getLinesRangeStatements (method: SourceRange Function(List<Statement>))
+    getNodePrefix (method: String Function(AstNode))
+    getNodeText (method: String Function(AstNode, {bool withLeadingComments}))
+    getPrefix (method: String Function(int))
+    getRangeText (method: String Function(SourceRange))
+    getText (method: String Function(int, int))
+    indentSourceLeftRight (method: String Function(String, {bool indentLeft}))
+    invertCondition (method: String Function(Expression))
+    replaceSourceIndent (method: String Function(String, String, String, {bool ensureTrailingNewline, bool includeLeading}))
+    replaceSourceRangeIndent (method: String Function(SourceRange, String, String, {bool ensureTrailingNewline, bool includeLeading}))
+  TokenUtils (class extends Object):
+    getTokens (static method: List<Token> Function(String, FeatureSet))
+    new (constructor: TokenUtils Function())
+package:analysis_server_plugin/edit/dart/correction_producer.dart:
+  CorrectionApplicability (enum):
+    acrossFiles (static getter: CorrectionApplicability)
+    acrossSingleFile (static getter: CorrectionApplicability)
+    automatically (static getter: CorrectionApplicability)
+    automaticallyButOncePerFile (static getter: CorrectionApplicability)
+    singleLocation (static getter: CorrectionApplicability)
+    values (static getter: List<CorrectionApplicability>)
+  CorrectionProducer (class<T extends ParsedUnitResult> extends _AbstractCorrectionProducer<T>, sealed (immediate subtypes: ParsedCorrectionProducer, ResolvedCorrectionProducer)):
+    applicability (getter: CorrectionApplicability)
+    assistArguments (getter: List<String>?)
+    assistKind (getter: AssistKind?)
+    canBeAppliedAcrossFiles (getter: bool)
+    canBeAppliedAcrossSingleFile (getter: bool)
+    canBeAppliedAutomatically (getter: bool)
+    coveringNode (getter: AstNode?)
+    diagnosticLength (getter: int?)
+    diagnosticOffset (getter: int?)
+    errorLength (getter: int?, deprecated)
+    errorOffset (getter: int?, deprecated)
+    fixArguments (getter: List<String>?)
+    fixKind (getter: FixKind?)
+    multiFixArguments (getter: List<String>?)
+    multiFixKind (getter: FixKind?)
+    compute (method: Future<void> Function(ChangeBuilder))
+  CorrectionProducerContext (class extends Object):
+    createParsed (static method: CorrectionProducerContext Function({bool applyingBulkFixes, DartFixContext? dartFixContext, Diagnostic? diagnostic, required ParsedLibraryResult libraryResult, int selectionLength, int selectionOffset, required ParsedUnitResult unitResult}))
+    createResolved (static method: CorrectionProducerContext Function({bool applyingBulkFixes, DartFixContext? dartFixContext, Diagnostic? diagnostic, required ResolvedLibraryResult libraryResult, int selectionLength, int selectionOffset, required ResolvedUnitResult unitResult}))
+    dartFixContext (getter: DartFixContext?)
+    node (getter: AstNode)
+    path (getter: String)
+  CorrectionProducerWithDiagnostic (class extends ResolvedCorrectionProducer):
+    new (constructor: CorrectionProducerWithDiagnostic Function({required CorrectionProducerContext context}))
+    diagnostic (getter: Diagnostic)
+  MultiCorrectionProducer (class extends _AbstractCorrectionProducer<ResolvedUnitResult>):
+    new (constructor: MultiCorrectionProducer Function({required CorrectionProducerContext context}))
+    context (getter: CorrectionProducerContext)
+    libraryElement2 (getter: LibraryElement)
+    libraryResult (getter: ResolvedLibraryResult)
+    producers (getter: Future<List<ResolvedCorrectionProducer>>)
+    unitResult (getter: ResolvedUnitResult)
+  ParsedCorrectionProducer (class extends CorrectionProducer<ParsedUnitResult>):
+    new (constructor: ParsedCorrectionProducer Function({required CorrectionProducerContext context}))
+  ResolvedCorrectionProducer (class extends CorrectionProducer<ResolvedUnitResult>):
+    new (constructor: ResolvedCorrectionProducer Function({required CorrectionProducerContext context}))
+    analysisOptions (getter: AnalysisOptions)
+    inStaticContext (getter: bool)
+    inheritanceManager (getter: InheritanceManager3, deprecated)
+    libraryElement2 (getter: LibraryElement)
+    libraryResult (getter: ResolvedLibraryResult)
+    typeProvider (getter: TypeProvider)
+    typeSystem (getter: TypeSystem)
+    unitResult (getter: ResolvedUnitResult)
+    getClassDeclaration (method: Future<ClassDeclaration?> Function(ClassFragment))
+    getEnumDeclaration (method: Future<EnumDeclaration?> Function(EnumFragment))
+    getExtensionDeclaration (method: Future<ExtensionDeclaration?> Function(ExtensionFragment))
+    getExtensionTypeDeclaration (method: Future<ExtensionTypeDeclaration?> Function(ExtensionTypeFragment))
+    getMixinDeclaration (method: Future<MixinDeclaration?> Function(MixinFragment))
+    getTargetInterfaceElement (method: InterfaceElement? Function(Expression))
+    inferUndefinedExpressionType (method: DartType? Function(Expression))
+    isEnabled (method: bool Function(Feature))
+  StubCorrectionProducerContext (class extends Object implements CorrectionProducerContext):
+    instance (static getter: StubCorrectionProducerContext)
+    noSuchMethod (method: dynamic Function(Invocation))
+  _AbstractCorrectionProducer (non-public)
+package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart:
+  DartFixKindPriority (class extends Object):
+    ignore (static getter: int)
+    inFile (static getter: int)
+    standard (static getter: int)
+package:analysis_server_plugin/edit/fix/dart_fix_context.dart:
+  DartFixContext (class extends Object implements FixContext):
+    new (constructor: DartFixContext Function({bool autoTriggered, CorrectionUtils? correctionUtils, required Diagnostic error, required InstrumentationService instrumentationService, required ResolvedLibraryResult libraryResult, required ResolvedUnitResult unitResult, required ChangeWorkspace workspace}))
+    autoTriggered (getter: bool)
+    correctionUtils (getter: CorrectionUtils)
+    diagnostic (getter: Diagnostic)
+    error (getter: Diagnostic)
+    instrumentationService (getter: InstrumentationService)
+    libraryResult (getter: ResolvedLibraryResult)
+    unitResult (getter: ResolvedUnitResult)
+    workspace (getter: ChangeWorkspace)
+    getTopLevelDeclarations (method: Future<Map<LibraryElement, Element>> Function(String))
+    librariesWithExtensions (method: Stream<LibraryElement> Function(Name))
+package:analysis_server_plugin/edit/fix/fix.dart:
+  Fix (class extends Object):
+    compareFixes (static method: int Function(Fix, Fix))
+    new (constructor: Fix Function({required SourceChange change, required FixKind kind}))
+    change (getter: SourceChange)
+    kind (getter: FixKind)
+    toString (method: String Function())
+package:analysis_server_plugin/edit/fix/fix_context.dart:
+  FixContext (class extends Object):
+    diagnostic (getter: Diagnostic)
+    error (getter: Diagnostic, deprecated)
+package:analysis_server_plugin/plugin.dart:
+  Plugin (class extends Object):
+    new (constructor: Plugin Function())
+    register (method: FutureOr<void> Function(PluginRegistry))
+    shutDown (method: FutureOr<void> Function())
+    start (method: FutureOr<void> Function())
+package:analysis_server_plugin/registry.dart:
+  PluginRegistry (class extends Object):
+    new (constructor: PluginRegistry Function())
+    registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
+    registerFixForRule (method: void Function(LintCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
+    registerLintRule (method: void Function(AbstractAnalysisRule))
+    registerWarningRule (method: void Function(AbstractAnalysisRule))
+dart:async:
+  Future (referenced)
+  FutureOr (referenced)
+  Stream (referenced)
+dart:core:
+  Invocation (referenced)
+  List (referenced)
+  Map (referenced)
+  Object (referenced)
+  String (referenced)
+  bool (referenced)
+  int (referenced)
+package:_fe_analyzer_shared/src/scanner/token.dart:
+  Token (referenced)
+package:analyzer/analysis_rule/analysis_rule.dart:
+  AbstractAnalysisRule (referenced)
+package:analyzer/dart/analysis/analysis_options.dart:
+  AnalysisOptions (referenced)
+package:analyzer/dart/analysis/features.dart:
+  Feature (referenced)
+  FeatureSet (referenced)
+package:analyzer/dart/analysis/results.dart:
+  ParsedLibraryResult (referenced)
+  ParsedUnitResult (referenced)
+  ResolvedLibraryResult (referenced)
+  ResolvedUnitResult (referenced)
+package:analyzer/dart/element/element.dart:
+  ClassFragment (referenced)
+  Element (referenced)
+  EnumFragment (referenced)
+  ExtensionFragment (referenced)
+  ExtensionTypeFragment (referenced)
+  InterfaceElement (referenced)
+  LibraryElement (referenced)
+  MixinFragment (referenced)
+package:analyzer/dart/element/type.dart:
+  DartType (referenced)
+package:analyzer/dart/element/type_provider.dart:
+  TypeProvider (referenced)
+package:analyzer/dart/element/type_system.dart:
+  TypeSystem (referenced)
+package:analyzer/diagnostic/diagnostic.dart:
+  Diagnostic (referenced)
+package:analyzer/instrumentation/service.dart:
+  InstrumentationService (referenced)
+package:analyzer/source/source_range.dart:
+  SourceRange (referenced)
+package:analyzer/src/dart/ast/ast.dart:
+  AstNode (referenced)
+  ClassDeclaration (referenced)
+  EnumDeclaration (referenced)
+  Expression (referenced)
+  ExtensionDeclaration (referenced)
+  ExtensionTypeDeclaration (referenced)
+  MixinDeclaration (referenced)
+  Statement (referenced)
+package:analyzer/src/dart/element/inheritance_manager3.dart:
+  InheritanceManager3 (referenced)
+  Name (referenced)
+package:analyzer/src/dart/error/lint_codes.dart:
+  LintCode (referenced)
+package:analyzer_plugin/protocol/protocol_common.dart:
+  SourceChange (referenced)
+package:analyzer_plugin/utilities/assist/assist.dart:
+  AssistKind (referenced)
+package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
+  ChangeBuilder (referenced)
+package:analyzer_plugin/utilities/change_builder/change_workspace.dart:
+  ChangeWorkspace (referenced)
+package:analyzer_plugin/utilities/fixes/fixes.dart:
+  FixKind (referenced)

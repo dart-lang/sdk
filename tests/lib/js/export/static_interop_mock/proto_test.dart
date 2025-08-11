@@ -35,8 +35,10 @@ void main() {
   // Test that everything still works the same.
   functional_test.test(windowProto);
   // Test instanceof/is checks.
-  var jsMock =
-      createStaticInteropMock<JSWindow, DartWindow>(DartWindow(), windowProto);
+  var jsMock = createStaticInteropMock<JSWindow, DartWindow>(
+    DartWindow(),
+    windowProto,
+  );
   expect(jsMock is Window, true);
   expect(instanceof(jsMock, windowType), true);
 }

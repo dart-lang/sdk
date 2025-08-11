@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -70,68 +70,74 @@ class A {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
   static int f = 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16)],
+    );
   }
 
   test_class_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
   static int get f => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16)],
+    );
   }
 
   test_class_static_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
   static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16)],
+    );
   }
 
   test_class_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
   static void set f(int value) {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 16)],
+    );
   }
 
   test_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
   @mustBeOverridden
   C();
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 16)],
+    );
   }
 
   test_enum_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 enum E {
@@ -139,22 +145,23 @@ enum E {
   @mustBeOverridden
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 16)],
+    );
   }
 
   test_extension_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 extension E on String {
   @mustBeOverridden
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 16)],
+    );
   }
 
   test_mixin_instance_method() async {
@@ -169,14 +176,15 @@ mixin M {
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @mustBeOverridden
 void m() {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 16),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 16)],
+    );
   }
 }
 
@@ -234,68 +242,74 @@ class A {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
   static int f = 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13)],
+    );
   }
 
   test_class_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
   static int get f => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13)],
+    );
   }
 
   test_class_static_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
   static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13)],
+    );
   }
 
   test_class_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
   static void set f(int value) {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 13)],
+    );
   }
 
   test_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
   @mustCallSuper
   C();
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 13)],
+    );
   }
 
   test_enum_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 enum E {
@@ -303,22 +317,23 @@ enum E {
   @mustCallSuper
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 58, 13)],
+    );
   }
 
   test_extension_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 extension E on String {
   @mustCallSuper
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 61, 13)],
+    );
   }
 
   test_mixin_instance_method() async {
@@ -333,14 +348,15 @@ mixin M {
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @mustCallSuper
 void m() {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 13),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 13)],
+    );
   }
 }
 
@@ -353,16 +369,17 @@ class InvalidAnnotationTarget_RedeclareTest extends PubPackageResolutionTest {
   }
 
   test_class_instance_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
   @redeclare
   void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 9),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 47, 9)],
+    );
   }
 
   test_extensionType_instance_getter() async {
@@ -411,7 +428,8 @@ extension type E(C c) implements C {
   }
 
   test_extensionType_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -422,13 +440,14 @@ extension type E(C c) {
   @redeclare
   static int get g => 0; 
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 100, 9),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 100, 9)],
+    );
   }
 
   test_extensionType_static_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -439,13 +458,14 @@ extension type E(C c) {
   @redeclare
   static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 9),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 9)],
+    );
   }
 
   test_extensionType_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -456,9 +476,9 @@ extension type E(C c) {
   @redeclare
   static set g(int i) {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 99, 9),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 99, 9)],
+    );
   }
 }
 
@@ -503,7 +523,8 @@ class C = Object with M;
   }
 
   void test_classType_mixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -513,13 +534,14 @@ class A {
 
 @A()
 mixin M {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_classType_topLevelVariable_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -529,13 +551,14 @@ class A {
 
 @A()
 int x = 0;
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_classType_topLevelVariable_topLevelConstant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -547,9 +570,9 @@ const a = A();
 
 @a
 int x = 0;
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1)],
+    );
   }
 
   void test_constructor_constructor() async {
@@ -568,7 +591,8 @@ class C {
   }
 
   void test_constructor_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -579,13 +603,14 @@ class A {
 class C {
   @A() void m() {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 112, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 112, 1)],
+    );
   }
 
   void test_directive_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.directive})
@@ -595,9 +620,9 @@ class A {
 
 @A()
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_directive_directive() async {
@@ -615,7 +640,8 @@ class A {
   }
 
   void test_enumType_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumType})
@@ -625,9 +651,9 @@ class A {
 
 @A()
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1)],
+    );
   }
 
   void test_enumType_enum() async {
@@ -660,7 +686,8 @@ enum E {
   }
 
   void test_enumValue_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumValue})
@@ -671,13 +698,14 @@ class A {
 class C {
   @A() int f = 7;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 110, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 110, 1)],
+    );
   }
 
   void test_extension_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.extension})
@@ -687,9 +715,9 @@ class A {
 
 @A()
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_extension_extension() async {
@@ -751,7 +779,8 @@ int f(int x) => 0;
   }
 
   void test_function_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -763,13 +792,14 @@ class C {
   @A()
   int M(int x) => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1)],
+    );
   }
 
   void test_function_topLevelGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -779,13 +809,14 @@ class A {
 
 @A()
 int get x => 0;
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1)],
+    );
   }
 
   void test_function_topLevelSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -795,9 +826,9 @@ class A {
 
 @A()
 set x(_x) {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 97, 1)],
+    );
   }
 
   void test_getter_getter() async {
@@ -817,7 +848,8 @@ class C {
   }
 
   void test_getter_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -829,13 +861,14 @@ class C {
   @A()
   int m(int x) => x;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_getter_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -847,9 +880,9 @@ class C {
   @A()
   set x(int _x) {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_getter_topLevelGetter() async {
@@ -867,7 +900,8 @@ int get x => 0;
   }
 
   void test_library_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.library})
@@ -877,9 +911,9 @@ class A {
 
 @A()
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 96, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 96, 1)],
+    );
   }
 
   void test_library_import() async {
@@ -909,7 +943,8 @@ class A {
   }
 
   void test_method_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -921,9 +956,9 @@ class C {
   @A()
   int get x => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_method_method() async {
@@ -959,7 +994,8 @@ class C {
   }
 
   void test_method_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -971,13 +1007,14 @@ class C {
   @A()
   set x(int _x) {}
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_method_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -987,13 +1024,14 @@ class A {
 
 @A()
 int f(int x) => x;
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 95, 1)],
+    );
   }
 
   void test_mixinType_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.mixinType})
@@ -1003,9 +1041,9 @@ class A {
 
 @A()
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_mixinType_mixin() async {
@@ -1023,7 +1061,8 @@ mixin M {}
   }
 
   void test_multiple_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType, TargetKind.method})
@@ -1033,9 +1072,9 @@ class A {
 
 @A()
 int x = 0;
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1)],
+    );
   }
 
   void test_multiple_valid() async {
@@ -1082,7 +1121,8 @@ void f([@A() int? x]) {}
   }
 
   void test_optionalParameter_requiredNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1091,13 +1131,14 @@ class A {
 }
 
 void f({@A() required int x}) {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 114, 1)],
+    );
   }
 
   void test_optionalParameter_requiredPositional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1106,13 +1147,14 @@ class A {
 }
 
 void f(@A() int x) {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 113, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 113, 1)],
+    );
   }
 
   void test_overridableMember_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1124,9 +1166,9 @@ class C {
   @A()
   C();
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1)],
+    );
   }
 
   void test_overridableMember_instanceGetter() async {
@@ -1162,7 +1204,8 @@ class C {
   }
 
   void test_overridableMember_instanceMethod_onEnum() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1175,13 +1218,14 @@ enum E {
   @A()
   int x() => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1)],
+    );
   }
 
   void test_overridableMember_instanceMethod_onExtension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1193,9 +1237,9 @@ extension E on int {
   @A()
   int x() => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 129, 1)],
+    );
   }
 
   void test_overridableMember_instanceMethod_onMixin() async {
@@ -1247,7 +1291,8 @@ class C {
   }
 
   void test_overridableMember_staticMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1259,13 +1304,14 @@ class C {
   @A()
   static int x() => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 118, 1)],
+    );
   }
 
   void test_parameter_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.parameter})
@@ -1275,9 +1321,9 @@ class A {
 
 @A()
 void f(int x) {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1)],
+    );
   }
 
   void test_parameter_parameter() async {
@@ -1294,7 +1340,8 @@ void f(@A() int x) {}
   }
 
   void test_setter_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1306,13 +1353,14 @@ class C {
   @A()
   int get x => 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_setter_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1324,9 +1372,9 @@ class C {
   @A()
   int m(int x) => x;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 107, 1)],
+    );
   }
 
   void test_setter_setter() async {
@@ -1360,7 +1408,8 @@ set x(_x) {}
   }
 
   void test_topLevelVariable_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.topLevelVariable})
@@ -1372,9 +1421,9 @@ class B {
   @A()
   int f = 0;
 }
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 117, 1)],
+    );
   }
 
   void test_topLevelVariable_topLevelVariable() async {
@@ -1436,7 +1485,8 @@ enum E {a, b}
   }
 
   void test_type_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1447,9 +1497,9 @@ class A {
 @A()
 extension on C {}
 class C {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 93, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 93, 1)],
+    );
   }
 
   void test_type_genericTypeAlias() async {
@@ -1495,7 +1545,8 @@ typedef F = void Function(int);
   }
 
   void test_typeParameter_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.typeParameter})
@@ -1504,9 +1555,9 @@ class A {
 }
 
 void f(@A() p) {}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1)],
+    );
   }
 
   void test_typeParameter_typeParameter() async {

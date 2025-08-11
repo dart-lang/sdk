@@ -44,7 +44,7 @@ def BuildOptions():
     other_group.add_argument("-j",
                              type=int,
                              help='Ninja -j option for RBE builds.',
-                             default=200 if sys.platform == 'win32' else 1000)
+                             default=200 if sys.platform == 'win32' else 500)
     other_group.add_argument("-l",
                              type=int,
                              help='Ninja -l option for RBE builds.',
@@ -134,7 +134,12 @@ bootstrap_path = None
 def StartRBE(out_dir, env):
     global rbe_started, bootstrap_path
     if not rbe_started:
-        rbe_dir = 'buildtools/reclient'
+        if HOST_OS == 'win32':
+            rbe_dir = 'buildtools/reclient-win'
+        elif HOST_OS == 'linux':
+            rbe_dir = 'buildtools/reclient-linux'
+        else:
+            rbe_dir = 'buildtools/reclient'
         with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
             for line in fp:
                 if 'rbe_dir' in line:
@@ -296,6 +301,11 @@ def Main():
         env.pop('CPATH', None)
         env.pop('LIBRARY_PATH', None)
         env.pop('SDKROOT', None)
+
+    # Help QEMU binfmt work for executables that include dynamic links, such as
+    # reclient's scandeps_server.
+    if sys.platform == 'linux':
+        env['QEMU_LD_PREFIX'] = "/usr/x86_64-linux-gnu/"
 
     # Always run GN before building.
     gn_py.RunGnOnConfiguredConfigurations(options, env)

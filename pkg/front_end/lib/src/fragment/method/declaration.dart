@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -23,16 +24,19 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
+/// Interface for the method declaration aspect of a [SourceMethodBuilder].
+///
+/// If a method is augmented, it will have multiple
+/// [MethodDeclaration]s on a single [SourceMethodBuilder].
 abstract class MethodDeclaration {
+  UriOffsetLength get uriOffset;
+
   Uri get fileUri;
-
-  List<FormalParameterBuilder>? get formals;
-
-  FunctionNode get function;
 
   Procedure get invokeTarget;
 
@@ -42,22 +46,14 @@ abstract class MethodDeclaration {
 
   Procedure? get readTarget;
 
-  TypeBuilder get returnType;
-
-  List<TypeParameter>? get thisTypeParameters;
-
-  VariableDeclaration? get thisVariable;
-
-  void becomeNative(SourceLoader loader);
-
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      SourceMethodBuilder methodBuilder,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourceMethodBuilder methodBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f,
@@ -73,33 +69,29 @@ abstract class MethodDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
-
   void createEncoding(
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters);
-
-  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+      TypeParameterFactory typeParameterFactory);
 
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder enclosingClassBuilder,
       Set<ClassMember>? overrideDependencies);
-
-  VariableDeclaration getFormalParameter(int index);
-
-  VariableDeclaration? getTearOffParameter(int index);
 }
 
-class MethodDeclarationImpl implements MethodDeclaration {
+class MethodDeclarationImpl
+    implements MethodDeclaration, MethodFragmentDeclaration {
   final MethodFragment _fragment;
   late final MethodEncoding _encoding;
 
   MethodDeclarationImpl(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -140,21 +132,21 @@ class MethodDeclarationImpl implements MethodDeclaration {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      SourceMethodBuilder methodBuilder,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourceMethodBuilder methodBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
     _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        createBodyBuilderContext(methodBuilder),
-        annotatable,
-        isClassInstanceMember: isClassInstanceMember,
-        createFileUriExpression: createFileUriExpression);
+        classHierarchy: classHierarchy,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: createBodyBuilderContext(methodBuilder),
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        isClassInstanceMember: isClassInstanceMember);
   }
 
   @override
@@ -200,9 +192,9 @@ class MethodDeclarationImpl implements MethodDeclaration {
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+      TypeParameterFactory typeParameterFactory) {
     _encoding = encodingStrategy.createMethodEncoding(
-        builder, _fragment, unboundNominalParameters);
+        builder, _fragment, typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _encoding.clonedAndDeclaredTypeParameters,
         ownerName: _fragment.name, allowNameConflict: true);
@@ -240,4 +232,27 @@ class MethodDeclarationImpl implements MethodDeclaration {
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
+}
+
+/// Interface for using a [MethodFragment] to create a [BodyBuilderContext].
+abstract class MethodFragmentDeclaration {
+  List<FormalParameterBuilder>? get formals;
+
+  FunctionNode get function;
+
+  TypeBuilder get returnType;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  VariableDeclaration? get thisVariable;
+
+  void becomeNative(SourceLoader loader);
+
+  BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
+
+  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+
+  VariableDeclaration getFormalParameter(int index);
+
+  VariableDeclaration? getTearOffParameter(int index);
 }

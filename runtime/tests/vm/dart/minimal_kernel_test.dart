@@ -26,8 +26,10 @@ compileAndRunMinimalDillTest(List<String> extraCompilationArgs) async {
       testScriptUri.toFilePath(),
     ]);
 
-    final result =
-        await runDart('RUN FROM MINIMAL DILL FILE', [minimalDillPath, message]);
+    final result = await runDart('RUN FROM MINIMAL DILL FILE', [
+      minimalDillPath,
+      message,
+    ]);
     expectOutput(message, result);
   });
 }

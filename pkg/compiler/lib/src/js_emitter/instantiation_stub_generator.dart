@@ -155,11 +155,10 @@ class InstantiationStubGenerator {
     FunctionEntity? member,
   ) {
     // 1. Find the number of type parameters in [instantiationClass].
-    int typeArgumentCount =
-        _closedWorld.dartTypes
-            .getThisType(instantiationClass)
-            .typeArguments
-            .length;
+    int typeArgumentCount = _closedWorld.dartTypes
+        .getThisType(instantiationClass)
+        .typeArguments
+        .length;
     assert(typeArgumentCount > 0);
 
     // 2. Find the function field access path.

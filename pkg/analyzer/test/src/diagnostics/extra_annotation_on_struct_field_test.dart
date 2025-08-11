@@ -26,15 +26,16 @@ final class C extends Struct {
   }
 
   test_two() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class C extends Struct {
   @Int32()
   @Int16()
   external int x;
 }
-''', [
-      error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 63, 8),
-    ]);
+''',
+      [error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 63, 8)],
+    );
   }
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Regression test for https://github.com/dart-lang/sdk/issues/42502.
-// Requirements=nnbd-strong
 
 import "package:expect/expect.dart";
 

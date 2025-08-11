@@ -6,6 +6,9 @@
 // "mixin", "mixin class" or the test should be left at 2.19.
 // @dart=2.19
 
+// Don't let the formatter change the location of things.
+// dart format off
+
 part of test.class_location;
 
 class ClassInOtherFile {}

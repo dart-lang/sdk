@@ -117,10 +117,9 @@ void reportFrontEndMessage(
   Iterable<fe.DiagnosticMessage>? relatedInformation = fe
       .getMessageRelatedInformation(message);
   DiagnosticMessage mainMessage = convertMessage(message);
-  List<DiagnosticMessage> infos =
-      relatedInformation != null
-          ? relatedInformation.map(convertMessage).toList()
-          : const [];
+  List<DiagnosticMessage> infos = relatedInformation != null
+      ? relatedInformation.map(convertMessage).toList()
+      : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
       throw mainMessage.message.message;

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 
 class BulkFixDetails {
   Future<Map<String, CorrectionDetails>> collectOverrides() async {
@@ -35,7 +35,7 @@ class BulkFixDetails {
         var classElement = classDecl.declaredFragment?.element;
         if (classElement != null &&
             classElement.allSupertypes.any(
-              (element) => element.element3.name3 == 'CorrectionProducer',
+              (element) => element.element.name == 'CorrectionProducer',
             )) {
           var correctionName = classDecl.name.lexeme;
 

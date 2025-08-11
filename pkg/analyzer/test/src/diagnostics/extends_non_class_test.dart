@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class ExtendsNonClassTest extends PubPackageResolutionTest {
   test_class_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends dynamic {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -34,12 +35,13 @@ ExtendsClause
   }
 
   test_class_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { ONE }
 class A extends E {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -53,12 +55,13 @@ ExtendsClause
   }
 
   test_class_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 44, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -72,12 +75,13 @@ ExtendsClause
   }
 
   test_class_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 class A extends M {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -91,12 +95,13 @@ ExtendsClause
   }
 
   test_class_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int v = 0;
 class A extends v {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -104,18 +109,19 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: v
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }
 
   test_class_variable_generic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int v = 0;
 class A extends v<int> {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -131,17 +137,18 @@ ExtendsClause
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }
 
   test_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends Never {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -155,11 +162,12 @@ ExtendsClause
   }
 
   test_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 1)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -173,13 +181,14 @@ ExtendsClause
   }
 
   test_undefined_ignore_import_prefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as p;
 
 class C extends p.A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -227,13 +236,14 @@ ExtendsClause
 part 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 import 'x.dart' as p;
 class C extends p.A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
@@ -251,13 +261,14 @@ ExtendsClause
   }
 
   test_undefined_ignore_import_show_it() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' show A;
 
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+    );
   }
 
   test_undefined_ignore_import_show_it_part() async {
@@ -277,13 +288,14 @@ class C extends A {}
 part 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 import 'x.dart' show A;
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8)],
+    );
   }
 
   test_undefined_ignore_import_show_it_part3() async {
@@ -316,23 +328,27 @@ import 'x.dart' show A;
 ''');
 
     // This file is not on the path with `b.dart`, so the error.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1)],
+    );
   }
 
   test_undefined_ignore_import_show_other() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' show B;
 
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 41, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 41, 1),
+      ],
+    );
   }
 
   test_undefined_ignore_part_exists_uriGenerated_nameIgnorable() async {
@@ -340,66 +356,78 @@ class C extends A {}
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.g.dart';
 
 class C extends _$A {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 3)],
+    );
   }
 
   test_undefined_ignore_part_notExist_uriGenerated_nameIgnorable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.g.dart';
 
 class C extends _$A {}
-''', [
-      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10)],
+    );
   }
 
   test_undefined_ignore_part_notExist_uriGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.g.dart';
 
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1),
+      ],
+    );
   }
 
   test_undefined_ignore_part_notExist_uriNotGenerated_nameIgnorable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class C extends _$A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 3),
+      ],
+    );
   }
 
   test_undefined_ignore_part_notExist_uriNotGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class C extends A {}
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 1),
+      ],
+    );
   }
 
   test_undefined_import_exists_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as p;
 
 class C extends p.A {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3)],
+    );
 
     var node = findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''

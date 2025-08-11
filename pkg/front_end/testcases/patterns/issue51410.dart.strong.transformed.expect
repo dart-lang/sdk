@@ -8,7 +8,7 @@ static method main() → void {
   hoisted has-declared-initializer (core::int) → core::int f;
   {
     final synthesized (core::int) → core::int #0#0 = #C2;
-    if(!(#0#0 is (core::int) → core::int && (let final (core::int) → core::int #t1 = f = #0#0 in true)))
+    if(!(#0#0 is (core::int) → core::int && (let final dynamic #t1 = f = #0#0 in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }

@@ -22,16 +22,17 @@ class NonConstantCaseExpressionTest extends PubPackageResolutionTest
 class NonConstantCaseExpressionTest_Language219 extends PubPackageResolutionTest
     with WithLanguage219Mixin, NonConstantCaseExpressionTestCases {
   test_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(var e, int a) {
   switch (e) {
     case 3 + a:
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 51, 1)],
+    );
   }
 }
 

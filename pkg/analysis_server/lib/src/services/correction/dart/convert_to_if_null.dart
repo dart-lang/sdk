@@ -12,7 +12,14 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToIfNull extends ResolvedCorrectionProducer {
-  ConvertToIfNull({required super.context});
+  /// Identifies the case to be fixed.
+  final _FixCase _fixCase;
+
+  ConvertToIfNull.preferIfNull({required super.context})
+    : _fixCase = _FixCase.preferIfNull;
+
+  ConvertToIfNull.useToConvertNullsToBools({required super.context})
+    : _fixCase = _FixCase.useToConvertNullsToBools;
 
   @override
   CorrectionApplicability get applicability =>
@@ -26,10 +33,19 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    switch (_fixCase) {
+      case _FixCase.preferIfNull:
+        await _preferIfNull(builder);
+      case _FixCase.useToConvertNullsToBools:
+        await _useToConvertNullsToBools(builder);
+    }
+  }
+
+  Future<void> _preferIfNull(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConditionalExpression &&
-        node.offset == errorOffset &&
-        node.length == errorLength) {
+        node.offset == diagnosticOffset &&
+        node.length == diagnosticLength) {
       var condition = node.condition as BinaryExpression;
       Expression nullableExpression;
       Expression defaultExpression;
@@ -67,4 +83,37 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
       });
     }
   }
+
+  Future<void> _useToConvertNullsToBools(ChangeBuilder builder) async {
+    var node = this.node;
+    if (node is BinaryExpression &&
+        node.offset == diagnosticOffset &&
+        node.length == diagnosticLength &&
+        (node.operator.type == TokenType.EQ_EQ ||
+            node.operator.type == TokenType.BANG_EQ)) {
+      var left = node.leftOperand;
+      var right = node.rightOperand;
+      Expression nullableExpression;
+      if (left is! BooleanLiteral) {
+        nullableExpression = left;
+      } else if (right is! BooleanLiteral) {
+        nullableExpression = right;
+      } else {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(range.node(node), (builder) {
+          builder.write(utils.getNodeText(nullableExpression));
+          builder.write(' ${TokenType.QUESTION_QUESTION.lexeme} ');
+          if (node.operator.type == TokenType.EQ_EQ) {
+            builder.write('false');
+          } else {
+            builder.write('true');
+          }
+        });
+      });
+    }
+  }
 }
+
+enum _FixCase { preferIfNull, useToConvertNullsToBools }

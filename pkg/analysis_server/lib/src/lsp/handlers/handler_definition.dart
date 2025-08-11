@@ -13,7 +13,7 @@ import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -218,23 +218,23 @@ class DefinitionHandler
     // variable to get the codeOffset/codeLength.
     if (codeFragment is PropertyAccessorFragment &&
         codeFragment.element.isSynthetic) {
-      codeFragment = codeFragment.element.nonSynthetic2.firstFragment;
+      codeFragment = codeFragment.element.nonSynthetic.firstFragment;
     }
 
     // For extension types, the primary constructor has a range that covers only
     // the parameters / representation type but we want the whole declaration
     // for the code range because otherwise previews will just show `(int a)`
     // which is not what the user expects.
-    if (codeFragment.element.enclosingElement2
-        case ExtensionTypeElement2 enclosingElement
-        when enclosingElement.primaryConstructor2 == codeFragment.element) {
+    if (codeFragment.element.enclosingElement
+        case ExtensionTypeElement enclosingElement
+        when enclosingElement.primaryConstructor == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;
     }
 
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
     int? codeOffset, codeLength;
-    if (codeFragment case ElementImpl codeFragment) {
+    if (codeFragment case FragmentImpl codeFragment) {
       codeOffset = codeFragment.codeOffset;
       codeLength = codeFragment.codeLength;
     }

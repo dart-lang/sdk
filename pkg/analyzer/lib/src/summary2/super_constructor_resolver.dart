@@ -16,7 +16,7 @@ class SuperConstructorResolver {
   void perform() {
     for (var builder in _linker.builders.values) {
       for (var classElement in builder.element.classes) {
-        for (var constructorElement in classElement.constructors2) {
+        for (var constructorElement in classElement.constructors) {
           _constructor(classElement, constructorElement);
         }
       }
@@ -24,8 +24,8 @@ class SuperConstructorResolver {
   }
 
   void _constructor(
-    ClassElementImpl2 classElement,
-    ConstructorElementImpl2 element,
+    ClassElementImpl classElement,
+    ConstructorElementImpl element,
   ) {
     // Constructors of mixin applications are already configured.
     if (classElement.isMixinApplication) {
@@ -47,18 +47,20 @@ class SuperConstructorResolver {
           } else if (initializer is SuperConstructorInvocation) {
             invokesDefaultSuperConstructor = false;
             var name = initializer.constructorName?.name ?? 'new';
-            element.superConstructor2 = classElement.supertype?.constructors2
-                .where((element) => element.name3 == name)
-                .firstOrNull;
+            element.superConstructor =
+                classElement.supertype?.constructors
+                    .where((element) => element.name == name)
+                    .firstOrNull;
           }
         }
       }
     }
 
     if (invokesDefaultSuperConstructor) {
-      element.superConstructor2 = classElement.supertype?.constructors2
-          .where((element) => element.name3 == 'new')
-          .firstOrNull;
+      element.superConstructor =
+          classElement.supertype?.constructors
+              .where((element) => element.name == 'new')
+              .firstOrNull;
     }
   }
 }

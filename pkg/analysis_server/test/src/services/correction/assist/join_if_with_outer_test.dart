@@ -17,32 +17,32 @@ void main() {
 @reflectiveTest
 class JoinIfWithOuterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.JOIN_IF_WITH_OUTER;
+  AssistKind get kind => DartAssistKind.joinIfWithOuter;
 
   Future<void> test_bothOuterAndInnerAreIfCase() async {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final v?) {
-    if (v case final int x) {
+    i^f (v case final int x) {
       print(x);
     }
   }
 }
 ''');
-    await assertNoAssistAt('if (v');
+    await assertNoAssist();
   }
 
   Future<void> test_conditionAndOr() async {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2 || 3 == 3) {
+    ^if (2 == 2 || 3 == 3) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (2 ==', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && (2 == 2 || 3 == 3)) {
     print(0);
@@ -55,14 +55,14 @@ void f() {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (isCheck()) {
+    i^f (isCheck()) {
       print(0);
     }
   }
 }
 bool isCheck() => false;
 ''');
-    await assertHasAssistAt('if (isCheck', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && isCheck()) {
     print(0);
@@ -76,13 +76,13 @@ bool isCheck() => false;
     await resolveTestCode('''
 void f() {
   if (1 == 1 || 2 == 2) {
-    if (3 == 3) {
+    if^ (3 == 3) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (3 == 3', '''
+    await assertHasAssist('''
 void f() {
   if ((1 == 1 || 2 == 2) && 3 == 3) {
     print(0);
@@ -95,13 +95,13 @@ void f() {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final int v) {
-    if (v == 5) {
+    if^ (v == 5) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v == 5', '''
+    await assertHasAssist('''
 void f(Object? p) {
   if (p case final int v when v == 5) {
     print(0);
@@ -114,13 +114,13 @@ void f(Object? p) {
     await resolveTestCode('''
 void f(Object? p, Object? q) {
   if (p case final int v) {
-    if (q != null) {
+    i^f (q != null) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (q != null', '''
+    await assertHasAssist('''
 void f(Object? p, Object? q) {
   if (p case final int v when q != null) {
     print(0);
@@ -133,13 +133,13 @@ void f(Object? p, Object? q) {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final int v when v.isOdd) {
-    if (v == 5) {
+    i^f (v == 5) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v == 5', '''
+    await assertHasAssist('''
 void f(Object? p) {
   if (p case final int v when v.isOdd && v == 5) {
     print(0);
@@ -152,13 +152,13 @@ void f(Object? p) {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final int v when v.isOdd || v > 3) {
-    if (v == 5 || v != 6) {
+    i^f (v == 5 || v != 6) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v', '''
+    await assertHasAssist('''
 void f(Object? p) {
   if (p case final int v when (v.isOdd || v > 3) && (v == 5 || v != 6)) {
     print(0);
@@ -171,13 +171,13 @@ void f(Object? p) {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final int v when v.isOdd) {
-    if (v == 5 || v != 3) {
+    ^if (v == 5 || v != 3) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v', '''
+    await assertHasAssist('''
 void f(Object? p) {
   if (p case final int v when v.isOdd && (v == 5 || v != 3)) {
     print(0);
@@ -190,13 +190,13 @@ void f(Object? p) {
     await resolveTestCode('''
 void f(Object? p) {
   if (p case final int v when v.isOdd || v != 3) {
-    if (v == 5) {
+    ^if (v == 5) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v', '''
+    await assertHasAssist('''
 void f(Object? p) {
   if (p case final int v when (v.isOdd || v != 3) && v == 5) {
     print(0);
@@ -209,13 +209,13 @@ void f(Object? p) {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    ^if (2 == 2) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -227,19 +227,19 @@ void f() {
   Future<void> test_outerNotIf() async {
     await resolveTestCode('''
 void f() {
-  if (1 == 1) {
+  i^f (1 == 1) {
     print(0);
   }
 }
 ''');
-    await assertNoAssistAt('if (1 == 1');
+    await assertNoAssist();
   }
 
   Future<void> test_outerWithElse() async {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(0);
     }
   } else {
@@ -247,20 +247,20 @@ void f() {
   }
 }
 ''');
-    await assertNoAssistAt('if (2 == 2');
+    await assertNoAssist();
   }
 
   Future<void> test_simpleConditions_block_block() async {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -273,12 +273,12 @@ void f() {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2)
+    ^if (2 == 2)
       print(0);
   }
 }
 ''');
-    await assertHasAssistAt('if (2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -291,7 +291,7 @@ void f() {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    ^if (2 == 2) {
       print(1);
       print(2);
       print(3);
@@ -299,7 +299,7 @@ void f() {
   }
 }
 ''');
-    await assertHasAssistAt('if (2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && 2 == 2) {
     print(1);
@@ -314,12 +314,12 @@ void f() {
     await resolveTestCode('''
 void f() {
   if (1 == 1)
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(0);
     }
 }
 ''');
-    await assertHasAssistAt('if (2 == 2', '''
+    await assertHasAssist('''
 void f() {
   if (1 == 1 && 2 == 2) {
     print(0);
@@ -332,14 +332,14 @@ void f() {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(2);
     }
     print(1);
   }
 }
 ''');
-    await assertNoAssistAt('if (2 == 2');
+    await assertNoAssist();
   }
 
   Future<void> test_statementBeforeInner() async {
@@ -347,29 +347,29 @@ void f() {
 void f() {
   if (1 == 1) {
     print(1);
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(2);
     }
   }
 }
 ''');
-    await assertNoAssistAt('if (2 == 2');
+    await assertNoAssist();
   }
 
   Future<void> test_targetNotIf() async {
     await resolveTestCode('''
 void f() {
-  print(0);
+  pri^nt(0);
 }
 ''');
-    await assertNoAssistAt('print');
+    await assertNoAssist();
   }
 
   Future<void> test_targetWithElse() async {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {
-    if (2 == 2) {
+    i^f (2 == 2) {
       print(0);
     } else {
       print(1);
@@ -377,6 +377,6 @@ void f() {
   }
 }
 ''');
-    await assertNoAssistAt('if (2 == 2');
+    await assertNoAssist();
   }
 }

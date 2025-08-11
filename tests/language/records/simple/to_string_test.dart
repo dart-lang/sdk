@@ -26,14 +26,16 @@ main() {
   Expect.equals("(1, foo: 2)", (foo: 2, 1).toString());
 
   Expect.equals(
-      "(1, abc, bar: 3, foo: 2)", (1, foo: 2, "abc", bar: 3).toString());
+    "(1, abc, bar: 3, foo: 2)",
+    (1, foo: 2, "abc", bar: 3).toString(),
+  );
 
   Expect.equals(
-      "((A1, A2), (foo: A3), (A7, bar: A5, baz: A6, foo: A4))",
-      (
-        (A("A1"), A("A2")),
-        const (foo: A("A3")),
-        (foo: A("A4"), bar: A("A5"), baz: A("A6"), A("A7"))
-      )
-          .toString());
+    "((A1, A2), (foo: A3), (A7, bar: A5, baz: A6, foo: A4))",
+    (
+      (A("A1"), A("A2")),
+      const (foo: A("A3")),
+      (foo: A("A4"), bar: A("A5"), baz: A("A6"), A("A7")),
+    ).toString(),
+  );
 }

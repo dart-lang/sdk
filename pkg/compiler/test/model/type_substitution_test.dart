@@ -13,8 +13,10 @@ import 'package:compiler/src/elements/types.dart';
 import '../helpers/type_test_helper.dart';
 
 DartType getType(ElementEnvironment elementEnvironment, String name) {
-  ClassEntity cls =
-      elementEnvironment.lookupClass(elementEnvironment.mainLibrary!, 'Class')!;
+  ClassEntity cls = elementEnvironment.lookupClass(
+    elementEnvironment.mainLibrary!,
+    'Class',
+  )!;
   final element =
       elementEnvironment.lookupClassMember(
             cls,

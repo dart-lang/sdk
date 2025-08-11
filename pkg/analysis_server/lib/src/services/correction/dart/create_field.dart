@@ -5,11 +5,11 @@
 import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -33,7 +33,7 @@ class CreateField extends CreateFieldOrGetter {
   @override
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
   }) async {
@@ -64,13 +64,13 @@ class CreateField extends CreateFieldOrGetter {
   Future<void> _addDeclaration({
     required ChangeBuilder builder,
     required bool staticModifier,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required DartType? fieldType,
   }) async {
     if (targetElement == null) {
       return;
     }
-    if (targetElement.library2.isInSdk) {
+    if (targetElement.library.isInSdk) {
       return;
     }
     // Prepare target `ClassDeclaration`.
@@ -153,7 +153,7 @@ class CreateField extends CreateFieldOrGetter {
     };
     // Prepare target `ClassElement`.
     var staticModifier = false;
-    InterfaceElement2? targetClassElement;
+    InterfaceElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetInterfaceElement(target);
       // Maybe static.
@@ -172,7 +172,7 @@ class CreateField extends CreateFieldOrGetter {
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldTypeParent = fieldTypeNode.parent;
-    if (targetClassElement is EnumElement2 &&
+    if (targetClassElement is EnumElement &&
         fieldTypeParent is AssignmentExpression &&
         fieldTypeNode == fieldTypeParent.leftHandSide) {
       // Any field on an enum must be final; creating a final field does not

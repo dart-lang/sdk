@@ -474,6 +474,26 @@ int x = List<double>.foo^;
 ''', 'int');
   }
 
+  Future<void> test_closureCallReturn() async {
+    await assertContextType('''
+void f() {
+  String f = () {
+    return ^;
+  }();
+}
+''', 'String');
+  }
+
+  Future<void> test_closureReturn() async {
+    await assertContextType('''
+void f() {
+  String Function() f = () {
+    return ^;
+  };
+}
+''', 'String');
+  }
+
   Future<void> test_fieldDeclaration_int() async {
     await assertContextType('''
 class Foo {
@@ -562,12 +582,56 @@ void f() {
 ''', 'Iterable<dynamic>');
   }
 
+  Future<void> test_forElement() async {
+    await assertContextType('''
+List<String> f() => [
+  for (int i = 0; i < 10; i ++) ^
+];
+''', 'String');
+  }
+
   Future<void> test_forPartsWithPattern_condition() async {
     await assertContextType('''
 void f() {
   for ((var x); ^;) {}
 }
 ''', 'bool');
+  }
+
+  Future<void> test_functionExpressionCallReturn() async {
+    await assertContextType('''
+void f() {
+  String f = (() => ^)();
+}
+''', 'String');
+  }
+
+  Future<void> test_functionExpressionReturn() async {
+    await assertContextType('''
+void f() {
+  String Function() f = (() => ^);
+}
+''', 'String');
+  }
+
+  Future<void> test_futureOrRecord() async {
+    await assertContextType('''
+import 'dart:async';
+
+FutureOr<({int field})> f() => ^;
+''', 'FutureOr<({int field})>');
+  }
+
+  Future<void> test_futureType_async() async {
+    await assertContextType('''
+Future<String> f() async => ^;
+''', 'FutureOr<String>');
+  }
+
+  Future<void> test_futureType_noAsync() async {
+    await assertContextType('''
+Future<String> f() => ^;
+''', 'Future<String>');
   }
 
   Future<void> test_ifElement() async {
@@ -578,12 +642,28 @@ void f(bool b, int e) {
 ''', 'bool');
   }
 
+  Future<void> test_ifElement_else() async {
+    await assertContextType('''
+List<String> f(bool b) => [
+  if (b) '' else ^
+];
+''', 'String');
+  }
+
   Future<void> test_ifElement_identifier() async {
     await assertContextType('''
 void f(bool b, int e) {
   var m = <int, String>{if (b^) e : ''};
 }
 ''', 'bool');
+  }
+
+  Future<void> test_ifElement_then() async {
+    await assertContextType('''
+List<String> f(bool b) => [
+  if (b) ^
+];
+''', 'String');
   }
 
   Future<void> test_ifStatement_condition() async {
@@ -1028,6 +1108,15 @@ void f() {
 ''');
   }
 
+  Future<void> test_switchExpression() async {
+    await assertContextType('''
+String f(num n) => switch (n) {
+  double() => ^,
+  int() => '',
+};
+''', 'String');
+  }
+
   Future<void> test_topLevelVariableDeclaration_int() async {
     await assertContextType('''
 int i=^;
@@ -1095,13 +1184,8 @@ abstract class FeatureComputerTest extends AbstractSingleUnitTest {
   bool verifyNoTestUnitErrors = false;
 
   Future<void> completeIn(String content) async {
-    cursorIndex = content.indexOf('^');
-    if (cursorIndex < 0) {
-      fail('Missing node offset marker (^) in content');
-    }
-    content =
-        content.substring(0, cursorIndex) + content.substring(cursorIndex + 1);
     await resolveTestCode(content);
+    cursorIndex = parsedTestCode.position.offset;
     completionTarget = CompletionTarget.forOffset(testUnit, cursorIndex);
   }
 }

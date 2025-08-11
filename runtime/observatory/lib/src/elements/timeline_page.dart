@@ -5,13 +5,17 @@
 library timeline_page_element;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:convert';
+import 'dart:js_interop';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -60,11 +64,11 @@ class TimelinePageElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
-  IFrameElement? _frame;
-  DivElement? _content;
+  HTMLIFrameElement? _frame;
+  HTMLDivElement? _content;
 
   bool get usingVMRecorder =>
       _recorder!.name != "Fuchsia" &&
@@ -73,58 +77,57 @@ class TimelinePageElement extends CustomElement implements Renderable {
 
   void render() {
     if (_frame == null) {
-      _frame = new IFrameElement()..src = 'timeline.html';
+      _frame = new HTMLIFrameElement()..src = 'timeline.html';
       _frame!.onLoad.listen((event) {
         _refresh();
       });
     }
     if (_content == null) {
-      _content = new DivElement()..classes = ['content-centered-big'];
+      _content = new HTMLDivElement()..className = 'content-centered-big';
     }
-    _content!.children = <Element>[
-      new HeadingElement.h1()..text = 'Timeline settings',
+    _content!.setChildren(<HTMLElement>[
+      new HTMLHeadingElement.h1()..textContent = 'Timeline settings',
       _recorder == null
-          ? (new DivElement()..text = 'Loading...')
-          : (new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Recorder:',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _recorder!.name
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Recorded Streams Profile:',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = _createProfileSelect()
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'Recorded Streams:',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..children = _availableStreams
-                        .map<Element>(_makeStreamToggle)
-                        .toList()
-                ]
-            ])
-    ];
+          ? (new HTMLDivElement()..textContent = 'Loading...')
+          : (new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Recorder:',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = _recorder!.name
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Recorded Streams Profile:',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(_createProfileSelect())
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'Recorded Streams:',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..appendChildren(
+                        _availableStreams.map<HTMLElement>(_makeStreamToggle))
+                ])
+            ]))
+    ]);
 
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(vm, _events, queue: _r.queue).element,
         navMenu('timeline', link: Uris.timeline()),
@@ -163,79 +166,79 @@ class TimelinePageElement extends CustomElement implements Renderable {
     ];
   }
 
-  HtmlElement _createIFrameOrMessage() {
+  HTMLElement _createIFrameOrMessage() {
     final recorder = _recorder;
     if (recorder == null) {
-      return new DivElement()
-        ..classes = ['content-centered-big']
-        ..text = 'Loading...';
+      return new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..textContent = 'Loading...';
     }
 
     if (recorder.name == "Fuchsia") {
-      return new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new BRElement(),
-          new SpanElement()
-            ..text =
+      return new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLBRElement(),
+          new HTMLSpanElement()
+            ..textContent =
                 "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
-          new AnchorElement()
-            ..text = "Fuchsia Tracing Usage Guide"
+          new HTMLAnchorElement()
+            ..textContent = "Fuchsia Tracing Usage Guide"
             ..href = "https://fuchsia.dev/fuchsia-src/development/tracing",
-          new SpanElement()..text = ".",
-        ];
+          new HTMLSpanElement()..textContent = ".",
+        ]);
     }
 
     if (recorder.name == "Systrace") {
-      return new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new BRElement(),
-          new SpanElement()
-            ..text =
+      return new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLBRElement(),
+          new HTMLSpanElement()
+            ..textContent =
                 "This VM is forwarding timeline events to Android's systrace. See the ",
-          new AnchorElement()
-            ..text = "systrace usage guide"
+          new HTMLAnchorElement()
+            ..textContent = "systrace usage guide"
             ..href =
                 "https://developer.android.com/studio/command-line/systrace",
-          new SpanElement()..text = ".",
-        ];
+          new HTMLSpanElement()..textContent = ".",
+        ]);
     }
 
     if (recorder.name == "Macos") {
-      return new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new BRElement(),
-          new SpanElement()
-            ..text =
+      return new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLBRElement(),
+          new HTMLSpanElement()
+            ..textContent =
                 "This VM is forwarding timeline events to macOS's Unified Logging. "
                     "To track these events, open 'Instruments' and add the 'os_signpost' Filter. See the ",
-          new AnchorElement()
-            ..text = "Instruments Usage Guide"
+          new HTMLAnchorElement()
+            ..textContent = "Instruments Usage Guide"
             ..href = "https://help.apple.com/instruments",
-          new SpanElement()..text = ".",
-        ];
+          new HTMLSpanElement()..textContent = ".",
+        ]);
     }
 
-    return new DivElement()
-      ..classes = ['iframe']
-      ..children = <Element>[_frame!];
+    return new HTMLDivElement()
+      ..className = 'iframe'
+      ..appendChild(_frame!);
   }
 
-  List<Element> _createProfileSelect() {
+  List<HTMLElement> _createProfileSelect() {
     return [
-      new SpanElement()
-        ..children = (_profiles.expand((profile) {
-          return <Element>[
-            new ButtonElement()
-              ..text = profile.name
-              ..onClick.listen((_) {
-                _applyPreset(profile);
-              }),
-            new SpanElement()..text = ' - '
-          ];
-        }).toList()
+      new HTMLSpanElement()
+        ..appendChildren(_profiles
+            .expand((profile) => <HTMLElement>[
+                  new HTMLButtonElement()
+                    ..textContent = profile.name
+                    ..onClick.listen((_) {
+                      _applyPreset(profile);
+                    }),
+                  new HTMLSpanElement()..textContent = ' - '
+                ])
+            .toList()
           ..removeLast())
     ];
   }
@@ -267,7 +270,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
     }
     var message = {'method': method, 'params': params};
     _frame!.contentWindow!
-        .postMessage(json.encode(message), window.location.href);
+        .postMessage(json.encode(message).toJS, window.location.href.toJS);
     return null;
   }
 
@@ -293,14 +296,14 @@ class TimelinePageElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  Element _makeStreamToggle(M.TimelineStream stream) {
-    LabelElement label = new LabelElement();
+  HTMLElement _makeStreamToggle(M.TimelineStream stream) {
+    HTMLLabelElement label = new HTMLLabelElement();
     label.style.paddingLeft = '8px';
-    SpanElement span = new SpanElement();
-    span.text = stream.name;
-    InputElement checkbox = new InputElement();
+    HTMLSpanElement span = new HTMLSpanElement();
+    span.textContent = stream.name;
+    HTMLInputElement checkbox = new HTMLInputElement();
     checkbox.onChange.listen((_) {
-      if (checkbox.checked!) {
+      if (checkbox.checked) {
         _recordedStreams.add(stream);
       } else {
         _recordedStreams.remove(stream);
@@ -310,8 +313,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
     });
     checkbox.type = 'checkbox';
     checkbox.checked = _recordedStreams.contains(stream);
-    label.children.add(checkbox);
-    label.children.add(span);
+    label
+      ..appendChild(checkbox)
+      ..appendChild(span);
     return label;
   }
 

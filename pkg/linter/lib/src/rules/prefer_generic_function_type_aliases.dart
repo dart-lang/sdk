@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -20,13 +22,11 @@ class PreferGenericFunctionTypeAliases extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_generic_function_type_aliases;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_generic_function_type_aliases;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFunctionTypeAlias(this, visitor);
   }
@@ -52,6 +52,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameterSource = parameters.toSource();
     var replacement =
         '${returnTypeSource}Function$typeParameterSource$parameterSource';
-    rule.reportLintForToken(node.name, arguments: [replacement]);
+    rule.reportAtToken(node.name, arguments: [replacement]);
   }
 }

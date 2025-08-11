@@ -12,8 +12,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 
-import '../../test/integration/lsp_server/integration_tests.dart';
-import '../../test/integration/support/integration_tests.dart';
+import '../../integration_test/lsp_server/integration_tests.dart';
+import '../../integration_test/support/integration_tests.dart';
 import '../../test/lsp/server_abstract.dart' show ClientCapabilitiesHelperMixin;
 
 /// A server protocol-agnostic interface to the memory test, allowing the same
@@ -225,7 +225,7 @@ class LspAnalysisServerMemoryUsageTest
     _vmServicePort = await ServiceProtocol._findAvailableSocketPort();
     vmArgs.addAll([
       '--enable-vm-service=$_vmServicePort',
-      '-DSILENT_OBSERVATORY=true',
+      '-DSILENT_VM_SERVICE=true',
       '--disable-service-auth-codes',
       '--disable-dart-dev',
       '--no-dds',

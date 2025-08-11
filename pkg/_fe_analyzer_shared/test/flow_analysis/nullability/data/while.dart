@@ -6,12 +6,14 @@ void eqNull(int? x) {
   while (x == null) {
     x;
   }
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void notEqNull(int? x) {
   while (x != null) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
   x;
 }

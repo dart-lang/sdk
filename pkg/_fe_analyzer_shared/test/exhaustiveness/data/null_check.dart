@@ -9,8 +9,7 @@ object(o) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     NullableObject()? /*space=Object*/ => 0,
     _ /*space=()*/ => 1,
   };
@@ -19,8 +18,7 @@ object(o) {
    error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     NullableObject()? /*space=Object*/ => 0,
   };
 }
@@ -30,8 +28,7 @@ wildcard(o) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     _? /*space=Object*/ => 0,
     _ /*space=()*/ => 1,
   };
@@ -40,8 +37,7 @@ wildcard(o) {
    error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     _? /*space=Object*/ => 0,
   };
 }
@@ -51,8 +47,7 @@ or(o) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     (NullableObject() || _)? /*space=Object*/ => 0,
     _ /*space=()*/ => 1,
   };
@@ -61,8 +56,7 @@ or(o) {
    error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     (NullableObject() || _)? /*space=Object*/ => 0,
   };
 }
@@ -72,8 +66,7 @@ typedVariable(o) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     NullableObject n? /*space=Object*/ => 0,
     _ /*space=()*/ => 1,
   };
@@ -82,8 +75,7 @@ typedVariable(o) {
    error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     _? /*space=Object*/ => 0,
   };
 }
@@ -93,8 +85,7 @@ untypedVariable(o) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     var n? /*space=Object*/ => 0,
     _ /*space=()*/ => 1,
   };
@@ -103,8 +94,7 @@ untypedVariable(o) {
    error=non-exhaustive:null,
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o) {
+  */ switch (o) {
     _? /*space=Object*/ => 0,
   };
 }

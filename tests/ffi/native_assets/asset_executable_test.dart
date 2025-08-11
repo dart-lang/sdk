@@ -85,9 +85,8 @@ Future<void> _testWith(bool Function(int, int) postInteger) async {
 
   final completer = Completer();
 
-  final receivePort =
-      ReceivePort()
-        ..listen((receivedMessage) => completer.complete(receivedMessage));
+  final receivePort = ReceivePort()
+    ..listen((receivedMessage) => completer.complete(receivedMessage));
 
   final bool success = postInteger(receivePort.sendPort.nativePort, message);
   Expect.isTrue(success);

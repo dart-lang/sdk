@@ -54,9 +54,7 @@ augment class A {
     assertNoErrorsInResult();
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(_errorCode, 56, 1),
-    ]);
+    assertErrorsInResult([error(_errorCode, 56, 1)]);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -108,9 +106,7 @@ augment class A {
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(_errorCode, 56, 1),
-    ]);
+    assertErrorsInResult([error(_errorCode, 56, 1)]);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -140,28 +136,28 @@ augment class A {
   }
 
   test_class_more_than_two_initializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A() : x = 0, x = 1, x = 2 {}
 }
-''', [
-      error(_errorCode, 34, 1),
-      error(_errorCode, 41, 1),
-    ]);
+''',
+      [error(_errorCode, 34, 1), error(_errorCode, 41, 1)],
+    );
   }
 
   test_class_multiple_names() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   int y;
   A() : x = 0, x = 1, y = 0, y = 1 {}
 }
-''', [
-      error(_errorCode, 43, 1),
-      error(_errorCode, 57, 1),
-    ]);
+''',
+      [error(_errorCode, 43, 1), error(_errorCode, 57, 1)],
+    );
   }
 
   test_class_one_initializer() async {
@@ -175,14 +171,15 @@ class A {
   }
 
   test_class_two_initializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A() : x = 0, x = 1 {}
 }
-''', [
-      error(_errorCode, 34, 1),
-    ]);
+''',
+      [error(_errorCode, 34, 1)],
+    );
   }
 
   test_enum_one_initializer() async {
@@ -197,15 +194,18 @@ enum E {
   }
 
   test_enum_two_initializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int x;
   const E() : x = 0, x = 1;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
-      error(_errorCode, 50, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+        error(_errorCode, 50, 1),
+      ],
+    );
   }
 }

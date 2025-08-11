@@ -26,7 +26,6 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 import 'package:kernel/util/graph.dart';
 
 import 'abi.dart';
@@ -367,7 +366,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (env.isSubtypeOf(
       InterfaceType(node, Nullability.nonNullable),
       finalizableType,
-      SubtypeCheckMode.ignoringNullabilities,
     )) {
       diagnosticReporter.report(
         templateFfiCompoundImplementsFinalizable.withArguments(
@@ -530,12 +528,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           allowStructAndUnion: true,
           allowHandle: false,
         );
+
+        // Since fields induce both setters and getters, the type checks should
+        // be made both ways.
         if (shouldBeDartType == null ||
-            !env.isSubtypeOf(
-              type,
-              shouldBeDartType,
-              SubtypeCheckMode.ignoringNullabilities,
-            )) {
+            !env.isSubtypeOf(shouldBeDartType, type) ||
+            !env.isSubtypeOf(type, shouldBeDartType)) {
           diagnosticReporter.report(
             templateFfiTypeMismatch.withArguments(
               type,

@@ -18,13 +18,14 @@ main() {
 @reflectiveTest
 class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_initializer_late_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   late Object f = super;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+    );
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
@@ -42,7 +43,7 @@ FieldDeclaration
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@24
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -71,21 +72,28 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@24
   semicolon: ;
   declaredElement: <null>
 ''');
   }
 
   test_initializer_notLate_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int a = 0;
   final int b = a;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          45,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -102,23 +110,30 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@class::A::@getter::a#element
+          element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@41
   semicolon: ;
   declaredElement: <null>
 ''');
   }
 
   test_initializer_notLate_getterInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int get a => 0;
   final int b = a;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 44, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          44,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -135,23 +150,30 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@class::A::@getter::a#element
+          element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@40
   semicolon: ;
   declaredElement: <null>
 ''');
   }
 
   test_initializer_notLate_methodInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int a() => 0;
   final int b = a();
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          42,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -169,27 +191,28 @@ FieldDeclaration
         initializer: MethodInvocation
           methodName: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@class::A::@method::a#element
+            element: <testLibrary>::@class::A::@method::a
             staticType: int Function()
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
           staticInvokeType: int Function()
           staticType: int
-        declaredElement: <testLibraryFragment>::@class::A::@field::b
+        declaredElement: <testLibraryFragment> b@38
   semicolon: ;
   declaredElement: <null>
 ''');
   }
 
   test_initializer_notLate_this() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final a = this;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4)],
+    );
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
@@ -203,7 +226,7 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment>::@class::A::@field::a
+        declaredElement: <testLibraryFragment> a@18
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -280,13 +303,13 @@ FieldDeclaration
             arguments
               NamedType
                 name: T
-                element2: T@8
+                element2: #E0 T
                 type: T
             rightBracket: >
           leftBracket: [
           rightBracket: ]
           staticType: List<T>
-        declaredElement: <testLibraryFragment>::@class::A::@field::f
+        declaredElement: <testLibraryFragment> f@19
   semicolon: ;
   declaredElement: <null>
 ''');

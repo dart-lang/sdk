@@ -351,14 +351,13 @@ class MemberHierarchyBuilder {
       }
     }
 
-    final result =
-        needsNoSuchMethod
-            ? Setlet.of(
-              targetsForReceiver.followedBy(
-                rootsForCall(receiverType, Selectors.noSuchMethod_),
-              ),
-            )
-            : targetsForReceiver;
+    final result = needsNoSuchMethod
+        ? Setlet.of(
+            targetsForReceiver.followedBy(
+              rootsForCall(receiverType, Selectors.noSuchMethod_),
+            ),
+          )
+        : targetsForReceiver;
 
     return _callCache[selectorMask] = result;
   }
@@ -496,26 +495,23 @@ class MemberHierarchyBuilder {
     final allMembers = closedWorld.liveInstanceMembers.followedBy(
       closedWorld.liveAbstractInstanceMembers,
     );
-    final cls =
-        allMembers
-            .firstWhere((e) => e.enclosingClass!.name == className)
-            .enclosingClass!;
+    final cls = allMembers
+        .firstWhere((e) => e.enclosingClass!.name == className)
+        .enclosingClass!;
     final domain = closedWorld.abstractValueDomain;
-    final receiver =
-        nullValue
-            ? domain.nullType
-            : (nullReceiver
-                ? null
-                : (subClass
+    final receiver = nullValue
+        ? domain.nullType
+        : (nullReceiver
+              ? null
+              : (subClass
                     ? domain.createNonNullSubclass(cls)
                     : (subType
-                        ? domain.createNonNullSubtype(cls)
-                        : domain.createNullableExact(cls))));
+                          ? domain.createNonNullSubtype(cls)
+                          : domain.createNullableExact(cls))));
     final name = Name(selectorName, null);
-    final selector =
-        call != null
-            ? Selector.call(name, call)
-            : (setter ? Selector.setter(name) : Selector.getter(name));
+    final selector = call != null
+        ? Selector.call(name, call)
+        : (setter ? Selector.setter(name) : Selector.getter(name));
 
     print('Receiver: $receiver, Selector: $selector');
     print('Locate members: ${closedWorld.locateMembers(selector, receiver)}');

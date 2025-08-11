@@ -22,18 +22,27 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/exhaustiveness/data'));
-  return runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const _ExhaustivenessDataComputer(), [
-        TestConfig(analyzerMarker, 'analyzer with experiments',
-            featureSet: FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: ['patterns', 'records', 'sealed-class', 'inline-class']))
-      ]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/exhaustiveness/data',
+    ),
+  );
+  return runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _ExhaustivenessDataComputer(), [
+      TestConfig(
+        analyzerMarker,
+        'analyzer with experiments',
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['patterns', 'records', 'sealed-class', 'inline-class'],
+        ),
+      ),
+    ]),
+  );
 }
 
 class _ExhaustivenessDataComputer extends DataComputer<Features> {
@@ -47,12 +56,18 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<Features>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<Features>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var exhaustivenessData = testingData.uriToExhaustivenessData[unitUri]!;
-    _ExhaustivenessDataExtractor(unitUri, actualMap, exhaustivenessData)
-        .run(unit);
+    _ExhaustivenessDataExtractor(
+      unitUri,
+      actualMap,
+      exhaustivenessData,
+    ).run(unit);
   }
 }
 
@@ -60,7 +75,10 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
   _ExhaustivenessDataExtractor(
-      super.uri, super.actualMap, this._exhaustivenessData);
+    super.uri,
+    super.actualMap,
+    this._exhaustivenessData,
+  );
 
   @override
   Features? computeNodeValue(Id id, AstNode node) {
@@ -79,22 +97,28 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
         }
         features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
         if (fieldsOfInterest.isNotEmpty) {
-          features[Tags.scrutineeFields] = fieldsToText(scrutineeType,
-              _exhaustivenessData.objectFieldLookup, fieldsOfInterest);
+          features[Tags.scrutineeFields] = fieldsToText(
+            scrutineeType,
+            _exhaustivenessData.objectFieldLookup,
+            fieldsOfInterest,
+          );
         }
-        String? subtypes =
-            typesToText(scrutineeType.getSubtypes(keysOfInterest));
+        String? subtypes = typesToText(
+          scrutineeType.getSubtypes(keysOfInterest),
+        );
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;
         }
         if (scrutineeType.isSealed) {
-          String? expandedSubtypes =
-              typesToText(expandSealedSubtypes(scrutineeType, keysOfInterest));
+          String? expandedSubtypes = typesToText(
+            expandSealedSubtypes(scrutineeType, keysOfInterest),
+          );
           if (subtypes != expandedSubtypes && expandedSubtypes != null) {
             features[Tags.expandedSubtypes] = expandedSubtypes;
           }
-          String? order =
-              typesToText(checkingOrder(scrutineeType, keysOfInterest));
+          String? order = typesToText(
+            checkingOrder(scrutineeType, keysOfInterest),
+          );
           if (order != null) {
             features[Tags.checkingOrder] = order;
           }

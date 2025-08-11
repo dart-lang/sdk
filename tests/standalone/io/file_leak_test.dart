@@ -94,11 +94,13 @@ class FileTest {
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.codeUnits);
           var readAsStringFuture = f.readAsString(encoding: ascii);
-          readAsStringFuture.then((text) {
-            Expect.fail("Non-ascii char should cause error");
-          }).catchError((e) {
-            asyncTestDone("testReadAsText");
-          });
+          readAsStringFuture
+              .then((text) {
+                Expect.fail("Non-ascii char should cause error");
+              })
+              .catchError((e) {
+                asyncTestDone("testReadAsText");
+              });
         });
       });
     });
@@ -116,12 +118,15 @@ class FileTest {
   static testMain() {
     asyncStart();
     var outerZone = Zone.current;
-    var firstZone = Zone.current.fork(specification: ZoneSpecification(
+    var firstZone = Zone.current.fork(
+      specification: ZoneSpecification(
         handleUncaughtError: (self, parent, zone, error, stacktrace) {
-      asyncEnd();
-      print("unittest-suite-success"); // For the test harness.
-      exit(0);
-    }));
+          asyncEnd();
+          print("unittest-suite-success"); // For the test harness.
+          exit(0);
+        },
+      ),
+    );
     firstZone.run(() async {
       Expect.identical(firstZone, Zone.current);
       createTempDirectory(() {

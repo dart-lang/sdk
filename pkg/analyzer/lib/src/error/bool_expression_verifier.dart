@@ -16,56 +16,65 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
   final ResolverVisitor _resolver;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
     required ResolverVisitor resolver,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
-  })  : _resolver = resolver,
-        _errorReporter = errorReporter,
-        _nullableDereferenceVerifier = nullableDereferenceVerifier,
-        _boolType = resolver.typeSystem.typeProvider.boolType;
+  }) : _resolver = resolver,
+       _diagnosticReporter = diagnosticReporter,
+       _nullableDereferenceVerifier = nullableDereferenceVerifier,
+       _boolType = resolver.typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
   ///
   /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
-  void checkForNonBoolCondition(Expression condition,
-      {required Map<SharedTypeView, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+  void checkForNonBoolCondition(
+    Expression condition, {
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     checkForNonBoolExpression(
       condition,
-      errorCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
       whyNotPromoted: whyNotPromoted,
     );
   }
 
   /// Verify that the given [expression] is of type 'bool', and report
-  /// [errorCode] if not, or a nullability error if its improperly nullable.
-  void checkForNonBoolExpression(Expression expression,
-      {required ErrorCode errorCode,
-      List<Object> arguments = const [],
-      required Map<SharedTypeView, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+  /// [diagnosticCode] if not, or a nullability error if its improperly
+  /// nullable.
+  void checkForNonBoolExpression(
+    Expression expression, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_resolver.typeSystem.isAssignableTo(type, _boolType,
-            strictCasts: _resolver.analysisOptions.strictCasts)) {
+        !_resolver.typeSystem.isAssignableTo(
+          type,
+          _boolType,
+          strictCasts: _resolver.analysisOptions.strictCasts,
+        )) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
-            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-            expression,
-            type,
-            messages: _resolver.computeWhyNotPromotedMessages(
-                expression, whyNotPromoted?.call()));
-      } else {
-        _errorReporter.atNode(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
           expression,
-          errorCode,
+          type,
+          messages: _resolver.computeWhyNotPromotedMessages(
+            expression,
+            whyNotPromoted?.call(),
+          ),
+        );
+      } else {
+        _diagnosticReporter.atNode(
+          expression,
+          diagnosticCode,
           arguments: arguments,
         );
       }
@@ -73,12 +82,13 @@ class BoolExpressionVerifier {
   }
 
   /// Checks to ensure that the given [expression] is assignable to bool.
-  void checkForNonBoolNegationExpression(Expression expression,
-      {required Map<SharedTypeView, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+  void checkForNonBoolNegationExpression(
+    Expression expression, {
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     checkForNonBoolExpression(
       expression,
-      errorCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -94,12 +104,12 @@ class BoolExpressionVerifier {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );

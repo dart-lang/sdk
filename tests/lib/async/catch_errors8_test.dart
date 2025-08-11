@@ -37,14 +37,17 @@ main() {
     });
     events.add("after inner");
     throw "inner throw";
-  }).listen((x) {
-    events.add(x);
-    if (x == "inner done throw") {
-      done.complete(true);
-    }
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+      if (x == "inner done throw") {
+        done.complete(true);
+      }
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     Expect.listEquals([
@@ -58,7 +61,7 @@ main() {
       "future error2",
       499,
       "delayed error",
-      "inner done throw"
+      "inner done throw",
     ], events);
     asyncEnd();
   });

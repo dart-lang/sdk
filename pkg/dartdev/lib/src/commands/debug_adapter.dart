@@ -60,6 +60,9 @@ class DebugAdapterCommand extends DartdevCommand {
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  @override
   FutureOr<int> run() async {
     final args = argResults!;
     final ipv6 = args.flag(argIpv6);

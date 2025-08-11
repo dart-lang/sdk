@@ -1,5 +1,3 @@
-expect(expected, actual) {}
-
 extension Extension on int {
   final int instanceDuplicateFieldAndDuplicateSetter = 1;
   final int instanceDuplicateFieldAndDuplicateSetter = 2;
@@ -33,10 +31,4 @@ extension Extension on int {
   void set instanceSetter(value) {}
 }
 
-main() {}
-
 test() {}
-
-throws(dynamic Function() f) {}
-
-var result;

@@ -4,18 +4,20 @@
 
 import 'dart:convert';
 
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 Future<void> main() async {
-  await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 }
 
 final allTargets = [
   GeneratedFile(
-      'lib/src/wolf/ir/ir.g.dart', (pkgPath) async => _IrGenerator().run())
+    'analyzer/lib/src/wolf/ir/ir.g.dart',
+    (pkgRoot) async => _IrGenerator().run(),
+  ),
 ];
 
 final analyzerPkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
@@ -52,8 +54,9 @@ class _Instruction {
   String get className => '_${name.capitalized}Instruction';
 
   String get signature {
-    var parametersString =
-        [for (var p in parameters) '${p.encoding.type} ${p.name}'].join(', ');
+    var parametersString = [
+      for (var p in parameters) '${p.encoding.type} ${p.name}',
+    ].join(', ');
     return '$name($parametersString)';
   }
 }
@@ -71,8 +74,11 @@ class _Instructions {
     // Encodings
     var callDescriptor = encoding('CallDescriptorRef');
     var argumentNames = encoding('ArgumentNamesRef');
-    var functionFlags =
-        encoding('FunctionFlags', fieldName: '_flags', constructorName: '_');
+    var functionFlags = encoding(
+      'FunctionFlags',
+      fieldName: '_flags',
+      constructorName: '_',
+    );
     var literal = encoding('LiteralRef');
     var stackIndices = encoding('StackIndicesRef');
     var type = encoding('TypeRef');
@@ -93,8 +99,10 @@ class _Instructions {
     // Stack manipulation
     _addInstruction('drop', []);
     _addInstruction('dup', []);
-    _addInstruction(
-        'shuffle', [uint('popCount'), stackIndices('stackIndices')]);
+    _addInstruction('shuffle', [
+      uint('popCount'),
+      stackIndices('stackIndices'),
+    ]);
     // Flow control
     _addInstruction('block', [uint('inputCount'), uint('outputCount')]);
     _addInstruction('loop', [uint('inputCount')]);
@@ -105,21 +113,31 @@ class _Instructions {
     _addInstruction('await_', []);
     _addInstruction('yield_', []);
     // Invocations and tearoffs
-    _addInstruction('call',
-        [callDescriptor('callDescriptor'), argumentNames('argumentNames')]);
+    _addInstruction('call', [
+      callDescriptor('callDescriptor'),
+      argumentNames('argumentNames'),
+    ]);
   }
 
-  _NontrivialEncoding encoding(String type,
-      {String fieldName = 'index', String constructorName = ''}) {
-    var encoding = _NontrivialEncoding(type,
-        fieldName: fieldName, constructorName: constructorName);
+  _NontrivialEncoding encoding(
+    String type, {
+    String fieldName = 'index',
+    String constructorName = '',
+  }) {
+    var encoding = _NontrivialEncoding(
+      type,
+      fieldName: fieldName,
+      constructorName: constructorName,
+    );
     encodings.add(encoding);
     return encoding;
   }
 
   void _addInstruction(String name, List<_Parameter> parameters) {
     var parameterShapeId = parameterShapeMap.putIfAbsent(
-        _ParameterShape(parameters), () => parameterShapeMap.length);
+      _ParameterShape(parameters),
+      () => parameterShapeMap.length,
+    );
     all.add(_Instruction(name, parameters, parameterShapeId));
   }
 }
@@ -147,8 +165,11 @@ mixin IRToStringMixin implements RawIRContainerInterface {
       if (instruction.parameters.isNotEmpty) {
         var interpolationParts = <String>[];
         for (var p in instruction.parameters) {
-          interpolationParts.add(p.encoding.stringInterpolation(
-              '$opcode.decode${p.name.capitalized}(this, address)'));
+          interpolationParts.add(
+            p.encoding.stringInterpolation(
+              '$opcode.decode${p.name.capitalized}(this, address)',
+            ),
+          );
         }
         interpolation += '(${interpolationParts.join(', ')})';
       }
@@ -179,8 +200,10 @@ class Opcode {
 ''');
     _instructions.all.forEachIndexed((i, instruction) {
       var shapeId = instruction.parameterShapeId;
-      output('  static const ${instruction.name} = '
-          '_ParameterShape$shapeId._(${i++});\n');
+      output(
+        '  static const ${instruction.name} = '
+        '_ParameterShape$shapeId._(${i++});\n',
+      );
     });
     output('''
 
@@ -273,8 +296,11 @@ class _NontrivialEncoding extends _Encoding {
   final String fieldName;
   final String constructorName;
 
-  _NontrivialEncoding(super.type,
-      {required this.fieldName, required this.constructorName});
+  _NontrivialEncoding(
+    super.type, {
+    required this.fieldName,
+    required this.constructorName,
+  });
 
   @override
   String decode(String value) =>

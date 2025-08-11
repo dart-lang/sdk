@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart' // ignore: implementation_imports
     show
         CommentTokenExtension,
@@ -21,13 +23,10 @@ class DocumentIgnores extends LintRule {
     : super(name: LintNames.document_ignores, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.document_ignores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.document_ignores;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -35,7 +34,7 @@ class DocumentIgnores extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -74,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
 
-      rule.reportLintForToken(comment);
+      rule.reportAtToken(comment);
     }
   }
 

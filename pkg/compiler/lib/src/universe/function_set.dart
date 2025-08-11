@@ -235,11 +235,9 @@ class FunctionSetNode {
         functions.addAll(noSuchMethodQuery.functions);
       }
     }
-    cache[selectorMask] =
-        result =
-            (functions != null)
-                ? FullFunctionSetQuery(functions)
-                : const EmptyFunctionSetQuery();
+    cache[selectorMask] = result = (functions != null)
+        ? FullFunctionSetQuery(functions)
+        : const EmptyFunctionSetQuery();
     return result;
   }
 

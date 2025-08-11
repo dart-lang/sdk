@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
+import "dart:_error_utils" as _er;
 
 class C extends core::Object {
   final field core::int? _f2;
@@ -10,14 +10,14 @@ class C extends core::Object {
   constructor •(final core::int? i) → self::C
     : self::C::_f2 = i, self::C::_f3 = i, self::C::_f4 = i, super core::Object::•()
     ;
-  static method _#new#tearOff(final core::int? i) → self::C
+  static synthetic method _#new#tearOff(final core::int? i) → self::C
     return new self::C::•(i);
 }
 class A extends core::Object {
   constructor •(final core::int? i) → self::A
     : super core::Object::•()
     ;
-  static method _#new#tearOff(final core::int? i) → self::A
+  static synthetic method _#new#tearOff(final core::int? i) → self::A
     return new self::A::•(i);
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
@@ -36,16 +36,16 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   field core::int? _#M1#_f4 = null;
   field core::bool _#M1#_f4#isSet = false;
   get _f2() → core::int?
-    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f2");
+    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : _er::_throwLateErrorFieldNI("_f2");
   set _f2(final core::int? _f2#param) → void {
     this.{self::M1::_#M1#_f2#isSet} = true;
     this.{self::M1::_#M1#_f2} = _f2#param;
   }
   get _f3() → core::int?
-    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f3");
+    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : _er::_throwLateErrorFieldNI("_f3");
   set _f3(final core::int? _f3#param) → void
     if(this.{self::M1::_#M1#_f3#isSet}{core::bool})
-      throw{for-error-handling} new _in::LateError::fieldAI("_f3");
+      _er::_throwLateErrorFieldAI("_f3");
     else {
       this.{self::M1::_#M1#_f3#isSet} = true;
       this.{self::M1::_#M1#_f3} = _f3#param;
@@ -54,7 +54,7 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
     if(!this.{self::M1::_#M1#_f4#isSet}{core::bool}) {
       final core::int? #t1 = 0;
       if(this.{self::M1::_#M1#_f4#isSet}{core::bool})
-        throw{for-error-handling} new _in::LateError::fieldADI("_f4");
+        _er::_throwLateErrorFieldADI("_f4");
       this.{self::M1::_#M1#_f4} = #t1;
       this.{self::M1::_#M1#_f4#isSet} = true;
     }
@@ -65,14 +65,14 @@ class B extends core::Object {
   constructor •(final core::int? i) → self::B
     : super core::Object::•()
     ;
-  static method _#new#tearOff(final core::int? i) → self::B
+  static synthetic method _#new#tearOff(final core::int? i) → self::B
     return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
   constructor •(final core::int? i) → self::E
     : super self::_E&B&M1::•(i)
     ;
-  static method _#new#tearOff(final core::int? i) → self::E
+  static synthetic method _#new#tearOff(final core::int? i) → self::E
     return new self::E::•(i);
   @#C1
   method noSuchMethod(final core::Invocation invocation) → dynamic
@@ -94,14 +94,14 @@ abstract class _E&B&M1 extends self::B implements self::M1 /*isAnonymousMixin,is
     : super self::B::•(i)
     ;
   get _f2() → core::int?
-    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f2");
+    return this.{self::M1::_#M1#_f2#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f2}{core::int?} : _er::_throwLateErrorFieldNI("_f2");
   get _f3() → core::int?
-    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : throw{for-error-handling} new _in::LateError::fieldNI("_f3");
+    return this.{self::M1::_#M1#_f3#isSet}{core::bool} ?{core::int?} this.{self::M1::_#M1#_f3}{core::int?} : _er::_throwLateErrorFieldNI("_f3");
   get _f4() → core::int? {
     if(!this.{self::M1::_#M1#_f4#isSet}{core::bool}) {
       final core::int? #t2 = 0;
       if(this.{self::M1::_#M1#_f4#isSet}{core::bool})
-        throw{for-error-handling} new _in::LateError::fieldADI("_f4");
+        _er::_throwLateErrorFieldADI("_f4");
       this.{self::M1::_#M1#_f4} = #t2;
       this.{self::M1::_#M1#_f4#isSet} = true;
     }
@@ -113,7 +113,7 @@ abstract class _E&B&M1 extends self::B implements self::M1 /*isAnonymousMixin,is
   }
   set _f3(final core::int? _f3#param) → void
     if(this.{self::M1::_#M1#_f3#isSet}{core::bool})
-      throw{for-error-handling} new _in::LateError::fieldAI("_f3");
+      _er::_throwLateErrorFieldAI("_f3");
     else {
       this.{self::M1::_#M1#_f3#isSet} = true;
       this.{self::M1::_#M1#_f3} = _f3#param;

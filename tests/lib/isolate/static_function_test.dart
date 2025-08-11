@@ -28,8 +28,8 @@ var staticClosure = (SendPort port) {
 
 // An unnamed closure created inside a function.
 get dynamicClosure => (SendPort port) {
-      port.send("WHAT??");
-    };
+  port.send("WHAT??");
+};
 
 // A named closure created inside a function.
 get namedDynamicClosure {
@@ -55,9 +55,9 @@ class C {
   late Function namedConstructorBodyClosure;
 
   C()
-      : constructorInitializerClosure = ((SendPort port) {
-          port.send("Init?");
-        }) {
+    : constructorInitializerClosure = ((SendPort port) {
+        port.send("Init?");
+      }) {
     constructorBodyClosure = (SendPort port) {
       port.send("bodyClosure?");
     };
@@ -137,11 +137,20 @@ void main([args, port]) {
   spawnTest("named dynamic closure", namedDynamicClosure, "WHAT FOO??");
   spawnTest("instance closure", new C().instanceClosure, "C WHAT?");
   spawnTest(
-      "initializer closure", new C().constructorInitializerClosure, "Init?");
+    "initializer closure",
+    new C().constructorInitializerClosure,
+    "Init?",
+  );
   spawnTest(
-      "constructor closure", new C().constructorBodyClosure, "bodyClosure?");
-  spawnTest("named constructor closure", new C().namedConstructorBodyClosure,
-      "namedBodyClosure?");
+    "constructor closure",
+    new C().constructorBodyClosure,
+    "bodyClosure?",
+  );
+  spawnTest(
+    "named constructor closure",
+    new C().namedConstructorBodyClosure,
+    "namedBodyClosure?",
+  );
   spawnTest("instance method", new C().instanceMethod, "INSTANCE WHAT?");
 
   asyncEnd();

@@ -28,17 +28,20 @@ import 'package:expect/expect.dart';
 typedef TypeBuilder = Type Function(Type Function<T>());
 
 // Given a type `T`, produce a TypeBuilder which builds `T`
-TypeBuilder $Primitive<T>() => (build) => build<T>();
+TypeBuilder $Primitive<T>() =>
+    (build) => build<T>();
 
 // Given a TypeBuilder for a type `T`, return a TypeBuilder for `FutureOr<T>`
 TypeBuilder $FutureOr(TypeBuilder of) =>
     (build) => of(<T>() => build<FutureOr<T>>());
 
 // Given a TypeBuilder for a type `T`, return a TypeBuilder for `T?`
-TypeBuilder $OrNull(TypeBuilder of) => (build) => of(<T>() => build<T?>());
+TypeBuilder $OrNull(TypeBuilder of) =>
+    (build) => of(<T>() => build<T?>());
 
 // Given a TypeBuilder for a type `T`, return a TypeBuilder for `List<T>`
-TypeBuilder $List(TypeBuilder of) => (build) => of(<T>() => build<List<T>>());
+TypeBuilder $List(TypeBuilder of) =>
+    (build) => of(<T>() => build<List<T>>());
 
 // Given a TypeBuilder for a type `T`, return a TypeBuilder for `Future<T>`
 TypeBuilder $Future(TypeBuilder of) =>
@@ -78,7 +81,8 @@ TypeBuilder $Null = $Primitive<Null>();
 // by the .runtimeType method.
 class Rep<T> {}
 
-TypeBuilder $Rep(TypeBuilder of) => (build) => of(<R>() => build<Rep<R>>());
+TypeBuilder $Rep(TypeBuilder of) =>
+    (build) => of(<R>() => build<Rep<R>>());
 
 // A helper class for testing equality of objects produced
 // by implicit calls to noSuchMethod.

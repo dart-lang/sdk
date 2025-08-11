@@ -128,7 +128,8 @@ enum E
  {}''',
       errorFilter:
           (error) =>
-              error.errorCode != CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
+              error.diagnosticCode !=
+              CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
     );
   }
 }

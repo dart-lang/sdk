@@ -12,7 +12,7 @@ import "dart:js_interop";
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 @js_::JS::•()
@@ -25,17 +25,19 @@ extension type B(self::A a) {
   method genericMethod = self::B|genericMethod;
   method tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
+  set setter = self::B|set#setter;
   get property = self::B|get#property;
+  set property = self::B|set#property;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
   static method staticMethod = self::B|staticMethod;
   static method staticGenericMethod = self::B|staticGenericMethod;
   static get staticGetter = get self::B|staticGetter;
-  static get staticProperty = get self::B|staticProperty;
-  set setter = self::B|set#setter;
-  set property = self::B|set#property;
   static set staticSetter = set self::B|staticSetter;
+  static get staticProperty = get self::B|staticProperty;
   static set staticProperty = set self::B|staticProperty;
+  method methodWithOptionalArgument = self::B|methodWithOptionalArgument;
+  method tearoff methodWithOptionalArgument = self::B|get#methodWithOptionalArgument;
   constructor _ = self::B|constructor#_;
   constructor tearoff _ = self::B|constructor#_#_#tearOff;
   constructor • = self::B|constructor#;
@@ -45,13 +47,13 @@ extension type B(self::A a) {
 }
 static extension-type-member method B|constructor#_(self::A a) → self::B% /* erasure=self::A, declared=! */
   ;
-static extension-type-member method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#_(a);
 external static extension-type-member method B|constructor#(self::A a) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#(a);
 external static extension-type-member method B|constructor#named(core::int i) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#named(i);
 external static extension-type-member method B|get#field(lowered self::A #this) → self::A;
 external static extension-type-member method B|set#field(lowered self::A #this, synthesized self::A #externalFieldValue) → void;
@@ -73,6 +75,9 @@ external static extension-type-member get B|staticGetter() → self::B% /* erasu
 external static extension-type-member set B|staticSetter(self::B% /* erasure=self::A, declared=! */ b) → void;
 external static extension-type-member get B|staticProperty() → self::B% /* erasure=self::A, declared=! */;
 external static extension-type-member set B|staticProperty(self::B% /* erasure=self::A, declared=! */ b) → void;
+external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B% /* erasure=self::A, declared=! */ #this, [self::B? /* erasure=self::A? */ b]) → self::B% /* erasure=self::A, declared=! */;
+static extension-type-member method B|get#methodWithOptionalArgument(lowered final self::B% /* erasure=self::A, declared=! */ #this) → ([self::B? /* erasure=self::A? */]) → self::B% /* erasure=self::A, declared=! */
+  return ([self::B? /* erasure=self::A? */ b]) → self::B% /* erasure=self::A, declared=! */ => self::B|methodWithOptionalArgument(#this, b);
 static method method(self::A a) → void
   ;
 
@@ -82,4 +87,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:5:2 ->
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:10:2 -> InstanceConstant(const JS{JS.name: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///external.dart:11:2 -> InstanceConstant(const _StaticInterop{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:14:2 -> InstanceConstant(const JS{JS.name: null})
-Extra constant evaluation: evaluated: 18, effectively constant: 4
+Extra constant evaluation: evaluated: 22, effectively constant: 4

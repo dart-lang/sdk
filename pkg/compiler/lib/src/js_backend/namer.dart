@@ -317,8 +317,10 @@ class Namer extends ModularNamer {
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
-    final library =
-        _elementEnvironment.lookupLibrary(originalName.uri!, required: true)!;
+    final library = _elementEnvironment.lookupLibrary(
+      originalName.uri!,
+      required: true,
+    )!;
 
     // The first library asking for a short private name wins.
     LibraryEntity owner = shortPrivateNameOwners.putIfAbsent(
@@ -704,15 +706,14 @@ class Namer extends ModularNamer {
     List<String> suffixes = const [],
   ]) {
     // Build a string encoding the library name, if the name is private.
-    String libraryKey =
-        originalName.isPrivate
-            ? _generateLibraryKey(
-              _elementEnvironment.lookupLibrary(
-                originalName.uri!,
-                required: true,
-              )!,
-            ).toString()
-            : '';
+    String libraryKey = originalName.isPrivate
+        ? _generateLibraryKey(
+            _elementEnvironment.lookupLibrary(
+              originalName.uri!,
+              required: true,
+            )!,
+          ).toString()
+        : '';
 
     // In the unique key, separate the name parts by '@'.
     // This avoids clashes since the original names cannot contain that symbol.
@@ -1091,8 +1092,9 @@ class Namer extends ModularNamer {
   @override
   js_ast.Name staticClosureName(FunctionEntity element) {
     assert(element.isTopLevel || element.isStatic);
-    String enclosing =
-        element.enclosingClass == null ? "" : element.enclosingClass!.name;
+    String enclosing = element.enclosingClass == null
+        ? ""
+        : element.enclosingClass!.name;
     String library = _proposeNameForLibrary(element.library);
     String name = replaceNonIdentifierCharacters(element.name!);
     return _disambiguateInternalGlobal(
@@ -1496,8 +1498,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor<void, Null> {
   }
 
   @override
-  void visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
-    add('dummy_interceptor');
+  void visitDummy(DummyConstantValue constant, [_]) {
+    add('dummy');
   }
 
   @override
@@ -1667,10 +1669,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
+  int visitDummy(DummyConstantValue constant, [_]) {
     throw failedAt(
       noLocationSpannable,
-      'DummyInterceptorConstantValue should never be named and '
+      'DummyConstantValue should never be named and '
       'never be subconstant',
     );
   }
@@ -1822,14 +1824,14 @@ abstract class ModularNamer {
 
   /// Returns a variable use for accessing interceptors.
   ///
-  /// This is one of the [reservedGlobalObjectNames]
+  /// This is the name of a 'holder'.
   js_ast.Expression readGlobalObjectForInterceptors() {
     return DeferredHolderExpression.forInterceptors();
   }
 
   /// Returns a variable use for accessing the class [element].
   ///
-  /// This is one of the [reservedGlobalObjectNames]
+  /// This is the name of a 'holder'.
   js_ast.Expression readGlobalObjectForClass(ClassEntity element) {
     return DeferredHolderExpression(
       DeferredHolderExpressionKind.globalObjectForClass,
@@ -1838,6 +1840,8 @@ abstract class ModularNamer {
   }
 
   /// Returns a variable use for accessing the member [element].
+  ///
+  /// This is the name of a 'holder'.
   js_ast.Expression readGlobalObjectForMember(MemberEntity element) {
     return DeferredHolderExpression(
       DeferredHolderExpressionKind.globalObjectForMember,
@@ -2000,7 +2004,6 @@ abstract class ModularNamer {
     ...javaScriptKeywords,
     ...reservedPropertySymbols,
     ...reservedGlobalSymbols,
-    ...reservedGlobalObjectNames,
     ...reservedCapitalizedGlobalSymbols,
     ...reservedGlobalHelperFunctions,
   };
@@ -2024,8 +2027,6 @@ abstract class ModularNamer {
 
   /// Names that cannot be used by local variables and parameters.
   Set<String> get _jsVariableReserved {
-    // 26 letters in the alphabet, 25 not counting I.
-    assert(reservedGlobalObjectNames.length == 25);
     assert(_sanityCheckUpperCaseNames(_jsVariableReservedCache));
     return _jsVariableReservedCache;
   }
@@ -2037,7 +2038,9 @@ abstract class ModularNamer {
   /// same name for two different inputs.
   String safeVariableName(String name) {
     name = name.replaceAll('#', '_');
-    if (_jsVariableReserved.contains(name) || name.startsWith(r'$')) {
+    if (_jsVariableReserved.contains(name) ||
+        name.startsWith(r'$') ||
+        _holderNameRE.hasMatch(name)) {
       return '\$$name';
     }
     return name;
@@ -2268,11 +2271,10 @@ String suffixForGetInterceptor(
     return cls.name;
   }
 
-  List<String> names =
-      classes
-          .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
-          .map(abbreviate)
-          .toList();
+  List<String> names = classes
+      .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
+      .map(abbreviate)
+      .toList();
   // There is one dispatch mechanism for all native classes.
   if (classes.any((cls) => nativeData.isNativeOrExtendsNative(cls))) {
     names.add("x");
@@ -2663,46 +2665,15 @@ const List<String> reservedGlobalSymbols = [
   "java", "netscape", "sun",
 ];
 
-// TODO(joshualitt): Stop reserving these names after local naming is updated
-// to use frequencies.
-const List<String> reservedGlobalObjectNames = [
-  "A",
-  "B",
-  "C", // Global object for *C*onstants.
-  "D",
-  "E",
-  "F",
-  "G",
-  "H", // Global object for internal (*H*elper) libraries.
-  // I is used for used for the Isolate function.
-  "J", // Global object for the interceptor library.
-  "K",
-  "L",
-  "M",
-  "N",
-  "O",
-  "P", // Global object for other *P*latform libraries.
-  "Q",
-  "R",
-  "S",
-  "T",
-  "U",
-  "V",
-  "W", // Global object for *W*eb libraries (dart:html).
-  "X",
-  "Y",
-  "Z",
-];
+/// Part of the local variable space is reserved for 'holders'. Holder names
+/// start with an uppercase letter and are short, since they are always
+/// 'minified'. There is no fixed name for a given holder, each 'part' file has
+/// its own local name for the shared holder objects it references, starting
+/// with single letter names. In large programs there are a few thousand
+/// holders, so recognizing up to four characters (6.19M names) seems safe.
+final RegExp _holderNameRE = RegExp(r'^[A-Z].{0,3}$');
 
 const List<String> reservedGlobalHelperFunctions = ["init"];
-
-final List<String> userGlobalObjects =
-    List.from(reservedGlobalObjectNames)
-      ..remove('C')
-      ..remove('H')
-      ..remove('J')
-      ..remove('P')
-      ..remove('W');
 
 final RegExp _identifierStartRE = RegExp(r'[A-Za-z_$]');
 final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');

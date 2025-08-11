@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: This test relies on LF line endings in the source file.
-
 import "package:expect/expect.dart";
 import 'dart:math';
 
@@ -57,18 +55,13 @@ void testMultiLine() {
 
   // Newlines at beginning of multiline strings are not included, but only
   // if they are in the source.
-  Expect.equals(
-      "\n",
-      """${''}
+  Expect.equals("\n", """${''}
 """);
-  Expect.equals("\n", """${''}""");
-  Expect.equals(
-      "\n",
-      """${''}
+  Expect.equals("\n", """${''}
 """);
-  Expect.equals(
-      "x",
-      """
+  Expect.equals("\n", """${''}
+""");
+  Expect.equals("x", """
 x""");
   Expect.equals("\n", """${'\n'}""");
   Expect.equals("\r", """${'\r'}""");
@@ -97,15 +90,25 @@ void testSimple() {
 
   // Function calls as expressions.
   Expect.equals(
-      "sfun372.71828truenull", "${sfun()}${ifun()}${dfun()}${bfun()}${nfun()}");
+    "sfun372.71828truenull",
+    "${sfun()}${ifun()}${dfun()}${bfun()}${nfun()}",
+  );
   Expect.equals(
-      "nullsfun372.71828true", "${nfun()}${sfun()}${ifun()}${dfun()}${bfun()}");
+    "nullsfun372.71828true",
+    "${nfun()}${sfun()}${ifun()}${dfun()}${bfun()}",
+  );
   Expect.equals(
-      "truenullsfun372.71828", "${bfun()}${nfun()}${sfun()}${ifun()}${dfun()}");
+    "truenullsfun372.71828",
+    "${bfun()}${nfun()}${sfun()}${ifun()}${dfun()}",
+  );
   Expect.equals(
-      "2.71828truenullsfun37", "${dfun()}${bfun()}${nfun()}${sfun()}${ifun()}");
+    "2.71828truenullsfun37",
+    "${dfun()}${bfun()}${nfun()}${sfun()}${ifun()}",
+  );
   Expect.equals(
-      "372.71828truenullsfun", "${ifun()}${dfun()}${bfun()}${nfun()}${sfun()}");
+    "372.71828truenullsfun",
+    "${ifun()}${dfun()}${bfun()}${nfun()}${sfun()}",
+  );
 
   // String contents around interpolated parts.
   Expect.equals("stringstring", "$a$a");

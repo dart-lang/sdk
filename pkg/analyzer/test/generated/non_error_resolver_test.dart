@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -77,13 +77,14 @@ export 'lib2.dart' show C;
 library lib;
 class N {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library L;
 export 'lib.dart';
 export 'lib.dart';
-''', [
-      error(WarningCode.DUPLICATE_EXPORT, 37, 10),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_EXPORT, 37, 10)],
+    );
   }
 
   test_ambiguousImport_dart_implicitHide() async {
@@ -139,16 +140,17 @@ library lib2;
 class N {}
 class N2 {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart' show N, N2;
 main() {
   new N1();
   new N2();
 }
-''', [
-      error(WarningCode.UNUSED_SHOWN_NAME, 44, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_SHOWN_NAME, 44, 1)],
+    );
   }
 
   test_annotated_partOfDeclaration() async {
@@ -341,14 +343,15 @@ main() {
   }
 
   test_assignmentToFinal_prefixNegate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   final x = 0;
   -x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1)],
+    );
   }
 
   test_assignmentToFinalNoSetter_prefixedIdentifier() async {
@@ -426,14 +429,15 @@ dynamic f() async {}
   }
 
   test_async_expression_function_type() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Future<int> F(int i);
 main() {
   F f = (int i) async => i;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1)],
+    );
   }
 
   test_async_flattened() async {
@@ -553,25 +557,27 @@ f() async {}
   }
 
   test_asyncForInWrongContext_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(list) async {
   await for (var e in list) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+    );
   }
 
   test_asyncForInWrongContext_asyncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(list) async* {
   await for (var e in list) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+    );
   }
 
   test_await_flattened() async {
@@ -658,13 +664,14 @@ typedef Foo(param);
   }
 
   test_builtInIdentifierAsType_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   dynamic x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1)],
+    );
   }
 
   test_castFrom() async {
@@ -672,7 +679,8 @@ f() {
     // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
     // a synthetic `ParameterMember` that belongs to no library.  We need to
     // make sure this doesn't lead to a crash.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 void testNewSet(Set<C> setEls) {
@@ -680,9 +688,9 @@ void testNewSet(Set<C> setEls) {
   Set.castFrom<C, Object>(setEls,
       newSet: <T>() => customNewSet = new Set<T>());
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 12),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 12)],
+    );
   }
 
   test_class_type_alias_documentationComment() async {
@@ -696,7 +704,7 @@ class D {}
 mixin E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement2 classC = unit.declaredFragment!.element.getClass2('C')!;
+    ClassElement classC = unit.declaredFragment!.element.getClass('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 
@@ -736,17 +744,6 @@ A.x() {}
 set x(_) {}
 }
 ''');
-  }
-
-  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
-    await assertErrorsInCode(r'''
-class A {
-  static get x => 0;
-  static set x(int p) {}
-}
-''', [
-      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 23, 1),
-    ]);
   }
 
   test_const_constructor_with_named_generic_parameter() async {
@@ -806,17 +803,23 @@ class C extends A {
   }
 
   test_constConstructorWithNonConstSuper_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.a();
 }
 class B extends A {
   const B(): super();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          54, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          54,
+          7,
+        ),
+      ],
+    );
   }
 
   test_constConstructorWithNonFinalField_finalInstanceVar() async {
@@ -986,13 +989,14 @@ class A {
   }
 
   test_constNotInitialized_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   const int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1)],
+    );
   }
 
   test_constRedirectSkipsSupertype() async {
@@ -1103,13 +1107,14 @@ A a = new A();
   }
 
   test_dynamicIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = dynamic;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1)],
+    );
   }
 
   test_empty_generator_async() async {
@@ -1289,24 +1294,26 @@ class A {
   }
 
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A native 'something' {
   final int x;
   A() {}
 }
-''', [
-      error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 18),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 18)],
+    );
   }
 
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A native 'something' {
   final int x;
 }
-''', [
-      error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 18),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 18)],
+    );
   }
 
   test_finalNotInitialized_initializer() async {
@@ -1393,7 +1400,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1408,7 +1415,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1473,7 +1480,7 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1486,7 +1493,7 @@ bool test(C c) => c.method(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1503,7 +1510,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1520,7 +1527,7 @@ void test() {
 
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y.enclosingElement2, isNotNull);
+    expect(y.enclosingElement, isNotNull);
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1649,29 +1656,35 @@ test() {
 
   test_importDuplicatedLibraryName() async {
     newFile("$testPackageLibPath/lib.dart", "library lib;");
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library test;
 import 'lib.dart';
 import 'lib.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 21, 10),
-      error(WarningCode.UNUSED_IMPORT, 40, 10),
-      error(WarningCode.DUPLICATE_IMPORT, 40, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 21, 10),
+        error(WarningCode.UNUSED_IMPORT, 40, 10),
+        error(WarningCode.DUPLICATE_IMPORT, 40, 10),
+      ],
+    );
   }
 
   test_importDuplicatedLibraryUnnamed() async {
     newFile("$testPackageLibPath/lib1.dart", '');
     newFile("$testPackageLibPath/lib2.dart", '');
     // No warning on duplicate import (https://github.com/dart-lang/sdk/issues/24156)
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library test;
 import 'lib1.dart';
 import 'lib2.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 21, 11),
-      error(WarningCode.UNUSED_IMPORT, 41, 11),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 21, 11),
+        error(WarningCode.UNUSED_IMPORT, 41, 11),
+      ],
+    );
   }
 
   test_importOfNonLibrary_libraryDeclared() async {
@@ -1863,14 +1876,15 @@ class A {
   static var _m;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 41, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 41, 2)],
+    );
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
@@ -1880,14 +1894,15 @@ class A {
   static _m() {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 41, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 41, 2)],
+    );
   }
 
   test_instantiateGenericFunctionWithNamedParameterAsGenericArg() async {
@@ -2029,7 +2044,8 @@ main() {
   }
 
   test_invalidIdentifierInAsync() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   m() {
     int async;
@@ -2037,11 +2053,13 @@ class A {
     int yield;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 5),
+      ],
+    );
   }
 
   test_invalidMethodOverrideNamedParamType() async {
@@ -2225,7 +2243,8 @@ f(S s) async {
   }
 
   test_issue_32394() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
@@ -2233,13 +2252,16 @@ var z = x.toList();
 void main() {
   String p = z;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
-    ]);
-    var z = result.unit.declaredFragment!.element.topLevelVariables
-        .where((e) => e.name3 == 'z')
-        .single;
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
+      ],
+    );
+    var z =
+        result.unit.declaredFragment!.element.topLevelVariables
+            .where((e) => e.name == 'z')
+            .single;
     assertType(z.type, 'List<String>');
   }
 
@@ -2284,18 +2306,19 @@ int f(v) {
   }
 
   test_librarySource_of_type_substituted_synthetic_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<int, T> f<T>(T t) => throw '';
 Map<double, T> g<T>(T t) => throw '';
 h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1)],
+    );
     var parameter = findNode.stringLiteral("'x'").correspondingParameter;
-    expect(parameter!.library2, isNull);
-    expect(parameter.library2?.firstFragment.source, isNull);
+    expect(parameter!.library, isNull);
+    expect(parameter.library?.firstFragment.source, isNull);
   }
 
   test_loadLibraryDefined() async {
@@ -2538,7 +2561,8 @@ f(bool pb, pd) {
   }
 
   test_nonBoolNegationExpression_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f1(bool dynamic) {
   !dynamic;
 }
@@ -2546,9 +2570,9 @@ f2() {
   bool dynamic = true;
   !dynamic;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 7)],
+    );
   }
 
   test_nonBoolOperand_and_bool() async {
@@ -2674,13 +2698,14 @@ f() {
   }
 
   test_nonConstMapAsExpressionStatement_notExpressionStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   var m = {'a' : 0, 'b' : 1};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_nonConstMapAsExpressionStatement_typeArguments() async {
@@ -2700,7 +2725,8 @@ main() {
   }
 
   test_nonConstValueInInitializer_binary_bool() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final v;
   const A.a1(bool p) : v = p && true;
@@ -2708,9 +2734,9 @@ class A {
   const A.b1(bool p) : v = p || true;
   const A.b2(bool p) : v = true || p;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 167, 4),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 167, 4)],
+    );
   }
 
   test_nonConstValueInInitializer_binary_dynamic() async {
@@ -2829,16 +2855,19 @@ class A {
 
   @failingTest
   test_null_callOperator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   null + 5;
   null == 5;
   null[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
+      ],
+    );
   }
 
   test_optionalNew_rewrite() async {
@@ -2950,16 +2979,17 @@ main() {}
   test_parameterScope_local() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   g(g) {
     h(g);
   }
 }
 h(x) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 8, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 8, 1)],
+    );
   }
 
   test_parameterScope_method() async {
@@ -3022,42 +3052,45 @@ class B<S> extends A<S> {
   }
 
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.x() {}
 }
 f() {
   var x = new A.x();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1)],
+    );
   }
 
   test_referenceToDeclaredVariableInInitializer_methodName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   x() {}
 }
 f(A a) {
   var x = a.x();
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1)],
+    );
   }
 
   test_referenceToDeclaredVariableInInitializer_propertyName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var x;
 }
 f(A a) {
   var x = a.x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1)],
+    );
   }
 
   test_regress34906() async {
@@ -3264,7 +3297,8 @@ void f(A<V> p) {
   }
 
   test_typePromotion_if_inClosure_assignedAfter_inSameFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   f(Object p) {
     if (p is String) {
@@ -3273,9 +3307,9 @@ main() {
     p = 0;
   };
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 11, 1)],
+    );
   }
 
   test_typePromotion_if_is_and_left() async {
@@ -3421,11 +3455,12 @@ class A {
 ''');
 
     assertType(
-        findNode
-            .yieldStatement('yield* Stream.fromIterable([1]);')
-            .expression
-            .staticType,
-        'Stream<int>');
+      findNode
+          .yieldStatement('yield* Stream.fromIterable([1]);')
+          .expression
+          .staticType,
+      'Stream<int>',
+    );
   }
 
   test_yieldStar_inside_method_sync() async {
@@ -3437,7 +3472,9 @@ class A {
 }
 ''');
 
-    assertType(findNode.yieldStatement('yield* [1];').expression.staticType,
-        'List<int>');
+    assertType(
+      findNode.yieldStatement('yield* [1];').expression.staticType,
+      'List<int>',
+    );
   }
 }

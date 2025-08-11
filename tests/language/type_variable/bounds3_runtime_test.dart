@@ -10,9 +10,7 @@
 class A<K extends int> {}
 
 class B<X, Y> {
-  foo(x) {
-
-  }
+  foo(x) {}
 }
 
 main() {

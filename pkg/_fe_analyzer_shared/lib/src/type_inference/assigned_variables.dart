@@ -37,7 +37,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
 
   /// Stack of info for nodes that have been entered but not yet left.
   final List<AssignedVariablesNodeInfo> _stack = [
-    new AssignedVariablesNodeInfo()
+    new AssignedVariablesNodeInfo(),
   ];
 
   /// When assertions are enabled, the set of info objects that have been
@@ -105,8 +105,9 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// time, the caller should pass the returned data to [storeInfo].
   ///
   /// See [beginNode] for more details.
-  AssignedVariablesNodeInfo deferNode(
-      {bool isClosureOrLateVariableInitializer = false}) {
+  AssignedVariablesNodeInfo deferNode({
+    bool isClosureOrLateVariableInitializer = false,
+  }) {
     assert(!_isFinished);
     AssignedVariablesNodeInfo info = _stack.removeLast();
     info.read.removeAll(info.declared);
@@ -166,10 +167,11 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   void endNode(Node node, {bool isClosureOrLateVariableInitializer = false}) {
     assert(!_isFinished);
     storeInfo(
-        node,
-        deferNode(
-            isClosureOrLateVariableInitializer:
-                isClosureOrLateVariableInitializer));
+      node,
+      deferNode(
+        isClosureOrLateVariableInitializer: isClosureOrLateVariableInitializer,
+      ),
+    );
   }
 
   /// Call this after visiting the code to be analyzed, to check invariants.
@@ -177,17 +179,24 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
     assert(() {
       assert(!_isFinished);
       assert(
-          _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
+        _deferredInfos.isEmpty,
+        "Deferred infos not stored: $_deferredInfos",
+      );
       assert(_stack.length == 1, "Unexpected stack: $_stack");
-      Set<Variable?> vars(Set<int> keys) =>
-          {for (int key in keys) promotionKeyStore.variableForKey(key)};
+      Set<Variable?> vars(Set<int> keys) => {
+        for (int key in keys) promotionKeyStore.variableForKey(key),
+      };
       AssignedVariablesNodeInfo last = _stack.last;
       Set<int> undeclaredReads = last.read.difference(last.declared);
-      assert(undeclaredReads.isEmpty,
-          'Variables read from but not declared: ${vars(undeclaredReads)}');
+      assert(
+        undeclaredReads.isEmpty,
+        'Variables read from but not declared: ${vars(undeclaredReads)}',
+      );
       Set<int> undeclaredWrites = last.written.difference(last.declared);
-      assert(undeclaredWrites.isEmpty,
-          'Variables written to but not declared: ${vars(undeclaredWrites)}');
+      assert(
+        undeclaredWrites.isEmpty,
+        'Variables written to but not declared: ${vars(undeclaredWrites)}',
+      );
       // Note that it's not necessary to check `last.captured` and
       // `last.readCaptured`, because a variable can't be captured (or
       // readCaptured) without writing (or reading) it; thus a variable that's
@@ -201,8 +210,10 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// Queries the information stored for the given [node].
   AssignedVariablesNodeInfo getInfoForNode(Node node) {
     return _info[node] ??
-        (throw new StateError('No information for $node (${node.hashCode}) in '
-            '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
+        (throw new StateError(
+          'No information for $node (${node.hashCode}) in '
+          '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}',
+        ));
   }
 
   /// Call this method between calls to [beginNode] and [endNode]/[deferNode],
@@ -238,9 +249,10 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
     assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
     AssignedVariablesNodeInfo? info = _info.remove(from);
     assert(
-        info != null,
-        'No information for $from (${from.hashCode}) in '
-        '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}');
+      info != null,
+      'No information for $from (${from.hashCode}) in '
+      '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}',
+    );
 
     _info[to] = info!;
   }

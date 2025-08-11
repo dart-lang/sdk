@@ -20,15 +20,16 @@ class InstantiateTypeAliasExpandsToTypeParameterTest
       CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
 
   test_const_generic_noArguments_unnamed_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef A<T> = T;
 
 void f() {
   const A();
 }
-''', [
-      error(_errorCode, 38, 1),
-    ]);
+''',
+      [error(_errorCode, 38, 1)],
+    );
   }
 
   test_const_notGeneric_unnamed_class() async {
@@ -46,19 +47,21 @@ void f() {
   }
 
   test_new_generic_noArguments_unnamed_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef A<T> = T;
 
 void f() {
   new A();
 }
-''', [
-      error(_errorCode, 36, 1),
-    ]);
+''',
+      [error(_errorCode, 36, 1)],
+    );
   }
 
   test_new_generic_withArgument_named_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.named();
 }
@@ -68,13 +71,14 @@ typedef B<T> = T;
 void f() {
   new B<A>.named();
 }
-''', [
-      error(_errorCode, 62, 1),
-    ]);
+''',
+      [error(_errorCode, 62, 1)],
+    );
   }
 
   test_new_generic_withArgument_unnamed_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 typedef B<T> = T;
@@ -82,9 +86,9 @@ typedef B<T> = T;
 void f() {
   new B<A>();
 }
-''', [
-      error(_errorCode, 48, 1),
-    ]);
+''',
+      [error(_errorCode, 48, 1)],
+    );
   }
 
   test_new_notGeneric_unnamed_class() async {
@@ -100,16 +104,17 @@ void f() {
   }
 
   test_new_notGeneric_unnamed_typeParameter2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef A<T> = T;
 typedef B<T> = A<T>;
 
 void f() {
   new B();
 }
-''', [
-      error(_errorCode, 57, 1),
-    ]);
+''',
+      [error(_errorCode, 57, 1)],
+    );
 
     var node = findNode.instanceCreation('new B()');
     assertResolvedNodeText(node, r'''

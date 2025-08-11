@@ -20,7 +20,7 @@ class FlutterMoveUp extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_MOVE_UP;
+  AssistKind get assistKind => DartAssistKind.flutterMoveUp;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

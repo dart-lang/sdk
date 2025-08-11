@@ -30,7 +30,8 @@ Future main() async {
   });
 }
 
-String dartTestFile(String zoneKey, String zoneValue) => '''
+String dartTestFile(String zoneKey, String zoneValue) =>
+    '''
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';

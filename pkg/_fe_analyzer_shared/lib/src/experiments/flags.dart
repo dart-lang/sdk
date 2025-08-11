@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 8);
+const Version defaultLanguageVersion = const Version(3, 9);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -96,10 +96,10 @@ enum ExperimentalFlag {
 
   getterSetterError(
       name: 'getter-setter-error',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9)),
 
   inferenceUpdate1(
       name: 'inference-update-1',
@@ -159,10 +159,10 @@ enum ExperimentalFlag {
 
   nativeAssets(
       name: 'native-assets',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9)),
 
   nonNullable(
       name: 'non-nullable',
@@ -222,10 +222,10 @@ enum ExperimentalFlag {
 
   soundFlowAnalysis(
       name: 'sound-flow-analysis',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9)),
 
   spreadCollections(
       name: 'spread-collections',

@@ -1,0 +1,7 @@
+void foo(dynamic bar) {
+bar |= 2;
+}
+
+void[KeywordToken] foo[StringToken]([BeginToken]dynamic[KeywordToken] bar[StringToken])[SimpleToken] {[BeginToken]
+bar[StringToken] |=[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

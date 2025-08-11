@@ -28,6 +28,7 @@ regress/issue_31198: FormatterCrash
 super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 
+coverage/digit-separators/separators_errors_test: EmptyOutput
 general/error_recovery/issue_38415.crash: EmptyOutput
 general/error_recovery/issue_39024.crash: EmptyOutput
 general/error_recovery/issue_39058.crash: EmptyOutput

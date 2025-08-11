@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+cc/ArrayTruncationRaces: Pass, Slow
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
@@ -17,6 +18,7 @@ cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an 
 cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/async_igoto_threshold_flag_test: Pass, Slow
+dart/b162922506_test: Pass, Slow # Generated very large program
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
@@ -24,9 +26,10 @@ dart/data_uri_import_test/none: SkipByDesign
 dart/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/gc/*: Pass, Slow # Tests that involve expensive heap verification steps
+dart/gen_snapshot_include_resolved_urls_test: Pass, Slow # Spawns several subprocesses
 dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
+dart/incompatible_loading_unit_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
-dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
@@ -34,8 +37,10 @@ dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
+dart/split_aot_kernel_generation_test: Pass, Slow # Spawns several subprocesses
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/timeline_recorder_file_test: Pass, Slow
+dart/use_dwarf_stack_traces_flag_test: Pass, Slow # Spawns several subprocesses
 
 [ $arch == ia32 ]
 dart/cachable_idempotent_test: Skip # CachableIdempotent calls are not supported in ia32 because it has no object pool.
@@ -108,9 +113,6 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
-
-[ $nnbd == legacy ]
-dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -380,5 +382,5 @@ dart/thread_priority_linux_test: SkipByDesign
 
 # The analyze_snapshot tool tests are only supported on 64 bit AOT builds running under
 # release or product runtimes for linux and android platforms
-[ $arch != arm64 && $arch != arm64c && $arch != simarm64 && $arch != simarm64c && $arch != x64 && $arch != x64c || $compiler != dartk && $compiler != dartkp || $mode != product && $mode != release || $runtime != dart_precompiled && $runtime != vm || $system != android && $system != linux ]
+[ $arch != arm64 && $arch != arm64c && $arch != simarm64 && $arch != simarm64c && $arch != x64 && $arch != x64c || $compiler != dartk && $compiler != dartkp || $mode != product && $mode != release || $runtime != dart_precompiled && $runtime != vm || $system != android && $system != linux && $system != macos ]
 dart/analyze_snapshot_binary_test: SkipByDesign # Only run on 64bit AOT on standard architectures

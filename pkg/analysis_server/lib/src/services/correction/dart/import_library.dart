@@ -12,9 +12,10 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -80,9 +81,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     ];
   }
 
-  /// A map of all the error codes that this fix can be applied to and the
+  /// A map of all the diagnostic codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
-  Map<ErrorCode, List<MultiProducerGenerator>> get _errorCodesWhereThisIsValid {
+  Map<DiagnosticCode, List<MultiProducerGenerator>> get _codesWhereThisIsValid {
     var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
     var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
     return {
@@ -105,7 +106,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
   _importEditCombinators(
     LibraryImport import,
-    LibraryElement2 libraryElement,
+    LibraryElement libraryElement,
     String uri,
     String name, {
     String? prefix,
@@ -118,7 +119,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var namesInThisLibrary = <String>[
       name,
       for (var otherName in otherNames)
-        if (getExportedElement(libraryElement, otherName)?.name3
+        if (getExportedElement(libraryElement, otherName)?.name
             case var exportedName?)
           exportedName,
     ];
@@ -234,10 +235,10 @@ class ImportLibrary extends MultiCorrectionProducer {
     var producers = <ResolvedCorrectionProducer>[];
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
-    var alreadyImportedWithPrefix = <LibraryElement2>{};
+    var alreadyImportedWithPrefix = <LibraryElement>{};
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // Prepare the element.
-      var libraryElement = import.importedLibrary2;
+      var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
         continue;
       }
@@ -245,8 +246,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (element == null) {
         continue;
       }
-      if (element is PropertyAccessorElement2) {
-        element = element.variable3;
+      if (element is PropertyAccessorElement) {
+        element = element.variable;
         if (element == null) {
           continue;
         }
@@ -326,7 +327,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
                 : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
-      } else if (declaration.library2 != libraryElement) {
+      } else if (declaration.library != libraryElement) {
         // Ugly: exports.
         fixKind =
             prefix.isEmptyOrNull
@@ -390,7 +391,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   List<_PrefixedName> _namesForExtensionInLibrary(
-    LibraryElement2 libraryToImport,
+    LibraryElement libraryToImport,
     DartType targetType,
     Name memberName,
   ) {
@@ -401,7 +402,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var names = <_PrefixedName>[];
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // prepare element
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
@@ -415,13 +416,13 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
-        var libraryElement = import.importedLibrary2;
+        var libraryElement = import.importedLibrary;
         if (libraryElement == null) {
           continue;
         }
         names.add(
           _PrefixedName(
-            name: instantiatedExtension.extension.name3!,
+            name: instantiatedExtension.extension.name!,
             ignorePrefix: true,
             producerGenerators: (prefix, name) async {
               var producers = <ResolvedCorrectionProducer>[];
@@ -720,19 +721,19 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// Searches all diagnostics reported for this compilation unit for unresolved
   /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
-    var errorsForThisFix = _errorCodesWhereThisIsValid;
-    var errors =
-        <AnalysisError, List<MultiProducerGenerator>>{}..addEntries(
-          unitResult.errors.map((error) {
-            if (error == diagnostic) return null;
-            var generators = errorsForThisFix[error.errorCode];
+    var errorsForThisFix = _codesWhereThisIsValid;
+    var diagnostics =
+        <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
+          unitResult.diagnostics.map((d) {
+            if (d == diagnostic) return null;
+            var generators = errorsForThisFix[d.diagnosticCode];
             if (generators == null) return null;
-            return MapEntry(error, generators);
+            return MapEntry(d, generators);
           }).nonNulls,
         );
     var otherNames = <String>{};
-    if (errors.isNotEmpty) {
-      for (var MapEntry(:key, :value) in errors.entries) {
+    if (diagnostics.isNotEmpty) {
+      for (var MapEntry(:key, :value) in diagnostics.entries) {
         for (var generator in value) {
           DartFixContext? dartFixContext;
           if (context.dartFixContext case var context?) {
@@ -946,7 +947,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 /// extension, but which does so only if the extension applies to a given type.
 class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   /// The library defining the extension.
-  LibraryElement2 library;
+  LibraryElement library;
 
   /// The type of the target that the extension must apply to.
   DartType targetType;
@@ -994,8 +995,8 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 /// A correction processor that can add a prefix to an identifier defined in a
 /// library that is already imported but that is imported with a prefix.
 class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
-  final LibraryElement2 _importedLibrary;
-  final PrefixElement2 _importPrefix;
+  final LibraryElement _importedLibrary;
+  final PrefixElement _importPrefix;
   final String? _nodePrefix;
   final _ImportLibraryCombinator? _editCombinator;
 
@@ -1021,7 +1022,7 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
-  String get _prefixName => _importPrefix.name3!;
+  String get _prefixName => _importPrefix.name!;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -1143,11 +1144,11 @@ extension on AstNode {
   /// otherwise.
   String? get nameOfType {
     switch (this) {
-      case NamedType(:var importPrefix, :var name2):
+      case NamedType(:var importPrefix, :var name):
         if (parent is ConstructorName && importPrefix != null) {
           return importPrefix.name.lexeme;
         }
-        return name2.lexeme;
+        return name.lexeme;
       case PrefixedIdentifier(:var prefix):
         return prefix.name;
       case SimpleIdentifier(:var name):

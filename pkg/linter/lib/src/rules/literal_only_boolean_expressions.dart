@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -36,13 +38,11 @@ class LiteralOnlyBooleanExpressions extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.literal_only_boolean_expressions;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     if (_onlyLiterals(node.condition)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
       if (_onlyLiterals(loopParts.condition)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -78,14 +78,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitIfStatement(IfStatement node) {
     if (node.caseClause != null) return;
     if (_onlyLiterals(node.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
   @override
   void visitWhenClause(WhenClause node) {
     if (_onlyLiterals(node.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_onlyLiterals(condition)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

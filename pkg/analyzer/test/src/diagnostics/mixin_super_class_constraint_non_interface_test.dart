@@ -18,12 +18,18 @@ main() {
 class MixinSuperClassConstraintNonInterfaceTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on dynamic {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          11,
+          7,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -38,13 +44,19 @@ MixinOnClause
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { v }
 mixin M on E {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 24,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          24,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -59,13 +71,19 @@ MixinOnClause
   }
 
   test_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 mixin M on A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 39,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          39,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -80,12 +98,18 @@ MixinOnClause
   }
 
   test_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M on Never {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          11,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -100,13 +124,19 @@ MixinOnClause
   }
 
   test_void() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on void {}
-''', [
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 4),
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
-          4),
-    ]);
+''',
+      [
+        error(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 4),
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          11,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''

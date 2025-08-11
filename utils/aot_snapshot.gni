@@ -59,7 +59,7 @@ template("aot_snapshot") {
     gen_kernel_kernel =
         get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
                        "target_gen_dir") + "/bootstrap_gen_kernel.dill"
-    platform_dill = "$root_out_dir/vm_platform_strong.dill"
+    platform_dill = "$root_out_dir/vm_platform.dill"
 
     inputs = extra_inputs + [
                gen_kernel_kernel,
@@ -98,6 +98,9 @@ template("aot_snapshot") {
     if (product_mode) {
       args += [ "-Ddart.vm.product=true" ]
     }
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
   }
 
   # Whether to build an AOT snapshot, which can be opened by dlopen.
@@ -128,6 +131,9 @@ template("aot_snapshot") {
                   "--snapshot-kind=app-aot-elf",
                   "--elf=$abs_output",
                 ] + gen_snapshot_args
+      if (defined(invoker.vm_args)) {
+        vm_args += invoker.vm_args
+      }
 
       args = [ rebase_path(dill) ]
 
@@ -171,7 +177,7 @@ template("aot_snapshot") {
     output_prefix = "lib"
     output_extension = ""
 
-    if (current_os == "mac" || current_os == "ios") {
+    if (current_os == "mac" || current_os == "ios" || current_os == "watchos") {
       output_extension = "dylib"
     } else if (current_os == "win") {
       output_extension = "dll"

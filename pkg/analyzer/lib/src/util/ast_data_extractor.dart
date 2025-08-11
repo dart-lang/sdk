@@ -5,24 +5,24 @@
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-MemberId computeMemberId(Element2 element) {
-  var enclosingElement = element.enclosingElement2;
-  if (enclosingElement is LibraryElement2) {
-    var memberName = element.name3!;
+MemberId computeMemberId(Element element) {
+  var enclosingElement = element.enclosingElement;
+  if (enclosingElement is LibraryElement) {
+    var memberName = element.name!;
     if (element is SetterElement) {
       memberName += '=';
     }
     return MemberId.internal(memberName);
-  } else if (enclosingElement is InterfaceElement2) {
+  } else if (enclosingElement is InterfaceElement) {
     var memberName = element.lookupName!;
-    var className = enclosingElement.name3;
+    var className = enclosingElement.name;
     return MemberId.internal(memberName, className: className);
-  } else if (enclosingElement is ExtensionElement2) {
-    var memberName = element.name3!;
-    var extensionName = enclosingElement.name3;
-    if (element is PropertyAccessorElement2) {
+  } else if (enclosingElement is ExtensionElement) {
+    var memberName = element.name!;
+    var extensionName = enclosingElement.name;
+    if (element is PropertyAccessorElement) {
       if (element is GetterElement) {
         memberName = 'get#$memberName';
       } else {
@@ -32,7 +32,8 @@ MemberId computeMemberId(Element2 element) {
     return MemberId.internal('$extensionName|$memberName');
   }
   throw UnimplementedError(
-      'TODO(paulberry): $element (${element.runtimeType})');
+    'TODO(paulberry): $element (${element.runtimeType})',
+  );
 }
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
@@ -49,7 +50,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
 
-  T? computeElementValue(Id id, Element2 element) => null;
+  T? computeElementValue(Id id, Element element) => null;
 
   void computeForClass(Declaration node, Id? id) {
     if (id == null) return;
@@ -69,7 +70,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
-  void computeForLibrary(LibraryElement2 library, Id? id) {
+  void computeForLibrary(LibraryElement library, Id? id) {
     if (id == null) return;
     T? value = computeElementValue(id, library);
     registerValue(uri, 0, id, value, library);
@@ -106,10 +107,10 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   Id createClassId(Declaration node) {
     var element = node.declaredFragment!.element;
-    return ClassId(element.name3!);
+    return ClassId(element.name!);
   }
 
-  Id createLibraryId(LibraryElement2 node) {
+  Id createLibraryId(LibraryElement node) {
     Uri uri = node.uri;
     if (uri.path.startsWith(r'/C:')) {
       // The `MemoryResourceProvider.convertPath` inserts '/C:' on Windows.
@@ -189,10 +190,11 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   @override
   void visitStatement(Statement node) {
     computeForStatement(
-        node,
-        node is ExpressionStatement
-            ? createStatementId(node)
-            : computeDefaultNodeId(node));
+      node,
+      node is ExpressionStatement
+          ? createStatementId(node)
+          : computeDefaultNodeId(node),
+    );
     super.visitStatement(node);
   }
 

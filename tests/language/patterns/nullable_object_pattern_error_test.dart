@@ -14,7 +14,7 @@ void nullableWithField(x) {
       // ^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
       //         ^
-      // [cfe] The getter 'isEven' isn't defined for the class 'int?'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'int?'.
       break;
   }
 }
@@ -26,7 +26,7 @@ void potentiallyNullableWithField<T extends int?>(x) {
       // ^
       // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
       //         ^
-      // [cfe] The getter 'isEven' isn't defined for the class 'int?'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'int?'.
       break;
   }
 }

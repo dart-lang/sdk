@@ -50,6 +50,8 @@
 // reference of variations when it becomes available in the SDK wiki.
 library;
 
+import 'config.dart';
+
 /// Whether `assert`s are enabled.
 // TODO: If information can be made available as a constant, use that.
 // (For example if we introduce a compilation-environment entry for it.)
@@ -84,7 +86,25 @@ const bool jsNumbers = identical(1, 1.0);
 /// expectations. Typically this is not the case in production configurations
 /// that enable minification, like `dart compile js -O2` and `dart compile exe`.
 bool get readableTypeStrings =>
-    !const bool.fromEnvironment('dart.tool.dart2js.minify');
+    !const bool.fromEnvironment('dart.tool.dart2js.minify') &&
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify') &&
+    !(isVmConfiguration && configAsString.contains('obfuscate'));
+
+/// Whether [Symbol]s were minified.
+///
+/// If [Symbol]s are minified, rruntime allocated `Symbol` objects
+/// will not compare equal to const `Symbols` (e.g., `new Symbol('x') != #x`).
+bool get minifiedSymbols =>
+    const bool.fromEnvironment('dart.tool.dart2wasm.minify');
+
+/// Whether specific subtypes of [Error] with details are thrown or generic
+/// [Error]s.
+bool get preciseErrorsWithDetails =>
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify');
+
+/// Whether thrown [Error] objects will have a [StackTrace] attached.
+bool get errorsHaveStackTrace =>
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify');
 
 /// Whether runtime parameter type checks are enforced.
 ///
@@ -123,6 +143,15 @@ bool get checkedParameters =>
 /// ```
 bool get checkedImplicitDowncasts =>
     !const bool.fromEnvironment('dart.tool.dart2js.types:trust');
+
+/// Whether RTI optimizations are disabled at compile time.
+///
+/// This can cause some type errors to present differently than they otherwise
+/// would. For example, when these optimizations are disabled ArgumentErrors may
+/// present as TypeErrors instead.
+bool get rtiOptimizationsDisabled =>
+    const bool.fromEnvironment('dart.tool.dart2js.disable_rti_optimization',
+        defaultValue: true);
 
 /// Whether explicit casts are type checked at runtime.
 ///

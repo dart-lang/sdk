@@ -570,6 +570,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
       } else if (target == nativeCallableIsolateLocalConstructor) {
         return _verifyAndReplaceNativeCallableIsolateLocal(node);
+      } else if (target == nativeCallableIsolateGroupSharedConstructor) {
+        return _verifyAndReplaceNativeCallable(
+          node,
+          replacement: _replaceNativeCallableIsolateGroupSharedConstructor,
+        );
       } else if (target == nativeCallableListenerConstructor) {
         final DartType nativeType = InterfaceType(
           nativeFunctionClass,
@@ -881,18 +886,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   }
 
   // NativeCallable<T>.isolateLocal(target, exceptionalReturn) calls become:
-  // isStaticFunction is false:
-  //   _NativeCallableIsolateLocal<T>(
-  //       _createNativeCallableIsolateLocal<NativeFunction<T>>(
-  //           _nativeIsolateLocalCallbackFunction<T>(exceptionalReturn),
-  //           target,
-  //           true));
   // isStaticFunction is true:
   //   _NativeCallableIsolateLocal<T>(
   //       _createNativeCallableIsolateLocal<NativeFunction<T>>(
   //           _nativeCallbackFunction<T>(target, exceptionalReturn),
   //           null,
   //           true);
+  // isStaticFunction is false:
+  //   _NativeCallableIsolateLocal<T>(
+  //       _createNativeCallableIsolateLocal<NativeFunction<T>>(
+  //           _nativeIsolateLocalCallbackFunction<T>(exceptionalReturn),
+  //           target,
+  //           true));
   Expression _replaceNativeCallableIsolateLocalConstructor(
     StaticInvocation node,
     Expression exceptionalReturn,
@@ -949,7 +954,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // void _handler(List args) => target(args[0], args[1], ...)
   // final _callback = _NativeCallableListener<T>(_handler, debugName);
   // _callback._pointer = _createNativeCallableListener<NativeFunction<T>>(
-  //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
+  //       _nativeAsyncCallbackFunction<T>(), _callback._port);
   // expression result: _callback;
   Expression _replaceNativeCallableListenerConstructor(StaticInvocation node) {
     final nativeFunctionType = InterfaceType(
@@ -1017,7 +1022,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = node.fileOffset;
 
     // _callback._pointer = _createNativeCallableListener<NativeFunction<T>>(
-    //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
+    //       _nativeAsyncCallbackFunction<T>(), _callback._port);
     final pointerValue = StaticInvocation(
       createNativeCallableListenerProcedure,
       Arguments(
@@ -1054,9 +1059,73 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
   }
 
-  Expression _verifyAndReplaceNativeCallableIsolateLocal(
+  // NativeCallable<T>.isolateGroupShared(target, exceptionalReturn) calls become:
+  // isStaticFunction is true:
+  //   _NativeCallableIsolateGroupShared<T>(
+  //       _createNativeCallableIsolateGroupShared<NativeFunction<T>>(
+  //           _nativeIsolateGroupSharedCallbackFunction<T>(target, exceptionalReturn),
+  //           null);
+  // isStaticFunction is false:
+  //   _NativeCallableIsolateGroupShared<T>(
+  //       _createNativeCallableIsolateGroupShared<NativeFunction<T>>(
+  //           _nativeIsolateGroupSharedClosureFunction<T>(exceptionalReturn),
+  //           target));
+  Expression _replaceNativeCallableIsolateGroupSharedConstructor(
+    StaticInvocation node,
+    Expression exceptionalReturn,
+    bool isStaticFunction,
+  ) {
+    final nativeFunctionType = InterfaceType(
+      nativeFunctionClass,
+      currentLibrary.nonNullable,
+      node.arguments.types,
+    );
+    final target = node.arguments.positional[0];
+    late StaticInvocation pointerValue;
+    if (isStaticFunction) {
+      pointerValue = StaticInvocation(
+        createNativeCallableIsolateGroupSharedProcedure,
+        Arguments(
+          [
+            StaticInvocation(
+              nativeIsolateGroupSharedCallbackFunctionProcedure,
+              Arguments([
+                target,
+                exceptionalReturn,
+              ], types: node.arguments.types),
+            ),
+            NullLiteral(),
+          ],
+          types: [nativeFunctionType],
+        ),
+      );
+    } else {
+      pointerValue = StaticInvocation(
+        createNativeCallableIsolateGroupSharedProcedure,
+        Arguments(
+          [
+            StaticInvocation(
+              nativeIsolateGroupSharedClosureFunctionProcedure,
+              Arguments([exceptionalReturn], types: node.arguments.types),
+            ),
+            target,
+          ],
+          types: [nativeFunctionType],
+        ),
+      );
+    }
+
+    return ConstructorInvocation(
+      nativeCallablePrivateIsolateGroupSharedConstructor,
+      Arguments([pointerValue], types: node.arguments.types),
+    );
+  }
+
+  Expression _verifyAndReplaceNativeCallable(
     StaticInvocation node, {
     bool fromFunction = false,
+    required Expression Function(StaticInvocation, Expression, bool)
+    replacement,
   }) {
     final DartType nativeType = InterfaceType(
       nativeFunctionClass,
@@ -1170,11 +1239,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         staticTypeContext!,
       );
 
-      if (!env.isSubtypeOf(
-        returnType,
-        funcType.returnType,
-        SubtypeCheckMode.ignoringNullabilities,
-      )) {
+      if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
           templateFfiDartTypeMismatch.withArguments(
             returnType,
@@ -1188,15 +1253,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       }
     }
 
-    final replacement =
-        fromFunction
-            ? _replaceFromFunction(node, exceptionalReturn)
-            : _replaceNativeCallableIsolateLocalConstructor(
-              node,
-              exceptionalReturn,
-              isStaticFunction,
-            );
-
     final compoundClasses =
         funcType.positionalParameters
             .whereType<InterfaceType>()
@@ -1205,7 +1261,25 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               (c) => c.superclass == structClass || c.superclass == unionClass,
             )
             .toList();
-    return invokeCompoundConstructors(replacement, compoundClasses);
+    return invokeCompoundConstructors(
+      replacement(node, exceptionalReturn, isStaticFunction),
+      compoundClasses,
+    );
+  }
+
+  Expression _verifyAndReplaceNativeCallableIsolateLocal(
+    StaticInvocation node, {
+    bool fromFunction = false,
+  }) {
+    return _verifyAndReplaceNativeCallable(
+      node,
+      fromFunction: fromFunction,
+      replacement:
+          fromFunction
+              ? (node, exceptionalReturn, _) =>
+                  _replaceFromFunction(node, exceptionalReturn)
+              : _replaceNativeCallableIsolateLocalConstructor,
+    );
   }
 
   Expression _replaceGetRef(StaticInvocation node) {
@@ -2111,7 +2185,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ).isSubtypeOf(
           receiverType,
           InterfaceType(typedDataClass, Nullability.nonNullable),
-          SubtypeCheckMode.withNullabilities,
         );
         if (!implementsTypedData) break;
         if (receiverType is! InterfaceType) break;

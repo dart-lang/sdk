@@ -92,7 +92,8 @@ class ComplexParserTest extends FastaParserTestCase {
 
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
     _validate_assignableExpression_arguments_normal_chain_typeArguments(
-        "a<E>(b)<F>(c).d<G>(e).f");
+      "a<E>(b)<F>(c).d<G>(e).f",
+    );
   }
 
   void test_assignmentExpression_compound() {
@@ -120,9 +121,18 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_binary_operator_written_out_expression() {
-    var expression = parseExpression('x xor y', errors: [
-      expectedError(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 2, 3),
-    ]) as BinaryExpression;
+    var expression =
+        parseExpression(
+              'x xor y',
+              errors: [
+                expectedError(
+                  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
+                  2,
+                  3,
+                ),
+              ],
+            )
+            as BinaryExpression;
     var lhs = expression.leftOperand as SimpleIdentifier;
     expect(lhs.name, 'x');
     expect(expression.operator.lexeme, '^');
@@ -131,9 +141,18 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_binary_operator_written_out_expression_logical() {
-    var expression = parseExpression('x > 0 and y > 1', errors: [
-      expectedError(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 6, 3),
-    ]) as BinaryExpression;
+    var expression =
+        parseExpression(
+              'x > 0 and y > 1',
+              errors: [
+                expectedError(
+                  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
+                  6,
+                  3,
+                ),
+              ],
+            )
+            as BinaryExpression;
     var lhs = expression.leftOperand as BinaryExpression;
     expect((lhs.leftOperand as SimpleIdentifier).name, 'x');
     expect(lhs.operator.lexeme, '>');
@@ -326,8 +345,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
-    var statement = parseStatement('x is String<S> Function() ? (x + y) : z;')
-        as ExpressionStatement;
+    var statement =
+        parseStatement('x is String<S> Function() ? (x + y) : z;')
+            as ExpressionStatement;
     var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
@@ -338,8 +358,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
-    var statement = parseStatement('x is String<S,T> ? (x + y) : z;')
-        as ExpressionStatement;
+    var statement =
+        parseStatement('x is String<S,T> ? (x + y) : z;')
+            as ExpressionStatement;
     var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
@@ -404,9 +425,12 @@ class C {
   }
 
   void test_equalityExpression_normal() {
-    var expression = parseExpression("x == y != z",
-            codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND])
-        as BinaryExpression;
+    var expression =
+        parseExpression(
+              "x == y != z",
+              codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND],
+            )
+            as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
@@ -421,9 +445,12 @@ class C {
   }
 
   void test_equalityExpression_super() {
-    var expression = parseExpression("super == y != z",
-            codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND])
-        as BinaryExpression;
+    var expression =
+        parseExpression(
+              "super == y != z",
+              codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND],
+            )
+            as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
@@ -565,10 +592,10 @@ void f() {
   }
 
   void _validate_assignableExpression_arguments_normal_chain_typeArguments(
-      String code,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    var propertyAccess1 =
-        parseExpression(code, codes: errorCodes) as PropertyAccess;
+    String code, [
+    List<DiagnosticCode> codes = const <DiagnosticCode>[],
+  ]) {
+    var propertyAccess1 = parseExpression(code, codes: codes) as PropertyAccess;
     expect(propertyAccess1.propertyName.name, "f");
     //
     // a<E>(b)<F>(c).d<G>(e)

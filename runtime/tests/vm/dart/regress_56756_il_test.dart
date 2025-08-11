@@ -51,37 +51,27 @@ void matchIL$doTest(FlowGraph graph) {
       'value' << match.Parameter(index: 0),
       match.CheckStackOverflow(),
       'condition' << match.LoadField('value', slot: 'shouldReturnValue'),
-      match.Branch(match.StrictCompare('condition', 'c_true', kind: '==='),
-          ifTrue: 'B8', ifFalse: 'B9'),
+      match.Branch(
+        match.StrictCompare('condition', 'c_true', kind: '==='),
+        ifTrue: 'B8',
+        ifFalse: 'B9',
+      ),
     ]),
     'B8' <<
-        match.block('Target', [
-          'v19' << match.StaticCall(),
-          match.Goto('B10'),
-        ]),
-    'B9' <<
-        match.block('Target', [
-          match.Goto('B10'),
-        ]),
+        match.block('Target', ['v19' << match.StaticCall(), match.Goto('B10')]),
+    'B9' << match.block('Target', [match.Goto('B10')]),
     'B10' <<
         match.block('Join', [
           'v15' << match.Phi('v19', 'c_null'),
           'v8' << match.LoadClassId('v15'),
-          match.Branch(match.TestRange('v8', kind: 'is'),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.TestRange('v8', kind: 'is'),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
-    'B3' <<
-        match.block('Target', [
-          match.StaticCall('v15'),
-          match.Goto('B5'),
-        ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn('c_null'),
-        ]),
+    'B3' << match.block('Target', [match.StaticCall('v15'), match.Goto('B5')]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn('c_null')]),
   ]);
 }

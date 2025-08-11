@@ -81,8 +81,10 @@ class StaticTypeAnalyzer {
     node.recordStaticType(node.target.typeOrThrow, resolver: _resolver);
   }
 
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {required TypeImpl contextType}) {
+  void visitConditionalExpression(
+    covariant ConditionalExpressionImpl node, {
+    required TypeImpl contextType,
+  }) {
     // A conditional expression `E` of the form `b ? e1 : e2` with context type
     // `K` is analyzed as follows:
     //
@@ -96,8 +98,9 @@ class StaticTypeAnalyzer {
     var s = _typeSystem.greatestClosureOfSchema(contextType);
     DartType staticType;
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-    if (!_resolver.definingLibrary.featureSet
-        .isEnabled(Feature.inference_update_3)) {
+    if (!_resolver.definingLibrary.featureSet.isEnabled(
+      Feature.inference_update_3,
+    )) {
       staticType = t;
     } else
     // - If `T <: S` then the type of `E` is `T`
@@ -123,8 +126,10 @@ class StaticTypeAnalyzer {
   }
 
   void visitExtensionOverride(ExtensionOverride node) {
-    assert(false,
-        'Resolver should call extensionResolver.resolveOverride directly');
+    assert(
+      false,
+      'Resolver should call extensionResolver.resolveOverride directly',
+    );
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a function literal of the
@@ -177,13 +182,21 @@ class StaticTypeAnalyzer {
   /// type of $e$ is the same as the static type of an integer literal with the
   /// same contexttype
   /// </blockquote>
-  void visitIntegerLiteral(IntegerLiteralImpl node,
-      {required TypeImpl contextType}) {
+  void visitIntegerLiteral(
+    IntegerLiteralImpl node, {
+    required TypeImpl contextType,
+  }) {
     var strictCasts = _resolver.analysisOptions.strictCasts;
-    if (_typeSystem.isAssignableTo(_typeProvider.intType, contextType,
-            strictCasts: strictCasts) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType,
-            strictCasts: strictCasts)) {
+    if (_typeSystem.isAssignableTo(
+          _typeProvider.intType,
+          contextType,
+          strictCasts: strictCasts,
+        ) ||
+        !_typeSystem.isAssignableTo(
+          _typeProvider.doubleType,
+          contextType,
+          strictCasts: strictCasts,
+        )) {
       node.recordStaticType(_typeProvider.intType, resolver: _resolver);
     } else {
       node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
@@ -214,7 +227,8 @@ class StaticTypeAnalyzer {
   }
 
   void visitParenthesizedExpression(
-      covariant ParenthesizedExpressionImpl node) {
+    covariant ParenthesizedExpressionImpl node,
+  ) {
     Expression expression = node.expression;
     node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
   }
@@ -240,8 +254,10 @@ class StaticTypeAnalyzer {
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
     _resolver.flowAnalysis.flow?.thisOrSuper(
-        node, SharedTypeView(thisType ?? _dynamicType),
-        isSuper: true);
+      node,
+      SharedTypeView(thisType ?? _dynamicType),
+      isSuper: true,
+    );
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
@@ -261,8 +277,10 @@ class StaticTypeAnalyzer {
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
     _resolver.flowAnalysis.flow?.thisOrSuper(
-        node, SharedTypeView(thisType ?? _dynamicType),
-        isSuper: false);
+      node,
+      SharedTypeView(thisType ?? _dynamicType),
+      isSuper: false,
+    );
     if (thisType == null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.

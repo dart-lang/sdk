@@ -13,11 +13,9 @@ worker(SendPort sp) async {
   try {
     Isolate.exit(sp, Fu.unsendable('fu'));
   } catch (e) {
-    Expect.isTrue(checkForRetainingPath(e, <String>[
-      'NativeClass',
-      'Baz',
-      'Fu',
-    ]));
+    Expect.isTrue(
+      checkForRetainingPath(e, <String>['NativeClass', 'Baz', 'Fu']),
+    );
     sp.send(true);
   }
 }

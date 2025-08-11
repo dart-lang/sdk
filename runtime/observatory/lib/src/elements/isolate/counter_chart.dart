@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class IsolateCounterChartElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateCounterChartElement> _r;
@@ -29,36 +32,36 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
   void attached() {
     super.attached();
     _r.enable();
-    _subscription = window.onResize.listen((_) => _r.dirty());
+    _subscription = element(this).onResize.listen((_) => _r.dirty());
   }
 
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
-    var members = <Element>[];
+    var members = <HTMLElement>[];
     _counters.forEach((key, value) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = key,
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = value,
-        ]);
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = key,
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = value,
+        ]));
     });
 
-    children = <Element>[
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = members
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(members)
     ];
   }
 }

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -29,7 +29,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     Token? nameToken;
-    Element2? element;
+    Element? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.element;
@@ -38,10 +38,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement2 ?? node.declaredFragment?.element;
+      element = node.declaredElement ?? node.declaredFragment?.element;
     } else if (node is DeclaredVariablePattern) {
       nameToken = node.name;
-      element = node.declaredElement2;
+      element = node.declaredElement;
     } else if (node is FunctionDeclaration) {
       nameToken = node.name;
       element = node.declaredFragment?.element;
@@ -77,7 +77,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           references = findLocalElementReferences(root, element);
         }
       }
-    } else if (element is LocalElement2) {
+    } else if (element is LocalElement) {
       var block = node.thisOrAncestorOfType<Block>();
       if (block != null) {
         references = findLocalElementReferences(block, element);
@@ -96,7 +96,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           }
         }
       }
-    } else if (element is PrefixElement2) {
+    } else if (element is PrefixElement) {
       var root = node.thisOrAncestorOfType<CompilationUnit>();
       if (root != null) {
         references = findImportPrefixElementReferences(root, element);

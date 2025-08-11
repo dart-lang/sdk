@@ -123,6 +123,18 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
+uintptr_t OS::CurrentRSS() {
+  struct mach_task_basic_info info;
+  mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+  kern_return_t result =
+      task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                reinterpret_cast<task_info_t>(&info), &infoCount);
+  if (result != KERN_SUCCESS) {
+    return 0;
+  }
+  return info.resident_size;
+}
+
 void OS::Sleep(int64_t millis) {
   int64_t micros = millis * kMicrosecondsPerMillisecond;
   SleepMicros(micros);
@@ -211,10 +223,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
+bool OS::ParseInitialInt64(const char* str, int64_t* value, char** end) {
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr &&
+         end != nullptr);
   int32_t base = 10;
-  char* endptr;
   int i = 0;
   if (str[0] == '-') {
     i = 1;
@@ -229,11 +241,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (base == 16) {
     // Unsigned 64-bit hexadecimal integer literals are allowed but
     // immediately interpreted as signed 64-bit integers.
-    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+    *value = static_cast<int64_t>(strtoull(str, end, base));
   } else {
-    *value = strtoll(str, &endptr, base);
+    *value = strtoll(str, end, base);
   }
-  return ((errno == 0) && (endptr != str) && (*endptr == 0));
+  return (errno == 0) && (*end != str);
 }
 
 void OS::RegisterCodeObservers() {}
@@ -292,7 +304,9 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   const uint8_t* dso_base = GetAppDSOBase(snapshot_instructions);
   const auto& macho_header =
       *reinterpret_cast<const struct mach_header*>(dso_base);
-  // We assume host endianness in the Mach-O file.
+  // If the Mach-O file is not host endian, then we'd need to adjust the code
+  // below (and also the snapshot loading code) to load multibyte integers
+  // as reverse endian.
   if (macho_header.magic != MH_MAGIC && macho_header.magic != MH_MAGIC_64) {
     return {0, nullptr};
   }

@@ -18,17 +18,20 @@ void testWatchCreateFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemCreateEvent && event.path.endsWith('file')) {
-      Expect.isFalse(event.isDirectory);
-      asyncEnd();
-      sub.cancel();
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemCreateEvent && event.path.endsWith('file')) {
+        Expect.isFalse(event.isDirectory);
+        asyncEnd();
+        sub.cancel();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   file.createSync();
 }
@@ -41,17 +44,20 @@ void testWatchCreateDir() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemCreateEvent && event.path.endsWith('dir')) {
-      Expect.isTrue(event.isDirectory);
-      asyncEnd();
-      sub.cancel();
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemCreateEvent && event.path.endsWith('dir')) {
+        Expect.isTrue(event.isDirectory);
+        asyncEnd();
+        sub.cancel();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   subdir.createSync();
 }
@@ -65,17 +71,20 @@ void testWatchModifyFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemModifyEvent) {
-      Expect.isTrue(event.path.endsWith('file'));
-      sub.cancel();
-      asyncEnd();
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemModifyEvent) {
+        Expect.isTrue(event.path.endsWith('file'));
+        sub.cancel();
+        asyncEnd();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   file.writeAsStringSync('a');
 }
@@ -90,19 +99,22 @@ void testWatchTruncateFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemModifyEvent) {
-      Expect.isTrue(event.path.endsWith('file'));
-      Expect.isTrue(event.contentChanged);
-      sub.cancel();
-      asyncEnd();
-      fileHandle.closeSync();
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemModifyEvent) {
+        Expect.isTrue(event.path.endsWith('file'));
+        Expect.isTrue(event.contentChanged);
+        sub.cancel();
+        asyncEnd();
+        fileHandle.closeSync();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   fileHandle.truncateSync(1);
 }
@@ -118,21 +130,24 @@ void testWatchMoveFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemMoveEvent) {
-      Expect.isTrue(event.path.endsWith('file'));
-      final destination = event.destination;
-      if (destination != null) {
-        Expect.isTrue(destination.endsWith('file2'));
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemMoveEvent) {
+        Expect.isTrue(event.path.endsWith('file'));
+        final destination = event.destination;
+        if (destination != null) {
+          Expect.isTrue(destination.endsWith('file2'));
+        }
+        sub.cancel();
+        asyncEnd();
+        dir.deleteSync(recursive: true);
       }
-      sub.cancel();
-      asyncEnd();
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   file.renameSync(join(dir.path, 'file2'));
 }
@@ -146,17 +161,20 @@ void testWatchDeleteFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event is FileSystemDeleteEvent) {
-      Expect.isTrue(event.path.endsWith('file'));
-      sub.cancel();
-      asyncEnd();
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemDeleteEvent) {
+        Expect.isTrue(event.path.endsWith('file'));
+        sub.cancel();
+        asyncEnd();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   file.deleteSync();
 }
@@ -169,13 +187,16 @@ void testWatchDeleteDir() {
   var watcher = dir.watch(events: 0);
 
   asyncStart();
-  watcher.listen((event) {
-    if (event is FileSystemDeleteEvent) {
-      Expect.isTrue(event.path == dir.path);
-    }
-  }, onDone: () {
-    asyncEnd();
-  });
+  watcher.listen(
+    (event) {
+      if (event is FileSystemDeleteEvent) {
+        Expect.isTrue(event.path == dir.path);
+      }
+    },
+    onDone: () {
+      asyncEnd();
+    },
+  );
 
   dir.deleteSync();
 }
@@ -188,16 +209,19 @@ void testWatchOnlyModifyFile() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    Expect.isTrue(event is FileSystemModifyEvent);
-    Expect.isTrue(event.path.endsWith('file'));
-    sub.cancel();
-    asyncEnd();
-    dir.deleteSync(recursive: true);
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+  sub = watcher.listen(
+    (event) {
+      Expect.isTrue(event is FileSystemModifyEvent);
+      Expect.isTrue(event.path.endsWith('file'));
+      sub.cancel();
+      asyncEnd();
+      dir.deleteSync(recursive: true);
+    },
+    onError: (e) {
+      dir.deleteSync(recursive: true);
+      throw e;
+    },
+  );
 
   file.createSync();
   file.writeAsStringSync('a');
@@ -261,16 +285,19 @@ void testWatchRecursive() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event.path.endsWith('file')) {
-      sub.cancel();
-      asyncEnd();
+  sub = watcher.listen(
+    (event) {
+      if (event.path.endsWith('file')) {
+        sub.cancel();
+        asyncEnd();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (e) {
       dir.deleteSync(recursive: true);
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+      throw e;
+    },
+  );
 
   file.createSync();
 }
@@ -285,14 +312,17 @@ void testWatchNonRecursive() {
 
   asyncStart();
   var sub;
-  sub = watcher.listen((event) {
-    if (event.path.endsWith('file')) {
-      throw "File change event not expected";
-    }
-  }, onError: (e) {
-    dir.deleteSync(recursive: true);
-    throw e;
-  });
+  sub = watcher.listen(
+    (event) {
+      if (event.path.endsWith('file')) {
+        throw "File change event not expected";
+      }
+    },
+    onError: (e) {
+      dir.deleteSync(recursive: true);
+      throw e;
+    },
+  );
 
   file.createSync();
 
@@ -307,12 +337,15 @@ void testWatchNonExisting() {
   // MacOS allows listening on non-existing paths.
   if (Platform.isMacOS) return;
   asyncStart();
-  new Directory('__some_none_existing_dir__').watch().listen((_) {
-    Expect.fail('unexpected error');
-  }, onError: (e) {
-    asyncEnd();
-    Expect.isTrue(e is PathNotFoundException);
-  });
+  new Directory('__some_none_existing_dir__').watch().listen(
+    (_) {
+      Expect.fail('unexpected error');
+    },
+    onError: (e) {
+      asyncEnd();
+      Expect.isTrue(e is PathNotFoundException);
+    },
+  );
 }
 
 void testWatchMoveSelf() {
@@ -326,16 +359,19 @@ void testWatchMoveSelf() {
 
   asyncStart();
   bool gotDelete = false;
-  watcher.listen((event) {
-    if (event is FileSystemDeleteEvent) {
-      Expect.isTrue(event.path.endsWith('dir'));
-      gotDelete = true;
-    }
-  }, onDone: () {
-    Expect.isTrue(gotDelete);
-    dir.deleteSync(recursive: true);
-    asyncEnd();
-  });
+  watcher.listen(
+    (event) {
+      if (event is FileSystemDeleteEvent) {
+        Expect.isTrue(event.path.endsWith('dir'));
+        gotDelete = true;
+      }
+    },
+    onDone: () {
+      Expect.isTrue(gotDelete);
+      dir.deleteSync(recursive: true);
+      asyncEnd();
+    },
+  );
 
   dir2.renameSync(join(dir.path, 'new_dir'));
 }
@@ -386,8 +422,12 @@ testWatchConsistentModifiedFile() async {
   RawReceivePort errorReceivePort = RawReceivePort((object) {
     print('worker errored: $object');
   });
-  Isolate isolate = await Isolate.spawn(modifyFiles, receivePort.sendPort,
-      onExit: exitReceivePort.sendPort, onError: errorReceivePort.sendPort);
+  Isolate isolate = await Isolate.spawn(
+    modifyFiles,
+    receivePort.sendPort,
+    onExit: exitReceivePort.sendPort,
+    onError: errorReceivePort.sendPort,
+  );
 
   await modificationEventReceived.future;
   workerSendPort.send('end');
@@ -443,13 +483,17 @@ testWatchOverflow() async {
   ReceivePort receivePort = ReceivePort();
   Completer<bool> exiting = Completer<bool>();
 
-  Directory dir =
-      Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  Directory dir = Directory.systemTemp.createTempSync(
+    'dart_file_system_watcher',
+  );
   var file = new File(join(dir.path, 'file'));
   file.createSync();
 
-  Isolate isolate =
-      await Isolate.spawn(watcher, receivePort.sendPort, paused: true);
+  Isolate isolate = await Isolate.spawn(
+    watcher,
+    receivePort.sendPort,
+    paused: true,
+  );
 
   var subscription;
   subscription = receivePort.listen((object) async {
@@ -476,14 +520,17 @@ testWatchOverflow() async {
 }
 
 void watcher(SendPort sendPort) async {
-  runZonedGuarded(() {
-    var watcher = Directory.systemTemp.watch(recursive: true);
-    watcher.listen((data) async {});
-    sendPort.send('start');
-  }, (error, stack) {
-    print(error);
-    sendPort.send('end');
-  });
+  runZonedGuarded(
+    () {
+      var watcher = Directory.systemTemp.watch(recursive: true);
+      watcher.listen((data) async {});
+      sendPort.send('start');
+    },
+    (error, stack) {
+      print(error);
+      sendPort.send('end');
+    },
+  );
 }
 
 void main() {

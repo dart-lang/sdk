@@ -39,10 +39,12 @@ main() {
   }
   Expect.isTrue(scriptFile.existsSync());
   test(
-      Process.start(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add(scriptFile.path)),
-      0);
+    Process.start(
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add(scriptFile.path),
+    ),
+    0,
+  );
 }

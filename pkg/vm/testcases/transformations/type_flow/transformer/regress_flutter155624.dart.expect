@@ -35,7 +35,7 @@ static extension-type-member method ET1|constructor#c2([@vm.inferred-arg-type.me
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
 [@vm.unboxing-info.metadata=()->i]
-static extension-type-member method ET1|constructor#_#f1#tearOff() → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#f1#tearOff() → self::ET1% /* erasure=core::int, declared=! */
   return [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::ET1|constructor#c1();
 
 [@vm.inferred-return-type.metadata=int]
@@ -45,7 +45,7 @@ static extension-type-member method ET1|constructor#f2([@vm.inferred-arg-type.me
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b)->i]
-static extension-type-member method ET1|constructor#_#f2#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#f2#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
   return [@vm.inferred-type.metadata=int] self::ET1|constructor#f2(v);
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

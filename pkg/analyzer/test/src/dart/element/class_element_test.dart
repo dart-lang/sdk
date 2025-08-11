@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -144,9 +144,7 @@ class A {
 }
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends() async {
@@ -181,9 +179,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('_foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteGetter('_foo'));
   }
 
   test_lookUpInheritedConcreteGetter_declared_hasExtends_private_sameLibrary() async {
@@ -216,9 +212,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends() async {
@@ -245,9 +239,7 @@ abstract class A {
 abstract class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_hasWith() async {
@@ -379,9 +371,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_hasExtends_withImplements() async {
@@ -412,23 +402,22 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_recursive() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends B {}
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
-    var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteGetter('foo'),
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
     );
+    var B = findElement2.class_('B');
+    assertElementNull(B._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteGetter_undeclared() async {
@@ -436,9 +425,7 @@ class B extends A {}
 class A {}
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteGetter('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteGetter('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_declared() async {
@@ -448,9 +435,7 @@ class A {
 }
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends() async {
@@ -485,9 +470,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('_foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteMethod('_foo'));
   }
 
   test_lookUpInheritedConcreteMethod_declared_hasExtends_private_sameLibrary() async {
@@ -520,9 +503,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends() async {
@@ -549,9 +530,7 @@ abstract class A {
 abstract class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_hasWith() async {
@@ -683,9 +662,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_hasExtends_withImplements() async {
@@ -716,23 +693,22 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_recursive() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends B {}
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
-    var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteMethod('foo'),
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
     );
+    var B = findElement2.class_('B');
+    assertElementNull(B._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteMethod_undeclared() async {
@@ -740,9 +716,7 @@ class B extends A {}
 class A {}
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteMethod('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteMethod('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_declared() async {
@@ -752,9 +726,7 @@ class A {
 }
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends() async {
@@ -789,9 +761,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('_foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteSetter('_foo'));
   }
 
   test_lookUpInheritedConcreteSetter_declared_hasExtends_private_sameLibrary() async {
@@ -824,9 +794,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends() async {
@@ -853,9 +821,7 @@ abstract class A {
 abstract class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_hasWith() async {
@@ -987,9 +953,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_hasExtends_withImplements() async {
@@ -1020,23 +984,22 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_recursive() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends B {}
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
-    var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedConcreteSetter('foo'),
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
     );
+    var B = findElement2.class_('B');
+    assertElementNull(B._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedConcreteSetter_undeclared() async {
@@ -1044,9 +1007,7 @@ class B extends A {}
 class A {}
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedConcreteSetter('foo'),
-    );
+    assertElementNull(A._lookUpInheritedConcreteSetter('foo'));
   }
 
   test_lookUpInheritedMethod_declared() async {
@@ -1056,9 +1017,7 @@ class A {
 }
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedMethod('foo'),
-    );
+    assertElementNull(A._lookUpInheritedMethod('foo'));
   }
 
   test_lookUpInheritedMethod_declared_hasExtends() async {
@@ -1093,9 +1052,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedMethod('_foo'),
-    );
+    assertElementNull(B._lookUpInheritedMethod('_foo'));
   }
 
   test_lookUpInheritedMethod_declared_hasExtends_private_sameLibrary() async {
@@ -1128,9 +1085,7 @@ class B extends A {
 }
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedMethod('foo'));
   }
 
   test_lookUpInheritedMethod_hasExtends() async {
@@ -1256,9 +1211,7 @@ class A {
 class B extends A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedMethod('foo'),
-    );
+    assertElementNull(B._lookUpInheritedMethod('foo'));
   }
 
   test_lookUpInheritedMethod_hasExtends_withImplements() async {
@@ -1289,23 +1242,25 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(
+    assertElement(
       B._lookUpInheritedMethod('foo'),
+      declaration: findElement2.method('foo', of: 'A'),
     );
   }
 
   test_lookUpInheritedMethod_recursive() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends B {}
 class B extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
-    var B = findElement2.class_('B');
-    assertElementNull(
-      B._lookUpInheritedMethod('foo'),
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
     );
+    var B = findElement2.class_('B');
+    assertElementNull(B._lookUpInheritedMethod('foo'));
   }
 
   test_lookUpInheritedMethod_undeclared() async {
@@ -1313,34 +1268,37 @@ class B extends A {}
 class A {}
 ''');
     var A = findElement2.class_('A');
-    assertElementNull(
-      A._lookUpInheritedMethod('foo'),
-    );
+    assertElementNull(A._lookUpInheritedMethod('foo'));
   }
 
-  static void _assertIsEnumLike(ClassElement2 element, bool expected) {
-    expect((element as ClassElementImpl2).isEnumLike, expected);
+  static void _assertIsEnumLike(ClassElement element, bool expected) {
+    expect((element as ClassElementImpl).isEnumLike, expected);
   }
 }
 
-extension on ClassElement2 {
-  PropertyAccessorElement2? _lookUpInheritedConcreteGetter(String name) {
-    return (this as InterfaceElementImpl2)
-        .lookUpInheritedConcreteGetter(name, library2);
+extension on ClassElement {
+  PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteGetter(
+      name,
+      library,
+    );
   }
 
-  MethodElement2? _lookUpInheritedConcreteMethod(String name) {
-    return (this as InterfaceElementImpl2)
-        .lookUpInheritedConcreteMethod(name, library2);
+  MethodElement? _lookUpInheritedConcreteMethod(String name) {
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteMethod(
+      name,
+      library,
+    );
   }
 
-  PropertyAccessorElement2? _lookUpInheritedConcreteSetter(String name) {
-    return (this as InterfaceElementImpl2)
-        .lookUpInheritedConcreteSetter(name, library2);
+  PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteSetter(
+      name,
+      library,
+    );
   }
 
-  MethodElement2? _lookUpInheritedMethod(String name) {
-    return (this as InterfaceElementImpl2)
-        .lookUpInheritedMethod(name, library2);
+  MethodElement? _lookUpInheritedMethod(String name) {
+    return lookUpInheritedMethod2(methodName: name, library: library);
   }
 }

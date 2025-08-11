@@ -208,24 +208,24 @@ dynamic testSwitchWarn(int x) {
             }
           }
         case 10:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           while (true) break; // Breaks loop, reaches end.
         case 11:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           do break; while (true); // Breaks loop, reaches end.
         case 12:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           for (;;) break; // Breaks loop, reaches end.
         case 13:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           for (var _ in []) break LOOP; // Can be empty, reaches end.
         case 14:
           if (x.isEven) {
@@ -236,23 +236,23 @@ dynamic testSwitchWarn(int x) {
         case 15:
           (throw 0); // Exits switch.
         case 16:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           nop(x); // Reaches end.
         case 17:
           L:
           break; // Breaks and exits switch.
         case 18:
-        // [error column 9, length 4]
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
-        // [cfe] Switch case may fall through to the next case.
+          // [error column 9, length 4]
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [cfe] Switch case may fall through to the next case.
           L:
           break L; // Breaks break statement only, reaches end.
         case 19:
-        // [error column 9, length 4]
-        // [cfe] Switch case may fall through to the next case.
-        // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
+          // [error column 9, length 4]
+          // [cfe] Switch case may fall through to the next case.
+          // [analyzer] COMPILE_TIME_ERROR.SWITCH_CASE_COMPLETES_NORMALLY
           L:
           if (x.isOdd) {
             break L; // Breaks if, reaches end.
@@ -264,26 +264,30 @@ dynamic testSwitchWarn(int x) {
         // with any pre-2.12 type.
         case 20:
           notEver(x); // Type Never implies not completing.
-        case 21: {
-          notEver(x);
-        }
-        case 22: {
+        case 21:
           {
             notEver(x);
           }
-        }
-        case 23: {
-          do {
-            notEver(x);
-          } while (true);
-        }
-        case 24: {
-          if (x.isEven) {
-            notEver(x);
-          } else {
-            notEver(-x);
+        case 22:
+          {
+            {
+              notEver(x);
+            }
           }
-        }
+        case 23:
+          {
+            do {
+              notEver(x);
+            } while (true);
+          }
+        case 24:
+          {
+            if (x.isEven) {
+              notEver(x);
+            } else {
+              notEver(-x);
+            }
+          }
         case 25:
           nop(x.isEven ? notEver(x) : notEver(-x));
         LAST:

@@ -12,9 +12,7 @@ class DirectiveContext {
 
   DirectiveState state = DirectiveState.Unknown;
 
-  DirectiveContext({
-    required this.enableFeatureEnhancedParts,
-  });
+  DirectiveContext({required this.enableFeatureEnhancedParts});
 
   void checkScriptTag(Parser parser, Token token) {
     if (state == DirectiveState.Unknown) {

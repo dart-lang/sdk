@@ -25,52 +25,52 @@ dynamic nonNullable() {
   x = bq && b;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = b && bq;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = bq || b;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = b || bq;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = !bq;
   //   ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = bq ? "a" : "b";
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   if (bq) {}
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   while (bq) {}
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   do {} while (bq);
   //           ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   for (; bq;) {}
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   try {
     throw bq;
@@ -82,23 +82,23 @@ dynamic nonNullable() {
   assert(bq);
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = [if (bq) 1];
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   x = [for (; bq;) 1];
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   Iterable<int>? iq = maybeNullable([1]);
   for (var v in iq) {}
   //            ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 
   x = [...iq];
   //      ^^
@@ -110,13 +110,13 @@ dynamic nonNullable() {
     await for (var v in sq) {}
     //                  ^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>' because 'Stream<int>?' is nullable and 'Stream<dynamic>' isn't.
+    // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>'.
 
     yield* sq;
     //     ^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     // [analyzer] COMPILE_TIME_ERROR.YIELD_OF_INVALID_TYPE
-    // [cfe] A value of type 'Stream<int>?' can't be assigned to a variable of type 'Stream<Object?>' because 'Stream<int>?' is nullable and 'Stream<Object?>' isn't.
+    // [cfe] A value of type 'Stream<int>?' can't be assigned to a variable of type 'Stream<Object?>'.
   }
 
   foo().toList();
@@ -137,52 +137,52 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   x = bq && b;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = b && bq;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = bq || b;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = b || bq;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = !bq;
   //   ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_NEGATION_EXPRESSION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = bq ? "a" : "b";
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   if (bq) {}
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   while (bq) {}
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   do {} while (bq);
   //           ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   for (; bq;) {}
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   try {
     throw bq;
@@ -194,23 +194,23 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   assert(bq);
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = [if (bq) 1];
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   x = [for (; bq;) 1];
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
 
   Iterable<int>? iq = maybeNullable([1]);
   for (var v in iq) {}
   //            ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 
   x = [...iq];
   //      ^^
@@ -223,13 +223,13 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
     //                  ^^
     // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The type 'Stream<Object?>?' used in the 'for' loop must implement 'Stream<dynamic>' because 'Stream<Object?>?' is nullable and 'Stream<dynamic>' isn't.
+    // [cfe] The type 'Stream<Object?>?' used in the 'for' loop must implement 'Stream<dynamic>'.
 
     yield* sq;
     //     ^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     // [analyzer] COMPILE_TIME_ERROR.YIELD_OF_INVALID_TYPE
-    // [cfe] A value of type 'SQ' can't be assigned to a variable of type 'Stream<Object?>' because 'Stream<Object?>?' is nullable and 'Stream<Object?>' isn't.
+    // [cfe] A value of type 'SQ' can't be assigned to a variable of type 'Stream<Object?>'.
   }
 
   foo<Stream<Object?>>().toList();
@@ -251,7 +251,7 @@ class C {
     return cq;
     //     ^^
     // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
-    // [cfe] A value of type 'C?' can't be returned from a function with return type 'C' because 'C?' is nullable and 'C' isn't.
+    // [cfe] A value of type 'C?' can't be returned from a function with return type 'C'.
   }
 }
 

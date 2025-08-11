@@ -23,5 +23,5 @@ static extension-type-member method E|constructor#(<Y extends self::A<self::E% /
   lowered final self::E% /* erasure=invalid-type, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(<Y extends self::A<self::E% /* erasure=invalid-type, declared=! */> = dynamic>() → dynamic it) → self::E% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(<Y extends self::A<self::E% /* erasure=invalid-type, declared=! */> = dynamic>() → dynamic it) → self::E% /* erasure=invalid-type, declared=! */
   return self::E|constructor#(it);

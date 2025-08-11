@@ -44,10 +44,10 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  # path: ^1.8.0
+  # path: ^1.9.0
 
 dev_dependencies:
-  lints: ^5.0.0
+  lints: ^6.0.0
 ''';
 
 final String _readme = '''

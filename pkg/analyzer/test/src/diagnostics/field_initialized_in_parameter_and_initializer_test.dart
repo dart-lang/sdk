@@ -40,45 +40,66 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          62, 1),
+      error(
+        CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+        62,
+        1,
+      ),
     ]);
   }
 
   test_class_fieldFormalParameter_initializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x) : x = 1 {}
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          33, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_fieldFormalParameter_initializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(0);
   final int x;
   const E(this.x) : x = 1;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          52, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          52,
+          1,
+        ),
+      ],
+    );
   }
 
   test_extensionType_fieldFormalParameter_initializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   A.named(this.it) : it = 0;
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          48, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+          48,
+          2,
+        ),
+      ],
+    );
   }
 }

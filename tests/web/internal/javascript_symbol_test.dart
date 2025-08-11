@@ -66,7 +66,8 @@ main() {
 
   testNoSuchMethodResult(Expect.throws(() => symbol.noSuchMethod(invocation)));
   testNoSuchMethodResult(
-      Expect.throws(() => symbolDynamic.noSuchMethod(invocation)));
+    Expect.throws(() => symbolDynamic.noSuchMethod(invocation)),
+  );
 
   var noSuchMethodTearoff = symbol.noSuchMethod;
   Expect.type<dynamic Function(Invocation)>(noSuchMethodTearoff);
@@ -75,8 +76,11 @@ main() {
   noSuchMethodTearoff = symbolDynamic.noSuchMethod;
   Expect.type<dynamic Function(Invocation)>(noSuchMethodTearoff);
   Expect.equals(symbolDynamic.noSuchMethod, noSuchMethodTearoff);
-  testNoSuchMethodResult(Expect.throws(
-      () => noSuchMethodTearoff(Invocation.method(Symbol(methodName), null))));
+  testNoSuchMethodResult(
+    Expect.throws(
+      () => noSuchMethodTearoff(Invocation.method(Symbol(methodName), null)),
+    ),
+  );
 
   /* runtimeType */
   var runtimeTypeResult = symbol.runtimeType;

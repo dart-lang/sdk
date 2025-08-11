@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -28,9 +28,9 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 
     var producers = <ResolvedCorrectionProducer>[];
     // add proposals for all super constructors
-    for (var constructor in superType.constructors2) {
+    for (var constructor in superType.constructors) {
       // Only propose public constructors.
-      var name = constructor.name3;
+      var name = constructor.name;
       if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _CreateConstructor(constructor, targetClassNode, context: context),
@@ -45,7 +45,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement2 _constructor;
+  final ConstructorElement _constructor;
 
   /// The class in which the constructor will be added.
   final ClassDeclaration _targetClass;
@@ -65,7 +65,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (isEnabled(Feature.super_parameters)) {
       if (constructorName != null && constructorName != 'new') {
         buffer.write('.');
@@ -97,7 +97,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithoutSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );
@@ -180,7 +180,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );

@@ -12,6 +12,10 @@
 
 namespace dart {
 
+class ApiState;
+class Closure;
+class Function;
+class Isolate;
 class PersistentHandle;
 
 // Stores metadata related to FFI callbacks (Dart functions that are assigned a
@@ -33,6 +37,7 @@ class PersistentHandle;
 class FfiCallbackMetadata {
  public:
   class Metadata;
+  class MetadataEntry;
 
   // The address of the allocated trampoline.
   using Trampoline = uword;
@@ -41,11 +46,14 @@ class FfiCallbackMetadata {
     kSync = 0,
     kSyncStackDelta4 = 1,  // Only used by TARGET_ARCH_IA32
     kAsync = 2,
+    kSyncIsolateGroupShared = 3,
+    kSyncIsolateGroupSharedStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
   };
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kExitTemporaryIsolate,
+    kExitIsolateGroupSharedIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -61,58 +69,56 @@ class FfiCallbackMetadata {
                                     Zone* zone,
                                     const Function& function,
                                     Dart_Port send_port,
-                                    Metadata** list_head);
+                                    MetadataEntry** list_head);
 
-  // Creates an isolate local callback trampoline for the given function.
-  Trampoline CreateIsolateLocalFfiCallback(Isolate* isolate,
-                                           Zone* zone,
-                                           const Function& function,
-                                           const Closure& closure,
-                                           Metadata** list_head);
+  // Creates an isolate- or isolategroup- local callback trampoline for
+  // the given function.
+  Trampoline CreateLocalFfiCallback(Isolate* isolate,
+                                    IsolateGroup* isolate_group,
+                                    Zone* zone,
+                                    const Function& function,
+                                    const Closure& closure,
+                                    MetadataEntry** list_head);
 
   // Deletes a single trampoline.
-  void DeleteCallback(Trampoline trampoline, Metadata** list_head);
+  void DeleteCallback(Trampoline trampoline, MetadataEntry** list_head);
 
   // Deletes all the trampolines in the list.
-  void DeleteAllCallbacks(Metadata** list_head);
+  void DeleteAllCallbacks(MetadataEntry** list_head);
 
   // FFI callback metadata for any sync or async trampoline.
   class Metadata {
-    Isolate* target_isolate_;
+    union {
+      Isolate* target_isolate_;
+      IsolateGroup* target_isolate_group_;
+    };
     TrampolineType trampoline_type_;
 
-    union {
-      // IsLive()
-      struct {
-        // Note: This is a pointer into an an Instructions object. This is only
-        // safe because Instructions objects are never moved by the GC.
-        uword target_entry_point_;
+    // Note: This is a pointer into an an Instructions object. This is only
+    // safe because Instructions objects are never moved by the GC.
+    uword target_entry_point_;
 
-        // For async callbacks, this is the send port. For sync callbacks this
-        // is a persistent handle to the callback's closure, or null.
-        uint64_t context_;
-
-        // Links in the Isolate's list of callbacks.
-        Metadata* list_prev_;
-        Metadata* list_next_;
-      };
-
-      // !IsLive()
-      Metadata* free_list_next_;
-    };
+    // For async callbacks, this is the send port. For sync callbacks this
+    // is a persistent handle to the callback's closure, or null.
+    uint64_t context_;
 
     Metadata(Isolate* target_isolate,
              TrampolineType trampoline_type,
              uword target_entry_point,
-             uint64_t context,
-             Metadata* list_prev,
-             Metadata* list_next)
+             uint64_t context)
         : target_isolate_(target_isolate),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
-          context_(context),
-          list_prev_(list_prev),
-          list_next_(list_next) {}
+          context_(context) {}
+
+    Metadata(IsolateGroup* target_isolate_group,
+             TrampolineType trampoline_type,
+             uword target_entry_point,
+             uint64_t context)
+        : target_isolate_group_(target_isolate_group),
+          trampoline_type_(trampoline_type),
+          target_entry_point_(target_entry_point),
+          context_(context) {}
 
    public:
     friend class FfiCallbackMetadata;
@@ -126,7 +132,9 @@ class FfiCallbackMetadata {
     }
 
     // Whether the callback is still alive.
-    bool IsLive() const { return target_isolate_ != 0; }
+    bool IsLive() const {
+      return target_isolate_ != 0 || target_isolate_group_ != 0;
+    }
 
     // The target isolate. The isolate that owns the callback. Sync callbacks
     // must be invoked on this isolate. Async callbacks will send a message to
@@ -134,6 +142,11 @@ class FfiCallbackMetadata {
     Isolate* target_isolate() const {
       ASSERT(IsLive());
       return target_isolate_;
+    }
+
+    IsolateGroup* target_isolate_group() const {
+      ASSERT(IsLive());
+      return target_isolate_group_;
     }
 
     // The Dart entrypoint for the callback, which the trampoline invokes.
@@ -147,9 +160,20 @@ class FfiCallbackMetadata {
     PersistentHandle* closure_handle() const {
       ASSERT(IsLive());
       ASSERT(trampoline_type_ == TrampolineType::kSync ||
-             trampoline_type_ == TrampolineType::kSyncStackDelta4);
+             trampoline_type_ == TrampolineType::kSyncStackDelta4 ||
+             trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ ==
+                 TrampolineType::kSyncIsolateGroupSharedStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
     }
+
+    bool is_isolate_group_shared() const {
+      return trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ ==
+                 TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+    }
+    // ApiState associated with an isolate group associated with this metadata.
+    ApiState* api_state() const;
 
     // For async callbacks, this is the send port. For sync callbacks this is a
     // persistent handle to the callback's closure, or null.
@@ -165,22 +189,70 @@ class FfiCallbackMetadata {
       return static_cast<Dart_Port>(context_);
     }
 
-    // To efficiently delete all the callbacks for a isolate, they are stored in
-    // a linked list. Since we also need to delete async callbacks at arbitrary
-    // times, the list must be doubly linked.
-    Metadata* list_prev() {
-      ASSERT(IsLive());
-      return list_prev_;
-    }
-    Metadata* list_next() {
-      ASSERT(IsLive());
-      return list_next_;
-    }
-
     // Tells FfiCallbackTrampolineStub how to call into the entry point. Mostly
     // it's just a flag for whether this is a sync or async callback, but on
     // IA32 it also encodes whether there's a stack delta of 4 to deal with.
     TrampolineType trampoline_type() const { return trampoline_type_; }
+  };
+
+  // Metadata linked into a double-linked list.
+  class MetadataEntry {
+    Metadata metadata_;
+
+    union {
+      // IsLive()
+      struct {
+        // Links in the Isolate's list of callbacks.
+        MetadataEntry* list_prev_;
+        MetadataEntry* list_next_;
+      };
+
+      // !IsLive()
+      MetadataEntry* free_list_next_;
+    };
+
+   public:
+    friend class Metadata;
+    friend class FfiCallbackMetadata;
+    MetadataEntry(Isolate* target_isolate,
+                  TrampolineType trampoline_type,
+                  uword target_entry_point,
+                  uint64_t context,
+                  MetadataEntry* list_prev,
+                  MetadataEntry* list_next)
+        : metadata_(target_isolate,
+                    trampoline_type,
+                    target_entry_point,
+                    context),
+          list_prev_(list_prev),
+          list_next_(list_next) {}
+
+    MetadataEntry(IsolateGroup* target_isolate_group,
+                  TrampolineType trampoline_type,
+                  uword target_entry_point,
+                  uint64_t context,
+                  MetadataEntry* list_prev,
+                  MetadataEntry* list_next)
+        : metadata_(target_isolate_group,
+                    trampoline_type,
+                    target_entry_point,
+                    context),
+          list_prev_(list_prev),
+          list_next_(list_next) {}
+
+    // To efficiently delete all the callbacks for a isolate, they are stored in
+    // a linked list. Since we also need to delete async callbacks at arbitrary
+    // times, the list must be doubly linked.
+    MetadataEntry* list_prev() {
+      ASSERT(metadata_.IsLive());
+      return list_prev_;
+    }
+    MetadataEntry* list_next() {
+      ASSERT(metadata_.IsLive());
+      return list_next_;
+    }
+
+    Metadata* metadata() { return &metadata_; }
   };
 
   // Returns the Metadata object for the given trampoline.
@@ -221,12 +293,12 @@ class FfiCallbackMetadata {
   //   * [RX] 2 pages fully containing [StubCode::FfiCallbackTrampoline()]
   //   * [RW] pages sufficient to hold
   //      - `kNumRuntimeFunctions` x [uword] function pointers
-  //      - `NumCallbackTrampolinesPerPage()` x [Metadata] objects
+  //      - `NumCallbackTrampolinesPerPage()` x [MetadataEntry] objects
   static constexpr intptr_t RXMappingSize() { return 2 * kPageSize; }
   static constexpr intptr_t RWMappingSize() {
     return Utils::RoundUp(
         kNumRuntimeFunctions * compiler::target::kWordSize +
-            sizeof(Metadata) * NumCallbackTrampolinesPerPage(),
+            sizeof(MetadataEntry) * NumCallbackTrampolinesPerPage(),
         kPageSize);
   }
   static constexpr intptr_t MappingSize() {
@@ -248,58 +320,60 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 289;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 376;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 146;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 193;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 328;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 332;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 428;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 284;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 252;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?
 #endif
 
   // Visible for testing.
-  Metadata* MetadataOfTrampoline(Trampoline trampoline) const;
-  Trampoline TrampolineOfMetadata(Metadata* metadata) const;
+  MetadataEntry* MetadataEntryOfTrampoline(Trampoline trampoline) const;
+  Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;
 
  private:
   FfiCallbackMetadata();
   ~FfiCallbackMetadata();
   void EnsureStubPageLocked();
-  void AddToFreeListLocked(Metadata* entry);
-  void DeleteCallbackLocked(Metadata* entry);
+  void AddToFreeListLocked(MetadataEntry* entry);
+  void DeleteCallbackLocked(MetadataEntry* entry);
   void FillRuntimeFunction(VirtualMemory* page, uword index, void* function);
   VirtualMemory* AllocateTrampolinePage();
   void EnsureFreeListNotEmptyLocked();
   Trampoline CreateMetadataEntry(Isolate* target_isolate,
+                                 IsolateGroup* target_isolate_group,
                                  TrampolineType trampoline_type,
                                  uword target_entry_point,
                                  uint64_t context,
-                                 Metadata** list_head);
+                                 MetadataEntry** list_head);
   Trampoline CreateSyncFfiCallbackImpl(Isolate* isolate,
+                                       IsolateGroup* isolate_group,
                                        Zone* zone,
                                        const Function& function,
                                        PersistentHandle* closure,
-                                       Metadata** list_head);
+                                       MetadataEntry** list_head);
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
-  static PersistentHandle* CreatePersistentHandle(Isolate* isolate,
+  static PersistentHandle* CreatePersistentHandle(IsolateGroup* isolate_group,
                                                   const Closure& closure);
 
   static FfiCallbackMetadata* singleton_;
@@ -308,8 +382,8 @@ class FfiCallbackMetadata {
   VirtualMemory* stub_page_ = nullptr;
   MallocGrowableArray<VirtualMemory*> trampoline_pages_;
   uword offset_of_first_trampoline_in_page_ = 0;
-  Metadata* free_list_head_ = nullptr;
-  Metadata* free_list_tail_ = nullptr;
+  MetadataEntry* free_list_head_ = nullptr;
+  MetadataEntry* free_list_tail_ = nullptr;
 
 #if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
     (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))

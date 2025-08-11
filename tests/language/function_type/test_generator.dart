@@ -439,47 +439,41 @@ List<FunctionType> buildFunctionTypes() {
     // new NominalType("List", "", [new NominalType("Function")]),
   ];
 
-  List<TypeLike?> basicsPlusNull =
-      [
-        basicTypes,
-        <TypeLike?>[null],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNull = [
+    basicTypes,
+    <TypeLike?>[null],
+  ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusVoid =
-      [
-        basicsPlusNull,
-        [NominalType("void")],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusVoid = [
+    basicsPlusNull,
+    [NominalType("void")],
+  ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusB =
-      [
-        basicsPlusNull,
-        [
-          NominalType("B"),
-          NominalType("List", "", [NominalType("B")]),
-        ],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusB = [
+    basicsPlusNull,
+    [
+      NominalType("B"),
+      NominalType("List", "", [NominalType("B")]),
+    ],
+  ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusBPlusVoid =
-      [
-        basicsPlusNullPlusB,
-        [NominalType("void")],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusBPlusVoid = [
+    basicsPlusNullPlusB,
+    [NominalType("void")],
+  ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusA =
-      [
-        basicsPlusNull,
-        [
-          NominalType("A"),
-          NominalType("List", "", [NominalType("A")]),
-        ],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusA = [
+    basicsPlusNull,
+    [
+      NominalType("A"),
+      NominalType("List", "", [NominalType("A")]),
+    ],
+  ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusAPlusVoid =
-      [
-        basicsPlusNullPlusA,
-        [NominalType("void")],
-      ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusAPlusVoid = [
+    basicsPlusNullPlusA,
+    [NominalType("void")],
+  ].expand((x) => x).toList();
 
   List<FunctionType> buildFunctionTypes(
     TypeLike? returnType,

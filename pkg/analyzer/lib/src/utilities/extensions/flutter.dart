@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 const String widgetsUri = 'package:flutter/widgets.dart';
 const _nameAlign = 'Align';
+const _nameBuildContext = 'BuildContext';
 const _nameBuilder = 'Builder';
 const _nameCenter = 'Center';
 const _nameContainer = 'Container';
@@ -26,9 +28,7 @@ const _nameWidget = 'Widget';
 final Uri _uriAlignment = Uri.parse(
   'package:flutter/src/painting/alignment.dart',
 );
-final Uri _uriBasic = Uri.parse(
-  'package:flutter/src/widgets/basic.dart',
-);
+final Uri _uriBasic = Uri.parse('package:flutter/src/widgets/basic.dart');
 final Uri _uriContainer = Uri.parse(
   'package:flutter/src/widgets/container.dart',
 );
@@ -41,12 +41,8 @@ final Uri _uriEdgeInsets = Uri.parse(
 final Uri _uriFramework = Uri.parse(
   'package:flutter/src/widgets/framework.dart',
 );
-final Uri _uriWidgetsIcon = Uri.parse(
-  'package:flutter/src/widgets/icon.dart',
-);
-final Uri _uriWidgetsText = Uri.parse(
-  'package:flutter/src/widgets/text.dart',
-);
+final Uri _uriWidgetsIcon = Uri.parse('package:flutter/src/widgets/icon.dart');
+final Uri _uriWidgetsText = Uri.parse('package:flutter/src/widgets/text.dart');
 
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
@@ -126,8 +122,7 @@ extension AstNodeExtension on AstNode? {
     return switch (this) {
       null => false,
       AstNode(parent: NamedType()) ||
-      AstNode(parent: AstNode(parent: NamedType())) =>
-        false,
+      AstNode(parent: AstNode(parent: NamedType())) => false,
       AstNode(parent: ConstructorName()) => false,
       NamedExpression() => false,
       Expression(:var staticType) => staticType.isWidgetType,
@@ -163,19 +158,27 @@ extension AstNodeExtension on AstNode? {
   }
 }
 
-extension ClassElementExtension2 on ClassElement2 {
+extension ClassElementExtension2 on ClassElement {
   /// Whether this is the Flutter class `State`.
   bool get isExactState => _isExactly(_nameState, _uriFramework);
 
   /// Whether this has the Flutter class `State` as a superclass.
   bool get isState => _hasSupertype(_uriFramework, _nameState);
 
-  /// Whether this is a [ClassElement2] that extends the Flutter class
+  /// Whether this is a [ClassElement] that extends the Flutter class
   /// `StatefulWidget`.
   bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
 }
 
 extension DartTypeExtension on DartType? {
+  /// Whether this is the Flutter type `BuildContext`.
+  bool get isBuildContext {
+    var self = this;
+    return self is InterfaceType &&
+        self.nullabilitySuffix == NullabilitySuffix.none &&
+        self.element._isExactly(_nameBuildContext, _uriFramework);
+  }
+
   /// Whether this is the 'dart.ui' class `Color`, or a subtype.
   bool get isColor {
     var self = this;
@@ -183,8 +186,9 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Color' && t.element3.library2.name3 == 'dart.ui');
+    return [self, ...self.element.allSupertypes].any(
+      (t) => t.element.name == 'Color' && t.element.library.name == 'dart.ui',
+    );
   }
 
   /// Whether this is the Flutter mixin `Diagnosticable` or a subtype.
@@ -194,86 +198,88 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Diagnosticable' &&
-        t.element3.library2.firstFragment.source.uri == _uriDiagnostics);
+    return [self, ...self.element.allSupertypes].any(
+      (t) =>
+          t.element.name == 'Diagnosticable' &&
+          t.element.library.firstFragment.source.uri == _uriDiagnostics,
+    );
   }
 
   /// Whether this is the Flutter type `EdgeInsetsGeometry`.
   bool get isExactEdgeInsetsGeometryType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
+        self.element._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
   }
 
   /// Whether this is the Flutter class `StatefulWidget`.
   bool get isExactlyStatefulWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameStatefulWidget, _uriFramework);
+        self.element._isExactly(_nameStatefulWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `StatelessWidget`.
   bool get isExactlyStatelessWidgetType {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameStatelessWidget, _uriFramework);
+        self.element._isExactly(_nameStatelessWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `Align`.
   bool get isExactWidgetTypeAlign {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameAlign, _uriBasic);
+        self.element._isExactly(_nameAlign, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Builder`.
   bool get isExactWidgetTypeBuilder {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameBuilder, _uriBasic);
+        self.element._isExactly(_nameBuilder, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Center`.
   bool get isExactWidgetTypeCenter {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameCenter, _uriBasic);
+        self.element._isExactly(_nameCenter, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Container`.
   bool get isExactWidgetTypeContainer {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameContainer, _uriContainer);
+        self.element._isExactly(_nameContainer, _uriContainer);
   }
 
   /// Whether this is the Flutter class `Expanded`.
   bool get isExactWidgetTypeExpanded {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameExpanded, _uriBasic);
+        self.element._isExactly(_nameExpanded, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Flexible`.
   bool get isExactWidgetTypeFlexible {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameFlexible, _uriBasic);
+        self.element._isExactly(_nameFlexible, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Padding`.
   bool get isExactWidgetTypePadding {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_namePadding, _uriBasic);
+        self.element._isExactly(_namePadding, _uriBasic);
   }
 
   /// Whether this is the Flutter class `SizedBox`.
   bool get isExactWidgetTypeSizedBox {
     var self = this;
     return self is InterfaceType &&
-        self.element3._isExactly(_nameSizedBox, _uriBasic);
+        self.element._isExactly(_nameSizedBox, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
@@ -292,15 +298,44 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Matrix4' &&
-        t.element3.library2.name3 == 'vector_math_64');
+    return [self, ...self.element.allSupertypes].any(
+      (t) =>
+          t.element.name == 'Matrix4' &&
+          t.element.library.name == 'vector_math_64',
+    );
+  }
+
+  /// Whether this is a function type matching the Flutter typedef
+  /// `WidgetBuilder` (i.e., `Widget Function(BuildContext context)`).
+  bool get isWidgetBuilder {
+    var self = this;
+    return self is FunctionType &&
+        self.returnType.isWidgetType &&
+        self.formalParameters.length == 1 &&
+        self.formalParameters[0].type.isBuildContext;
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isWidgetType {
     var self = this;
-    return self is InterfaceType && self.element3.isWidget;
+    return self is InterfaceType && self.element.isWidget;
+  }
+}
+
+extension ElementAnnotationExtension on ElementAnnotation {
+  static final Uri _flutterWidgetPreviewLibraryUri = Uri.parse(
+    'package:flutter/src/widget_previews/widget_previews.dart',
+  );
+
+  /// Whether the annotation marks the associated member as being a widget
+  /// preview.
+  bool get isWidgetPreview {
+    var element2 = this.element2;
+    if (element2 is! ConstructorElement) {
+      return false;
+    }
+    return element2.enclosingElement.name == 'Preview' &&
+        element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -364,7 +399,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// Whether this is a constructor invocation for a class that has the Flutter
   /// class `Widget` as a superclass.
   bool get isWidgetCreation {
-    var element = constructorName.element?.enclosingElement2;
+    var element = constructorName.element?.enclosingElement;
     return element.isWidget;
   }
 
@@ -382,7 +417,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The presentation for this node.
   String? get widgetPresentationText {
-    var element = constructorName.element?.enclosingElement2;
+    var element = constructorName.element?.enclosingElement;
     if (!element.isWidget) {
       return null;
     }
@@ -405,15 +440,15 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
         return 'Text';
       }
     }
-    return element?.name3;
+    return element?.name;
   }
 }
 
-extension InterfaceElement2Extension on InterfaceElement2? {
+extension InterfaceElement2Extension on InterfaceElement? {
   /// Whether this is the Flutter class `Flex`, or a subtype.
   bool get isFlexWidget {
     var self = this;
-    if (self is! ClassElement2) {
+    if (self is! ClassElement) {
       return false;
     }
     if (!self.isWidget) {
@@ -422,12 +457,13 @@ extension InterfaceElement2Extension on InterfaceElement2? {
     if (_isExactly(_nameFlex, _uriBasic)) {
       return true;
     }
-    return self.allSupertypes
-        .any((type) => type.element3._isExactly(_nameFlex, _uriBasic));
+    return self.allSupertypes.any(
+      (type) => type.element._isExactly(_nameFlex, _uriBasic),
+    );
   }
 }
 
-extension InterfaceElementExtension2 on InterfaceElement2? {
+extension InterfaceElementExtension2 on InterfaceElement? {
   /// Whether this is the Flutter class `Alignment`.
   bool get isExactAlignment {
     return _isExactly('Alignment', _uriAlignment);
@@ -446,14 +482,15 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the Flutter class `Widget`, or a subtype.
   bool get isWidget {
     var self = this;
-    if (self is! ClassElement2) {
+    if (self is! ClassElement) {
       return false;
     }
     if (_isExactly(_nameWidget, _uriFramework)) {
       return true;
     }
-    return self.allSupertypes
-        .any((type) => type.element3._isExactly(_nameWidget, _uriFramework));
+    return self.allSupertypes.any(
+      (type) => type.element._isExactly(_nameWidget, _uriFramework),
+    );
   }
 
   /// Whether this has a supertype with the [requiredName] defined in the file
@@ -464,8 +501,8 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
       return false;
     }
     for (var type in self.allSupertypes) {
-      if (type.element3.name3 == requiredName) {
-        var uri = type.element3.library2.firstFragment.source.uri;
+      if (type.element.name == requiredName) {
+        var uri = type.element.library.firstFragment.source.uri;
         if (uri == requiredUri) {
           return true;
         }
@@ -477,8 +514,21 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the exact [type] defined in the file with the given [uri].
   bool _isExactly(String type, Uri uri) {
     var self = this;
-    return self is ClassElement2 &&
-        self.name3 == type &&
+    return self is ClassElement &&
+        self.name == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
+  }
+}
+
+extension NamedTypeExtension on NamedType {
+  /// Whether this type is a valid return type for a function annotated with
+  /// `@Preview(...)`.
+  ///
+  /// Valid widget preview return types are:
+  ///   - `Widget`
+  ///   - `Widget Function(BuildContext)` (aka `WidgetBuilder`)
+  bool get isValidWidgetPreviewReturnType {
+    var self = this;
+    return self.type.isWidgetType || self.type.isWidgetBuilder;
   }
 }

@@ -99,32 +99,33 @@ void main() {
   }
 }
 
-final passStruct1ByteIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-  ),
-  int Function(
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-    Struct1ByteInt,
-  )
->("PassStruct1ByteIntx10");
+final passStruct1ByteIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+      ),
+      int Function(
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+        Struct1ByteInt,
+      )
+    >("PassStruct1ByteIntx10");
 
 /// Smallest struct with data.
 /// 10 struct arguments will exhaust available registers.
@@ -179,32 +180,33 @@ void testPassStruct1ByteIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct3BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-  ),
-  int Function(
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-    Struct3BytesHomogeneousUint8,
-  )
->("PassStruct3BytesHomogeneousUint8x10");
+final passStruct3BytesHomogeneousUint8x10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+      ),
+      int Function(
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+      )
+    >("PassStruct3BytesHomogeneousUint8x10");
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
@@ -290,32 +292,33 @@ void testPassStruct3BytesHomogeneousUint8x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct3BytesInt2ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-  ),
-  int Function(
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-    Struct3BytesInt2ByteAligned,
-  )
->("PassStruct3BytesInt2ByteAlignedx10");
+final passStruct3BytesInt2ByteAlignedx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+      ),
+      int Function(
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+      )
+    >("PassStruct3BytesInt2ByteAlignedx10");
 
 /// Not a multiple of word size, not a power of two.
 /// With alignment rules taken into account size is 4 bytes.
@@ -392,32 +395,33 @@ void testPassStruct3BytesInt2ByteAlignedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct4BytesHomogeneousInt16x10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  ),
-  int Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  )
->("PassStruct4BytesHomogeneousInt16x10");
+final passStruct4BytesHomogeneousInt16x10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      ),
+      int Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      )
+    >("PassStruct4BytesHomogeneousInt16x10");
 
 /// Exactly word size on 32-bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -493,32 +497,33 @@ void testPassStruct4BytesHomogeneousInt16x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct7BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-  ),
-  int Function(
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-    Struct7BytesHomogeneousUint8,
-  )
->("PassStruct7BytesHomogeneousUint8x10");
+final passStruct7BytesHomogeneousUint8x10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+      ),
+      int Function(
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+      )
+    >("PassStruct7BytesHomogeneousUint8x10");
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -644,32 +649,33 @@ void testPassStruct7BytesHomogeneousUint8x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct7BytesInt4ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-  ),
-  int Function(
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-    Struct7BytesInt4ByteAligned,
-  )
->("PassStruct7BytesInt4ByteAlignedx10");
+final passStruct7BytesInt4ByteAlignedx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+      ),
+      int Function(
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+      )
+    >("PassStruct7BytesInt4ByteAlignedx10");
 
 /// Sub word size on 64 bit architectures.
 /// With alignment rules taken into account size is 8 bytes.
@@ -756,32 +762,33 @@ void testPassStruct7BytesInt4ByteAlignedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-  ),
-  int Function(
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-    Struct8BytesInt,
-  )
->("PassStruct8BytesIntx10");
+final passStruct8BytesIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+      ),
+      int Function(
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+        Struct8BytesInt,
+      )
+    >("PassStruct8BytesIntx10");
 
 /// Exactly word size struct on 64bit architectures.
 /// 10 struct arguments will exhaust available registers.
@@ -856,32 +863,33 @@ void testPassStruct8BytesIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesHomogeneousFloatx10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-  ),
-  double Function(
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-    Struct8BytesHomogeneousFloat,
-  )
->("PassStruct8BytesHomogeneousFloatx10");
+final passStruct8BytesHomogeneousFloatx10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+      ),
+      double Function(
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+        Struct8BytesHomogeneousFloat,
+      )
+    >("PassStruct8BytesHomogeneousFloatx10");
 
 /// Arguments passed in FP registers as long as they fit.
 /// 10 struct arguments will exhaust available registers.
@@ -957,32 +965,33 @@ void testPassStruct8BytesHomogeneousFloatx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesMixedx10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-  ),
-  double Function(
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-    Struct8BytesMixed,
-  )
->("PassStruct8BytesMixedx10");
+final passStruct8BytesMixedx10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+      ),
+      double Function(
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+        Struct8BytesMixed,
+      )
+    >("PassStruct8BytesMixedx10");
 
 /// On x64, arguments go in int registers because it is not only float.
 /// 10 struct arguments will exhaust available registers.
@@ -1068,32 +1077,33 @@ void testPassStruct8BytesMixedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct9BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-  ),
-  int Function(
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-    Struct9BytesHomogeneousUint8,
-  )
->("PassStruct9BytesHomogeneousUint8x10");
+final passStruct9BytesHomogeneousUint8x10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+      ),
+      int Function(
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+      )
+    >("PassStruct9BytesHomogeneousUint8x10");
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
@@ -1242,32 +1252,33 @@ void testPassStruct9BytesHomogeneousUint8x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct9BytesInt4Or8ByteAlignedx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-  ),
-  int Function(
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-    Struct9BytesInt4Or8ByteAligned,
-  )
->("PassStruct9BytesInt4Or8ByteAlignedx10");
+final passStruct9BytesInt4Or8ByteAlignedx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+      ),
+      int Function(
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+        Struct9BytesInt4Or8ByteAligned,
+      )
+    >("PassStruct9BytesInt4Or8ByteAlignedx10");
 
 /// Argument is a single byte over a multiple of word size.
 /// With alignment rules taken into account size is 12 or 16 bytes.
@@ -1345,24 +1356,25 @@ void testPassStruct9BytesInt4Or8ByteAlignedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct12BytesHomogeneousFloatx6 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-  ),
-  double Function(
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-    Struct12BytesHomogeneousFloat,
-  )
->("PassStruct12BytesHomogeneousFloatx6");
+final passStruct12BytesHomogeneousFloatx6 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+      ),
+      double Function(
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+        Struct12BytesHomogeneousFloat,
+      )
+    >("PassStruct12BytesHomogeneousFloatx6");
 
 /// Arguments in FPU registers on arm hardfp and arm64.
 /// Struct arguments will exhaust available registers, and leave some empty.
@@ -1414,22 +1426,23 @@ void testPassStruct12BytesHomogeneousFloatx6() {
   calloc.free(a5Pointer);
 }
 
-final passStruct16BytesHomogeneousFloatx5 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-  ),
-  double Function(
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-    Struct16BytesHomogeneousFloat,
-  )
->("PassStruct16BytesHomogeneousFloatx5");
+final passStruct16BytesHomogeneousFloatx5 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+      ),
+      double Function(
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+        Struct16BytesHomogeneousFloat,
+      )
+    >("PassStruct16BytesHomogeneousFloatx5");
 
 /// On Linux x64 argument is transferred on stack because it is over 16 bytes.
 /// Arguments in FPU registers on arm hardfp and arm64.
@@ -1480,32 +1493,33 @@ void testPassStruct16BytesHomogeneousFloatx5() {
   calloc.free(a4Pointer);
 }
 
-final passStruct16BytesMixedx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-  ),
-  double Function(
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-  )
->("PassStruct16BytesMixedx10");
+final passStruct16BytesMixedx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+      ),
+      double Function(
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+      )
+    >("PassStruct16BytesMixedx10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1583,32 +1597,33 @@ void testPassStruct16BytesMixedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct16BytesMixed2x10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-  ),
-  double Function(
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-    Struct16BytesMixed2,
-  )
->("PassStruct16BytesMixed2x10");
+final passStruct16BytesMixed2x10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+      ),
+      double Function(
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+        Struct16BytesMixed2,
+      )
+    >("PassStruct16BytesMixed2x10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -1706,32 +1721,33 @@ void testPassStruct16BytesMixed2x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct17BytesIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-  ),
-  int Function(
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-    Struct17BytesInt,
-  )
->("PassStruct17BytesIntx10");
+final passStruct17BytesIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+      ),
+      int Function(
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+        Struct17BytesInt,
+      )
+    >("PassStruct17BytesIntx10");
 
 /// Arguments are passed as pointer to copy on arm64.
 /// Tests that the memory allocated for copies are rounded up to word size.
@@ -1817,32 +1833,33 @@ void testPassStruct17BytesIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct19BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-  ),
-  int Function(
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-    Struct19BytesHomogeneousUint8,
-  )
->("PassStruct19BytesHomogeneousUint8x10");
+final passStruct19BytesHomogeneousUint8x10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+      ),
+      int Function(
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+        Struct19BytesHomogeneousUint8,
+      )
+    >("PassStruct19BytesHomogeneousUint8x10");
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is extended to the right size.
@@ -2089,32 +2106,33 @@ void testPassStruct19BytesHomogeneousUint8x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct20BytesHomogeneousInt32x10 = ffiTestFunctions.lookupFunction<
-  Int32 Function(
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-  ),
-  int Function(
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-    Struct20BytesHomogeneousInt32,
-  )
->("PassStruct20BytesHomogeneousInt32x10");
+final passStruct20BytesHomogeneousInt32x10 = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+      ),
+      int Function(
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+        Struct20BytesHomogeneousInt32,
+      )
+    >("PassStruct20BytesHomogeneousInt32x10");
 
 /// Argument too big to go into integer registers on arm64.
 /// The arguments are passed as pointers to copies.
@@ -2222,10 +2240,11 @@ void testPassStruct20BytesHomogeneousInt32x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct20BytesHomogeneousFloat = ffiTestFunctions.lookupFunction<
-  Float Function(Struct20BytesHomogeneousFloat),
-  double Function(Struct20BytesHomogeneousFloat)
->("PassStruct20BytesHomogeneousFloat");
+final passStruct20BytesHomogeneousFloat = ffiTestFunctions
+    .lookupFunction<
+      Float Function(Struct20BytesHomogeneousFloat),
+      double Function(Struct20BytesHomogeneousFloat)
+    >("PassStruct20BytesHomogeneousFloat");
 
 /// Argument too big to go into FPU registers in hardfp and arm64.
 void testPassStruct20BytesHomogeneousFloat() {
@@ -2247,22 +2266,23 @@ void testPassStruct20BytesHomogeneousFloat() {
   calloc.free(a0Pointer);
 }
 
-final passStruct32BytesHomogeneousDoublex5 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-  ),
-  double Function(
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-    Struct32BytesHomogeneousDouble,
-  )
->("PassStruct32BytesHomogeneousDoublex5");
+final passStruct32BytesHomogeneousDoublex5 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+      ),
+      double Function(
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+        Struct32BytesHomogeneousDouble,
+      )
+    >("PassStruct32BytesHomogeneousDoublex5");
 
 /// Arguments in FPU registers on arm64.
 /// 5 struct arguments will exhaust available registers.
@@ -2312,10 +2332,11 @@ void testPassStruct32BytesHomogeneousDoublex5() {
   calloc.free(a4Pointer);
 }
 
-final passStruct40BytesHomogeneousDouble = ffiTestFunctions.lookupFunction<
-  Double Function(Struct40BytesHomogeneousDouble),
-  double Function(Struct40BytesHomogeneousDouble)
->("PassStruct40BytesHomogeneousDouble");
+final passStruct40BytesHomogeneousDouble = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Struct40BytesHomogeneousDouble),
+      double Function(Struct40BytesHomogeneousDouble)
+    >("PassStruct40BytesHomogeneousDouble");
 
 /// Argument too big to go into FPU registers in arm64.
 void testPassStruct40BytesHomogeneousDouble() {
@@ -2337,10 +2358,11 @@ void testPassStruct40BytesHomogeneousDouble() {
   calloc.free(a0Pointer);
 }
 
-final passStruct1024BytesHomogeneousUint64 = ffiTestFunctions.lookupFunction<
-  Uint64 Function(Struct1024BytesHomogeneousUint64),
-  int Function(Struct1024BytesHomogeneousUint64)
->("PassStruct1024BytesHomogeneousUint64");
+final passStruct1024BytesHomogeneousUint64 = ffiTestFunctions
+    .lookupFunction<
+      Uint64 Function(Struct1024BytesHomogeneousUint64),
+      int Function(Struct1024BytesHomogeneousUint64)
+    >("PassStruct1024BytesHomogeneousUint64");
 
 /// Test 1kb struct.
 void testPassStruct1024BytesHomogeneousUint64() {
@@ -2739,34 +2761,35 @@ void testPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn() {
   calloc.free(a7Pointer);
 }
 
-final passDoublex6Struct16BytesMixedx4Int32 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Double,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Int32,
-  ),
-  double Function(
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    int,
-  )
->("PassDoublex6Struct16BytesMixedx4Int32");
+final passDoublex6Struct16BytesMixedx4Int32 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Int32,
+      ),
+      double Function(
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        int,
+      )
+    >("PassDoublex6Struct16BytesMixedx4Int32");
 
 /// On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 /// structs. The rest of the structs will go on the stack.
@@ -2828,30 +2851,31 @@ void testPassDoublex6Struct16BytesMixedx4Int32() {
   calloc.free(a9Pointer);
 }
 
-final passInt32x4Struct16BytesMixedx4Double = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Int32,
-    Int32,
-    Int32,
-    Int32,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Double,
-  ),
-  double Function(
-    int,
-    int,
-    int,
-    int,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    Struct16BytesMixed,
-    double,
-  )
->("PassInt32x4Struct16BytesMixedx4Double");
+final passInt32x4Struct16BytesMixedx4Double = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Double,
+      ),
+      double Function(
+        int,
+        int,
+        int,
+        int,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        Struct16BytesMixed,
+        double,
+      )
+    >("PassInt32x4Struct16BytesMixedx4Double");
 
 /// On Linux x64, it will exhaust int registers first.
 /// The rest of the structs will go on the stack.
@@ -3201,10 +3225,11 @@ void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int() {
   calloc.free(a39Pointer);
 }
 
-final passStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructAlignmentInt16),
-  int Function(StructAlignmentInt16)
->("PassStructAlignmentInt16");
+final passStructAlignmentInt16 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructAlignmentInt16),
+      int Function(StructAlignmentInt16)
+    >("PassStructAlignmentInt16");
 
 /// Test alignment and padding of 16 byte int within struct.
 void testPassStructAlignmentInt16() {
@@ -3224,10 +3249,11 @@ void testPassStructAlignmentInt16() {
   calloc.free(a0Pointer);
 }
 
-final passStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructAlignmentInt32),
-  int Function(StructAlignmentInt32)
->("PassStructAlignmentInt32");
+final passStructAlignmentInt32 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructAlignmentInt32),
+      int Function(StructAlignmentInt32)
+    >("PassStructAlignmentInt32");
 
 /// Test alignment and padding of 32 byte int within struct.
 void testPassStructAlignmentInt32() {
@@ -3247,10 +3273,11 @@ void testPassStructAlignmentInt32() {
   calloc.free(a0Pointer);
 }
 
-final passStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructAlignmentInt64),
-  int Function(StructAlignmentInt64)
->("PassStructAlignmentInt64");
+final passStructAlignmentInt64 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructAlignmentInt64),
+      int Function(StructAlignmentInt64)
+    >("PassStructAlignmentInt64");
 
 /// Test alignment and padding of 64 byte int within struct.
 void testPassStructAlignmentInt64() {
@@ -3270,32 +3297,33 @@ void testPassStructAlignmentInt64() {
   calloc.free(a0Pointer);
 }
 
-final passStruct8BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-  ),
-  int Function(
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-    Struct8BytesNestedInt,
-  )
->("PassStruct8BytesNestedIntx10");
+final passStruct8BytesNestedIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      ),
+      int Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      )
+    >("PassStruct8BytesNestedIntx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust registers on all platforms.
@@ -3391,32 +3419,33 @@ void testPassStruct8BytesNestedIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-  ),
-  double Function(
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-    Struct8BytesNestedFloat,
-  )
->("PassStruct8BytesNestedFloatx10");
+final passStruct8BytesNestedFloatx10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+      ),
+      double Function(
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+        Struct8BytesNestedFloat,
+      )
+    >("PassStruct8BytesNestedFloatx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3492,32 +3521,33 @@ void testPassStruct8BytesNestedFloatx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesNestedFloat2x10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-  ),
-  double Function(
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-    Struct8BytesNestedFloat2,
-  )
->("PassStruct8BytesNestedFloat2x10");
+final passStruct8BytesNestedFloat2x10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+      ),
+      double Function(
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+        Struct8BytesNestedFloat2,
+      )
+    >("PassStruct8BytesNestedFloat2x10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust fpu registers on all platforms.
@@ -3595,32 +3625,33 @@ void testPassStruct8BytesNestedFloat2x10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesNestedMixedx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-  ),
-  double Function(
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-    Struct8BytesNestedMixed,
-  )
->("PassStruct8BytesNestedMixedx10");
+final passStruct8BytesNestedMixedx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+      ),
+      double Function(
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+        Struct8BytesNestedMixed,
+      )
+    >("PassStruct8BytesNestedMixedx10");
 
 /// Simple nested struct. No alignment gaps on any architectures.
 /// 10 arguments exhaust all registers on all platforms.
@@ -3706,10 +3737,11 @@ void testPassStruct8BytesNestedMixedx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct16BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt),
-  int Function(Struct16BytesNestedInt, Struct16BytesNestedInt)
->("PassStruct16BytesNestedIntx2");
+final passStruct16BytesNestedIntx2 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Struct16BytesNestedInt, Struct16BytesNestedInt),
+      int Function(Struct16BytesNestedInt, Struct16BytesNestedInt)
+    >("PassStruct16BytesNestedIntx2");
 
 /// Deeper nested struct to test recursive member access.
 void testPassStruct16BytesNestedIntx2() {
@@ -3745,10 +3777,11 @@ void testPassStruct16BytesNestedIntx2() {
   calloc.free(a1Pointer);
 }
 
-final passStruct32BytesNestedIntx2 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt),
-  int Function(Struct32BytesNestedInt, Struct32BytesNestedInt)
->("PassStruct32BytesNestedIntx2");
+final passStruct32BytesNestedIntx2 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Struct32BytesNestedInt, Struct32BytesNestedInt),
+      int Function(Struct32BytesNestedInt, Struct32BytesNestedInt)
+    >("PassStruct32BytesNestedIntx2");
 
 /// Even deeper nested struct to test recursive member access.
 void testPassStruct32BytesNestedIntx2() {
@@ -3800,10 +3833,11 @@ void testPassStruct32BytesNestedIntx2() {
   calloc.free(a1Pointer);
 }
 
-final passStructNestedIntStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructNestedIntStructAlignmentInt16),
-  int Function(StructNestedIntStructAlignmentInt16)
->("PassStructNestedIntStructAlignmentInt16");
+final passStructNestedIntStructAlignmentInt16 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructNestedIntStructAlignmentInt16),
+      int Function(StructNestedIntStructAlignmentInt16)
+    >("PassStructNestedIntStructAlignmentInt16");
 
 /// Test alignment and padding of nested struct with 16 byte int.
 void testPassStructNestedIntStructAlignmentInt16() {
@@ -3826,10 +3860,11 @@ void testPassStructNestedIntStructAlignmentInt16() {
   calloc.free(a0Pointer);
 }
 
-final passStructNestedIntStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructNestedIntStructAlignmentInt32),
-  int Function(StructNestedIntStructAlignmentInt32)
->("PassStructNestedIntStructAlignmentInt32");
+final passStructNestedIntStructAlignmentInt32 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructNestedIntStructAlignmentInt32),
+      int Function(StructNestedIntStructAlignmentInt32)
+    >("PassStructNestedIntStructAlignmentInt32");
 
 /// Test alignment and padding of nested struct with 32 byte int.
 void testPassStructNestedIntStructAlignmentInt32() {
@@ -3852,10 +3887,11 @@ void testPassStructNestedIntStructAlignmentInt32() {
   calloc.free(a0Pointer);
 }
 
-final passStructNestedIntStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
-  Int64 Function(StructNestedIntStructAlignmentInt64),
-  int Function(StructNestedIntStructAlignmentInt64)
->("PassStructNestedIntStructAlignmentInt64");
+final passStructNestedIntStructAlignmentInt64 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(StructNestedIntStructAlignmentInt64),
+      int Function(StructNestedIntStructAlignmentInt64)
+    >("PassStructNestedIntStructAlignmentInt64");
 
 /// Test alignment and padding of nested struct with 64 byte int.
 void testPassStructNestedIntStructAlignmentInt64() {
@@ -3878,20 +3914,21 @@ void testPassStructNestedIntStructAlignmentInt64() {
   calloc.free(a0Pointer);
 }
 
-final passStructNestedIrregularEvenBiggerx4 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-  ),
-  double Function(
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-    StructNestedIrregularEvenBigger,
-  )
->("PassStructNestedIrregularEvenBiggerx4");
+final passStructNestedIrregularEvenBiggerx4 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+      ),
+      double Function(
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+        StructNestedIrregularEvenBigger,
+      )
+    >("PassStructNestedIrregularEvenBiggerx4");
 
 /// Return big irregular struct as smoke test.
 void testPassStructNestedIrregularEvenBiggerx4() {
@@ -4053,20 +4090,21 @@ void testPassStructNestedIrregularEvenBiggerx4() {
   calloc.free(a3Pointer);
 }
 
-final passStruct8BytesInlineArrayIntx4 = ffiTestFunctions.lookupFunction<
-  Int32 Function(
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-  ),
-  int Function(
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-    Struct8BytesInlineArrayInt,
-  )
->("PassStruct8BytesInlineArrayIntx4");
+final passStruct8BytesInlineArrayIntx4 = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+      ),
+      int Function(
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+        Struct8BytesInlineArrayInt,
+      )
+    >("PassStruct8BytesInlineArrayIntx4");
 
 /// Simple struct with inline array.
 void testPassStruct8BytesInlineArrayIntx4() {
@@ -4124,20 +4162,21 @@ void testPassStruct8BytesInlineArrayIntx4() {
   calloc.free(a3Pointer);
 }
 
-final passStructInlineArrayIrregularx4 = ffiTestFunctions.lookupFunction<
-  Int32 Function(
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-  ),
-  int Function(
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-    StructInlineArrayIrregular,
-  )
->("PassStructInlineArrayIrregularx4");
+final passStructInlineArrayIrregularx4 = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+      ),
+      int Function(
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+        StructInlineArrayIrregular,
+      )
+    >("PassStructInlineArrayIrregularx4");
 
 /// Irregular struct with inline array.
 void testPassStructInlineArrayIrregularx4() {
@@ -4183,10 +4222,11 @@ void testPassStructInlineArrayIrregularx4() {
   calloc.free(a3Pointer);
 }
 
-final passStructInlineArray100Bytes = ffiTestFunctions.lookupFunction<
-  Int32 Function(StructInlineArray100Bytes),
-  int Function(StructInlineArray100Bytes)
->("PassStructInlineArray100Bytes");
+final passStructInlineArray100Bytes = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(StructInlineArray100Bytes),
+      int Function(StructInlineArray100Bytes)
+    >("PassStructInlineArray100Bytes");
 
 /// Regular larger struct with inline array.
 void testPassStructInlineArray100Bytes() {
@@ -4441,32 +4481,33 @@ void testPassStructStruct32BytesHomogeneousDouble2x5() {
   calloc.free(a4Pointer);
 }
 
-final passStructStruct16BytesMixed3x10 = ffiTestFunctions.lookupFunction<
-  Float Function(
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-  ),
-  double Function(
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-    StructStruct16BytesMixed3,
-  )
->("PassStructStruct16BytesMixed3x10");
+final passStructStruct16BytesMixed3x10 = ffiTestFunctions
+    .lookupFunction<
+      Float Function(
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+      ),
+      double Function(
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+        StructStruct16BytesMixed3,
+      )
+    >("PassStructStruct16BytesMixed3x10");
 
 /// On x64, arguments are split over FP and int registers.
 /// On x64, it will exhaust the integer registers with the 6th argument.
@@ -4720,32 +4761,33 @@ void testPassUint8Struct4BytesInlineArrayMultiDimensionalIn() {
   calloc.free(a1Pointer);
 }
 
-final passStruct3BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-  ),
-  int Function(
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-    Struct3BytesPackedInt,
-  )
->("PassStruct3BytesPackedIntx10");
+final passStruct3BytesPackedIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+      ),
+      int Function(
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+      )
+    >("PassStruct3BytesPackedIntx10");
 
 /// Small struct with mis-aligned member.
 void testPassStruct3BytesPackedIntx10() {
@@ -4820,32 +4862,33 @@ void testPassStruct3BytesPackedIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct8BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-  ),
-  int Function(
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-    Struct8BytesPackedInt,
-  )
->("PassStruct8BytesPackedIntx10");
+final passStruct8BytesPackedIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+      ),
+      int Function(
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+      )
+    >("PassStruct8BytesPackedIntx10");
 
 /// Struct with mis-aligned member.
 void testPassStruct8BytesPackedIntx10() {
@@ -5067,10 +5110,11 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32x2() {
   calloc.free(a9Pointer);
 }
 
-final passStruct5BytesPackedMixed = ffiTestFunctions.lookupFunction<
-  Double Function(Struct5BytesPackedMixed),
-  double Function(Struct5BytesPackedMixed)
->("PassStruct5BytesPackedMixed");
+final passStruct5BytesPackedMixed = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Struct5BytesPackedMixed),
+      double Function(Struct5BytesPackedMixed)
+    >("PassStruct5BytesPackedMixed");
 
 /// This packed struct happens to have only aligned members.
 void testPassStruct5BytesPackedMixed() {
@@ -5113,10 +5157,11 @@ void testPassStructNestedAlignmentStruct5BytesPackedMixed() {
   calloc.free(a0Pointer);
 }
 
-final passStruct6BytesInlineArrayInt = ffiTestFunctions.lookupFunction<
-  Double Function(Struct6BytesInlineArrayInt),
-  double Function(Struct6BytesInlineArrayInt)
->("PassStruct6BytesInlineArrayInt");
+final passStruct6BytesInlineArrayInt = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Struct6BytesInlineArrayInt),
+      double Function(Struct6BytesInlineArrayInt)
+    >("PassStruct6BytesInlineArrayInt");
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct6BytesInlineArrayInt() {
@@ -5137,10 +5182,11 @@ void testPassStruct6BytesInlineArrayInt() {
   calloc.free(a0Pointer);
 }
 
-final passStruct15BytesInlineArrayMixed = ffiTestFunctions.lookupFunction<
-  Double Function(Struct15BytesInlineArrayMixed),
-  double Function(Struct15BytesInlineArrayMixed)
->("PassStruct15BytesInlineArrayMixed");
+final passStruct15BytesInlineArrayMixed = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Struct15BytesInlineArrayMixed),
+      double Function(Struct15BytesInlineArrayMixed)
+    >("PassStruct15BytesInlineArrayMixed");
 
 /// Check alignment of packed struct array in non-packed struct.
 void testPassStruct15BytesInlineArrayMixed() {
@@ -5163,32 +5209,33 @@ void testPassStruct15BytesInlineArrayMixed() {
   calloc.free(a0Pointer);
 }
 
-final passUnion4BytesMixedx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-  ),
-  double Function(
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-    Union4BytesMixed,
-  )
->("PassUnion4BytesMixedx10");
+final passUnion4BytesMixedx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+      ),
+      double Function(
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+      )
+    >("PassUnion4BytesMixedx10");
 
 /// Check placement of mixed integer/float union.
 void testPassUnion4BytesMixedx10() {
@@ -5253,32 +5300,33 @@ void testPassUnion4BytesMixedx10() {
   calloc.free(a9Pointer);
 }
 
-final passUnion8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-  ),
-  double Function(
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-    Union8BytesNestedFloat,
-  )
->("PassUnion8BytesNestedFloatx10");
+final passUnion8BytesNestedFloatx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+      ),
+      double Function(
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+      )
+    >("PassUnion8BytesNestedFloatx10");
 
 /// Check placement of mixed floats union.
 void testPassUnion8BytesNestedFloatx10() {
@@ -5343,32 +5391,33 @@ void testPassUnion8BytesNestedFloatx10() {
   calloc.free(a9Pointer);
 }
 
-final passUnion9BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-  ),
-  double Function(
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-    Union9BytesNestedInt,
-  )
->("PassUnion9BytesNestedIntx10");
+final passUnion9BytesNestedIntx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+      ),
+      double Function(
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+      )
+    >("PassUnion9BytesNestedIntx10");
 
 /// Mixed-size union argument.
 void testPassUnion9BytesNestedIntx10() {
@@ -5574,32 +5623,33 @@ void testPassUnion16BytesNestedInlineArrayFloatx10() {
   calloc.free(a9Pointer);
 }
 
-final passUnion16BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-  ),
-  double Function(
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-    Union16BytesNestedFloat,
-  )
->("PassUnion16BytesNestedFloatx10");
+final passUnion16BytesNestedFloatx10 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+      ),
+      double Function(
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+      )
+    >("PassUnion16BytesNestedFloatx10");
 
 /// Union with homogenous floats.
 void testPassUnion16BytesNestedFloatx10() {
@@ -5862,10 +5912,11 @@ void testPassUint8Boolx9Struct10BytesInlineArrayBoolBool() {
   calloc.free(a10Pointer);
 }
 
-final passUint8Struct1ByteBool = ffiTestFunctions.lookupFunction<
-  Bool Function(Uint8, Struct1ByteBool),
-  bool Function(int, Struct1ByteBool)
->("PassUint8Struct1ByteBool");
+final passUint8Struct1ByteBool = ffiTestFunctions
+    .lookupFunction<
+      Bool Function(Uint8, Struct1ByteBool),
+      bool Function(int, Struct1ByteBool)
+    >("PassUint8Struct1ByteBool");
 
 /// Returning a bool.
 void testPassUint8Struct1ByteBool() {
@@ -6030,10 +6081,11 @@ void testPassPointerStruct12BytesHomogeneousInt32() {
   calloc.free(a0);
 }
 
-final passPointerStructInlineArrayVariable = ffiTestFunctions.lookupFunction<
-  Int64 Function(Pointer<StructInlineArrayVariable>),
-  int Function(Pointer<StructInlineArrayVariable>)
->("PassPointerStructInlineArrayVariable");
+final passPointerStructInlineArrayVariable = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Pointer<StructInlineArrayVariable>),
+      int Function(Pointer<StructInlineArrayVariable>)
+    >("PassPointerStructInlineArrayVariable");
 
 /// Variable length array
 void testPassPointerStructInlineArrayVariable() {
@@ -6096,10 +6148,11 @@ void testPassPointerStructInlineArrayVariableAlign() {
   calloc.free(a0);
 }
 
-final passPointerStructInlineArrayVariable2 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Pointer<StructInlineArrayVariable2>),
-  int Function(Pointer<StructInlineArrayVariable2>)
->("PassPointerStructInlineArrayVariable2");
+final passPointerStructInlineArrayVariable2 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Pointer<StructInlineArrayVariable2>),
+      int Function(Pointer<StructInlineArrayVariable2>)
+    >("PassPointerStructInlineArrayVariable2");
 
 /// Variable length array with variable dimension of 1.
 void testPassPointerStructInlineArrayVariable2() {

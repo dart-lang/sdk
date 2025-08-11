@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/function_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
@@ -22,13 +23,10 @@ import '../type_inference/type_inference_engine.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
-    implements FunctionBuilder {
-  final Modifiers modifiers;
-
+    implements FactoryBuilder {
   @override
   final String name;
 
@@ -49,6 +47,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final int fileOffset;
 
+  final NameScheme _nameScheme;
+
+  final FactoryReferences _factoryReferences;
+
   final FactoryDeclaration _introductory;
 
   final List<FactoryDeclaration> _augmentations;
@@ -57,19 +59,23 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   late final List<FactoryDeclaration> _augmentedDeclarations;
 
+  @override
+  final bool isConst;
+
   SourceFactoryBuilder(
-      {required this.modifiers,
-      required this.name,
+      {required this.name,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
       required this.fileOffset,
-      required Reference? procedureReference,
-      required Reference? tearOffReference,
+      required FactoryReferences factoryReferences,
       required NameScheme nameScheme,
       required FactoryDeclaration introductory,
-      required List<FactoryDeclaration> augmentations})
-      : _memberName = nameScheme.getDeclaredName(name),
+      required List<FactoryDeclaration> augmentations,
+      required this.isConst})
+      : _nameScheme = nameScheme,
+        _factoryReferences = factoryReferences,
+        _memberName = nameScheme.getDeclaredName(name),
         _introductory = introductory,
         _augmentations = augmentations {
     if (augmentations.isEmpty) {
@@ -79,21 +85,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [introductory, ...augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
-
-    for (FactoryDeclaration augmentedDeclaration in _augmentedDeclarations) {
-      augmentedDeclaration.createNode(
-          name: name,
-          libraryBuilder: libraryBuilder,
-          nameScheme: nameScheme,
-          procedureReference: null,
-          tearOffReference: null);
-    }
-    _lastDeclaration.createNode(
-        name: name,
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        procedureReference: procedureReference,
-        tearOffReference: tearOffReference);
   }
 
   @override
@@ -104,40 +95,15 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       _lastDeclaration.redirectionTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => modifiers.isAugment;
+  bool get isStatic => true;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExternal => modifiers.isExternal;
+  NamedBuilder get getable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
-  bool get isConst => modifiers.isConst;
-
-  @override
-  bool get isStatic => modifiers.isStatic;
-
-  @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  void becomeNative(SourceLoader loader) {
-    _introductory.becomeNative(loader: loader, annotatables: annotatables);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.becomeNative(loader: loader, annotatables: annotatables);
-    }
-  }
+  NamedBuilder? get setable => null;
 
   @override
   Builder get parent => declarationBuilder;
@@ -145,23 +111,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isOperator => false;
-
-  @override
-  bool get isFactory => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -175,23 +124,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
   Procedure get _procedure => _lastDeclaration.procedure;
-
-  Procedure? get _tearOff => _lastDeclaration.tearOff;
 
   @override
   FunctionNode get function => _lastDeclaration.function;
 
   @override
-  Member get readTarget => _tearOff ?? _procedure;
+  Member get readTarget => readTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => readTarget.reference;
+  Reference get readTargetReference => _factoryReferences.tearOffReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -202,25 +144,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Reference? get writeTargetReference => null;
 
   @override
-  Member get invokeTarget => _procedure;
+  Member get invokeTarget => invokeTargetReference.asMember;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get invokeTargetReference => _procedure.reference;
+  Reference get invokeTargetReference => _factoryReferences.factoryReference;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
-
-  // Coverage-ignore(suite): Not run.
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index) =>
-      _introductory.getTearOffParameter(index);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -303,12 +234,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       augmentedDeclaration.buildOutlineNodes(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
+          nameScheme: _nameScheme,
+          factoryReferences: null,
           isConst: isConst,
           f: noAddBuildNodesCallback);
     }
     _lastDeclaration.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
+        nameScheme: _nameScheme,
+        factoryReferences: _factoryReferences,
         f: f,
         isConst: isConst);
   }
@@ -347,16 +282,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         factoryBuilder: this,
         classHierarchy: classHierarchy,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
-        createFileUriExpression:
-            _introductory.fileUri != _lastDeclaration.fileUri);
+        annotatables: annotatables,
+        annotatablesFileUri: _procedure.fileUri);
     for (FactoryDeclaration augmentation in _augmentations) {
       augmentation.buildOutlineExpressions(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
           classHierarchy: classHierarchy,
           delayedDefaultValueCloners: delayedDefaultValueCloners,
-          createFileUriExpression:
-              augmentation.fileUri != _lastDeclaration.fileUri);
+          annotatables: annotatables,
+          annotatablesFileUri: _procedure.fileUri);
     }
   }
 
@@ -405,4 +340,91 @@ class InferableRedirectingFactory implements InferableMember {
         name.length,
         _builder.fileUri);
   }
+}
+
+/// [Reference]s used for the [Member] nodes created for a factory constructor.
+class FactoryReferences {
+  Reference? _factoryReference;
+  Reference? _tearOffReference;
+
+  /// If `true`, the factory constructor has a tear-off lowering and should
+  /// therefore have distinct [factoryReference] and [tearOffReference]
+  /// values.
+  final bool _hasTearOffLowering;
+
+  /// Creates a [FactoryReferences] object preloaded with the
+  /// [preExistingFactoryReference] and [preExistingTearOffReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same factory constructor and tear-off in the previous
+  /// compilation.
+  FactoryReferences._(
+      {required Reference? preExistingFactoryReference,
+      required Reference? preExistingTearOffReference,
+      required bool hasTearOffLowering})
+      : _factoryReference = preExistingFactoryReference,
+        _tearOffReference = preExistingTearOffReference,
+        _hasTearOffLowering = hasTearOffLowering,
+        assert(!(preExistingTearOffReference != null && !hasTearOffLowering),
+            "Unexpected tear off reference $preExistingTearOffReference.");
+
+  /// Creates a [FactoryReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
+  factory FactoryReferences({
+    required String name,
+    required NameScheme nameScheme,
+    required IndexedContainer? indexedContainer,
+    required SourceLoader loader,
+    required DeclarationBuilder declarationBuilder,
+  }) {
+    bool hasTearOffLowering = switch (declarationBuilder) {
+      ClassBuilder() =>
+        loader.target.backendTarget.isFactoryTearOffLoweringEnabled,
+      ExtensionBuilder() => false,
+      ExtensionTypeDeclarationBuilder() => true,
+    };
+
+    Reference? preExistingFactoryReference;
+    Reference? preExistingTearOffReference;
+
+    if (indexedContainer != null) {
+      preExistingFactoryReference = indexedContainer.lookupConstructorReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+      preExistingTearOffReference = indexedContainer.lookupGetterReference(
+          nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+    }
+
+    return new FactoryReferences._(
+        preExistingFactoryReference: preExistingFactoryReference,
+        preExistingTearOffReference: preExistingTearOffReference,
+        hasTearOffLowering: hasTearOffLowering);
+  }
+
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [FactoryReferences._].
+  ///
+  /// This must be called before [factoryReference] and [tearOffReference] are
+  /// accessed.
+  void registerReference(SourceLoader loader, SourceFactoryBuilder builder) {
+    if (_factoryReference != null) {
+      loader.buildersCreatedWithReferences[_factoryReference!] = builder;
+    }
+    if (_tearOffReference != null) {
+      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+    }
+  }
+
+  /// The [Reference] used to refer to the [Member] node created for the factory
+  /// constructor.
+  Reference get factoryReference => _factoryReference ??= new Reference();
+
+  /// The [Reference] used to refer to the [Member] node created for the
+  /// tear-off of the factory constructor.
+  ///
+  /// If a tear-off lowering is created for the factory constructor, this is
+  /// distinct from [factoryReference], otherwise it is the same [Reference] as
+  /// [factoryReference].
+  Reference get tearOffReference => _tearOffReference ??=
+      _hasTearOffLowering ? new Reference() : factoryReference;
 }

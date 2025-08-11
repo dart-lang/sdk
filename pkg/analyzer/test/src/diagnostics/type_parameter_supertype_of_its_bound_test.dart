@@ -16,54 +16,167 @@ main() {
 @reflectiveTest
 class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
   test_1of1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T extends T> {
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1)],
+    );
+  }
+
+  test_1of1_local() async {
+    await assertErrorsInCode(
+      r'''
+void m() {
+  void local<T extends T>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          24,
+          1,
+        ),
+      ],
+    );
+  }
+
+  test_1of1_local_viaExtensionType() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T>(T it) {}
+
+void m() {
+  void local<U extends A<U>>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          54,
+          1,
+        ),
+      ],
+    );
   }
 
   test_1of1_used() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends T> {
   void foo(x) {
     x is T;
   }
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1)],
+    );
   }
 
   test_1of1_viaExtensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(T it) {}
 
 class B<U extends A<U>> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          38,
+          1,
+        ),
+      ],
+    );
+  }
+
+  test_2of2_local_viaExtensionType() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T>(T it) {}
+
+void m() {
+  void local<T1 extends A<T2>, T2 extends T1>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          54,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          72,
+          2,
+        ),
+      ],
+    );
   }
 
   test_2of2_viaExtensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(T it) {}
 
 class B<T1 extends A<T2>, T2 extends T1> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 2),
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 56, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          38,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          56,
+          2,
+        ),
+      ],
+    );
   }
 
   test_2of3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T1 extends T3, T2, T3 extends T1> {
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 2),
-      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 2),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          27,
+          2,
+        ),
+      ],
+    );
+  }
+
+  test_local_2of3() async {
+    await assertErrorsInCode(
+      r'''
+void m() {
+  void local<T1 extends T3, T2, T3 extends T1>() {}
+  local;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          24,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+          43,
+          2,
+        ),
+      ],
+    );
   }
 }

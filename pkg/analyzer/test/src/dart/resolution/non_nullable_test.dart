@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -65,7 +67,7 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment>::@class::C::@field::f
+        declaredElement: <testLibraryFragment> f@51
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -82,34 +84,40 @@ f(int? x) {
   }
 
   test_local_interfaceType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   int? a = 0;
   int b = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      ],
+    );
 
     assertType(findNode.namedType('int? a'), 'int?');
     assertType(findNode.namedType('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   List<int?>? a = [];
   List<int>? b = [];
   List<int?> c = [];
   List<int> d = [];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      ],
+    );
 
     assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
     assertType(findNode.namedType('List<int>? b'), 'List<int>?');
@@ -153,28 +161,32 @@ main() {
   }
 
   test_local_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T>(T a) {
   T x = a;
   T? y;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      ],
+    );
 
     assertType(findNode.namedType('T x'), 'T');
     assertType(findNode.namedType('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   int? Function(bool, String?)? a;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+    );
 
     assertType(
       findNode.genericFunctionType('Function('),
@@ -183,28 +195,32 @@ main() {
   }
 
   test_localFunction_parameter_interfaceType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   f(int? a, int b) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 11, 1)],
+    );
 
     assertType(findNode.namedType('int? a'), 'int?');
     assertType(findNode.namedType('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   int? f() => 0;
   int g() => 0;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 1),
-      error(WarningCode.UNUSED_ELEMENT, 32, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 16, 1),
+        error(WarningCode.UNUSED_ELEMENT, 32, 1),
+      ],
+    );
 
     assertType(findNode.namedType('int? f'), 'int?');
     assertType(findNode.namedType('int g'), 'int');
@@ -217,7 +233,7 @@ m<T extends Function>() {
   x.first();
 }
 ''');
-// Do not assert no test errors. Deliberately invokes nullable type.
+    // Do not assert no test errors. Deliberately invokes nullable type.
     var invocation = findNode.functionExpressionInvocation('first()');
     assertType(invocation.function, 'T?');
   }
@@ -254,7 +270,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@function::f1::@formalParameter::p1
+    declaredElement: <testLibraryFragment> p1@13
       type: void Function()
   rightParenthesis: )
 ''');
@@ -272,7 +288,8 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@function::f2::@formalParameter::p2
+    question: ?
+    declaredElement: <testLibraryFragment> p2@35
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -292,9 +309,10 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
-      declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+      question: ?
+      declaredElement: <testLibraryFragment> p3@59
         type: void Function()?
-    declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+    declaredElement: <testLibraryFragment> p3@59
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
@@ -328,7 +346,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f1::@formalParameter::f1
+    declaredElement: <testLibraryFragment> f1@57
       type: void Function()
   rightParenthesis: )
 ''');
@@ -348,7 +366,8 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@formalParameter::f2
+    question: ?
+    declaredElement: <testLibraryFragment> f2@81
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -370,9 +389,10 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+      question: ?
+      declaredElement: <testLibraryFragment> f3@107
         type: void Function()?
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+    declaredElement: <testLibraryFragment> f3@107
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
@@ -380,17 +400,20 @@ FormalParameterList
   }
 
   test_parameter_functionTyped_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   void f1(void p1()) {}
   void f2(void p2()?) {}
   void f3({void p3()?}) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 13, 2),
-      error(WarningCode.UNUSED_ELEMENT, 37, 2),
-      error(WarningCode.UNUSED_ELEMENT, 62, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 13, 2),
+        error(WarningCode.UNUSED_ELEMENT, 37, 2),
+        error(WarningCode.UNUSED_ELEMENT, 62, 2),
+      ],
+    );
 
     var p1 = findNode.formalParameterList('p1');
     assertResolvedNodeText(p1, r'''
@@ -405,7 +428,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: f1@13::@formalParameter::p1
+    declaredElement: <testLibraryFragment> p1@21
       type: void Function()
   rightParenthesis: )
 ''');
@@ -423,7 +446,8 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: f2@37::@formalParameter::p2
+    question: ?
+    declaredElement: <testLibraryFragment> p2@45
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -443,9 +467,10 @@ FormalParameterList
       parameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
-      declaredElement: f3@62::@formalParameter::p3
+      question: ?
+      declaredElement: <testLibraryFragment> p3@71
         type: void Function()?
-    declaredElement: f3@62::@formalParameter::p3
+    declaredElement: <testLibraryFragment> p3@71
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
@@ -539,29 +564,31 @@ void f<T>(T a, T? b) {
   }
 
   test_typedef_classic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef int? F(bool a, String? b);
 
 main() {
   F? a;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+    );
 
     assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
   }
 
   test_typedef_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
   F<String>? a;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1)],
+    );
 
     assertType(
       findNode.namedType('F<String>'),
@@ -581,17 +608,20 @@ void f(F<int> a, F<double>? b) {}
   }
 
   test_typedef_function_nullable_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F<T> = int Function(T)?;
 
 main() {
   F<int> a;
   F<double>? b;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      ],
+    );
 
     assertType(findNode.namedType('F<int>'), 'int Function(int)?');
     assertType(findNode.namedType('F<double>?'), 'int Function(double)?');

@@ -15,12 +15,10 @@ class IfStatementTest extends PartialCodeTest {
     buildTests(
       'if_statement',
       [
-        TestDescriptor(
-          'keyword',
-          'if',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
-          "if (_s_)",
-        ),
+        TestDescriptor('keyword', 'if', [
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "if (_s_)"),
         TestDescriptor(
           'leftParen',
           'if (',
@@ -36,12 +34,9 @@ class IfStatementTest extends PartialCodeTest {
             'switch',
           ],
         ),
-        TestDescriptor(
-          'condition',
-          'if (a',
-          [ScannerErrorCode.EXPECTED_TOKEN],
-          "if (a)",
-        ),
+        TestDescriptor('condition', 'if (a', [
+          ScannerErrorCode.EXPECTED_TOKEN,
+        ], "if (a)"),
       ],
       PartialCodeTest.statementSuffixes,
       head: 'f() { ',
@@ -57,7 +52,7 @@ class IfStatementTest extends PartialCodeTest {
           [
             ParserErrorCode.EXPECTED_TOKEN,
             ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN
+            ParserErrorCode.EXPECTED_TOKEN,
           ],
           "if (_s_);",
           allFailing: true,

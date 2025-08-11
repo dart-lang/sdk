@@ -19,15 +19,9 @@ main() {
 @reflectiveTest
 class IterableExtensionTest {
   test_asElementToIndexMap() {
-    expect(
-      <String>[].asElementToIndexMap,
-      <String, int>{},
-    );
+    expect(<String>[].asElementToIndexMap, <String, int>{});
 
-    expect(
-      ['a', 'b', 'c'].asElementToIndexMap,
-      {'a': 0, 'b': 1, 'c': 2},
-    );
+    expect(['a', 'b', 'c'].asElementToIndexMap, {'a': 0, 'b': 1, 'c': 2});
   }
 
   test_whereNotType() {
@@ -95,14 +89,22 @@ class ListExtensionTest {
   }
 
   test_stablePartition() {
-    expect(
-      [0, 1, 2, 3, 4, 5].stablePartition((e) => e.isEven),
-      [0, 2, 4, 1, 3, 5],
-    );
-    expect(
-      [5, 4, 3, 2, 1, 0].stablePartition((e) => e.isEven),
-      [4, 2, 0, 5, 3, 1],
-    );
+    expect([0, 1, 2, 3, 4, 5].stablePartition((e) => e.isEven), [
+      0,
+      2,
+      4,
+      1,
+      3,
+      5,
+    ]);
+    expect([5, 4, 3, 2, 1, 0].stablePartition((e) => e.isEven), [
+      4,
+      2,
+      0,
+      5,
+      3,
+      1,
+    ]);
   }
 
   test_withoutLast() {

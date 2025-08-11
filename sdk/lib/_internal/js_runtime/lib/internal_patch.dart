@@ -15,6 +15,18 @@ import 'dart:typed_data' show Uint8List;
 @pragma('dart2js:tryInline')
 bool typeAcceptsNull<T>() => null is T;
 
+/// No-op in dart2js.
+///
+/// Only used in DDC for hot restart correctness.
+@pragma('dart2js:tryInline')
+int? getHotRestartGeneration() => null;
+
+/// No-op in dart2js.
+///
+/// Only used in DDC for hot restart correctness.
+@pragma('dart2js:tryInline')
+bool isCurrentHotRestartGeneration(int _) => true;
+
 @patch
 class Symbol implements core.Symbol {
   @patch
@@ -79,3 +91,11 @@ T unsafeCast<T>(dynamic v) => v;
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
     throw 'Unsupported operation';
+
+@patch
+@pragma("vm:entry-point")
+abstract interface class IsolateGroup {
+  @patch
+  static Object _runSync(Object computation) =>
+      throw UnsupportedError("_runSync");
+}

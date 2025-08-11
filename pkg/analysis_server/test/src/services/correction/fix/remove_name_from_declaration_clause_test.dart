@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/ffi_code.g.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -272,7 +272,8 @@ final class S extends Struct {}
 final class C {}
 ''',
       errorFilter:
-          (error) => error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+          (error) =>
+              error.diagnosticCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
     );
   }
 }

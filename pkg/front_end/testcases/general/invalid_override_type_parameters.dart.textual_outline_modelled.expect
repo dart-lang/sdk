@@ -1,0 +1,7 @@
+class Sub extends Super {
+  foo<X, Y>() {}
+}
+
+class Super {
+  foo<X>() {}
+}

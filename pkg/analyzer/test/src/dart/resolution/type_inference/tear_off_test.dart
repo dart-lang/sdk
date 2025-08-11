@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class TearOffTest extends PubPackageResolutionTest {
   test_empty_contextNotInstantiated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>(T x) => x;
 
 void test() {
   U Function<U>(U) context;
   context = f; // 1
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7)],
+    );
 
     var node = findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
@@ -38,16 +39,17 @@ SimpleIdentifier
   }
 
   test_empty_notGeneric() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(int x) => x;
 
 void test() {
   int Function(int) context;
   context = f; // 1
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7)],
+    );
 
     var node = findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
@@ -81,7 +83,7 @@ FunctionReference
           name: C
           element2: <testLibrary>::@class::C
           type: C
-        element: <testLibraryFragment>::@class::C::@constructor::new#element
+        element: <testLibrary>::@class::C::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -89,7 +91,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -141,9 +143,9 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
-    element: <testLibraryFragment>::@class::C::@method::f#element
+    element: <testLibrary>::@class::C::@method::f
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -174,7 +176,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      element: <testLibraryFragment>::@class::C::@method::f#element
+      element: <testLibrary>::@class::C::@method::f
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -227,7 +229,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::x#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

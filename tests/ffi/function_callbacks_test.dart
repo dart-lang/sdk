@@ -185,10 +185,10 @@ double manyArgs(
 }
 
 typedef StoreType = Pointer<Int64> Function(Pointer<Int64>);
-Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..value = 1337;
+Pointer<Int64> store(Pointer<Int64> ptr) => (ptr + 1)..value = 1337;
 
 typedef NullPointersType = Pointer<Int64> Function(Pointer<Int64>);
-Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr.elementAt(1);
+Pointer<Int64> nullPointers(Pointer<Int64> ptr) => (ptr + 1);
 
 typedef ReturnVoid = Void Function();
 void returnVoid() {}

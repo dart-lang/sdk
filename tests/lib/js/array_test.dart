@@ -29,8 +29,10 @@ testArrayConstructor() {
 
   // We could return a reified type here, but currently does not to match
   // dart2js, and because the Array is being returned to JS.
-  Expect.isFalse(list2 is List<int>,
-      '$list2 should not have a reified generic type (it was allocated by JS)');
+  Expect.isFalse(
+    list2 is List<int>,
+    '$list2 should not have a reified generic type (it was allocated by JS)',
+  );
 
   list2.addAll([1, 2, 3]);
   Expect.listEquals(list, list2);

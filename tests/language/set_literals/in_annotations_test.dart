@@ -26,7 +26,7 @@ class A<@Meta({}) T> {
 @Meta({})
 enum E {
   @Meta({})
-  v
+  v,
 }
 
 class Meta {

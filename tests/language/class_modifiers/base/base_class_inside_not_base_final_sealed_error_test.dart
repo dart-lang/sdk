@@ -68,4 +68,3 @@ class IndirectSubtype extends SubtypeOfBase {}
 //    ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-

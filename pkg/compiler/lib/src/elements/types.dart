@@ -1532,8 +1532,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
       // Assign names to _DeferredNames that were not assigned while visiting a
       // generic function type.
       Set<String> usedNames = {
-        for (final deferred in variableToName.values)
-          if (deferred.name != null) deferred.name!,
+        for (final deferred in variableToName.values) ?deferred.name,
       };
       int startGroup = (_genericFunctions?.length ?? 0) + 1;
       for (var entry in variableToName.entries) {
@@ -1826,18 +1825,20 @@ abstract class DartTypes {
       namedParameterTypes,
       typeVariables,
     );
-    List<FunctionTypeVariable> normalizableVariables =
-        typeVariables
-            .where((FunctionTypeVariable t) => t.bound is NeverType)
-            .toList();
+    List<FunctionTypeVariable> normalizableVariables = typeVariables
+        .where((FunctionTypeVariable t) => t.bound is NeverType)
+        .toList();
     return normalizableVariables.isEmpty
         ? type
         : subst(
-              List<DartType>.filled(normalizableVariables.length, neverType()),
-              normalizableVariables,
-              type,
-            )
-            as FunctionType;
+                List<DartType>.filled(
+                  normalizableVariables.length,
+                  neverType(),
+                ),
+                normalizableVariables,
+                type,
+              )
+              as FunctionType;
   }
 
   DartType futureOrType(DartType typeArgument) {
@@ -1889,10 +1890,12 @@ abstract class DartTypes {
         subst(arguments, t.typeVariables, type);
     DartType returnType = substType(t.returnType);
     List<DartType> parameterTypes = t.parameterTypes.map(substType).toList();
-    List<DartType> optionalParameterTypes =
-        t.optionalParameterTypes.map(substType).toList();
-    List<DartType> namedParameterTypes =
-        t.namedParameterTypes.map(substType).toList();
+    List<DartType> optionalParameterTypes = t.optionalParameterTypes
+        .map(substType)
+        .toList();
+    List<DartType> namedParameterTypes = t.namedParameterTypes
+        .map(substType)
+        .toList();
     return functionType(
       returnType,
       parameterTypes,
@@ -2175,8 +2178,9 @@ abstract class DartTypes {
       // Interface Compositionality + Super-Interface:
       if (s is InterfaceType) {
         if (t is InterfaceType) {
-          InterfaceType? instance =
-              s.element == t.element ? s : asInstanceOf(s, t.element);
+          InterfaceType? instance = s.element == t.element
+              ? s
+              : asInstanceOf(s, t.element);
           if (instance == null) return false;
           List<DartType> sArgs = instance.typeArguments;
           List<DartType> tArgs = t.typeArguments;

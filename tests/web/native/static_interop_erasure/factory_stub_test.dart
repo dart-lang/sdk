@@ -30,8 +30,8 @@ class StaticNativeClass {
   factory StaticNativeClass.redirectingFactory() = StaticNativeClass;
   factory StaticNativeClass.simpleFactory() => StaticNativeClass();
   factory StaticNativeClass.factoryWithParam(
-          StaticNativeClass staticNativeClass) =>
-      staticNativeClass;
+    StaticNativeClass staticNativeClass,
+  ) => staticNativeClass;
   // This and `StaticNativeClassCopy.nestedFactory` exist to ensure that we
   // cover the case where invocations on factories are visible before their
   // declarations in the AST. This will test whether we correctly create the

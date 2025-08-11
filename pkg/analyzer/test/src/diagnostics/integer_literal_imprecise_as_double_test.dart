@@ -39,28 +39,38 @@ class IntegerLiteralImpreciseAsDoubleTest extends PubPackageResolutionTest {
   }
 
   test_excessiveMantissa() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 double x = 9223372036854775809;
-''', [
-      error(
-        CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11, 19,
-        // We suggest a valid double instead.
-        correctionContains: '9223372036854775808',
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          11,
+          19,
+          // We suggest a valid double instead.
+          correctionContains: '9223372036854775808',
+        ),
+      ],
+    );
   }
 
   test_excessiveMantissa_withSeparators() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 double x = 9_223_372_036_854_775_809;
-''', [
-      error(
-        CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE, 11, 25,
-        // We suggest a valid double instead.
-        // TODO(srawlins): This number should have separators that match the
-        // existing number literal.
-        correctionContains: '9223372036854775808',
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          11,
+          25,
+          // We suggest a valid double instead.
+          // TODO(srawlins): This number should have separators that match the
+          // existing number literal.
+          correctionContains: '9223372036854775808',
+        ),
+      ],
+    );
   }
 }

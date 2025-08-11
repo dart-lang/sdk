@@ -40,16 +40,16 @@ class Baz extends core::Object {
 }
 extension Foo on core::int {
   get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
-  set foo = self::Foo|set#foo;
 }
 extension type Bar(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   get foo = self::Bar|get#foo;
+  set foo = self::Bar|set#foo;
   method bar = self::Bar|bar;
   method tearoff bar = self::Bar|get#bar;
-  set foo = self::Bar|set#foo;
   constructor • = self::Bar|constructor#;
   constructor tearoff • = self::Bar|constructor#_#new#tearOff;
 }
@@ -75,7 +75,7 @@ static extension-type-member method Bar|constructor#(core::int i) → self::Bar%
   lowered final self::Bar% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method Bar|constructor#_#new#tearOff(core::int i) → self::Bar% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Bar|constructor#_#new#tearOff(core::int i) → self::Bar% /* erasure=core::int, declared=! */
   return self::Bar|constructor#(i);
 static extension-type-member method Bar|set#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
   invalid-expression "pkg/front_end/testcases/regress/erroneous_setter.dart:18:10: Error: A setter should have exactly one formal parameter.

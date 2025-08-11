@@ -17,8 +17,10 @@ main(List<String> args) async {
   }
 
   if (Platform.isAndroid) {
-    print('Skipping test due to being on Android where needed tools are not '
-        'available.');
+    print(
+      'Skipping test due to being on Android where needed tools are not '
+      'available.',
+    );
     return; // SDK tree and gen_snapshot not available on the test device.
   }
 
@@ -36,8 +38,9 @@ main(List<String> args) async {
   await withElfSnapshot((Elf elf) {
     // NOTE: These tests validate properties we should strive to maintain.
     // Please reach out to go/dart-ama before changing them.
-    final Symbol? symbol =
-        elf.dynamicSymbolFor('_kDartIsolateSnapshotInstructions');
+    final Symbol? symbol = elf.dynamicSymbolFor(
+      '_kDartIsolateSnapshotInstructions',
+    );
     Expect.isTrue(symbol != null && symbol.value > 0);
   });
 }

@@ -21,7 +21,8 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest {
   test_arguments_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     g(super);
@@ -29,9 +30,9 @@ class A {
 }
 
 void g(Object a) {}
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -53,16 +54,19 @@ MethodInvocation
   }
 
   test_arguments_synthetics() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   g(,,);
 }
 
 void g(int a, int b) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -76,12 +80,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: <empty> <synthetic>
-        correspondingParameter: <testLibraryFragment>::@function::g::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::a
         element: <null>
         staticType: InvalidType
       SimpleIdentifier
         token: <empty> <synthetic>
-        correspondingParameter: <testLibraryFragment>::@function::g::@parameter::b#element
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::b
         element: <null>
         staticType: InvalidType
     rightParenthesis: )
@@ -107,14 +111,14 @@ void f(A a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@method::foo#element
+        element: <testLibrary>::@class::A::@method::foo
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -125,7 +129,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -158,12 +162,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::g::@parameter::a#element
+          element: <testLibrary>::@function::g::@formalParameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -176,7 +180,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
@@ -189,13 +193,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
                 double
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::h::@parameter::x#element
+        correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
         staticType: double
     rightParenthesis: )
@@ -205,15 +209,16 @@ MethodInvocation
   }
 
   test_clamp_double_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(double a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -228,12 +233,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::g::@parameter::a#element
+          element: <testLibrary>::@function::g::@formalParameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -246,7 +251,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -259,13 +264,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::h::@parameter::x#element
+        correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -287,12 +292,12 @@ g(double a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -305,7 +310,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -318,7 +323,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -341,25 +346,25 @@ f(double a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -379,25 +384,25 @@ f(double a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -417,25 +422,25 @@ f(double a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -455,25 +460,25 @@ f(double a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -482,15 +487,16 @@ MethodInvocation
   }
 
   test_clamp_int_context_double() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(int a) {
   h(a.clamp(f(), f()));
 }
 h(double x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -505,12 +511,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::g::@parameter::a#element
+          element: <testLibrary>::@function::g::@formalParameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -523,7 +529,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -536,13 +542,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::h::@parameter::x#element
+        correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -573,12 +579,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::g::@parameter::a#element
+          element: <testLibrary>::@function::g::@formalParameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: dart:core::<fragment>::@class::num::@method::clamp#element
+          element: dart:core::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -591,7 +597,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
@@ -604,13 +610,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
                 int
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::h::@parameter::x#element
+        correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
         staticType: int
     rightParenthesis: )
@@ -632,12 +638,12 @@ g(int a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -650,7 +656,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -663,7 +669,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -686,25 +692,25 @@ f(int a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -724,25 +730,25 @@ f(int a, double b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -762,25 +768,25 @@ f(int a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -800,25 +806,25 @@ f(int a, dynamic b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -838,25 +844,25 @@ f(int a, dynamic b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -876,25 +882,25 @@ f(int a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -914,25 +920,25 @@ f(int a, int b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -952,25 +958,25 @@ f(int a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -991,20 +997,20 @@ MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1033,7 +1039,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -1042,20 +1048,20 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1075,25 +1081,25 @@ f(int a, int b, Never c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: Never
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1102,38 +1108,39 @@ MethodInvocation
   }
 
   test_clamp_int_never_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int a, Never b, int c) {
   a.clamp(b, c);
 }
-''', [
-      error(WarningCode.DEAD_CODE, 40, 3),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 40, 3)],
+    );
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: dart:core::<fragment>::@class::num::@method::clamp#element
+    element: dart:core::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: Never
       SimpleIdentifier
         token: c
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1142,21 +1149,24 @@ MethodInvocation
   }
 
   test_clamp_never_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Never a, int b, int c) {
   a.clamp(b, c);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-      error(WarningCode.DEAD_CODE, 36, 7),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+        error(WarningCode.DEAD_CODE, 36, 7),
+      ],
+    );
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -1169,12 +1179,12 @@ MethodInvocation
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
         correspondingParameter: <null>
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -1183,7 +1193,8 @@ MethodInvocation
   }
 
   test_clamp_other_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   num clamp(String x, String y);
 }
@@ -1192,9 +1203,9 @@ g(A a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -1209,12 +1220,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::g::@parameter::a#element
+          element: <testLibrary>::@function::g::@formalParameter::a
           staticType: A
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          element: <testLibraryFragment>::@class::A::@method::clamp#element
+          element: <testLibrary>::@class::A::@method::clamp
           staticType: num Function(String, String)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1227,7 +1238,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::x#element
+              correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
@@ -1240,13 +1251,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              correspondingParameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::y#element
+              correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
                 String
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::h::@parameter::x#element
+        correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(String, String)
         staticType: num
     rightParenthesis: )
@@ -1270,25 +1281,25 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@class::A::@method::clamp#element
+    element: <testLibrary>::@class::A::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::x#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::clamp::@parameter::y#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1318,7 +1329,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -1327,20 +1338,20 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1364,25 +1375,25 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    element: <testLibraryFragment>::@extension::E::@method::clamp#element
+    element: <testLibrary>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::x#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::clamp::@parameter::y#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1610,9 +1621,9 @@ MethodInvocation
       SimpleIdentifier
         token: s
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::test::@parameter::t#element
+          baseElement: <testLibrary>::@function::test::@formalParameter::t
           substitution: {T: S}
-        element: <testLibraryFragment>::@function::f::@parameter::s#element
+        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   staticInvokeType: void Function(S)
@@ -1630,16 +1641,17 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'b.dart';
 
 main() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1655,7 +1667,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: package:test/a.dart::<fragment>::@function::foo::@parameter::_#element
+        correspondingParameter: package:test/a.dart::@function::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1671,16 +1683,17 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 main() {
   p.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1701,7 +1714,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: package:test/a.dart::<fragment>::@function::foo::@parameter::_#element
+        correspondingParameter: package:test/a.dart::@function::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1710,7 +1723,8 @@ MethodInvocation
   }
 
   test_error_instanceAccessToStaticMember_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static void foo(int _) {}
 }
@@ -1718,28 +1732,28 @@ class A {
 void f(A a) {
   a.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3)],
+    );
 
     var node = findNode.methodInvocation('a.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1748,7 +1762,8 @@ MethodInvocation
   }
 
   test_error_invocationOfNonFunction_interface_hasCall_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   void Function() call = throw Error();
 }
@@ -1756,16 +1771,22 @@ class C {
 void f(C c) {
   c();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 69, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          69,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('c();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1793,12 +1814,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -1828,7 +1849,7 @@ class B extends A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1855,7 +1876,7 @@ class C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1878,7 +1899,7 @@ f(Function foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::f::@parameter::foo#element
+    element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1917,14 +1938,14 @@ class C<T extends MyFunction> {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::_#element
+        correspondingParameter: _@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -1935,20 +1956,27 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main(Object foo) {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 21, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          21,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::main::@parameter::foo#element
+    element: <testLibrary>::@function::main::@formalParameter::foo
     staticType: Object
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1971,7 +1999,7 @@ main(var foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::main::@parameter::foo#element
+    element: <testLibrary>::@function::main::@formalParameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1983,7 +2011,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_hasTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static int foo = 0;
 }
@@ -1991,9 +2020,15 @@ class C {
 main() {
   C.foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          46,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2006,7 +2041,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: int
     staticType: int
   argumentList: ArgumentList
@@ -2019,7 +2054,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_noTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static int foo = 0;
 
@@ -2027,16 +2063,22 @@ class C {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 48, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          48,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2048,7 +2090,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_super_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -2058,9 +2101,15 @@ class B extends A {
     super.foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          68,
+          9,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2072,7 +2121,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: int
     staticType: int
   argumentList: ArgumentList
@@ -2089,15 +2138,22 @@ FunctionExpressionInvocation
 void foo() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix?.foo();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          6,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2120,15 +2176,22 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math?.loadLibrary();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          49,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -2151,15 +2214,22 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_invoke() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as foo;
 
 main() {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo()');
     assertResolvedNodeText(node, r'''
@@ -2177,13 +2247,14 @@ MethodInvocation
   }
 
   test_error_undefinedFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -2206,15 +2277,16 @@ MethodInvocation
   }
 
   test_error_undefinedFunction_hasTarget_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 main() {
   math.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2242,13 +2314,14 @@ MethodInvocation
   }
 
   test_error_undefinedIdentifier_target() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   bar.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2276,14 +2349,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 main() {
   C.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2311,16 +2385,17 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_arguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 int x = 0;
 main() {
   C.foo(x);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(x);');
     assertResolvedNodeText(node, r'''
@@ -2340,7 +2415,7 @@ MethodInvocation
       SimpleIdentifier
         token: x
         correspondingParameter: <null>
-        element: <testLibraryFragment>::@getter::x#element
+        element: <testLibrary>::@getter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: InvalidType
@@ -2349,7 +2424,8 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class S {
   static void foo(int _) {}
 }
@@ -2359,9 +2435,9 @@ class C extends S {}
 main() {
   C.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2389,15 +2465,16 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 main() {
   C.foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+    );
 
     var node = findNode.methodInvocation('foo<int>();');
     assertResolvedNodeText(node, r'''
@@ -2430,13 +2507,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {
   static main() => C.T();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1)],
+    );
 
     var node = findNode.methodInvocation('C.T();');
     assertResolvedNodeText(node, r'''
@@ -2459,13 +2537,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_instance() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   42.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2492,14 +2571,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_localVariable_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = () {};
   v.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2527,15 +2607,16 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_noTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   main() {
     foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2558,13 +2639,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   null.foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)],
+    );
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2586,13 +2668,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_object_call() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main(Object o) {
   o.call();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4)],
+    );
   }
 
   test_error_undefinedMethod_private() async {
@@ -2601,7 +2684,8 @@ class A {
   void _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 class B extends A {
@@ -2609,9 +2693,9 @@ class B extends A {
     _foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4)],
+    );
 
     var node = findNode.methodInvocation('_foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2634,7 +2718,8 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static void foo() {}
 }
@@ -2642,25 +2727,29 @@ class C {
 main() {
   C..foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3)],
+    );
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 main() {
   A?.toString();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+      ],
+    );
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static void foo() {}
 }
@@ -2670,20 +2759,23 @@ class B extends A {
     foo(0);
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
-          3),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
-    ]);
+          3,
+        ),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2702,16 +2794,17 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'missing.dart' as p;
 
 main() {
   p.foo(1);
   p.bar(2);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2742,16 +2835,17 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'missing.dart' show foo, bar;
 
 main() {
   foo(1);
   bar(2);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2774,7 +2868,8 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T>{
   T foo;
   C(this.foo);
@@ -2783,9 +2878,9 @@ class C<T>{
 void f(C<void> c) {
   c.foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2793,13 +2888,13 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C<void>
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       element: GetterMember
-        baseElement: <testLibraryFragment>::@class::C::@getter::foo#element
+        baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: void}
       staticType: void
     staticType: void
@@ -2813,14 +2908,15 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2839,15 +2935,16 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_topFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo() {}
 
 main() {
   foo()();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3)],
+    );
 
     var node = findNode.methodInvocation('foo()()');
     assertResolvedNodeText(node, r'''
@@ -2865,22 +2962,23 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_topVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo;
 
 main() {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2892,14 +2990,15 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_receiver() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo.toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2922,14 +3021,15 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_cascade() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo..toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2948,14 +3048,15 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo?.toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2978,15 +3079,22 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_01() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo() {}
 
 main() {
   foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          29,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3012,15 +3120,22 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Map<T, U> foo<T extends num, U>() => throw Error();
 
 main() {
   foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 67, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          67,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3060,7 +3175,7 @@ void f(double Function(int p) g) {
 MethodInvocation
   target: SimpleIdentifier
     token: g
-    element: <testLibraryFragment>::@function::f::@parameter::g#element
+    element: <testLibrary>::@function::f::@formalParameter::g
     staticType: double Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -3072,7 +3187,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::p#element
+        correspondingParameter: p@null
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -3096,19 +3211,19 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: call
-    element: <testLibraryFragment>::@class::C::@method::call#element
+    element: <testLibrary>::@class::C::@method::call
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::call::@parameter::p#element
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::p
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -3136,7 +3251,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3162,7 +3277,7 @@ extension type A(int it) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3194,7 +3309,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3202,7 +3317,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3232,14 +3347,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3332,15 +3447,16 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -3363,16 +3479,19 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary(1 + 2);
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
+      ],
+    );
 
     var node = findNode.methodInvocation('loadLibrary(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -3396,10 +3515,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -3420,7 +3539,7 @@ void f(dynamic a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -3466,7 +3585,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::A::@getter::foo#element
+      element: <testLibrary>::@extension::A::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3474,7 +3593,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3549,14 +3668,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::A::@method::foo#element
+    element: <testLibrary>::@extension::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extension::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@extension::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3626,7 +3745,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3662,7 +3781,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3697,7 +3816,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::_
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3739,13 +3858,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: package:test/a.dart::<fragment>::@function::foo::@parameter::a#element
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: package:test/a.dart::<fragment>::@function::foo::@parameter::b#element
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::b
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3780,9 +3899,9 @@ FunctionExpressionInvocation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/a.dart::<fragment>::@getter::foo#element
+      element: package:test/a.dart::@getter::foo
       staticType: T Function<T>(T, T)
-    element: package:test/a.dart::<fragment>::@getter::foo#element
+    element: package:test/a.dart::@getter::foo
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3790,13 +3909,13 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::a#element
+          baseElement: a@null
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::b#element
+          baseElement: b@null
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3856,7 +3975,7 @@ void main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: Function
   operator: .
   methodName: SimpleIdentifier
@@ -3893,12 +4012,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3906,7 +4025,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3938,14 +4057,14 @@ var v = C()..foo(0) = 0;
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -3974,12 +4093,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -4007,19 +4126,19 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -4045,12 +4164,12 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4058,7 +4177,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::foo::@parameter::a#element
+          baseElement: <testLibrary>::@class::C::@method::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -4095,12 +4214,12 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::I2::@method::foo#element
+    element: <testLibrary>::@class::I2::@method::foo
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4134,19 +4253,19 @@ class C<T extends A> {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::C::@getter::a#element
+    element: <testLibrary>::@class::C::@getter::a
     staticType: T
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -4166,7 +4285,7 @@ void f(Function? foo) {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::f::@parameter::foo#element
+    element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function?
   operator: ?.
   methodName: SimpleIdentifier
@@ -4182,21 +4301,27 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_Function_call_unchecked() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Function? foo) {
   foo.call();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          30, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          30,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo.call()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::f::@parameter::foo#element
+    element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function?
   operator: .
   methodName: SimpleIdentifier
@@ -4229,12 +4354,12 @@ MethodInvocation
   target: MethodInvocation
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::testShort::@parameter::c#element
+      element: <testLibrary>::@function::testShort::@formalParameter::c
       staticType: C?
     operator: ?.
     methodName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@method::foo#element
+      element: <testLibrary>::@class::C::@method::foo
       staticType: C Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4244,7 +4369,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: bar
-    element: <testLibraryFragment>::@class::C::@method::bar#element
+    element: <testLibrary>::@class::C::@method::bar
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4271,12 +4396,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::C::@getter::foo#element
+      element: <testLibrary>::@class::C::@getter::foo
       staticType: void Function(C)
     staticType: void Function(C)
   argumentList: ArgumentList
@@ -4284,8 +4409,8 @@ FunctionExpressionInvocation
     arguments
       SimpleIdentifier
         token: c
-        correspondingParameter: root::@parameter::#element
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        correspondingParameter: <null-name>@null
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
     rightParenthesis: )
   element: <null>
@@ -4395,12 +4520,12 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    element: <testLibraryFragment>::@function::f::@parameter::e#element
+    element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@enum::E::@method::foo#element
+    element: <testLibrary>::@enum::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4430,12 +4555,12 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    element: <testLibraryFragment>::@function::f::@parameter::e#element
+    element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4461,12 +4586,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4492,12 +4617,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4508,7 +4633,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared_nullableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   int foo() => 0;
 }
@@ -4516,22 +4642,27 @@ extension type A(int it) {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          67, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4557,12 +4688,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    element: <testLibrary>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4592,12 +4723,12 @@ void f(X x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4608,7 +4739,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_notExposed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -4620,16 +4752,16 @@ extension type X(B it) implements A {}
 void f(X x) {
   x.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
@@ -4664,18 +4796,86 @@ void f(X x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extensionType::X::@method::foo#element
+    element: <testLibrary>::@extensionType::X::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticInvokeType: void Function()
   staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: MethodMember
+      baseElement: <testLibrary>::@class::A::@method::foo
+      substitution: {T: int}
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameterNot() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  double foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: double Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: double Function()
+  staticType: double
 ''');
   }
 
@@ -4783,7 +4983,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4850,7 +5050,7 @@ MethodInvocation
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -4869,7 +5069,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::int::@method::toString#element
+    element: dart:core::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4880,7 +5080,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -4888,22 +5089,27 @@ class A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          48, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          48,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4914,7 +5120,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -4926,22 +5133,27 @@ extension E on A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          86, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4971,12 +5183,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5002,13 +5214,13 @@ void f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
     token: foo
     element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
+      baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int}
     staticType: int Function()
   argumentList: ArgumentList
@@ -5020,23 +5232,29 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          31, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          31,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5052,7 +5270,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -5062,17 +5281,22 @@ extension E on A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          69, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          69,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5105,12 +5329,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5154,7 +5378,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: package:test/a.dart::<fragment>::@class::C::@getter::foo#element
+      element: package:test/a.dart::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5162,7 +5386,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -5204,14 +5428,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: package:test/a.dart::<fragment>::@class::C::@method::foo#element
+    element: package:test/a.dart::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: package:test/a.dart::<fragment>::@class::C::@method::foo::@parameter::_#element
+        correspondingParameter: package:test/a.dart::@class::C::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5235,19 +5459,19 @@ void f((int, String) r) {
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    element: <testLibraryFragment>::@function::f::@parameter::r#element
+    element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5271,19 +5495,19 @@ void f((int, String)? r) {
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    element: <testLibraryFragment>::@function::f::@parameter::r#element
+    element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extension::E::@method::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5292,7 +5516,8 @@ MethodInvocation
   }
 
   test_hasReceiver_recordQ_notDefined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   void foo(int a) {}
 }
@@ -5300,17 +5525,22 @@ extension E on (int, String) {
 void f((int, String)? r) {
   r.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          86, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    element: <testLibraryFragment>::@function::f::@parameter::r#element
+    element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
@@ -5350,7 +5580,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5382,7 +5612,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5506,7 +5736,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5514,7 +5744,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -5545,14 +5775,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5580,7 +5810,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5612,7 +5842,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5645,14 +5875,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5683,14 +5913,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5712,12 +5942,12 @@ void f<T>(T? t) {
 MethodInvocation
   target: SimpleIdentifier
     token: t
-    element: <testLibraryFragment>::@function::f::@parameter::t#element
+    element: <testLibrary>::@function::f::@formalParameter::t
     staticType: T & int
   operator: .
   methodName: SimpleIdentifier
     token: abs
-    element: dart:core::<fragment>::@class::int::@method::abs#element
+    element: dart:core::@class::int::@method::abs
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5747,12 +5977,12 @@ void f<T extends A, U extends B>(T a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: T & U
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::B::@method::foo#element
+    element: <testLibrary>::@class::B::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5763,7 +5993,8 @@ MethodInvocation
   }
 
   test_identifier_class_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final foo = 0;
 
@@ -5771,16 +6002,22 @@ class A {
     foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 45, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          45,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5812,7 +6049,7 @@ class A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5844,7 +6081,7 @@ class A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5872,7 +6109,7 @@ void f(foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::f::@parameter::foo#element
+    element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5889,7 +6126,8 @@ FunctionExpressionInvocation
   }
 
   test_identifier_topLevelFunction_arguments_duplicateNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 void foo({int? p}) {}
@@ -5897,9 +6135,9 @@ void foo({int? p}) {}
 void f() {
   foo(p: 0, p: a);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -5915,25 +6153,25 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: p
-            element: <testLibraryFragment>::@function::foo::@parameter::p#element
+            element: <testLibrary>::@function::foo::@formalParameter::p
             staticType: null
           colon: :
         expression: IntegerLiteral
           literal: 0
           staticType: int
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::p#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::p
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: p
-            element: <testLibraryFragment>::@function::foo::@parameter::p#element
+            element: <testLibrary>::@function::foo::@formalParameter::p
             staticType: null
           colon: :
         expression: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@getter::a#element
+          element: <testLibrary>::@getter::a
           staticType: int
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::p#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::p
     rightParenthesis: )
   staticInvokeType: void Function({int? p})
   staticType: void
@@ -5941,22 +6179,29 @@ MethodInvocation
   }
 
   test_identifier_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final foo = 0;
 
 void f() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 29, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          29,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5986,7 +6231,7 @@ void f() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6018,14 +6263,14 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::p#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::p
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6049,7 +6294,7 @@ class A<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: E Function<E>(A<E>)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6057,7 +6302,7 @@ MethodInvocation
       ThisExpression
         thisKeyword: this
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@method::foo::@parameter::p#element
+          baseElement: <testLibrary>::@class::A::@method::foo::@formalParameter::p
           substitution: {E: T}
         staticType: A<T>
     rightParenthesis: )
@@ -6089,7 +6334,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6119,7 +6364,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::a#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6181,16 +6426,17 @@ MethodInvocation
   }
 
   test_invalidConst_class_staticMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int foo(int _) => 0;
 }
 
 const a = 0;
 const b = A.foo(a);
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6202,15 +6448,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: a
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
-        element: <testLibraryFragment>::@getter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        element: <testLibrary>::@getter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int)
@@ -6219,12 +6465,13 @@ MethodInvocation
   }
 
   test_invalidConst_expression_instanceMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6234,15 +6481,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: codeUnitAt
-    element: dart:core::<fragment>::@class::String::@method::codeUnitAt#element
+    element: dart:core::@class::String::@method::codeUnitAt
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: a
-        correspondingParameter: dart:core::<fragment>::@class::String::@method::codeUnitAt::@parameter::index#element
-        element: <testLibraryFragment>::@getter::a#element
+        correspondingParameter: dart:core::@class::String::@method::codeUnitAt::@formalParameter::index
+        element: <testLibrary>::@getter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int)
@@ -6270,7 +6517,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: g@20::@parameter::a#element
+        correspondingParameter: a@26
         staticType: int
       SimpleStringLiteral
         literal: '2'
@@ -6301,7 +6548,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: g@15::@parameter::a#element
+          baseElement: a@25
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -6336,7 +6583,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: g@15::@parameter::a#element
+          baseElement: a@24
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6370,7 +6617,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: a
             element: ParameterMember
-              baseElement: g@15::@parameter::a#element
+              baseElement: a@32
               substitution: {T: int}
             staticType: null
           colon: :
@@ -6378,7 +6625,7 @@ MethodInvocation
           literal: 0
           staticType: int
         correspondingParameter: ParameterMember
-          baseElement: g@15::@parameter::a#element
+          baseElement: a@32
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: int Function({required int a})
@@ -6489,24 +6736,24 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: b
-            element: <testLibraryFragment>::@function::foo::@parameter::b#element
+            element: <testLibrary>::@function::foo::@formalParameter::b
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: false
           staticType: bool
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::b#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@function::foo::@parameter::a#element
+            element: <testLibrary>::@function::foo::@formalParameter::a
             staticType: null
           colon: :
         expression: IntegerLiteral
           literal: 0
           staticType: int
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int? a, bool? b})
   staticType: void
@@ -6550,7 +6797,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -6559,7 +6806,7 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: c
-            element: <testLibraryFragment>::@function::foo::@parameter::c#element
+            element: <testLibrary>::@function::foo::@formalParameter::c
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -6574,7 +6821,7 @@ MethodInvocation
           staticType: C?
           typeArgumentTypes
             C?
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::c#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -6583,7 +6830,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::b#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -6592,7 +6839,7 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: d
-            element: <testLibraryFragment>::@function::foo::@parameter::d#element
+            element: <testLibrary>::@function::foo::@formalParameter::d
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -6607,7 +6854,7 @@ MethodInvocation
           staticType: D?
           typeArgumentTypes
             D?
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::d#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::d
     rightParenthesis: )
   staticInvokeType: void Function(A, B, {C? c, D? d})
   staticType: void
@@ -6680,14 +6927,14 @@ class B extends A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6712,14 +6959,14 @@ class C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6729,15 +6976,22 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 main() {
   math();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          40,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('math()');
     assertResolvedNodeText(node, r'''
@@ -6775,7 +7029,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: foo@16::@parameter::_#element
+        correspondingParameter: _@24
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6799,17 +7053,17 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::call::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::_
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@class::C::@method::call#element
+  element: <testLibrary>::@class::C::@method::call
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -6837,7 +7091,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: @-1#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6864,14 +7118,14 @@ class B extends A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6895,14 +7149,14 @@ class C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@method::foo#element
+    element: <testLibrary>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6922,14 +7176,14 @@ void f(void Function(int) foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@function::f::@parameter::foo#element
+    element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -6952,7 +7206,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: double Function(int)?
   operator: ?.
   methodName: SimpleIdentifier
@@ -6964,7 +7218,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -6986,7 +7240,7 @@ void f(F a) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: void Function()
       alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
@@ -7020,7 +7274,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7042,14 +7296,14 @@ main() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7072,14 +7326,14 @@ main() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -7105,14 +7359,14 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   cascadeSections
     MethodInvocation
       operator: ?..
       methodName: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@method::foo#element
+        element: <testLibrary>::@class::A::@method::foo
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7123,7 +7377,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7151,21 +7405,21 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
         token: foo
-        element: <testLibraryFragment>::@class::A::@getter::foo#element
+        element: <testLibrary>::@class::A::@getter::foo
         staticType: int
       staticType: int
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        element: <testLibraryFragment>::@class::A::@method::bar#element
+        element: <testLibrary>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7197,7 +7451,7 @@ CascadeExpression
         name: A
         element2: <testLibrary>::@class::A
         type: A
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -7208,7 +7462,7 @@ CascadeExpression
         operator: ..
         methodName: SimpleIdentifier
           token: foo
-          element: <testLibraryFragment>::@class::A::@method::foo#element
+          element: <testLibrary>::@class::A::@method::foo
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -7218,7 +7472,7 @@ CascadeExpression
       operator: ?.
       methodName: SimpleIdentifier
         token: abs
-        element: dart:core::<fragment>::@class::int::@method::abs#element
+        element: dart:core::@class::int::@method::abs
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7241,7 +7495,7 @@ void f(a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7254,7 +7508,7 @@ MethodInvocation
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -7274,12 +7528,12 @@ void f(a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::Object::@method::toString#element
+    element: dart:core::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7308,7 +7562,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::Object::@method::toString#element
+    element: dart:core::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7354,7 +7608,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
+  correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7381,7 +7635,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
+  correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7408,7 +7662,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
+  correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7417,7 +7671,8 @@ MethodInvocation
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   String remainder(num x) => '';
 }
@@ -7426,9 +7681,9 @@ g(int a) {
   h(E(a).remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7440,7 +7695,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@extension::E::@method::remainder::@parameter::x#element
+  correspondingParameter: <testLibrary>::@extension::E::@method::remainder::@formalParameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7466,7 +7721,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
+  correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7486,20 +7741,20 @@ f(int a, double b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7519,20 +7774,20 @@ f(int a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7553,7 +7808,7 @@ MethodInvocation
   target: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -7564,15 +7819,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    element: dart:core::<fragment>::@class::num::@method::remainder#element
+    element: dart:core::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7581,7 +7836,8 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7591,9 +7847,9 @@ g(A a) {
   h(E(a).remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7605,7 +7861,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@extension::E::@method::remainder::@parameter::x#element
+  correspondingParameter: <testLibrary>::@extension::E::@method::remainder::@formalParameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7614,7 +7870,8 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_implicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7624,9 +7881,9 @@ g(A a) {
   h(a.remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7638,7 +7895,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@extension::E::@method::remainder::@parameter::x#element
+  correspondingParameter: <testLibrary>::@extension::E::@method::remainder::@formalParameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7685,13 +7942,13 @@ FunctionExpressionInvocation
       operator: ?.
       propertyName: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: content
-      element: <testLibraryFragment>::@class::A::@getter::content#element
+      element: <testLibrary>::@class::A::@getter::content
       staticType: String Function()
     staticType: String Function()
   argumentList: ArgumentList
@@ -7716,13 +7973,13 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::test::@parameter::x#element
+      element: <testLibrary>::@function::test::@formalParameter::x
       staticType: List<T>
     operator: .
     propertyName: SimpleIdentifier
       token: first
       element: GetterMember
-        baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
+        baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
       staticType: T
     staticType: T
@@ -7750,7 +8007,7 @@ FunctionExpressionInvocation
   function: SimpleIdentifier
     token: first
     element: GetterMember
-      baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
+      baseElement: dart:core::@class::Iterable::@getter::first
       substitution: {E: T}
     staticType: T
   argumentList: ArgumentList
@@ -7785,7 +8042,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7796,7 +8053,8 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -7804,9 +8062,9 @@ class B extends A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7833,16 +8091,17 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inEnum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7869,7 +8128,8 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 mixin M on A {
@@ -7877,9 +8137,9 @@ mixin M on A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7909,14 +8169,17 @@ MethodInvocation
     // This code is invalid, and the constructor initializer has a method
     // invocation with a synthetic name. But we should still resolve the
     // invocation, and resolve all its arguments.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : B(1 + 2, [0]);
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
+        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
+      ],
+    );
 
     var node = findNode.methodInvocation(');');
     assertResolvedNodeText(node, r'''
@@ -7935,10 +8198,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
         correspondingParameter: <null>
-        element: dart:core::<fragment>::@class::num::@method::+#element
+        element: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
       ListLiteral
@@ -7980,19 +8243,19 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
         staticType: int
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: b
-            element: <testLibraryFragment>::@function::foo::@parameter::b#element
+            element: <testLibrary>::@function::foo::@formalParameter::b
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: true
           staticType: bool
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::b#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b
     rightParenthesis: )
   staticInvokeType: void Function(int, {required bool b})
   staticType: void
@@ -8000,15 +8263,16 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_inferred() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 U foo<T, U>(T a) => throw Error();
 
 main() {
   bool v = foo(0);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -8023,7 +8287,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::a#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::a
           substitution: {T: int, U: bool}
         staticType: int
     rightParenthesis: )
@@ -8057,9 +8321,9 @@ MethodInvocation
       SimpleIdentifier
         token: o
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::value#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
-        element: <testLibraryFragment>::@function::f::@parameter::o#element
+        element: <testLibrary>::@function::f::@formalParameter::o
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: void Function(Object?)
@@ -8091,9 +8355,9 @@ MethodInvocation
       SimpleIdentifier
         token: o
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::value#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
-        element: <testLibraryFragment>::@function::f::@parameter::o#element
+        element: <testLibrary>::@function::f::@formalParameter::o
         staticType: List<void>
     rightParenthesis: )
   staticInvokeType: void Function(List<Object?>)
@@ -8130,15 +8394,16 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_notBounds() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T extends num>() {}
 
 main() {
   foo<bool>();
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4)],
+    );
 
     var node = findNode.methodInvocation('foo<bool>();');
     assertResolvedNodeText(node, r'''
@@ -8166,15 +8431,22 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T>() {}
 
 main() {
   foo<int, double>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          32,
+          13,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int, double>();');
     assertResolvedNodeText(node, r'''
@@ -8226,7 +8498,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)

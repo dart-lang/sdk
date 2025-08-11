@@ -8,14 +8,14 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartUriResolverTest);
-    defineReflectiveTests(ErrorSeverityTest);
+    defineReflectiveTests(DiagnosticSeverityTest);
     defineReflectiveTests(ResolveRelativeUriTest);
   });
 }
@@ -74,50 +74,68 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 }
 
 @reflectiveTest
-class ErrorSeverityTest {
+class DiagnosticSeverityTest {
   test_max_error_error() async {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
-        same(ErrorSeverity.ERROR));
+    expect(
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
+    );
   }
 
   test_max_error_none() async {
     expect(
-        ErrorSeverity.ERROR.max(ErrorSeverity.NONE), same(ErrorSeverity.ERROR));
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.ERROR),
+    );
   }
 
   test_max_error_warning() async {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.ERROR));
+    expect(
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.ERROR),
+    );
   }
 
   test_max_none_error() async {
     expect(
-        ErrorSeverity.NONE.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
+    );
   }
 
   test_max_none_none() async {
     expect(
-        ErrorSeverity.NONE.max(ErrorSeverity.NONE), same(ErrorSeverity.NONE));
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.NONE),
+    );
   }
 
   test_max_none_warning() async {
-    expect(ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.WARNING));
+    expect(
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.WARNING),
+    );
   }
 
   test_max_warning_error() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
-        same(ErrorSeverity.ERROR));
+    expect(
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
+    );
   }
 
   test_max_warning_none() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
-        same(ErrorSeverity.WARNING));
+    expect(
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.WARNING),
+    );
   }
 
   test_max_warning_warning() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.WARNING));
+    expect(
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.WARNING),
+    );
   }
 }
 
@@ -137,7 +155,10 @@ class ResolveRelativeUriTest {
 
   test_resolveRelative_dart_filePathWithParent() async {
     _assertResolve(
-        'dart:test/b/test.dart', '../c/lib.dart', 'dart:test/c/lib.dart');
+      'dart:test/b/test.dart',
+      '../c/lib.dart',
+      'dart:test/c/lib.dart',
+    );
   }
 
   test_resolveRelative_package_dartUri() async {
@@ -162,7 +183,10 @@ class ResolveRelativeUriTest {
 
   test_resolveRelative_package_filePathWithParent() async {
     _assertResolve(
-        'package:a/b/test.dart', '../c/lib.dart', 'package:a/c/lib.dart');
+      'package:a/b/test.dart',
+      '../c/lib.dart',
+      'package:a/c/lib.dart',
+    );
   }
 
   void _assertResolve(String baseStr, String containedStr, String expectedStr) {

@@ -1,7 +1,7 @@
 {
-"":"Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file",
-"":"for details. All rights reserved. Use of this source code is governed by a",
-"":"BSD-style license that can be found in the LICENSE file.",
+  "": "Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file",
+  "": "for details. All rights reserved. Use of this source code is governed by a",
+  "": "BSD-style license that can be found in the LICENSE file.",
   "packages": "../../../../.dart_tool/package_config.json",
   "suites": [
     {
@@ -14,8 +14,7 @@
         "\\.dart$",
         "\\.unformatteddart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
     {
       "name": "stacktrace",
@@ -26,8 +25,18 @@
       "pattern": [
         "\\.dart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
+    },
+    {
+      "name": "stacktrace_ddc_library_bundle",
+      "kind": "Chain",
+      "source": "stacktrace_ddc_library_bundle_suite.dart",
+      "root": "stacktrace_testfiles",
+      "status": "stacktrace_ddc_library_bundle.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": []
     }
   ]
 }

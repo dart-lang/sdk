@@ -105,10 +105,9 @@ class UnionTypeMask extends TypeMask {
       } else if (mask.isEmpty) {
         continue;
       } else {
-        var flatMask =
-            mask is RecordTypeMask
-                ? mask.toFlatTypeMask(domain)
-                : mask as FlatTypeMask;
+        var flatMask = mask is RecordTypeMask
+            ? mask.toFlatTypeMask(domain)
+            : mask as FlatTypeMask;
         int inListIndex = -1;
         bool covered = false;
 
@@ -236,9 +235,10 @@ class UnionTypeMask extends TypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
+  TypeMask _nonEmptyIntersection(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    final powerset = this.powerset.intersection(other.powerset);
+    final powerset = _intersectPowersets(this.powerset, other.powerset);
+
     if (other is UnionTypeMask) {
       if (_containsDisjointMasks(other)) {
         return other.withPowerset(powerset, domain);
@@ -267,15 +267,16 @@ class UnionTypeMask extends TypeMask {
       }
     }
     TypeMask newMask = TypeMask.unionOf(intersections, domain);
-    return newMask.withPowerset(powerset, domain);
+    return newMask.withPowerset(
+      newMask.powerset.union(_specialValueDomain.restrict(powerset)),
+      domain,
+    );
   }
 
   @override
-  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
-    if (isNullable && other.isNullable) return false;
-    if (hasLateSentinel && other.hasLateSentinel) return false;
+  bool _isNonTriviallyDisjoint(TypeMask other, JClosedWorld closedWorld) {
     for (var current in disjointMasks) {
-      if (!current.isDisjoint(other, closedWorld)) return false;
+      if (!current._isNonTriviallyDisjoint(other, closedWorld)) return false;
     }
     return true;
   }

@@ -461,6 +461,8 @@ abstract final class LintNames {
 
   static const String super_goes_last = 'super_goes_last';
 
+  static const String switch_on_type = 'switch_on_type';
+
   static const String test_types_in_equals = 'test_types_in_equals';
 
   static const String throw_in_finally = 'throw_in_finally';
@@ -544,6 +546,8 @@ abstract final class LintNames {
 
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
+
+  static const String unnecessary_unawaited = 'unnecessary_unawaited';
 
   static const String unnecessary_underscores = 'unnecessary_underscores';
 

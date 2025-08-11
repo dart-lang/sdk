@@ -19,14 +19,15 @@ main() {
 @reflectiveTest
 class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x as int;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8)],
+    );
   }
 
   test_await() async {
@@ -48,26 +49,30 @@ m() {
   }
 
   test_eq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x == null;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4)],
+    );
   }
 
   test_forLoop() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   for (var y in x) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
+      ],
+    );
   }
 
   test_is() async {
@@ -98,14 +103,15 @@ m() {
   }
 
   test_notEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x != null;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4)],
+    );
   }
 
   test_ternary_lhs() async {
@@ -149,7 +155,8 @@ extension E on A {
   }
 
   test_indexExpression_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int operator[](int index) => 0;
 
@@ -165,12 +172,20 @@ extension E on A? {
     this?[0] = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          130, 1),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          158, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          130,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          158,
+          1,
+        ),
+      ],
+    );
   }
 
   test_methodInvocation_nonNullable() async {
@@ -192,7 +207,8 @@ extension E on A {
   }
 
   test_methodInvocation_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -208,12 +224,20 @@ extension E on A? {
     this?.bar();
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          68, 3),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          84, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          68,
+          3,
+        ),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          84,
+          3,
+        ),
+      ],
+    );
   }
 
   test_methodInvocation_nuverNullable_extensionMethod() async {
@@ -243,7 +267,8 @@ extension E on A {
   }
 
   test_prefixExpression_minus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A operator-() => this;
 }
@@ -253,10 +278,15 @@ extension E on A? {
     -this;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          77, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          77,
+          1,
+        ),
+      ],
+    );
   }
 
   test_propertyAccess_getter_nonNullable() async {
@@ -280,7 +310,8 @@ extension E on A {
   }
 
   test_propertyAccess_getter_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -298,12 +329,20 @@ extension E on A? {
     this?.bar;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          93, 3),
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          107, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          93,
+          3,
+        ),
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          107,
+          3,
+        ),
+      ],
+    );
   }
 
   test_propertyAccess_setter_nonNullable() async {
@@ -327,7 +366,8 @@ extension E on A {
   }
 
   test_propertyAccess_setter_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set foo(int _) {}
 }
@@ -345,12 +385,20 @@ extension E on A? {
     this?.bar = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          93, 3),
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          111, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          93,
+          3,
+        ),
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          111,
+          3,
+        ),
+      ],
+    );
   }
 }
 
@@ -366,26 +414,33 @@ m() {
   }
 
   test_and_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   if(x && true) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          22, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          22,
+          1,
+        ),
+      ],
+    );
   }
 
   test_as_nullable_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   num? x;
   x as int;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1)],
+    );
   }
 
   test_as_nullable_nullable() async {
@@ -407,19 +462,26 @@ m() {
   }
 
   test_assert_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   assert(x);
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          26, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          26,
+          1,
+        ),
+      ],
+    );
   }
 
   test_assignment_eq_propertyAccess3_short1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x);
@@ -434,10 +496,15 @@ m(B b) {
   b.a?.x = 1;
   b.a.x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          104, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          104,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x = 1'), r'''
 AssignmentExpression
@@ -445,14 +512,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -463,11 +530,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int?
@@ -479,14 +546,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: .
     propertyName: SimpleIdentifier
@@ -497,11 +564,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -520,7 +587,7 @@ m(int x, int? y) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::m::@parameter::x#element
+    element: <testLibrary>::@function::m::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -529,7 +596,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
   element: <null>
   staticType: int
@@ -539,7 +606,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    element: <testLibraryFragment>::@function::m::@parameter::y#element
+    element: <testLibrary>::@function::m::@formalParameter::y
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -548,7 +615,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
   element: <null>
   staticType: int
@@ -556,7 +623,8 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_propertyAccess3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   int? y;
@@ -572,10 +640,15 @@ m(B b) {
   b.a.x += 0;
   b.a.y += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          115, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          115,
+          2,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x +='), r'''
 AssignmentExpression
@@ -583,14 +656,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
@@ -601,13 +674,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
 
@@ -617,14 +690,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
@@ -635,19 +708,20 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::y#element
+  readElement2: <testLibrary>::@class::A::@getter::y
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::A::@setter::y#element
+  writeElement2: <testLibrary>::@class::A::@setter::y
   writeType: int?
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_assignment_plusEq_propertyAccess3_short1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x);
@@ -662,10 +736,15 @@ m(B b) {
   b.a?.x += 1;
   b.a.x += 2;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          105, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          105,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x += 1'), r'''
 AssignmentExpression
@@ -673,14 +752,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -691,13 +770,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int?
 ''');
 
@@ -707,14 +786,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: .
     propertyName: SimpleIdentifier
@@ -725,44 +804,50 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_assignment_plusEq_simpleIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(int x, int? y) {
   x += 0;
   y += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          33, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          33,
+          2,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x +='), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::m::@parameter::x#element
+    element: <testLibrary>::@function::m::@formalParameter::x
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  readElement2: <testLibrary>::@function::m::@formalParameter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
 
@@ -770,18 +855,18 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    element: <testLibraryFragment>::@function::m::@parameter::y#element
+    element: <testLibrary>::@function::m::@formalParameter::y
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  readElement2: <testLibrary>::@function::m::@formalParameter::y
   readType: int?
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -814,14 +899,20 @@ f() {
   }
 
   test_cascade_nullable_indexed_assignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(List<int>? x) {
   x..[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          23, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          23,
+          1,
+        ),
+      ],
+    );
   }
 
   test_cascade_nullable_indexed_assignment_null_aware() async {
@@ -833,15 +924,21 @@ f(List<int>? x) {
   }
 
   test_cascade_nullable_method_invocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x..abs();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          3,
+        ),
+      ],
+    );
   }
 
   test_cascade_nullable_method_invocation_null_aware() async {
@@ -853,14 +950,20 @@ f(int? x) {
   }
 
   test_cascade_nullable_property_access() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int? x) {
   x..isEven;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          17, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          17,
+          6,
+        ),
+      ],
+    );
   }
 
   test_cascade_nullable_property_access_null_aware() async {
@@ -872,55 +975,70 @@ m(int? x) {
   }
 
   test_eqEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x == null;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4)],
+    );
   }
 
   test_forLoop_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   List x = [];
   for (var y in x) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+    );
   }
 
   test_forLoop_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   List? x;
   for (var y in x) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
-          33, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_forLoop_pattern_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   List? x;
   for (var (y) in x) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
-          35, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          35,
+          1,
+        ),
+      ],
+    );
   }
 
   test_getter_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   int get foo => 0;
 }
@@ -928,10 +1046,15 @@ extension E on int {
 m(int? x) {
   x.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          60, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          60,
+          3,
+        ),
+      ],
+    );
   }
 
   test_if_nonNullable() async {
@@ -944,15 +1067,21 @@ m() {
   }
 
   test_if_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   if (x) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          23, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          23,
+          1,
+        ),
+      ],
+    );
   }
 
   test_index_nonNullable() async {
@@ -965,15 +1094,21 @@ m() {
   }
 
   test_index_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   List? x;
   x[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          20, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20,
+          1,
+        ),
+      ],
+    );
   }
 
   test_invoke_dynamicFunctionType_nonNullable() async {
@@ -986,25 +1121,38 @@ m() {
   }
 
   test_invoke_dynamicFunctionType_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Function? x;
   x();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          23,
+          1,
+        ),
+      ],
+    );
   }
 
   test_invoke_dynamicFunctionType_nullable2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<F extends Function>(List<F?> funcList) {
   funcList[0]();
 }
-''', [
-      error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 50, 11),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          50,
+          11,
+        ),
+      ],
+    );
   }
 
   test_invoke_nonNullable() async {
@@ -1017,14 +1165,21 @@ m() {
   }
 
   test_invoke_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Function()? x;
   x();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 25, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          25,
+          1,
+        ),
+      ],
+    );
   }
 
   test_invoke_parenthesized_nonNullable() async {
@@ -1073,21 +1228,27 @@ m() {
   }
 
   test_member_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x.isEven;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          20, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          20,
+          6,
+        ),
+      ],
+    );
 
     var node = findNode.simple('isEven');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven
-  element: dart:core::<fragment>::@class::int::@getter::isEven#element
+  element: dart:core::@class::int::@getter::isEven
   staticType: bool
 ''');
   }
@@ -1102,15 +1263,21 @@ m() {
   }
 
   test_member_parenthesized_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   (x).isEven;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          22, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          22,
+          6,
+        ),
+      ],
+    );
   }
 
   test_member_parenthesized_runtimeType_nullable() async {
@@ -1123,24 +1290,37 @@ m() {
   }
 
   test_member_potentiallyNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m<T extends int?>(T x) {
   x.isEven;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          29, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          29,
+          6,
+        ),
+      ],
+    );
   }
 
   test_member_potentiallyNullable_called() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m<T extends Function>(List<T?> x) {
   x.first();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 38, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          38,
+          7,
+        ),
+      ],
+    );
   }
 
   test_member_questionDot_nullable() async {
@@ -1178,19 +1358,26 @@ m(int x) {
   }
 
   test_method_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x.round();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          20, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20,
+          5,
+        ),
+      ],
+    );
   }
 
   test_method_nullable_notNullableExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   void foo() {}
 }
@@ -1198,10 +1385,15 @@ extension E on int {
 m(int? x) {
   x.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          56, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          56,
+          3,
+        ),
+      ],
+    );
   }
 
   test_method_questionDot_nullable() async {
@@ -1229,72 +1421,93 @@ m(Function x) {
   }
 
   test_methodInvocation_call_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(Function? x) {
   x.call();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          4,
+        ),
+      ],
+    );
   }
 
   test_minusEq_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int x = 0;
   x -= 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_minusEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x -= 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          20, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          20,
+          2,
+        ),
+      ],
+    );
   }
 
   test_not_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool x = true;
   if(!x) {}
 }
-''', [
-      error(WarningCode.DEAD_CODE, 32, 2),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 32, 2)],
+    );
   }
 
   test_not_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   if(!x) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          23, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          23,
+          1,
+        ),
+      ],
+    );
   }
 
   test_notEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x != null;
 }
-''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4)],
+    );
   }
 
   test_nullable_dotQ_propertyAccess_dot_methodInvocation() async {
@@ -1335,17 +1548,21 @@ m() {
   }
 
   test_operatorMinus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x - 3;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
           20,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_operatorPlus_nonNullable() async {
@@ -1358,41 +1575,52 @@ m() {
   }
 
   test_operatorPlus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x + 3;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
           20,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_operatorPostfixDec_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int x = 0;
   x--;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_operatorPostfixDec_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   x--;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          19, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          19,
+          2,
+        ),
+      ],
+    );
   }
 
   test_operatorPostfixInc_nonNullable() async {
@@ -1404,18 +1632,25 @@ m(int x) {
   }
 
   test_operatorPostfixInc_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(int? x) {
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          15, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          15,
+          2,
+        ),
+      ],
+    );
   }
 
   test_operatorPostfixInc_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -1425,34 +1660,46 @@ extension E on A {
 m(A? x) {
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          78, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          78,
+          2,
+        ),
+      ],
+    );
   }
 
   test_operatorPrefixDec_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int x = 0;
   --x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_operatorPrefixDec_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   --x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          18,
+          2,
+        ),
+      ],
+    );
   }
 
   test_operatorPrefixInc_nonNullable() async {
@@ -1464,42 +1711,56 @@ m(int x) {
   }
 
   test_operatorPrefixInc_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(int? x) {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          14, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          14,
+          2,
+        ),
+      ],
+    );
   }
 
   test_operatorUnaryMinus_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int x = 0;
   -x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+    );
   }
 
   test_operatorUnaryMinus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   int? x;
   -x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          18,
+          1,
+        ),
+      ],
+    );
   }
 
   test_operatorUnaryMinus_nullable_nonNullableExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -1509,33 +1770,45 @@ extension E on A {
 m(A? x) {
   -x;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          72, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          72,
+          1,
+        ),
+      ],
+    );
   }
 
   test_or_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool x = true;
   if(x || false) {}
 }
-''', [
-      error(WarningCode.DEAD_CODE, 30, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 30, 8)],
+    );
   }
 
   test_or_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   if(x || false) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          22, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          22,
+          1,
+        ),
+      ],
+    );
   }
 
   test_plusEq_nonNullable() async {
@@ -1547,18 +1820,25 @@ m(int x) {
   }
 
   test_plusEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(int? x) {
   x += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          16, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          16,
+          2,
+        ),
+      ],
+    );
   }
 
   test_read_propertyAccess2_short1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final int x;
   A(this.x);
@@ -1568,10 +1848,15 @@ m(A? a) {
   a?.x; // 1
   a.x; // 2
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          68, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          68,
+          1,
+        ),
+      ],
+    );
     var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
     var propertyAccess2 = findNode.prefixed('a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
@@ -1585,7 +1870,8 @@ m(A? a) {
   }
 
   test_read_propertyAccess3_short1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x);
@@ -1600,10 +1886,15 @@ m(B b) {
   b.a?.x; // 1
   b.a.x; // 2
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          105, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          105,
+          1,
+        ),
+      ],
+    );
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
@@ -1617,7 +1908,8 @@ m(B b) {
   }
 
   test_read_propertyAccess3_short2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x);
@@ -1632,10 +1924,15 @@ m(B? b) {
   b?.a.x; // 1
   b.a.x; // 2
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          103, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          103,
+          1,
+        ),
+      ],
+    );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A');
@@ -1649,7 +1946,8 @@ m(B? b) {
   }
 
   test_read_propertyAccess4_short1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x;
   A(this.x);
@@ -1669,10 +1967,15 @@ m(C c) {
   c.b.a?.x; // 1
   c.b.a.x; // 2
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          148, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          148,
+          1,
+        ),
+      ],
+    );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A?');
@@ -1686,7 +1989,8 @@ m(C c) {
   }
 
   test_read_propertyAccess4_short2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final int x;
   A(this.x);
@@ -1706,10 +2010,15 @@ m(C c) {
   c.b?.a.x; // 1
   c.b.a.x; // 2
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          152, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          152,
+          1,
+        ),
+      ],
+    );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
     var propertyAccess1t = propertyAccess1.target as PropertyAccess;
@@ -1736,15 +2045,21 @@ m() {
   }
 
   test_spread_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   List? list;
   [...list];
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD, 26,
-          4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
+          26,
+          4,
+        ),
+      ],
+    );
   }
 
   test_spread_nullable_question() async {
@@ -1757,15 +2072,21 @@ m() {
   }
 
   test_ternary_condition_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   bool? x;
   x ? 0 : 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          19, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          19,
+          1,
+        ),
+      ],
+    );
   }
 
   test_ternary_lhs_nullable() async {
@@ -1787,29 +2108,37 @@ m(bool cond) {
   }
 
   test_tripleShift_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m(String? s) {
   s?.length >>> 2;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
           27,
-          3),
-    ]);
+          3,
+        ),
+      ],
+    );
   }
 
   test_uncheckedOperatorInvocation_relationalPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   if (x case > 0) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
           30,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_uncheckedOperatorInvocation_relationalPattern_hasExtension() async {
@@ -1834,15 +2163,21 @@ m() sync* {
   }
 
   test_yieldEach_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() sync* {
   List<int>? x;
   yield* x;
 }
-''', [
-      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 37, 1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
-          37, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 37, 1),
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+          37,
+          1,
+        ),
+      ],
+    );
   }
 }

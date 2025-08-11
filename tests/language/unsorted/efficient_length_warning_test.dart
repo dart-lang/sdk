@@ -9,9 +9,11 @@ main() {
   // This should no longer cause a warning because the least-upper-bound
   // of List<int> and Set<int> is Object.
   // The LUB is now EfficientLengthIterable and it extends Iterable.
-  var x = (new Random().nextBool() // Unpredictable condition.
-          ? <int>[1]
-          : new Set<int>.from([1]))
-      .first;
+  var x =
+      (new Random()
+                  .nextBool() // Unpredictable condition.
+              ? <int>[1]
+              : new Set<int>.from([1]))
+          .first;
   if (x != 1) throw "Wat?";
 }

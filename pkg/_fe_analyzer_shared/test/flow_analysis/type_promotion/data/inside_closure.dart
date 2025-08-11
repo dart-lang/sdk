@@ -6,7 +6,8 @@ void nested_closures(Function([dynamic]) f) {
   void inner(Object x) {
     if (x is String) {
       f();
-      /*String*/ x;
+      /*String*/
+      x;
     }
     f(() {
       if (x is String) {

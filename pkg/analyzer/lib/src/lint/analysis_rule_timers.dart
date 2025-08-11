@@ -14,6 +14,6 @@ class AnalysisRuleTimers {
 
   /// Get a timer associated with the given analysis rule (or create one if none
   /// exists).
-  Stopwatch getTimer(AnalysisRule linter) =>
+  Stopwatch getTimer(AbstractAnalysisRule linter) =>
       timers.putIfAbsent(linter.name, () => Stopwatch());
 }

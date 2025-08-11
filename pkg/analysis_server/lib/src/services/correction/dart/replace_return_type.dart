@@ -99,29 +99,22 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
       return false;
     }
 
-    var methodName = method.declaredFragment!.name2;
+    var methodName = method.declaredFragment!.name;
     if (methodName == null) {
       return false;
     }
 
     var classElement = clazz.declaredFragment!.element;
-    var overriddenList = InheritanceManager3().getOverridden4(
-      classElement,
-      Name.forLibrary(classElement.library2, methodName),
+    var overriddenList = classElement.getOverridden(
+      Name.forLibrary(classElement.library, methodName),
     );
 
-    if (overriddenList != null) {
-      var notSubtype = overriddenList.any(
-        (element) =>
-            !libraryElement2.typeSystem.isSubtypeOf(
-              newType,
-              element.returnType,
-            ),
-      );
-      if (notSubtype) {
-        return false;
-      }
+    if (overriddenList == null) {
+      return true;
     }
-    return true;
+
+    return overriddenList.every(
+      (e) => libraryElement2.typeSystem.isSubtypeOf(newType, e.returnType),
+    );
   }
 }

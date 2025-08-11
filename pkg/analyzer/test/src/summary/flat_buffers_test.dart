@@ -86,14 +86,66 @@ class BuilderTest {
     builder.lowReset();
     expect((builder..lowWriteUint8(1)).lowFinish(), [1]);
     expect((builder..lowWriteUint32(2)).lowFinish(), [2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..lowWriteUint8(3)).lowFinish(),
-        [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..lowWriteUint8(4)).lowFinish(),
-        [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..lowWriteUint8(5)).lowFinish(),
-        [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..lowWriteUint32(6)).lowFinish(),
-        [6, 0, 0, 0, 0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+    expect((builder..lowWriteUint8(3)).lowFinish(), [
+      0,
+      0,
+      0,
+      3,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+    ]);
+    expect((builder..lowWriteUint8(4)).lowFinish(), [
+      0,
+      0,
+      4,
+      3,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+    ]);
+    expect((builder..lowWriteUint8(5)).lowFinish(), [
+      0,
+      5,
+      4,
+      3,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+    ]);
+    expect((builder..lowWriteUint32(6)).lowFinish(), [
+      6,
+      0,
+      0,
+      0,
+      0,
+      5,
+      4,
+      3,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+    ]);
   }
 
   void test_table_default() {
@@ -143,7 +195,9 @@ class BuilderTest {
     for (int i = 0; i < 3; i++) {
       int offset = byteData.getUint16(vTableLoc + 4 + 2 * i, Endian.little);
       expect(
-          byteData.getInt32(tableDataLoc + offset, Endian.little), 10 + 10 * i);
+        byteData.getInt32(tableDataLoc + offset, Endian.little),
+        10 + 10 * i,
+      );
     }
   }
 
@@ -164,10 +218,14 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const StringReader().vTableGetOrNull(buf, objectOffset, 0),
-        latinString);
-    expect(const StringReader().vTableGetOrNull(buf, objectOffset, 1),
-        unicodeString);
+    expect(
+      const StringReader().vTableGetOrNull(buf, objectOffset, 0),
+      latinString,
+    );
+    expect(
+      const StringReader().vTableGetOrNull(buf, objectOffset, 1),
+      unicodeString,
+    );
   }
 
   void test_table_types() {
@@ -196,7 +254,9 @@ class BuilderTest {
     expect(const StringReader().vTableGetOrNull(buf, objectOffset, 3), '12345');
     expect(const Int32Reader().vTableGetOrNull(buf, objectOffset, 4), 40);
     expect(
-        const Uint32Reader().vTableGetOrNull(buf, objectOffset, 5), 0x9ABCDEF0);
+      const Uint32Reader().vTableGetOrNull(buf, objectOffset, 5),
+      0x9ABCDEF0,
+    );
     expect(const Uint8Reader().vTableGetOrNull(buf, objectOffset, 6), 0x9A);
     expect(const Float64Reader().vTableGetOrNull(buf, objectOffset, 7), -12.34);
   }
@@ -315,8 +375,9 @@ class BuilderTest {
     }
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
-    List<TestPointImpl> items =
-        const ListReader<TestPointImpl>(TestPointReader()).read(buf, 0);
+    List<TestPointImpl> items = const ListReader<TestPointImpl>(
+      TestPointReader(),
+    ).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -345,8 +406,10 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = Builder(initialSize: 0);
-      Offset listOffset = builder.writeList(
-          [builder.writeString('12345'), builder.writeString('ABC')]);
+      Offset listOffset = builder.writeList([
+        builder.writeString('12345'),
+        builder.writeString('ABC'),
+      ]);
       builder.startTable();
       builder.addOffset(0, listOffset);
       Offset offset = builder.endTable();

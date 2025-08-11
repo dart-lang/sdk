@@ -16,8 +16,4 @@ class X<T extends Type> {}
 // This line is supposed to cause the warning; the other lines are
 // marked because they don't make sense when [Y] is not defined.
 
-
-main() {
-
-
-}
+main() {}

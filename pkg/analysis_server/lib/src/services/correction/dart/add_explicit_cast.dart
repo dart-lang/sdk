@@ -126,7 +126,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
   ({Expression target, DartType fromType, DartType toType})?
   _computeTargetAndTypes() {
     var target = coveringNode;
-    if (target is! Expression) {
+    if (target is! Expression || target.endToken.isSynthetic) {
       return null;
     }
 
@@ -149,7 +149,7 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType!;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      if (parent.declaredElement2 case var declaredElement?) {
+      if (parent.declaredElement case var declaredElement?) {
         toType = declaredElement.type;
       } else if (parent.declaredFragment case var declaredFragment?) {
         toType = declaredFragment.element.type;

@@ -12,7 +12,7 @@ class C {
 
 main() {
   for (var b in [
-    [false, 'pig']
+    [false, 'pig'],
   ]) {
     var c;
     if (b[0] as bool) c = new C();

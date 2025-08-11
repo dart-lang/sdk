@@ -44,7 +44,7 @@ extension C<TypeU extends self::A<dynamic, dynamic> = dynamic> on core::int {
 }
 static field self::B<dynamic> b = throw "";
 static method main() → dynamic {}
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#D#fromEnvironment#tearOff<unrelated TypeU extends self::A<dynamic, dynamic> = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#D#fromEnvironment#tearOff<unrelated TypeU extends self::A<dynamic, dynamic> = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
 constants  {

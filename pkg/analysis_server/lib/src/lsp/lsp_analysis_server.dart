@@ -33,7 +33,7 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -47,10 +47,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
@@ -76,15 +74,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// The channel from which messages are received and to which responses should
   /// be sent.
   final LspServerCommunicationChannel channel;
-
-  /// The versions of each document known to the server (keyed by path), used to
-  /// send back to the client for server-initiated edits so that the client can
-  /// ensure they have a matching version of the document before applying them.
-  ///
-  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
-  /// which will return a null-versioned identifier if the document version is
-  /// not known.
-  final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
   /// The message handler for the server based on the current state
   /// (uninitialized, initializing, initialized, etc.).
@@ -117,9 +106,6 @@ class LspAnalysisServer extends AnalysisServer {
   @visibleForTesting
   int contextBuilds = 0;
 
-  /// The subscription to the stream of incoming messages from the client.
-  late final StreamSubscription<void> _channelSubscription;
-
   /// An optional manager to handle file systems which may not always be
   /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
@@ -127,13 +113,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// A flag indicating whether analysis was being performed the last time
   /// `sendStatusNotification` was invoked.
   bool wasAnalyzing = false;
-
-  /// Whether notifications caused by analysis should be suppressed.
-  ///
-  /// This is used when an operation is temporarily modifying overlays and does
-  /// not want the client to be notified of any analysis happening on the
-  /// temporary content.
-  bool suppressAnalysisResults = false;
 
   /// Tracks files that have non-empty diagnostics on the client.
   ///
@@ -162,7 +141,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
-    super.retainDataForTesting,
+    super.messageSchedulerListener,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -192,11 +171,7 @@ class LspAnalysisServer extends AnalysisServer {
         .listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
-    _channelSubscription = channel.listen(
-      scheduleMessage,
-      onDone: done,
-      onError: socketError,
-    );
+    channel.listen(scheduleMessage, onDone: done, onError: socketError);
 
     if (AnalysisServer.supportsPlugins) {
       _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
@@ -273,8 +248,6 @@ class LspAnalysisServer extends AnalysisServer {
       sendLspNotification(message);
     };
   }
-
-  path.Context get pathContext => resourceProvider.pathContext;
 
   @override
   set pluginManager(PluginManager value) {
@@ -358,7 +331,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If the above code is extended to support multiple sets of config
       // this will need tweaking to handle the item for each section.
       if (result != null &&
-          result is List<dynamic> &&
+          result is List<Object?> &&
           result.length == 1 + folders.length) {
         // Config is stored as a map keyed by the workspace folder, and a key of
         // null for the global config
@@ -388,28 +361,6 @@ class LspAnalysisServer extends AnalysisServer {
     // Don't await this because it involves sending requests to the client (for
     // config) that should not stop/delay initialization.
     unawaited(capabilitiesComputer.performDynamicRegistration());
-  }
-
-  /// Gets the current version number of a document.
-  @override
-  int? getDocumentVersion(String path) => documentVersions[path]?.version;
-
-  /// Gets the current identifier/version of a document known to the server,
-  /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
-  /// `null` if the document version is not known.
-  ///
-  /// Prefer using [HandlerHelperMixin.extractDocumentVersion] when you
-  /// already have a [TextDocumentIdentifier] from the client because it is
-  /// guaranteed to be what the client expected and not just the current version
-  /// the server has.
-  @override
-  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
-    String path,
-  ) {
-    return OptionalVersionedTextDocumentIdentifier(
-      uri: uriConverter.toClientUri(path),
-      version: getDocumentVersion(path),
-    );
   }
 
   @override
@@ -454,7 +405,7 @@ class LspAnalysisServer extends AnalysisServer {
     performanceAfterStartup = ServerPerformance();
     performance = performanceAfterStartup!;
 
-    _checkAnalytics();
+    checkAnalytics();
     enableSurveys();
 
     // Notify the client of any issues parsing experimental capabilities.
@@ -543,6 +494,7 @@ class LspAnalysisServer extends AnalysisServer {
               clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
               completer: completer,
+              isTrustedCaller: true,
             );
 
             if (message is RequestMessage) {
@@ -604,45 +556,6 @@ class LspAnalysisServer extends AnalysisServer {
         completer?.setComplete();
       }
     }, socketError);
-  }
-
-  /// Locks the server from processing incoming messages until [operation]
-  /// completes.
-  ///
-  /// This can be used to obtain analysis results/resolved units consistent with
-  /// the state of a file at the time this method was called, preventing
-  /// changes by incoming file modifications.
-  ///
-  /// The contents of [operation] should be kept as short as possible and since
-  /// cancellation requests will also be blocked for the duration of this
-  /// operation, handles should generally check the cancellation flag
-  /// immediately after this function returns.
-  Future<T> lockRequestsWhile<T>(FutureOr<T> Function() operation) async {
-    // TODO(dantup): Prevent this method from locking responses from the client
-    //  because this can lead to deadlocks if called during initialization where
-    //  the server may wait for something (configuration) from the client. This
-    //  might fit in with potential upcoming scheduler changes.
-    //
-    // This is currently used by Completion+FixAll (which are less likely, but
-    // possible to be called during init).
-    //
-    // https://github.com/dart-lang/sdk/issues/56311#issuecomment-2250089185
-    var completer = Completer<void>();
-
-    // Pause handling incoming messages until `operation` completes.
-    //
-    // If this method is called multiple times, the pauses will stack, meaning
-    // the subscription will not resume until all operations complete.
-    _channelSubscription.pause(completer.future);
-
-    try {
-      // `await` here is important to ensure `finally` doesn't execute until
-      // `operation()` completes (`whenComplete` is not available on
-      // `FutureOr`).
-      return await operation();
-    } finally {
-      completer.complete();
-    }
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -1107,21 +1020,6 @@ class LspAnalysisServer extends AnalysisServer {
     notifyFlutterWidgetDescriptions(path);
   }
 
-  /// Display a message that will allow us to enable analytics on the next run.
-  void _checkAnalytics() {
-    // TODO(dantup): This code should move to base server.
-    var unifiedAnalytics = analyticsManager.analytics;
-    var prompt = userPromptSender;
-    if (!unifiedAnalytics.shouldShowMessage || prompt == null) {
-      return;
-    }
-
-    unawaited(
-      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
-    );
-    unifiedAnalytics.clientShowedMessage();
-  }
-
   /// Computes analysis roots for a set of open files.
   ///
   /// This is used when there are no workspace folders open directly.
@@ -1133,12 +1031,14 @@ class LspAnalysisServer extends AnalysisServer {
     var packages = <String>{};
     var additionalFiles = <String>[];
     for (var file in openFiles) {
-      var package = roots
-          .where((root) => root.isAnalyzed(file))
-          .map((root) => root.workspace.findPackageFor(file)?.root)
-          .firstWhereOrNull((p) => p != null);
-      if (package != null && !resourceProvider.getFolder(package).isRoot) {
-        packages.add(package);
+      var package =
+          roots
+              .where((root) => root.isAnalyzed(file))
+              .map((root) => root.workspace.findPackageFor(file)?.root)
+              .nonNulls
+              .firstOrNull;
+      if (package != null && !package.isRoot) {
+        packages.add(package.path);
       } else {
         additionalFiles.add(file);
       }
@@ -1167,11 +1067,14 @@ class LspAnalysisServer extends AnalysisServer {
     );
     result.ifError((error) => sendErrorResponse(message, error));
     result.ifResult(
-      (result) => sendResponse(
-        ResponseMessage(
-          id: message.id,
-          result: result,
-          jsonrpc: jsonRpcVersion,
+      (result) => messageInfo.performance.run(
+        'sendResponse',
+        (_) => sendResponse(
+          ResponseMessage(
+            id: message.id,
+            result: result,
+            jsonrpc: jsonRpcVersion,
+          ),
         ),
       ),
     );
@@ -1352,15 +1255,6 @@ class LspServerContextManagerCallbacks
   }
 
   @override
-  void handleFileResult(FileResult result) {
-    if (analysisServer.suppressAnalysisResults) {
-      return;
-    }
-
-    super.handleFileResult(result);
-  }
-
-  @override
   void handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
 
@@ -1394,12 +1288,12 @@ class LspServerContextManagerCallbacks
 
   bool _shouldSendError(protocol.AnalysisError error) {
     // Non-TODOs are always shown.
-    if (error.type.name != ErrorType.TODO.name) {
+    if (error.type.name != engine.DiagnosticType.TODO.name) {
       return true;
     }
 
     // TODOs that are upgraded from INFO are always shown.
-    if (error.severity.name != ErrorSeverity.INFO.name) {
+    if (error.severity.name != engine.DiagnosticSeverity.INFO.name) {
       return true;
     }
 

@@ -21,7 +21,9 @@ testReadSyncBigInt() {
     var bigint = 9223372036854775807;
     var openedFile = file.openSync();
     Expect.throws(
-        () => openedFile.readSync(bigint), (e) => e is FileSystemException);
+      () => openedFile.readSync(bigint),
+      (e) => e is FileSystemException,
+    );
     openedFile.closeSync();
     done();
   });

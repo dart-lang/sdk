@@ -2,22 +2,22 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = c; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = d2; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = g1; // Error
 //       ^
 //
-// pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
+// pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   o = g2; // Error
 //       ^
@@ -343,64 +343,64 @@ static extension-type-member method C|constructor#(core::Object? o) → self::C%
   lowered final self::C% /* erasure=core::Object?, declared=! */ #this = o;
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff(core::Object? o) → self::C% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method C|constructor#_#new#tearOff(core::Object? o) → self::C% /* erasure=core::Object?, declared=! */
   return self::C|constructor#(o);
 static extension-type-member method D|constructor#(core::Object o) → self::D /* erasure=core::Object */ {
   lowered final self::D /* erasure=core::Object */ #this = o;
   return #this;
 }
-static extension-type-member method D|constructor#_#new#tearOff(core::Object o) → self::D /* erasure=core::Object */
+static extension-type-member synthetic method D|constructor#_#new#tearOff(core::Object o) → self::D /* erasure=core::Object */
   return self::D|constructor#(o);
 static extension-type-member method D2|constructor#(core::Object o) → self::D2% /* erasure=core::Object, declared=! */ {
   lowered final self::D2% /* erasure=core::Object, declared=! */ #this = o;
   return #this;
 }
-static extension-type-member method D2|constructor#_#new#tearOff(core::Object o) → self::D2% /* erasure=core::Object, declared=! */
+static extension-type-member synthetic method D2|constructor#_#new#tearOff(core::Object o) → self::D2% /* erasure=core::Object, declared=! */
   return self::D2|constructor#(o);
 static extension-type-member method E|constructor#(self::B it) → self::E /* erasure=self::B */ {
   lowered final self::E /* erasure=self::B */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
   return self::E|constructor#(it);
 static extension-type-member method F|constructor#(self::B it) → self::F /* erasure=self::B */ {
   lowered final self::F /* erasure=self::B */ #this = it;
   return #this;
 }
-static extension-type-member method F|constructor#_#new#tearOff(self::B it) → self::F /* erasure=self::B */
+static extension-type-member synthetic method F|constructor#_#new#tearOff(self::B it) → self::F /* erasure=self::B */
   return self::F|constructor#(it);
 static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% o) → self::G<self::G|constructor#::T%>% /* erasure=self::G|constructor#::T%, declared=! */ {
   lowered final self::G<self::G|constructor#::T%>% /* erasure=self::G|constructor#::T%, declared=! */ #this = o;
   return #this;
 }
-static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* erasure=self::G|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* erasure=self::G|constructor#_#new#tearOff::T%, declared=! */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static extension-type-member method G2|constructor#<T extends core::Object>(self::G2|constructor#::T o) → self::G2<self::G2|constructor#::T> /* erasure=self::G2|constructor#::T */ {
   lowered final self::G2<self::G2|constructor#::T> /* erasure=self::G2|constructor#::T */ #this = o;
   return #this;
 }
-static extension-type-member method G2|constructor#_#new#tearOff<T extends core::Object>(self::G2|constructor#_#new#tearOff::T o) → self::G2<self::G2|constructor#_#new#tearOff::T> /* erasure=self::G2|constructor#_#new#tearOff::T */
+static extension-type-member synthetic method G2|constructor#_#new#tearOff<T extends core::Object>(self::G2|constructor#_#new#tearOff::T o) → self::G2<self::G2|constructor#_#new#tearOff::T> /* erasure=self::G2|constructor#_#new#tearOff::T */
   return self::G2|constructor#<self::G2|constructor#_#new#tearOff::T>(o);
 static method test<T1 extends core::Object? = dynamic, T2 extends self::A, T3 extends core::Object>(core::Object o, self::A a, self::B b, self::C% /* erasure=core::Object?, declared=! */ c, self::D /* erasure=core::Object */ d, self::D2% /* erasure=core::Object, declared=! */ d2, self::E /* erasure=self::B */ e, self::F /* erasure=self::B */ f, self::G<self::test::T1%>% /* erasure=self::test::T1%, declared=! */ g1, self::G<self::test::T2>% /* erasure=self::test::T2, declared=! */ g2, self::G2<self::test::T3> /* erasure=self::test::T3 */ g3) → dynamic {
   o = o;
   o = a;
   o = b;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = c; // Error
       ^" in let self::C% /* erasure=core::Object?, declared=! */ #t1 = c in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   o = d;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = d2; // Error
       ^" in let self::D2% /* erasure=core::Object, declared=! */ #t2 = d2 in #t2 == null ?{core::Object} #t2 as{TypeError} core::Object : #t2{core::Object};
   o = e;
   o = f;
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = g1; // Error
       ^" in let self::G<self::test::T1%>% /* erasure=self::test::T1%, declared=! */ #t3 = g1 in #t3 == null ?{core::Object} #t3 as{TypeError} core::Object : #t3{core::Object};
-  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
+  o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object'.
  - 'Object' is from 'dart:core'.
   o = g2; // Error
       ^" in let self::G<self::test::T2>% /* erasure=self::test::T2, declared=! */ #t4 = g2 in #t4 == null ?{core::Object} #t4 as{TypeError} core::Object : #t4{core::Object};

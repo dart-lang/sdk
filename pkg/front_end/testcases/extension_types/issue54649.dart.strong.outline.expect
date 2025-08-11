@@ -15,11 +15,11 @@ extension type F(asy::Future<core::int> _) implements asy::Future<core::int> {
 }
 static extension-type-member method N|constructor#(asy::Future<core::int> _) → self::N% /* erasure=asy::Future<core::int>, declared=! */
   ;
-static extension-type-member method N|constructor#_#new#tearOff(asy::Future<core::int> _) → self::N% /* erasure=asy::Future<core::int>, declared=! */
+static extension-type-member synthetic method N|constructor#_#new#tearOff(asy::Future<core::int> _) → self::N% /* erasure=asy::Future<core::int>, declared=! */
   return self::N|constructor#(_);
 static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   ;
-static extension-type-member method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
+static extension-type-member synthetic method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   return self::F|constructor#(_);
 static method test<X extends core::Object? = dynamic, XN extends self::N% /* erasure=asy::Future<core::int>, declared=! */, XF extends self::F /* erasure=asy::Future<core::int> */>(self::N% /* erasure=asy::Future<core::int>, declared=! */ n, self::F /* erasure=asy::Future<core::int> */ f, self::test::X% x, self::test::XN% xn, self::test::XF xf, self::N? /* erasure=asy::Future<core::int>? */ nq, self::F? /* erasure=asy::Future<core::int>? */ fq, self::test::XN? xnq, self::test::XF? xfq) → void async 
   ;

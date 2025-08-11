@@ -43,35 +43,32 @@ void matchIL$foobar(FlowGraph graph) {
             // ordering (LICM is performed before RangeAnalysis).
             'values.length_unboxed' << match.UnboxInt32('values.length'),
           match.Branch(
-              match.RelationalOp('i', 'values.length_unboxed', kind: '>='),
-              ifTrue: 'B4',
-              ifFalse: 'B12'),
+            match.RelationalOp('i', 'values.length_unboxed', kind: '>='),
+            ifTrue: 'B4',
+            ifFalse: 'B12',
+          ),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn(match.any)]),
     'B12' <<
         match.block('Target', [
           if (is32BitConfiguration) 'i_boxed' << match.BoxInt32('i'),
           'tokenValue' <<
               match.LoadIndexed(
-                  'values.data', is32BitConfiguration ? 'i_boxed' : 'i'),
+                'values.data',
+                is32BitConfiguration ? 'i_boxed' : 'i',
+              ),
           if (is32BitConfiguration)
             'i+1' << match.BinaryInt32Op('i', 'int 1')
           else
             'i+1' << match.BinaryInt64Op('i', 'int 1'),
-          match.Branch(match.StrictCompare('tokenValue', 'token', kind: '==='),
-              ifTrue: 'B5', ifFalse: 'B6'),
+          match.Branch(
+            match.StrictCompare('tokenValue', 'token', kind: '==='),
+            ifTrue: 'B5',
+            ifFalse: 'B6',
+          ),
         ]),
-    'B5' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
-    'B6' <<
-        match.block('Target', [
-          match.Goto('B16'),
-        ]),
+    'B5' << match.block('Target', [match.DartReturn(match.any)]),
+    'B6' << match.block('Target', [match.Goto('B16')]),
   ]);
 }
 

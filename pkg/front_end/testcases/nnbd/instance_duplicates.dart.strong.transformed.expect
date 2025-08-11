@@ -70,6 +70,13 @@ library;
 //   int? methodAndFieldAndSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:24:12: Error: The setter conflicts with declaration 'methodAndFieldAndSetter2'.
+//   void set methodAndFieldAndSetter2(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:23:8: Context: Conflicting declaration 'methodAndFieldAndSetter2'.
+//   int? methodAndFieldAndSetter2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,15 +84,29 @@ library;
 //   void set methodAndFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Context: Conflicting setter 'methodAndFieldAndSetter3'.
 //   void set methodAndFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: 'methodAndFieldAndSetter3' is already declared in this scope.
+//   int? methodAndFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Context: Previous declaration of 'methodAndFieldAndSetter3'.
+//   int? methodAndFieldAndSetter3() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter4'.
 //   int? methodAndFieldAndSetter4;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
+//   void set methodAndFieldAndSetter4(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:32:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter4'.
+//   int? methodAndFieldAndSetter4() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
 //   void set methodAndFieldAndSetter4(int? value) {}
@@ -182,19 +203,12 @@ library;
 //   final int? fieldAndFinalFieldAndSetter2 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: The declaration conflicts with setter 'fieldAndFinalFieldAndSetter3'.
 //   int? fieldAndFinalFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Context: Conflicting setter 'fieldAndFinalFieldAndSetter3'.
 //   void set fieldAndFinalFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:72:14: Error: 'fieldAndFinalFieldAndSetter3' is already declared in this scope.
-//   final int? fieldAndFinalFieldAndSetter3 = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Context: Previous declaration of 'fieldAndFinalFieldAndSetter3'.
-//   int? fieldAndFinalFieldAndSetter3;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:76:8: Error: 'fieldAndFinalFieldAndSetter4' is already declared in this scope.
 //   int? fieldAndFinalFieldAndSetter4;
@@ -207,25 +221,47 @@ library;
 //   int? set methodAndSetter2() {}
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
 //   c.methodAndField1 = c.methodAndField1;
 //     ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
 //   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
-//   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
-//                                       ^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
+//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
+//   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFinalFieldAndSetter1'.
+//   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter1'.
 //   c.methodAndSetter1 = c.methodAndSetter1;
-//                          ^
+//     ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter2'.
+//   c.methodAndSetter2 = c.methodAndSetter2;
+//     ^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -234,8 +270,6 @@ class Class extends core::Object {
   field core::int? methodAndField2 = null;
   final field core::int? methodAndFinalField2 = 0;
   field core::int? methodAndFieldAndSetter2 = null;
-  field core::int? methodAndFieldAndSetter3 = null;
-  field core::int? methodAndFieldAndSetter4 = null;
   final field core::int? methodAndFinalFieldAndSetter2 = 0;
   final field core::int? methodAndFinalFieldAndSetter3 = 0;
   final field core::int? methodAndFinalFieldAndSetter4 = 0;
@@ -243,7 +277,7 @@ class Class extends core::Object {
   field core::int? fieldAndSetter2 = null;
   field core::int? fieldAndFinalFieldAndSetter1 = null;
   final field core::int? fieldAndFinalFieldAndSetter2 = 0;
-  field core::int? fieldAndFinalFieldAndSetter3 = null;
+  final field core::int? fieldAndFinalFieldAndSetter3 = 0;
   final field core::int? fieldAndFinalFieldAndSetter4 = 0;
   synthetic constructor •() → self::Class
     : super core::Object::•()
@@ -251,25 +285,20 @@ class Class extends core::Object {
   method methodAndField1() → core::int? {}
   method methodAndFinalField1() → core::int? {}
   method methodAndFieldAndSetter1() → core::int? {}
+  set methodAndFieldAndSetter3(core::int? value) → void {}
+  set methodAndFieldAndSetter4(core::int? value) → void {}
   method methodAndFinalFieldAndSetter1() → core::int? {}
-  set methodAndFinalFieldAndSetter1(core::int? value) → void {}
   set methodAndFinalFieldAndSetter2(core::int? value) → void {}
   set methodAndFinalFieldAndSetter3(core::int? value) → void {}
   set methodAndFinalFieldAndSetter4(core::int? value) → void {}
   method methodAndSetter1() → core::int? {}
-  set methodAndSetter1(core::int? value) → void {}
   method methodAndSetter2(core::int? value) → void {}
-  set methodAndSetter2(dynamic #synthetic) → void {
-    invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:28: Error: A setter should have exactly one formal parameter.
-  int? set methodAndSetter2() {}
-                           ^";
-    {}
-  }
   set fieldAndFinalFieldAndSetter2(core::int? value) → void {}
+  set fieldAndFinalFieldAndSetter3(core::int? value) → void {}
   set fieldAndFinalFieldAndSetter4(core::int? value) → void {}
 }
 static method test(self::Class c) → dynamic {
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
   c.methodAndField1 = c.methodAndField1;
@@ -277,24 +306,40 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.{self::Class::methodAndField2} = c.{self::Class::methodAndField2}{core::int?};
   c.{self::Class::methodAndFinalField1}{() → core::int?};
   c.{self::Class::methodAndFinalField2}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
     ^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndFieldAndSetter1 = c.{self::Class::methodAndFieldAndSetter1}{() → core::int?};
   c.{self::Class::methodAndFieldAndSetter2} = c.{self::Class::methodAndFieldAndSetter2}{core::int?};
-  c.{self::Class::methodAndFieldAndSetter3} = c.{self::Class::methodAndFieldAndSetter3}{core::int?};
-  c.{self::Class::methodAndFieldAndSetter4} = c.{self::Class::methodAndFieldAndSetter4}{core::int?};
-  c.{self::Class::methodAndFinalFieldAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
+  c.{self::Class::methodAndFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
+  c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter3 as{TypeError,ForDynamic,Unchecked} core::int?;
+  c.{self::Class::methodAndFieldAndSetter4} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
+  c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter4 as{TypeError,ForDynamic,Unchecked} core::int?;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:5: Error: The setter 'methodAndFinalFieldAndSetter1' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFinalFieldAndSetter1'.
   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
-                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter1}{() → core::int?} as{TypeError} core::int?;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndFinalFieldAndSetter1 = c.{self::Class::methodAndFinalFieldAndSetter1}{() → core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter2} = c.{self::Class::methodAndFinalFieldAndSetter2}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter3} = c.{self::Class::methodAndFinalFieldAndSetter3}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter4} = c.{self::Class::methodAndFinalFieldAndSetter4}{core::int?};
-  c.{self::Class::methodAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:5: Error: The setter 'methodAndSetter1' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter1'.
   c.methodAndSetter1 = c.methodAndSetter1;
-                         ^" in c.{self::Class::methodAndSetter1}{() → core::int?} as{TypeError} core::int?;
-  c.{self::Class::methodAndSetter2} = c.{self::Class::methodAndSetter2}{(core::int?) → void};
+    ^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndSetter1 = c.{self::Class::methodAndSetter1}{() → core::int?};
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:93:5: Error: The setter 'methodAndSetter2' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndSetter2'.
+  c.methodAndSetter2 = c.methodAndSetter2;
+    ^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndSetter2 = c.{self::Class::methodAndSetter2}{(core::int?) → void};
   c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1}{core::int?};
   c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2}{core::int?};
   c.{self::Class::fieldAndFinalFieldAndSetter1} = c.{self::Class::fieldAndFinalFieldAndSetter1}{core::int?};

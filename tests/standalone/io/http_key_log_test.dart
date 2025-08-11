@@ -22,8 +22,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 Future<HttpServer> startEchoServer() {
   return HttpServer.bindSecure(HOST, 0, serverContext).then((server) {
@@ -45,8 +47,9 @@ testSuccess(HttpServer server) async {
   client.keyLog = (String line) {
     log += line;
   };
-  final request =
-      await client.getUrl(Uri.parse('https://localhost:${server.port}/test'));
+  final request = await client.getUrl(
+    Uri.parse('https://localhost:${server.port}/test'),
+  );
   final response = await request.close();
   await response.drain();
 
@@ -63,8 +66,9 @@ testExceptionInKeyLogFunction(HttpServer server) async {
     ++numCalls;
     throw FileSystemException("Something bad happened");
   };
-  final request =
-      await client.getUrl(Uri.parse('https://localhost:${server.port}/test'));
+  final request = await client.getUrl(
+    Uri.parse('https://localhost:${server.port}/test'),
+  );
   final response = await request.close();
   await response.drain();
 

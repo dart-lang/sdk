@@ -26,6 +26,8 @@ main() {
   var mirrors = currentMirrorSystem();
   test("Test package library uri", () {
     testLibraryUri(
-        ExpectException(""), Uri.parse('package:expect/expect.dart'));
+      ExpectException(""),
+      Uri.parse('package:expect/expect.dart'),
+    );
   });
 }

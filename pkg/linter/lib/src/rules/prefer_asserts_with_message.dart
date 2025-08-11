@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,11 @@ class PreferAssertsWithMessage extends LintRule {
     : super(name: LintNames.prefer_asserts_with_message, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_asserts_with_message;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_asserts_with_message;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addAssertInitializer(this, visitor);
     registry.addAssertStatement(this, visitor);
@@ -35,14 +35,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     if (node.message == null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     if (node.message == null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

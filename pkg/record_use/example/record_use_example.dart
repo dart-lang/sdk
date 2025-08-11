@@ -4,9 +4,14 @@
 
 import 'package:record_use/record_use.dart';
 
-void doStuff(RecordedUsages usage, Identifier callId, Identifier referenceId) {
+void doStuffInLinkHook(
+  RecordedUsages usage,
+  Identifier identifier1,
+  Identifier identifier2,
+  Identifier identifier3,
+) {
   print(usage.metadata);
-  print(usage.argumentsTo(callId));
-  print(usage.instancesOf(referenceId));
-  print(usage.hasNonConstArguments(callId));
+  print(usage.constArgumentsFor(identifier1, 'void foo(int i)'));
+  print(usage.constantsOf(identifier2));
+  print(usage.hasNonConstArguments(identifier3));
 }

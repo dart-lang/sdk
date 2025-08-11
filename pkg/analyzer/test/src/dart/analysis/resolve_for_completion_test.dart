@@ -30,9 +30,7 @@ class A {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'foo int;',
-    ]);
+    result.assertResolvedNodes(['foo int;']);
   }
 
   test_class_fieldDeclaration_initializer() async {
@@ -44,9 +42,7 @@ class A {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'var f2 = foo;',
-    ]);
+    result.assertResolvedNodes(['var f2 = foo;']);
   }
 
   test_class_fieldDeclaration_type_namedType_name() async {
@@ -58,9 +54,7 @@ class A {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'dou f2 = null;',
-    ]);
+    result.assertResolvedNodes(['dou f2 = null;']);
   }
 
   test_class_methodDeclaration_body() async {
@@ -80,9 +74,7 @@ class B {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'void foo2() {print(0); bar print; (1);}',
-    ]);
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
   }
 
   test_classDeclaration_body_identifier() async {
@@ -96,9 +88,7 @@ class B {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'bar;',
-    ]);
+    result.assertResolvedNodes(['bar;']);
   }
 
   test_constructorDeclaration_body() async {
@@ -118,9 +108,7 @@ class B {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'B() {print(0); bar print; (1);}',
-    ]);
+    result.assertResolvedNodes(['B() {print(0); bar print; (1);}']);
   }
 
   test_constructorDeclaration_fieldFormalParameter_name() async {
@@ -131,9 +119,7 @@ class A {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'A(this.);',
-    ]);
+    result.assertResolvedNodes(['A(this.);']);
   }
 
   test_constructorDeclaration_fieldInitializer_value() async {
@@ -148,9 +134,7 @@ class A {
 ''');
 
     // TODO(scheglov): Resolve only the initializer.
-    result.assertResolvedNodes([
-      'A(int a) : f = a + bar {print(0);}',
-    ]);
+    result.assertResolvedNodes(['A(int a) : f = a + bar {print(0);}']);
   }
 
   test_constructorDeclaration_superFormalParameter_name() async {
@@ -165,9 +149,7 @@ class B extends A {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'B(super.);',
-    ]);
+    result.assertResolvedNodes(['B(super.);']);
   }
 
   test_extension_methodDeclaration_body() async {
@@ -185,9 +167,7 @@ extension E on int {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'void foo2() {print(0); bar print; (1);}',
-    ]);
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
   }
 
   test_functionDeclaration_body() async {
@@ -203,9 +183,7 @@ void foo2() {
 void foo3() {}
 ''');
 
-    result.assertResolvedNodes([
-      'void foo2() {print(0); bar print; (1);}',
-    ]);
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
   }
 
   test_functionDeclaration_body_withSemicolon() async {
@@ -221,9 +199,7 @@ void foo2() {
 void foo3() {}
 ''');
 
-    result.assertResolvedNodes([
-      'void foo2() {print(0); bar; print(1);}',
-    ]);
+    result.assertResolvedNodes(['void foo2() {print(0); bar; print(1);}']);
   }
 
   test_importDirective_show_name() async {
@@ -263,9 +239,7 @@ mixin M {
 }
 ''');
 
-    result.assertResolvedNodes([
-      'void foo2() {print(0); bar print; (1);}',
-    ]);
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
   }
 
   test_processPendingChanges() async {
@@ -280,9 +254,7 @@ var v1 = 0;
 var v2 = v1.^;
 ''');
 
-    result.assertResolvedNodes([
-      'var v2 = v1.;',
-    ]);
+    result.assertResolvedNodes(['var v2 = v1.;']);
   }
 
   test_topLevelVariable_initializer() async {
@@ -292,9 +264,7 @@ var v2 = foo^;
 var v3 = 1;
 ''');
 
-    result.assertResolvedNodes([
-      'var v2 = foo;',
-    ]);
+    result.assertResolvedNodes(['var v2 = foo;']);
   }
 
   test_typedef_name_nothing() async {
@@ -337,9 +307,7 @@ typedef F^
     return result!;
   }
 
-  static void _assertWholeUnitResolved(
-    ResolvedForCompletionResultImpl result,
-  ) {
+  static void _assertWholeUnitResolved(ResolvedForCompletionResultImpl result) {
     expect(result.resolvedNodes, [result.parsedUnit]);
   }
 }

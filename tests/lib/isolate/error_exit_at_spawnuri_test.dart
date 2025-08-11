@@ -11,10 +11,13 @@ import 'error_exit_at_spawning_shared.dart';
 main() {
   testIsolate((SendPort replyPort, SendPort errorPort, SendPort exitPort) {
     Isolate.spawnUri(
-        Uri.parse("error_exit_at_spawning_shared.dart"), [], replyPort,
-        // Setup handlers as part of spawn.
-        errorsAreFatal: false,
-        onError: errorPort,
-        onExit: exitPort);
+      Uri.parse("error_exit_at_spawning_shared.dart"),
+      [],
+      replyPort,
+      // Setup handlers as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort,
+      onExit: exitPort,
+    );
   });
 }

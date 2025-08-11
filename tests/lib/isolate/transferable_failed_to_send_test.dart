@@ -24,7 +24,8 @@ void main() async {
   {
     final transferableFirst = TransferableTypedData.fromList([x]);
     Expect.throwsArgumentError(
-        () => port.sendPort.send(<dynamic>[transferableFirst, socket]));
+      () => port.sendPort.send(<dynamic>[transferableFirst, socket]),
+    );
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     // This need to be changed so that on failed send we should not detach the
@@ -39,8 +40,13 @@ void main() async {
   }
   {
     final transferableFirst = TransferableTypedData.fromList([x]);
-    Expect.throwsArgumentError(() => port.sendPort
-        .send(<dynamic>[transferableFirst, transferableFirst, socket]));
+    Expect.throwsArgumentError(
+      () => port.sendPort.send(<dynamic>[
+        transferableFirst,
+        transferableFirst,
+        socket,
+      ]),
+    );
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     // This need to be changed so that on failed send we should not detach the
@@ -57,7 +63,8 @@ void main() async {
   {
     final transferableSecond = TransferableTypedData.fromList([x]);
     Expect.throwsArgumentError(
-        () => port.sendPort.send(<dynamic>[socket, transferableSecond]));
+      () => port.sendPort.send(<dynamic>[socket, transferableSecond]),
+    );
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     final data2 = transferableSecond.materialize().asUint8List();
@@ -69,8 +76,13 @@ void main() async {
 
   {
     final transferableSecond = TransferableTypedData.fromList([x]);
-    Expect.throwsArgumentError(() => port.sendPort
-        .send(<dynamic>[socket, transferableSecond, transferableSecond]));
+    Expect.throwsArgumentError(
+      () => port.sendPort.send(<dynamic>[
+        socket,
+        transferableSecond,
+        transferableSecond,
+      ]),
+    );
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     final data2 = transferableSecond.materialize().asUint8List();

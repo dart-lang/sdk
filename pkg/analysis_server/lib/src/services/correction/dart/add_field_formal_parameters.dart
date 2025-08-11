@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -20,7 +20,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
+  FixKind get fixKind => DartFixKind.ADD_INITIALIZING_FORMAL_PARAMETERS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -42,7 +42,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
     // Compute uninitialized final fields.
     var fields = ErrorVerifier.computeNotInitializedFields(constructor);
-    fields.retainWhere((FieldElement2 field) => field.isFinal);
+    fields.retainWhere((FieldElement field) => field.isFinal);
     fields.sort(
       (a, b) => a.firstFragment.nameOffset2! - b.firstFragment.nameOffset2!,
     );
@@ -51,12 +51,12 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
-        String parameterForField(FieldElement2 field) {
+        String parameterForField(FieldElement field) {
           var prefix = '';
           if (typeSystem.isPotentiallyNonNullable(field.type)) {
             prefix = 'required ';
           }
-          return '${prefix}this.${field.name3}';
+          return '${prefix}this.${field.name}';
         }
 
         var fieldParametersCode = fields.map(parameterForField).join(', ');
@@ -79,7 +79,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
 
     var fieldParametersCode = fields
-        .map((field) => 'this.${field.name3}')
+        .map((field) => 'this.${field.name}')
         .join(', ');
     await builder.addDartFileEdit(file, (builder) {
       if (lastRequiredParameter != null) {

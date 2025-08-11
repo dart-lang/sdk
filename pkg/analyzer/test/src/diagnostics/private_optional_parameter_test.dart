@@ -16,30 +16,35 @@ main() {
 @reflectiveTest
 class PrivateOptionalParameterTest extends PubPackageResolutionTest {
   test_fieldFormal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var _p;
   A({this._p = 0});
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 30, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_FIELD, 16, 2),
+        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 30, 2),
+      ],
+    );
   }
 
   test_private() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f({var _p}) {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 7, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 7, 2)],
+    );
   }
 
   test_withDefaultValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f({_p = 0}) {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 2)],
+    );
   }
 }

@@ -94,20 +94,4 @@ class MyWidget extends StatelessWidget {
           .having((td) => td.version, 'version', isNull),
     );
   }
-
-  @override
-  @FailingTest(reason: 'Document versions not currently supported for legacy')
-  test_textDocument_versioned() {
-    // TODO(dantup): Implement support for version numbers in the legacy
-    // protocol.
-    return super.test_textDocument_versioned();
-  }
-
-  @override
-  @FailingTest(reason: 'Document versions not currently supported for legacy')
-  test_textDocument_versioned_closedFile() {
-    // TODO(dantup): Implement support for version numbers in the legacy
-    // protocol.
-    return super.test_textDocument_versioned_closedFile();
-  }
 }

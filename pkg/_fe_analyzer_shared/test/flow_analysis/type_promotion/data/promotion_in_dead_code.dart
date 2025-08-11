@@ -13,13 +13,15 @@ abstract class C {
 andExpression_alwaysFalse(Object o) {
   return;
   o is! int && (throw 'x');
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 andExpression_alwaysTrue(Object o) {
   return;
   true && (o is int || (throw 'x'));
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 andExpression_lhsAlwaysTrue(Object o) {
@@ -27,7 +29,8 @@ andExpression_lhsAlwaysTrue(Object o) {
   if (true && o is! int) {
     o;
   } else {
-    /*int*/ o;
+    /*int*/
+    o;
   }
 }
 
@@ -36,7 +39,8 @@ andExpression_rhsAlwaysTrue(Object o) {
   if (o is! int && true) {
     o;
   } else {
-    /*int*/ o;
+    /*int*/
+    o;
   }
 }
 
@@ -44,7 +48,8 @@ assertAlwaysThrows(Object o, Object p, bool Function(Object, Object) f) {
   if (o is! int) return;
   return;
   assert(f(o = p, throw 'x'));
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 class AssertAlwaysThrows_Constructor {
@@ -52,11 +57,14 @@ class AssertAlwaysThrows_Constructor {
   Object b;
 
   AssertAlwaysThrows_Constructor(
-      Object o, Object p, bool Function(Object, Object) f)
-      : a = o is int ? true : throw 'x',
-        b = throw 'x',
-        assert(f(o = p, throw 'x')) {
-    /*int*/ o;
+    Object o,
+    Object p,
+    bool Function(Object, Object) f,
+  ) : a = o is int ? true : throw 'x',
+      b = throw 'x',
+      assert(f(o = p, throw 'x')) {
+    /*int*/
+    o;
   }
 }
 
@@ -64,7 +72,8 @@ assertFailsButMessageRepromotes(Object? o) {
   if (o is! int) return;
   return;
   assert((o = null) != null, o is int ? 'ok' : throw 'x');
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 class AssertFailsButMessageRepromotes_Constructor {
@@ -72,10 +81,11 @@ class AssertFailsButMessageRepromotes_Constructor {
   Object b;
 
   AssertFailsButMessageRepromotes_Constructor(Object? o)
-      : a = o is int ? true : throw 'x',
-        b = throw 'x',
-        assert((o = null) != null, o is int ? 'ok' : throw 'x') {
-    /*int*/ o;
+    : a = o is int ? true : throw 'x',
+      b = throw 'x',
+      assert((o = null) != null, o is int ? 'ok' : throw 'x') {
+    /*int*/
+    o;
   }
 }
 
@@ -83,7 +93,8 @@ assertMessageDepromotesButAlwaysThrows(Object o, Object p, bool b) {
   if (o is! int) return;
   return;
   assert(b, throw (o = p));
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 class AssertMessageDepromotesButAlwaysThrows {
@@ -91,35 +102,40 @@ class AssertMessageDepromotesButAlwaysThrows {
   Object b;
 
   AssertMessageDepromotesButAlwaysThrows(Object o, Object p, bool b)
-      : a = o is int ? true : throw 'x',
-        b = throw 'x',
-        assert(b, throw (o = p)) {
-    /*int*/ o;
+    : a = o is int ? true : throw 'x',
+      b = throw 'x',
+      assert(b, throw (o = p)) {
+    /*int*/
+    o;
   }
 }
 
 conditionalIs(Object o) {
   return;
   o is int ? null : throw 'bad';
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 conditionalIsNot(Object o) {
   return;
   o is! int ? throw 'bad' : null;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 conditionalJoinFalse(Object o, bool b) {
   return;
   if (b ? o is! int : o is! int) return;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 conditionalJoinTrue(Object o, bool b) {
   return;
   if (!(b ? o is int : o is int)) return;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 doBreak(Object o) {
@@ -127,7 +143,8 @@ doBreak(Object o) {
   do {
     if (o is int) break;
   } while (true);
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 doContinue(Object o) {
@@ -136,13 +153,15 @@ doContinue(Object o) {
     if (o is int) continue;
     return;
   } while (false);
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 doCondition(Object o) {
   return;
   do {} while (o is! int);
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 forBreak(Object o) {
@@ -150,12 +169,13 @@ forBreak(Object o) {
   for (;;) {
     if (o is int) break;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 forContinue(Object o) {
   return;
-  for (;; /*int*/ o) {
+  for (; ; /*int*/ o) {
     if (o is int) continue;
     return;
   }
@@ -164,31 +184,36 @@ forContinue(Object o) {
 ifIsNot(Object o) {
   return;
   if (o is! int) return;
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 ifIsNot_listElement(Object o) {
   return;
   [if (o is! int) throw 'x'];
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 ifIsNot_setElement(Object o) {
   return;
   ({if (o is! int) throw 'x'});
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 ifIsNot_mapElement(Object o) {
   return;
   ({if (o is! int) 0: throw 'x'});
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 ifNull(Object o, Object? p, Object q, void Function(Object, Object) f) {
   return;
   (o is int ? p : throw 'x') ?? f(o = q, throw 'x');
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 labeledStatement(Object o) {
@@ -198,31 +223,36 @@ labeledStatement(Object o) {
     if (o is int) break label;
     return;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 nullAwareAccess(Object o, C? p, Object q) {
   return;
   (o is int ? p : throw 'x')?.f(o = q, throw 'x');
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 orExpression_alwaysFalse(Object o) {
   return;
   false || (o is! int && (throw 'x'));
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 orExpression_alwaysTrue(Object o) {
   return;
   o is int || (throw 'x');
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 orExpression_lhsAlwaysFalse(Object o) {
   return;
   if (false || o is int) {
-    /*int*/ o;
+    /*int*/
+    o;
   } else {
     o;
   }
@@ -231,7 +261,8 @@ orExpression_lhsAlwaysFalse(Object o) {
 orExpression_rhsAlwaysFalse(Object o) {
   return;
   if (o is int || false) {
-    /*int*/ o;
+    /*int*/
+    o;
   } else {
     o;
   }
@@ -246,7 +277,8 @@ switchPromoteInCase(Object o, int i) {
     default:
       return;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 switchPromoteInImplicitDefault(Object o, int i, Object p) {
@@ -257,7 +289,8 @@ switchPromoteInImplicitDefault(Object o, int i, Object p) {
       o = p;
       return;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 tryCatchPromoteInTry(Object o) {
@@ -267,7 +300,8 @@ tryCatchPromoteInTry(Object o) {
   } catch (_) {
     return;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 tryCatchPromoteInCatch(Object o) {
@@ -277,7 +311,8 @@ tryCatchPromoteInCatch(Object o) {
   } catch (_) {
     if (o is! int) return;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }
 
 whileBreak(Object o) {
@@ -285,5 +320,6 @@ whileBreak(Object o) {
   while (true) {
     if (o is int) break;
   }
-  /*int*/ o;
+  /*int*/
+  o;
 }

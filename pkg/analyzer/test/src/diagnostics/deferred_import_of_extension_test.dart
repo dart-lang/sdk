@@ -20,15 +20,16 @@ class DeferredImportOfExtensionTest extends PubPackageResolutionTest {
 extension E on C {}
 class C {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'foo.dart' deferred as foo;
 
 void f() {
   foo.C();
 }
-''', [
-      error(CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, 7, 10)],
+    );
   }
 
   Future<void> test_deferredImport_withHiddenExtensions() async {

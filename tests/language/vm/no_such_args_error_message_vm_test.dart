@@ -17,8 +17,9 @@ testClosureMessage() {
     // The latter may happen if in --dwarf-stack-traces mode.
     final possibleNames = ['testClosureMessage', '<optimized out>'];
     Expect.containsAny(
-        possibleNames.map((s) => s + '.<anonymous closure>("bar")').toList(),
-        e.toString());
+      possibleNames.map((s) => s + '.<anonymous closure>("bar")').toList(),
+      e.toString(),
+    );
   }
 }
 
@@ -28,9 +29,7 @@ testFunctionMessage() {
   try {
     call_with_bar(noargs);
   } catch (e) {
-    final expectedStrings = [
-      'Tried calling: noargs("bar")',
-    ];
+    final expectedStrings = ['Tried calling: noargs("bar")'];
     Expect.containsInOrder(expectedStrings, e.toString());
   }
 }

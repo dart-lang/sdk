@@ -17,14 +17,15 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:meta/meta.dart';
@@ -35,9 +36,10 @@ import 'package:unified_analytics/unified_analytics.dart';
 import '../constants.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
-import 'change_verifier.dart';
+import '../utils/message_scheduler_test_view.dart';
 import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
@@ -47,14 +49,18 @@ abstract class AbstractLspAnalysisServerTest
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
-        ConfigurationFilesMixin {
+        ConfigurationFilesMixin,
+        AnalyticsTestMixin {
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
+  MessageSchedulerTestView? testView;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
   late MockHttpClient httpClient;
@@ -62,6 +68,9 @@ abstract class AbstractLspAnalysisServerTest
   /// The number of context builds that had already occurred the last time
   /// resetContextBuildCounter() was called.
   int _previousContextBuilds = 0;
+
+  @override
+  AnalyticsManager get analyticsManager => server.analyticsManager;
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
@@ -131,19 +140,6 @@ abstract class AbstractLspAnalysisServerTest
     return info;
   }
 
-  /// Executes [command] which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Returns a [LspChangeVerifier] that can be used to verify changes.
-  Future<LspChangeVerifier> executeCommandForEdits(
-    Command command, {
-    ProgressToken? workDoneToken,
-  }) {
-    return executeForEdits(
-      () => executeCommand(command, workDoneToken: workDoneToken),
-    );
-  }
-
   void expectContextBuilds() => expect(
     server.contextBuilds - _previousContextBuilds,
     greaterThan(0),
@@ -172,22 +168,6 @@ abstract class AbstractLspAnalysisServerTest
       return resp.result == null ? null as T : fromJson(resp.result as R);
     }
   }
-
-  List<TextDocumentEdit> extractTextDocumentEdits(
-    DocumentChanges documentChanges,
-  ) =>
-      // Extract TextDocumentEdits from union of resource changes
-      documentChanges
-          .map(
-            (change) => change.map(
-              (create) => null,
-              (delete) => null,
-              (rename) => null,
-              (textDocEdit) => textDocEdit,
-            ),
-          )
-          .nonNulls
-          .toList();
 
   @override
   String? getCurrentFileContent(Uri uri) {
@@ -279,6 +259,7 @@ abstract class AbstractLspAnalysisServerTest
 
     errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LspAnalysisServer(
       channel,
       resourceProvider,
@@ -290,7 +271,7 @@ abstract class AbstractLspAnalysisServerTest
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;
@@ -314,7 +295,7 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-$experiments    
+$experiments
 ''');
 
     writeTestPackageConfig();
@@ -323,38 +304,6 @@ $experiments
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
-  }
-
-  /// Verifies that executing the given command on the server results in an edit
-  /// being sent in the client that updates the files to match the expected
-  /// content.
-  Future<LspChangeVerifier> verifyCommandEdits(
-    Command command,
-    String expectedContent, {
-    ProgressToken? workDoneToken,
-  }) async {
-    var verifier = await executeCommandForEdits(
-      command,
-      workDoneToken: workDoneToken,
-    );
-
-    verifier.verifyFiles(expectedContent);
-    return verifier;
-  }
-
-  LspChangeVerifier verifyEdit(
-    WorkspaceEdit edit,
-    String expected, {
-    Map<Uri, int>? expectedVersions,
-  }) {
-    var expectDocumentChanges =
-        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
-    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
-    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
-
-    var verifier = LspChangeVerifier(this, edit);
-    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
-    return verifier;
   }
 
   /// Encodes any drive letter colon in the URI.
@@ -837,19 +786,23 @@ mixin ClientCapabilitiesHelperMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
+mixin LspAnalysisServerTestMixin
+    on
+        LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
+        LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
-  /// A progress token used in tests where the client-provides the token, which
-  /// should not be validated as being created by the server first.
-  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
-
   late String projectFolderPath,
       mainFilePath,
       nonExistentFilePath,
       pubspecFilePath,
       analysisOptionsPath;
 
-  final String simplePubspecContent = 'name: my_project';
+  /// The name of the test package (and the folder where the package lives).
+  final String testPackageName = 'my_project';
+
+  late final String simplePubspecContent = 'name: $testPackageName';
 
   /// The client capabilities sent to the server during initialization.
   ///
@@ -1035,14 +988,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     await sendNotificationToServer(notification);
   }
 
-  Future<Object?> executeCodeAction(Either2<Command, CodeAction> codeAction) {
-    var command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
-    return executeCommand(command);
-  }
-
+  @override
   Future<T> executeCommand<T>(
     Command command, {
     T Function(Map<String, Object?>)? decoder,
@@ -1056,17 +1002,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
         'Is it missing from serverSupportedCommands?',
       );
     }
-    var request = makeRequest(
-      Method.workspace_executeCommand,
-      ExecuteCommandParams(
-        command: command.command,
-        arguments: command.arguments,
-        workDoneToken: workDoneToken,
-      ),
-    );
-    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
-      request,
-      decoder ?? (result) => result as T,
+    return super.executeCommand(
+      command,
+      decoder: decoder,
+      workDoneToken: workDoneToken,
     );
   }
 
@@ -1456,8 +1395,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
 
   FutureOr<void> sendNotificationToServer(NotificationMessage notification);
 
-  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
-
   // This is the signature expected for LSP.
   // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
   Future<Null> sendShutdown() {
@@ -1614,12 +1551,12 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return outlineParams.outline;
   }
 
-  void _handleAnalysisBegin() async {
+  void _handleAnalysisBegin() {
     assert(_currentAnalysisCompleter.isCompleted);
     _currentAnalysisCompleter = Completer<void>();
   }
 
-  void _handleAnalysisEnd() async {
+  void _handleAnalysisEnd() {
     if (!_initialAnalysisCompleter.isCompleted) {
       _initialAnalysisCompleter.complete();
     }
@@ -1686,10 +1623,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   }
 }
 
-/// An [AbstractLspAnalysisServerTest] that provides an implementation of
-/// [SharedTestInterface] to allow tests to be shared between server/test kinds.
-abstract class SharedAbstractLspAnalysisServerTest
-    extends AbstractLspAnalysisServerTest
+/// A mixin for [AbstractLspAnalysisServerTest] that provides an implementation
+/// of [SharedTestInterface] to allow tests to be shared between server/test
+/// kinds.
+mixin LspSharedTestMixin on AbstractLspAnalysisServerTest
     implements SharedTestInterface {
   @override
   String get testFilePath => join(projectFolderPath, 'lib', 'test.dart');

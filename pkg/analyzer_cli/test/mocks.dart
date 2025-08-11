@@ -9,49 +9,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer_cli/src/options.dart';
 
-class MockAnalysisError implements AnalysisError {
-  @override
-  MockSource source;
-
-  @override
-  MockErrorCode errorCode;
-
-  @override
-  int offset;
-
-  @override
-  String message;
-
-  @override
-  int length = 3;
-
-  MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
-
-  @override
-  List<DiagnosticMessage> get contextMessages => const [];
-
-  @override
-  String? get correction => null;
-
-  @override
-  String? get correctionMessage => null;
-
-  @override
-  Object? get data => throw UnimplementedError();
-
-  @override
-  DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
-    filePath: source.fullName,
-    length: length,
-    message: message,
-    offset: offset,
-    url: null,
-  );
-
-  @override
-  Severity get severity => Severity.error;
-}
-
 class MockCommandLineOptions implements CommandLineOptions {
   bool enableTypeChecks = false;
   @override
@@ -67,12 +24,58 @@ class MockCommandLineOptions implements CommandLineOptions {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockErrorCode implements ErrorCode {
+class MockDiagnostic implements Diagnostic {
   @override
-  ErrorType type;
+  MockSource source;
 
   @override
-  ErrorSeverity errorSeverity;
+  MockErrorCode diagnosticCode;
+
+  @override
+  int offset;
+
+  @override
+  String message;
+
+  @override
+  int length = 3;
+
+  MockDiagnostic(this.source, this.diagnosticCode, this.offset, this.message);
+
+  @override
+  List<DiagnosticMessage> get contextMessages => const [];
+
+  @override
+  String? get correction => null;
+
+  @override
+  String? get correctionMessage => null;
+
+  @override
+  Object? get data => throw UnimplementedError();
+
+  @override
+  MockErrorCode get errorCode => diagnosticCode;
+
+  @override
+  DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
+    filePath: source.fullName,
+    length: length,
+    message: message,
+    offset: offset,
+    url: null,
+  );
+
+  @override
+  Severity get severity => Severity.error;
+}
+
+class MockErrorCode implements DiagnosticCode {
+  @override
+  DiagnosticType type;
+
+  @override
+  DiagnosticSeverity severity;
 
   @override
   String name;
@@ -80,7 +83,7 @@ class MockErrorCode implements ErrorCode {
   @override
   String? url;
 
-  MockErrorCode(this.type, this.errorSeverity, this.name);
+  MockErrorCode(this.type, this.severity, this.name);
 
   @override
   String get correctionMessage {

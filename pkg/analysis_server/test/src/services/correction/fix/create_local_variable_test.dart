@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,13 +20,6 @@ void main() {
 class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
-
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
 
   Future<void> test_functionType_named() async {
     await resolveTestCode('''
@@ -228,6 +222,8 @@ void f() {
   }
 
   Future<void> test_withImport() async {
+    useLineEndingsForPlatform = false;
+
     newFile('$workspaceRootPath/pkg/lib/a/a.dart', '''
 class A {}
 ''');

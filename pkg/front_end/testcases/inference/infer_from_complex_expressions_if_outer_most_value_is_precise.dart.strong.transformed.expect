@@ -10,7 +10,7 @@ library test;
 //   /*error:UNDEFINED_IDENTIFIER*/ x
 //                                  ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
 // Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 // var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
@@ -105,7 +105,7 @@ static field self::A e = let final self::A #t1 = new self::A::•() in block {
 static field core::int f = 2.{core::num::+}(3){(core::num) → core::int};
 static field core::int g = 3.{core::int::unary-}(){() → core::int};
 static field self::B h = new self::A::•().{self::A::+}(3){(dynamic) → self::B};
-static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
+static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the type 'A'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();

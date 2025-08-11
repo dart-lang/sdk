@@ -1066,6 +1066,43 @@ void f(List<int> values) {
     );
   }
 
+  /// Local variable renames shouldn't fail to rename references to them in
+  /// workspaces with overlapped roots and `driverMap` being sorted such that
+  /// the first driver containing a file is ancestor.
+  Future<void> test_rename_variable_issueDartCode5548() async {
+    // Use hard-coded paths because the failure here may depend on the hash
+    // codes of the folder paths (as stored in `driverMap`) to reproduce.
+    var rootPath = convertPath('/dart_code_test');
+    var nestedProjectPath = join(rootPath, 'packages', 'test_package');
+    var testFilePath = join(nestedProjectPath, 'foo.dart');
+
+    // Force an additional context for the nested project.
+    newFile(join(nestedProjectPath, 'analysis_options.yaml'), '');
+
+    const content = '''
+void f() {
+  var [!^b!] = 1;
+  print(b);
+}
+''';
+    const expectedContent = '''
+void f() {
+  var a = 1;
+  print(a);
+}
+''';
+    await _test_rename_withDocumentChanges(
+      filePath: testFilePath,
+      content,
+      'a',
+      expectedContent,
+      workspaceFolders: [
+        pathContext.toUri(nestedProjectPath),
+        pathContext.toUri(rootPath),
+      ],
+    );
+  }
+
   Future<void> test_rename_withoutVersionedIdentifier() {
     // Without sending a document version, the rename should still work because
     // the server should use the version it had at the start of the rename
@@ -1200,6 +1237,7 @@ final a = new MyNewClass();
     String? expectedFilePath,
     bool sendRenameVersion = true,
     bool supportsWindowShowMessageRequest = true,
+    List<Uri>? workspaceFolders,
   }) async {
     filePath ??= mainFilePath;
     expectedFilePath ??= filePath;
@@ -1219,6 +1257,7 @@ final a = new MyNewClass();
           supportsWindowShowMessageRequest
               ? const {'supportsWindowShowMessageRequest': true}
               : null,
+      workspaceFolders: workspaceFolders,
     );
     await openFile(fileUri, code.code, version: documentVersion);
     await initialAnalysis;

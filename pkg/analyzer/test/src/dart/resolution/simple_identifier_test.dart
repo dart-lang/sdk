@@ -189,15 +189,16 @@ SimpleIdentifier
   }
 
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:core' as mycore;
 
 main() {
   dynamic;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7)],
+    );
 
     var node = findNode.simple('dynamic;');
     assertResolvedNodeText(node, r'''
@@ -238,7 +239,7 @@ enum E<T> {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: T
-  element: T@7
+  element: #E0 T
   staticType: Type
 ''');
   }
@@ -256,13 +257,14 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
 
   test_expression_topLevelVariable_constructor_returnBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 class C {
@@ -270,37 +272,43 @@ class C {
     return a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1)],
+    );
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
 
   test_expression_topLevelVariable_constructor_returnExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 class C {
   C() => a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
-      error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          33,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -320,8 +328,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
-  element: <testLibraryFragment>::@getter::a#element
+  correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -341,13 +349,14 @@ int Function() foo(A a) {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A
 ''');
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int call() => 0;
 }
@@ -355,15 +364,15 @@ class A {
 int Function() foo(A? a) {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1)],
+    );
 
     var identifier = findNode.simple('a;');
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A?
 ''');
   }
@@ -386,7 +395,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -529,21 +538,22 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  element: <testLibraryFragment>::@extension::E::@getter::bar#element
+  element: <testLibrary>::@extension::E::@getter::bar
   staticType: bool
 ''');
   }
 
   test_inExtension_onRecordType_named_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on ({int foo}) {
   void f() {
     bar;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3)],
+    );
 
     var node = findNode.simple('bar;');
     assertResolvedNodeText(node, r'''
@@ -605,21 +615,22 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  element: <testLibraryFragment>::@extension::E::@getter::$3#element
+  element: <testLibrary>::@extension::E::@getter::$3
   staticType: bool
 ''');
   }
 
   test_inExtension_onRecordType_positional_2_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   void f() {
     $3;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2)],
+    );
 
     var node = findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''
@@ -645,7 +656,7 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -669,7 +680,7 @@ extension type X(B it) implements A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -773,7 +784,7 @@ class A {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@method::foo#element
+  element: <testLibrary>::@class::A::@method::foo
   staticType: void Function(int)
 ''');
   }

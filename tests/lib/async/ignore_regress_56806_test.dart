@@ -17,10 +17,14 @@ void main() async {
   await testNoThrow();
 
   asyncStart();
-  await runZoned(testDoThrow, zoneSpecification: ZoneSpecification(
+  await runZoned(
+    testDoThrow,
+    zoneSpecification: ZoneSpecification(
       handleUncaughtError: (s, p, z, Object error, StackTrace stack) {
-    asyncEnd();
-  }));
+        asyncEnd();
+      },
+    ),
+  );
 
   asyncEnd();
 }
@@ -28,7 +32,9 @@ void main() async {
 Future<void> testNoThrow() async {
   var completer = Completer<void>();
   final future = Future<void>.delayed(
-      Duration.zero, () => throw StateError("Should be ignored"));
+    Duration.zero,
+    () => throw StateError("Should be ignored"),
+  );
   var future2 = future.whenComplete(() async {
     await Future.delayed(Duration.zero);
     completer.complete();
@@ -40,7 +46,9 @@ Future<void> testNoThrow() async {
 Future<void> testDoThrow() async {
   var completer = Completer<void>();
   final future = Future<void>.delayed(
-      Duration.zero, () => throw StateError("Should not be ignored"));
+    Duration.zero,
+    () => throw StateError("Should not be ignored"),
+  );
   future.ignore(); // Ignores error only on `future`.
   future.whenComplete(() async {
     await Future.delayed(Duration.zero);

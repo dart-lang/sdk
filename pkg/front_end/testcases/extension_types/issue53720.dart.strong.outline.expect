@@ -17,13 +17,13 @@ extension type E2(core::int i) implements self::E1% /* erasure=core::int, declar
 }
 static extension-type-member method E1|constructor#(core::int i) → self::E1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#(i);
 static extension-type-member method E1|set#m(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void
   ;
 static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::int i) → self::E2% /* erasure=core::int, declared=! */
   return self::E2|constructor#(i);
 static extension-type-member method E2|m(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → void
   ;

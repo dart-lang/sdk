@@ -39,54 +39,61 @@ dynamic f(bool c, B x, B y) {
   }
 
   test_conditionalExpression_leftDynamic_rightUnnecessary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 51, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+    );
   }
 
   test_conditionalExpression_leftUnnecessary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic f(bool c, int a, int b) {
   return c ? a as int : b;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 47, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 47, 8)],
+    );
   }
 
   test_conditionalExpression_leftUnnecessary_rightDynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic f(bool c, int a, dynamic b) {
   return c ? a as int : b;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 51, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+    );
   }
 
   test_conditionalExpression_leftUnnecessary_rightUnnecessary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic f(bool c, int a, int b) {
   return c ? a as int : b as int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 47, 8),
-      error(WarningCode.UNNECESSARY_CAST, 58, 8),
-    ]);
+''',
+      [
+        error(WarningCode.UNNECESSARY_CAST, 47, 8),
+        error(WarningCode.UNNECESSARY_CAST, 58, 8),
+      ],
+    );
   }
 
   test_conditionalExpression_rightUnnecessary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 51, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+    );
   }
 
   test_dynamic_type() async {
@@ -98,13 +105,14 @@ void f(a) {
   }
 
   test_expression_invalidType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   x as int;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
   }
 
   test_function_toSubtype_viaParameter() async {
@@ -180,24 +188,26 @@ void f(int a) {
   }
 
   test_type_type() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num a) {
   a as num;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 18, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 18, 8)],
+    );
   }
 
   test_type_type_asInterfaceTypeTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef N = num;
 void f(num a) {
   a as N;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 35, 6),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST, 35, 6)],
+    );
   }
 
   test_typeParameter_hasBound_same() async {

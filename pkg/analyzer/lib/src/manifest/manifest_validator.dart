@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
@@ -40,7 +41,7 @@ class ManifestParser {
     applicationTag,
     manifestTag,
     usesFeatureTag,
-    usesPermissionTag
+    usesPermissionTag,
   };
 
   /// The text of the Android Manifest file.
@@ -57,16 +58,14 @@ class ManifestParser {
   int _pos;
 
   ManifestParser(this.content, Uri uri)
-      : sourceFile = SourceFile.fromString(content, url: uri),
-        _pos = 0,
-        restrictElements = _manifestValidationElements;
+    : sourceFile = SourceFile.fromString(content, url: uri),
+      _pos = 0,
+      restrictElements = _manifestValidationElements;
 
-  ManifestParser.general(
-    this.content, {
-    required Uri uri,
-  })  : sourceFile = SourceFile.fromString(content, url: uri),
-        _pos = 0,
-        restrictElements = null;
+  ManifestParser.general(this.content, {required Uri uri})
+    : sourceFile = SourceFile.fromString(content, url: uri),
+      _pos = 0,
+      restrictElements = null;
 
   /// Whether the current character is a tag-closing character (">").
   bool get _isClosing =>
@@ -230,15 +229,19 @@ class ManifestParser {
       if (isRelevant) {
         var attributeValue = content.substring(attributeValuePos, _pos);
         var sourceSpan = sourceFile.span(attributeNamePos, _pos);
-        attributes[attributeName] =
-            XmlAttribute(attributeName, attributeValue, sourceSpan);
+        attributes[attributeName] = XmlAttribute(
+          attributeName,
+          attributeValue,
+          sourceSpan,
+        );
       }
       _pos++;
     }
 
-    var parseResult = isEmptyElement
-        ? ParseResult.attributesWithEmptyElementClose
-        : ParseResult.attributesWithTagClose;
+    var parseResult =
+        isEmptyElement
+            ? ParseResult.attributesWithEmptyElementClose
+            : ParseResult.attributesWithTagClose;
 
     return ParseAttributeResult(parseResult, attributes);
   }
@@ -333,7 +336,9 @@ class ManifestParser {
       if (_isClosing) {
         // End tags cannot have attributes.
         return ParseTagResult(
-            ParseResult.endTag, XmlElement(name, {}, [], null));
+          ParseResult.endTag,
+          XmlElement(name, {}, [], null),
+        );
       } else {
         return ParseTagResult.error;
       }
@@ -383,8 +388,10 @@ class ManifestParser {
     // Finished parsing start tag.
     if (isRelevant) {
       var sourceSpan = sourceFile.span(startPos, _pos + 1);
-      return ParseTagResult(ParseResult.relevantElement,
-          XmlElement(name, attributes, children, sourceSpan));
+      return ParseTagResult(
+        ParseResult.relevantElement,
+        XmlElement(name, attributes, children, sourceSpan),
+      );
     } else {
       // Discard all parsed children. This requires the notion that all relevant
       // tags are direct children of other relevant tags.
@@ -402,24 +409,24 @@ class ManifestValidator {
   ManifestValidator(this.source);
 
   /// Validate the [content] of the Android Manifest file.
-  List<AnalysisError> validate(String content, bool checkManifest) {
+  List<Diagnostic> validate(String content, bool checkManifest) {
     // TODO(srawlins): Simplify [checkManifest] notion. Why call the method if
     //  the caller always knows whether it should just return empty?
     if (!checkManifest) return [];
 
-    RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
+    DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
 
     var xmlParser = ManifestParser(content, source.uri);
 
     _checkManifestTag(xmlParser, reporter);
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 
-  void _checkManifestTag(ManifestParser parser, ErrorReporter reporter) {
+  void _checkManifestTag(ManifestParser parser, DiagnosticReporter reporter) {
     ParseTagResult parseTagResult;
-    while (
-        (parseTagResult = parser.parseXmlTag()).element?.name != manifestTag) {
+    while ((parseTagResult = parser.parseXmlTag()).element?.name !=
+        manifestTag) {
       if (parseTagResult == ParseTagResult.eof ||
           parseTagResult == ParseTagResult.error) {
         return;
@@ -427,68 +434,93 @@ class ManifestValidator {
     }
 
     var manifestElement = parseTagResult.element!;
-    var features =
-        manifestElement.children.where((e) => e.name == usesFeatureTag);
-    var permissions =
-        manifestElement.children.where((e) => e.name == usesPermissionTag);
+    var features = manifestElement.children.where(
+      (e) => e.name == usesFeatureTag,
+    );
+    var permissions = manifestElement.children.where(
+      (e) => e.name == usesPermissionTag,
+    );
     _validateTouchScreenFeature(features, manifestElement, reporter);
     _validateFeatures(features, reporter);
     _validatePermissions(permissions, features, reporter);
 
-    var application = manifestElement.children
-        .firstWhereOrNull((e) => e.name == applicationTag);
+    var application = manifestElement.children.firstWhereOrNull(
+      (e) => e.name == applicationTag,
+    );
     if (application != null) {
-      for (var activity
-          in application.children.where((e) => e.name == activityTag)) {
+      for (var activity in application.children.where(
+        (e) => e.name == activityTag,
+      )) {
         _validateActivity(activity, reporter);
       }
     }
   }
 
-  bool _hasFeatureCamera(Iterable<XmlElement> features) => features
-      .any((f) => f.attributes[androidName]?.value == hardwareFeatureCamera);
+  bool _hasFeatureCamera(Iterable<XmlElement> features) => features.any(
+    (f) => f.attributes[androidName]?.value == hardwareFeatureCamera,
+  );
 
   bool _hasFeatureCameraAutoFocus(Iterable<XmlElement> features) =>
-      features.any((f) =>
-          f.attributes[androidName]?.value == hardwareFeatureCameraAutofocus);
+      features.any(
+        (f) =>
+            f.attributes[androidName]?.value == hardwareFeatureCameraAutofocus,
+      );
 
   /// Report an error for the given node.
   void _reportErrorForNode(
-      ErrorReporter reporter, XmlElement node, String? key, ErrorCode errorCode,
-      [List<Object>? arguments]) {
+    DiagnosticReporter reporter,
+    XmlElement node,
+    String? key,
+    DiagnosticCode diagnosticCode, [
+    List<Object>? arguments,
+  ]) {
     var span =
         key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
     );
   }
 
   /// Validate the 'activity' tags.
-  void _validateActivity(XmlElement activity, ErrorReporter reporter) {
+  void _validateActivity(XmlElement activity, DiagnosticReporter reporter) {
     var attributes = activity.attributes;
     if (attributes.containsKey(attributeScreenOrientation)) {
-      if (unsupportedOrientations
-          .contains(attributes[attributeScreenOrientation]?.value)) {
-        _reportErrorForNode(reporter, activity, attributeScreenOrientation,
-            ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY);
+      if (unsupportedOrientations.contains(
+        attributes[attributeScreenOrientation]?.value,
+      )) {
+        _reportErrorForNode(
+          reporter,
+          activity,
+          attributeScreenOrientation,
+          ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY,
+        );
       }
     }
     if (attributes.containsKey(attributeResizableActivity)) {
       if (attributes[attributeResizableActivity]?.value == 'false') {
-        _reportErrorForNode(reporter, activity, attributeResizableActivity,
-            ManifestWarningCode.NON_RESIZABLE_ACTIVITY);
+        _reportErrorForNode(
+          reporter,
+          activity,
+          attributeResizableActivity,
+          ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
+        );
       }
     }
   }
 
   /// Validate the `uses-feature` tags.
   void _validateFeatures(
-      Iterable<XmlElement> features, ErrorReporter reporter) {
-    var unsupported = features.where((element) => unsupportedHardwareFeatures
-        .contains(element.attributes[androidName]?.value));
+    Iterable<XmlElement> features,
+    DiagnosticReporter reporter,
+  ) {
+    var unsupported = features.where(
+      (element) => unsupportedHardwareFeatures.contains(
+        element.attributes[androidName]?.value,
+      ),
+    );
     for (var element in unsupported) {
       if (!element.attributes.containsKey(androidRequired)) {
         // Since `unsupported` is the list of elements for which
@@ -497,11 +529,12 @@ class ManifestValidator {
         // strings, it follows that `element.attributes[ANDROID_NAME]` is
         // non-`null`.
         _reportErrorForNode(
-            reporter,
-            element,
-            androidName,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
-            [element.attributes[androidName]!.value]);
+          reporter,
+          element,
+          androidName,
+          ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+          [element.attributes[androidName]!.value],
+        );
       } else if (element.attributes[androidRequired]?.value == 'true') {
         // Since `unsupported` is the list of elements for which
         // `elements.attributes[ANDROID_NAME]?.value` is contained in
@@ -509,73 +542,96 @@ class ManifestValidator {
         // strings, it follows that `element.attributes[ANDROID_NAME]` is
         // non-`null`.
         _reportErrorForNode(
-            reporter,
-            element,
-            androidName,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
-            [element.attributes[androidName]!.value]);
+          reporter,
+          element,
+          androidName,
+          ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+          [element.attributes[androidName]!.value],
+        );
       }
     }
   }
 
   /// Validate the `uses-permission` tags.
-  void _validatePermissions(Iterable<XmlElement> permissions,
-      Iterable<XmlElement> features, ErrorReporter reporter) {
+  void _validatePermissions(
+    Iterable<XmlElement> permissions,
+    Iterable<XmlElement> features,
+    DiagnosticReporter reporter,
+  ) {
     for (var permission in permissions) {
       if (permission.attributes[androidName]?.value ==
           androidPermissionCamera) {
         if (!_hasFeatureCamera(features) ||
             !_hasFeatureCameraAutoFocus(features)) {
-          _reportErrorForNode(reporter, permission, androidName,
-              ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE);
+          _reportErrorForNode(
+            reporter,
+            permission,
+            androidName,
+            ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
+          );
         }
       } else {
         var featureName = getImpliedUnsupportedHardware(
-            permission.attributes[androidName]?.value);
+          permission.attributes[androidName]?.value,
+        );
         if (featureName != null) {
           _reportErrorForNode(
-              reporter,
-              permission,
-              androidName,
-              ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
-              [featureName]);
+            reporter,
+            permission,
+            androidName,
+            ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
+            [featureName],
+          );
         }
       }
     }
   }
 
   /// Validate the presence/absence of the touchscreen feature tag.
-  void _validateTouchScreenFeature(Iterable<XmlElement> features,
-      XmlElement manifest, ErrorReporter reporter) {
-    var feature = features.firstWhereOrNull((element) =>
-        element.attributes[androidName]?.value == hardwareFeatureTouchscreen);
+  void _validateTouchScreenFeature(
+    Iterable<XmlElement> features,
+    XmlElement manifest,
+    DiagnosticReporter reporter,
+  ) {
+    var feature = features.firstWhereOrNull(
+      (element) =>
+          element.attributes[androidName]?.value == hardwareFeatureTouchscreen,
+    );
     if (feature != null) {
       if (!feature.attributes.containsKey(androidRequired)) {
         _reportErrorForNode(
-            reporter,
-            feature,
-            androidName,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
-            [hardwareFeatureTouchscreen]);
+          reporter,
+          feature,
+          androidName,
+          ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+          [hardwareFeatureTouchscreen],
+        );
       } else if (feature.attributes[androidRequired]?.value == 'true') {
         _reportErrorForNode(
-            reporter,
-            feature,
-            androidName,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
-            [hardwareFeatureTouchscreen]);
+          reporter,
+          feature,
+          androidName,
+          ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+          [hardwareFeatureTouchscreen],
+        );
       }
     } else {
       _reportErrorForNode(
-          reporter, manifest, null, ManifestWarningCode.NO_TOUCHSCREEN_FEATURE);
+        reporter,
+        manifest,
+        null,
+        ManifestWarningCode.NO_TOUCHSCREEN_FEATURE,
+      );
     }
   }
 }
 
 @visibleForTesting
 class ParseAttributeResult {
-  static ParseAttributeResult error =
-      ParseAttributeResult(ParseResult.error, null);
+  static ParseAttributeResult error = ParseAttributeResult(
+    ParseResult.error,
+    null,
+  );
 
   final ParseResult parseResult;
 

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -16,20 +19,18 @@ class OmitObviousLocalVariableTypes extends LintRule {
     : super(
         name: LintNames.omit_obvious_local_variable_types,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
+
+  @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.omit_obvious_local_variable_types;
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];
 
   @override
-  LintCode get lintCode => LinterLintCode.omit_obvious_local_variable_types;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
@@ -58,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       var iterableType = iterable.staticType;
       if (iterableType.elementTypeOfIterable == staticType) {
-        rule.reportLint(loopVariableType);
+        rule.reportAtNode(loopVariableType);
       }
     }
   }
@@ -82,6 +83,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    rule.reportLint(node.type);
+    rule.reportAtNode(node.type);
   }
 }

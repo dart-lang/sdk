@@ -153,10 +153,10 @@ class Interface2 extends core::Object {
 abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::AbstractClass
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
+  forwarding-stub synthetic set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
     return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
-  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
+  abstract forwarding-stub synthetic set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub synthetic set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -165,10 +165,10 @@ class ConcreteSub extends self::AbstractClass {
 class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::ConcreteClass
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
+  forwarding-stub synthetic set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
     return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
-  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
+  abstract forwarding-stub synthetic set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub synthetic set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
 }
 static method main() → dynamic
   ;

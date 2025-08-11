@@ -1,50 +1,37 @@
 {
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
-  "uris": [
-    "simple.dart"
-  ],
-  "ids": [
-    {
-      "uri": 0,
-      "parent": "SomeClass",
-      "name": "someStaticMethod"
-    }
-  ],
   "constants": [
     {
       "type": "int",
       "value": 42
     }
   ],
-  "calls": [
+  "locations": [
+    {
+      "uri": "simple.dart"
+    }
+  ],
+  "recordings": [
     {
       "definition": {
-        "id": 0,
-        "@": {
-          "uri": 0,
-          "line": 13,
-          "column": 10
+        "identifier": {
+          "uri": "simple.dart",
+          "scope": "SomeClass",
+          "name": "someStaticMethod"
         },
-        "loadingUnit": "1"
+        "loading_unit": "1"
       },
-      "references": [
+      "calls": [
         {
-          "arguments": {
-            "const": {
-              "positional": {
-                "0": 0
-              }
-            }
-          },
-          "loadingUnit": "1",
-          "@": {
-            "uri": 0,
-            "line": 8,
-            "column": 19
-          }
+          "type": "with_arguments",
+          "positional": [
+            0
+          ],
+          "loading_unit": "1",
+          "@": 0
         }
       ]
     }

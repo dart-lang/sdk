@@ -137,10 +137,10 @@ class Interface2 extends core::Object {
 abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::AbstractClass
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
+  forwarding-stub synthetic method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -149,10 +149,10 @@ class ConcreteSub extends self::AbstractClass {
 class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::ConcreteClass
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
+  forwarding-stub synthetic method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 static method main() → dynamic
   ;

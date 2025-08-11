@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class NonGenerativeConstructorTest extends PubPackageResolutionTest {
   test_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A.named() => throw 0;
   A.generative();
@@ -24,9 +25,9 @@ class A {
 class B extends A {
   B() : super.named();
 }
-''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 90, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 90, 13)],
+    );
   }
 
   test_generative() async {
@@ -54,7 +55,8 @@ class B extends A {
   }
 
   test_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() => throw 0;
   A.named();
@@ -62,8 +64,8 @@ class A {
 class B extends A {
   B();
 }
-''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 73, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 73, 1)],
+    );
   }
 }

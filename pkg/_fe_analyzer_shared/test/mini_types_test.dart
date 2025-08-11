@@ -27,72 +27,105 @@ main() {
       group('positional parameters:', () {
         test('all required', () {
           expect(
-              FunctionType(TypeParameterType(t),
-                  [TypeParameterType(u), TypeParameterType(v)]).toString(),
-              'T Function(U, V)');
+            FunctionType(TypeParameterType(t), [
+              TypeParameterType(u),
+              TypeParameterType(v),
+            ]).toString(),
+            'T Function(U, V)',
+          );
         });
 
         test('all optional', () {
           expect(
-              FunctionType(TypeParameterType(t),
-                      [TypeParameterType(u), TypeParameterType(v)],
-                      requiredPositionalParameterCount: 0)
-                  .toString(),
-              'T Function([U, V])');
+            FunctionType(TypeParameterType(t), [
+              TypeParameterType(u),
+              TypeParameterType(v),
+            ], requiredPositionalParameterCount: 0).toString(),
+            'T Function([U, V])',
+          );
         });
 
         test('mixed required and optional', () {
           expect(
-              FunctionType(TypeParameterType(t),
-                      [TypeParameterType(u), TypeParameterType(v)],
-                      requiredPositionalParameterCount: 1)
-                  .toString(),
-              'T Function(U, [V])');
+            FunctionType(TypeParameterType(t), [
+              TypeParameterType(u),
+              TypeParameterType(v),
+            ], requiredPositionalParameterCount: 1).toString(),
+            'T Function(U, [V])',
+          );
         });
       });
 
       test('named parameters', () {
         expect(
-            FunctionType(TypeParameterType(t), [], namedParameters: [
+          FunctionType(
+            TypeParameterType(t),
+            [],
+            namedParameters: [
               NamedFunctionParameter(
-                  isRequired: false, type: TypeParameterType(u), name: 'x'),
+                isRequired: false,
+                type: TypeParameterType(u),
+                name: 'x',
+              ),
               NamedFunctionParameter(
-                  isRequired: true, type: TypeParameterType(v), name: 'y')
-            ]).toString(),
-            'T Function({U x, required V y})');
+                isRequired: true,
+                type: TypeParameterType(v),
+                name: 'y',
+              ),
+            ],
+          ).toString(),
+          'T Function({U x, required V y})',
+        );
       });
 
       test('positional and named parameters', () {
         expect(
-            FunctionType(TypeParameterType(t), [
-              TypeParameterType(u)
-            ], namedParameters: [
+          FunctionType(
+            TypeParameterType(t),
+            [TypeParameterType(u)],
+            namedParameters: [
               NamedFunctionParameter(
-                  isRequired: false, type: TypeParameterType(v), name: 'y')
-            ]).toString(),
-            'T Function(U, {V y})');
+                isRequired: false,
+                type: TypeParameterType(v),
+                name: 'y',
+              ),
+            ],
+          ).toString(),
+          'T Function(U, {V y})',
+        );
       });
 
       test('type formals, unbounded', () {
         expect(
-            FunctionType(VoidType.instance, [], typeParametersShared: [t, u])
-                .toString(),
-            'void Function<T, U>()');
+          FunctionType(
+            VoidType.instance,
+            [],
+            typeParametersShared: [t, u],
+          ).toString(),
+          'void Function<T, U>()',
+        );
       });
 
       test('type formals, bounded', () {
         t.explicitBound = TypeParameterType(u);
         expect(
-            FunctionType(VoidType.instance, [], typeParametersShared: [t, u])
-                .toString(),
-            'void Function<T extends U, U>()');
+          FunctionType(
+            VoidType.instance,
+            [],
+            typeParametersShared: [t, u],
+          ).toString(),
+          'void Function<T extends U, U>()',
+        );
       });
 
       test('needs parentheses', () {
         expect(
-            TypeParameterType(t, promotion: FunctionType(VoidType.instance, []))
-                .toString(),
-            'T&(void Function())');
+          TypeParameterType(
+            t,
+            promotion: FunctionType(VoidType.instance, []),
+          ).toString(),
+          'T&(void Function())',
+        );
       });
     });
 
@@ -103,33 +136,42 @@ main() {
 
       test('with arguments', () {
         expect(
-            PrimaryType(TypeRegistry.map,
-                args: [TypeParameterType(t), TypeParameterType(u)]).toString(),
-            'Map<T, U>');
+          PrimaryType(
+            TypeRegistry.map,
+            args: [TypeParameterType(t), TypeParameterType(u)],
+          ).toString(),
+          'Map<T, U>',
+        );
       });
     });
 
     group('PromotedTypeVariableType:', () {
       test('basic', () {
-        expect(TypeParameterType(t, promotion: TypeParameterType(u)).toString(),
-            'T&U');
+        expect(
+          TypeParameterType(t, promotion: TypeParameterType(u)).toString(),
+          'T&U',
+        );
       });
 
       test('needs parentheses (right)', () {
         expect(
-            TypeParameterType(t,
-                    promotion:
-                        TypeParameterType(u, promotion: TypeParameterType(v)))
-                .toString(),
-            'T&(U&V)');
+          TypeParameterType(
+            t,
+            promotion: TypeParameterType(u, promotion: TypeParameterType(v)),
+          ).toString(),
+          'T&(U&V)',
+        );
       });
 
       test('needs parentheses (question)', () {
         expect(
-            TypeParameterType(t,
-                    promotion: TypeParameterType(u), isQuestionType: true)
-                .toString(),
-            '(T&U)?');
+          TypeParameterType(
+            t,
+            promotion: TypeParameterType(u),
+            isQuestionType: true,
+          ).toString(),
+          '(T&U)?',
+        );
       });
     });
 
@@ -140,59 +182,74 @@ main() {
 
       test('needs parentheses', () {
         expect(
-            TypeParameterType(t,
-                    promotion: TypeParameterType(u, isQuestionType: true))
-                .toString(),
-            'T&(U?)');
+          TypeParameterType(
+            t,
+            promotion: TypeParameterType(u, isQuestionType: true),
+          ).toString(),
+          'T&(U?)',
+        );
       });
     });
 
     group('RecordType:', () {
       test('no arguments', () {
         expect(
-            RecordType(positionalTypes: [], namedTypes: []).toString(), '()');
+          RecordType(positionalTypes: [], namedTypes: []).toString(),
+          '()',
+        );
       });
 
       test('single positional argument', () {
         expect(
-            RecordType(positionalTypes: [TypeParameterType(t)], namedTypes: [])
-                .toString(),
-            '(T,)');
+          RecordType(
+            positionalTypes: [TypeParameterType(t)],
+            namedTypes: [],
+          ).toString(),
+          '(T,)',
+        );
       });
 
       test('multiple positional arguments', () {
         expect(
-            RecordType(
-                positionalTypes: [TypeParameterType(t), TypeParameterType(u)],
-                namedTypes: []).toString(),
-            '(T, U)');
+          RecordType(
+            positionalTypes: [TypeParameterType(t), TypeParameterType(u)],
+            namedTypes: [],
+          ).toString(),
+          '(T, U)',
+        );
       });
 
       test('single named argument', () {
         expect(
-            RecordType(positionalTypes: [], namedTypes: [
-              NamedType(name: 't', type: TypeParameterType(t))
-            ]).toString(),
-            '({T t})');
+          RecordType(
+            positionalTypes: [],
+            namedTypes: [NamedType(name: 't', type: TypeParameterType(t))],
+          ).toString(),
+          '({T t})',
+        );
       });
 
       test('multiple named arguments', () {
         expect(
-            RecordType(positionalTypes: [], namedTypes: [
+          RecordType(
+            positionalTypes: [],
+            namedTypes: [
               NamedType(name: 't', type: TypeParameterType(t)),
-              NamedType(name: 'u', type: TypeParameterType(u))
-            ]).toString(),
-            '({T t, U u})');
+              NamedType(name: 'u', type: TypeParameterType(u)),
+            ],
+          ).toString(),
+          '({T t, U u})',
+        );
       });
 
       test('both positional and named arguments', () {
         expect(
-            RecordType(positionalTypes: [
-              TypeParameterType(t)
-            ], namedTypes: [
-              NamedType(name: 'u', type: TypeParameterType(u))
-            ]).toString(),
-            '(T, {U u})');
+          RecordType(
+            positionalTypes: [TypeParameterType(t)],
+            namedTypes: [NamedType(name: 'u', type: TypeParameterType(u))],
+          ).toString(),
+          '(T, {U u})',
+        );
       });
     });
 
@@ -404,13 +461,15 @@ main() {
           var t = type.typeParametersShared.single;
           expect((type.returnType as TypeParameterType).typeParameter, same(t));
           expect(
-              (type.positionalParameters.single as TypeParameterType)
-                  .typeParameter,
-              same(t));
+            (type.positionalParameters.single as TypeParameterType)
+                .typeParameter,
+            same(t),
+          );
           expect(
-              (type.namedParameters.single.type as TypeParameterType)
-                  .typeParameter,
-              same(t));
+            (type.namedParameters.single.type as TypeParameterType)
+                .typeParameter,
+            same(t),
+          );
         });
 
         test('unbounded', () {
@@ -442,8 +501,10 @@ main() {
       });
 
       test('invalid parameter separator', () {
-        expect(() => Type('int Function(String Function()< double)'),
-            throwsParseError);
+        expect(
+          () => Type('int Function(String Function()< double)'),
+          throwsParseError,
+        );
       });
 
       test('invalid token after Function', () {
@@ -580,38 +641,62 @@ main() {
       checkNotEqual(Type('void Function({T t})'), Type('void Function()'));
       checkEqual(Type('void Function({T t})'), Type('void Function({T t})'));
       checkNotEqual(
-          Type('void Function({T t})'), Type('void Function({required T t})'));
+        Type('void Function({T t})'),
+        Type('void Function({required T t})'),
+      );
       checkNotEqual(Type('void Function({T t})'), Type('void Function({U t})'));
       checkNotEqual(Type('void Function({T t})'), Type('void Function({T u})'));
       checkNotEqual(Type('void Function()'), Type('void Function<T>()'));
-      checkNotEqual(Type('void Function<T, U>(T, U)?'),
-          Type('void Function<U, T>(U, T)'));
-      checkEqual(
-          Type('void Function<T, U>(T, U)'), Type('void Function<U, T>(U, T)'));
       checkNotEqual(
-          Type('void Function<T, U>(T, U)'), Type('void Function<T, U>(U, T)'));
-      checkEqual(Type('void Function<T, U>({T p1, U p2})'),
-          Type('void Function<U, T>({U p1, T p2})'));
-      checkNotEqual(Type('void Function<T, U>({T p1, U p2})'),
-          Type('void Function<T, U>({U p1, T p2})'));
-      checkEqual(Type('void Function<T extends Object>()'),
-          Type('void Function<U extends Object>()'));
-      checkEqual(Type('void Function<T extends Object?>()'),
-          Type('void Function<U>()'));
-      checkNotEqual(Type('void Function<T extends Object>()'),
-          Type('void Function<U extends int>()'));
-      checkEqual(Type('void Function<T extends U, U>()'),
-          Type('void Function<V extends W, W>()'));
-      checkEqual(Type('void Function<T>(void Function<U extends T>(T, U))'),
-          Type('void Function<V>(void Function<W extends V>(V, W))'));
+        Type('void Function<T, U>(T, U)?'),
+        Type('void Function<U, T>(U, T)'),
+      );
+      checkEqual(
+        Type('void Function<T, U>(T, U)'),
+        Type('void Function<U, T>(U, T)'),
+      );
+      checkNotEqual(
+        Type('void Function<T, U>(T, U)'),
+        Type('void Function<T, U>(U, T)'),
+      );
+      checkEqual(
+        Type('void Function<T, U>({T p1, U p2})'),
+        Type('void Function<U, T>({U p1, T p2})'),
+      );
+      checkNotEqual(
+        Type('void Function<T, U>({T p1, U p2})'),
+        Type('void Function<T, U>({U p1, T p2})'),
+      );
+      checkEqual(
+        Type('void Function<T extends Object>()'),
+        Type('void Function<U extends Object>()'),
+      );
+      checkEqual(
+        Type('void Function<T extends Object?>()'),
+        Type('void Function<U>()'),
+      );
+      checkNotEqual(
+        Type('void Function<T extends Object>()'),
+        Type('void Function<U extends int>()'),
+      );
+      checkEqual(
+        Type('void Function<T extends U, U>()'),
+        Type('void Function<V extends W, W>()'),
+      );
+      checkEqual(
+        Type('void Function<T>(void Function<U extends T>(T, U))'),
+        Type('void Function<V>(void Function<W extends V>(V, W))'),
+      );
 
       // For these final test cases, we give one of the type parameters a name
       // that would be chosen by `FreshTypeParameterGenerator`, to verify that
       // the logic for avoiding name collisions does the right thing.
       var t = FreshTypeParameterGenerator().generate().name;
       checkEqual(Type('$t Function<$t>()'), Type('U Function<U>()'));
-      checkNotEqual(Type('void Function<$t>(X Function<X>($t))'),
-          Type('void Function<$t>($t Function<X>($t))'));
+      checkNotEqual(
+        Type('void Function<$t>(X Function<X>($t))'),
+        Type('void Function<$t>($t Function<X>($t))'),
+      );
     });
 
     test('PrimaryType', () {
@@ -657,12 +742,17 @@ main() {
       checkNotEqual(Type('T&int'), Type('T&String'));
       // Type formals from different function types are not equal
       checkNotEqual(
-          TypeParameterType((Type('void Function<T>()') as FunctionType)
+        TypeParameterType(
+          (Type('void Function<T>()') as FunctionType)
               .typeParametersShared
-              .single),
-          TypeParameterType((Type('void Function<T>()') as FunctionType)
+              .single,
+        ),
+        TypeParameterType(
+          (Type('void Function<T>()') as FunctionType)
               .typeParametersShared
-              .single));
+              .single,
+        ),
+      );
     });
 
     test('UnknownType', () {
@@ -702,90 +792,107 @@ main() {
     group('FunctionType:', () {
       group('return type:', () {
         test('unchanged', () {
-          expect(Type('int Function()').recursivelyDemote(covariant: true),
-              isNull);
-          expect(Type('int Function()').recursivelyDemote(covariant: false),
-              isNull);
+          expect(
+            Type('int Function()').recursivelyDemote(covariant: true),
+            isNull,
+          );
+          expect(
+            Type('int Function()').recursivelyDemote(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('T&int Function()').recursivelyDemote(covariant: true)!.type,
-              'T Function()');
+            Type('T&int Function()').recursivelyDemote(covariant: true)!.type,
+            'T Function()',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('T&int Function()')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
-              'Never Function()');
+            Type('T&int Function()').recursivelyDemote(covariant: false)!.type,
+            'Never Function()',
+          );
         });
 
         test('generic', () {
           expect(
-              Type('T&int Function<U>()')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
-              'T Function<U>()');
+            Type(
+              'T&int Function<U>()',
+            ).recursivelyDemote(covariant: true)!.type,
+            'T Function<U>()',
+          );
         });
       });
 
       group('positional parameters:', () {
         test('unchanged', () {
           expect(
-              Type('void Function(int, String)')
-                  .recursivelyDemote(covariant: true),
-              isNull);
+            Type(
+              'void Function(int, String)',
+            ).recursivelyDemote(covariant: true),
+            isNull,
+          );
           expect(
-              Type('void Function(int, String)')
-                  .recursivelyDemote(covariant: false),
-              isNull);
+            Type(
+              'void Function(int, String)',
+            ).recursivelyDemote(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('void Function(T&int, String)')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
-              'void Function(Never, String)');
+            Type(
+              'void Function(T&int, String)',
+            ).recursivelyDemote(covariant: true)!.type,
+            'void Function(Never, String)',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('void Function(T&int, String)')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
-              'void Function(T, String)');
+            Type(
+              'void Function(T&int, String)',
+            ).recursivelyDemote(covariant: false)!.type,
+            'void Function(T, String)',
+          );
         });
       });
 
       group('named parameters:', () {
         test('unchanged', () {
           expect(
-              Type('void Function({int x, String y})')
-                  .recursivelyDemote(covariant: true),
-              isNull);
+            Type(
+              'void Function({int x, String y})',
+            ).recursivelyDemote(covariant: true),
+            isNull,
+          );
           expect(
-              Type('void Function({int x, String y})')
-                  .recursivelyDemote(covariant: false),
-              isNull);
+            Type(
+              'void Function({int x, String y})',
+            ).recursivelyDemote(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('void Function({T&int x, String y})')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
-              'void Function({Never x, String y})');
+            Type(
+              'void Function({T&int x, String y})',
+            ).recursivelyDemote(covariant: true)!.type,
+            'void Function({Never x, String y})',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('void Function({T&int x, String y})')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
-              'void Function({T x, String y})');
+            Type(
+              'void Function({T&int x, String y})',
+            ).recursivelyDemote(covariant: false)!.type,
+            'void Function({T x, String y})',
+          );
         });
       });
     });
@@ -798,26 +905,30 @@ main() {
 
       group('type parameters:', () {
         test('unchanged', () {
-          expect(Type('Map<int, String>').recursivelyDemote(covariant: true),
-              isNull);
-          expect(Type('Map<int, String>').recursivelyDemote(covariant: false),
-              isNull);
+          expect(
+            Type('Map<int, String>').recursivelyDemote(covariant: true),
+            isNull,
+          );
+          expect(
+            Type('Map<int, String>').recursivelyDemote(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('Map<T&int, String>')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
-              'Map<T, String>');
+            Type('Map<T&int, String>').recursivelyDemote(covariant: true)!.type,
+            'Map<T, String>',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('Map<T&int, String>')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
-              'Map<Never, String>');
+            Type(
+              'Map<T&int, String>',
+            ).recursivelyDemote(covariant: false)!.type,
+            'Map<Never, String>',
+          );
         });
       });
     });
@@ -834,34 +945,40 @@ main() {
 
       test('contravariant', () {
         // Note: we don't normalize `Never?` to `Null`.
-        expect(Type('(T&int)?').recursivelyDemote(covariant: false)!.type,
-            'Never?');
+        expect(
+          Type('(T&int)?').recursivelyDemote(covariant: false)!.type,
+          'Never?',
+        );
       });
     });
 
     group('RecordType:', () {
       test('unchanged', () {
-        expect(Type('(int, {double a})').recursivelyDemote(covariant: true),
-            isNull);
-        expect(Type('(int, {double a})').recursivelyDemote(covariant: false),
-            isNull);
+        expect(
+          Type('(int, {double a})').recursivelyDemote(covariant: true),
+          isNull,
+        );
+        expect(
+          Type('(int, {double a})').recursivelyDemote(covariant: false),
+          isNull,
+        );
       });
 
       group('changed:', () {
         group('positional:', () {
           test('covariant', () {
             expect(
-              Type('(T&int, {double a})')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
+              Type(
+                '(T&int, {double a})',
+              ).recursivelyDemote(covariant: true)!.type,
               '(T, {double a})',
             );
           });
           test('contravariant', () {
             expect(
-              Type('(T&int, {double a})')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
+              Type(
+                '(T&int, {double a})',
+              ).recursivelyDemote(covariant: false)!.type,
               '(Never, {double a})',
             );
           });
@@ -869,17 +986,17 @@ main() {
         group('named:', () {
           test('covariant', () {
             expect(
-              Type('(double, {T&int a})')
-                  .recursivelyDemote(covariant: true)!
-                  .type,
+              Type(
+                '(double, {T&int a})',
+              ).recursivelyDemote(covariant: true)!.type,
               '(double, {T a})',
             );
           });
           test('contravariant', () {
             expect(
-              Type('(double, {T&int a})')
-                  .recursivelyDemote(covariant: false)!
-                  .type,
+              Type(
+                '(double, {T&int a})',
+              ).recursivelyDemote(covariant: false)!.type,
               '(double, {Never a})',
             );
           });
@@ -895,105 +1012,126 @@ main() {
 
   group('closureWithRespectToUnknown:', () {
     test('UnknownType:', () {
-      expect(Type('_').closureWithRespectToUnknown(covariant: true)!.type,
-          'Object?');
-      expect(Type('_').closureWithRespectToUnknown(covariant: false)!.type,
-          'Never');
+      expect(
+        Type('_').closureWithRespectToUnknown(covariant: true)!.type,
+        'Object?',
+      );
+      expect(
+        Type('_').closureWithRespectToUnknown(covariant: false)!.type,
+        'Never',
+      );
     });
 
     group('FunctionType:', () {
       group('return type:', () {
         test('unchanged', () {
           expect(
-              Type('int Function()')
-                  .closureWithRespectToUnknown(covariant: true),
-              isNull);
+            Type('int Function()').closureWithRespectToUnknown(covariant: true),
+            isNull,
+          );
           expect(
-              Type('int Function()')
-                  .closureWithRespectToUnknown(covariant: false),
-              isNull);
+            Type(
+              'int Function()',
+            ).closureWithRespectToUnknown(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('_ Function()')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
-              'Object? Function()');
+            Type(
+              '_ Function()',
+            ).closureWithRespectToUnknown(covariant: true)!.type,
+            'Object? Function()',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('_ Function()')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
-              'Never Function()');
+            Type(
+              '_ Function()',
+            ).closureWithRespectToUnknown(covariant: false)!.type,
+            'Never Function()',
+          );
         });
 
         test('generic', () {
           expect(
-              Type('_ Function<T>()')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
-              'Object? Function<T>()');
+            Type(
+              '_ Function<T>()',
+            ).closureWithRespectToUnknown(covariant: true)!.type,
+            'Object? Function<T>()',
+          );
         });
       });
 
       group('positional parameters:', () {
         test('unchanged', () {
           expect(
-              Type('void Function(int, String)')
-                  .closureWithRespectToUnknown(covariant: true),
-              isNull);
+            Type(
+              'void Function(int, String)',
+            ).closureWithRespectToUnknown(covariant: true),
+            isNull,
+          );
           expect(
-              Type('void Function(int, String)')
-                  .closureWithRespectToUnknown(covariant: false),
-              isNull);
+            Type(
+              'void Function(int, String)',
+            ).closureWithRespectToUnknown(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('void Function(_, String)')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
-              'void Function(Never, String)');
+            Type(
+              'void Function(_, String)',
+            ).closureWithRespectToUnknown(covariant: true)!.type,
+            'void Function(Never, String)',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('void Function(_, String)')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
-              'void Function(Object?, String)');
+            Type(
+              'void Function(_, String)',
+            ).closureWithRespectToUnknown(covariant: false)!.type,
+            'void Function(Object?, String)',
+          );
         });
       });
 
       group('named parameters:', () {
         test('unchanged', () {
           expect(
-              Type('void Function({int x, String y})')
-                  .closureWithRespectToUnknown(covariant: true),
-              isNull);
+            Type(
+              'void Function({int x, String y})',
+            ).closureWithRespectToUnknown(covariant: true),
+            isNull,
+          );
           expect(
-              Type('void Function({int x, String y})')
-                  .closureWithRespectToUnknown(covariant: false),
-              isNull);
+            Type(
+              'void Function({int x, String y})',
+            ).closureWithRespectToUnknown(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('void Function({_ x, String y})')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
-              'void Function({Never x, String y})');
+            Type(
+              'void Function({_ x, String y})',
+            ).closureWithRespectToUnknown(covariant: true)!.type,
+            'void Function({Never x, String y})',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('void Function({_ x, String y})')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
-              'void Function({Object? x, String y})');
+            Type(
+              'void Function({_ x, String y})',
+            ).closureWithRespectToUnknown(covariant: false)!.type,
+            'void Function({Object? x, String y})',
+          );
         });
       });
     });
@@ -1001,37 +1139,47 @@ main() {
     group('NonFunctionType', () {
       test('unchanged', () {
         expect(
-            Type('int').closureWithRespectToUnknown(covariant: true), isNull);
+          Type('int').closureWithRespectToUnknown(covariant: true),
+          isNull,
+        );
         expect(
-            Type('int').closureWithRespectToUnknown(covariant: false), isNull);
+          Type('int').closureWithRespectToUnknown(covariant: false),
+          isNull,
+        );
       });
 
       group('type parameters:', () {
         test('unchanged', () {
           expect(
-              Type('Map<int, String>')
-                  .closureWithRespectToUnknown(covariant: true),
-              isNull);
+            Type(
+              'Map<int, String>',
+            ).closureWithRespectToUnknown(covariant: true),
+            isNull,
+          );
           expect(
-              Type('Map<int, String>')
-                  .closureWithRespectToUnknown(covariant: false),
-              isNull);
+            Type(
+              'Map<int, String>',
+            ).closureWithRespectToUnknown(covariant: false),
+            isNull,
+          );
         });
 
         test('covariant', () {
           expect(
-              Type('Map<_, String>')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
-              'Map<Object?, String>');
+            Type(
+              'Map<_, String>',
+            ).closureWithRespectToUnknown(covariant: true)!.type,
+            'Map<Object?, String>',
+          );
         });
 
         test('contravariant', () {
           expect(
-              Type('Map<_, String>')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
-              'Map<Never, String>');
+            Type(
+              'Map<_, String>',
+            ).closureWithRespectToUnknown(covariant: false)!.type,
+            'Map<Never, String>',
+          );
         });
       });
     });
@@ -1039,44 +1187,54 @@ main() {
     group('QuestionType:', () {
       test('unchanged', () {
         expect(
-            Type('int?').closureWithRespectToUnknown(covariant: true), isNull);
+          Type('int?').closureWithRespectToUnknown(covariant: true),
+          isNull,
+        );
         expect(
-            Type('int?').closureWithRespectToUnknown(covariant: false), isNull);
+          Type('int?').closureWithRespectToUnknown(covariant: false),
+          isNull,
+        );
       });
 
       test('covariant', () {
-        expect(Type('_?').closureWithRespectToUnknown(covariant: true)!.type,
-            'Object?');
+        expect(
+          Type('_?').closureWithRespectToUnknown(covariant: true)!.type,
+          'Object?',
+        );
       });
     });
 
     group('RecordType:', () {
       test('unchanged', () {
         expect(
-            Type('(int, {double a})')
-                .closureWithRespectToUnknown(covariant: true),
-            isNull);
+          Type(
+            '(int, {double a})',
+          ).closureWithRespectToUnknown(covariant: true),
+          isNull,
+        );
         expect(
-            Type('(int, {double a})')
-                .closureWithRespectToUnknown(covariant: false),
-            isNull);
+          Type(
+            '(int, {double a})',
+          ).closureWithRespectToUnknown(covariant: false),
+          isNull,
+        );
       });
 
       group('changed:', () {
         group('positional:', () {
           test('covariant', () {
             expect(
-              Type('(_, {double a})')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
+              Type(
+                '(_, {double a})',
+              ).closureWithRespectToUnknown(covariant: true)!.type,
               '(Object?, {double a})',
             );
           });
           test('contravariant', () {
             expect(
-              Type('(_, {double a})')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
+              Type(
+                '(_, {double a})',
+              ).closureWithRespectToUnknown(covariant: false)!.type,
               '(Never, {double a})',
             );
           });
@@ -1084,17 +1242,17 @@ main() {
         group('named:', () {
           test('covariant', () {
             expect(
-              Type('(double, {_ a})')
-                  .closureWithRespectToUnknown(covariant: true)!
-                  .type,
+              Type(
+                '(double, {_ a})',
+              ).closureWithRespectToUnknown(covariant: true)!.type,
               '(double, {Object? a})',
             );
           });
           test('contravariant', () {
             expect(
-              Type('(double, {_ a})')
-                  .closureWithRespectToUnknown(covariant: false)!
-                  .type,
+              Type(
+                '(double, {_ a})',
+              ).closureWithRespectToUnknown(covariant: false)!.type,
               '(double, {Never a})',
             );
           });
@@ -1111,34 +1269,48 @@ main() {
     }
 
     test('FunctionType', () {
-      expect(queryUsedIdentifiers(Type('int Function<X>(String, {bool b})')),
-          unorderedEquals({'int', 'X', 'String', 'bool', 'b'}));
-      expect(queryUsedIdentifiers(Type('void Function<X extends int>()')),
-          unorderedEquals({'void', 'X', 'int'}));
+      expect(
+        queryUsedIdentifiers(Type('int Function<X>(String, {bool b})')),
+        unorderedEquals({'int', 'X', 'String', 'bool', 'b'}),
+      );
+      expect(
+        queryUsedIdentifiers(Type('void Function<X extends int>()')),
+        unorderedEquals({'void', 'X', 'int'}),
+      );
     });
 
     test('PrimaryType', () {
-      expect(queryUsedIdentifiers(Type('Map<String, int>')),
-          unorderedEquals({'Map', 'String', 'int'}));
       expect(
-          queryUsedIdentifiers(Type('dynamic')), unorderedEquals({'dynamic'}));
+        queryUsedIdentifiers(Type('Map<String, int>')),
+        unorderedEquals({'Map', 'String', 'int'}),
+      );
+      expect(
+        queryUsedIdentifiers(Type('dynamic')),
+        unorderedEquals({'dynamic'}),
+      );
       expect(queryUsedIdentifiers(Type('error')), unorderedEquals({'error'}));
       expect(queryUsedIdentifiers(Type('Never')), unorderedEquals({'Never'}));
       expect(queryUsedIdentifiers(Type('Null')), unorderedEquals({'Null'}));
       expect(queryUsedIdentifiers(Type('void')), unorderedEquals({'void'}));
-      expect(queryUsedIdentifiers(Type('FutureOr<int>')),
-          unorderedEquals({'FutureOr', 'int'}));
+      expect(
+        queryUsedIdentifiers(Type('FutureOr<int>')),
+        unorderedEquals({'FutureOr', 'int'}),
+      );
     });
 
     test('RecordType', () {
-      expect(queryUsedIdentifiers(Type('(int, {String s})')),
-          unorderedEquals({'int', 'String', 's'}));
+      expect(
+        queryUsedIdentifiers(Type('(int, {String s})')),
+        unorderedEquals({'int', 'String', 's'}),
+      );
     });
 
     test('TypeParameterType', () {
       expect(queryUsedIdentifiers(Type('T')), unorderedEquals({'T'}));
       expect(
-          queryUsedIdentifiers(Type('T&int')), unorderedEquals({'T', 'int'}));
+        queryUsedIdentifiers(Type('T&int')),
+        unorderedEquals({'T', 'int'}),
+      );
     });
 
     test('UnknownType', () {
@@ -1149,109 +1321,151 @@ main() {
   group('substitute:', () {
     test('FunctionType', () {
       expect(
-          Type('int Function<U>(int, {int i})').substitute({t: Type('String')}),
-          isNull);
+        Type('int Function<U>(int, {int i})').substitute({t: Type('String')}),
+        isNull,
+      );
       expect(
-          Type('T Function<U>(int, {int i})').substitute({t: Type('String')}),
-          Type('String Function<U>(int, {int i})'));
+        Type('T Function<U>(int, {int i})').substitute({t: Type('String')}),
+        Type('String Function<U>(int, {int i})'),
+      );
       expect(
-          Type('int Function<U>(T, {int i})?').substitute({t: Type('String')}),
-          Type('int Function<U>(String, {int i})?'));
+        Type('int Function<U>(T, {int i})?').substitute({t: Type('String')}),
+        Type('int Function<U>(String, {int i})?'),
+      );
       expect(
-          Type('int Function<U>(int, {T i})').substitute({t: Type('String')}),
-          Type('int Function<U>(int, {String i})'));
+        Type('int Function<U>(int, {T i})').substitute({t: Type('String')}),
+        Type('int Function<U>(int, {String i})'),
+      );
       expect(
-          (Type('int Function<U>(int, {int i})') as FunctionType)
-              .substitute({t: Type('String')}, dropTypeFormals: true),
-          Type('int Function(int, {int i})'));
+        (Type('int Function<U>(int, {int i})') as FunctionType).substitute({
+          t: Type('String'),
+        }, dropTypeFormals: true),
+        Type('int Function(int, {int i})'),
+      );
       expect(
-          (Type('int Function<U>(int, {int i})?') as FunctionType)
-              .substitute({t: Type('String')}, dropTypeFormals: true),
-          Type('int Function(int, {int i})?'));
-      expect(Type('int Function(T, T)').substitute({t: Type('String')}),
-          Type('int Function(String, String)'));
-      expect(Type('int Function({T t1, T t2})').substitute({t: Type('String')}),
-          Type('int Function({String t1, String t2})'));
+        (Type('int Function<U>(int, {int i})?') as FunctionType).substitute({
+          t: Type('String'),
+        }, dropTypeFormals: true),
+        Type('int Function(int, {int i})?'),
+      );
+      expect(
+        Type('int Function(T, T)').substitute({t: Type('String')}),
+        Type('int Function(String, String)'),
+      );
+      expect(
+        Type('int Function({T t1, T t2})').substitute({t: Type('String')}),
+        Type('int Function({String t1, String t2})'),
+      );
 
       // Verify that bounds of type parameters are substituted
       var origType = Type(
-          'Map<U, V> Function<U extends T, V extends U>(U, V, {U u, V v})');
+        'Map<U, V> Function<U extends T, V extends U>(U, V, {U u, V v})',
+      );
       var substitutedType =
           origType.substitute({t: Type('String')}) as FunctionType;
       expect(
-          substitutedType,
-          Type('Map<U, V> Function<U extends String, V extends U>(U, V, {U u, '
-              'V v})'));
+        substitutedType,
+        Type(
+          'Map<U, V> Function<U extends String, V extends U>(U, V, {U u, '
+          'V v})',
+        ),
+      );
       // And verify that references to the type parameters now point to the
       // new, updated type parameters.
       expect(
-          ((substitutedType.returnType as PrimaryType).args[0]
-                  as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[0]));
+        ((substitutedType.returnType as PrimaryType).args[0]
+                as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[0]),
+      );
       expect(
-          ((substitutedType.returnType as PrimaryType).args[1]
-                  as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[1]));
+        ((substitutedType.returnType as PrimaryType).args[1]
+                as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[1]),
+      );
       expect(
-          (substitutedType.typeParametersShared[1].explicitBound
-                  as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[0]));
+        (substitutedType.typeParametersShared[1].explicitBound
+                as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[0]),
+      );
       expect(
-          (substitutedType.positionalParameters[0] as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[0]));
+        (substitutedType.positionalParameters[0] as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[0]),
+      );
       expect(
-          (substitutedType.positionalParameters[1] as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[1]));
+        (substitutedType.positionalParameters[1] as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[1]),
+      );
       expect(
-          (substitutedType.namedParameters[0].type as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[0]));
+        (substitutedType.namedParameters[0].type as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[0]),
+      );
       expect(
-          (substitutedType.namedParameters[1].type as TypeParameterType)
-              .typeParameter,
-          same(substitutedType.typeParametersShared[1]));
+        (substitutedType.namedParameters[1].type as TypeParameterType)
+            .typeParameter,
+        same(substitutedType.typeParametersShared[1]),
+      );
       // Finally, verify that the original type didn't change (this is important
       // because `TypeParameter.explicitBound` is non-final in order to allow
       // for the creation of F-bounded types).
       expect(
-          origType,
-          Type('Map<U, V> Function<U extends T, V extends U>(U, V, {U u, '
-              'V v})'));
+        origType,
+        Type(
+          'Map<U, V> Function<U extends T, V extends U>(U, V, {U u, '
+          'V v})',
+        ),
+      );
     });
 
     test('PrimaryType', () {
       expect(Type('Map<int, int>').substitute({t: Type('String')}), isNull);
-      expect(Type('Map<T, int>').substitute({t: Type('String')}),
-          Type('Map<String, int>'));
-      expect(Type('Map<int, T>').substitute({t: Type('String')}),
-          Type('Map<int, String>'));
-      expect(Type('Map<T, T>').substitute({t: Type('String')}),
-          Type('Map<String, String>'));
+      expect(
+        Type('Map<T, int>').substitute({t: Type('String')}),
+        Type('Map<String, int>'),
+      );
+      expect(
+        Type('Map<int, T>').substitute({t: Type('String')}),
+        Type('Map<int, String>'),
+      );
+      expect(
+        Type('Map<T, T>').substitute({t: Type('String')}),
+        Type('Map<String, String>'),
+      );
       expect(Type('dynamic').substitute({t: Type('String')}), isNull);
       expect(Type('error').substitute({t: Type('String')}), isNull);
       expect(Type('Never').substitute({t: Type('String')}), isNull);
       expect(Type('Null').substitute({t: Type('String')}), isNull);
       expect(Type('void').substitute({t: Type('String')}), isNull);
       expect(Type('FutureOr<int>').substitute({t: Type('String')}), isNull);
-      expect(Type('FutureOr<T>').substitute({t: Type('String')}),
-          Type('FutureOr<String>'));
+      expect(
+        Type('FutureOr<T>').substitute({t: Type('String')}),
+        Type('FutureOr<String>'),
+      );
     });
 
     test('RecordType', () {
       expect(Type('(int, {int i})').substitute({t: Type('String')}), isNull);
-      expect(Type('(T, {int i})?').substitute({t: Type('String')}),
-          Type('(String, {int i})?'));
-      expect(Type('(int, {T i})').substitute({t: Type('String')}),
-          Type('(int, {String i})'));
-      expect(Type('(T, T)').substitute({t: Type('String')}),
-          Type('(String, String)'));
-      expect(Type('({T t1, T t2})').substitute({t: Type('String')}),
-          Type('({String t1, String t2})'));
+      expect(
+        Type('(T, {int i})?').substitute({t: Type('String')}),
+        Type('(String, {int i})?'),
+      );
+      expect(
+        Type('(int, {T i})').substitute({t: Type('String')}),
+        Type('(int, {String i})'),
+      );
+      expect(
+        Type('(T, T)').substitute({t: Type('String')}),
+        Type('(String, String)'),
+      );
+      expect(
+        Type('({T t1, T t2})').substitute({t: Type('String')}),
+        Type('({String t1, String t2})'),
+      );
     });
 
     test('TypeParameterType', () {

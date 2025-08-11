@@ -14,17 +14,16 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart'
-    show Element2, InterfaceElement2, LibraryElement2;
+import 'package:analyzer/dart/element/element.dart'
+    show Element, InterfaceElement, LibraryElement;
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
 
@@ -303,10 +302,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The compilation unit in which data is currently being collected.
   late CompilationUnit unit;
 
-  late InheritanceManager3 inheritanceManager = InheritanceManager3();
-
   /// The library containing the compilation unit being visited.
-  late LibraryElement2 enclosingLibrary;
+  late LibraryElement enclosingLibrary;
 
   /// The type provider associated with the current compilation unit.
   late TypeProvider typeProvider;
@@ -532,7 +529,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
-    inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     for (var directive in node.directives) {
@@ -1525,8 +1521,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element2? _leftMostElement(AstNode node) =>
-      _leftMostIdentifier(node)?.element;
+  Element? _leftMostElement(AstNode node) => _leftMostIdentifier(node)?.element;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
@@ -1558,10 +1553,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element == null) {
       return null;
     }
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element2!;
+        element = parent.element!;
       }
     }
     return featureComputer.computeElementKind2(element);
@@ -1688,13 +1683,11 @@ class RelevanceMetricsComputer {
               print('');
             }
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors.where(
-                (e) => e.severity == Severity.error,
-              )) {
-                print('  ${error.toString()}');
+              for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
+                print('  ${diagnostic.toString()}');
               }
               print('');
             } else {
@@ -1712,16 +1705,6 @@ class RelevanceMetricsComputer {
         }
       }
     }
-  }
-
-  /// Return `true` if the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var error in result.errors) {
-      if (error.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

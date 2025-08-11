@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../base/problems.dart' show unexpected;
 import '../builder/member_builder.dart';
@@ -899,22 +898,19 @@ class FunctionAccessTarget extends ObjectAccessTarget {
 class DynamicAccessTarget extends ObjectAccessTarget {
   /// Creates an access on a dynamic receiver type with no known target.
   const DynamicAccessTarget.dynamic()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.dynamic);
+      : super.internal(ObjectAccessTargetKind.dynamic);
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
   const DynamicAccessTarget.invalid()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.invalid);
+      : super.internal(ObjectAccessTargetKind.invalid);
 
   /// Creates an access with no target.
   ///
   /// This is an error case.
   const DynamicAccessTarget.missing()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.missing);
+      : super.internal(ObjectAccessTargetKind.missing);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1283,10 +1279,10 @@ class ExtensionAccessCandidate {
       ExtensionAccessCandidate other) {
     if (this.isPlatform == other.isPlatform) {
       // Both are platform or not platform.
-      bool thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
-          this.onType, other.onType, SubtypeCheckMode.withNullabilities);
-      bool thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
-          other.onType, this.onType, SubtypeCheckMode.withNullabilities);
+      bool thisIsSubtype =
+          typeSchemaEnvironment.isSubtypeOf(this.onType, other.onType);
+      bool thisIsSupertype =
+          typeSchemaEnvironment.isSubtypeOf(other.onType, this.onType);
       if (thisIsSubtype && !thisIsSupertype) {
         // This is subtype of other and not vice-versa.
         return true;
@@ -1295,13 +1291,9 @@ class ExtensionAccessCandidate {
         return false;
       } else if (thisIsSubtype || thisIsSupertype) {
         thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
-            this.onTypeInstantiateToBounds,
-            other.onTypeInstantiateToBounds,
-            SubtypeCheckMode.withNullabilities);
+            this.onTypeInstantiateToBounds, other.onTypeInstantiateToBounds);
         thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
-            other.onTypeInstantiateToBounds,
-            this.onTypeInstantiateToBounds,
-            SubtypeCheckMode.withNullabilities);
+            other.onTypeInstantiateToBounds, this.onTypeInstantiateToBounds);
         if (thisIsSubtype && !thisIsSupertype) {
           // This is subtype of other and not vice-versa.
           return true;

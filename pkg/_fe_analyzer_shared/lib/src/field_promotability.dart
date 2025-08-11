@@ -146,7 +146,7 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// determined to be unsafe to promote, and whose values are an instance of
   /// `FieldNameNonPromotabilityInfo` describing why.
   final Map<String, FieldNameNonPromotabilityInfo<Class, Field, Getter>>
-      _nonPromotabilityInfo = {};
+  _nonPromotabilityInfo = {};
 
   /// Map from a [Class] object to the [_ImplementedNode] that records the names
   /// of concrete fields and getters declared in or inherited by the [Class].
@@ -168,7 +168,9 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// the non-synthetic instance fields and getters in the class.
   ClassInfo<Class> addClass(Class class_, {required bool isAbstract}) {
     ClassInfo<Class> classInfo = new ClassInfo<Class>(
-        _getInterfaceNode(class_), _getImplementedNode(class_));
+      _getInterfaceNode(class_),
+      _getImplementedNode(class_),
+    );
 
     if (!isAbstract) {
       _concreteInfoList.add(classInfo);
@@ -188,10 +190,13 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// promotable; any other return value indicates the reason why it
   /// *definitely* isn't promotable.
   PropertyNonPromotabilityReason? addField(
-      ClassInfo<Class> classInfo, Field field, String name,
-      {required bool isFinal,
-      required bool isAbstract,
-      required bool isExternal}) {
+    ClassInfo<Class> classInfo,
+    Field field,
+    String name, {
+    required bool isFinal,
+    required bool isAbstract,
+    required bool isExternal,
+  }) {
     // Public fields are never promotable, so we may safely ignore fields with
     // public names.
     if (!name.startsWith('_')) {
@@ -228,8 +233,11 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// promotable; any other return value indicates the reason why it
   /// *definitely* isn't promotable.
   PropertyNonPromotabilityReason? addGetter(
-      ClassInfo<Class> classInfo, Getter getter, String name,
-      {required bool isAbstract}) {
+    ClassInfo<Class> classInfo,
+    Getter getter,
+    String name, {
+    required bool isAbstract,
+  }) {
     // Public fields are never promotable, so we may safely ignore getters with
     // public names.
     if (!name.startsWith('_')) {
@@ -257,7 +265,7 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// The client should call this method once after all [Class]es, fields, and
   /// getters have been recorded using [addClass], [addField], and [addGetter].
   Map<String, FieldNameNonPromotabilityInfo<Class, Field, Getter>>
-      computeNonPromotabilityInfo() {
+  computeNonPromotabilityInfo() {
     // The names of private non-final fields and private getters have already
     // been added to [_unpromotableFieldNames] by [addField] and [addGetter]. So
     // all that remains to do is figure out which field names are unpromotable
@@ -306,14 +314,16 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// direct superclasses `B`, `M1`, and `M2`) or a fully desugared model (in
   /// which `class C extends B with M1, M2` represents a class `C` with
   /// superclass `B&M1&M2`, which in turn has supertypes `B&M1` and `M2`, etc.)
-  Iterable<Class> getSuperclasses(Class class_,
-      {required bool ignoreImplements});
+  Iterable<Class> getSuperclasses(
+    Class class_, {
+    required bool ignoreImplements,
+  });
 
   /// Gets the [FieldNameNonPromotabilityInfo] object corresponding to [name]
   /// from [_nonPromotabilityInfo], creating it if necessary.
   FieldNameNonPromotabilityInfo<Class, Field, Getter> _fieldNonPromoInfo(
-          String name) =>
-      _nonPromotabilityInfo.putIfAbsent(name, FieldNameNonPromotabilityInfo._);
+    String name,
+  ) => _nonPromotabilityInfo.putIfAbsent(name, FieldNameNonPromotabilityInfo._);
 
   /// Gets or creates the [_ImplementedNode] for [class_].
   _ImplementedNode<Class> _getImplementedNode(Class class_) =>
@@ -374,8 +384,10 @@ class _ImplementedNode<Class extends Object> extends _Node<Class> {
     // edges. So the set of dependencies of this node is the set of immediate
     // superclasses, ignoring `implements`.
     List<_Node<Class>> dependencies = [];
-    for (Class supertype in _fieldPromotability.getSuperclasses(_class,
-        ignoreImplements: true)) {
+    for (Class supertype in _fieldPromotability.getSuperclasses(
+      _class,
+      ignoreImplements: true,
+    )) {
       dependencies.add(_fieldPromotability._getImplementedNode(supertype));
     }
     return dependencies;
@@ -397,8 +409,10 @@ class _InterfaceNode<Class extends Object> extends _Node<Class> {
     // So the set of dependencies of this node is the set of immediate
     // superclasses, including `implements`.
     List<_Node<Class>> dependencies = [];
-    for (Class supertype in _fieldPromotability.getSuperclasses(_class,
-        ignoreImplements: false)) {
+    for (Class supertype in _fieldPromotability.getSuperclasses(
+      _class,
+      ignoreImplements: false,
+    )) {
       dependencies.add(_fieldPromotability._getInterfaceNode(supertype));
     }
     return dependencies;

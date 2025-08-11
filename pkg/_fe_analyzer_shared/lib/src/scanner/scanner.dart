@@ -53,16 +53,20 @@ class ScannerResult {
 }
 
 /// Scan/tokenize the given UTF8 [bytes].
-ScannerResult scan(Uint8List bytes,
-    {ScannerConfiguration? configuration,
-    bool includeComments = false,
-    LanguageVersionChanged? languageVersionChanged,
-    bool allowLazyStrings = true}) {
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
-      configuration: configuration,
-      includeComments: includeComments,
-      languageVersionChanged: languageVersionChanged,
-      allowLazyStrings: allowLazyStrings);
+ScannerResult scan(
+  Uint8List bytes, {
+  ScannerConfiguration? configuration,
+  bool includeComments = false,
+  LanguageVersionChanged? languageVersionChanged,
+  bool allowLazyStrings = true,
+}) {
+  Utf8BytesScanner scanner = new Utf8BytesScanner(
+    bytes,
+    configuration: configuration,
+    includeComments: includeComments,
+    languageVersionChanged: languageVersionChanged,
+    allowLazyStrings: allowLazyStrings,
+  );
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
     // If there was a single missing `}` and the scanner can identify a good
@@ -71,11 +75,13 @@ ScannerResult scan(Uint8List bytes,
     int? offsetForCurlyBracketRecoveryStart =
         scanner.getOffsetForCurlyBracketRecoveryStart();
     if (offsetForCurlyBracketRecoveryStart != null) {
-      scanner = new Utf8BytesScanner(bytes,
-          configuration: configuration,
-          includeComments: includeComments,
-          languageVersionChanged: languageVersionChanged,
-          allowLazyStrings: allowLazyStrings);
+      scanner = new Utf8BytesScanner(
+        bytes,
+        configuration: configuration,
+        includeComments: includeComments,
+        languageVersionChanged: languageVersionChanged,
+        allowLazyStrings: allowLazyStrings,
+      );
       scanner.offsetForCurlyBracketRecoveryStart =
           offsetForCurlyBracketRecoveryStart;
       tokens = scanner.tokenize();
@@ -85,14 +91,18 @@ ScannerResult scan(Uint8List bytes,
 }
 
 /// Scan/tokenize the given [source].
-ScannerResult scanString(String source,
-    {ScannerConfiguration? configuration,
-    bool includeComments = false,
-    LanguageVersionChanged? languageVersionChanged}) {
-  StringScanner scanner = new StringScanner(source,
-      configuration: configuration,
-      includeComments: includeComments,
-      languageVersionChanged: languageVersionChanged);
+ScannerResult scanString(
+  String source, {
+  ScannerConfiguration? configuration,
+  bool includeComments = false,
+  LanguageVersionChanged? languageVersionChanged,
+}) {
+  StringScanner scanner = new StringScanner(
+    source,
+    configuration: configuration,
+    includeComments: includeComments,
+    languageVersionChanged: languageVersionChanged,
+  );
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
     // If there was a single missing `}` and the scanner can identify a good
@@ -101,10 +111,12 @@ ScannerResult scanString(String source,
     int? offsetForCurlyBracketRecoveryStart =
         scanner.getOffsetForCurlyBracketRecoveryStart();
     if (offsetForCurlyBracketRecoveryStart != null) {
-      scanner = new StringScanner(source,
-          configuration: configuration,
-          includeComments: includeComments,
-          languageVersionChanged: languageVersionChanged);
+      scanner = new StringScanner(
+        source,
+        configuration: configuration,
+        includeComments: includeComments,
+        languageVersionChanged: languageVersionChanged,
+      );
       scanner.offsetForCurlyBracketRecoveryStart =
           offsetForCurlyBracketRecoveryStart;
       tokens = scanner.tokenize();

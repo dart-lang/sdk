@@ -135,10 +135,9 @@ class CallStructure {
   /// The names of the named arguments in canonicalized order.
   List<String> getOrderedNamedArguments() => const [];
 
-  CallStructure get nonGeneric =>
-      typeArgumentCount == 0
-          ? this
-          : CallStructure(argumentCount, namedArguments);
+  CallStructure get nonGeneric => typeArgumentCount == 0
+      ? this
+      : CallStructure(argumentCount, namedArguments);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -287,15 +286,14 @@ class _NamedCallStructure extends CallStructure {
       identical(namedArguments, getOrderedNamedArguments());
 
   @override
-  CallStructure toNormalized() =>
-      isNormalized
-          ? this
-          : _NamedCallStructure(
-            argumentCount,
-            getOrderedNamedArguments(),
-            typeArgumentCount,
-            getOrderedNamedArguments(),
-          );
+  CallStructure toNormalized() => isNormalized
+      ? this
+      : _NamedCallStructure(
+          argumentCount,
+          getOrderedNamedArguments(),
+          typeArgumentCount,
+          getOrderedNamedArguments(),
+        );
 
   @override
   List<String> getOrderedNamedArguments() {

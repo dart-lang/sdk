@@ -11,13 +11,15 @@ import "package:expect/expect.dart";
 
 main(List<String> args) async {
   if (args.length == 0) {
-    final result = await Process.run(Platform.executable, [
-      ...Platform.executableArguments,
-      Platform.script.toString(),
-      "with_tz_set"
-    ], environment: <String, String>{
-      "TZ": "GMT-1"
-    });
+    final result = await Process.run(
+      Platform.executable,
+      [
+        ...Platform.executableArguments,
+        Platform.script.toString(),
+        "with_tz_set",
+      ],
+      environment: <String, String>{"TZ": "GMT-1"},
+    );
     print('stdout: ${result.stdout}');
     print('stderr: ${result.stderr}');
     Expect.equals(result.exitCode, 0);

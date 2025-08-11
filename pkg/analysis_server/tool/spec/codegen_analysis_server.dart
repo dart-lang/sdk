@@ -11,7 +11,7 @@ import 'api.dart';
 import 'codegen_java.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-  'tool/spec/generated/java/AnalysisServer.java',
+  'analysis_server/tool/spec/generated/java/AnalysisServer.java',
   (Api api) => CodegenAnalysisServer(api),
 );
 

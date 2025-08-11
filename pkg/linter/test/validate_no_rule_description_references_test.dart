@@ -16,7 +16,7 @@ void main() {
     () {
       registerLintRules();
       for (var rule in Registry.ruleRegistry) {
-        test(rule.name, () async {
+        test(rule.name, () {
           var result = Process.runSync('grep', [
             '-R',
             rule.description,

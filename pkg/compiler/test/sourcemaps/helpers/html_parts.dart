@@ -390,8 +390,9 @@ class CodePart {
 
   Map toJson(JsonStrategy strategy) {
     return {
-      'annotations':
-          annotations.map((a) => strategy.encodeAnnotation(a)).toList(),
+      'annotations': annotations
+          .map((a) => strategy.encodeAnnotation(a))
+          .toList(),
       'subsequentCode': subsequentCode,
     };
   }
@@ -482,12 +483,12 @@ class CodeLine extends HtmlPart {
       'offset': offset,
       'code': code,
       'parts': codeParts.map((p) => p.toJson(strategy)).toList(),
-      'annotations':
-          annotations.map((a) => strategy.encodeAnnotation(a)).toList(),
-      'lineAnnotation':
-          lineAnnotation != null
-              ? strategy.encodeLineAnnotation(lineAnnotation)
-              : null,
+      'annotations': annotations
+          .map((a) => strategy.encodeAnnotation(a))
+          .toList(),
+      'lineAnnotation': lineAnnotation != null
+          ? strategy.encodeLineAnnotation(lineAnnotation)
+          : null,
     };
   }
 
@@ -504,10 +505,9 @@ class CodeLine extends HtmlPart {
     json['annotations'].forEach(
       (a) => line.annotations.add(strategy.decodeAnnotation(a)),
     );
-    line.lineAnnotation =
-        json['lineAnnotation'] != null
-            ? strategy.decodeLineAnnotation(json['lineAnnotation'])
-            : null;
+    line.lineAnnotation = json['lineAnnotation'] != null
+        ? strategy.decodeLineAnnotation(json['lineAnnotation'])
+        : null;
     return line;
   }
 }

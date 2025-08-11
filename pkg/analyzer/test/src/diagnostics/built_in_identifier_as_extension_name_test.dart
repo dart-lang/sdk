@@ -22,7 +22,10 @@ extension as on Object {}
 ''',
       [
         error(
-            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, 10, 2),
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
+          10,
+          2,
+        ),
       ],
     );
   }
@@ -34,7 +37,10 @@ extension Function on Object {}
 ''',
       [
         error(
-            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, 10, 8),
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
+          10,
+          8,
+        ),
       ],
     );
   }

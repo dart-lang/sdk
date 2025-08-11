@@ -16,29 +16,32 @@ main() {
 @reflectiveTest
 class EqualKeysInMapTest extends PubPackageResolutionTest {
   test_constant_constant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = 1;
 const b = 1;
 var s = {a: 2, b: 3};
-''', [
-      error(WarningCode.EQUAL_KEYS_IN_MAP, 41, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_KEYS_IN_MAP, 41, 1)],
+    );
   }
 
   test_literal_constant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const one = 1;
 var s = {1: 2, one: 3};
-''', [
-      error(WarningCode.EQUAL_KEYS_IN_MAP, 30, 3),
-    ]);
+''',
+      [error(WarningCode.EQUAL_KEYS_IN_MAP, 30, 3)],
+    );
   }
 
   test_literal_literal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var s = {1: 2, 1: 3};
-''', [
-      error(WarningCode.EQUAL_KEYS_IN_MAP, 15, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_KEYS_IN_MAP, 15, 1)],
+    );
   }
 }

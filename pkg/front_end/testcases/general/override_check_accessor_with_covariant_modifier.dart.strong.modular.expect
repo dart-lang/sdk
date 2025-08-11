@@ -52,8 +52,8 @@ class D extends self::C {
   set x1(covariant-by-declaration self::B value) → void {}
   set x2(covariant-by-declaration self::B value) → void {}
   set x3(covariant-by-declaration self::B value) → void {}
-  set x4(self::B value) → void {}
-  set x5(covariant-by-declaration core::String value) → void {}
+  erroneous set x4(self::B value) → void {}
+  erroneous set x5(covariant-by-declaration core::String value) → void {}
   set x6(covariant-by-declaration self::A value) → void {}
 }
 static method main() → dynamic {}

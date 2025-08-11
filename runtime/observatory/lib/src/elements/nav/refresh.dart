@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class RefreshEvent {
@@ -52,19 +55,19 @@ class NavRefreshElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
-      new LIElement()
-        ..children = <Element>[
-          new ButtonElement()
-            ..text = label
+    children = <HTMLElement>[
+      new HTMLLIElement()
+        ..appendChildren(<HTMLElement>[
+          new HTMLButtonElement()
+            ..textContent = label
             ..disabled = disabled
             ..onClick.map(_toEvent).listen(_refresh)
-        ]
+        ])
     ];
   }
 

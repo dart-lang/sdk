@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
@@ -20,18 +21,18 @@ void main() {
 
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
-  late RecordingErrorListener recorder;
+  late RecordingDiagnosticListener recorder;
 
-  late ErrorReporter reporter;
+  late DiagnosticReporter reporter;
 
-  List<AnalysisError> get errors => recorder.errors;
+  List<Diagnostic> get diagnostics => recorder.diagnostics;
 
   LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator();
 
   void setUp() {
     registerLintRules();
-    recorder = RecordingErrorListener();
-    reporter = ErrorReporter(recorder, _TestSource());
+    recorder = RecordingDiagnosticListener();
+    reporter = DiagnosticReporter(recorder, _TestSource());
   }
 
   void test_linter_defined_rules() {
@@ -69,13 +70,10 @@ linter:
     );
   }
 
-  void validate(String source, List<ErrorCode> expected) {
+  void validate(String source, List<DiagnosticCode> expected) {
     var options = AnalysisOptionsProvider().getOptionsFromString(source);
     validator.validate(reporter, options);
-    expect(
-      errors.map((AnalysisError e) => e.errorCode),
-      unorderedEquals(expected),
-    );
+    expect(diagnostics.map((e) => e.diagnosticCode), unorderedEquals(expected));
   }
 }
 

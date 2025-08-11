@@ -19,20 +19,22 @@ class MapLiteralTest extends PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<int, int> a = {'a' : 1};
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 19, 3)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<int, int> a = {1 : 'a'};
-''', [
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 23, 3)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
@@ -87,24 +89,26 @@ class C<T extends Object?> {
   }
 
   test_context_noTypeArgs_noEntries_typeParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends Map<int, String>> {
   E a = {};
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2)],
+    );
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends Map<dynamic, dynamic>> {
   E a = {};
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2)],
+    );
     assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
   }
 
@@ -130,7 +134,7 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::t#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
           substitution: {T: Map<int, double>?}
         staticType: Null
     rightParenthesis: )
@@ -142,20 +146,22 @@ MethodInvocation
   }
 
   test_context_typeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<String, String> a = <String, String>{0 : 'a'};
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 41, 1)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<String, String> a = <String, String>{'a' : 1};
-''', [
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
@@ -167,11 +173,12 @@ Map<String, String> a = <String, String>{'a' : 'b'};
   }
 
   test_context_typeArgs_noEntries_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<String, String> a = <int, int>{};
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 12)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
@@ -355,39 +362,44 @@ var a = {if (0 < 1) ...c else ...d};
   }
 
   test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0: throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 87, 21),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 87, 21)],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Never a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(WarningCode.DEAD_CODE, 88, 21),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
+        error(WarningCode.DEAD_CODE, 88, 21),
+      ],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 99, 7),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 99, 7)],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
@@ -412,39 +424,44 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null a) {
   // ignore:unused_local_variable
   var v = {...?a};
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 61, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 61, 7)],
+    );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(WarningCode.DEAD_CODE, 101, 21),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
+        error(WarningCode.DEAD_CODE, 101, 21),
+      ],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Null>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...?a, if (b) throw 0: throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 112, 7),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 112, 7)],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
@@ -459,58 +476,63 @@ void f<T extends Map<int, String>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Never>(T a, bool b) async {
   // ignore:unused_local_variable
   var v = {...a, if (b) throw 0: throw 0};
 }
-''', [
-      error(WarningCode.DEAD_CODE, 100, 21),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 100, 21)],
+    );
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 
   // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a};
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 6)],
+    );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = {...a, 0: 1};
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 73, 12)],
+    );
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
   test_noContext_typeArgs_entry_conflictingKey() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <String, int>{1 : 2};
-''', [
-      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 22, 1)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
 
   test_noContext_typeArgs_entry_conflictingValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <String, int>{'a' : 'b'};
-''', [
-      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 28, 3)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
 
@@ -522,11 +544,12 @@ var a = <int, int>{1 : 2};
   }
 
   test_noContext_typeArgs_expression_conflictingElement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <int, String>{1};
-''', [
-      error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 1)],
+    );
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 

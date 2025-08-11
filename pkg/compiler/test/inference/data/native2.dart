@@ -6,16 +6,16 @@
 import 'dart:_foreign_helper' as foreign show JS;
 import 'dart:html';
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   createElement();
   createRectangle();
 }
 
-/*member: createElement:[subclass=Element|powerset=0]*/
+/*member: createElement:[subclass=Element|powerset={I}{O}{N}]*/
 Element createElement()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;
 
-/*member: createRectangle:[subclass=DomRectReadOnly|powerset=0]*/
+/*member: createRectangle:[subclass=DomRectReadOnly|powerset={I}{O}{N}]*/
 createRectangle() => foreign.JS('Rectangle', "#", null);

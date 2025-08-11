@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:math' as math;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class SearchResultSelected {
   final SearchBarElement element;
@@ -28,7 +31,7 @@ class SearchBarElement extends CustomElement implements Renderable {
 
   late StreamSubscription _onKeyDownSubscription;
 
-  Element? _workspace;
+  HTMLElement? _workspace;
   late SearchBarSearchCallback _search;
   late bool _isOpen;
   bool _focusRequested = false;
@@ -53,7 +56,7 @@ class SearchBarElement extends CustomElement implements Renderable {
   }
 
   factory SearchBarElement(SearchBarSearchCallback search,
-      {bool isOpen = false, Element? workspace, RenderingQueue? queue}) {
+      {bool isOpen = false, HTMLElement? workspace, RenderingQueue? queue}) {
     SearchBarElement e = new SearchBarElement.created();
     e._r = new RenderingScheduler<SearchBarElement>(e, queue: queue);
     e._search = search;
@@ -69,12 +72,13 @@ class SearchBarElement extends CustomElement implements Renderable {
     super.attached();
     _r.enable();
     _workspace?.tabIndex = 1;
-    _onKeyDownSubscription = (_workspace ?? window).onKeyDown.listen((e) {
-      if (e.key!.toLowerCase() == 'f' &&
+//    _onKeyDownSubscription = (_workspace ?? window).onKeyDown.listen((e) {
+    _onKeyDownSubscription = window.onKeyDown.listen((e) {
+      if (e.key.toLowerCase() == 'f' &&
           !e.shiftKey &&
           !e.altKey &&
           e.ctrlKey != e.metaKey) {
-        if (e.metaKey == window.navigator.platform!.startsWith('Mac')) {
+        if (e.metaKey == window.navigator.platform.startsWith('Mac')) {
           e.stopPropagation();
           e.preventDefault();
           isOpen = true;
@@ -92,12 +96,12 @@ class SearchBarElement extends CustomElement implements Renderable {
     _onKeyDownSubscription.cancel();
   }
 
-  TextInputElement? _input;
-  SpanElement? _resultsArea;
+  HTMLInputElement? _input;
+  HTMLSpanElement? _resultsArea;
 
   void render() {
     if (_input == null) {
-      _input = new TextInputElement()
+      _input = new HTMLInputElement()
         ..onKeyPress.listen((e) {
           if (e.keyCode == KeyCode.ENTER) {
             if (_input!.value == '') {
@@ -109,8 +113,8 @@ class SearchBarElement extends CustomElement implements Renderable {
                 _r.dirty();
               }
             } else if (_input!.value != _lastValue) {
-              _lastValue = _input!.value!;
-              _results = _doSearch(_input!.value!);
+              _lastValue = _input!.value;
+              _results = _doSearch(_input!.value);
               _current = 0;
               _triggerSearchResultSelected();
               _r.dirty();
@@ -123,30 +127,31 @@ class SearchBarElement extends CustomElement implements Renderable {
             }
           }
         });
-      _resultsArea = new SpanElement();
-      children = <Element>[
+      _resultsArea = new HTMLSpanElement();
+      children = <HTMLElement>[
         _input!,
         _resultsArea!,
-        new ButtonElement()
-          ..text = '❌'
+        new HTMLButtonElement()
+          ..textContent = '❌'
           ..onClick.listen((_) {
             isOpen = false;
           })
       ];
     }
-    _resultsArea!.nodes = [
-      new ButtonElement()
-        ..text = '▲'
+    _resultsArea!.appendChildren(<HTMLElement>[
+      new HTMLButtonElement()
+        ..textContent = '▲'
         ..disabled = _results.isEmpty
         ..onClick.listen((_) => _prev()),
-      new Text(
-          '${math.min(_current + 1, _results.length)} / ${_results.length}'),
-      new ButtonElement()
-        ..text = '▼'
+      new HTMLSpanElement()
+        ..textContent =
+            '${math.min(_current + 1, _results.length)} / ${_results.length}',
+      new HTMLButtonElement()
+        ..textContent = '▼'
         ..disabled = _results.isEmpty
-        ..onClick.listen((_) => _next()),
-    ];
-    style.visibility = isOpen ? null : 'collapse';
+        ..onClick.listen((_) => _next())
+    ]);
+    style.visibility = isOpen ? '' : 'collapse';
     if (_focusRequested) {
       _input!.focus();
       _focusRequested = false;

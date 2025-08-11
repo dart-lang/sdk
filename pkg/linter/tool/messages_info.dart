@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
@@ -96,7 +96,7 @@ class CodeInfo {
 class RuleInfo {
   final String name;
   final List<CodeInfo> codes;
-  final List<State> states;
+  final List<RuleState> states;
   final Set<String> categories;
   final bool hasPublishedDocs;
   final String? documentation;
@@ -372,7 +372,7 @@ class _RuleBuilder {
     return codeInfos;
   }
 
-  List<State> _validateStates() {
+  List<RuleState> _validateStates() {
     var states = _stateEntries;
     if (states == null || states.isEmpty) {
       throw StateError('Tried to build a RuleInfo without a state added!');
@@ -381,11 +381,11 @@ class _RuleBuilder {
     var sortedStates = states
         .map(
           (state) => switch (state.name) {
-            'experimental' => State.experimental(since: state.version),
-            'stable' => State.stable(since: state.version),
-            'internal' => State.internal(since: state.version),
-            'deprecated' => State.deprecated(since: state.version),
-            'removed' => State.removed(since: state.version),
+            'experimental' => RuleState.experimental(since: state.version),
+            'stable' => RuleState.stable(since: state.version),
+            'internal' => RuleState.internal(since: state.version),
+            'deprecated' => RuleState.deprecated(since: state.version),
+            'removed' => RuleState.removed(since: state.version),
             _ => _throwLintError('Unexpected state name: ${state.name}.'),
           },
         )

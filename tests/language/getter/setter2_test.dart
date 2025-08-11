@@ -23,9 +23,6 @@ class C {}
 class T1 {
   late A getterField;
   A get field {
-    //  ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-    // [cfe] The type 'A' of the getter 'T1.field' is not a subtype of the type 'B' of the setter 'T1.field'.
     return getterField;
   }
 
@@ -38,9 +35,6 @@ class T2 {
   late A getterField;
   late C setterField;
   A get field {
-    //  ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-    // [cfe] The type 'A' of the getter 'T2.field' is not a subtype of the type 'C' of the setter 'T2.field'.
     return getterField;
   }
 
@@ -86,7 +80,7 @@ main() {
   instance1.field.b();
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'b' isn't defined for the class 'A'.
+  // [cfe] The method 'b' isn't defined for the type 'A'.
 
   instance3.field = new B();
   result = instance3.field.a();

@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class LibraryPrefixesTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [
     WarningCode.UNUSED_IMPORT,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];

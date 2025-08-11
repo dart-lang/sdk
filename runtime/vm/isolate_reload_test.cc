@@ -614,17 +614,16 @@ TEST_CASE(IsolateReload_LibraryImportAdded) {
       "  return max(3, 4);\n"
       "}\n";
 
-  const char* kReloadScript =
+  const char* kScript2 =
       "import 'dart:math';\n"
       "main() {\n"
       "  return max(3, 4);\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
-  EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_ERROR(lib, "Compilation failed");
 
-  lib = TestCase::ReloadTestScript(kReloadScript);
+  lib = TestCase::LoadTestScript(kScript2, nullptr);
   EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 }
@@ -1124,8 +1123,8 @@ TEST_CASE(IsolateReload_LibraryHide) {
   const char* kImportScript = "importedFunc() => 'a';\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
-  // Import 'test:lib1' with importedFunc hidden. Will result in an
-  // error.
+  // Import 'test:lib1' with importedFunc hidden. Will result in a
+  // compile-time error.
   const char* kScript =
       "import 'test:lib1' hide importedFunc;\n"
       "main() {\n"
@@ -1134,18 +1133,17 @@ TEST_CASE(IsolateReload_LibraryHide) {
 
   // Dart_Handle result;
 
-  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
-  EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_ERROR(lib, "Compilation failed");
 
   // Import 'test:lib1'.
-  const char* kReloadScript =
+  const char* kScript2 =
       "import 'test:lib1';\n"
       "main() {\n"
       "  return importedFunc();\n"
       "}\n";
 
-  lib = TestCase::ReloadTestScript(kReloadScript);
+  lib = TestCase::LoadTestScript(kScript2, nullptr);
   EXPECT_VALID(lib);
   EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
 }
@@ -1157,7 +1155,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   // Import 'test:lib1' with importedIntFunc visible. Will result in
-  // an error when 'main' is invoked.
+  // a compile-time error.
   const char* kScript =
       "import 'test:lib1' show importedIntFunc;\n"
       "main() {\n"
@@ -1168,17 +1166,12 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "  return importedIntFunc();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
-  EXPECT_VALID(lib);
-
-  // Works.
-  EXPECT_EQ(4, SimpleInvoke(lib, "mainInt"));
-  // Results in an error.
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_ERROR(lib, "Compilation failed");
 
   // Import 'test:lib1' with importedFunc visible. Will result in
-  // an error when 'mainInt' is invoked.
-  const char* kReloadScript =
+  // a compile-time error.
+  const char* kScript2 =
       "import 'test:lib1' show importedFunc;\n"
       "main() {\n"
       "  return importedFunc();\n"
@@ -1188,8 +1181,24 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "  return importedIntFunc();\n"
       "}\n";
 
-  lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(lib, "importedIntFunc");
+  lib = TestCase::LoadTestScript(kScript2, nullptr);
+  EXPECT_ERROR(lib, "Compilation failed");
+
+  // Both imports 'test:lib1' are visible.
+  // Should be successful.
+  const char* kScript3 =
+      "import 'test:lib1' show importedFunc, importedIntFunc;\n"
+      "main() {\n"
+      "  return importedFunc();\n"
+      "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
+      "mainInt() {\n"
+      "  return importedIntFunc();\n"
+      "}\n";
+
+  lib = TestCase::LoadTestScript(kScript3, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "mainInt"));
 }
 
 // Verifies that we clear the ICs for the functions live on the stack in a way
@@ -6327,11 +6336,11 @@ TEST_CASE(IsolateReload_RegressB179030011) {
   }
   uint8_t* kernel_buffer = static_cast<uint8_t*>(malloc(kernel_buffer_size));
   TestCaseBase::AddToKernelBuffers(kernel_buffer);
-  intptr_t pos = 0;
+  uint8_t* target_ptr = kernel_buffer;
   for (auto component : components) {
-    memcpy(kernel_buffer + pos, component.kernel_buffer,  // NOLINT
+    memcpy(target_ptr, component.kernel_buffer,  // NOLINT
            component.kernel_buffer_size);
-    pos += component.kernel_buffer_size;
+    target_ptr += component.kernel_buffer_size;
   }
 
   // Load the first component into the isolate (to have something set as

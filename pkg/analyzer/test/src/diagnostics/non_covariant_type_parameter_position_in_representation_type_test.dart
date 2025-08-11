@@ -10,7 +10,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        NonCovariantTypeParameterPositionInRepresentationTypeTest);
+      NonCovariantTypeParameterPositionInRepresentationTypeTest,
+    );
   });
 }
 
@@ -18,15 +19,19 @@ main() {
 class NonCovariantTypeParameterPositionInRepresentationTypeTest
     extends PubPackageResolutionTest {
   test_contravariant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(void Function(T) it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_covariant() async {
@@ -36,14 +41,18 @@ extension type A<T>(T Function() it) {}
   }
 
   test_invariant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(T Function(T) it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

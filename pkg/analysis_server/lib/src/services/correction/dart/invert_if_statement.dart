@@ -18,7 +18,7 @@ class InvertIfStatement extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.INVERT_IF_STATEMENT;
+  AssistKind get assistKind => DartAssistKind.invertIfStatement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

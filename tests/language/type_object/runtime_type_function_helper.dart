@@ -4,48 +4,42 @@
 
 import "package:expect/expect.dart";
 
-typedef String F(String returns, String arguments, [Map<String, String> named]);
-
-/// Formats a type like `(String, [int], {bool name}) => double`.
-String fn(String returns, String positional,
-    [Map<String, String> named = const {}]) {
-  var result = new StringBuffer();
-  result.write("($positional");
-  if (positional != "" && named.isNotEmpty) result.write(", ");
-  if (named.isNotEmpty) {
-    result.write("{");
-    bool first = true;
-    named.forEach((name, type) {
-      if (first) {
-        first = false;
-      } else {
-        result.write(", ");
-      }
-      result.write("$type $name");
-    });
-    result.write("}");
-  }
-  result.write(") => $returns");
-  return result.toString();
-}
-
-void check(String text, var thing) {
-  var type = thing.runtimeType.toString();
-  if (type == text) return;
+void checkType<T>(var thing) {
+  assert(thing is T);
+  var type = thing.runtimeType;
+  if (type == T) return;
   Expect.fail("""
 Type print string does not match expectation
-  Expected: '$text'
+  Expected: '$T'
   Actual: '$type'
 """);
 }
 
-const testRunnerKey = 'test_runner.configuration';
-
-/// Is the test running on a test configuration with VM obfuscation enabled?
-final bool isObfuscated = (() {
-  if (const bool.hasEnvironment(testRunnerKey)) {
-    const config = String.fromEnvironment(testRunnerKey);
-    return config.contains('obfuscate');
+void checkFunctionTypeString<T>(
+  Type returnType,
+  List<Type> positional,
+  List<Type> positionalOptional,
+  Map<Symbol, Type> named,
+) {
+  final sb = StringBuffer();
+  sb.write('(');
+  bool began = false;
+  for (final p in positional) {
+    if (began) sb.write(', ');
+    sb.write('$p');
+    began = true;
   }
-  return false;
-})();
+  for (final p in positionalOptional) {
+    if (began) sb.write(', ');
+    sb.write('$p');
+    began = true;
+  }
+  named.forEach((Symbol s, Type t) {
+    if (began) sb.write(', ');
+    sb.write('$t $s');
+    began = true;
+  });
+  sb.write(')');
+  sb.write('=> ');
+  sb.write('$returnType');
+}

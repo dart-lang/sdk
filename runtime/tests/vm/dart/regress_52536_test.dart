@@ -24,5 +24,6 @@ void main() {
 
   Expect.isTrue(<FutureOr<int>?>[] is List<FutureOr<int?>>);
   Expect.isFalse(
-      hasSoundNullSafety && <FutureOr<int?>>[] is List<FutureOr<int>?>);
+    hasSoundNullSafety && <FutureOr<int?>>[] is List<FutureOr<int>?>,
+  );
 }

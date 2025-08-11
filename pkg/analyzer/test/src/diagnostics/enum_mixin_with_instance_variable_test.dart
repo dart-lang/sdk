@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class EnumMixinWithInstanceVariableTest extends PubPackageResolutionTest {
   test_field_instance() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   var foo = 0;
 }
@@ -24,13 +25,14 @@ mixin M {
 enum E with M {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 40, 1)],
+    );
   }
 
   test_field_instance_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   final foo = 0;
 }
@@ -38,9 +40,9 @@ mixin M {
 enum E with M {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 42, 1)],
+    );
   }
 
   test_field_static() async {

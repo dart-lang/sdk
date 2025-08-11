@@ -65,11 +65,6 @@ void main() async {
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  map[.blue] = Color.red;
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-
   // Null assert.
   .one!;
   // ^

@@ -12,7 +12,6 @@ import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
@@ -141,12 +140,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<StructuralParameterBuilder>? unboundTypeParameters}) {
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders}) {
     _breakCyclicDependency();
-    return super.unalias(typeArguments,
-        usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypeParameters: unboundTypeParameters);
+    return super
+        .unalias(typeArguments, usedTypeAliasBuilders: usedTypeAliasBuilders);
   }
 
   bool _checkCyclicTypedefDependency(
@@ -368,17 +365,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        typedef,
-        _introductory.metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        fileUri,
-        _introductory.enclosingScope);
+        annotatable: typedef,
+        annotatableFileUri: typedef.fileUri,
+        metadata: _introductory.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _introductory.enclosingScope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -414,11 +412,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          NameIterator<MemberBuilder> iterator =
-              declaration.fullConstructorNameIterator();
+          Iterator<MemberBuilder> iterator = declaration
+              .filteredConstructorsIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
-            String constructorName = iterator.name;
             MemberBuilder builder = iterator.current;
+            String constructorName = builder.name;
             Member? target = builder.invokeTarget;
             if (target != null) {
               if (target is Procedure && target.isRedirectingFactory) {
@@ -471,11 +469,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          NameIterator<MemberBuilder> iterator =
-              declaration.fullConstructorNameIterator();
+          Iterator<MemberBuilder> iterator = declaration
+              .filteredConstructorsIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
-            String constructorName = iterator.name;
             MemberBuilder builder = iterator.current;
+            String constructorName = builder.name;
             Member? target = builder.invokeTarget;
             if (target != null) {
               if (target is Procedure && target.isRedirectingFactory) {

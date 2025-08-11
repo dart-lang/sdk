@@ -321,8 +321,8 @@ class Primitives {
 
   /// Identity hash code for a JavaScript object or function.
   static int objectHashCode(Object? object) {
-    Object property =
-        _identityHashCodeProperty ??= _computeIdentityHashCodeProperty();
+    Object property = _identityHashCodeProperty ??=
+        _computeIdentityHashCodeProperty();
     int? hash = JS('int|Null', r'#[#]', object, property);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
@@ -540,6 +540,13 @@ class Primitives {
       return object._toString(true);
     }
 
+    final hooks = _safeToStringHooks;
+    // It is possible for hooks to be added at any time.
+    for (int i = 0; i < hooks.length; i++) {
+      final String? hookResult = hooks[i].tryFormat(object);
+      if (hookResult != null) return hookResult;
+    }
+
     return Primitives.objectToHumanReadableString(object);
   }
 
@@ -655,6 +662,7 @@ class Primitives {
     return result;
   }
 
+  @pragma('dart2js:allow-cse')
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
@@ -898,10 +906,10 @@ class Primitives {
   static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
-          'JSUInt31',
-          r'(#.getUTCMilliseconds() + 0)',
-          lazyAsJsDate(receiver),
-        )
+            'JSUInt31',
+            r'(#.getUTCMilliseconds() + 0)',
+            lazyAsJsDate(receiver),
+          )
         : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
@@ -909,10 +917,9 @@ class Primitives {
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
   static int getWeekday(DateTime receiver) {
-    int weekday =
-        (receiver.isUtc)
-            ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-            : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
+    int weekday = (receiver.isUtc)
+        ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+        : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -1127,8 +1134,9 @@ class Primitives {
 
     // Default values are stored inside a JavaScript closure to avoid
     // accessing them too early.
-    var defaultValues =
-        acceptsOptionalArguments ? JS('', '#()', defaultValuesClosure) : null;
+    var defaultValues = acceptsOptionalArguments
+        ? JS('', '#()', defaultValuesClosure)
+        : null;
 
     var interceptor = getInterceptor(function);
     var jsFunction = JS(
@@ -1245,6 +1253,20 @@ class Primitives {
       JS('void', '#.stack = #', jsError, stackTrace.toString());
     }
   }
+}
+
+/// Hooks for SDK objects for [Error.safeToString].
+///
+abstract class SafeToStringHook {
+  const SafeToStringHook();
+  String? tryFormat(Object? o);
+}
+
+final List<SafeToStringHook> _safeToStringHooks = [JSArraySafeToStringHook()];
+
+bool addSafeToStringHook(SafeToStringHook hook) {
+  JS('', '#.push(#)', _safeToStringHooks, hook);
+  return true;
 }
 
 /// Called by generated code to throw an illegal-argument exception,
@@ -1910,8 +1932,9 @@ class NullThrownFromJavaScriptException implements Exception {
 
   @override
   String toString() {
-    String description =
-        JS('bool', '# === null', _irritant) ? 'null' : 'undefined';
+    String description = JS('bool', '# === null', _irritant)
+        ? 'null'
+        : 'undefined';
     return "Throw of null ('$description' from JavaScript)";
   }
 }
@@ -2392,8 +2415,12 @@ abstract final class Closure implements Function {
     // recipe (for types that are dependent on the tear-off class type
     // variables), or a function that can compute an Rti. (The latter is
     // necessary if the type is dependent on generic arguments).
-    Object? functionType =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.funType)!;
+    Object? functionType = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.funType,
+    )!;
 
     // function tmp() {};
     // tmp.prototype = BC.prototype;
@@ -2421,36 +2448,34 @@ abstract final class Closure implements Function {
     // Object.create to create the desired prototype.
     //
     // TODO(sra): Cache the prototype to avoid the allocation.
-    var prototype =
-        isStatic
-            ? JS(
-              'StaticClosure',
-              'Object.create(#.constructor.prototype)',
-              StaticClosure(),
-            )
-            : JS(
-              'BoundClosure',
-              'Object.create(#.constructor.prototype)',
-              BoundClosure(null, null),
-            );
+    var prototype = isStatic
+        ? JS(
+            'StaticClosure',
+            'Object.create(#.constructor.prototype)',
+            StaticClosure(),
+          )
+        : JS(
+            'BoundClosure',
+            'Object.create(#.constructor.prototype)',
+            BoundClosure(null, null),
+          );
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
 
     // The constructor functions have names to prevent the JavaScript
     // implementation from inventing a name that might have special meaning
     // (e.g. clashing with minified 'Object' or 'Interceptor').
-    var constructor =
-        isStatic
-            ? JS('', 'function static_tear_off(){this.\$initialize()}')
-            : isCsp
-            ? JS('', 'function tear_off(a,b) {this.\$initialize(a,b)}')
-            : JS(
-              '',
-              'new Function("a,b" + #,'
-                  ' "this.\$initialize(a,b" + # + ")")',
-              functionCounter,
-              functionCounter++,
-            );
+    var constructor = isStatic
+        ? JS('', 'function static_tear_off(){this.\$initialize()}')
+        : isCsp
+        ? JS('', 'function tear_off(a,b) {this.\$initialize(a,b)}')
+        : JS(
+            '',
+            'new Function("a,b" + #,'
+                ' "this.\$initialize(a,b" + # + ")")',
+            functionCounter,
+            functionCounter++,
+          );
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
@@ -2890,8 +2915,9 @@ abstract final class Closure implements Function {
   String toString() {
     String? name;
     var constructor = JS('', '#.constructor', this);
-    name =
-        constructor == null ? null : JS('String|Null', '#.name', constructor);
+    name = constructor == null
+        ? null
+        : JS('String|Null', '#.name', constructor);
     if (name == null) name = 'unknown';
     return "Closure '${unminifyOrTag(name)}'";
   }
@@ -3205,6 +3231,7 @@ void _addEvent({
   String? loadId,
   String? hash,
 }) {
+  if (!JS_GET_FLAG('DEFERRED_LOADING_EVENT_LOG')) return;
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var dataObj = JS('=Object', '{p: #, e: #}', part, event);
   if (hash != null) JS('', '#.h = #', dataObj, hash);
@@ -3217,8 +3244,10 @@ void _addEvent({
 ///
 /// The events are printed in reverse chronological order in case the tail gets
 /// truncated, the newest events are retained.
-String _getEventLog() {
+String? _getEventLog() {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
+  if (initializationEventLog == null) return null;
+
   final o = JS('', 'Array.from(#).reverse()', initializationEventLog);
   JS(
     '',
@@ -3968,3 +3997,217 @@ Object get staticInteropGlobalContext =>
 
 /// Return a fresh object literal.
 T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');
+
+/// Returns a string providing a few attributes that describe a JavaScript
+/// object. The string is intended to be included in the result of
+/// `Error.safeToString` to provide some information that might be useful for
+/// debugging with otherwise opaque JavaScript objects.
+///
+/// A simple object created by `Object.create(null)` has very few
+/// attributes. The returned string in this case is:
+///
+///     prototype: null
+///
+/// For functions, the attributes begin with the name. If the function is
+/// available in the global scope by the same name, this indicated, for example:
+///
+///     globalThis.RexExp
+///
+/// Otherwise the function name is simply the name:
+///
+///     name: "keys"
+///
+/// The constructor function is usually indicated. Like the function names,
+/// there are two forms, one indicating a known global object:
+///
+///     constructor: RegExp
+///
+/// and the other case where the constructor is not recognized:
+///
+///     constructor.name: "Something"
+///
+/// Function objects almost always have `globalThis.Function` as their
+/// constructor, so the constructor for functions is omitted unless it is
+/// different to `globalThis.Function`.
+///
+/// If the argument [asArray] is provided, the constructor is omitted if it is
+/// `globalThis.Array`.
+///
+/// The string `isArray` is provided if the object satisfies `Array.isArray`.
+///
+/// If the object has an own property `length` with numeric value, that is
+/// included. It might be a hint that an object that is not an Array is
+/// nevertheless Array-like.
+///
+/// The string `cross-realm` is provided if the object is not an instanceof
+/// `globalThis.Object`.
+///
+/// A same-realm Array might look like
+///
+///     constructor: Array, isArray, length: 4    // asArray == false
+///     isArray, length: 4                        // asArray == true
+///
+/// A class with a constructor called "Array" would look like one of the
+/// following:
+///
+///     constructor.name: "Array"
+///     constructor.name: "Array", length: 4
+///     constructor.name: "Array", isArray, length: 4
+///
+/// The first two are not JavaScript Arrays, but the second one might work with
+/// some APIs that require only that the argument is Array-like.  The last one
+/// could be the result of instantiating
+///
+///     class Array extends globalThis.Array {}
+///
+/// A cross-realm Array would also have an unrecognized constructor, but would
+/// have the 'cross-realm' indicator:
+///
+///     constructor.name: "Array", isArray, length: 4, cross-realm
+///
+/// This information should help in understanding some js-interop problems.
+String? safeDescribeJavaScriptObject(
+  Object object, {
+  bool asFunction = false,
+  bool asArray = false,
+}) {
+  try {
+    return _describeJavaScriptObject(object, asFunction, asArray);
+  } catch (e) {}
+  return null;
+}
+
+/// Convenience methods for accumulating strings into a JSArray without using
+/// List methods.
+extension _JSArrayPushJoin on JSArray {
+  void _add(String s) {
+    JS('', '#.push(#)', this, s);
+  }
+
+  String _finish() => JS('', '#.join(", ")', this);
+}
+
+String _describeJavaScriptObject(Object object, bool asFunction, bool asArray) {
+  final JSArray facts = JS('', '[]');
+
+  bool typeofIsObject = JS('', 'typeof # == "object"', object);
+  bool typeofIsFunction = JS('', 'typeof # == "function"', object);
+
+  if (typeofIsFunction) {
+    final knownFunctionName = _knownJavaScriptFunctionName(object);
+    if (knownFunctionName != null) {
+      facts._add('globalThis.$knownFunctionName');
+    } else {
+      final Object? name = _safeGetOwnDataPropertyValue(object, 'name');
+      facts._add('name: ${Error.safeToString(name)}');
+    }
+  }
+
+  if (asFunction ? !typeofIsFunction : !typeofIsObject) {
+    // The result of 'typeof' is surprising, so add it to the facts.
+    facts._add('typeof: "${JS<String>('', 'typeof #', object)}"');
+  }
+
+  if (!(typeofIsObject || typeofIsFunction)) {
+    // Only 'object' and 'function' types have properties that we can inspect.
+    return facts._finish();
+  }
+
+  final Object? jsObjectClass = JS('', '#.Object', staticInteropGlobalContext);
+
+  final Object? prototype = JS(
+    '',
+    '#.getPrototypeOf(#)',
+    jsObjectClass,
+    object,
+  );
+
+  if (prototype == null) {
+    facts._add('prototype: null');
+  } else {
+    final Object? constructor = _safeGetOwnDataPropertyValue(
+      prototype,
+      'constructor',
+    );
+    if (constructor != null) {
+      final knownConstructorName = _knownJavaScriptFunctionName(constructor);
+      if (knownConstructorName != null) {
+        // We ignore the constructor's name when it is almost always the same
+        // thing - while it is possible to extend Function and Array, it almost
+        // never happens, so avoid the clutter.
+        final ignoredName = typeofIsFunction
+            ? 'Function'
+            : asArray
+            ? 'Array'
+            : null;
+        if (knownConstructorName != ignoredName) {
+          facts._add('constructor: $knownConstructorName');
+        }
+      } else {
+        final Object? name = _safeGetOwnDataPropertyValue(constructor, 'name');
+        if (name != null) {
+          final safeName = Error.safeToString(name);
+          facts._add('constructor.name: $safeName');
+        }
+      }
+    }
+  }
+
+  if (JS('', '#.Array.isArray(#)', staticInteropGlobalContext, object)) {
+    facts._add('isArray');
+  }
+
+  // If there a numeric 'length' data property, include it. Don't bother for
+  // functions.
+  if (!typeofIsFunction) {
+    Object? lengthValue = _safeGetOwnDataPropertyValue(object, 'length');
+    if (lengthValue is num) {
+      facts._add('length: $lengthValue');
+    }
+  }
+
+  if (prototype != null && !JS('', '# instanceof #', object, jsObjectClass)) {
+    facts._add('cross-realm');
+  }
+
+  return facts._finish();
+}
+
+// Get a property value without calling a getter. Currently we don't distinguish
+// a missing data property from one with a `null` or `undefined` value.
+Object? _safeGetOwnDataPropertyValue(
+  Object object,
+  Object /*String or Symbol*/ name,
+) {
+  final Object jsObjectClass = JS('', '#.Object', staticInteropGlobalContext);
+
+  final Object? descriptor = JS(
+    '',
+    '#.getOwnPropertyDescriptor(#, #)',
+    jsObjectClass,
+    object,
+    name,
+  );
+  if (descriptor == null) return null;
+
+  Object? value = JS('', '#.value', descriptor);
+  return value;
+}
+
+/// If [object] is a known JavaScript function, return its name.
+String? _knownJavaScriptFunctionName(Object object) {
+  if (JS('', 'typeof # != "function"', object)) return null;
+
+  final Object? name = _safeGetOwnDataPropertyValue(object, 'name');
+  if (name is String && _isSimpleIdentifier(name)) {
+    final globalRef = JS('', '#[#]', staticInteropGlobalContext, name);
+    if (JS('', '# === #', object, globalRef)) {
+      return name;
+    }
+  }
+  return null;
+}
+
+bool _isSimpleIdentifier(String s) {
+  return JS('', r'/^[A-Za-z_$][A-Za-z_$0-9]*$/.test(#)', s);
+}

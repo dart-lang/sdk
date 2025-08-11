@@ -41,7 +41,9 @@ main() {
   Expect.equals(getType2<(B, A)>(), getType1((b1, a3)));
   Expect.equals(getType2<({A bar, B foo})>(), getType1((foo: b1, bar: a2)));
   Expect.equals(
-      getType2<(A, B, {A bar, B foo})>(), getType1((a1, foo: b1, b2, bar: a2)));
+    getType2<(A, B, {A bar, B foo})>(),
+    getType1((a1, foo: b1, b2, bar: a2)),
+  );
 
   testRuntimeTypeEquality(true, (a1, a2), (a3, a4));
   testRuntimeTypeEquality(false, (a1, a2), (a1, a2, a3));

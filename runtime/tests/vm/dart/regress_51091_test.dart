@@ -6,7 +6,6 @@
 // Verifies that compiler doesn't crash if there are two local
 // variables with the same name in the same local scope.
 
-
 import 'package:expect/expect.dart';
 
 void test1() {
@@ -19,8 +18,10 @@ void test1() {
 
 void test2(int arg) {
   switch (arg) {
-    case == 0 && var x: Expect.equals(0, x);
-    case == 1 && var x: Expect.equals(1, x);
+    case == 0 && var x:
+      Expect.equals(0, x);
+    case == 1 && var x:
+      Expect.equals(1, x);
   }
   var x = 1;
   Expect.equals(1, x);

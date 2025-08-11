@@ -25,22 +25,30 @@ main() async {
   final rp = RawReceivePort((e) {
     Expect.fail('Received unexpected $e, no objects should have arrived');
   });
-  await Isolate.spawn((sendPort) {
-    for (final pairFunctionName in [
-      [Locked.new, "Locked"],
-      [ExtendsLocked.new, "ExtendsLocked"],
-      [ImplementsLocked.new, "ImplementsLocked"]
-    ]) {
-      Expect.throws(() {
-        Isolate.exit(sendPort, (pairFunctionName[0] as Function)());
-      }, (e) {
-        return e is ArgumentError &&
-            e
-                .toString()
-                .contains(RegExp("unsendable object .+${pairFunctionName[1]}"));
-      });
-    }
-  }, rp.sendPort, onError: rpError.sendPort, onExit: rpExit.sendPort);
+  await Isolate.spawn(
+    (sendPort) {
+      for (final pairFunctionName in [
+        [Locked.new, "Locked"],
+        [ExtendsLocked.new, "ExtendsLocked"],
+        [ImplementsLocked.new, "ImplementsLocked"],
+      ]) {
+        Expect.throws(
+          () {
+            Isolate.exit(sendPort, (pairFunctionName[0] as Function)());
+          },
+          (e) {
+            return e is ArgumentError &&
+                e.toString().contains(
+                  RegExp("unsendable object .+${pairFunctionName[1]}"),
+                );
+          },
+        );
+      }
+    },
+    rp.sendPort,
+    onError: rpError.sendPort,
+    onExit: rpExit.sendPort,
+  );
   await rpExit.first;
   rpError.close();
   rp.close();

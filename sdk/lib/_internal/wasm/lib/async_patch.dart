@@ -41,10 +41,9 @@ class _AsyncSuspendState {
   @pragma("wasm:entry-point")
   WasmI32 _targetIndex;
 
-  // The completer. The inner function calls `_completer.complete` or
-  // `_completer.onError` on completion.
+  // The future that will be completed.
   @pragma("wasm:entry-point")
-  final _AsyncCompleter _completer;
+  final _Future _future;
 
   // When a called function throws this stores the thrown exception. Used when
   // performing type tests in catch blocks.
@@ -63,11 +62,26 @@ class _AsyncSuspendState {
   Object? _currentReturnValue;
 
   @pragma("wasm:entry-point")
-  _AsyncSuspendState(this._resume, this._context, this._completer)
+  _AsyncSuspendState(this._resume, this._context, this._future)
     : _targetIndex = WasmI32.fromInt(0),
       _currentException = null,
       _currentExceptionStackTrace = null,
       _currentReturnValue = null;
+
+  @pragma("wasm:entry-point")
+  void _complete(FutureOr value) {
+    _future._asyncComplete(value == null ? value as dynamic : value);
+  }
+
+  @pragma("wasm:entry-point")
+  void _completeError(Object error, StackTrace stackTrace) {
+    _future._asyncCompleteError(error, stackTrace);
+  }
+
+  @pragma("wasm:entry-point")
+  void _completeErrorWithCurrentStack(Object error) {
+    _future._asyncCompleteError(error, StackTrace.current);
+  }
 }
 
 // Note: [_AsyncCompleter] is taken as an argument to be able to pass the type
@@ -78,28 +92,14 @@ class _AsyncSuspendState {
 _AsyncSuspendState _newAsyncSuspendState(
   _AsyncResumeFun resume,
   WasmStructRef? context,
-  _AsyncCompleter completer,
-) => _AsyncSuspendState(resume, context, completer);
+  _Future future,
+) => _AsyncSuspendState(resume, context, future);
 
 @pragma("wasm:entry-point")
-_AsyncCompleter<T> _makeAsyncCompleter<T>() => _AsyncCompleter<T>();
-
-@patch
-@pragma("wasm:entry-point")
-class _AsyncCompleter<T> extends _Completer<T> {
-  @pragma("wasm:entry-point")
-  void _completeErrorWithCurrentStack(Object error) {
-    completeError(error, StackTrace.current);
-  }
-}
+_Future<T> _makeFuture<T>() => _Future<T>();
 
 @pragma("wasm:entry-point")
-void _awaitHelper(_AsyncSuspendState suspendState, Object? operand) {
-  if (operand is! Future) {
-    return scheduleMicrotask(
-      () => suspendState._resume.call(suspendState, operand, null, null),
-    );
-  }
+void _awaitHelper(_AsyncSuspendState suspendState, Future operand) {
   operand.then(
     (value) {
       suspendState._resume.call(suspendState, value, null, null);

@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -34,8 +34,8 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (expressionType is! InterfaceType) {
         return;
       }
-      var classElement = expressionType.element3;
-      var className = classElement.name3;
+      var classElement = expressionType.element;
+      var className = classElement.name;
       if (className == null) {
         return;
       }
@@ -90,7 +90,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            caseNames.addIfNotNull(element.name3);
+            caseNames.addIfNotNull(element.name);
           }
         } else if (expression is PropertyAccess) {
           caseNames.add(expression.propertyName.name);
@@ -101,10 +101,10 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   }
 
   /// Return the names of the constants defined in [classElement].
-  List<String> _constantNames(InterfaceElement2 classElement) {
+  List<String> _constantNames(InterfaceElement classElement) {
     var type = classElement.thisType;
     var constantNames = <String>[];
-    for (var field in classElement.fields2) {
+    for (var field in classElement.fields) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
         continue;
@@ -113,7 +113,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (field.type != type) {
         continue;
       }
-      constantNames.addIfNotNull(field.name3);
+      constantNames.addIfNotNull(field.name);
     }
     return constantNames;
   }

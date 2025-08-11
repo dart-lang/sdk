@@ -15,8 +15,12 @@ final RegExp whitespace = RegExp(r'\s');
 ///
 /// If [javadocStyle] is `true`, then the output is compatible with Javadoc,
 /// which understands certain HTML constructs.
-String nodesToText(List<dom.Node> desc, int width, bool javadocStyle,
-    {bool removeTrailingNewLine = false}) {
+String nodesToText(
+  List<dom.Node> desc,
+  int width,
+  bool javadocStyle, {
+  bool removeTrailingNewLine = false,
+}) {
   var formatter = _TextFormatter(width, javadocStyle);
   return formatter.collectCode(() {
     formatter.addAll(desc);

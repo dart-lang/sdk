@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/plugin/fix_mixin.dart';
@@ -88,14 +88,14 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     var offset = parameters.offset;
-    var error = AnalysisError.tmp(
+    var diagnostic = Diagnostic.tmp(
       source: MockSource(),
       offset: 0,
       length: 0,
-      errorCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+      diagnosticCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
     );
-    var result =
-        MockResolvedUnitResult(lineInfo: LineInfo([0, 20]), errors: [error]);
-    return DartFixesRequestImpl(resourceProvider, offset, [error], result);
+    var result = MockResolvedUnitResult(
+        lineInfo: LineInfo([0, 20]), errors: [diagnostic]);
+    return DartFixesRequestImpl(resourceProvider, offset, [diagnostic], result);
   }
 }

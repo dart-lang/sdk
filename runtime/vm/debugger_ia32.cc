@@ -31,7 +31,8 @@ void CodeBreakpoint::PatchCode() {
   const Instructions& instrs = Instructions::Handle(zone, code.instructions());
   Code& stub_target = Code::Handle(zone);
   thread->isolate_group()->RunWithStoppedMutators([&]() {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+    WritableInstructionsScope writable(instrs.WritablePayloadStart(),
+                                       instrs.Size());
     switch (breakpoint_kind_) {
       case UntaggedPcDescriptors::kIcCall: {
         stub_target = StubCode::ICCallBreakpoint().ptr();
@@ -61,7 +62,8 @@ void CodeBreakpoint::RestoreCode() {
   const Code& code = Code::Handle(zone, code_);
   const Instructions& instrs = Instructions::Handle(zone, code.instructions());
   thread->isolate_group()->RunWithStoppedMutators([&]() {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+    WritableInstructionsScope writable(instrs.WritablePayloadStart(),
+                                       instrs.Size());
     switch (breakpoint_kind_) {
       case UntaggedPcDescriptors::kIcCall:
       case UntaggedPcDescriptors::kUnoptStaticCall:

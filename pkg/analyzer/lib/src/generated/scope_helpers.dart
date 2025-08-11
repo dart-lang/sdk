@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// mixin exists to allow code to be more easily shared between separate
 /// resolvers.
 mixin ScopeHelpers {
-  ErrorReporter get errorReporter;
+  DiagnosticReporter get diagnosticReporter;
 
   void reportDeprecatedExportUse({
     required ScopeLookupResult scopeLookupResult,
@@ -41,9 +41,7 @@ mixin ScopeHelpers {
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.getterIsFromDeprecatedExport) {
-      _reportDeprecatedExportUse(
-        nameToken: nameToken,
-      );
+      _reportDeprecatedExportUse(nameToken: nameToken);
     }
   }
 
@@ -53,16 +51,12 @@ mixin ScopeHelpers {
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.setterIsFromDeprecatedExport) {
-      _reportDeprecatedExportUse(
-        nameToken: nameToken,
-      );
+      _reportDeprecatedExportUse(nameToken: nameToken);
     }
   }
 
-  void _reportDeprecatedExportUse({
-    required Token nameToken,
-  }) {
-    errorReporter.atToken(
+  void _reportDeprecatedExportUse({required Token nameToken}) {
+    diagnosticReporter.atToken(
       nameToken,
       WarningCode.DEPRECATED_EXPORT_USE,
       arguments: [nameToken.lexeme],

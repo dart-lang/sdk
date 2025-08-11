@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -16,51 +17,51 @@ import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
-  AnalysisError invalid_assignment = AnalysisError.tmp(
+  Diagnostic invalid_assignment = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
     arguments: [
       ['x'],
       ['y'],
     ],
   );
 
-  AnalysisError assignment_of_do_not_store = AnalysisError.tmp(
+  Diagnostic assignment_of_do_not_store = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+    diagnosticCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
     arguments: [
       ['x'],
     ],
   );
 
-  AnalysisError unused_local_variable = AnalysisError.tmp(
+  Diagnostic unused_local_variable = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+    diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
     arguments: [
       ['x'],
     ],
   );
 
-  AnalysisError use_of_void_result = AnalysisError.tmp(
+  Diagnostic use_of_void_result = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
+    diagnosticCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
   );
 
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
-  AnalysisError annotate_overrides = AnalysisError.tmp(
+  Diagnostic annotate_overrides = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
-    errorCode: LintCode('annotate_overrides', ''),
+    diagnosticCode: LintCode('annotate_overrides', ''),
   );
 
   group('ErrorProcessor', () {
@@ -79,10 +80,14 @@ analyzer:
     unused_local_variable: true # skipped
     use_of_void_result: unsupported_action # skipped
 ''');
-      expect(context.getProcessor(invalid_assignment)!.severity,
-          ErrorSeverity.ERROR);
       expect(
-          context.getProcessor(assignment_of_do_not_store)!.severity, isNull);
+        context.getProcessor(invalid_assignment)!.severity,
+        DiagnosticSeverity.ERROR,
+      );
+      expect(
+        context.getProcessor(assignment_of_do_not_store)!.severity,
+        isNull,
+      );
       expect(context.getProcessor(unused_local_variable), isNull);
       expect(context.getProcessor(use_of_void_result), isNull);
     });
@@ -109,18 +114,21 @@ analyzer:
       test('yaml map', () {
         var options = AnalysisOptionsProvider().getOptionsFromString(config);
         var errorConfig = ErrorConfig(
-            (options['analyzer'] as YamlMap)['errors'] as YamlNode?);
+          (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
+        );
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
-        var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+        var missingReturnProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(assignment_of_do_not_store),
+        );
         expect(missingReturnProcessor.severity, isNull);
 
         // error
-        var unusedLocalProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(unused_local_variable));
-        expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
+        var unusedLocalProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(unused_local_variable),
+        );
+        expect(unusedLocalProcessor.severity, DiagnosticSeverity.ERROR);
 
         // skip
         var invalidAssignmentProcessor = errorConfig.processors
@@ -132,20 +140,22 @@ analyzer:
         var options = wrap({
           'invalid_assignment': 'unsupported_action', // should be skipped
           'assignment_of_do_not_store': 'false',
-          'unused_local_variable': 'error'
+          'unused_local_variable': 'error',
         });
         var errorConfig = ErrorConfig(options);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
-        var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+        var missingReturnProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(assignment_of_do_not_store),
+        );
         expect(missingReturnProcessor.severity, isNull);
 
         // error
-        var unusedLocalProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(unused_local_variable));
-        expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
+        var unusedLocalProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(unused_local_variable),
+        );
+        expect(unusedLocalProcessor.severity, DiagnosticSeverity.ERROR);
 
         // skip
         var invalidAssignmentProcessor = errorConfig.processors
@@ -156,14 +166,16 @@ analyzer:
 
     test('configure lints', () {
       var options = AnalysisOptionsProvider().getOptionsFromString(
-          'analyzer:\n  errors:\n    annotate_overrides: warning\n');
-      var errorConfig =
-          ErrorConfig((options['analyzer'] as YamlMap)['errors'] as YamlNode?);
+        'analyzer:\n  errors:\n    annotate_overrides: warning\n',
+      );
+      var errorConfig = ErrorConfig(
+        (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
+      );
       expect(errorConfig.processors, hasLength(1));
 
       ErrorProcessor processor = errorConfig.processors.first;
       expect(processor.appliesTo(annotate_overrides), true);
-      expect(processor.severity, ErrorSeverity.WARNING);
+      expect(processor.severity, DiagnosticSeverity.WARNING);
     });
   });
 }
@@ -173,10 +185,11 @@ class _TestContext {
 
   void configureOptions(String options) {
     analysisOptions = AnalysisOptionsImpl.fromYaml(
-        optionsMap: AnalysisOptionsProvider().getOptionsFromString(options));
+      optionsMap: AnalysisOptionsProvider().getOptionsFromString(options),
+    );
   }
 
-  ErrorProcessor? getProcessor(AnalysisError error) {
-    return ErrorProcessor.getProcessor(analysisOptions, error);
+  ErrorProcessor? getProcessor(Diagnostic diagnostic) {
+    return ErrorProcessor.getProcessor(analysisOptions, diagnostic);
   }
 }

@@ -40,6 +40,9 @@ abstract class _Specializer {
   /// Whether this config is associated with a constructor or factory.
   bool get isConstructor;
 
+  /// Whether this is a setter where there's no return value.
+  bool get isSetter;
+
   /// The parameters that determine arity of the interop procedure that is
   /// created from this config.
   List<VariableDeclaration> get parameters;
@@ -61,15 +64,17 @@ abstract class _Specializer {
     final callArguments =
         firstParameterIsObject ? parameterNames.sublist(1) : parameterNames;
     final callArgumentsString = callArguments.join(',');
-    final functionParameters = firstParameterIsObject
+    String functionParameters = firstParameterIsObject
         ? '$object${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
         : callArgumentsString;
     final body = bodyString(object, callArguments);
+
     if (parametersNeedParens(parameterNames)) {
-      return '($functionParameters) => $body';
-    } else {
-      return '$functionParameters => $body';
+      functionParameters = '($functionParameters)';
     }
+    return isSetter
+        ? '$functionParameters => { $body }'
+        : '$functionParameters => $body';
   }
 
   /// Returns an [Expression] representing the specialization of a given
@@ -80,24 +85,34 @@ abstract class _Specializer {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
     List<VariableDeclaration> dartPositionalParameters = [];
-    for (int j = 0; j < parameters.length; j++) {
-      String parameterString = 'x$j';
+    for (int i = 0; i < parameters.length; i++) {
+      final VariableDeclaration parameter = parameters[i];
+      final DartType parameterType = parameter.type;
+      final interopFunctionParameterType =
+          parameterType == _util.coreTypes.doubleNonNullableRawType
+              ? _util.coreTypes.doubleNonNullableRawType
+              : _util.nullableWasmExternRefType;
+      String parameterString = 'x$i';
       dartPositionalParameters.add(VariableDeclaration(parameterString,
-          type: _util.nullableWasmExternRefType, isSynthesized: true));
+          type: interopFunctionParameterType, isSynthesized: true));
       jsParameterStrings.add(parameterString);
     }
 
     // Create Dart procedure stub for JS method.
     String jsMethodName = _methodCollector.generateMethodName();
     final dartProcedure = _methodCollector.addInteropProcedure(
-        '|$jsMethodName',
-        'dart2wasm.$jsMethodName',
-        FunctionNode(null,
-            positionalParameters: dartPositionalParameters,
-            returnType: _util.nullableWasmExternRefType),
-        fileUri,
-        AnnotationType.import,
-        isExternal: true);
+      '|$jsMethodName',
+      'dart2wasm.$jsMethodName',
+      FunctionNode(null,
+          positionalParameters: dartPositionalParameters,
+          returnType: function.returnType is VoidType
+              ? VoidType()
+              : _util.nullableWasmExternRefType),
+      fileUri,
+      AnnotationType.import,
+      library: interopMethod.enclosingLibrary,
+      isExternal: true,
+    );
     _methodCollector.addMethod(
         dartProcedure, jsMethodName, generateJS(jsParameterStrings));
     return dartProcedure;
@@ -130,12 +145,19 @@ abstract class _ProcedureSpecializer extends _Specializer {
   @override
   Expression specialize() {
     // Return the replacement body.
-    Expression invocation = StaticInvocation(
-        _getOrCreateInteropProcedure(),
-        Arguments(parameters
-            .map<Expression>((variable) => jsifyValue(variable, factory._util,
-                factory._staticTypeContext.typeEnvironment))
-            .toList()));
+    final interopProcedure = _getOrCreateInteropProcedure();
+    final interopProcedureType =
+        interopProcedure.computeSignatureOrFunctionType();
+    final List<Expression> jsifiedArguments = [];
+    for (int i = 0; i < parameters.length; i += 1) {
+      jsifiedArguments.add(jsifyValue(
+          parameters[i],
+          interopProcedureType.positionalParameters[i],
+          factory._util,
+          factory._staticTypeContext.typeEnvironment));
+    }
+    final invocation =
+        StaticInvocation(interopProcedure, Arguments(jsifiedArguments));
     return _util.castInvocationForReturn(invocation, function.returnType);
   }
 }
@@ -145,6 +167,9 @@ class _ConstructorSpecializer extends _ProcedureSpecializer {
 
   @override
   bool get isConstructor => true;
+
+  @override
+  bool get isSetter => false;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -158,6 +183,9 @@ class _GetterSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => false;
 
   @override
+  bool get isSetter => false;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       '$object.$jsString';
 }
@@ -167,6 +195,9 @@ class _SetterSpecializer extends _ProcedureSpecializer {
 
   @override
   bool get isConstructor => false;
+
+  @override
+  bool get isSetter => true;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -180,6 +211,9 @@ class _MethodSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => false;
 
   @override
+  bool get isSetter => false;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       "$object.$jsString(${callArguments.join(',')})";
 }
@@ -191,14 +225,19 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => false;
 
   @override
+  bool get isSetter => switch (jsString) {
+        '[]' => false,
+        '[]=' => true,
+        _ => throw UnimplementedError(
+            'External operator $jsString is unsupported for static interop. '
+            'Please file a request in the SDK if you want it to be supported.')
+      };
+
+  @override
   String bodyString(String object, List<String> callArguments) {
-    return switch (jsString) {
-      '[]' => '$object[${callArguments[0]}]',
-      '[]=' => '$object[${callArguments[0]}] = ${callArguments[1]}',
-      _ => throw UnimplementedError(
-          'External operator $jsString is unsupported for static interop. '
-          'Please file a request in the SDK if you want it to be supported.')
-    };
+    return isSetter
+        ? '$object[${callArguments[0]}] = ${callArguments[1]}'
+        : '$object[${callArguments[0]}]';
   }
 }
 
@@ -225,18 +264,23 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
   Expression specialize() {
     // Create or get the specialized procedure for the invoked number of
     // arguments. Cast as needed and return the final invocation.
-    final staticInvocation = StaticInvocation(
-        _getOrCreateInteropProcedure(),
-        Arguments(invocation.arguments.positional.map<Expression>((expr) {
-          final temp = VariableDeclaration(null,
-              initializer: expr,
-              type: expr.getStaticType(factory._staticTypeContext),
-              isSynthesized: true);
-          return Let(
-              temp,
-              jsifyValue(temp, factory._util,
-                  factory._staticTypeContext.typeEnvironment));
-        }).toList()));
+    final interopProcedure = _getOrCreateInteropProcedure();
+    final interopProcedureType =
+        interopProcedure.computeSignatureOrFunctionType();
+    final List<Expression> jsifiedArguments = [];
+    final List<Expression> arguments = invocation.arguments.positional;
+    for (int i = 0; i < arguments.length; i += 1) {
+      final temp = VariableDeclaration(null,
+          initializer: arguments[i],
+          type: arguments[i].getStaticType(factory._staticTypeContext),
+          isSynthesized: true);
+      jsifiedArguments.add(Let(
+          temp,
+          jsifyValue(temp, interopProcedureType.positionalParameters[i],
+              factory._util, factory._staticTypeContext.typeEnvironment)));
+    }
+    final staticInvocation =
+        StaticInvocation(interopProcedure, Arguments(jsifiedArguments));
     return _util.castInvocationForReturn(
         staticInvocation, invocation.getStaticType(_staticTypeContext));
   }
@@ -251,6 +295,9 @@ class _ConstructorInvocationSpecializer
   bool get isConstructor => true;
 
   @override
+  bool get isSetter => false;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       "new $jsString(${callArguments.join(',')})";
 }
@@ -261,6 +308,9 @@ class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
 
   @override
   bool get isConstructor => false;
+
+  @override
+  bool get isSetter => false;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -276,6 +326,9 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
 
   @override
   bool get isConstructor => true;
+
+  @override
+  bool get isSetter => false;
 
   @override
   List<VariableDeclaration> get parameters {
@@ -321,21 +374,24 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     for (NamedExpression expr in invocation.arguments.named) {
       namedArgs[expr.name] = expr.value;
     }
+    final interopProcedureType =
+        interopProcedure.computeSignatureOrFunctionType();
     final arguments =
         parameters.map<Expression>((decl) => namedArgs[decl.name!]!).toList();
-    final positionalArgs = arguments.map<Expression>((expr) {
+    final List<Expression> jsifiedArguments = [];
+    for (int i = 0; i < arguments.length; i += 1) {
       final temp = VariableDeclaration(null,
-          initializer: expr,
-          type: expr.getStaticType(_staticTypeContext),
+          initializer: arguments[i],
+          type: arguments[i].getStaticType(factory._staticTypeContext),
           isSynthesized: true);
-      return Let(
+      jsifiedArguments.add(Let(
           temp,
-          jsifyValue(
-              temp, factory._util, factory._staticTypeContext.typeEnvironment));
-    }).toList();
+          jsifyValue(temp, interopProcedureType.positionalParameters[i],
+              factory._util, factory._staticTypeContext.typeEnvironment)));
+    }
     assert(factory._extensionIndex.isStaticInteropType(function.returnType));
     return invokeOneArg(_util.jsValueBoxTarget,
-        StaticInvocation(interopProcedure, Arguments(positionalArgs)));
+        StaticInvocation(interopProcedure, Arguments(jsifiedArguments)));
   }
 }
 
@@ -351,7 +407,26 @@ class InteropSpecializerFactory {
   /// should be called with `numberOfArgs` arguments.
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
 
+  /// Maps an interop procedure for a JS object literal to trampolines based on
+  /// named arguments that are passed at invocation sites. For example:
+  ///
+  /// ```
+  /// extension type Literal._(JSObject _) implements JSObject {
+  ///   external factory Literal.fact({double a, String b, bool c});
+  /// }
+  ///
+  /// Literal.fact(a: 1.2);
+  /// Literal.fact(a: 3.4, b: 'a');
+  /// Literal.fact(a: 5.6, b: 'b');
+  /// ```
+  ///
+  /// Here we map the procedure for `Literal.fact` to interop procedures, based
+  /// on the named arguments passed.
+  ///
+  /// The `String` keys are named arguments passed in the call sites, joined by
+  /// `|`. E.g. `"a|b"` in the second and third calls above.
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
+
   late final ExtensionIndex _extensionIndex;
 
   InteropSpecializerFactory(this._staticTypeContext, this._util,

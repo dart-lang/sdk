@@ -22,60 +22,60 @@ class Class {
   void multipleArgs<T, U, S>(T t, S s, U u) {}
 
   instanceInvocations() {
-    unboundedUnused/*<dynamic>*/();
+    unboundedUnused /*<dynamic>*/ ();
     unboundedUnused<int>();
 
-    unboundedArg/*<Null>*/(null);
-    unboundedArg/*<int>*/(0);
-    unboundedArg/*<String>*/("");
+    unboundedArg /*<Null>*/ (null);
+    unboundedArg /*<int>*/ (0);
+    unboundedArg /*<String>*/ ("");
     unboundedArg<num>(0);
 
-    unboundedReturn/*<dynamic>*/();
+    unboundedReturn /*<dynamic>*/ ();
     unboundedReturn<int>();
-    var unboundedReturn1 = unboundedReturn/*<dynamic>*/();
-    int unboundedReturn2 = unboundedReturn/*<int>*/();
+    var unboundedReturn1 = unboundedReturn /*<dynamic>*/ ();
+    int unboundedReturn2 = unboundedReturn /*<int>*/ ();
     num unboundedReturn3 = unboundedReturn<int>();
 
-    unboundedReturnArg/*<Null>*/(null);
-    unboundedReturnArg/*<int>*/(0);
-    unboundedReturnArg/*<String>*/("");
+    unboundedReturnArg /*<Null>*/ (null);
+    unboundedReturnArg /*<int>*/ (0);
+    unboundedReturnArg /*<String>*/ ("");
     unboundedReturnArg<num>(0);
-    var unboundedReturnArg1 = unboundedReturnArg/*<int>*/(0);
-    var unboundedReturnArg2 = unboundedReturnArg/*<String>*/("");
-    num unboundedReturnArg3 = unboundedReturnArg/*<num>*/(0);
-    int unboundedReturnArg4 = unboundedReturnArg/*<int>*/(0);
-    int unboundedReturnArg5 = unboundedReturnArg/*<int>*/(0.5);
-    int unboundedReturnArg6 = unboundedReturnArg/*<int>*/("");
+    var unboundedReturnArg1 = unboundedReturnArg /*<int>*/ (0);
+    var unboundedReturnArg2 = unboundedReturnArg /*<String>*/ ("");
+    num unboundedReturnArg3 = unboundedReturnArg /*<num>*/ (0);
+    int unboundedReturnArg4 = unboundedReturnArg /*<int>*/ (0);
+    int unboundedReturnArg5 = unboundedReturnArg /*<int>*/ (0.5);
+    int unboundedReturnArg6 = unboundedReturnArg /*<int>*/ ("");
     int unboundedReturnArg7 = unboundedReturnArg<num>(0);
 
-    extendsNumUnused/*<num>*/();
+    extendsNumUnused /*<num>*/ ();
     extendsNumUnused<int>();
 
-    extendsNumArg/*<num>*/(null);
-    extendsNumArg/*<int>*/(0);
-    extendsNumArg/*<num>*/("");
+    extendsNumArg /*<num>*/ (null);
+    extendsNumArg /*<int>*/ (0);
+    extendsNumArg /*<num>*/ ("");
     extendsNumArg<num>(0);
 
-    extendsNumReturn/*<num>*/();
+    extendsNumReturn /*<num>*/ ();
     extendsNumReturn<int>();
-    var extendsNumReturn1 = extendsNumReturn/*<num>*/();
-    int extendsNumReturn2 = extendsNumReturn/*<int>*/();
+    var extendsNumReturn1 = extendsNumReturn /*<num>*/ ();
+    int extendsNumReturn2 = extendsNumReturn /*<int>*/ ();
     num extendsNumReturn3 = extendsNumReturn<int>();
 
-    extendsNumReturnArg/*<num>*/(null);
-    extendsNumReturnArg/*<int>*/(0);
-    extendsNumReturnArg/*<num>*/("");
+    extendsNumReturnArg /*<num>*/ (null);
+    extendsNumReturnArg /*<int>*/ (0);
+    extendsNumReturnArg /*<num>*/ ("");
     extendsNumReturnArg<num>(0);
-    var extendsNumReturnArg1 = extendsNumReturnArg/*<int>*/(0);
-    var extendsNumReturnArg2 = extendsNumReturnArg/*<num>*/("");
-    num extendsNumReturnArg3 = extendsNumReturnArg/*<num>*/(0);
-    int extendsNumReturnArg4 = extendsNumReturnArg/*<int>*/(0);
-    int extendsNumReturnArg5 = extendsNumReturnArg/*<int>*/(0.5);
-    int extendsNumReturnArg6 = extendsNumReturnArg/*<int>*/("");
+    var extendsNumReturnArg1 = extendsNumReturnArg /*<int>*/ (0);
+    var extendsNumReturnArg2 = extendsNumReturnArg /*<num>*/ ("");
+    num extendsNumReturnArg3 = extendsNumReturnArg /*<num>*/ (0);
+    int extendsNumReturnArg4 = extendsNumReturnArg /*<int>*/ (0);
+    int extendsNumReturnArg5 = extendsNumReturnArg /*<int>*/ (0.5);
+    int extendsNumReturnArg6 = extendsNumReturnArg /*<int>*/ ("");
     int extendsNumReturnArg7 = extendsNumReturnArg<num>(0);
 
-    multipleArgs/*<dynamic,dynamic,dynamic>*/();
-    multipleArgs/*<int,String,bool>*/(0, true, "");
+    multipleArgs /*<dynamic,dynamic,dynamic>*/ ();
+    multipleArgs /*<int,String,bool>*/ (0, true, "");
     multipleArgs<int, bool, String>(0, true, "");
   }
 }

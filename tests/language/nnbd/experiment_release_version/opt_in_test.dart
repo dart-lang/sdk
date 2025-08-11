@@ -11,5 +11,5 @@ void main() {
   int x = null;
   //      ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'int'.
 }

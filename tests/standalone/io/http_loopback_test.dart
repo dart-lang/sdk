@@ -23,7 +23,9 @@ makeListener([List<int>? remotePorts]) {
 /// Verify that you can't connect to loopback via mismatching protocol, e.g.
 /// if the server is listening to IPv4 then you can't connect via IPv6.
 Future<void> failureTest(
-    InternetAddress serverAddr, InternetAddress clientAddr) async {
+  InternetAddress serverAddr,
+  InternetAddress clientAddr,
+) async {
   final remotePorts = <int>[];
   final server = await RawServerSocket.bind(serverAddr, 0);
   server.listen(makeListener(remotePorts));
@@ -48,8 +50,10 @@ Future<void> failureTest(
   } catch (e) {
     Expect.fail('Unexpected exception: $e');
   } finally {
-    Expect.isTrue(success,
-        'Unexpected connection to $serverAddr via $clientAddr address!');
+    Expect.isTrue(
+      success,
+      'Unexpected connection to $serverAddr via $clientAddr address!',
+    );
     await server.close();
   }
 }

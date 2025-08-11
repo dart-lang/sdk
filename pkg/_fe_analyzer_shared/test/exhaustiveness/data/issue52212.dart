@@ -21,13 +21,11 @@ class NeverBox extends Box<Never> {
   const NeverBox();
 }
 
-Box<O> switchFunction<O>(
-        O? object) => /*
+Box<O> switchFunction<O>(O? object) => /*
  checkingOrder={Object?,Object,Null},
  subtypes={Object,Null},
  type=Object?
-*/
-    switch (object) {
-      O object /*space=Object?*/ => FilledBox(object),
-      null /*space=Null*/ => NeverBox(),
-    };
+*/ switch (object) {
+  O object /*space=Object?*/ => FilledBox(object),
+  null /*space=Null*/ => NeverBox(),
+};

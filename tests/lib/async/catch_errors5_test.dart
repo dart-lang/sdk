@@ -21,11 +21,14 @@ main() {
     Future errorFuture = new Future.error("future error");
     errorFuture.whenComplete(() => done.complete(true));
     throw "catch error";
-  }).listen((x) {
-    events.add(x);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give some time for the event listener to execute.

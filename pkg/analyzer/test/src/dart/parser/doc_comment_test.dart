@@ -522,9 +522,7 @@ Comment
 /// @docImport 'dart:html'
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 15, 11),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 15, 11)]);
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -1774,9 +1772,7 @@ int x = 0;
 /// {@yotube 123}
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_UNKNOWN, 28, 6),
-    ]);
+    parseResult.assertErrors([error(WarningCode.DOC_DIRECTIVE_UNKNOWN, 28, 6)]);
 
     var node = parseResult.findNode.comment('yotube');
     assertParsedNodeText(node, r'''

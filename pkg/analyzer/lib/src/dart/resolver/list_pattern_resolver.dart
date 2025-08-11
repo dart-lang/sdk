@@ -24,7 +24,7 @@ class ListPatternResolver {
       // Check that we have exactly one type argument.
       var length = typeArguments.arguments.length;
       if (length != 1) {
-        resolverVisitor.errorReporter.atNode(
+        resolverVisitor.diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
           arguments: [length],
@@ -33,9 +33,12 @@ class ListPatternResolver {
     }
 
     var elementType = typeArguments?.arguments.first.typeOrThrow;
-    var result = resolverVisitor.analyzeListPattern(context, node,
-        elementType: elementType?.wrapSharedTypeView(),
-        elements: node.elements);
+    var result = resolverVisitor.analyzeListPattern(
+      context,
+      node,
+      elementType: elementType?.wrapSharedTypeView(),
+      elements: node.elements,
+    );
     node.requiredType = result.requiredType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(

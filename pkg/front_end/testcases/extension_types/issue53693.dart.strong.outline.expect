@@ -10,7 +10,7 @@ extension type MetadataIndex(core::Map<core::String, dynamic> map) {
 }
 static extension-type-member method MetadataIndex|constructor#(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
   ;
-static extension-type-member method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
+static extension-type-member synthetic method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */
   return self::MetadataIndex|constructor#(map);
 static extension-type-member method MetadataIndex|get#key(lowered final self::MetadataIndex% /* erasure=core::Map<core::String, dynamic>, declared=! */ #this) → core::Map<core::String, dynamic>
   ;

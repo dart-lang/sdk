@@ -7,9 +7,10 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/util/scope.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -683,8 +684,7 @@ class A<T> {
   }
 
   test_extension_method_none_fromExtended() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -694,15 +694,12 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodNone();
   }
 
   test_extension_method_requested_formalParameter_method() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {}
 
 extension on A {
@@ -712,15 +709,12 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.parameter('foo'));
   }
 
   test_extension_method_requested_fromExtended_topLevelVariable() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {
   void foo() {}
 }
@@ -732,15 +726,12 @@ extension on A {
 }
 
 var foo = 0;
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.topGet('foo'));
   }
 
   test_extension_method_requested_fromThisExtension() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class A {}
 
 extension on A {
@@ -750,9 +741,7 @@ extension on A {
     this.foo();
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 53, 3)],
-    );
+''');
     _checkMethodRequested(findElement.method('foo'));
   }
 
@@ -837,7 +826,7 @@ mixin A<T> {
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
-  void _checkGetterDifferent(Element2 expected) {
+  void _checkGetterDifferent(Element expected) {
     var node = findNode.this_('this.foo;');
     _resultDifferent(node, 'foo', false, expected);
   }
@@ -847,12 +836,12 @@ mixin A<T> {
     _resultNone(node, 'foo', false);
   }
 
-  void _checkGetterRequested(Element2 expected) {
+  void _checkGetterRequested(Element expected) {
     var node = findNode.this_('this.foo;');
     _resultRequested(node, 'foo', false, expected);
   }
 
-  void _checkMethodDifferent(Element2 expected) {
+  void _checkMethodDifferent(Element expected) {
     var node = findNode.this_('this.foo()');
     _resultDifferent(node, 'foo', false, expected);
   }
@@ -862,7 +851,7 @@ mixin A<T> {
     _resultNone(node, 'foo', false);
   }
 
-  void _checkMethodRequested(Element2 expected) {
+  void _checkMethodRequested(Element expected) {
     var node = findNode.this_('this.foo()');
     _resultRequested(node, 'foo', false, expected);
   }
@@ -871,7 +860,7 @@ mixin A<T> {
     _checkMethodRequested(findElement.localVar('foo'));
   }
 
-  void _checkSetterDifferent(Element2 expected) {
+  void _checkSetterDifferent(Element expected) {
     var node = findNode.this_('this.foo = 0;');
     _resultDifferent(node, 'foo', true, expected);
   }
@@ -881,17 +870,12 @@ mixin A<T> {
     _resultNone(node, 'foo', true);
   }
 
-  void _checkSetterRequested(Element2 expected) {
+  void _checkSetterRequested(Element expected) {
     var node = findNode.this_('this.foo = 0;');
     _resultRequested(node, 'foo', true, expected);
   }
 
-  void _resultDifferent(
-    AstNode node,
-    String id,
-    bool setter,
-    Element2 element,
-  ) {
+  void _resultDifferent(AstNode node, String id, bool setter, Element element) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isDifferentName || result.element != element) {
       fail('Expected different $element, actual: $result');
@@ -905,12 +889,7 @@ mixin A<T> {
     }
   }
 
-  void _resultRequested(
-    AstNode node,
-    String id,
-    bool setter,
-    Element2 element,
-  ) {
+  void _resultRequested(AstNode node, String id, bool setter, Element element) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
     if (!result.isRequestedName || result.element != element) {
       fail('Expected requested $element, actual: $result');

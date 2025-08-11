@@ -7,13 +7,14 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
-    Map<Uri, AnnotatedCode> annotatedCode,
-    Map<String, MemberAnnotations<IdValue>> expectedMaps,
-    Uri mainUri,
-    Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
-    DataInterpreter<T> dataInterpreter,
-    {Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate = false}) {
+  Map<Uri, AnnotatedCode> annotatedCode,
+  Map<String, MemberAnnotations<IdValue>> expectedMaps,
+  Uri mainUri,
+  Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
+  DataInterpreter<T> dataInterpreter, {
+  Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
+  bool forceUpdate = false,
+}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
@@ -40,8 +41,10 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     addData(marker, mainUri, annotations.globalData);
   });
 
-  actualData
-      .forEach((String marker, Map<Uri, Map<Id, ActualData<T>>> dataPerUri) {
+  actualData.forEach((
+    String marker,
+    Map<Uri, Map<Id, ActualData<T>>> dataPerUri,
+  ) {
     dataPerUri.forEach((Uri uri, Map<Id, ActualData<T>> dataMap) {
       uriSet.add(uri);
       dataMap.forEach((Id id, ActualData<T> data) {
@@ -62,28 +65,39 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     AnnotatedCode? code = annotatedCode[uri];
     if (code != null) {
       // Annotations are not computed from synthesized code.
-      result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
-          idValuePerId, actualDataPerId, dataInterpreter,
-          sortMarkers: false, createDiff: createDiff, forceUpdate: forceUpdate);
+      result[uri] = _computeAnnotations(
+        code,
+        expectedMaps.keys,
+        actualMarkers,
+        idValuePerId,
+        actualDataPerId,
+        dataInterpreter,
+        sortMarkers: false,
+        createDiff: createDiff,
+        forceUpdate: forceUpdate,
+      );
     }
   }
   return result;
 }
 
 List<Annotation> _computeAnnotations<T>(
-    AnnotatedCode annotatedCode,
-    Iterable<String> supportedMarkers,
-    Set<String> actualMarkers,
-    Map<Id, Map<String, IdValue>> idValuePerId,
-    Map<Id, Map<String, ActualData<T>>> actualDataPerId,
-    DataInterpreter<T> dataInterpreter,
-    {String defaultPrefix = '/*',
-    String defaultSuffix = '*/',
-    bool sortMarkers = true,
-    Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
-    bool forceUpdate = false}) {
+  AnnotatedCode annotatedCode,
+  Iterable<String> supportedMarkers,
+  Set<String> actualMarkers,
+  Map<Id, Map<String, IdValue>> idValuePerId,
+  Map<Id, Map<String, ActualData<T>>> actualDataPerId,
+  DataInterpreter<T> dataInterpreter, {
+  String defaultPrefix = '/*',
+  String defaultSuffix = '*/',
+  bool sortMarkers = true,
+  Annotation? Function(Annotation? expected, Annotation? actual)? createDiff,
+  bool forceUpdate = false,
+}) {
   Annotation createAnnotationFromData(
-      ActualData<T> actualData, Annotation? annotation) {
+    ActualData<T> actualData,
+    Annotation? annotation,
+  ) {
     String getIndentationFromOffset(int offset) {
       int lineIndex = annotatedCode.getLineIndex(offset);
       String line = annotatedCode.getLine(lineIndex);
@@ -137,19 +151,23 @@ List<Annotation> _computeAnnotations<T>(
     }
 
     return new Annotation(
-        annotation?.index,
-        annotation?.lineNo ?? -1,
-        annotation?.columnNo ?? -1,
-        offset,
-        prefix,
-        IdValue.idToString(actualData.id,
-            dataInterpreter.getText(actualData.value, indentation)),
-        suffix);
+      annotation?.index,
+      annotation?.lineNo ?? -1,
+      annotation?.columnNo ?? -1,
+      offset,
+      prefix,
+      IdValue.idToString(
+        actualData.id,
+        dataInterpreter.getText(actualData.value, indentation),
+      ),
+      suffix,
+    );
   }
 
-  Set<Id> idSet = {}
-    ..addAll(idValuePerId.keys)
-    ..addAll(actualDataPerId.keys);
+  Set<Id> idSet =
+      {}
+        ..addAll(idValuePerId.keys)
+        ..addAll(actualDataPerId.keys);
   List<Annotation> result = <Annotation>[];
   for (Id id in idSet) {
     Map<String, IdValue> idValuePerMarker = idValuePerId[id] ?? {};
@@ -169,8 +187,10 @@ List<Annotation> _computeAnnotations<T>(
           expectedAnnotation = actualAnnotation = idValue.annotation;
         } else {
           expectedAnnotation = idValue.annotation;
-          actualAnnotation =
-              createAnnotationFromData(actualData, idValue.annotation);
+          actualAnnotation = createAnnotationFromData(
+            actualData,
+            idValue.annotation,
+          );
         }
       } else if (idValue != null && !actualMarkers.contains(marker)) {
         // Use existing annotation if no actual data is provided for this
@@ -183,9 +203,10 @@ List<Annotation> _computeAnnotations<T>(
           actualAnnotation = createAnnotationFromData(actualData, null);
         }
       }
-      Annotation? annotation = createDiff != null
-          ? createDiff(expectedAnnotation, actualAnnotation)
-          : actualAnnotation;
+      Annotation? annotation =
+          createDiff != null
+              ? createDiff(expectedAnnotation, actualAnnotation)
+              : actualAnnotation;
       if (annotation != null) {
         newAnnotationsPerMarker[marker] = annotation;
       }
@@ -211,14 +232,17 @@ List<Annotation> _computeAnnotations<T>(
           prefix = '${usedMarkers.join('|')}.';
         }
         Annotation firstAnnotation = annotations.values.first;
-        result.add(new Annotation(
+        result.add(
+          new Annotation(
             firstAnnotation.index,
             firstAnnotation.lineNo,
             firstAnnotation.columnNo,
             firstAnnotation.offset,
             firstAnnotation.prefix,
             '$prefix$text',
-            firstAnnotation.suffix));
+            firstAnnotation.suffix,
+          ),
+        );
       }
     });
   }

@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,10 +16,10 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementAnnotationImplTest);
-    defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
-    defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
   });
 }
@@ -45,74 +43,10 @@ main() {
     var argument = findNode.integerLiteral('3');
     var parameter = argument.correspondingParameter!;
 
-    ElementAnnotation annotation = parameter.metadata[0];
+    ElementAnnotation annotation = parameter.metadata.annotations[0];
 
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');
-  }
-}
-
-@reflectiveTest
-class ElementLocationImplTest {
-  void test_create_encoding() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  /// For example unnamed constructor.
-  void test_create_encoding_emptyLast() {
-    String encoding = "a;b;c;";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  void test_equals_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = ElementLocationImpl.con2(encoding);
-    expect(first == second, isTrue);
-  }
-
-  void test_equals_notEqual_differentLengths() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = ElementLocationImpl.con2("a;b;c;d");
-    expect(first == second, isFalse);
-  }
-
-  void test_equals_notEqual_notLocation() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    // ignore: unrelated_type_equality_checks
-    expect(first == "a;b;d", isFalse);
-  }
-
-  void test_equals_notEqual_sameLengths() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = ElementLocationImpl.con2("a;b;d");
-    expect(first == second, isFalse);
-  }
-
-  void test_getComponents() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    List<String> components = location.components;
-    expect(components, hasLength(3));
-    expect(components[0], "a");
-    expect(components[1], "b");
-    expect(components[2], "c");
-  }
-
-  void test_getEncoding() {
-    String encoding = "a;b;c;;d";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  void test_hashCode_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = ElementLocationImpl.con2(encoding);
-    expect(first.hashCode == second.hashCode, isTrue);
   }
 }
 
@@ -124,10 +58,10 @@ enum B {B1, B2, B3}
 ''');
     var B = findElement2.enum_('B');
 
-    var b2Element = B.getField2('B2')!;
+    var b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
 
-    var valuesElement = B.getField2('values')!;
+    var valuesElement = B.getField('values')!;
     expect(valuesElement.isEnumConstant, isFalse);
   }
 }
@@ -269,9 +203,9 @@ class A {
   int get g {}
 }
 ''');
-    var elementA = library.getClass2('A')!;
-    var getter = elementA.getGetter2('g');
-    expect(elementA.lookUpGetter2(name: 'g', library: library), same(getter));
+    var elementA = library.getClass('A')!;
+    var getter = elementA.getGetter('g');
+    expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -288,9 +222,9 @@ part 'a.dart';
 
 class A {}
 ''');
-    var elementA = library.getClass2('A')!;
-    var getter = elementA.getGetter2('g')!;
-    expect(elementA.lookUpGetter2(name: 'g', library: library), same(getter));
+    var elementA = library.getClass('A')!;
+    var getter = elementA.getGetter('g')!;
+    expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited() async {
@@ -300,10 +234,10 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var getter = classA.getGetter2('g');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    var classA = library.getClass('A')!;
+    var getter = classA.getGetter('g');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited_fromAugmentation() async {
@@ -320,10 +254,10 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var getter = classA.getGetter2('g');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    var classA = library.getClass('A')!;
+    var getter = classA.getGetter('g');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_inherited_fromMixin() async {
@@ -333,18 +267,18 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
-    var getter = mixinA.getGetter2('g');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpGetter2(name: 'g', library: library), same(getter));
+    var mixinA = library.getMixin('A')!;
+    var getter = mixinA.getGetter('g');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
   test_lookUpGetter_undeclared() async {
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpGetter2(name: 'g', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpGetter_undeclared_recursive() async {
@@ -352,8 +286,8 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpGetter2(name: 'g', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpMethod_declared() async {
@@ -362,9 +296,9 @@ class A {
   int m() {}
 }
 ''');
-    var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
+    var classA = library.getClass('A')!;
+    var method = classA.getMethod('m')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -381,9 +315,9 @@ part 'a.dart';
 
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
+    var classA = library.getClass('A')!;
+    var method = classA.getMethod('m')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited() async {
@@ -393,10 +327,10 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    var classA = library.getClass('A')!;
+    var method = classA.getMethod('m');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited_fromAugmentation() async {
@@ -413,10 +347,10 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var method = classA.getMethod2('m');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    var classA = library.getClass('A')!;
+    var method = classA.getMethod('m');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_inherited_fromMixin() async {
@@ -426,18 +360,18 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
-    var method = mixinA.getMethod2('m');
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpMethod2(name: 'm', library: library), same(method));
+    var mixinA = library.getMixin('A')!;
+    var method = mixinA.getMethod('m');
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
   test_lookUpMethod_undeclared() async {
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpMethod_undeclared_recursive() async {
@@ -445,8 +379,8 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpMethod2(name: 'm', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpSetter_declared() async {
@@ -455,9 +389,9 @@ class A {
   set s(x) {}
 }
 ''');
-    var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), same(setter));
+    var classA = library.getClass('A')!;
+    var setter = classA.getSetter('s')!;
+    expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -474,9 +408,9 @@ part 'a.dart';
 
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), same(setter));
+    var classA = library.getClass('A')!;
+    var setter = classA.getSetter('s')!;
+    expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_inherited() async {
@@ -486,10 +420,10 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    var classA = library.getClass('A')!;
+    var setter = classA.getSetter('s')!;
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   @FailingTest() // TODO(scheglov): implement augmentation
@@ -507,10 +441,10 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    var setter = classA.getSetter2('s')!;
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    var classA = library.getClass('A')!;
+    var setter = classA.getSetter('s')!;
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_inherited_fromMixin() async {
@@ -520,18 +454,18 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
-    var setter = mixinA.getSetter2('s')!;
-    var classB = library.getClass2('B')!;
-    expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
+    var mixinA = library.getMixin('A')!;
+    var setter = mixinA.getSetter('s')!;
+    var classB = library.getClass('B')!;
+    expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
   test_lookUpSetter_undeclared() async {
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 
   test_lookUpSetter_undeclared_recursive() async {
@@ -539,8 +473,8 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
-    expect(classA.lookUpSetter2(name: 's', library: library), isNull);
+    var classA = library.getClass('A')!;
+    expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 }
 
@@ -550,7 +484,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: listNone(intNone));
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -559,7 +493,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: numNone);
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -567,11 +501,8 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_promoted() {
     var T = typeParameter('T');
     _assert_asInstanceOf(
-      typeParameterTypeNone(
-        T,
-        promotedBound: listNone(intNone),
-      ),
-      typeProvider.iterableElement2,
+      typeParameterTypeNone(T, promotedBound: listNone(intNone)),
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -579,11 +510,8 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_promoted_noMatch() {
     var T = typeParameter('T');
     _assert_asInstanceOf(
-      typeParameterTypeNone(
-        T,
-        promotedBound: numNone,
-      ),
-      typeProvider.iterableElement2,
+      typeParameterTypeNone(T, promotedBound: numNone),
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -592,7 +520,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -605,18 +533,15 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     var element = typeParameter('E');
     TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.element3, element);
+    expect(type.element, element);
   }
 
   void _assert_asInstanceOf(
     TypeImpl type,
-    ClassElement2 element,
+    ClassElement element,
     String? expected,
   ) {
-    var result = type.asInstanceOf2(element);
-    expect(
-      result?.getDisplayString(),
-      expected,
-    );
+    var result = type.asInstanceOf(element);
+    expect(result?.getDisplayString(), expected);
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -37,13 +37,9 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_function() {
-    isNonNullable(
-      functionTypeNone(returnType: voidNone),
-    );
+    isNonNullable(functionTypeNone(returnType: voidNone));
 
-    isNotNonNullable(
-      functionTypeQuestion(returnType: voidNone),
-    );
+    isNotNonNullable(functionTypeQuestion(returnType: voidNone));
   }
 
   test_functionClass() {
@@ -52,23 +48,15 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr_noneArgument() {
-    isNonNullable(
-      futureOrNone(intNone),
-    );
+    isNonNullable(futureOrNone(intNone));
 
-    isNotNonNullable(
-      futureOrQuestion(intNone),
-    );
+    isNotNonNullable(futureOrQuestion(intNone));
   }
 
   test_futureOr_questionArgument() {
-    isNotNonNullable(
-      futureOrNone(intQuestion),
-    );
+    isNotNonNullable(futureOrNone(intQuestion));
 
-    isNotNonNullable(
-      futureOrQuestion(intQuestion),
-    );
+    isNotNonNullable(futureOrQuestion(intQuestion));
   }
 
   test_interface() {
@@ -78,9 +66,7 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isNotNonNullable(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
 
     isNonNullable(
@@ -106,49 +92,33 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
-    isNonNullable(
-      typeParameterTypeNone(T),
-    );
+    isNonNullable(typeParameterTypeNone(T));
 
-    isNotNonNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNotNonNullable(typeParameterTypeQuestion(T));
   }
 
   test_typeParameter_boundQuestion() {
     var T = typeParameter('T', bound: intQuestion);
 
-    isNotNonNullable(
-      typeParameterTypeNone(T),
-    );
+    isNotNonNullable(typeParameterTypeNone(T));
 
-    isNotNonNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNotNonNullable(typeParameterTypeQuestion(T));
   }
 
   test_typeParameter_promotedBoundNone() {
     var T = typeParameter('T');
 
-    isNonNullable(
-      typeParameterTypeNone(T, promotedBound: intNone),
-    );
+    isNonNullable(typeParameterTypeNone(T, promotedBound: intNone));
 
-    isNonNullable(
-      typeParameterTypeQuestion(T, promotedBound: intNone),
-    );
+    isNonNullable(typeParameterTypeQuestion(T, promotedBound: intNone));
   }
 
   test_typeParameter_promotedBoundQuestion() {
     var T = typeParameter('T');
 
-    isNotNonNullable(
-      typeParameterTypeNone(T, promotedBound: intQuestion),
-    );
+    isNotNonNullable(typeParameterTypeNone(T, promotedBound: intQuestion));
 
-    isNotNonNullable(
-      typeParameterTypeQuestion(T, promotedBound: intQuestion),
-    );
+    isNotNonNullable(typeParameterTypeQuestion(T, promotedBound: intQuestion));
   }
 
   test_void() {
@@ -171,13 +141,9 @@ class IsNullableTest extends AbstractTypeSystemTest {
   }
 
   test_function() {
-    isNotNullable(
-      functionTypeNone(returnType: voidNone),
-    );
+    isNotNullable(functionTypeNone(returnType: voidNone));
 
-    isNullable(
-      functionTypeQuestion(returnType: voidNone),
-    );
+    isNullable(functionTypeQuestion(returnType: voidNone));
   }
 
   test_functionClass() {
@@ -186,23 +152,15 @@ class IsNullableTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr_noneArgument() {
-    isNotNullable(
-      futureOrNone(intNone),
-    );
+    isNotNullable(futureOrNone(intNone));
 
-    isNullable(
-      futureOrQuestion(intNone),
-    );
+    isNullable(futureOrQuestion(intNone));
   }
 
   test_futureOr_questionArgument() {
-    isNullable(
-      futureOrNone(intQuestion),
-    );
+    isNullable(futureOrNone(intQuestion));
 
-    isNullable(
-      futureOrQuestion(intQuestion),
-    );
+    isNullable(futureOrQuestion(intQuestion));
   }
 
   test_interface() {
@@ -212,9 +170,7 @@ class IsNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isNotNullable(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
 
     isNotNullable(
@@ -224,7 +180,7 @@ class IsNullableTest extends AbstractTypeSystemTest {
     );
 
     isNullable(
-      interfaceTypeQuestion2(
+      interfaceTypeQuestion(
         extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
@@ -246,49 +202,33 @@ class IsNullableTest extends AbstractTypeSystemTest {
   test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
-    isNotNullable(
-      typeParameterTypeNone(T),
-    );
+    isNotNullable(typeParameterTypeNone(T));
 
-    isNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNullable(typeParameterTypeQuestion(T));
   }
 
   test_typeParameter_boundQuestion_none() {
     var T = typeParameter('T', bound: intQuestion);
 
-    isNotNullable(
-      typeParameterTypeNone(T),
-    );
+    isNotNullable(typeParameterTypeNone(T));
 
-    isNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNullable(typeParameterTypeQuestion(T));
   }
 
   test_typeParameter_promotedBoundNone() {
     var T = typeParameter('T');
 
-    isNotNullable(
-      typeParameterTypeNone(T, promotedBound: intNone),
-    );
+    isNotNullable(typeParameterTypeNone(T, promotedBound: intNone));
 
-    isNotNullable(
-      typeParameterTypeQuestion(T, promotedBound: intNone),
-    );
+    isNotNullable(typeParameterTypeQuestion(T, promotedBound: intNone));
   }
 
   test_typeParameter_promotedBoundQuestion() {
     var T = typeParameter('T');
 
-    isNullable(
-      typeParameterTypeNone(T, promotedBound: intQuestion),
-    );
+    isNullable(typeParameterTypeNone(T, promotedBound: intQuestion));
 
-    isNullable(
-      typeParameterTypeQuestion(T, promotedBound: intQuestion),
-    );
+    isNullable(typeParameterTypeQuestion(T, promotedBound: intQuestion));
   }
 
   test_void() {
@@ -311,13 +251,9 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr() {
-    isPotentiallyNonNullable(
-      futureOrNone(intNone),
-    );
+    isPotentiallyNonNullable(futureOrNone(intNone));
 
-    isNotPotentiallyNonNullable(
-      futureOrNone(intQuestion),
-    );
+    isNotPotentiallyNonNullable(futureOrNone(intQuestion));
   }
 
   test_interface() {
@@ -327,9 +263,7 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isPotentiallyNonNullable(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
 
     isPotentiallyNonNullable(
@@ -371,13 +305,9 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr() {
-    isNotPotentiallyNullable(
-      futureOrNone(intNone),
-    );
+    isNotPotentiallyNullable(futureOrNone(intNone));
 
-    isPotentiallyNullable(
-      futureOrNone(intQuestion),
-    );
+    isPotentiallyNullable(futureOrNone(intQuestion));
   }
 
   test_interface() {
@@ -387,15 +317,11 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isPotentiallyNullable(
-      interfaceTypeQuestion2(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeQuestion(extensionType2('A', representationType: intNone)),
     );
 
     isPotentiallyNullable(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
 
     isNotPotentiallyNullable(
@@ -437,13 +363,9 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_function() {
-    isStrictlyNonNullable(
-      functionTypeNone(returnType: voidNone),
-    );
+    isStrictlyNonNullable(functionTypeNone(returnType: voidNone));
 
-    isNotStrictlyNonNullable(
-      functionTypeQuestion(returnType: voidNone),
-    );
+    isNotStrictlyNonNullable(functionTypeQuestion(returnType: voidNone));
   }
 
   test_functionClass() {
@@ -452,23 +374,15 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr_noneArgument() {
-    isStrictlyNonNullable(
-      futureOrNone(intNone),
-    );
+    isStrictlyNonNullable(futureOrNone(intNone));
 
-    isNotStrictlyNonNullable(
-      futureOrQuestion(intNone),
-    );
+    isNotStrictlyNonNullable(futureOrQuestion(intNone));
   }
 
   test_futureOr_questionArgument() {
-    isNotStrictlyNonNullable(
-      futureOrNone(intQuestion),
-    );
+    isNotStrictlyNonNullable(futureOrNone(intQuestion));
 
-    isNotStrictlyNonNullable(
-      futureOrQuestion(intQuestion),
-    );
+    isNotStrictlyNonNullable(futureOrQuestion(intQuestion));
   }
 
   test_interface() {
@@ -478,9 +392,7 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
   test_interface_extensionType2() {
     isNotStrictlyNonNullable(
-      interfaceTypeNone(
-        extensionType2('A', representationType: intNone),
-      ),
+      interfaceTypeNone(extensionType2('A', representationType: intNone)),
     );
 
     isStrictlyNonNullable(
@@ -506,25 +418,17 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
-    isStrictlyNonNullable(
-      typeParameterTypeNone(T),
-    );
+    isStrictlyNonNullable(typeParameterTypeNone(T));
 
-    isNotStrictlyNonNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNotStrictlyNonNullable(typeParameterTypeQuestion(T));
   }
 
   test_typeParameter_boundQuestion() {
     var T = typeParameter('T', bound: intQuestion);
 
-    isNotStrictlyNonNullable(
-      typeParameterTypeNone(T),
-    );
+    isNotStrictlyNonNullable(typeParameterTypeNone(T));
 
-    isNotStrictlyNonNullable(
-      typeParameterTypeQuestion(T),
-    );
+    isNotStrictlyNonNullable(typeParameterTypeQuestion(T));
   }
 
   test_void() {
@@ -548,10 +452,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   test_futureOr_question() {
     // NonNull(FutureOr<T>) = FutureOr<T>
-    _check(
-      futureOrQuestion(stringQuestion),
-      futureOrNone(stringQuestion),
-    );
+    _check(futureOrQuestion(stringQuestion), futureOrNone(stringQuestion));
   }
 
   test_interfaceType() {
@@ -559,10 +460,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
     _check(intQuestion, intNone);
 
     // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn>
-    _check(
-      listQuestion(intQuestion),
-      listNone(intQuestion),
-    );
+    _check(listQuestion(intQuestion), listNone(intQuestion));
   }
 
   test_interfaceType_function() {
@@ -685,11 +583,11 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   void _checkTypeParameter(
     TypeParameterTypeImpl type, {
-    required TypeParameterElement2 element,
+    required TypeParameterElement element,
     required TypeImpl? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
-    expect(actual.element3, same(element));
+    expect(actual.element, same(element));
     expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
   }

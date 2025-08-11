@@ -17,42 +17,42 @@ void main() {
 @reflectiveTest
 class SplitVariableDeclarationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
+  AssistKind get kind => DartAssistKind.splitVariableDeclaration;
 
   Future<void> test_const() async {
     await resolveTestCode('''
 void f() {
-  const v = 1;
+  const ^v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_final() async {
     await resolveTestCode('''
 void f() {
-  final v = 1;
+  final ^v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_notOneVariable() async {
     await resolveTestCode('''
 void f() {
-  var v = 1, v2;
+  var ^v = 1, v2;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onName() async {
     await resolveTestCode('''
 void f() {
-  var v = 1;
+  var ^v = 1;
 }
 ''');
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 void f() {
   int v;
   v = 1;
@@ -64,10 +64,10 @@ void f() {
     await resolveTestCode('''
 f() => 1;
 void g() {
-  var v = f();
+  var ^v = f();
 }
 ''');
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 f() => 1;
 void g() {
   var v;
@@ -79,10 +79,10 @@ void g() {
   Future<void> test_onName_recordType() async {
     await resolveTestCode('''
 void f() {
-  (int, int) v = (1, 2);
+  (int, int) ^v = (1, 2);
 }
 ''');
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 void f() {
   (int, int) v;
   v = (1, 2);
@@ -93,10 +93,10 @@ void f() {
   Future<void> test_onType() async {
     await resolveTestCode('''
 void f() {
-  int v = 1;
+  ^int v = 1;
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   int v;
   v = 1;
@@ -108,10 +108,10 @@ void f() {
   Future<void> test_onType_prefixedByComment() async {
     await resolveTestCode('''
 void f() {
-  /*comment*/int v = 1;
+  /*comment*/^int v = 1;
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   /*comment*/int v;
   v = 1;
@@ -122,10 +122,10 @@ void f() {
   Future<void> test_onType_recordType() async {
     await resolveTestCode('''
 void f() {
-  (int, int) v = (1, 2);
+  (int, ^int) v = (1, 2);
 }
 ''');
-    await assertHasAssistAt('int)', '''
+    await assertHasAssist('''
 void f() {
   (int, int) v;
   v = (1, 2);
@@ -136,10 +136,10 @@ void f() {
   Future<void> test_onVar() async {
     await resolveTestCode('''
 void f() {
-  var v = 1;
+  ^var v = 1;
 }
 ''');
-    await assertHasAssistAt('var ', '''
+    await assertHasAssist('''
 void f() {
   int v;
   v = 1;
@@ -150,10 +150,10 @@ void f() {
   Future<void> test_onVar_recordLiteral() async {
     await resolveTestCode('''
 void f() {
-  var v = (1, 2);
+  ^var v = (1, 2);
 }
 ''');
-    await assertHasAssistAt('var', '''
+    await assertHasAssist('''
 void f() {
   (int, int) v;
   v = (1, 2);
@@ -173,9 +173,9 @@ class _B {}
 import 'package:test/a.dart';
 
 f(A a) {
-  var x = a.b();
+  ^var x = a.b();
 }
 ''');
-    await assertNoAssistAt('var ');
+    await assertNoAssist();
   }
 }

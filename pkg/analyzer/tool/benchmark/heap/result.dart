@@ -99,9 +99,7 @@ void _writeXmlText(TreeStringSink sink, BenchmarkResult result) {
 sealed class BenchmarkResult {
   final String name;
 
-  BenchmarkResult({
-    required this.name,
-  });
+  BenchmarkResult({required this.name});
 
   String get asXmlText {
     var buffer = StringBuffer();
@@ -150,10 +148,7 @@ sealed class BenchmarkResult {
 final class BenchmarkResultBytes extends BenchmarkResult {
   final int value;
 
-  BenchmarkResultBytes({
-    required super.name,
-    required this.value,
-  });
+  BenchmarkResultBytes({required super.name, required this.value});
 }
 
 final class BenchmarkResultCompound extends BenchmarkResult {
@@ -176,8 +171,5 @@ final class BenchmarkResultCompound extends BenchmarkResult {
 final class BenchmarkResultCount extends BenchmarkResult {
   final int value;
 
-  BenchmarkResultCount({
-    required super.name,
-    required this.value,
-  });
+  BenchmarkResultCount({required super.name, required this.value});
 }

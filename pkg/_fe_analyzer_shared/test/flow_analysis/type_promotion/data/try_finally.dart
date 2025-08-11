@@ -5,7 +5,8 @@
 void outerIsType_assigned_body(Object x) {
   if (x is String) {
     try {
-      /*String*/ x;
+      /*String*/
+      x;
       x = 42;
     } finally {
       x;
@@ -17,9 +18,11 @@ void outerIsType_assigned_body(Object x) {
 void outerIsType_assigned_finally(Object x) {
   if (x is String) {
     try {
-      /*String*/ x;
+      /*String*/
+      x;
     } finally {
-      /*String*/ x;
+      /*String*/
+      x;
       x = 42;
     }
     x;

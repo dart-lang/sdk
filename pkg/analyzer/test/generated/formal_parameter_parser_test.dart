@@ -22,8 +22,11 @@ main() {
 /// the parsing of formal parameters.
 @reflectiveTest
 class FormalParameterParserTest extends FastaParserTestCase {
-  FormalParameter parseNNBDFormalParameter(String code, ParameterKind kind,
-      {List<ExpectedError>? errors}) {
+  FormalParameter parseNNBDFormalParameter(
+    String code,
+    ParameterKind kind, {
+    List<ExpectedError>? errors,
+  }) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -41,8 +44,10 @@ class FormalParameterParserTest extends FastaParserTestCase {
   }
 
   void test_fieldFormalParameter_function_nullable() {
-    var parameter =
-        parseNNBDFormalParameter('void this.a()?', ParameterKind.REQUIRED);
+    var parameter = parseNNBDFormalParameter(
+      'void this.a()?',
+      ParameterKind.REQUIRED,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
@@ -99,8 +104,10 @@ class C {
 
   void test_parseFormalParameter_covariant_final_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant final a : null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant final a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -135,8 +142,10 @@ class C {
 
   void test_parseFormalParameter_covariant_final_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter =
-        parseFormalParameter('covariant final a = null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant final a = null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -156,8 +165,10 @@ class C {
 
   void test_parseFormalParameter_covariant_final_type_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant final A a : null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant final A a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -177,8 +188,10 @@ class C {
 
   void test_parseFormalParameter_covariant_final_type_normal() {
     ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant final A a', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant final A a',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
@@ -193,8 +206,10 @@ class C {
 
   void test_parseFormalParameter_covariant_final_type_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter =
-        parseFormalParameter('covariant final A a = null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant final A a = null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -215,8 +230,10 @@ class C {
   void test_parseFormalParameter_covariant_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
-        'covariant required A a : null', kind,
-        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 12, 8)]);
+      'covariant required A a : null',
+      kind,
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 12, 8)],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -235,8 +252,10 @@ class C {
 
   void test_parseFormalParameter_covariant_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant String Function(int) a', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant String Function(int) a',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
@@ -251,8 +270,10 @@ class C {
 
   void test_parseFormalParameter_covariant_type_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant A a : null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant A a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -272,8 +293,10 @@ class C {
 
   void test_parseFormalParameter_covariant_type_normal() {
     ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant A<B<C>> a', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant A<B<C>> a',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
@@ -288,8 +311,10 @@ class C {
 
   void test_parseFormalParameter_covariant_type_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter =
-        parseFormalParameter('covariant A a = null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant A a = null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -309,8 +334,10 @@ class C {
 
   void test_parseFormalParameter_covariant_var_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseFormalParameter('covariant var a : null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant var a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -345,8 +372,10 @@ class C {
 
   void test_parseFormalParameter_covariant_var_positional() {
     ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter =
-        parseFormalParameter('covariant var a = null', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'covariant var a = null',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
@@ -365,9 +394,11 @@ class C {
   }
 
   void test_parseFormalParameter_external() {
-    parseNNBDFormalParameter('external int i', ParameterKind.REQUIRED, errors: [
-      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 1, 8),
-    ]);
+    parseNNBDFormalParameter(
+      'external int i',
+      ParameterKind.REQUIRED,
+      errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 1, 8)],
+    );
   }
 
   void test_parseFormalParameter_final_named() {
@@ -428,8 +459,10 @@ class C {
   void test_parseFormalParameter_final_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
-        'final required a : null', kind,
-        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
+      'final required a : null',
+      kind,
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -503,8 +536,10 @@ class C {
 
   void test_parseFormalParameter_required_covariant_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseNNBDFormalParameter('required covariant A a : null', kind);
+    FormalParameter parameter = parseNNBDFormalParameter(
+      'required covariant A a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -523,8 +558,10 @@ class C {
 
   void test_parseFormalParameter_required_final_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseNNBDFormalParameter('required final a : null', kind);
+    FormalParameter parameter = parseNNBDFormalParameter(
+      'required final a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -543,8 +580,10 @@ class C {
 
   void test_parseFormalParameter_required_type_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseNNBDFormalParameter('required A a : null', kind);
+    FormalParameter parameter = parseNNBDFormalParameter(
+      'required A a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -563,8 +602,10 @@ class C {
 
   void test_parseFormalParameter_required_var_named() {
     ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter =
-        parseNNBDFormalParameter('required var a : null', kind);
+    FormalParameter parameter = parseNNBDFormalParameter(
+      'required var a : null',
+      kind,
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -583,8 +624,10 @@ class C {
 
   void test_parseFormalParameter_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter =
-        parseFormalParameter('String Function(int) a', kind);
+    FormalParameter parameter = parseFormalParameter(
+      'String Function(int) a',
+      kind,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
@@ -750,8 +793,10 @@ class C {
   void test_parseFormalParameter_var_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
-        'var required a : null', kind,
-        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
+      'var required a : null',
+      kind,
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
     var defaultParameter = parameter as DefaultFormalParameter;
@@ -780,8 +825,9 @@ class C {
   }
 
   void test_parseFormalParameterList_named_multiple() {
-    FormalParameterList list =
-        parseFormalParameterList('({A a : 1, B b, C c : 3})');
+    FormalParameterList list = parseFormalParameterList(
+      '({A a : 1, B b, C c : 3})',
+    );
     expect(list, isNotNull);
     assertNoErrors();
     expect(list.leftParenthesis, isNotNull);
@@ -836,8 +882,10 @@ class C {
   }
 
   void test_parseFormalParameterList_normal_named_inFunctionType() {
-    FormalParameterList list =
-        parseFormalParameterList('(A, {B b})', inFunctionType: true);
+    FormalParameterList list = parseFormalParameterList(
+      '(A, {B b})',
+      inFunctionType: true,
+    );
     expect(list, isNotNull);
     assertNoErrors();
     expect(list.leftParenthesis, isNotNull);
@@ -851,7 +899,7 @@ class C {
     var required = parameters[0] as SimpleFormalParameter;
     expect(required.name, isNull);
     expect(required.type, isNamedType);
-    expect((required.type as NamedType).name2.lexeme, 'A');
+    expect((required.type as NamedType).name.lexeme, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
     var named = parameters[1] as DefaultFormalParameter;
@@ -859,7 +907,7 @@ class C {
     expect(named.parameter, isSimpleFormalParameter);
     var simple = named.parameter as SimpleFormalParameter;
     expect(simple.type, isNamedType);
-    expect((simple.type as NamedType).name2.lexeme, 'B');
+    expect((simple.type as NamedType).name.lexeme, 'B');
   }
 
   void test_parseFormalParameterList_normal_positional() {
@@ -907,8 +955,9 @@ class C {
   }
 
   void test_parseFormalParameterList_positional_multiple() {
-    FormalParameterList list =
-        parseFormalParameterList('([A a = null, B b, C c = null])');
+    FormalParameterList list = parseFormalParameterList(
+      '([A a = null, B b, C c = null])',
+    );
     expect(list, isNotNull);
     assertNoErrors();
     expect(list.leftParenthesis, isNotNull);
@@ -953,8 +1002,10 @@ class C {
   }
 
   void test_parseFormalParameterList_prefixedType_missingName() {
-    FormalParameterList list = parseFormalParameterList('(io.File)',
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
+    FormalParameterList list = parseFormalParameterList(
+      '(io.File)',
+      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+    );
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
     expect(list.leftDelimiter, isNull);
@@ -965,16 +1016,19 @@ class C {
     expect(parameter.name!.isSynthetic, isTrue);
     var type = parameter.type as NamedType;
     expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name2.isSynthetic, isFalse);
+    expect(type.name.isSynthetic, isFalse);
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_prefixedType_partial() {
-    FormalParameterList list = parseFormalParameterList('(io.)', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
-    ]);
+    FormalParameterList list = parseFormalParameterList(
+      '(io.)',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+      ],
+    );
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
     expect(list.leftDelimiter, isNull);
@@ -985,16 +1039,19 @@ class C {
     expect(parameter.name!.isSynthetic, isTrue);
     var type = parameter.type as NamedType;
     expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name2.isSynthetic, isTrue);
+    expect(type.name.isSynthetic, isTrue);
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_prefixedType_partial2() {
-    FormalParameterList list = parseFormalParameterList('(io.,a)', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
-    ]);
+    FormalParameterList list = parseFormalParameterList(
+      '(io.,a)',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+      ],
+    );
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
     expect(list.leftDelimiter, isNull);
@@ -1006,8 +1063,10 @@ class C {
   }
 
   void test_parseNormalFormalParameter_field_const_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('const this.a',
-        errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'const this.a',
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
     var fieldParameter = parameter as FieldFormalParameter;
@@ -1019,8 +1078,9 @@ class C {
 
   void test_parseNormalFormalParameter_field_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
-        'const A this.a',
-        errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
+      'const A this.a',
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
     var fieldParameter = parameter as FieldFormalParameter;
@@ -1031,8 +1091,9 @@ class C {
   }
 
   void test_parseNormalFormalParameter_field_final_noType() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('final this.a');
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'final this.a',
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
@@ -1044,8 +1105,9 @@ class C {
   }
 
   void test_parseNormalFormalParameter_field_final_type() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('final A this.a');
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'final A this.a',
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
@@ -1162,8 +1224,9 @@ class C {
   }
 
   void test_parseNormalFormalParameter_function_noType_covariant() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('covariant a()');
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'covariant a()',
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
@@ -1177,8 +1240,9 @@ class C {
   }
 
   void test_parseNormalFormalParameter_function_noType_nullable() {
-    var parameter = parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED)
-        as NormalFormalParameter;
+    var parameter =
+        parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED)
+            as NormalFormalParameter;
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
@@ -1231,8 +1295,9 @@ class C {
   }
 
   void test_parseNormalFormalParameter_function_typeVoid_covariant() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('covariant void a()');
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'covariant void a()',
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
@@ -1273,14 +1338,17 @@ class C {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_parseNormalFormalParameter_function_withDocComment() {
-    var parameter = parseFormalParameter('/// Doc\nf()', ParameterKind.REQUIRED)
-        as FunctionTypedFormalParameter;
+    var parameter =
+        parseFormalParameter('/// Doc\nf()', ParameterKind.REQUIRED)
+            as FunctionTypedFormalParameter;
     expectCommentText(parameter.documentationComment, '/// Doc');
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('const a',
-        errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'const a',
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
     var simpleParameter = parameter as SimpleFormalParameter;
@@ -1290,8 +1358,10 @@ class C {
   }
 
   void test_parseNormalFormalParameter_simple_const_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('const A a',
-        errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'const A a',
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+    );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
     var simpleParameter = parameter as SimpleFormalParameter;
@@ -1323,8 +1393,10 @@ class C {
   }
 
   void test_parseNormalFormalParameter_simple_noName() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('a', inFunctionType: true);
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+      'a',
+      inFunctionType: true,
+    );
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);

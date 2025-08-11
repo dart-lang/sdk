@@ -25,16 +25,20 @@ class B implements T {}
   }
 
   test_class_typeParameter_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           58,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
@@ -46,16 +50,20 @@ NamedType
   }
 
   test_class_typeParameter_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T<A> {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           58,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.namedType('T<A> {}');
     assertResolvedNodeText(node, r'''
@@ -75,16 +83,20 @@ NamedType
   }
 
   test_mixin_typeParameter_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M implements T {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           58,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''

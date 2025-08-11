@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,17 +20,14 @@ class NoDefaultCases extends LintRule {
     : super(
         name: LintNames.no_default_cases,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.no_default_cases;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_default_cases;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -44,11 +44,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expressionType is InterfaceType) {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
-          var interfaceElement = expressionType.element3;
-          if (interfaceElement is EnumElement2 ||
-              interfaceElement is ClassElement2 &&
+          var interfaceElement = expressionType.element;
+          if (interfaceElement is EnumElement ||
+              interfaceElement is ClassElement &&
                   interfaceElement.isEnumLikeClass()) {
-            rule.reportLint(member);
+            rule.reportAtNode(member);
           }
           return;
         }

@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-extension ClassElementExtensions on ClassElement2 {
+extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
-  bool get isDartCoreIterable => name3 == 'Iterable' && library2.isDartCore;
+  bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
 
   /// Return `true` if this element represents the class `List` from
   /// `dart:core`.
-  bool get isDartCoreList => name3 == 'List' && library2.isDartCore;
+  bool get isDartCoreList => name == 'List' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Map` from
   /// `dart:core`.
-  bool get isDartCoreMap => name3 == 'Map' && library2.isDartCore;
+  bool get isDartCoreMap => name == 'Map' && library.isDartCore;
 
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
-  bool get isDartCoreSet => name3 == 'Set' && library2.isDartCore;
+  bool get isDartCoreSet => name == 'Set' && library.isDartCore;
 }
 
-extension ElementExtensions on Element2 {
+extension ElementExtensions on Element {
   /// The content of the documentation comment (including delimiters) for this
   /// element.
   ///
@@ -43,27 +43,27 @@ extension ElementExtensions on Element2 {
   /// annotation.
   bool get hasOrInheritsDeprecated {
     if (this case Annotatable annotatable) {
-      if (annotatable.metadata2.hasDeprecated) {
+      if (annotatable.metadata.hasDeprecated) {
         return true;
       }
     }
 
-    var ancestor = enclosingElement2;
-    if (ancestor is InterfaceElement2) {
-      if (ancestor.metadata2.hasDeprecated) {
+    var ancestor = enclosingElement;
+    if (ancestor is InterfaceElement) {
+      if (ancestor.metadata.hasDeprecated) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement;
     }
-    return ancestor is LibraryElement2 && ancestor.metadata2.hasDeprecated;
+    return ancestor is LibraryElement && ancestor.metadata.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.
-  Iterable<Element2> get withAncestors sync* {
+  Iterable<Element> get withAncestors sync* {
     var current = this;
     while (true) {
       yield current;
-      var enclosing = current.enclosingElement2;
+      var enclosing = current.enclosingElement;
       if (enclosing == null) {
         break;
       }
@@ -87,15 +87,15 @@ extension FragmentExtensions on Fragment {
   }
 }
 
-extension MethodElementExtensions on MethodElement2 {
+extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethod {
-    if (name3 != 'cast') {
+    if (name != 'cast') {
       return false;
     }
-    var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable ||
@@ -107,11 +107,11 @@ extension MethodElementExtensions on MethodElement2 {
   /// Return `true` if this element represents the method `toList` from
   /// `Iterable`.
   bool get isToListMethod {
-    if (name3 != 'toList') {
+    if (name != 'toList') {
       return false;
     }
-    var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable;
@@ -120,11 +120,11 @@ extension MethodElementExtensions on MethodElement2 {
   /// Return `true` if this element represents the method `toSet` from
   /// `Iterable`.
   bool get isToSetMethod {
-    if (name3 != 'toSet') {
+    if (name != 'toSet') {
       return false;
     }
-    var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable;

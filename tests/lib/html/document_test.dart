@@ -9,10 +9,14 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 main() {
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
-  var isAnchorElement =
-      predicate((x) => x is AnchorElement, 'is an AnchorElement');
-  var isUnknownElement =
-      predicate((x) => x is UnknownElement, 'is UnknownElement');
+  var isAnchorElement = predicate(
+    (x) => x is AnchorElement,
+    'is an AnchorElement',
+  );
+  var isUnknownElement = predicate(
+    (x) => x is UnknownElement,
+    'is UnknownElement',
+  );
 
   var inscrutable;
 

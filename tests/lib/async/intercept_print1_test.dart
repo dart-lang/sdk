@@ -32,7 +32,7 @@ main() {
     print("1");
     print(2);
     print({
-      3: [4]
+      3: [4],
     });
   });
   zone2.run(() {
@@ -40,7 +40,11 @@ main() {
     shouldIntercept = false;
     print(6);
   });
-  Expect.listEquals(
-      ["print: 1", "print: 2", "print: {3: [4]}", "print **: 5", "print: 6"],
-      events);
+  Expect.listEquals([
+    "print: 1",
+    "print: 2",
+    "print: {3: [4]}",
+    "print **: 5",
+    "print: 6",
+  ], events);
 }

@@ -10,20 +10,22 @@ import "package:expect/async_helper.dart";
 
 Stream<String> decode(List<int> bytes, int chunkSize) {
   var controller;
-  controller = new StreamController<List<int>>(onListen: () {
-    int i = 0;
-    while (i < bytes.length) {
-      List nextChunk = <int>[];
-      for (int j = 0; j < chunkSize; j++) {
-        if (i < bytes.length) {
-          nextChunk.add(bytes[i]);
-          i++;
+  controller = new StreamController<List<int>>(
+    onListen: () {
+      int i = 0;
+      while (i < bytes.length) {
+        List nextChunk = <int>[];
+        for (int j = 0; j < chunkSize; j++) {
+          if (i < bytes.length) {
+            nextChunk.add(bytes[i]);
+            i++;
+          }
         }
+        controller.add(nextChunk);
       }
-      controller.add(nextChunk);
-    }
-    controller.close();
-  });
+      controller.close();
+    },
+  );
   return controller.stream.transform(utf8.decoder);
 }
 
@@ -41,13 +43,16 @@ testWithPauses(String expected, Stream stream) {
   asyncStart();
   StringBuffer buffer = new StringBuffer();
   var sub;
-  sub = stream.listen((x) {
-    buffer.write(x);
-    sub.pause(new Future.delayed(Duration.zero));
-  }, onDone: () {
-    Expect.stringEquals(expected, buffer.toString());
-    asyncEnd();
-  });
+  sub = stream.listen(
+    (x) {
+      buffer.write(x);
+      sub.pause(new Future.delayed(Duration.zero));
+    },
+    onDone: () {
+      Expect.stringEquals(expected, buffer.toString());
+      asyncEnd();
+    },
+  );
 }
 
 main() {

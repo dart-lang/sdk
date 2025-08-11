@@ -55,7 +55,9 @@ Future test7(ignore) async {
   cell = 'a';
   try {
     Expect.equals(
-        'unreachable', '${throw 0}${await asyncWriteCell('b')}${cell}');
+      'unreachable',
+      '${throw 0}${await asyncWriteCell('b')}${cell}',
+    );
   } catch (_) {
     Expect.equals('a', cell);
   }

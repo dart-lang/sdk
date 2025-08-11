@@ -2,7 +2,50 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'source_library_builder.dart';
+import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
+    show ClassMemberParser;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
+import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
+
+import '../api_prototype/experimental_flags.dart';
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/export.dart' show Export;
+import '../base/import.dart' show Import;
+import '../base/lookup_result.dart';
+import '../base/messages.dart';
+import '../base/name_space.dart';
+import '../base/scope.dart';
+import '../base/uri_offset.dart';
+import '../base/uris.dart';
+import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
+import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
+import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
+import '../kernel/utils.dart' show toCombinators;
+import 'fragment_factory.dart';
+import 'fragment_factory_impl.dart';
+import 'name_space_builder.dart';
+import 'native_method_registry.dart';
+import 'offset_map.dart';
+import 'outline_builder.dart';
+import 'source_declaration_builder.dart';
+import 'source_library_builder.dart';
+import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
+import 'source_type_alias_builder.dart';
+import 'type_parameter_factory.dart';
+import 'type_scope.dart';
 
 /// Enum that define what state a source compilation unit is in, in terms of how
 /// far in the compilation it has progressed. This is used to document and
@@ -87,17 +130,21 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final IndexedLibrary? indexedLibrary;
 
-  late final BuilderFactoryImpl _builderFactory;
+  final _CompilationUnitData _compilationUnitData = new _CompilationUnitData();
 
-  late final BuilderFactoryResult _builderFactoryResult;
+  final NativeMethodRegistry _native = new NativeMethodRegistry();
+
+  final TypeParameterFactory _typeParameterFactory = new TypeParameterFactory();
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  final NameSpace _importNameSpace;
+  final SourceCompilationUnit? _augmentationRoot;
+
+  final ComputedMutableNameSpace _importNameSpace;
 
   late final LookupScope _importScope;
 
-  final NameSpace _prefixNameSpace;
+  final MutableNameSpace _prefixNameSpace;
 
   late final LookupScope _prefixScope;
 
@@ -117,6 +164,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   late final LookupScope _compilationUnitScope;
 
+  late final TypeScope _typeScope;
+
   @override
   final bool mayImplementRestrictedTypes;
 
@@ -131,7 +180,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       LookupScope? parentScope,
       required bool forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
-      required LibraryBuilder? nameOrigin,
+      required LibraryBuilder? resolveInLibrary,
       required bool? referenceIsPartOwner,
       required bool forPatchLibrary,
       required bool isAugmenting,
@@ -140,8 +189,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool mayImplementRestrictedTypes}) {
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
-    NameSpace importNameSpace = new NameSpaceImpl();
-    NameSpace prefixNameSpace = new NameSpaceImpl();
+    ComputedMutableNameSpace importNameSpace = new ComputedMutableNameSpace();
+    ComputedMutableNameSpace prefixNameSpace = new ComputedMutableNameSpace();
     return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
@@ -154,7 +203,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         prefixNameSpace: prefixNameSpace,
         forAugmentationLibrary: forAugmentationLibrary,
         augmentationRoot: augmentationRoot,
-        nameOrigin: nameOrigin,
+        resolveInLibrary: resolveInLibrary,
         referenceIsPartOwner: referenceIsPartOwner,
         forPatchLibrary: forPatchLibrary,
         isAugmenting: isAugmenting,
@@ -171,11 +220,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.originImportUri,
       required this.indexedLibrary,
       LookupScope? parentScope,
-      required NameSpace importNameSpace,
-      required NameSpace prefixNameSpace,
+      required ComputedMutableNameSpace importNameSpace,
+      required ComputedMutableNameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
-      required LibraryBuilder? nameOrigin,
+      required LibraryBuilder? resolveInLibrary,
       required bool? referenceIsPartOwner,
       required this.forPatchLibrary,
       required this.isAugmenting,
@@ -187,27 +236,27 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
         _prefixNameSpace = prefixNameSpace,
-        _nameOrigin = nameOrigin,
+        _nameOrigin = resolveInLibrary,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
-        _problemReporting = new LibraryProblemReporting(loader, fileUri) {
+        _problemReporting = new LibraryProblemReporting(loader, fileUri),
+        _augmentationRoot = augmentationRoot {
     LookupScope scope =
         _importScope = new CompilationUnitImportScope(this, _importNameSpace);
     _prefixScope = new CompilationUnitPrefixScope(
-        prefixNameSpace, ScopeKind.prefix, 'prefix',
+        prefixNameSpace, ScopeKind.prefix,
         parent: scope);
+    LookupScope libraryScope = _prefixScope;
+    if (resolveInLibrary != null) {
+      // Coverage-ignore-block(suite): Not run.
+      libraryScope = new NameSpaceLookupScope(
+          resolveInLibrary.libraryNameSpace, ScopeKind.library,
+          parent: libraryScope);
+    }
     _compilationUnitScope = new CompilationUnitScope(
-        this, ScopeKind.compilationUnit, 'compilation-unit',
-        parent: _prefixScope);
-
-    // TODO(johnniwinther): Create these in [createOutlineBuilder].
-    _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
-        compilationUnit: this,
-        augmentationRoot: augmentationRoot ?? this,
-        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
-        problemReporting: _problemReporting,
-        scope: _compilationUnitScope,
-        indexedLibrary: indexedLibrary);
+        this, ScopeKind.compilationUnit,
+        parent: libraryScope);
+    _typeScope = new TypeScope(TypeScopeKind.library, _compilationUnitScope);
   }
 
   SourceCompilationUnitState get state => _state;
@@ -289,7 +338,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   SourceCompilationUnit? get parentCompilationUnit => _parentCompilationUnit;
 
   @override
-  void addExporter(CompilationUnit exporter,
+  void addExporter(SourceCompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -427,10 +476,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   Iterable<Uri> get dependencies sync* {
-    for (Export export in _builderFactoryResult.exports) {
+    for (Export export in _compilationUnitData.exports) {
       yield export.exportedCompilationUnit.importUri;
     }
-    for (Import import in _builderFactoryResult.imports) {
+    for (Import import in _compilationUnitData.imports) {
       CompilationUnit? imported = import.importedCompilationUnit;
       if (imported != null) {
         yield imported.importUri;
@@ -439,7 +488,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  bool get isPart => _builderFactoryResult.isPart;
+  bool get isPart => _compilationUnitData.isPart;
 
   @override
   bool get isSynthetic => accessProblem != null;
@@ -458,10 +507,29 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  OutlineBuilder createOutlineBuilder() {
+  void buildOutline(Token tokens) {
     assert(_offsetMap == null, "OffsetMap has already been set for $this");
-    return new OutlineBuilder(
-        this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
+
+    // TODO(johnniwinther): Create these in [createOutlineBuilder].
+    FragmentFactory fragmentFactory = new FragmentFactoryImpl(
+        compilationUnit: this,
+        augmentationRoot: _augmentationRoot ?? this,
+        libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
+        problemReporting: _problemReporting,
+        scope: _compilationUnitScope,
+        indexedLibrary: indexedLibrary,
+        typeParameterFactory: _typeParameterFactory,
+        typeScope: _typeScope,
+        compilationUnitRegistry: _compilationUnitData,
+        nativeMethodRegistry: _native);
+
+    OutlineBuilder listener = new OutlineBuilder(
+        this, fragmentFactory, _offsetMap = new OffsetMap(fileUri));
+
+    new ClassMemberParser(listener,
+            allowPatterns: libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled)
+        .parseUnit(tokens);
   }
 
   @override
@@ -509,7 +577,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
-    if (constructor.isConstructor) {
+    if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
           constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
@@ -531,7 +599,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       return;
     }
 
-    for (Import import in _builderFactoryResult.imports) {
+    for (Import import in _compilationUnitData.imports) {
       // Rather than add a LibraryDependency, we attach an annotation.
       if (import.nativeImportPath != null) {
         _addNativeDependency(library, import.nativeImportPath!);
@@ -552,7 +620,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       library.addDependency(libraryDependency);
       import.libraryDependency = libraryDependency;
     }
-    for (Export export in _builderFactoryResult.exports) {
+    for (Export export in _compilationUnitData.exports) {
       LibraryDependency libraryDependency = new LibraryDependency.export(
           export.exportedLibraryBuilder.library,
           combinators: toCombinators(export.combinators))
@@ -563,10 +631,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  String? get partOfName => _builderFactoryResult.partOfName;
+  String? get partOfName => _compilationUnitData.partOfName;
 
   @override
-  Uri? get partOfUri => _builderFactoryResult.partOfUri;
+  Uri? get partOfUri => _compilationUnitData.partOfUri;
 
   @override
   LookupScope get compilationUnitScope => _compilationUnitScope;
@@ -579,12 +647,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   NameSpace get prefixNameSpace => _prefixNameSpace;
-
-  @override
-  void takeMixinApplications(
-      Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
-    _builderFactoryResult.takeMixinApplications(mixinApplications);
-  }
 
   @override
   void includeParts(
@@ -602,7 +664,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required List<SourceCompilationUnit> includedParts,
       required Set<Uri> usedParts}) {
     Set<Uri> seenParts = new Set<Uri>();
-    for (Part part in _builderFactoryResult.parts) {
+    for (Part part in _compilationUnitData.parts) {
       // TODO(johnniwinther): Use [part.offset] in messages.
       if (part.compilationUnit == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
@@ -812,17 +874,17 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   int resolveTypes(ProblemReporting problemReporting) {
-    return _builderFactoryResult.typeScope.resolveTypes(problemReporting);
+    return _typeScope.resolveTypes(problemReporting);
   }
 
   @override
-  int finishNativeMethods() {
-    return _builderFactoryResult.finishNativeMethods();
+  int finishNativeMethods(SourceLoader loader) {
+    return _native.finishNativeMethods(loader);
   }
 
   void _clearPartsAndReportExporters() {
     assert(_libraryBuilder != null, "Library has not be set.");
-    _builderFactoryResult.parts.clear();
+    _compilationUnitData.parts.clear();
     if (exporters.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.
       List<LocatedMessage> context = <LocatedMessage>[
@@ -852,12 +914,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _partOfLibrary = libraryBuilder;
     _parentCompilationUnit = parentCompilationUnit;
     if (!allowPartInParts) {
-      if (_builderFactoryResult.parts.isNotEmpty) {
+      if (_compilationUnitData.parts.isNotEmpty) {
         List<LocatedMessage> context = <LocatedMessage>[
           messagePartInPartLibraryContext.withLocation(
               libraryBuilder.fileUri, -1, 1),
         ];
-        for (Part part in _builderFactoryResult.parts) {
+        for (Part part in _compilationUnitData.parts) {
           addProblem(messagePartInPart, part.fileOffset, noLength, fileUri,
               context: context);
           // Mark this part as used so we don't report it as orphaned.
@@ -878,43 +940,41 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineExpressions(
-      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
-      {required bool createFileUriExpression}) {
-    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
-        libraryBuilder, fileUri, compilationUnitScope,
-        createFileUriExpression: createFileUriExpression);
+      {required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required BodyBuilderContext bodyBuilderContext}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: compilationUnitScope);
   }
 
   @override
-  void collectUnboundTypeParameters(
-      SourceLibraryBuilder libraryBuilder,
-      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralParameterBuilder, SourceLibraryBuilder>
-          structuralVariables) {
-    _builderFactoryResult.collectUnboundTypeParameters(
-        libraryBuilder, nominalVariables, structuralVariables);
+  List<TypeParameterBuilder> collectUnboundTypeParameters() {
+    return _typeParameterFactory.collectTypeParameters();
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void addSyntheticImport(
-      {required String uri,
+      {required Uri importUri,
       required String? prefix,
       required List<CombinatorBuilder>? combinators,
       required bool deferred}) {
     assert(
         checkState(pending: [SourceCompilationUnitState.importsAddedToScope]));
-    _builderFactory.addImport(
-        metadata: null,
-        isAugmentationImport: false,
-        uri: uri,
-        configurations: null,
-        prefix: prefix,
-        combinators: combinators,
-        deferred: deferred,
-        charOffset: -1,
-        prefixCharOffset: -1,
-        uriOffset: -1);
+    CompilationUnit? compilationUnit = loader.read(importUri, -1,
+        origin: null,
+        accessor: this,
+        isAugmentation: false,
+        referencesFromIndex: indexedLibrary);
+    Import import = new Import(this, compilationUnit, false, deferred, prefix,
+        combinators, null, fileUri, -1, -1,
+        nativeImportPath: null);
+    _compilationUnitData.registerImport(import);
   }
 
   @override
@@ -924,7 +984,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     bool hasCoreImport = originImportUri == dartCore &&
         // Coverage-ignore(suite): Not run.
         !forPatchLibrary;
-    for (Import import in _builderFactoryResult.imports) {
+    for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(
@@ -946,11 +1006,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
       // TODO(johnniwinther): Can we create the core import as a parent scope
       //  instead of copying it everywhere?
-      NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredNameIterator(includeDuplicates: false);
+      Iterator<NamedBuilder> iterator =
+          loader.coreLibrary.exportNameSpace.filteredIterator();
       while (iterator.moveNext()) {
+        NamedBuilder builder = iterator.current;
         addImportedBuilderToScope(
-            name: iterator.name, builder: iterator.current, charOffset: -1);
+            name: builder.name, builder: builder, charOffset: -1);
       }
     }
 
@@ -960,30 +1021,32 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   void addImportedBuilderToScope(
       {required String name,
-      required Builder builder,
+      required NamedBuilder builder,
       required int charOffset}) {
-    Builder? existing =
-        _importNameSpace.lookupLocalMember(name, setter: builder.isSetter);
+    bool isSetter = isMappedAsSetter(builder);
+    LookupResult? result = _importNameSpace.lookupLocalMember(name);
+
+    NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
     if (existing != null) {
       if (existing != builder) {
-        _importNameSpace.addLocalMember(
+        _importNameSpace.replaceLocalMember(
             name,
             computeAmbiguousDeclarationForImport(
                 _problemReporting, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset)),
-            setter: builder.isSetter);
+            setter: isSetter);
       }
     } else {
-      _importNameSpace.addLocalMember(name, builder, setter: builder.isSetter);
+      _importNameSpace.addLocalMember(name, builder, setter: isSetter);
     }
-    if (builder.isExtension) {
-      _importNameSpace.addExtension(builder as ExtensionBuilder);
+    if (builder is ExtensionBuilder) {
+      _importNameSpace.addExtension(builder);
     }
   }
 
   @override
   void buildOutlineNode(Library library) {
-    for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
+    for (LibraryPart libraryPart in _compilationUnitData.libraryParts) {
       library.addPart(libraryPart);
     }
   }
@@ -994,7 +1057,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         checkState(required: [SourceCompilationUnitState.importsAddedToScope]));
 
     int total = 0;
-    for (Import import in _builderFactoryResult.imports) {
+    for (Import import in _compilationUnitData.imports) {
       if (import.deferred) {
         Procedure? tearoff =
             import.prefixFragment!.builder.loadLibraryBuilder?.tearoff;
@@ -1011,24 +1074,23 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  List<MetadataBuilder>? get metadata => _builderFactoryResult.metadata;
+  List<MetadataBuilder>? get metadata => _compilationUnitData.metadata;
 
   @override
-  String? get name => _builderFactoryResult.name;
+  String? get name => _compilationUnitData.name;
 
   @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
 
-    List<StructuralParameterBuilder> unboundTypeParameters = [];
     ComputeDefaultTypeContext context = new ComputeDefaultTypeContext(
-        _problemReporting, libraryFeatures, unboundTypeParameters,
+        _problemReporting, libraryFeatures, _typeParameterFactory,
         dynamicType: dynamicType, bottomType: bottomType);
 
-    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    Iterator<NamedBuilder> iterator = libraryBuilder.unfilteredMembersIterator;
     while (iterator.moveNext()) {
-      Builder declaration = iterator.current;
+      NamedBuilder declaration = iterator.current;
       if (declaration is SourceDeclarationBuilder) {
         count += declaration.computeDefaultTypes(context);
       } else if (declaration is SourceTypeAliasBuilder) {
@@ -1047,9 +1109,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
     }
 
-    _builderFactoryResult
-        .registerUnresolvedStructuralParameters(unboundTypeParameters);
-
     return count;
   }
 
@@ -1057,9 +1116,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   int computeVariances() {
     int count = 0;
 
-    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    Iterator<NamedBuilder> iterator = libraryBuilder.unfilteredMembersIterator;
     while (iterator.moveNext()) {
-      Builder? declaration = iterator.current;
+      NamedBuilder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeParametersCount > 0) {
@@ -1128,9 +1187,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
-    Builder? existing = prefixNameSpace.lookupLocalMember(name, setter: false);
+    Builder? existing = prefixNameSpace.lookupLocalMember(name)?.getable;
     existing ??=
-        libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
+        libraryBuilder.libraryNameSpace.lookupLocalMember(name)?.getable;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;
@@ -1170,8 +1229,79 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                     existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
-    prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
+    _prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;
   }
+}
+
+class _CompilationUnitData implements CompilationUnitRegistry {
+  String? _name;
+
+  Uri? _partOfUri;
+
+  String? _partOfName;
+
+  List<MetadataBuilder>? _metadata;
+
+  /// The part directives in this compilation unit.
+  final List<Part> _parts = [];
+
+  final List<LibraryPart> _libraryParts = [];
+
+  final List<Import> _imports = <Import>[];
+
+  final List<Export> _exports = <Export>[];
+
+  @override
+  void registerLibraryDirective(
+      {required String? libraryName,
+      required List<MetadataBuilder>? metadata}) {
+    _name = libraryName;
+    _metadata = metadata;
+  }
+
+  @override
+  void registerPartOf({required String? name, required Uri? resolvedUri}) {
+    _partOfName = name;
+    _partOfUri = resolvedUri;
+  }
+
+  @override
+  void registerPart(Part part) {
+    _parts.add(part);
+  }
+
+  @override
+  void registerLibraryPart(LibraryPart libraryPart) {
+    _libraryParts.add(libraryPart);
+  }
+
+  @override
+  void registerImport(Import import) {
+    _imports.add(import);
+  }
+
+  @override
+  void registerExport(Export export) {
+    _exports.add(export);
+  }
+
+  String? get name => _name;
+
+  List<MetadataBuilder>? get metadata => _metadata;
+
+  bool get isPart => _partOfName != null || _partOfUri != null;
+
+  String? get partOfName => _partOfName;
+
+  Uri? get partOfUri => _partOfUri;
+
+  List<Part> get parts => _parts;
+
+  List<LibraryPart> get libraryParts => _libraryParts;
+
+  List<Import> get imports => _imports;
+
+  List<Export> get exports => _exports;
 }

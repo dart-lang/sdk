@@ -75,7 +75,7 @@ checkAll(check) {
     makeA(),
     makeB(),
     makeC(),
-    makeD()
+    makeD(),
   ];
   value(i) => confuse(things[i]);
 

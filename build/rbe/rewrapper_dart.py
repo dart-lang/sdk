@@ -269,6 +269,9 @@ trace to find the place to insert the appropriate support.
             elif arg.endswith('/dart'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dart()
+            elif arg.endswith('/dartaotruntime'):
+                self.dart_subdir = os.path.dirname(arg)
+                return self.parse_dartaotruntime()
             elif arg.endswith('/gen_snapshot') or arg.endswith(
                     '/gen_snapshot_product'):
                 return self.parse_gen_snapshot()
@@ -357,11 +360,22 @@ trace to find the place to insert the appropriate support.
                 self.extra_paths.add(self.rebase(arg))
                 self.extra_paths.add(
                     self.rebase(
-                        os.path.join(self.dart_subdir,
-                                     'vm_platform_strong.dill')))
+                        os.path.join(self.dart_subdir, 'vm_platform.dill')))
                 return self.parse_kernel_service_snapshot()
             else:
                 self.unsupported('dart', arg)
+
+    def parse_dartaotruntime(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if arg.endswith('/dart2js_aot.dart.snapshot'):
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir,
+                                     'snapshots/dart2js_aot.dart.snapshot')))
+                return self.parse_dart2js()
+            else:
+                self.unsupported('dartaotruntime', arg)
 
     def parse_compile(self):
         while self.has_next_arg:
@@ -418,6 +432,8 @@ trace to find the place to insert the appropriate support.
                 self.outputs.append(
                     self.rebase(self.optarg.replace('.js', '.dill')))
             elif self.get_option(['--dart-sdk-summary']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--packages']):
                 self.extra_paths.add(self.rebase(self.optarg))
             elif self.get_option([
                     '--multi-root-scheme', '--multi-root-output-path',
@@ -494,7 +510,7 @@ trace to find the place to insert the appropriate support.
                     if sdk.endswith('libraries.json'):
                         sdk = os.path.dirname(sdk)
                     self.extra_paths.add(self.rebase(sdk))
-                elif len(compile_platform_args) == 2:  # vm_outline_strong dill
+                elif len(compile_platform_args) == 2:  # vm_outline dill
                     arg = self.rebase(arg)
                 elif len(compile_platform_args) == 3:  # platform dill
                     arg = self.rebase(arg)

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToSuperParametersTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
+  AssistKind get kind => DartAssistKind.convertToSuperParameters;
 
   Future<void> test_cursorLocation_named_onClassName() async {
     await resolveTestCode('''
@@ -25,10 +25,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B.name({int? x}) : super(x: x);
+  ^B.name({int? x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B.name', '''
+    await assertHasAssist('''
 class A {
   A({int? x});
 }
@@ -44,10 +44,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B.name({int? x}) : super(x: x);
+  B.n^ame({int? x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('ame(', '''
+    await assertHasAssist('''
 class A {
   A({int? x});
 }
@@ -63,10 +63,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B({int? x}) : super(x: x);
+  B({int? x}) : ^super(x: x);
 }
 ''');
-    await assertNoAssistAt('super');
+    await assertNoAssist();
   }
 
   Future<void> test_cursorLocation_unnamed_onClassName() async {
@@ -75,10 +75,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B({int? x}) : super(x: x);
+  ^B({int? x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x});
 }
@@ -94,10 +94,10 @@ class A {
   A({int x = 0});
 }
 class B extends A {
-  B({int x = 2}) : super(x: x);
+  ^B({int x = 2}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int x = 0});
 }
@@ -113,10 +113,10 @@ class A {
   A([int x = 0]);
 }
 class B extends A {
-  B([int x = 2]) : super(x);
+  ^B([int x = 2]) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A([int x = 0]);
 }
@@ -132,10 +132,10 @@ class A {
   A({int x = 0});
 }
 class B extends A {
-  B({int x = 0}) : super(x: x);
+  ^B({int x = 0}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int x = 0});
 }
@@ -151,10 +151,10 @@ class A {
   A([int x = 0]);
 }
 class B extends A {
-  B([int x = 0]) : super(x);
+  ^B([int x = 0]) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A([int x = 0]);
 }
@@ -170,11 +170,11 @@ class A {
   A({required int x});
 }
 class B extends A {
-  B({required final x}) : super(x: x);
+  ^B({required final x}) : super(x: x);
 }
 ''');
     // `dynamic` is not a subtype of `int`
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_final_named_withType() async {
@@ -183,10 +183,10 @@ class A {
   A({required int x});
 }
 class B extends A {
-  B({required final int x}) : super(x: x);
+  ^B({required final int x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({required int x});
 }
@@ -202,11 +202,11 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(final x) : super(x);
+  ^B(final x) : super(x);
 }
 ''');
     // `dynamic` is not a subtype of `int`
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_final_positional_withType() async {
@@ -215,10 +215,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(final int x) : super(x);
+  ^B(final int x) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -234,10 +234,10 @@ class A {
   A(int f(int x));
 }
 class B extends A {
-  B(int f(int x)) : super(f);
+  ^B(int f(int x)) : super(f);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int f(int x));
 }
@@ -255,10 +255,10 @@ class A {
 }
 class B extends A {
   int y;
-  B(this.y) : super(y);
+  ^B(this.y) : super(y);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_namedToPositional() async {
@@ -267,10 +267,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B({int x = 0}) : super(x);
+  ^B({int x = 0}) : super(x);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_noSuperInvocation_factory() async {
@@ -280,10 +280,10 @@ class A {
 }
 class B extends A {
   static List<B> instances = [];
-  factory B({required int x}) => instances[x];
+  factory ^B({required int x}) => instances[x];
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_noSuperInvocation_generative() async {
@@ -292,19 +292,19 @@ class A {
   A({int x = 0});
 }
 class B extends A {
-  B({int x = 1});
+  ^B({int x = 1});
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_notAConstructor() async {
     await resolveTestCode('''
 class A {
-  void m({required int x}) {}
+  void ^m({required int x}) {}
 }
 ''');
-    await assertNoAssistAt('m(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_notPassed_unreferenced_named() async {
@@ -313,10 +313,10 @@ class A {
   A({int x = 0});
 }
 class B extends A {
-  B({int x = 0}) : super(x: 0);
+  ^B({int x = 0}) : super(x: 0);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_notPassed_unreferenced_positional() async {
@@ -325,10 +325,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x) : super(0);
+  ^B(int x) : super(0);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_notPassed_usedInExpression_named() async {
@@ -337,10 +337,10 @@ class A {
   A({String x = ''});
 }
 class B extends A {
-  B({required Object x}) : super(x: x.toString());
+  ^B({required Object x}) : super(x: x.toString());
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_notPassed_usedInExpression_positional() async {
@@ -349,10 +349,10 @@ class A {
   A(String x);
 }
 class B extends A {
-  B(Object x) : super(x.toString());
+  ^B(Object x) : super(x.toString());
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_optedOut() async {
@@ -362,10 +362,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B({int? x}) : super(x: x);
+  ^B({int? x}) : super(x: x);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_positionalToNamed() async {
@@ -374,10 +374,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B(int x) : super(x: x);
+  ^B(int x) : super(x: x);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_referencedInBody_named() async {
@@ -386,12 +386,12 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B({int? x}) : super(x: x) {
+  ^B({int? x}) : super(x: x) {
     print(x);
   }
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_invalid_referencedInBody_positional() async {
@@ -400,12 +400,12 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x) : super(x) {
+  ^B(int x) : super(x) {
     print(x);
   }
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_mixed_first() async {
@@ -414,10 +414,10 @@ class A {
   A(int x, {int? y});
 }
 class B extends A {
-  B(int x, int y) : super(x, y: y);
+  ^B(int x, int y) : super(x, y: y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x, {int? y});
 }
@@ -433,10 +433,10 @@ class A {
   A(int x, {int? y});
 }
 class B extends A {
-  B(int y, int x) : super(x, y: y);
+  ^B(int y, int x) : super(x, y: y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x, {int? y});
 }
@@ -452,10 +452,10 @@ class A {
   A(int y, {int? z});
 }
 class B extends A {
-  B(int x, int y, int z) : super(y, z: z);
+  ^B(int x, int y, int z) : super(y, z: z);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int y, {int? z});
 }
@@ -471,10 +471,10 @@ class A {
   A({int? x, int? y});
 }
 class B extends A {
-  B({int? y, int? x}) : super(x: x, y: y);
+  ^B({int? y, int? x}) : super(x: x, y: y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x, int? y});
 }
@@ -490,10 +490,10 @@ class A {
   A({int? x, int? y});
 }
 class B extends A {
-  B({int? x, int? y}) : super(x: x, y: y);
+  ^B({int? x, int? y}) : super(x: x, y: y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x, int? y});
 }
@@ -509,10 +509,10 @@ class A {
   A({int? x, int? y});
 }
 class B extends A {
-  B({int? x, required int y}) : super(x: x, y: y + 1);
+  ^B({int? x, required int y}) : super(x: x, y: y + 1);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x, int? y});
 }
@@ -528,10 +528,10 @@ class A {
   A({int? x, int? y});
 }
 class B extends A {
-  B({required int x, int? y}) : super(x: x + 1, y: y);
+  ^B({required int x, int? y}) : super(x: x + 1, y: y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x, int? y});
 }
@@ -547,10 +547,10 @@ class A {
   A({int? x, int? y, int? z});
 }
 class B extends A {
-  B({required int x, int? y, required int z}) : super(x: x + 1, y: y, z: z + 1);
+  ^B({required int x, int? y, required int z}) : super(x: x + 1, y: y, z: z + 1);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x, int? y, int? z});
 }
@@ -566,10 +566,10 @@ class A {
   A({int? x});
 }
 class B extends A {
-  B({int? x}) : super(x: x);
+  ^B({int? x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A({int? x});
 }
@@ -586,10 +586,10 @@ class A {
   A({this.x = 0});
 }
 class B extends A {
-  B({required int x}) : super(x: x);
+  ^B({required int x}) : super(x: x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   int x;
   A({this.x = 0});
@@ -606,10 +606,10 @@ class A {
   A.m({int? x});
 }
 class B extends A {
-  B.m({int? x}) : super.m(x: x);
+  ^B.m({int? x}) : super.m(x: x);
 }
 ''');
-    await assertHasAssistAt('B.m', '''
+    await assertHasAssist('''
 class A {
   A.m({int? x});
 }
@@ -625,10 +625,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x, int y) : super(x);
+  ^B(int x, int y) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -644,10 +644,10 @@ class A {
   A(int x(int));
 }
 class B extends A {
-  B(int x(int)) : super(x);
+  ^B(int x(int)) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x(int));
 }
@@ -663,10 +663,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x, int y) : super(y);
+  ^B(int x, int y) : super(y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -682,10 +682,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x, int y, int z) : super(y);
+  ^B(int x, int y, int z) : super(y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -701,10 +701,10 @@ class A {
   A(int x, int y);
 }
 class B extends A {
-  B(int x, int y) : super(y, x);
+  ^B(int x, int y) : super(y, x);
 }
 ''');
-    await assertNoAssistAt('B(');
+    await assertNoAssist();
   }
 
   Future<void> test_positional_multiple_optional() async {
@@ -713,10 +713,10 @@ class A {
   A([int? x, int? y]);
 }
 class B extends A {
-  B([int? x, int? y]) : super(x, y);
+  ^B([int? x, int? y]) : super(x, y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A([int? x, int? y]);
 }
@@ -732,10 +732,10 @@ class A {
   A(int x, int y);
 }
 class B extends A {
-  B(int x, int y) : super(x, y);
+  ^B(int x, int y) : super(x, y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x, int y);
 }
@@ -751,10 +751,10 @@ class A {
   A(int x, [int? y]);
 }
 class B extends A {
-  B(int x, [int? y]) : super(x, y);
+  ^B(int x, [int? y]) : super(x, y);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x, [int? y]);
 }
@@ -770,10 +770,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B(int x) : super(x);
+  ^B(int x) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -789,10 +789,10 @@ class A {
   A(int x);
 }
 class B extends A {
-  B([int x = 0]) : super(x);
+  ^B([int x = 0]) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x);
 }
@@ -808,10 +808,10 @@ class A {
   A(int x, [int y = 0]);
 }
 class B extends A {
-  B(int x) : super(x);
+  ^B(int x) : super(x);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A(int x, [int y = 0]);
 }
@@ -827,10 +827,10 @@ class A {
   A._(int x, int y);
 }
 class B extends A {
-  B(int x, int y) : super._(x, y,);
+  ^B(int x, int y) : super._(x, y,);
 }
 ''');
-    await assertHasAssistAt('B(', '''
+    await assertHasAssist('''
 class A {
   A._(int x, int y);
 }

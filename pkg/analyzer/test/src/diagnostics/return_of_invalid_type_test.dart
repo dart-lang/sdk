@@ -17,36 +17,49 @@ main() {
 @reflectiveTest
 class ReturnOfInvalidTypeTest extends PubPackageResolutionTest {
   test_closure() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Td = int Function();
 Td f() {
   return () => "hello";
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 53, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 53, 7)],
+    );
   }
 
   test_factoryConstructor_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   factory C.named() => 7;
 }
-''', [
-      error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_factoryConstructor_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   factory C() => 7;
 }
-''', [
-      error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 27, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_function_async_block__to_Future_void() async {
@@ -62,23 +75,25 @@ void g2() {}
   }
 
   test_function_async_block_Future_Future_int__to_Future_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> f(Future<Future<int>> a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1)],
+    );
   }
 
   test_function_async_block_Future_String__to_Future_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> f(Future<String> a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 1)],
+    );
   }
 
   test_function_async_block_Future_void() async {
@@ -89,13 +104,14 @@ dynamic f2(Future<void> a) async { return a; }
   }
 
   test_function_async_block_illegalReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() async {
   return 5;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+    );
   }
 
   test_function_async_block_int__to_Future_int() async {
@@ -115,33 +131,36 @@ Future<num> f() async {
   }
 
   test_function_async_block_int__to_Future_String() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<String> f() async {
   return 5;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1)],
+    );
   }
 
   test_function_async_block_int__to_Future_void() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Future<void> f() async {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1)],
+    );
   }
 
   test_function_async_block_int__to_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   return 5;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1)],
+    );
   }
 
   test_function_async_block_void__to_dynamic() async {
@@ -153,35 +172,38 @@ dynamic f(void a) async {
   }
 
   test_function_async_block_void__to_Future_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> f(void a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1)],
+    );
   }
 
   test_function_async_block_void__to_Future_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Future<Null> f(void a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1)],
+    );
   }
 
   test_function_async_block_void__to_FutureOr_ObjectQ() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async';
 
 FutureOr<Object?> f(void a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1)],
+    );
   }
 
   test_function_async_block_void__to_void() async {
@@ -199,22 +221,26 @@ Future<int> f(dynamic a) async => a;
   }
 
   test_function_asyncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Stream<int> f() async* => 3;
-''', [
-      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 23, 2),
-    ]);
+''',
+      [
+        // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+        error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 23, 2),
+      ],
+    );
   }
 
   test_function_sync_block__invalidType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   return new X();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1)],
+    );
   }
 
   test_function_sync_block__to_dynamic() async {
@@ -250,13 +276,14 @@ U Function<U>(U) foo(T Function<T>(T a) f) {
   }
 
   test_function_sync_block_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 U Function<U>(U, int) foo(T Function<T>(T a) f) {
   return f;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 59, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 59, 1)],
+    );
   }
 
   test_function_sync_block_genericFunction__to_nonGenericFunction() async {
@@ -268,13 +295,14 @@ int Function(int) foo(T Function<T>(T a) f) {
   }
 
   test_function_sync_block_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int Function(int, int) foo(T Function<T>(T a) f) {
   return f;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 1)],
+    );
   }
 
   test_function_sync_block_int__to_num() async {
@@ -286,33 +314,36 @@ num f(int a) {
   }
 
   test_function_sync_block_int__to_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   return 42;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2)],
+    );
   }
 
   test_function_sync_block_num__to_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int f(num a) {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1)],
+    );
   }
 
   test_function_sync_block_String__to_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() {
   return '0';
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3)],
+    );
   }
 
   test_function_sync_block_typeParameter__to_Type() async {
@@ -342,23 +373,25 @@ dynamic f(void a) {
   }
 
   test_function_sync_block_void__to_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(void a) {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1)],
+    );
   }
 
   test_function_sync_block_void__to_Null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Null f(void a) {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1)],
+    );
   }
 
   test_function_sync_block_void__to_void() async {
@@ -376,11 +409,12 @@ U Function<U>(U) foo(T Function<T>(T a) f) => f;
   }
 
   test_function_sync_expression_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 U Function<U>(U, int) foo(T Function<T>(T a) f) => f;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 51, 1)],
+    );
   }
 
   test_function_sync_expression_genericFunction__to_nonGenericFunction() async {
@@ -390,11 +424,12 @@ int Function(int) foo(T Function<T>(T a) f) => f;
   }
 
   test_function_sync_expression_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int Function(int, int) foo(T Function<T>(T a) f) => f;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 52, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 52, 1)],
+    );
   }
 
   test_function_sync_expression_int__to_void() async {
@@ -404,20 +439,24 @@ void f() => 42;
   }
 
   test_function_sync_expression_String__to_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() => '0';
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3)],
+    );
   }
 
   test_function_syncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<int> f() sync* => 3;
-''', [
-      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
-    ]);
+''',
+      [
+        // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+        error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
+      ],
+    );
   }
 
   test_functionExpression_async_futureOr_void__to_Object() async {
@@ -453,47 +492,51 @@ FutureOr<Object?> Function() f = () async {
   }
 
   test_getter_sync_block_String__to_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get g {
   return '0';
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3)],
+    );
   }
 
   test_getter_sync_expression_String__to_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get g => '0';
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3)],
+    );
   }
 
   test_localFunction_sync_block_String__to_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int g() {
     return '0';
   }
   g();
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3)],
+    );
   }
 
   test_localFunction_sync_expression_String__to_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void m() {
     int f() => '0';
     f();
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3)],
+    );
   }
 
   test_method_async_block_callable_class() async {
@@ -511,15 +554,16 @@ Future<Fn> f() async {
   }
 
   test_method_sync_block_String__to_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int m() {
     return '0';
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3)],
+    );
   }
 
   test_method_sync_expression_generic() async {
@@ -535,21 +579,29 @@ abstract class G<U> {
   }
 
   test_method_sync_expression_String__to_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int f() => '0';
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3)],
+    );
   }
 
   test_spread_iterable_in_map_context() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Map<int, int> f() => {...[1, 2, 3, 4]};
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 17),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          21,
+          17,
+        ),
+      ],
+    );
   }
 }
 
@@ -557,20 +609,22 @@ Map<int, int> f() => {...[1, 2, 3, 4]};
 class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_return() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 int f(dynamic a) => a;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 1)],
+    );
   }
 
   test_return_async() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 Future<int> f(dynamic a) async {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 1)],
+    );
   }
 }

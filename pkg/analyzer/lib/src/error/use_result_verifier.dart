@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
 class UseResultVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  UseResultVerifier(this._errorReporter);
+  UseResultVerifier(this._diagnosticReporter);
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.element;
@@ -72,7 +72,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void _check(AstNode node, Element2 element) {
+  void _check(AstNode node, Element element) {
     var parent = node.parent;
     if (parent is PrefixedIdentifier) {
       parent = parent.parent;
@@ -108,13 +108,13 @@ class UseResultVerifier {
 
     var message = _getUseResultMessage(annotation);
     if (message == null || message.isEmpty) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         toAnnotate,
         WarningCode.UNUSED_RESULT,
         arguments: [displayName],
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         toAnnotate,
         WarningCode.UNUSED_RESULT_WITH_MESSAGE,
         arguments: [displayName, message],
@@ -146,13 +146,13 @@ class UseResultVerifier {
     }
 
     var argumentList = node.argumentList as ArgumentListImpl;
-    var parameters = argumentList.correspondingStaticParameters2;
+    var parameters = argumentList.correspondingStaticParameters;
     if (parameters == null) {
       return false;
     }
 
     for (var param in parameters) {
-      var name = param?.name3;
+      var name = param?.name;
       if (unlessParam == name) {
         return true;
       }
@@ -174,10 +174,10 @@ class UseResultVerifier {
     return node;
   }
 
-  static ElementAnnotation? _getUseResultMetadata(Element2 element) {
+  static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement2) {
-      if (element.variable3 case var variable?) {
+    if (element.isSynthetic && element is PropertyAccessorElement) {
+      if (element.variable case var variable?) {
         element = variable;
       } else {
         return null;
@@ -185,8 +185,9 @@ class UseResultVerifier {
     }
 
     if (element case Annotatable annotatable) {
-      return annotatable.metadata2.annotations
-          .firstWhereOrNull((e) => e.isUseResult);
+      return annotatable.metadata.annotations.firstWhereOrNull(
+        (e) => e.isUseResult,
+      );
     }
 
     return null;

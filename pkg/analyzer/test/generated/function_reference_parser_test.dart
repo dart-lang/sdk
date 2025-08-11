@@ -25,8 +25,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect((functionReference.function as SimpleIdentifier).name, 'f');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void expect_two_args(MethodInvocation methodInvocation) {
@@ -38,9 +38,10 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
 
   void test_feature_disabled() {
     expect_f_a_b(
-        (parseStatement('f<a, b>;', featureSet: FeatureSets.language_2_13)
-                as ExpressionStatement)
-            .expression);
+      (parseStatement('f<a, b>;', featureSet: FeatureSets.language_2_13)
+              as ExpressionStatement)
+          .expression,
+    );
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 6),
     ]);
@@ -55,30 +56,37 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_accepted_closeParen() {
-    expect_f_a_b((parseExpression('g(f<a, b>)') as MethodInvocation)
-        .argumentList
-        .arguments[0]);
+    expect_f_a_b(
+      (parseExpression('g(f<a, b>)') as MethodInvocation)
+          .argumentList
+          .arguments[0],
+    );
   }
 
   void test_followingToken_accepted_colon() {
-    expect_f_a_b(((parseExpression('{f<a, b>: null}') as SetOrMapLiteral)
-            .elements[0] as MapLiteralEntry)
-        .key);
+    expect_f_a_b(
+      ((parseExpression('{f<a, b>: null}') as SetOrMapLiteral).elements[0]
+              as MapLiteralEntry)
+          .key,
+    );
   }
 
   void test_followingToken_accepted_comma() {
     expect_f_a_b(
-        (parseExpression('[f<a, b>, null]') as ListLiteral).elements[0]);
+      (parseExpression('[f<a, b>, null]') as ListLiteral).elements[0],
+    );
   }
 
   void test_followingToken_accepted_equals() {
     expect_f_a_b(
-        (parseExpression('f<a, b> == null') as BinaryExpression).leftOperand);
+      (parseExpression('f<a, b> == null') as BinaryExpression).leftOperand,
+    );
   }
 
   void test_followingToken_accepted_not_equals() {
     expect_f_a_b(
-        (parseExpression('f<a, b> != null') as BinaryExpression).leftOperand);
+      (parseExpression('f<a, b> != null') as BinaryExpression).leftOperand,
+    );
   }
 
   void test_followingToken_accepted_openParen() {
@@ -88,8 +96,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(methodInvocation.methodName.name, 'f');
     var typeArgs = methodInvocation.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
     expect(methodInvocation.argumentList.arguments, isEmpty);
   }
 
@@ -100,35 +108,42 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         parseExpression('f<a, b>.toString()') as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
-    expect(type.name2.lexeme, 'f');
+    expect(type.name.lexeme, 'f');
     var typeArgs = type.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
     expect(constructorName.name!.name, 'toString');
     expect(instanceCreationExpression.argumentList.arguments, isEmpty);
   }
 
   void test_followingToken_accepted_period_methodInvocation_generic() {
     expect_f_a_b(
-        (parseExpression('f<a, b>.foo<c>()') as MethodInvocation).target!);
+      (parseExpression('f<a, b>.foo<c>()') as MethodInvocation).target!,
+    );
   }
 
   void test_followingToken_accepted_period_propertyAccess() {
     expect_f_a_b(
-        (parseExpression('f<a, b>.hashCode') as PropertyAccess).target!);
+      (parseExpression('f<a, b>.hashCode') as PropertyAccess).target!,
+    );
   }
 
   void test_followingToken_accepted_semicolon() {
     expect_f_a_b(
-        (parseStatement('f<a, b>;') as ExpressionStatement).expression);
+      (parseStatement('f<a, b>;') as ExpressionStatement).expression,
+    );
     listener.assertNoErrors();
   }
 
   void test_followingToken_rejected_ampersand() {
-    expect_two_args(parseExpression('f(a<b,c>&d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>&d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_as() {
@@ -136,9 +151,13 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_asterisk() {
-    expect_two_args(parseExpression('f(a<b,c>*d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>*d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_bang_openBracket() {
@@ -150,21 +169,32 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_bar() {
-    expect_two_args(parseExpression('f(a<b,c>|d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>|d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_caret() {
-    expect_two_args(parseExpression('f(a<b,c>^d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>^d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_is() {
-    var methodInvocation = parseExpression('f(a<b,c> is int)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 2),
-    ]) as MethodInvocation;
+    var methodInvocation =
+        parseExpression(
+              'f(a<b,c> is int)',
+              errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 2)],
+            )
+            as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
     expect(arguments, hasLength(2));
     expect(arguments[0], TypeMatcher<BinaryExpression>());
@@ -175,10 +205,17 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     // Note: in principle we could parse this as a generic instantiation of a
     // generic instantiation, but such an expression would be meaningless so we
     // reject it at the parser level.
-    parseExpression('f<a><b>', errors: [
-      expectedError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 3, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 0),
-    ]);
+    parseExpression(
+      'f<a><b>',
+      errors: [
+        expectedError(
+          ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+          3,
+          1,
+        ),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 0),
+      ],
+    );
   }
 
   void test_followingToken_rejected_minus() {
@@ -194,9 +231,19 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     // `<` and `>` as delimiting type arguments, but the parser doesn't have
     // enough lookahead to see that this is the only possible error-free parse;
     // it commits to interpreting `<` and `>` as operators when it sees the `[`.
-    expect_two_args(parseExpression('f(a<b,c>[d]>e)', errors: [
-      expectedError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 11, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>[d]>e)',
+            errors: [
+              expectedError(
+                ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+                11,
+                1,
+              ),
+            ],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_openBracket_unambiguous() {
@@ -204,15 +251,22 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_percent() {
-    expect_two_args(parseExpression('f(a<b,c>%d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>%d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_period_period() {
-    var methodInvocation = parseExpression('f(a<b,c>..toString())', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2),
-    ]) as MethodInvocation;
+    var methodInvocation =
+        parseExpression(
+              'f(a<b,c>..toString())',
+              errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)],
+            )
+            as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
     expect(arguments, hasLength(2));
     expect(arguments[0], TypeMatcher<BinaryExpression>());
@@ -220,15 +274,22 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_plus() {
-    expect_two_args(parseExpression('f(a<b,c>+d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>+d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_question() {
-    var methodInvocation = parseExpression('f(a<b,c> ? null : null)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1),
-    ]) as MethodInvocation;
+    var methodInvocation =
+        parseExpression(
+              'f(a<b,c> ? null : null)',
+              errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1)],
+            )
+            as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
     expect(arguments, hasLength(2));
     expect(arguments[0], TypeMatcher<BinaryExpression>());
@@ -236,22 +297,35 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_question_period_methodInvocation() {
-    expect_two_args(parseExpression('f(a<b,c>?.toString())', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>?.toString())',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_question_period_methodInvocation_generic() {
-    expect_two_args(parseExpression('f(a<b,c>?.foo<c>())', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>?.foo<c>())',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_question_period_period() {
-    var methodInvocation = parseExpression('f(a<b,c>?..toString())', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 8),
-    ]) as MethodInvocation;
+    var methodInvocation =
+        parseExpression(
+              'f(a<b,c>?..toString())',
+              errors: [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 8),
+              ],
+            )
+            as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
     expect(arguments, hasLength(3));
     expect(arguments[0], TypeMatcher<BinaryExpression>());
@@ -260,27 +334,43 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_followingToken_rejected_question_period_propertyAccess() {
-    expect_two_args(parseExpression('f(a<b,c>?.hashCode)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>?.hashCode)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_question_question() {
-    expect_two_args(parseExpression('f(a<b,c> ?? d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 2),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c> ?? d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 2)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_slash() {
-    expect_two_args(parseExpression('f(a<b,c>/d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>/d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_followingToken_rejected_tilde_slash() {
-    expect_two_args(parseExpression('f(a<b,c>~/d)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2),
-    ]) as MethodInvocation);
+    expect_two_args(
+      parseExpression(
+            'f(a<b,c>~/d)',
+            errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)],
+          )
+          as MethodInvocation,
+    );
   }
 
   void test_functionReference_after_indexExpression() {
@@ -290,8 +380,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<IndexExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_functionReference_after_indexExpression_bang() {
@@ -301,8 +391,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<PostfixExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_functionReference_after_indexExpression_functionCall() {
@@ -310,12 +400,14 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     // recovery and don't crash the parser.
     var functionReference =
         parseExpression('x[0]()<a, b>') as FunctionReference;
-    expect(functionReference.function,
-        TypeMatcher<FunctionExpressionInvocation>());
+    expect(
+      functionReference.function,
+      TypeMatcher<FunctionExpressionInvocation>(),
+    );
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_functionReference_after_indexExpression_nullAware() {
@@ -325,8 +417,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(functionReference.function, TypeMatcher<IndexExpression>());
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_methodTearoff() {
@@ -337,8 +429,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_methodTearoff_cascaded() {
@@ -351,8 +443,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_prefixedIdentifier() {
@@ -363,8 +455,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.identifier.name, 'f');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 
   void test_three_identifiers() {
@@ -377,7 +469,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name2.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name2.lexeme, 'b');
+    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
+    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
   }
 }

@@ -66,41 +66,48 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
 
     // Connect a number of sockets.
     for (int i = 0; i < socketCount; i++) {
-      RawSocket.connect("127.0.0.1", server.port).then((socket) {
-        bool done = false;
-        var subscription;
-        subscription = socket.listen((event) {
-          switch (event) {
-            case RawSocketEvent.read:
-              Expect.fail("No read event expected");
-              break;
-            case RawSocketEvent.readClosed:
-              done = true;
-              doneCount++;
-              checkDone();
-              break;
-            case RawSocketEvent.write:
-              // We don't care if this write succeeds, so we don't check
-              // the return value (number of bytes written).
-              socket.write([1, 2, 3]);
-              socket.shutdown(SocketDirection.send);
-              break;
-          }
-        }, onDone: () {
-          if (!done) {
-            doneCount++;
+      RawSocket.connect("127.0.0.1", server.port)
+          .then((socket) {
+            bool done = false;
+            var subscription;
+            subscription = socket.listen(
+              (event) {
+                switch (event) {
+                  case RawSocketEvent.read:
+                    Expect.fail("No read event expected");
+                    break;
+                  case RawSocketEvent.readClosed:
+                    done = true;
+                    doneCount++;
+                    checkDone();
+                    break;
+                  case RawSocketEvent.write:
+                    // We don't care if this write succeeds, so we don't check
+                    // the return value (number of bytes written).
+                    socket.write([1, 2, 3]);
+                    socket.shutdown(SocketDirection.send);
+                    break;
+                }
+              },
+              onDone: () {
+                if (!done) {
+                  doneCount++;
+                  checkDone();
+                }
+              },
+              onError: (e) {
+                // "Connection reset by peer" errors are handled here.
+                errorCount++;
+                checkDone();
+              },
+              cancelOnError: true,
+            );
+          })
+          .catchError((e) {
+            // "Connection actively refused by host" errors are handled here.
+            earlyErrorCount++;
             checkDone();
-          }
-        }, onError: (e) {
-          // "Connection reset by peer" errors are handled here.
-          errorCount++;
-          checkDone();
-        }, cancelOnError: true);
-      }).catchError((e) {
-        // "Connection actively refused by host" errors are handled here.
-        earlyErrorCount++;
-        checkDone();
-      });
+          });
     }
   });
 }

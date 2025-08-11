@@ -20,11 +20,11 @@ abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMi
   synthetic constructor •() → self::_Foo&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → dynamic
+  synthetic mixin-super-stub method foo() → dynamic
     return super.{self::Mixin::foo}();
-  mixin-super-stub get field() → dynamic
+  synthetic mixin-super-stub get field() → dynamic
     return super.{self::Mixin::field};
-  mixin-super-stub set field(dynamic value) → void
+  synthetic mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
 }
 static method main() → dynamic {

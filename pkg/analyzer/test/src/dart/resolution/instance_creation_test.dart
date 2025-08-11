@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationExpressionResolutionTest);
     defineReflectiveTests(
-        InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs);
+      InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs,
+    );
   });
 }
 
@@ -22,9 +23,11 @@ class InstanceCreationExpressionResolutionTest extends PubPackageResolutionTest
 
 @reflectiveTest
 class InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+    extends PubPackageResolutionTest
+    with WithoutConstructorTearoffsMixin {
   test_unnamedViaNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A(int a);
 }
@@ -32,9 +35,9 @@ class A {
 void f() {
   A.new(0);
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3)],
+    );
 
     // Resolution should continue even though the experiment is not enabled.
     var node = findNode.instanceCreation('A.new(0)');
@@ -48,15 +51,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -84,36 +87,36 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@class::A
       type: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: b
-            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: true
           staticType: bool
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: c
-            element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c#element
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
             staticType: null
           colon: :
         expression: DoubleLiteral
           literal: 1.2
           staticType: double
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::c#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
     rightParenthesis: )
   staticType: A
 ''');
@@ -186,7 +189,8 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A<T> {
@@ -196,9 +200,9 @@ class A<T> {
 void f() {
   A(0);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -252,11 +256,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -264,7 +268,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -303,11 +307,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -336,7 +340,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -344,7 +348,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -378,7 +382,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -523,7 +527,8 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {
@@ -533,9 +538,9 @@ class A {
 void f() {
   A();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -577,15 +582,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -612,13 +617,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@class::A
       type: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -626,16 +631,17 @@ InstanceCreationExpression
   }
 
   test_class_notGeneric_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f() {
   new A.unresolved(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -687,7 +693,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::A
       type: A<S>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: S}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -695,9 +701,9 @@ InstanceCreationExpression
       SimpleIdentifier
         token: s
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: S}
-        element: <testLibraryFragment>::@function::f::@parameter::s#element
+        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
@@ -705,11 +711,12 @@ InstanceCreationExpression
   }
 
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final foo = Map<int>();
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8)],
+    );
 
     var node = findNode.instanceCreation('Map<int>');
     assertResolvedNodeText(node, r'''
@@ -728,7 +735,7 @@ InstanceCreationExpression
       element2: dart:core::@class::Map
       type: Map<dynamic, dynamic>
     element: ConstructorMember
-      baseElement: dart:core::<fragment>::@class::Map::@constructor::new#element
+      baseElement: dart:core::@class::Map::@constructor::new
       substitution: {K: dynamic, V: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -738,7 +745,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -746,11 +754,16 @@ class Foo<X> {
 main() {
   new Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          53,
           5,
-          messageContains: ["The constructor 'Foo.bar'"]),
-    ]);
+          messageContains: ["The constructor 'Foo.bar'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -765,11 +778,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: bar
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::Foo::@constructor::bar#element
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::Foo::@constructor::bar#element
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -787,7 +800,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.new();
 }
@@ -795,11 +809,16 @@ class Foo<X> {
 main() {
   new Foo.new<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          53,
           5,
-          messageContains: ["The constructor 'Foo.new'"]),
-    ]);
+          messageContains: ["The constructor 'Foo.new'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.new<int>');
     assertResolvedNodeText(node, r'''
@@ -814,11 +833,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::Foo::@constructor::new#element
+        baseElement: <testLibrary>::@class::Foo::@constructor::new
         substitution: {X: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::Foo::@constructor::new#element
+      baseElement: <testLibrary>::@class::Foo::@constructor::new
       substitution: {X: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -841,15 +860,16 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 main() {
   new p.Foo.bar<int>();
 }
-''', [
-      error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
-    ]);
+''',
+      [error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3)],
+    );
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
     // AST to reflect the expected structure.
@@ -870,11 +890,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: bar
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
+        baseElement: package:test/a.dart::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -892,7 +912,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -900,10 +921,15 @@ class Foo<X> {
 main() {
   Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 49,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          49,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -917,11 +943,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: bar
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::Foo::@constructor::bar#element
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
         substitution: {X: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::Foo::@constructor::bar#element
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -944,16 +970,22 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 main() {
   p.Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 43,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          43,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -979,11 +1011,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: bar
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
+        baseElement: package:test/a.dart::@class::Foo::@constructor::bar
         substitution: {X: int}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::Foo::@constructor::bar#element
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
       substitution: {X: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1010,7 +1042,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+      baseElement: <testLibrary>::@extensionType::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1018,7 +1050,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+          baseElement: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1046,7 +1078,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+      baseElement: <testLibrary>::@extensionType::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1054,7 +1086,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+          baseElement: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1082,15 +1114,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+      element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+    element: <testLibrary>::@extensionType::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1114,13 +1146,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@extensionType::A
       type: A
-    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+    element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1149,15 +1181,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+      element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+    element: <testLibrary>::@extensionType::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1183,13 +1215,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@extensionType::A
       type: A
-    element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+    element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1197,15 +1229,16 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 
 void f() {
   new A.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1235,16 +1268,17 @@ InstanceCreationExpression
   }
 
   test_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f() {
   new prefix(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1427,15 +1461,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/a.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/a.dart::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::a#element
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1584,11 +1618,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+        baseElement: package:test/a.dart::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+      baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1596,7 +1630,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::a#element
+          baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1641,7 +1675,7 @@ InstanceCreationExpression
       element2: package:test/a.dart::@class::A
       type: A<int>
     element: ConstructorMember
-      baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+      baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1649,7 +1683,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a#element
+          baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1685,13 +1719,13 @@ InstanceCreationExpression
       name: A
       element2: package:test/a.dart::@class::A
       type: A
-    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1703,16 +1737,17 @@ InstanceCreationExpression
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 void f() {
   new prefix.A.foo(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1746,16 +1781,17 @@ InstanceCreationExpression
   }
 
   test_importPrefix_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f() {
   new prefix.Foo.bar(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1817,7 +1853,7 @@ InstanceCreationExpression
       name: X
       element2: <testLibrary>::@class::X
       type: X
-    element: <testLibraryFragment>::@class::X::@constructor::new#element
+    element: <testLibrary>::@class::X::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1829,7 +1865,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -1838,7 +1874,7 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: c
-            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c#element
+            element: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -1853,7 +1889,7 @@ InstanceCreationExpression
           staticType: C?
           typeArgumentTypes
             C?
-        correspondingParameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::c#element
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -1862,7 +1898,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        correspondingParameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::b#element
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -1871,7 +1907,7 @@ InstanceCreationExpression
         name: Label
           label: SimpleIdentifier
             token: d
-            element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d#element
+            element: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
             staticType: null
           colon: :
         expression: MethodInvocation
@@ -1886,7 +1922,7 @@ InstanceCreationExpression
           staticType: D?
           typeArgumentTypes
             D?
-        correspondingParameter: <testLibraryFragment>::@class::X::@constructor::new::@parameter::d#element
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
     rightParenthesis: )
   staticType: X
 ''');
@@ -1960,7 +1996,8 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A<T> {
@@ -1972,9 +2009,9 @@ typedef X<U> = A<U>;
 void f() {
   X(0);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2030,11 +2067,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2042,7 +2079,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2075,11 +2112,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic, U: String}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2087,7 +2124,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -2119,7 +2156,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@typeAlias::B
       type: A<int>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2127,7 +2164,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -2157,7 +2194,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@typeAlias::B
       type: A<int, String>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2165,7 +2202,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -2176,7 +2213,8 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_named_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A.named(T t);
 }
@@ -2186,9 +2224,9 @@ typedef B = A<String>;
 void f() {
   B.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1)],
+    );
 
     var node = findNode.instanceCreation('B.named(0)');
     assertResolvedNodeText(node, r'''
@@ -2202,11 +2240,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+        baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: String}
       staticType: null
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::named#element
+      baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2214,7 +2252,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::named::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: String}
         staticType: int
     rightParenthesis: )
@@ -2223,7 +2261,8 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_unnamed_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A(T t);
 }
@@ -2233,9 +2272,9 @@ typedef B = A<String>;
 void f() {
   B(0);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1)],
+    );
 
     var node = findNode.instanceCreation('B(0)');
     assertResolvedNodeText(node, r'''
@@ -2246,7 +2285,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@typeAlias::B
       type: A<String>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+      baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2254,7 +2293,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::t#element
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: String}
         staticType: int
     rightParenthesis: )
@@ -2316,7 +2355,8 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {
@@ -2328,9 +2368,9 @@ typedef X = A;
 void f() {
   X();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2370,13 +2410,13 @@ InstanceCreationExpression
       name: A
       element2: <testLibrary>::@class::A
       type: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2406,15 +2446,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2444,15 +2484,15 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -2460,14 +2500,15 @@ InstanceCreationExpression
   }
 
   test_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new Unresolved(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2492,14 +2533,15 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new Unresolved.named(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2528,14 +2570,15 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new unresolved.Foo.bar(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''

@@ -17,16 +17,16 @@ void main() {
 @reflectiveTest
 class JoinVariableDeclarationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
+  AssistKind get kind => DartAssistKind.joinVariableDeclaration;
 
   Future<void> test_onAssignment() async {
     await resolveTestCode('''
 void f() {
   var v;
-  v = 1;
+  ^v = 1;
 }
 ''');
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 void f() {
   var v = 1;
 }
@@ -37,10 +37,10 @@ void f() {
     await resolveTestCode('''
 void f() {
   var v = 1;
-  v = 2;
+  ^v = 2;
 }
 ''');
-    await assertNoAssistAt('v = 2');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notAdjacent() async {
@@ -48,49 +48,49 @@ void f() {
 void f() {
   var v;
   var bar;
-  v = 1;
+  ^v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notAssignment() async {
     await resolveTestCode('''
 void f() {
   var v;
-  v += 1;
+  ^v += 1;
 }
 ''');
-    await assertNoAssistAt('v += 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notDeclaration() async {
     await resolveTestCode('''
 void f(var v) {
-  v = 1;
+  ^v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notLeftArgument() async {
     await resolveTestCode('''
 void f() {
   var v;
-  1 + v; // marker
+  1 + ^v;
 }
 ''');
-    await assertNoAssistAt('v; // marker');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notOneVariable() async {
     await resolveTestCode('''
 void f() {
   var v, v2;
-  v = 1;
+  ^v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notResolved() async {
@@ -98,10 +98,10 @@ void f() {
     await resolveTestCode('''
 void f() {
   var v;
-  x = 1;
+  ^x = 1;
 }
 ''');
-    await assertNoAssistAt('x = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onAssignment_notSameBlock() async {
@@ -109,81 +109,81 @@ void f() {
 void f() {
   var v;
   {
-    v = 1;
+    ^v = 1;
   }
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_hasInitializer() async {
     await resolveTestCode('''
 void f() {
-  var v = 1;
+  var ^v = 1;
   v = 2;
 }
 ''');
-    await assertNoAssistAt('v = 1');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_lastStatement() async {
     await resolveTestCode('''
 void f() {
   if (true)
-    var v;
+    var ^v;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_nextNotAssignmentExpression() async {
     await resolveTestCode('''
 void f() {
-  var v;
+  var ^v;
   42;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_nextNotExpressionStatement() async {
     await resolveTestCode('''
 void f() {
-  var v;
+  var ^v;
   if (true) return;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_nextNotPureAssignment() async {
     await resolveTestCode('''
 void f() {
-  var v;
+  var ^v;
   v += 1;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_notOneVariable() async {
     await resolveTestCode('''
 void f() {
-  var v, v2;
+  var ^v, v2;
   v = 1;
 }
 ''');
-    await assertNoAssistAt('v, ');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaration_onName() async {
     await resolveTestCode('''
 void f() {
-  var v;
+  var ^v;
   v = 1;
 }
 ''');
-    await assertHasAssistAt('v;', '''
+    await assertHasAssist('''
 void f() {
   var v = 1;
 }
@@ -193,11 +193,11 @@ void f() {
   Future<void> test_onDeclaration_onType() async {
     await resolveTestCode('''
 void f() {
-  int v;
+  ^int v;
   v = 1;
 }
 ''');
-    await assertHasAssistAt('int v', '''
+    await assertHasAssist('''
 void f() {
   int v = 1;
 }
@@ -207,11 +207,11 @@ void f() {
   Future<void> test_onDeclaration_onVar() async {
     await resolveTestCode('''
 void f() {
-  var v;
+  ^var v;
   v = 1;
 }
 ''');
-    await assertHasAssistAt('var v', '''
+    await assertHasAssist('''
 void f() {
   var v = 1;
 }

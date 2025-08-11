@@ -16,12 +16,13 @@ void main(List<String> args) async {
   final options = Options.parse(args);
   await resolveScripts(options);
   await runSuite(
-      sdkRoot.resolve('tests/modular/'),
-      'tests/modular',
-      options,
-      IOPipeline([
-        SourceToSummaryDillStep(),
-        DDCStep(canaryFeatures: false),
-        RunD8(),
-      ], cacheSharedModules: true));
+    sdkRoot.resolve('tests/modular/'),
+    'tests/modular',
+    options,
+    IOPipeline([
+      SourceToSummaryDillStep(),
+      DDCStep(canaryFeatures: false),
+      RunD8(),
+    ], cacheSharedModules: true),
+  );
 }

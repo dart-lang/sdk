@@ -61,7 +61,11 @@ class GetterFragment implements Fragment, FunctionFragment {
 
   SourcePropertyBuilder? _builder;
 
-  GetterDeclaration? _declaration;
+  GetterFragmentDeclaration? _declaration;
+
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
 
   GetterFragment({
     required this.name,
@@ -96,12 +100,12 @@ class GetterFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  GetterDeclaration get declaration {
+  GetterFragmentDeclaration get declaration {
     assert(_declaration != null, "Builder has not been computed for $this.");
     return _declaration!;
   }
 
-  void set declaration(GetterDeclaration value) {
+  void set declaration(GetterFragmentDeclaration value) {
     assert(_declaration == null,
         "Declaration has already been computed for $this.");
     _declaration = value;
@@ -122,6 +126,13 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   _GetterBodyBuildingContext(this._fragment);
 
   @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
   MemberKind get memberKind => _fragment.isTopLevel
       ? MemberKind.TopLevelMethod
       : (_fragment.modifiers.isStatic
@@ -132,9 +143,11 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   bool get shouldBuild => true;
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
-  }
+  List<TypeParameter>? get thisTypeParameters =>
+      _fragment.declaration.thisTypeParameters;
+
+  @override
+  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   LookupScope get typeParameterScope {
@@ -142,21 +155,12 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 
   @override
-  InferenceDataForTesting? get inferenceDataForTesting => _fragment
-      .builder
-      .dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.inferenceData;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters =>
-      _fragment.declaration.thisTypeParameters;
-
-  @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  BodyBuilderContext createBodyBuilderContext() {
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
+  }
 }

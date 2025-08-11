@@ -29,50 +29,45 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   // reified `JSUndefined` and `JSNull`, we have to handle the case where
   // `this == null`. However, after migration we can remove these checks.
   @patch
-  bool get isUndefined =>
-      throw UnimplementedError(
-        "JS 'null' and 'undefined' are internalized as "
-        "Dart null in dart2wasm. As such, they can not be differentiated and "
-        "this API should not be used when compiling to Wasm.",
-      );
+  bool get isUndefined => throw UnimplementedError(
+    "JS 'null' and 'undefined' are internalized as "
+    "Dart null in dart2wasm. As such, they can not be differentiated and "
+    "this API should not be used when compiling to Wasm.",
+  );
 
   @patch
-  bool get isNull =>
-      throw UnimplementedError(
-        "JS 'null' and 'undefined' are internalized as "
-        "Dart null in dart2wasm. As such, they can not be differentiated and "
-        "this API should not be used when compiling to Wasm.",
-      );
+  bool get isNull => throw UnimplementedError(
+    "JS 'null' and 'undefined' are internalized as "
+    "Dart null in dart2wasm. As such, they can not be differentiated and "
+    "this API should not be used when compiling to Wasm.",
+  );
 }
 
 @patch
 extension JSAnyUtilityExtension on JSAny? {
   @patch
-  bool typeofEquals(String type) =>
-      js_helper
-          .JS<WasmI32>(
-            '(o, t) => typeof o === t',
-            this.toExternRef,
-            type.toJS.toExternRef,
-          )
-          .toBool();
+  bool typeofEquals(String type) => js_helper
+      .JS<WasmI32>(
+        '(o, t) => typeof o === t',
+        this.toExternRef,
+        type.toJS.toExternRef,
+      )
+      .toBool();
 
   @patch
-  bool instanceof(JSFunction constructor) =>
-      js_helper
-          .JS<WasmI32>(
-            '(o, c) => o instanceof c',
-            toExternRef,
-            constructor.toExternRef,
-          )
-          .toBool();
+  bool instanceof(JSFunction constructor) => js_helper
+      .JS<WasmI32>(
+        '(o, c) => o instanceof c',
+        toExternRef,
+        constructor.toExternRef,
+      )
+      .toBool();
 
   @patch
-  bool isA<T>() =>
-      throw UnimplementedError(
-        "This should never be called. Calls to 'isA' should have been "
-        'transformed by the interop transformer.',
-      );
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -103,19 +98,17 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
 @patch
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction get toJS =>
-      throw UnimplementedError(
-        "This should never be called. Calls to 'toJS' should have been "
-        'transformed by the interop transformer.',
-      );
+  JSExportedDartFunction get toJS => throw UnimplementedError(
+    "This should never be called. Calls to 'toJS' should have been "
+    'transformed by the interop transformer.',
+  );
 
   @patch
-  JSExportedDartFunction get toJSCaptureThis =>
-      throw UnimplementedError(
-        "'toJSCaptureThis' should never directly be called. Calls to "
-        "'toJSCaptureThis' should have been transformed by the interop "
-        'transformer.',
-      );
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
+    "'toJSCaptureThis' should never directly be called. Calls to "
+    "'toJSCaptureThis' should have been transformed by the interop "
+    'transformer.',
+  );
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.
@@ -202,35 +195,32 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
   Future<T> get toDart {
     final completer = Completer<T>();
-    final success =
-        (JSAny? r) {
-          // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
-          // This is because if there's a `TypeError` with the cast, we want to
-          // bubble that up through the completer, so we end up doing a try-catch
-          // here to do so.
-          try {
-            final value = r as T;
-            completer.complete(value);
-          } catch (e) {
-            completer.completeError(e);
-          }
-        }.toJS;
-    final error =
-        (JSAny? e) {
-          // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
-          // all backends and if it is feasible, or feasible for some limited use
-          // cases, then we should pass [e] directly to `completeError`.
-          // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
-          // `JSUndefined`.
-          if (e == null) {
-            // Note that we pass false as a default. It's not currently possible to
-            // be able to differentiate between null and undefined.
-            completer.completeError(js_util.NullRejectionException(false));
-            return;
-          }
-          completer.completeError(e);
-        }.toJS;
-    promiseThen(toExternRef, success.toExternRef, error.toExternRef);
+    final success = (JSAny? r) {
+      // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
+      // This is because if there's a `TypeError` with the cast, we want to
+      // bubble that up through the completer, so we end up doing a try-catch
+      // here to do so.
+      try {
+        final value = r as T;
+        completer.complete(value);
+      } catch (e) {
+        completer.completeError(e);
+      }
+    }.toJS;
+    final error = (JSAny? e, bool isUndefined) {
+      // `e` is null when the original error is either JS `null` or JS
+      // `undefined`.
+      if (e == null) {
+        completer.completeError(js_util.NullRejectionException(isUndefined));
+        return;
+      }
+      completer.completeError(e);
+    }.toJS;
+    js_helper.promiseThenWithIsUndefined(
+      toExternRef,
+      success.toExternRef,
+      error.toExternRef,
+    );
     return completer.future;
   }
 }
@@ -250,13 +240,19 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   @patch
   JSArrayBuffer get toJS {
     final t = this;
-    return JSArrayBuffer._(
-      JSValue(
-        t is js_types.JSArrayBufferImpl
-            ? t.toExternRef
-            : jsArrayBufferFromDartByteBuffer(t),
-      ),
-    );
+    if (t is js_types.JSArrayBufferImpl) {
+      if (!t.isArrayBuffer) {
+        assert(t.isSharedArrayBuffer);
+        throw StateError(
+          "ByteBuffer is a wrapped 'SharedArrayBuffer'. Convert the typed list "
+          "that wrapped this buffer to a JS typed array instead to access the "
+          "`SharedArrayBuffer` from that JS typed array.",
+        );
+      }
+      return JSArrayBuffer._(JSValue(t.toExternRef));
+    } else {
+      return JSArrayBuffer._(JSValue(jsArrayBufferFromDartByteBuffer(t)));
+    }
   }
 }
 
@@ -288,7 +284,7 @@ extension ByteDataToJSDataView on ByteData {
 @patch
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => js_types.JSInt8ArrayImpl.fromJSArray(toExternRef);
+  Int8List get toDart => js_types.JSInt8ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -311,7 +307,7 @@ extension Int8ListToJSInt8Array on Int8List {
 @patch
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => js_types.JSUint8ArrayImpl.fromJSArray(toExternRef);
+  Uint8List get toDart => js_types.JSUint8ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -335,7 +331,7 @@ extension Uint8ListToJSUint8Array on Uint8List {
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
   Uint8ClampedList get toDart =>
-      js_types.JSUint8ClampedArrayImpl.fromJSArray(toExternRef);
+      js_types.JSUint8ClampedArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -358,7 +354,7 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
 @patch
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => js_types.JSInt16ArrayImpl.fromJSArray(toExternRef);
+  Int16List get toDart => js_types.JSInt16ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -381,7 +377,7 @@ extension Int16ListToJSInt16Array on Int16List {
 @patch
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
-  Uint16List get toDart => js_types.JSUint16ArrayImpl.fromJSArray(toExternRef);
+  Uint16List get toDart => js_types.JSUint16ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -404,7 +400,7 @@ extension Uint16ListToJSInt16Array on Uint16List {
 @patch
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => js_types.JSInt32ArrayImpl.fromJSArray(toExternRef);
+  Int32List get toDart => js_types.JSInt32ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -427,7 +423,7 @@ extension Int32ListToJSInt32Array on Int32List {
 @patch
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => js_types.JSUint32ArrayImpl.fromJSArray(toExternRef);
+  Uint32List get toDart => js_types.JSUint32ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -450,8 +446,7 @@ extension Uint32ListToJSUint32Array on Uint32List {
 @patch
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart =>
-      js_types.JSFloat32ArrayImpl.fromJSArray(toExternRef);
+  Float32List get toDart => js_types.JSFloat32ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -474,8 +469,7 @@ extension Float32ListToJSFloat32Array on Float32List {
 @patch
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart =>
-      js_types.JSFloat64ArrayImpl.fromJSArray(toExternRef);
+  Float64List get toDart => js_types.JSFloat64ArrayImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -498,7 +492,7 @@ extension Float64ListToJSFloat64Array on Float64List {
 @patch
 extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   @patch
-  List<T> get toDart => js_types.JSArrayImpl<T>(toExternRef);
+  List<T> get toDart => js_types.JSArrayImpl<T>.fromRef(toExternRef);
 }
 
 @patch
@@ -563,7 +557,7 @@ extension BoolToJSBoolean on bool {
 @patch
 extension JSStringToString on JSString {
   @patch
-  String get toDart => JSStringImpl(toExternRef);
+  String get toDart => JSStringImpl.fromRef(toExternRef);
 }
 
 @patch

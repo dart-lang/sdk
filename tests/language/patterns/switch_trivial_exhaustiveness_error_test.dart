@@ -308,8 +308,8 @@ void testLogicalOrNeitherMatches(Object x) {
 }
 
 void testNullCheckAlwaysMatches(Object x) {
-  // TODO(paulberry): should be trivially exhaustive because the matched value
-  // type is non-nullable and the subpattern always matches
+  // Trivially exhaustive because the matched value type is non-nullable and the
+  // subpattern always matches
   bool? y;
   switch (x) {
     case _?:
@@ -317,7 +317,7 @@ void testNullCheckAlwaysMatches(Object x) {
       // [analyzer] STATIC_WARNING.UNNECESSARY_NULL_CHECK_PATTERN
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testNullCheckNullableMatchedValueType(Object? x) {
@@ -635,13 +635,13 @@ void testWildcardUntyped(Object x) {
 }
 
 void testRelationalNotEqualsNullWithNonNullableScrutinee(Object x) {
-  // TODO(paulberry): this should be trivially exhaustive
+  // Trivially exhaustive because the matched value type is non-nullable
   bool? y;
   switch (x) {
     case != null:
       y = true;
   }
-  y.expectStaticType<Exactly<bool?>>();
+  y.expectStaticType<Exactly<bool>>();
 }
 
 void testRelationalNotEqualsNullWithNullableScrutinee(Object? x) {

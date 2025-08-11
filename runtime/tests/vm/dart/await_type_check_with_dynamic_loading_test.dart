@@ -37,8 +37,9 @@ void main() async {
   }
 
   final isolate = currentMirrorSystem().isolate;
-  final library = await isolate
-      .loadUri(Uri.parse("await_type_check_with_dynamic_loading_lib.dart"));
+  final library = await isolate.loadUri(
+    Uri.parse("await_type_check_with_dynamic_loading_lib.dart"),
+  );
   final (Object expected, A x) = library.invoke(#makeNewFuture, []).reflectee;
   await test2(expected, x);
 }

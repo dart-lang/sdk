@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -46,8 +46,8 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
-    var element = node.declaredElement2;
-    if (element is! LocalVariableElement2) {
+    var element = node.declaredElement;
+    if (element is! LocalVariableElement) {
       return;
     }
 

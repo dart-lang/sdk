@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToIfElementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
+  AssistKind get kind => DartAssistKind.convertToIfElement;
 
   Future<void> test_conditional_list() async {
     await resolveTestCode('''

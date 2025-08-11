@@ -17,15 +17,15 @@ void main() {
 @reflectiveTest
 class RemoveTypeAnnotationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
+  AssistKind get kind => DartAssistKind.removeTypeAnnotation;
 
   Future<void> test_classField() async {
     await resolveTestCode('''
 class A {
-  int v = 1;
+  int ^v = 1;
 }
 ''');
-    await assertHasAssistAt('v = ', '''
+    await assertHasAssist('''
 class A {
   var v = 1;
 }
@@ -35,10 +35,10 @@ class A {
   Future<void> test_classField_final() async {
     await resolveTestCode('''
 class A {
-  final int v = 1;
+  final int ^v = 1;
 }
 ''');
-    await assertHasAssistAt('v = ', '''
+    await assertHasAssist('''
 class A {
   final v = 1;
 }
@@ -48,18 +48,18 @@ class A {
   Future<void> test_field_noInitializer() async {
     await resolveTestCode('''
 class A {
-  int? v;
+  int? ^v;
 }
 ''');
-    await assertNoAssistAt('v');
+    await assertNoAssist();
   }
 
   Future<void> test_generic_instanceCreation_withoutArguments() async {
     await resolveTestCode('''
-C<int> c = C();
+C<int> ^c = C();
 class C<T> {}
 ''');
-    await assertHasAssistAt('c = ', '''
+    await assertHasAssist('''
 var c = C<int>();
 class C<T> {}
 ''');
@@ -67,9 +67,9 @@ class C<T> {}
 
   Future<void> test_generic_listLiteral() async {
     await resolveTestCode('''
-List<int> l = [];
+List<int> ^l = [];
 ''');
-    await assertHasAssistAt('l = ', '''
+    await assertHasAssist('''
 var l = <int>[];
 ''');
   }
@@ -86,9 +86,9 @@ Set f() {
 
   Future<void> test_generic_setLiteral_cascade() async {
     await resolveTestCode('''
-Set<String> s = {}..addAll([]);
+Set<String> ^s = {}..addAll([]);
 ''');
-    await assertHasAssistAt('s = ', '''
+    await assertHasAssist('''
 var s = <String>{}..addAll([]);
 ''');
   }
@@ -98,19 +98,19 @@ var s = <String>{}..addAll([]);
 class A {}
 
 void f() {
-  A();
+  ^A();
 }
 ''');
-    await assertNoAssistAt('A();');
+    await assertNoAssist();
   }
 
   Future<void> test_localVariable() async {
     await resolveTestCode('''
 void f() {
-  int a = 1, b = 2;
+  ^int a = 1, b = 2;
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   var a = 1, b = 2;
 }
@@ -120,10 +120,10 @@ void f() {
   Future<void> test_localVariable_const() async {
     await resolveTestCode('''
 void f() {
-  const int v = 1;
+  const ^int v = 1;
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   const v = 1;
 }
@@ -133,10 +133,10 @@ void f() {
   Future<void> test_localVariable_final() async {
     await resolveTestCode('''
 void f() {
-  final int v = 1;
+  final ^int v = 1;
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   final v = 1;
 }
@@ -146,28 +146,28 @@ void f() {
   Future<void> test_localVariable_noInitializer() async {
     await resolveTestCode('''
 void f() {
-  int v;
+  int ^v;
 }
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_localVariable_onInitializer() async {
     await resolveTestCode('''
 void f() {
-  final int v = 1;
+  final int v = ^1;
 }
 ''');
-    await assertNoAssistAt('1;');
+    await assertNoAssist();
   }
 
   Future<void> test_loopVariable() async {
     await resolveTestCode('''
 void f() {
-  for(int i = 0; i < 3; i++) {}
+  for(^int i = 0; i < 3; i++) {}
 }
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 void f() {
   for(var i = 0; i < 3; i++) {}
 }
@@ -178,11 +178,11 @@ void f() {
     await resolveTestCode('''
 void f() {
   var v = () {
-    for (int x in <int>[]) {}
+    for (^int x in <int>[]) {}
   };
 }
 ''');
-    await assertHasAssistAt('int x', '''
+    await assertHasAssist('''
 void f() {
   var v = () {
     for (var x in <int>[]) {}
@@ -194,26 +194,26 @@ void f() {
   Future<void> test_loopVariable_noType() async {
     await resolveTestCode('''
 void f() {
-  for(var i = 0; i < 3; i++) {}
+  for(v^ar i = 0; i < 3; i++) {}
 }
 ''');
-    await assertNoAssistAt('var ');
+    await assertNoAssist();
   }
 
   Future<void> test_topLevelVariable() async {
     await resolveTestCode('''
-int V = 1;
+^int V = 1;
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 var V = 1;
 ''');
   }
 
   Future<void> test_topLevelVariable_final() async {
     await resolveTestCode('''
-final int V = 1;
+final i^nt V = 1;
 ''');
-    await assertHasAssistAt('int ', '''
+    await assertHasAssist('''
 final V = 1;
 ''');
   }
@@ -221,16 +221,16 @@ final V = 1;
   Future<void> test_topLevelVariable_noInitializer() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-int v;
+int v^;
 ''');
-    await assertNoAssistAt('v;');
+    await assertNoAssist();
   }
 
   Future<void> test_topLevelVariable_syntheticName() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-MyType
+MyType^
 ''');
-    await assertNoAssistAt('MyType');
+    await assertNoAssist();
   }
 }

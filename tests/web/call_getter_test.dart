@@ -32,31 +32,37 @@ const ddc = const bool.fromEnvironment('dart.library._ddc_only');
 dynamic confuse(dynamic x) => x;
 
 class C {
-  int Function(String s) get call => (s) => s.length;
+  int Function(String s) get call =>
+      (s) => s.length;
 }
 
 class C2 {
-  Function get call => (s) => s.length;
+  Function get call =>
+      (s) => s.length;
 }
 
 extension on A {
-  int Function(String s) get call => (s) => s.length;
+  int Function(String s) get call =>
+      (s) => s.length;
 }
 
 class A {}
 
 extension on A2 {
-  Function get call => (s) => s.length;
+  Function get call =>
+      (s) => s.length;
 }
 
 class A2 {}
 
 extension type ExtType(B _) {
-  int Function(String s) get call => (s) => s.length;
+  int Function(String s) get call =>
+      (s) => s.length;
 }
 
 extension type ExtType2(B _) {
-  Function get call => (s) => s.length;
+  Function get call =>
+      (s) => s.length;
 }
 
 class B {}

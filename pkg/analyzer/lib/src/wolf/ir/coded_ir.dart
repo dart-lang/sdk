@@ -20,9 +20,9 @@ class CodedIRContainer extends BaseIRContainer {
   final List<DartType> _typeTable;
 
   CodedIRContainer(CodedIRWriter super.writer)
-      : _callDescriptorTable = writer._callDescriptorTable,
-        _literalTable = writer._literalTable,
-        _typeTable = writer._typeTable;
+    : _callDescriptorTable = writer._callDescriptorTable,
+      _literalTable = writer._literalTable,
+      _typeTable = writer._typeTable;
 
   @override
   String callDescriptorRefToString(CallDescriptorRef callDescriptor) =>
@@ -65,26 +65,26 @@ class CodedIRWriter extends RawIRWriter {
   final _typeToRef = <DartType, TypeRef>{};
 
   CallDescriptorRef encodeCallDescriptor(CallDescriptor callDescriptor) =>
-      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-      _callDescriptorToRef.putIfAbsent(callDescriptor, () {
-        var encoding = CallDescriptorRef(_callDescriptorTable.length);
-        _callDescriptorTable.add(callDescriptor);
-        return encoding;
-      });
+  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+  _callDescriptorToRef.putIfAbsent(callDescriptor, () {
+    var encoding = CallDescriptorRef(_callDescriptorTable.length);
+    _callDescriptorTable.add(callDescriptor);
+    return encoding;
+  });
 
   LiteralRef encodeLiteral(Object? value) =>
-      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-      _literalToRef.putIfAbsent(value, () {
-        var encoding = LiteralRef(_literalTable.length);
-        _literalTable.add(value);
-        return encoding;
-      });
+  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+  _literalToRef.putIfAbsent(value, () {
+    var encoding = LiteralRef(_literalTable.length);
+    _literalTable.add(value);
+    return encoding;
+  });
 
   TypeRef encodeType(DartType type) =>
-      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-      _typeToRef.putIfAbsent(type, () {
-        var encoding = TypeRef(_typeTable.length);
-        _typeTable.add(type);
-        return encoding;
-      });
+  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+  _typeToRef.putIfAbsent(type, () {
+    var encoding = TypeRef(_typeTable.length);
+    _typeTable.add(type);
+    return encoding;
+  });
 }

@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
+import 'package:analyzer/src/summary2/enclosing_type_parameters_flag.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -45,9 +46,7 @@ LinkResult link({
     inputLibraryManifests: inputLibraryManifests,
   );
 
-  return LinkResult(
-    resolutionBytes: linker.resolutionBytes,
-  );
+  return LinkResult(resolutionBytes: linker.resolutionBytes);
 }
 
 class Linker {
@@ -64,10 +63,7 @@ class Linker {
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  Linker({
-    required this.elementFactory,
-    required this.apiSignature,
-  });
+  Linker({required this.elementFactory, required this.apiSignature});
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -86,7 +82,7 @@ class Linker {
 
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(ElementImpl element) {
+  ast.AstNode? getLinkingNode(FragmentImpl element) {
     return elementNodes[element];
   }
 
@@ -112,15 +108,11 @@ class Linker {
     });
 
     performance.run('buildOutlines', (performance) {
-      _buildOutlines(
-        performance: performance,
-      );
+      _buildOutlines(performance: performance);
     });
 
     performance.run('writeLibraries', (performance) {
-      _writeLibraries(
-        performance: performance,
-      );
+      _writeLibraries(performance: performance);
     });
   }
 
@@ -189,8 +181,9 @@ class Linker {
       if (export.addToExportScope(name, reference)) {
         // We've added [name] to [export.exporter]s export scope.
         // We need to propagate that to anyone that exports that library.
-        additionalExportData
-            .add(_AdditionalExport(export.exporter, name, reference));
+        additionalExportData.add(
+          _AdditionalExport(export.exporter, name, reference),
+        );
       }
     }
 
@@ -227,15 +220,11 @@ class Linker {
     }
   }
 
-  void _buildOutlines({
-    required OperationPerformanceImpl performance,
-  }) {
+  void _buildOutlines({required OperationPerformanceImpl performance}) {
     _createTypeSystemIfNotLinkingDartCore();
 
     performance.run('computeLibraryScopes', (performance) {
-      _computeLibraryScopes(
-        performance: performance,
-      );
+      _computeLibraryScopes(performance: performance);
     });
 
     _createTypeSystem();
@@ -256,6 +245,7 @@ class Linker {
     _resolveMetadata();
 
     _collectMixinSuperInvokedNames();
+    EnclosingTypeParameterReferenceFlag(this).perform();
     _buildElementNameUnions();
     _detachNodes();
   }
@@ -272,9 +262,7 @@ class Linker {
     }
   }
 
-  void _computeLibraryScopes({
-    required OperationPerformanceImpl performance,
-  }) {
+  void _computeLibraryScopes({required OperationPerformanceImpl performance}) {
     for (var library in builders.values) {
       library.buildElements();
     }
@@ -361,23 +349,16 @@ class Linker {
     }
   }
 
-  void _writeLibraries({
-    required OperationPerformanceImpl performance,
-  }) {
-    var bundleWriter = BundleWriter(
-      elementFactory.dynamicRef,
-    );
+  void _writeLibraries({required OperationPerformanceImpl performance}) {
+    var bundleWriter = BundleWriter();
 
     for (var builder in builders.values) {
       bundleWriter.writeLibraryElement(builder.element);
     }
 
-    var writeWriterResult = performance.run(
-      'bundleWriteFinish',
-      (performance) {
-        return bundleWriter.finish();
-      },
-    );
+    var writeWriterResult = performance.run('bundleWriteFinish', (performance) {
+      return bundleWriter.finish();
+    });
     resolutionBytes = writeWriterResult.resolutionBytes;
 
     performance.getDataInt('length').add(resolutionBytes.length);
@@ -387,9 +368,7 @@ class Linker {
 class LinkResult {
   final Uint8List resolutionBytes;
 
-  LinkResult({
-    required this.resolutionBytes,
-  });
+  LinkResult({required this.resolutionBytes});
 }
 
 class _AdditionalExport {

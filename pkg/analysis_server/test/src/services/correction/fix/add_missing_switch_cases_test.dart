@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -251,7 +251,7 @@ int f(E x) {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode ==
+              e.diagnosticCode ==
               CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
     );
   }
@@ -364,11 +364,11 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
 
-  bool Function(AnalysisError) get _filter {
+  bool Function(Diagnostic) get _filter {
     var hasError = false;
-    return (error) {
+    return (diagnostic) {
       if (!hasError &&
-          error.errorCode ==
+          diagnostic.diagnosticCode ==
               CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT) {
         hasError = true;
         return true;
@@ -521,7 +521,7 @@ void f(E e) {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode ==
+              e.diagnosticCode ==
               CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
     );
   }

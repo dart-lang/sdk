@@ -6,8 +6,9 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -21,7 +22,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -50,45 +51,45 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  ClassElement2 get boolElement => typeProvider.boolElement2;
+  ClassElement get boolElement => typeProvider.boolElement;
 
-  ClassElement2 get doubleElement => typeProvider.doubleElement2;
+  ClassElement get doubleElement => typeProvider.doubleElement;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
-  Element2 get dynamicElement =>
-      (typeProvider.dynamicType as DynamicTypeImpl).element3;
+  Element get dynamicElement =>
+      (typeProvider.dynamicType as DynamicTypeImpl).element;
 
   FeatureSet get featureSet => result.libraryElement2.featureSet;
 
-  ClassElement2 get futureElement => typeProvider.futureElement2;
+  ClassElement get futureElement => typeProvider.futureElement;
 
   InheritanceManager3 get inheritanceManager {
     var library = result.libraryElement2;
     return library.session.inheritanceManager;
   }
 
-  ClassElement2 get intElement => typeProvider.intElement2;
+  ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement2 get listElement => typeProvider.listElement2;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement2 get mapElement => typeProvider.mapElement2;
+  ClassElement get mapElement => typeProvider.mapElement;
 
-  NeverElementImpl2 get neverElement => NeverElementImpl2.instance;
+  NeverElementImpl get neverElement => NeverElementImpl.instance;
 
-  ClassElement2 get numElement => typeProvider.numElement2;
+  ClassElement get numElement => typeProvider.numElement;
 
-  ClassElement2 get objectElement => typeProvider.objectElement2;
+  ClassElement get objectElement => typeProvider.objectElement;
 
   bool get strictCasts {
-    var analysisOptions =
-        result.session.analysisContext.getAnalysisOptionsForFile(result.file);
+    var analysisOptions = result.session.analysisContext
+        .getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
 
-  ClassElement2 get stringElement => typeProvider.stringElement2;
+  ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
 
@@ -104,10 +105,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertDartObjectText(DartObject? object, String expected) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
@@ -127,32 +125,35 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertElement(
     Object? nodeOrElement, {
-    required Element2 declaration,
+    required Element declaration,
     Map<String, String> substitution = const {},
   }) {
-    Element2? element;
+    Element? element;
     if (nodeOrElement is AstNode) {
       element = getNodeElement2(nodeOrElement);
     } else {
-      element = nodeOrElement as Element2?;
+      element = nodeOrElement as Element?;
     }
 
     var actualDeclaration = element?.baseElement;
     expect(actualDeclaration, same(declaration));
 
     if (element is Member) {
-      assertSubstitution((element as Member).substitution, substitution);
+      assertSubstitution(element.substitution, substitution);
     } else if (substitution.isNotEmpty) {
       fail('Expected to be a Member: (${element.runtimeType}) $element');
     }
   }
 
-  void assertElementNull(Element2? element) {
+  void assertElementNull(Element? element) {
     expect(element, isNull);
   }
 
-  void assertElementTypes(List<DartType>? types, List<String> expected,
-      {bool ordered = false}) {
+  void assertElementTypes(
+    List<DartType>? types,
+    List<String> expected, {
+    bool ordered = false,
+  }) {
     if (types == null) {
       fail('Expected types, actually null.');
     }
@@ -166,7 +167,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> assertErrorsInCode(
-      String code, List<ExpectedError> expectedErrors) async {
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) async {
     addTestFile(code);
     await resolveTestFile();
 
@@ -194,19 +197,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertErrorsInList(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
-    errorListener.assertErrors(expectedErrors);
+    GatheringDiagnosticListener diagnosticListener =
+        GatheringDiagnosticListener();
+    diagnosticListener.addAll(diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertErrorsInResolvedUnit(
     ResolvedUnitResult result,
     List<ExpectedError> expectedErrors,
   ) {
-    assertErrorsInList(result.errors, expectedErrors);
+    assertErrorsInList(result.diagnostics, expectedErrors);
   }
 
   void assertErrorsInResult(List<ExpectedError> expectedErrors) {
@@ -214,7 +218,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertHasTestErrors() {
-    expect(result.errors, isNotEmpty);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   /// Resolve the [code], and ensure that it can be resolved without a crash,
@@ -237,10 +241,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertParsedNodeText(AstNode node, String expected) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
 
     var elementPrinter = ElementPrinter(
       sink: sink,
@@ -309,14 +310,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expected,
   ) {
     var actualMapString = Map.fromEntries(
-      substitution.map.entries.where((entry) {
-        return entry.key.enclosingElement2 is! ExecutableElement2;
-      }).map((entry) {
-        return MapEntry(
-          entry.key.name3,
-          typeString(entry.value),
-        );
-      }),
+      substitution.map.entries
+          .where((entry) {
+            return entry.key.enclosingElement is! ExecutableElement;
+          })
+          .map((entry) {
+            return MapEntry(entry.key.name, typeString(entry.value));
+          }),
     );
     expect(actualMapString, expected);
   }
@@ -360,21 +360,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {Pattern? correctionContains,
-          String? text,
-          List<Pattern> messageContains = const [],
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          correctionContains: correctionContains,
-          message: text,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    DiagnosticCode code,
+    int offset,
+    int length, {
+    Pattern? correctionContains,
+    String? text,
+    List<Pattern> messageContains = const [],
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    correctionContains: correctionContains,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
-  Element2? getNodeElement2(AstNode node) {
+  Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
-      return node.element2;
+      return node.element;
     } else if (node is AssignmentExpression) {
       return node.element;
     } else if (node is BinaryExpression) {
@@ -384,7 +391,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is Declaration) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
-      return node.element2;
+      return node.element;
     } else if (node is FormalParameter) {
       return node.declaredFragment?.element;
     } else if (node is FunctionExpressionInvocation) {
@@ -417,7 +424,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is PropertyAccess) {
       return node.propertyName.element;
     } else if (node is NamedType) {
-      return node.element2;
+      return node.element;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
@@ -458,18 +465,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   String _resolvedNodeText(AstNode node) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
-      configuration: ElementPrinterConfiguration()
-        ..withInterfaceTypeElements =
-            nodeTextConfiguration.withInterfaceTypeElements
-        ..withRedirectedConstructors =
-            nodeTextConfiguration.withRedirectedConstructors
-        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
+      configuration:
+          ElementPrinterConfiguration()
+            ..withInterfaceTypeElements =
+                nodeTextConfiguration.withInterfaceTypeElements
+            ..withRedirectedConstructors =
+                nodeTextConfiguration.withRedirectedConstructors
+            ..withSuperConstructors =
+                nodeTextConfiguration.withSuperConstructors,
     );
     node.accept(
       ResolvedAstPrinter(

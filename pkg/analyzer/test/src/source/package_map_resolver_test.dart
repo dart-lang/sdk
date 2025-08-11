@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +20,9 @@ main() {
 class _PackageMapUriResolverTest {
   static const Map<String, List<Folder>> emptyMap = {};
   MemoryResourceProvider provider = MemoryResourceProvider();
+
+  String convertPath(String filePath) =>
+      ResourceProviderExtension(provider).convertPath(filePath);
 
   void test_isPackageUri() {
     Uri uri = Uri.parse('package:test/test.dart');
@@ -39,38 +43,40 @@ class _PackageMapUriResolverTest {
   }
 
   void test_pathToUri() {
-    String pkgFileA = provider.convertPath('/pkgA/lib/libA.dart');
-    String pkgFileB = provider.convertPath('/pkgB/lib/src/libB.dart');
+    String pkgFileA = convertPath('/pkgA/lib/libA.dart');
+    String pkgFileB = convertPath('/pkgB/lib/src/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
-      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
-    });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, List<Folder>>{
+        'pkgA': <Folder>[provider.getFolder(convertPath('/pkgA/lib'))],
+        'pkgB': <Folder>[provider.getFolder(convertPath('/pkgB/lib'))],
+      },
+    );
     {
-      var path = provider.convertPath('/pkgA/lib/libA.dart');
+      var path = convertPath('/pkgA/lib/libA.dart');
       var uri = resolver.pathToUri(path);
       expect(uri, Uri.parse('package:pkgA/libA.dart'));
     }
     {
-      var path = provider.convertPath('/pkgB/lib/src/libB.dart');
+      var path = convertPath('/pkgB/lib/src/libB.dart');
       var uri = resolver.pathToUri(path);
       expect(uri, Uri.parse('package:pkgB/src/libB.dart'));
     }
     {
-      var path = provider.convertPath('/no/such/file');
+      var path = convertPath('/no/such/file');
       var uri = resolver.pathToUri(path);
       expect(uri, isNull);
     }
   }
 
   void test_resolve_multiple_folders() {
-    var a = provider.newFile(provider.convertPath('/aaa/a.dart'), '');
-    var b = provider.newFile(provider.convertPath('/bbb/b.dart'), '');
+    var a = provider.newFile(convertPath('/aaa/a.dart'), '');
+    var b = provider.newFile(convertPath('/bbb/b.dart'), '');
     expect(() {
       PackageMapUriResolver(provider, <String, List<Folder>>{
-        'pkg': <Folder>[a.parent, b.parent]
+        'pkg': <Folder>[a.parent, b.parent],
       });
     }, throwsArgumentError);
   }
@@ -83,15 +89,17 @@ class _PackageMapUriResolverTest {
   }
 
   void test_resolve_OK() {
-    String pkgFileA = provider.convertPath('/pkgA/lib/libA.dart');
-    String pkgFileB = provider.convertPath('/pkgB/lib/libB.dart');
+    String pkgFileA = convertPath('/pkgA/lib/libA.dart');
+    String pkgFileB = convertPath('/pkgB/lib/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
-      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
-    });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, List<Folder>>{
+        'pkgA': <Folder>[provider.getFolder(convertPath('/pkgA/lib'))],
+        'pkgB': <Folder>[provider.getFolder(convertPath('/pkgB/lib'))],
+      },
+    );
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;
@@ -110,36 +118,22 @@ class _PackageMapUriResolverTest {
 
   void test_resolve_OK_withNonAscii() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[
-        provider.getFolder(
-          provider.convertPath('/packages/aaa/lib'),
-        ),
-      ],
+      'aaa': <Folder>[provider.getFolder(convertPath('/packages/aaa/lib'))],
     });
 
     var uri = Uri.parse('package:aaa/проба/a.dart');
     var result = resolver.resolveAbsolute(uri)!;
-    expect(
-      result.fullName,
-      provider.convertPath('/packages/aaa/lib/проба/a.dart'),
-    );
+    expect(result.fullName, convertPath('/packages/aaa/lib/проба/a.dart'));
   }
 
   void test_resolve_OK_withSpace() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[
-        provider.getFolder(
-          provider.convertPath('/packages/aaa/lib'),
-        ),
-      ],
+      'aaa': <Folder>[provider.getFolder(convertPath('/packages/aaa/lib'))],
     });
 
     var uri = Uri.parse('package:aaa/with space/a.dart');
     var result = resolver.resolveAbsolute(uri)!;
-    expect(
-      result.fullName,
-      provider.convertPath('/packages/aaa/lib/with space/a.dart'),
-    );
+    expect(result.fullName, convertPath('/packages/aaa/lib/with space/a.dart'));
   }
 
   void test_resolve_package_invalid_leadingSlash() {

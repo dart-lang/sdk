@@ -19,25 +19,37 @@ main() {
 class IllegalConcreteEnumMemberDeclarationClassTest
     extends PubPackageResolutionTest {
   test_hashCode_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int hashCode = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 41, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          41,
+          8,
+        ),
+      ],
+    );
   }
 
   test_hashCode_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int get hashCode => 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 45, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          45,
+          8,
+        ),
+      ],
+    );
   }
 
   test_hashCode_getter_abstract() async {
@@ -57,25 +69,37 @@ abstract class A implements Enum {
   }
 
   test_index_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int index = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 41, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          41,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int get index => 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 45, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          45,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter_abstract() async {
@@ -95,14 +119,20 @@ abstract class A implements Enum {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   bool operator ==(Object other) => false;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 51, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          51,
+          2,
+        ),
+      ],
+    );
   }
 }
 
@@ -110,40 +140,58 @@ abstract class A implements Enum {
 class IllegalConcreteEnumMemberDeclarationEnumTest
     extends PubPackageResolutionTest {
   test_index_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int index = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 26, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          26,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_field_notInitializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int index;
   const E();
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 26, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          26,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   int get index => 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 24, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          24,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter_abstract() async {
@@ -165,15 +213,21 @@ enum E {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   bool operator ==(Object other) => false;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 30, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          30,
+          2,
+        ),
+      ],
+    );
   }
 }
 
@@ -181,25 +235,37 @@ enum E {
 class IllegalConcreteEnumMemberDeclarationMixinTest
     extends PubPackageResolutionTest {
   test_index_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   int index = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 24, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          24,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   int get index => 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 28, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          28,
+          5,
+        ),
+      ],
+    );
   }
 
   test_index_getter_abstract() async {
@@ -219,13 +285,19 @@ mixin M on Enum {
   }
 
   test_operatorEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   bool operator ==(Object other) => false;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION, 34, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          34,
+          2,
+        ),
+      ],
+    );
   }
 }

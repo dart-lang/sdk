@@ -38,12 +38,13 @@ testVariable(C? c) {
   E(c)?.extensionProperty = c..expectStaticType<Exactly<C>>();
   E(c)?.extensionProperty += c..expectStaticType<Exactly<C>>();
   E(c)?.nullableExtensionProperty ??= c..expectStaticType<Exactly<C>>();
-  E(c)?[c
-    ..expectStaticType<Exactly<C>>()].method(c..expectStaticType<Exactly<C>>());
+  E(c)?[c..expectStaticType<Exactly<C>>()].method(
+    c..expectStaticType<Exactly<C>>(),
+  );
   E(c)?[c..expectStaticType<Exactly<C>>()] = c..expectStaticType<Exactly<C>>();
   E(c)?[c..expectStaticType<Exactly<C>>()] += c..expectStaticType<Exactly<C>>();
-  E2(c)?[c..expectStaticType<Exactly<C>>()] ??=
-      c..expectStaticType<Exactly<C>>();
+  E2(c)?[c..expectStaticType<Exactly<C>>()] ??= c
+    ..expectStaticType<Exactly<C>>();
 }
 
 testProperty(B b) {
@@ -55,12 +56,12 @@ testProperty(B b) {
   E(b._c)?[b._c..expectStaticType<Exactly<C>>()].method(
     b._c..expectStaticType<Exactly<C>>(),
   );
-  E(b._c)?[b._c..expectStaticType<Exactly<C>>()] =
-      b._c..expectStaticType<Exactly<C>>();
-  E(b._c)?[b._c..expectStaticType<Exactly<C>>()] +=
-      b._c..expectStaticType<Exactly<C>>();
-  E2(b._c)?[b._c..expectStaticType<Exactly<C>>()] ??=
-      b._c..expectStaticType<Exactly<C>>();
+  E(b._c)?[b._c..expectStaticType<Exactly<C>>()] = b._c
+    ..expectStaticType<Exactly<C>>();
+  E(b._c)?[b._c..expectStaticType<Exactly<C>>()] += b._c
+    ..expectStaticType<Exactly<C>>();
+  E2(b._c)?[b._c..expectStaticType<Exactly<C>>()] ??= b._c
+    ..expectStaticType<Exactly<C>>();
 }
 
 main() {

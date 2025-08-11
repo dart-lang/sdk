@@ -15,7 +15,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
-import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
@@ -1148,26 +1147,34 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
-      final resultString = await _converter.convertVmInstanceRefToDisplayString(
+      final variable = await _converter.convertVmResponseToVariable(
         thread,
         result,
+        name: null,
+        evaluateName: expression,
         allowCallingToString:
             evaluateToStringInDebugViews || shouldExpandTruncatedValues,
-        format: format,
         allowTruncatedValue: !shouldExpandTruncatedValues,
+        format: format,
       );
-
-      final variablesReference = _converter.isSimpleKind(result.kind)
-          ? 0
-          : thread.storeData(VariableData(result, format));
 
       // Store the expression that gets this object as we may need it to
       // compute evaluateNames for child objects later.
       storeEvaluateName(result, expression);
 
       sendResponse(EvaluateResponseBody(
-        result: resultString,
-        variablesReference: variablesReference,
+        // EvaluateResponse is mostly the same as a Variable response but
+        // do not share a class, so copy all fields off manually (this allows
+        // us to have a single implementation of building these fields for
+        // an instance instead of duplicating logic here).
+        result: variable.value,
+        variablesReference: variable.variablesReference,
+        indexedVariables: variable.indexedVariables,
+        namedVariables: variable.namedVariables,
+        memoryReference: variable.memoryReference,
+        presentationHint: variable.presentationHint,
+        type: variable.type,
+        valueLocationReference: variable.valueLocationReference,
       ));
     } else {
       throw DebugAdapterException(
@@ -2497,7 +2504,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // Pass any Service Extension events on to the client so they can enable
       // functionality based upon them.
       case vm.EventKind.kServiceExtensionAdded:
-        this._sendServiceExtensionAdded(
+        _sendServiceExtensionAdded(
           event.extensionRPC!,
           event.isolate!.id!,
         );
@@ -2576,10 +2583,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // Service registrations are passed to the client so they can toggle
       // behaviour based on their presence.
       case vm.EventKind.kServiceRegistered:
-        this._sendServiceRegistration(event.service!, event.method!);
+        _sendServiceRegistration(event.service!, event.method!);
         break;
       case vm.EventKind.kServiceUnregistered:
-        this._sendServiceUnregistration(event.service!, event.method!);
+        _sendServiceUnregistration(event.service!, event.method!);
         break;
     }
   }
@@ -2830,8 +2837,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared ||
-          e.code == RpcErrorCodes.kConnectionDisposed) {
+      if (e.isServiceDisposedError) {
         return null;
       }
 
@@ -2843,15 +2849,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       if (e.code == json_rpc_errors.SERVER_ERROR) {
         // Ignore all server errors during shutdown.
         if (isTerminating) {
-          return null;
-        }
-
-        // Always ignore "client is closed" and "closed with pending request"
-        // errors because these can always occur during shutdown if we were
-        // just starting to send (or had just sent) a request.
-        if (e.message.contains("The client is closed") ||
-            e.message.contains("The client closed with pending request") ||
-            e.message.contains("Service connection disposed")) {
           return null;
         }
       }

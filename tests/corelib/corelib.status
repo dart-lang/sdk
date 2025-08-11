@@ -6,9 +6,6 @@ bigint_parse_radix_test/3: Slow # Issue http://dartbug.com/47050
 bigint_test: Pass, Slow
 
 [ $builder_tag == obfuscated ]
-apply_generic_function_test: SkipByDesign # Function.apply with named args
-apply_test: Skip # Uses new Symbol via symbolToStringMap helper
-dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 nsm_invocation_test: SkipByDesign # Relies on non-obfuscated symbols
 symbol_test: SkipByDesign # Relies on non-obfuscated symbols
 type_tostring_test: SkipByDesign # Expects names in Type.toString()

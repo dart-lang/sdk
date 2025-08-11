@@ -19,8 +19,10 @@ watchMs(Stopwatch watch) {
 
 main() {
   test("stream-periodic4", () {
-    Stream stream =
-        new Stream.periodic(const Duration(milliseconds: 5), (x) => x);
+    Stream stream = new Stream.periodic(
+      const Duration(milliseconds: 5),
+      (x) => x,
+    );
     Stopwatch watch = new Stopwatch()..start();
     var subscription;
     subscription = stream.take(10).listen((i) {

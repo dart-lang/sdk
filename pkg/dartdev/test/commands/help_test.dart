@@ -22,7 +22,7 @@ void help() {
   ];
   DartdevRunner(['--suppress-analytics'])
       .commands
-      .forEach((String commandKey, Command command) {
+      .forEach((String commandKey, Command<int> command) {
     if (!commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () async {
         p = project();
@@ -57,7 +57,7 @@ void help() {
   test('(--help flags also have -h abbr)', () {
     DartdevRunner(['--suppress-analytics'])
         .commands
-        .forEach((String commandKey, Command command) {
+        .forEach((String commandKey, Command<int> command) {
       var helpOption = command.argParser.options['help'];
       // Some commands (like pub which use
       // "argParser = ArgParser.allowAnything()") may not have the help Option
@@ -66,5 +66,41 @@ void help() {
         expect(helpOption.abbr, 'h', reason: '');
       }
     });
+  });
+
+  test('command categories', () async {
+    p = project();
+    final result = await p.run(['help', '--verbose']);
+    // Include the `Available commands:` with the empty line to ensure all
+    // commands have a category.
+    expect(
+        result.stdout,
+        contains(
+          '''
+Available commands:
+
+Project
+  build                 Build a Dart application including native assets.
+  compile               Compile Dart to various formats.
+  create                Create a new Dart project.
+  pub                   Work with packages.
+  run                   Run a Dart program.
+  test                  Run tests for a project.
+
+Source code
+  analyze               Analyze Dart code in a directory.
+  doc                   Generate API documentation for Dart projects.
+  fix                   Apply automated fixes to Dart source code.
+  format                Idiomatically format Dart source code.
+
+Tools
+  compilation-server    Control resident frontend compilers.
+  development-service   Start Dart's development service.
+  devtools              Open DevTools (optionally connecting to an existing application).
+  info                  Show diagnostic information about the installed tooling.
+  language-server       Start Dart's analysis server.
+  tooling-daemon        Start Dart's tooling daemon.
+''',
+        ));
   });
 }

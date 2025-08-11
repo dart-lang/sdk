@@ -8,9 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
@@ -564,7 +562,7 @@ Future<void> main() async {
 
   group('full compiler tests', () {
     final Uri platformKernel =
-        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+        computePlatformBinariesLocation().resolve('vm_platform.dill');
     final Uri ddcPlatformKernel =
         computePlatformBinariesLocation().resolve('ddc_outline.dill');
     final Uri sdkRoot = computePlatformBinariesLocation();
@@ -1087,6 +1085,204 @@ extension type Foo(int value) {
         } else {
           expect(count, 4);
           // Fifth request was to 'compile-expression' that references original
+          // function, which should still be successful.
+          expect(result.errorsCount, 0);
+          frontendServer.quit();
+        }
+      });
+
+      expect(await result, 0);
+      frontendServer.close();
+    }, timeout: new Timeout.factor(100));
+
+    test('compile expression to JavaScript when delta is rejected', () async {
+      File fileLib = new File('${tempDir.path}/lib.dart')..createSync();
+      fileLib.writeAsStringSync("foo() => 42;\n");
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      // Initial compile contains a generic class so an edit can be made later
+      // that is known to be rejected.
+      file.writeAsStringSync(
+          "import 'lib.dart'; class A<T, S> {} main1() => print(foo);\n");
+      File packageConfig =
+          new File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "hello",
+      "rootUri": "../",
+      "packageUri": "./"
+    }
+  ]
+}
+''');
+      File dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        // TODO(nshahan): Remove these two flags when library bundle format is
+        // the default without passing --dartdevc-canary.
+        '--dartdevc-module-format=ddc',
+        '--dartdevc-canary',
+        '--packages=${packageConfig.path}',
+      ];
+
+      FrontendServer frontendServer = new FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request was to 'compile', which resulted in full kernel file.
+          expect(result.errorsCount, 0);
+          expect(dillFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          frontendServer.accept();
+
+          frontendServer.compileExpressionToJs(
+            expression: 'main1',
+            libraryUri: 'package:hello/foo.dart',
+            line: 1,
+            column: 1,
+          );
+          count += 1;
+        } else if (count == 1) {
+          // Second request was to 'compile-expression', which resulted in
+          // kernel file with a function that wraps compiled expression.
+          expect(result.errorsCount, 0);
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          // Removing a generic class type argument is known to cause a reload
+          // rejection.
+          file.writeAsStringSync(
+              "import 'lib.dart'; class A<T> {} main() => foo();\n");
+
+          frontendServer.recompile(file.uri, entryPoint: file.path);
+          count += 1;
+        } else if (count == 2) {
+          // Third request was to recompile the script after renaming a
+          // function.
+          expect(result.errorsCount, 1);
+          frontendServer.reject();
+          count += 1;
+        } else if (count == 3) {
+          // Fourth request was to reject the compilation results.
+          expect(result.errorsCount, 0);
+          frontendServer.compileExpressionToJs(
+            expression: 'main1',
+            libraryUri: 'package:hello/foo.dart',
+            line: 1,
+            column: 1,
+          );
+          count += 1;
+        } else {
+          expect(count, 4);
+          // Fifth request was to 'compile-expression' that references original
+          // function, which should still be successful.
+          expect(result.errorsCount, 0);
+          frontendServer.quit();
+        }
+      });
+
+      expect(await result, 0);
+      frontendServer.close();
+    }, timeout: new Timeout.factor(100));
+
+    test('compile expression to JavaScript when delta is accepted', () async {
+      File fileLib = new File('${tempDir.path}/lib.dart')..createSync();
+      fileLib.writeAsStringSync("foo() => 42;\n");
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("import 'lib.dart'; main1() => print(foo);\n");
+      File packageConfig =
+          new File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "hello",
+      "rootUri": "../",
+      "packageUri": "./"
+    }
+  ]
+}
+''');
+      File dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        // TODO(nshahan): Remove these two flags when library bundle format is
+        // the default without passing --dartdevc-canary.
+        '--dartdevc-module-format=ddc',
+        '--dartdevc-canary',
+        '--packages=${packageConfig.path}',
+      ];
+
+      FrontendServer frontendServer = new FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request was to 'compile', which resulted in full kernel file.
+          expect(result.errorsCount, 0);
+          expect(dillFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          frontendServer.accept();
+
+          frontendServer.compileExpressionToJs(
+            expression: 'main1',
+            libraryUri: 'package:hello/foo.dart',
+            line: 1,
+            column: 1,
+          );
+          count += 1;
+        } else if (count == 1) {
+          // Second request was to 'compile-expression', which resulted in
+          // kernel file with a function that wraps compiled expression.
+          expect(result.errorsCount, 0);
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
+          frontendServer.recompile(file.uri, entryPoint: file.path);
+          count += 1;
+        } else if (count == 2) {
+          // Third request was to recompile the script after renaming a
+          // function.
+          expect(result.errorsCount, 0);
+          File dillIncFile = new File('${dillFile.path}.incremental.dill');
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(result.filename, dillIncFile.path);
+          frontendServer.accept();
+          frontendServer.compileExpressionToJs(
+            expression: 'main',
+            libraryUri: 'package:hello/foo.dart',
+            line: 1,
+            column: 1,
+          );
+          count += 1;
+        } else {
+          expect(count, 3);
+          // Fourth request was to 'compile-expression' that references the new
           // function, which should still be successful.
           expect(result.errorsCount, 0);
           frontendServer.quit();
@@ -1746,205 +1942,6 @@ extension type Foo(int value) {
       });
     });
 
-    group('binary protocol', () {
-      Map<Uri, String> fileContentMap = <Uri, String>{};
-
-      setUp(() {
-        fileContentMap = {};
-      });
-
-      void addFileCallbacks(RequestChannel requestChannel) {
-        requestChannel.add('file.exists', (uriStr) async {
-          final Uri uri = Uri.parse(uriStr as String);
-          return fileContentMap.containsKey(uri);
-        });
-        requestChannel.add('file.readAsBytes', (uriStr) async {
-          final Uri uri = Uri.parse(uriStr as String);
-          final String? content = fileContentMap[uri];
-          return content != null ? utf8.encode(content) : new Uint8List(0);
-        });
-        requestChannel.add('file.readAsStringSync', (uriStr) async {
-          final Uri uri = Uri.parse(uriStr as String);
-          return fileContentMap[uri] ?? '';
-        });
-      }
-
-      Future<ServerSocket> loopbackServerSocket() async {
-        try {
-          return await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
-        } on SocketException catch (_) {
-          return await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-        }
-      }
-
-      Future<void> runWithServer(
-        Future<void> Function(RequestChannel) f,
-      ) async {
-        final Completer<void> testFinished = new Completer<void>();
-        final ServerSocket serverSocket = await loopbackServerSocket();
-
-        serverSocket.listen((socket) async {
-          final RequestChannel requestChannel = new RequestChannel(socket);
-
-          try {
-            await f(requestChannel);
-          } finally {
-            unawaited(requestChannel.sendRequest('stop', {}));
-            socket.destroy();
-            await serverSocket.close();
-            testFinished.complete();
-          }
-        });
-
-        final String host = serverSocket.address.address;
-        final String addressStr = '$host:${serverSocket.port}';
-        expect(await starter(['--binary-protocol-address=$addressStr']), 0);
-
-        await testFinished.future;
-      }
-
-      group('dill.put', () {
-        test('not Map argument', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('dill.put', 42);
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('no field: uri', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('dill.put', {});
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('no field: bytes', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('dill.put', {
-                'uri': 'vm:dill',
-              });
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('OK', () async {
-          await runWithServer((requestChannel) async {
-            await requestChannel.sendRequest<Uint8List?>('dill.put', {
-              'uri': 'vm:dill',
-              'bytes': new Uint8List(256),
-            });
-          });
-        });
-      });
-
-      group('dill.remove', () {
-        test('not Map argument', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('dill.remove', 42);
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('no field: uri', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('dill.remove', {});
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('OK', () async {
-          await runWithServer((requestChannel) async {
-            await requestChannel.sendRequest<Uint8List?>('dill.remove', {
-              'uri': 'vm:dill',
-            });
-          });
-        });
-      });
-
-      group('kernelForProgram', () {
-        test('not Map argument', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>(
-                'kernelForProgram',
-                42,
-              );
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('no field: sdkSummary', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>(
-                'kernelForProgram',
-                {},
-              );
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('no field: uri', () async {
-          await runWithServer((requestChannel) async {
-            try {
-              await requestChannel.sendRequest<Uint8List>('kernelForProgram', {
-                'sdkSummary': 'dill:vm',
-              });
-              fail('Expected RequestChannelException');
-            } on RequestChannelException {}
-          });
-        });
-
-        test('compiles', () async {
-          await runWithServer((requestChannel) async {
-            addFileCallbacks(requestChannel);
-
-            await requestChannel.sendRequest<void>('dill.put', {
-              'uri': 'dill:vm',
-              'bytes': new File(
-                path.join(
-                  path.dirname(path.dirname(Platform.resolvedExecutable)),
-                  'lib',
-                  '_internal',
-                  'vm_platform_strong.dill',
-                ),
-              ).readAsBytesSync(),
-            });
-
-            fileContentMap[Uri.parse('file:///home/test/lib/test.dart')] = r'''
-import 'dart:isolate';
-void main(List<String> arguments, SendPort sendPort) {
-  sendPort.send(42);
-}
-''';
-
-            final Uint8List kernelBytes =
-                await requestChannel.sendRequest<Uint8List>(
-              'kernelForProgram',
-              {
-                'sdkSummary': 'dill:vm',
-                'uri': 'file:///home/test/lib/test.dart',
-              },
-            );
-
-            expect(kernelBytes, hasLength(greaterThan(200)));
-          });
-        });
-      });
-    });
-
     group('compile to JavaScript', () {
       Future<void> runTests(
           {required String moduleFormat, bool canary = false}) async {
@@ -2543,6 +2540,8 @@ e() {
             '--output-dill=${dillFile.path}',
             '--target=dartdevc',
             // Errors are only emitted with the DDC library bundle format.
+            // TODO(nshahan): Remove these two flags when library bundle format
+            // is the default without passing --dartdevc-canary.
             '--dartdevc-module-format=ddc',
             '--dartdevc-canary',
             '--packages=${packageConfig.path}',

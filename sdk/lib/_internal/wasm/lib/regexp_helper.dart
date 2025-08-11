@@ -10,17 +10,17 @@ part of dart._js_helper;
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
 String quoteStringForRegExp(String string) =>
-// This method is optimized to test before replacement, which should be
-// much faster. This might be worth measuring in real world use cases
-// though.
-JSStringImpl(
-  JS<WasmExternRef>(r"""s => {
+    // This method is optimized to test before replacement, which should be
+    // much faster. This might be worth measuring in real world use cases
+    // though.
+    JSStringImpl.fromRefUnchecked(
+      JS<WasmExternRef>(r"""s => {
       if (/[[\]{}()*+?.\\^$|]/.test(s)) {
           s = s.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
       }
       return s;
     }""", jsStringFromDartString(string).toExternRef),
-);
+    );
 
 // TODO(srujzs): Add this to `JSObject`.
 @js.JS('Object.keys')
@@ -132,7 +132,7 @@ class JSSyntaxRegExp implements RegExp {
     if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
-    String errorMessage = JSStringImpl(result!);
+    String errorMessage = JSStringImpl.fromRefUnchecked(result!);
     throw FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 

@@ -45,8 +45,11 @@ Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
       // style_guide: {unnecessary_getters: false, camel_case_types: true}
       // ```
       configValue.nodes.forEach((ruleName, ruleValue) {
-        var ruleConfig =
-            _parseRuleConfig(ruleName, ruleValue, group: configName);
+        var ruleConfig = _parseRuleConfig(
+          ruleName,
+          ruleValue,
+          group: configName,
+        );
         if (ruleConfig != null) {
           ruleConfigs[ruleConfig.name] = ruleConfig;
           return;
@@ -64,16 +67,17 @@ Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
   // Quick check of basic contract.
   if (options is YamlMap) {
     var rulesNode = options.valueAt(AnalysisOptionsFile.rules);
-    return {
-      if (rulesNode != null) ...parseDiagnosticsSection(rulesNode),
-    };
+    return {if (rulesNode != null) ...parseDiagnosticsSection(rulesNode)};
   }
 
   return null;
 }
 
-RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
-    {String? group}) {
+RuleConfig? _parseRuleConfig(
+  dynamic configKey,
+  YamlNode configNode, {
+  String? group,
+}) {
   // For example: `{unnecessary_getters: false}`.
   if (configKey case YamlScalar(value: String ruleName)) {
     if (configNode case YamlScalar(value: bool isEnabled)) {

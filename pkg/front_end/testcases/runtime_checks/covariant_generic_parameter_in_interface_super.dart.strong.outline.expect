@@ -16,7 +16,7 @@ abstract class I<T extends core::Object? = dynamic> extends core::Object {
 class C extends self::B implements self::I<core::int> {
   synthetic constructor •() → self::C
     ;
-  forwarding-stub method f(covariant-by-class core::int x) → void
+  forwarding-stub synthetic method f(covariant-by-class core::int x) → void
     return super.{self::B::f}(x);
 }
 static method g1(self::C c) → void

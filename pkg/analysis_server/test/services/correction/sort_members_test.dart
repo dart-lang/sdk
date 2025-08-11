@@ -4,12 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -1793,6 +1793,6 @@ void f() {}
     );
     var edits = sorter.sort();
     var result = SourceEdit.applySequence(testCode, edits);
-    expect(result, expectedCode);
+    expect(result, normalizeSource(expectedCode));
   }
 }

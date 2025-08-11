@@ -99,7 +99,7 @@ class C extends core::Object {
   synthetic constructor •() → mai::C
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → mai::C
+  static synthetic method _#new#tearOff() → mai::C
     return new mai::C::•();
   get a() → core::int
     return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#a#A}{core::int}, "a");
@@ -119,6 +119,7 @@ class C extends core::Object {
   }
   set c(synthesized core::int value) → void
     this.{mai::C::_#C#c#AI} = value;
+  @#C3
   get d() → core::int {
     synthesized core::int value = this.{mai::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
@@ -137,7 +138,7 @@ class Statics extends core::Object {
   synthetic constructor •() → mai::Statics
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → mai::Statics
+  static synthetic method _#new#tearOff() → mai::Statics
     return new mai::Statics::•();
   static get a() → core::int
     return mai::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
@@ -212,3 +213,9 @@ static get b() → core::int
   return mai2::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
 static set b(synthesized core::int value) → void
   return mai2::_#b.{_la::_Cell::finalFieldValue} = value;
+
+constants  {
+  #C1 = "dart2js:allow-cse"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

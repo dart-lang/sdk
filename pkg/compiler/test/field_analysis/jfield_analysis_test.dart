@@ -70,8 +70,8 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
         );
       } else if (fieldData.isEager) {
         if (fieldData.eagerCreationIndex != null) {
-          features[Tags.eagerCreationIndex] =
-              fieldData.eagerCreationIndex.toString();
+          features[Tags.eagerCreationIndex] = fieldData.eagerCreationIndex
+              .toString();
         }
         if (fieldData.eagerFieldDependenciesForTesting != null) {
           for (FieldEntity field

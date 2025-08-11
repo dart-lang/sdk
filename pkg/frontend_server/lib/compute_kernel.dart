@@ -23,7 +23,6 @@ import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/api_unstable/frontend_server.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
-import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/modular/target/flutter.dart';
 import 'package:vm/modular/target/flutter_runner.dart';
@@ -107,6 +106,7 @@ final ArgParser summaryArgsParser = new ArgParser()
           'compilation.',
       allowed: fe.Verbosity.allowedValues,
       allowedHelp: fe.Verbosity.allowedValuesHelp)
+  // TODO(johnniwinther): Remove the macros-related options.
   ..addFlag('require-prebuilt-macros',
       defaultsTo: false,
       help: 'Require that prebuilt macros for all macro applications be '
@@ -313,8 +313,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
 
-  SerializationMode macroSerializationMode =
-      new SerializationMode.fromOption(parsedArgs['macro-serialization-mode']);
   if (usingIncrementalCompiler) {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -351,10 +349,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         summaryOnly,
         nullableEnvironmentDefines!,
         trackNeededDillLibraries: recordUsedInputs,
-        verbose: verbose,
-        requirePrebuiltMacros: parsedArgs['require-prebuilt-macros'],
-        precompiledMacros: parsedArgs['precompiled-macro'],
-        macroSerializationMode: macroSerializationMode);
+        verbose: verbose);
   } else {
     state = fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.

@@ -4881,18 +4881,6 @@ class Map{}class tst {var newt;void newf(){}test() {var newz;new ^/* */;}}
 suggestions
   Map
     kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
 ''');
   }
 
@@ -4905,18 +4893,6 @@ class Map{}class F{m(){new ^;}}
 suggestions
   Map
     kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
 ''');
   }
 
@@ -4928,18 +4904,6 @@ class Map{}class F{m(){new ^
     assertResponse(r'''
 suggestions
   Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
     kind: constructorInvocation
 ''');
   }
@@ -5179,48 +5143,6 @@ suggestions
   Future<void> test_commentSnippets030_1() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
-class Bar<T extends Foo> {const Bar(^T k);T m(T a, T b){}final T f = null;}
-''');
-    assertResponse(r'''
-replacement
-  right: 1
-suggestions
-  this
-    kind: keyword
-  void
-    kind: keyword
-  T
-    kind: typeParameter
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  super
-    kind: keyword
-''');
-  }
-
-  Future<void> test_commentSnippets030_2() async {
-    allowedIdentifiers = {'T'};
-    await computeSuggestions('''
-class Bar<T extends Foo> {const Bar(T^ k);T m(T a, T b){}final T f = null;}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  this
-    kind: keyword
-  T
-    kind: typeParameter
-''');
-  }
-
-  Future<void> test_commentSnippets030_3() async {
-    allowedIdentifiers = {'T'};
-    await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T^ m(T a, T b){}final T f = null;}
 ''');
     assertResponse(r'''
@@ -5232,7 +5154,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_4() async {
+  Future<void> test_commentSnippets030_2() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T^ a, T b){}final T f = null;}
@@ -5246,7 +5168,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_5() async {
+  Future<void> test_commentSnippets030_3() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T^ b){}final T f = null;}
@@ -5260,7 +5182,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_6() async {
+  Future<void> test_commentSnippets030_4() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T b){}final T^ f = null;}
@@ -5414,10 +5336,6 @@ replacement
 suggestions
   List
     kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
 ''');
   }
 
@@ -5563,18 +5481,6 @@ class List{}class XXX {XXX.fisk();}void f() {f(); new ^}}
     assertResponse(r'''
 suggestions
   List
-    kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
     kind: constructorInvocation
   XXX.fisk
     kind: constructorInvocation

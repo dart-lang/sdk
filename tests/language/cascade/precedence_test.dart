@@ -171,19 +171,17 @@ main() {
   Box originalBox = box;
   // Should parse as:
   // box = (box..x = (a.value == 21 ? b : c)..x.test(117));
-  box =
-      box
-        ..x = a.value == 21 ? b : c
-        ..x.test(117);
+  box = box
+    ..x = a.value == 21 ? b : c
+    ..x.test(117);
   Expect.equals(originalBox, box);
   Expect.equals(box.value, b);
 
   // New cascades are allowed inside an expressionWithoutCascade if properly
   // delimited.
   box
-    ..x =
-        (a
-          ..set(42)
-          ..test(42))
+    ..x = (a
+      ..set(42)
+      ..test(42))
     ..x.test(42);
 }

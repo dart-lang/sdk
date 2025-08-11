@@ -84,19 +84,29 @@ main() {
   // Now the same thing through mirrors and mirror-invocation.
   f = getAMirror().getField(#codeUnitAt);
   Expect.equals(
-      "codeUnitAt-42", f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee);
+    "codeUnitAt-42",
+    f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#toUpperCase);
   Expect.equals(
-      "toUpperCase", f.invoke(#call, [], <Symbol, dynamic>{}).reflectee);
+    "toUpperCase",
+    f.invoke(#call, [], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#indexOf);
   Expect.equals(
-      "indexOf-499", f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee);
+    "indexOf-499",
+    f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#lastIndexOf);
   Expect.equals(
-      "lastIndexOf-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);
+    "lastIndexOf-FOO,BAR",
+    f.invoke(#call, ["FOO", "BAR"]).reflectee,
+  );
   f = getAMirror().getField(#splitMapJoin);
-  Expect.equals("splitMapJoin-1,2,3",
-      f.invoke(#call, [1], {#onMatch: 2, #onNonMatch: 3}).reflectee);
+  Expect.equals(
+    "splitMapJoin-1,2,3",
+    f.invoke(#call, [1], {#onMatch: 2, #onNonMatch: 3}).reflectee,
+  );
   f = getAMirror().getField(#trim);
   Expect.equals("trim-true", f.invoke(#call, [], {#named: true}).reflectee);
 
@@ -118,16 +128,24 @@ main() {
 
   f = getAMirror().getField(#endsWith);
   Expect.equals(
-      "endsWith-42", f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee);
+    "endsWith-42",
+    f.invoke(#call, [42], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#toLowerCase);
   Expect.equals(
-      "toLowerCase", f.invoke(#call, [], <Symbol, dynamic>{}).reflectee);
+    "toLowerCase",
+    f.invoke(#call, [], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#indexOf);
   Expect.equals(
-      "indexOf-499", f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee);
+    "indexOf-499",
+    f.invoke(#call, [499], <Symbol, dynamic>{}).reflectee,
+  );
   f = getAMirror().getField(#matchAsPrefix);
   Expect.equals(
-      "matchAsPrefix-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);
+    "matchAsPrefix-FOO,BAR",
+    f.invoke(#call, ["FOO", "BAR"]).reflectee,
+  );
   f = getAMirror().getField(#toList);
   Expect.equals("toList-1", f.invoke(#call, [], {#growable: 1}).reflectee);
   f = getAMirror().getField(#toSet);

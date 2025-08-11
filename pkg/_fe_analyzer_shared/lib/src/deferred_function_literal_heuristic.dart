@@ -11,8 +11,11 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 /// https://github.com/dart-lang/language/issues/731 (improved inference for
 /// fold etc.) to choose the proper order in which to recursively analyze
 /// function literals passed as invocation arguments.
-abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
-    DeferredParamInfo extends ParamInfo> {
+abstract class FunctionLiteralDependencies<
+  TypeVariable,
+  ParamInfo,
+  DeferredParamInfo extends ParamInfo
+> {
   final List<_Node<ParamInfo>> _paramNodes = [];
 
   /// Construct a [FunctionLiteralDependencies] object that's prepared to
@@ -22,15 +25,18 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
   /// [unDeferredParams] should contain information about any parameters
   /// corresponding to arguments that have already been type inferred.
   FunctionLiteralDependencies(
-      Iterable<DeferredParamInfo> deferredParams,
-      Iterable<TypeVariable> typeVariables,
-      Iterable<ParamInfo> unDeferredParams) {
+    Iterable<DeferredParamInfo> deferredParams,
+    Iterable<TypeVariable> typeVariables,
+    Iterable<ParamInfo> unDeferredParams,
+  ) {
     Map<TypeVariable, Set<_Node<ParamInfo>>> paramsDependingOnTypeVar = {};
     Map<TypeVariable, Set<_Node<ParamInfo>>> paramsConstrainingTypeVar = {};
     int deferredParamIndex = 0;
     for (DeferredParamInfo param in deferredParams) {
-      _Node<ParamInfo> paramNode =
-          new _Node<ParamInfo>(param, deferredParamIndex: deferredParamIndex++);
+      _Node<ParamInfo> paramNode = new _Node<ParamInfo>(
+        param,
+        deferredParamIndex: deferredParamIndex++,
+      );
       _paramNodes.add(paramNode);
       for (TypeVariable v in typeVarsFreeInParamParams(param)) {
         (paramsDependingOnTypeVar[v] ??= {}).add(paramNode);
@@ -40,8 +46,10 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
       }
     }
     for (ParamInfo param in unDeferredParams) {
-      _Node<ParamInfo> paramNode =
-          new _Node<ParamInfo>(param, deferredParamIndex: null);
+      _Node<ParamInfo> paramNode = new _Node<ParamInfo>(
+        param,
+        deferredParamIndex: null,
+      );
       _paramNodes.add(paramNode);
       // Note: for un-deferred parameters, we only care about
       // typeVarsFreeInParamReturns, because these parameters have already been
@@ -53,8 +61,9 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
     for (TypeVariable typeVariable in typeVariables) {
       for (_Node<ParamInfo> paramNode
           in paramsDependingOnTypeVar[typeVariable] ?? const {}) {
-        paramNode.dependencies
-            .addAll(paramsConstrainingTypeVar[typeVariable] ?? const {});
+        paramNode.dependencies.addAll(
+          paramsConstrainingTypeVar[typeVariable] ?? const {},
+        );
       }
     }
   }
@@ -93,8 +102,8 @@ abstract class FunctionLiteralDependencies<TypeVariable, ParamInfo,
       for (List<_Node<ParamInfo>> stage in walker.reconciliationStages)
         [
           for (_Node<ParamInfo> node in _sortStage(stage))
-            node.param as DeferredParamInfo
-        ]
+            node.param as DeferredParamInfo,
+        ],
     ];
   }
 

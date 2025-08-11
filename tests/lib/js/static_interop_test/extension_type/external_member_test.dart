@@ -158,10 +158,9 @@ void main() {
     () => external.fieldT,
   );
   Expect.throws(
-    () =>
-        external
-            .addMethodGeneric<JSNumber, JSString>(value.toJS, value.toJS)
-            .toDartInt,
+    () => external
+        .addMethodGeneric<JSNumber, JSString>(value.toJS, value.toJS)
+        .toDartInt,
   );
   Expect.throws(
     () => external

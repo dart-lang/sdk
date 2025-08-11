@@ -189,9 +189,7 @@ testPhiForwarding5(C c) {
 
 class U {
   var x, y;
-  U()
-      : x = 0,
-        y = 0;
+  U() : x = 0, y = 0;
 }
 
 testEqualPhisElimination() {

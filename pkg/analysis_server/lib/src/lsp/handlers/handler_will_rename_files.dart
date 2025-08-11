@@ -39,8 +39,10 @@ class WillRenameFilesHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    var clientCapabilities = message.clientCapabilities;
-    if (clientCapabilities == null) {
+    // Use editor capabilities because this is used to compute to edits to send
+    // to the client.
+    var editorCapabilities = server.editorClientCapabilities;
+    if (editorCapabilities == null) {
       return serverNotInitializedError;
     }
 
@@ -61,11 +63,11 @@ class WillRenameFilesHandler
         pathMapping[oldPath] = newPath;
       });
     }
-    return _renameFiles(clientCapabilities, pathMapping, token);
+    return _renameFiles(editorCapabilities, pathMapping, token);
   }
 
   Future<ErrorOr<WorkspaceEdit?>> _renameFiles(
-    LspClientCapabilities clientCapabilities,
+    LspClientCapabilities editorCapabilities,
     Map<String, String> renames,
     CancellationToken token,
   ) async {
@@ -103,7 +105,7 @@ class WillRenameFilesHandler
 
     server.checkConsistency(sessions);
 
-    var edit = createWorkspaceEdit(server, clientCapabilities, change);
+    var edit = createWorkspaceEdit(server, editorCapabilities, change);
     return success(edit);
   }
 }

@@ -251,6 +251,7 @@ void f() {
       [
         // No lint.
         error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 23, 7),
+        error(WarningCode.DEAD_CODE, 32, 2),
       ],
     );
   }

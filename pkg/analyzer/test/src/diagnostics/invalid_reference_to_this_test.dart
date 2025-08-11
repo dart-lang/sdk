@@ -16,25 +16,27 @@ main() {
 @reflectiveTest
 class InvalidReferenceToThisTest extends PubPackageResolutionTest {
   test_class_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() {
     var v = this;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1)],
+    );
   }
 
   test_class_factoryConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() { return this; }
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4)],
+    );
   }
 
   test_class_instanceMethod() async {
@@ -48,57 +50,62 @@ class A {
   }
 
   test_class_instanceVariableInitializer_inConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var f;
   A() : f = this;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 31, 4)],
+    );
   }
 
   test_class_instanceVariableInitializer_inDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var f = this;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 20, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 20, 4)],
+    );
   }
 
   test_class_staticMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static m() { return this; }
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 32, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 32, 4)],
+    );
   }
 
   test_class_staticVariableInitializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static A f = this;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 25, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 25, 4)],
+    );
   }
 
   test_class_superInitializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(var x) {}
 }
 class B extends A {
   B() : super(this);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 60, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 60, 4)],
+    );
   }
 
   test_instanceVariableInitializer_inDeclaration_late() async {
@@ -118,26 +125,29 @@ mixin A {
   }
 
   test_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() { return this; }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4)],
+    );
   }
 
   test_topLevelVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int x = this;
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4)],
+    );
   }
 
   test_variableInitializer_late() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 late var x = this;
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4)],
+    );
   }
 }

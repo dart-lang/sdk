@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,13 +17,10 @@ class PreferForeach extends LintRule {
   PreferForeach() : super(name: LintNames.prefer_foreach, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_foreach;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_foreach;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
   }
@@ -29,7 +28,7 @@ class PreferForeach extends LintRule {
 
 class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  LocalVariableElement2? element;
+  LocalVariableElement? element;
   ForStatement? forEachStatement;
 
   _PreferForEachVisitor(this.rule);
@@ -50,7 +49,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      var element = loopParts.loopVariable.declaredElement2;
+      var element = loopParts.loopVariable.declaredElement;
       if (element != null) {
         forEachStatement = node;
         this.element = element;
@@ -63,7 +62,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
     if (arguments.length == 1 && arguments.first.canonicalElement == element) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 
@@ -74,7 +73,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
     if (arguments.length == 1 &&
         arguments.first.canonicalElement == element &&
         (target == null || !_ReferenceFinder(element).references(target))) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 
@@ -86,7 +85,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
 
 class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {

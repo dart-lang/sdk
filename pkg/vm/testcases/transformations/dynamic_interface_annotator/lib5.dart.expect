@@ -17,7 +17,7 @@ static extension-type-member method E1|constructor#_(core::int _info) → self::
   return #this;
 }
 @#C3
-static extension-type-member method E1|constructor#_#_#tearOff(core::int _info) → self::E1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E1|constructor#_#_#tearOff(core::int _info) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#_(_info);
 @#C3
 static extension-type-member method E1|get#info(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → core::int

@@ -90,7 +90,7 @@ void child(replyPort) {
   }
   replyPort.send([
     TransferableTypedData.fromList([x]),
-    TransferableTypedData.fromList([x])
+    TransferableTypedData.fromList([x]),
   ]);
 
   print("Child same Uint8List twice - materialize first");
@@ -259,9 +259,9 @@ testIterableToList() {
   }
   final map = {list1: true, list2: true};
   Iterable<Uint8List> iterable = map.keys;
-  final result = TransferableTypedData.fromList(iterable.toList())
-      .materialize()
-      .asUint8List();
+  final result = TransferableTypedData.fromList(
+    iterable.toList(),
+  ).materialize().asUint8List();
   for (int i = 0; i < result.length; i++) {
     Expect.equals(i, result[i]);
   }

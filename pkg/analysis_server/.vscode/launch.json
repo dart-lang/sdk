@@ -12,6 +12,22 @@
             "request": "launch",
             "type": "dart",
             "program": "test/test_all.dart",
+        },
+        {
+            "name": "Dart - Integration Tests",
+            "type": "dart",
+            "request": "launch",
+            // By specifying "templateFor", this config acts as a template when launching things inside the "integration_test" folder
+            // from the CodeLens links and from the VS Code test runner.
+            "templateFor": "integration_test",
+            // Run the task to pre-compile the analysis server into the .dart_tool folder.
+            "preLaunchTask": "dart: compile analysis server",
+            // Pass the path of that snapshot in the `TEST_SERVER_SNAPSHOT` env variable so
+            // that the integration tests will use this instead of the one in the current
+            // SDK.
+            "env": {
+                "TEST_SERVER_SNAPSHOT": ".dart_tool/integration_tests_analysis_server.dart.snapshot"
+            },
         }
     ]
 }

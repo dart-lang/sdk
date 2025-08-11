@@ -14,7 +14,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   final TypeImpl topType;
   final TypeImpl topFunctionType;
   final TypeImpl bottomType;
-  final Set<TypeParameterElementImpl2> eliminationTargets;
+  final Set<TypeParameterElementImpl> eliminationTargets;
 
   late final bool _isLeastClosure;
   bool _isCovariant = true;
@@ -72,7 +72,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
     //  - The greatest closure of `S` with respect to `L` is `Function`
     for (var typeParameter in node.typeParameters) {
       if (typeParameter.bound case TypeImpl bound?
-          when bound.referencesAny2(eliminationTargets)) {
+          when bound.referencesAny(eliminationTargets)) {
         return _functionReplacement;
       }
     }
@@ -82,7 +82,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
 
   @override
   TypeImpl? visitTypeParameterType(TypeParameterType type) {
-    if (eliminationTargets.contains(type.element3)) {
+    if (eliminationTargets.contains(type.element)) {
       var replacement = _typeParameterReplacement;
       return replacement.withNullability(
         uniteNullabilities(
@@ -120,10 +120,7 @@ class PatternGreatestClosureHelper extends ReplacementVisitor {
   TypeImpl? visitTypeParameterType(TypeParameterType type) {
     var replacement = _isCovariant ? topType : bottomType;
     return replacement.withNullability(
-      uniteNullabilities(
-        replacement.nullabilitySuffix,
-        type.nullabilitySuffix,
-      ),
+      uniteNullabilities(replacement.nullabilitySuffix, type.nullabilitySuffix),
     );
   }
 }

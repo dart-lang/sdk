@@ -43,37 +43,50 @@ ${result.processResult.stderr}''');
 void expectOutput(String what, Result result) {
   if (result.output != what) {
     reportError(
-        result,
-        'Expected test to print \'${what}\' to stdout. '
-        'Actual: ${result.output}');
+      result,
+      'Expected test to print \'${what}\' to stdout. '
+      'Actual: ${result.output}',
+    );
   }
 }
 
-Future<Result> runDart(String prefix, List<String> arguments,
-    {bool printOut = true}) {
+Future<Result> runDart(
+  String prefix,
+  List<String> arguments, {
+  bool printOut = true,
+  String? dartExecutable,
+}) {
   final augmentedArguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..add('--verbosity=warning')
     ..addAll(arguments);
-  return runBinary(prefix, Platform.executable, augmentedArguments,
-      printOut: printOut);
+  return runBinary(
+    prefix,
+    dartExecutable ?? Platform.executable,
+    augmentedArguments,
+    printOut: printOut,
+  );
 }
 
 Future<Result> runGenKernel(String prefix, List<String> arguments) {
   final augmentedArguments = <String>[
     "--platform",
     platformDill,
-    ...Platform.executableArguments.where((arg) =>
-        arg.startsWith('--enable-experiment=') ||
-        arg == '--sound-null-safety' ||
-        arg == '--no-sound-null-safety'),
+    ...Platform.executableArguments.where(
+      (arg) =>
+          arg.startsWith('--enable-experiment=') ||
+          arg == '--sound-null-safety' ||
+          arg == '--no-sound-null-safety',
+    ),
     ...arguments,
   ];
   return runGenKernelWithoutStandardOptions(prefix, augmentedArguments);
 }
 
 Future<Result> runGenKernelWithoutStandardOptions(
-    String prefix, List<String> arguments) {
+  String prefix,
+  List<String> arguments,
+) {
   return runBinary(prefix, checkedInDartVM, [genKernelDart, ...arguments]);
 }
 
@@ -81,15 +94,26 @@ Future<Result> runGenSnapshot(String prefix, List<String> arguments) {
   return runBinary(prefix, genSnapshot, arguments);
 }
 
-Future<Result> runBinary(String prefix, String binary, List<String> arguments,
-    {Map<String, String>? environment,
-    bool runInShell = false,
-    bool printOut = true}) async {
+Future<Result> runBinary(
+  String prefix,
+  String binary,
+  List<String> arguments, {
+  Map<String, String>? environment,
+  bool runInShell = false,
+  bool printOut = true,
+  bool allowNonZeroExitCode = false,
+}) async {
   print("+ $binary " + arguments.join(" "));
-  final processResult = await Process.run(binary, arguments,
-      environment: environment, runInShell: runInShell);
-  final result =
-      new Result('[$prefix] ${binary} ${arguments.join(' ')}', processResult);
+  final processResult = await Process.run(
+    binary,
+    arguments,
+    environment: environment,
+    runInShell: runInShell,
+  );
+  final result = new Result(
+    '[$prefix] ${binary} ${arguments.join(' ')}',
+    processResult,
+  );
 
   if (printOut && processResult.stdout.isNotEmpty) {
     print('''
@@ -105,9 +129,11 @@ Command stderr:
 ${processResult.stderr}''');
   }
 
-  if (result.processResult.exitCode != 0) {
-    reportError(result,
-        '[$prefix] Process finished with non-zero exit code ${result.processResult.exitCode}');
+  if (!allowNonZeroExitCode && result.processResult.exitCode != 0) {
+    reportError(
+      result,
+      '[$prefix] Process finished with non-zero exit code ${result.processResult.exitCode}',
+    );
   }
   return result;
 }
@@ -169,10 +195,12 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
   });
 }
 
-runAppJitTest(Uri testScriptUri,
-    {Future<Result> Function(String snapshotPath)? runSnapshot}) async {
-  runSnapshot ??=
-      (snapshotPath) => runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+runAppJitTest(
+  Uri testScriptUri, {
+  Future<Result> Function(String snapshotPath)? runSnapshot,
+}) async {
+  runSnapshot ??= (snapshotPath) =>
+      runDart('RUN FROM SNAPSHOT', [snapshotPath]);
 
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
@@ -183,7 +211,7 @@ runAppJitTest(Uri testScriptUri,
       '--snapshot-kind=app-jit',
       '--verbosity=warning',
       testPath,
-      '--train'
+      '--train',
     ]);
     expectOutput("OK(Trained)", trainingResult);
     final runResult = await runSnapshot!(snapshotPath);

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -13,14 +15,14 @@ import '../extensions.dart';
 
 const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 
-class PreferIsEmpty extends LintRule {
+class PreferIsEmpty extends MultiAnalysisRule {
   PreferIsEmpty() : super(name: LintNames.prefer_is_empty, description: _desc);
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_is_empty_always_false,
     LinterLintCode.prefer_is_empty_always_true,
     LinterLintCode.prefer_is_empty_use_is_empty,
@@ -28,10 +30,7 @@ class PreferIsEmpty extends LintRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
@@ -40,7 +39,7 @@ class PreferIsEmpty extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferIsEmpty rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -89,25 +88,25 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (value == 0) {
       if (operator.type == TokenType.EQ_EQ ||
           operator.type == TokenType.LT_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+          diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
         );
       } else if (operator.type == TokenType.GT ||
           operator.type == TokenType.BANG_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+          diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
         );
       } else if (operator.type == TokenType.LT) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_always_false,
+          diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
         );
       } else if (operator.type == TokenType.GT_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
-          errorCode: LinterLintCode.prefer_is_empty_always_true,
+          diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
         );
       }
     } else if (value == 1) {
@@ -115,28 +114,28 @@ class _Visitor extends SimpleAstVisitor<void> {
         // 'length >= 1' is same as 'isNotEmpty',
         // and 'length < 1' is same as 'isEmpty'
         if (operator.type == TokenType.GT_EQ) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
         }
       } else {
         // '1 <= length' is same as 'isNotEmpty',
         // and '1 > length' is same as 'isEmpty'
         if (operator.type == TokenType.LT_EQ) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
+            diagnosticCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
         }
       }
@@ -146,16 +145,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_false,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_true,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
           );
         }
       } else {
@@ -163,16 +162,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_false,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
-            errorCode: LinterLintCode.prefer_is_empty_always_true,
+            diagnosticCode: LinterLintCode.prefer_is_empty_always_true,
           );
         }
       }

@@ -21,9 +21,7 @@ const uint8ListLength = 1000000;
 
 void isolateEntry(SendPort sendPort) async {
   final uint8list = Uint8List(uint8ListLength);
-  sendPort.send(Wrapper(
-    uint8list.buffer.asUint8List(0, uint8list.length),
-  ));
+  sendPort.send(Wrapper(uint8list.buffer.asUint8List(0, uint8list.length)));
 }
 
 int readWrapperUint8ListView(Wrapper wrapper) {

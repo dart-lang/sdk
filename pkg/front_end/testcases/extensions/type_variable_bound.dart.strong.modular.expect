@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/type_variable_bound.dart:32:28: Error: The method 'method2' isn't defined for the class 'SubClass'.
+// pkg/front_end/testcases/extensions/type_variable_bound.dart:32:28: Error: The method 'method2' isn't defined for the type 'SubClass'.
 //  - 'SubClass' is from 'pkg/front_end/testcases/extensions/type_variable_bound.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method2'.
 //     SubClass subClass = t3.method2() as SubClass; // error
@@ -50,7 +50,7 @@ static method test2<T extends self::Class>(self::test2::T t2) → dynamic {
 }
 static method test3<T extends core::Object? = dynamic>(self::test3::T% t3) → dynamic {
   if(t3 is self::SubClass) {
-    self::SubClass subClass = invalid-expression "pkg/front_end/testcases/extensions/type_variable_bound.dart:32:28: Error: The method 'method2' isn't defined for the class 'SubClass'.
+    self::SubClass subClass = invalid-expression "pkg/front_end/testcases/extensions/type_variable_bound.dart:32:28: Error: The method 'method2' isn't defined for the type 'SubClass'.
  - 'SubClass' is from 'pkg/front_end/testcases/extensions/type_variable_bound.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method2'.
     SubClass subClass = t3.method2() as SubClass; // error

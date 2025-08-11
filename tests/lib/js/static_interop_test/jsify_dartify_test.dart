@@ -31,6 +31,27 @@ void _expectRecEquals(Object? l, Object? r) {
   }
 }
 
+@JS('SharedArrayBuffer')
+external JSAny? get _sharedArrayBufferConstructor;
+
+bool supportsSharedArrayBuffer = _sharedArrayBufferConstructor != null;
+
+@JS('SharedArrayBuffer')
+extension type JSSharedArrayBuffer._(JSObject _) implements JSObject {
+  external JSSharedArrayBuffer(int length);
+}
+
+@JS('Uint8Array')
+extension type JSUint8ArrayShared._(JSUint8Array _) implements JSUint8Array {
+  external JSUint8ArrayShared(JSSharedArrayBuffer buf);
+}
+
+extension on JSUint8Array {
+  external int operator [](int index);
+  external operator []=(int index, int value);
+  external JSObject get buffer;
+}
+
 @JS()
 external void eval(String code);
 
@@ -49,30 +70,31 @@ void main() {
   Expect.isTrue(l.jsify().isA<JSArray>());
   _expectRecEquals(l, l.jsify().dartify() as List<Object?>);
   _expectRecEquals(
-      {
-        'null': 'foo',
-        'foo': null,
-        'a': 1,
-        'b': true,
-        'c': [1, 2, 3, null],
-        'd': 'foo',
-        'e': {
-          'f': 2,
-          'g': [2, 4, 6]
-        },
+    {
+      'null': 'foo',
+      'foo': null,
+      'a': 1,
+      'b': true,
+      'c': [1, 2, 3, null],
+      'd': 'foo',
+      'e': {
+        'f': 2,
+        'g': [2, 4, 6],
       },
-      {
-        'null': 'foo',
-        'foo': null,
-        'a': 1,
-        'b': true,
-        'c': [1, 2, 3, null],
-        'd': 'foo',
-        'e': {
-          'f': 2,
-          'g': [2, 4, 6]
-        },
-      }.jsify().dartify());
+    },
+    {
+      'null': 'foo',
+      'foo': null,
+      'a': 1,
+      'b': true,
+      'c': [1, 2, 3, null],
+      'd': 'foo',
+      'e': {
+        'f': 2,
+        'g': [2, 4, 6],
+      },
+    }.jsify().dartify(),
+  );
   l = Int8List.fromList(<int>[-128, 0, 127]);
   Expect.isTrue(l.jsify().isA<JSInt8Array>());
   _expectIterableEquals(l, l.jsify().dartify() as Int8List);
@@ -102,12 +124,26 @@ void main() {
   _expectIterableEquals(l, l.jsify().dartify() as Float64List);
   ByteBuffer buffer = Uint8List.fromList([0, 1, 2, 3]).buffer;
   Expect.isTrue(buffer.jsify().isA<JSArrayBuffer>());
-  _expectIterableEquals(buffer.asUint8List(),
-      (buffer.jsify().dartify() as ByteBuffer).asUint8List());
+  final uint8List = (buffer.jsify().dartify() as ByteBuffer).asUint8List();
+  _expectIterableEquals(buffer.asUint8List(), uint8List);
+  Expect.isTrue(uint8List.toJS.buffer.isA<JSArrayBuffer>());
+  // TODO(https://github.com/dart-lang/sdk/issues/61043): Support this in the
+  // test runner.
+  if (supportsSharedArrayBuffer) {
+    // Test that `SharedArrayBuffer`s are dartified to `TypedData` correctly.
+    final sharedArrayBuffer = JSSharedArrayBuffer(1);
+    final uint8ArrayShared = JSUint8ArrayShared(sharedArrayBuffer);
+    uint8ArrayShared[0] = 42;
+    final uint8ListShared = uint8ArrayShared.dartify() as Uint8List;
+    Expect.equals(uint8ArrayShared[0], uint8ListShared[0]);
+    Expect.isTrue(uint8ListShared.toJS.buffer.isA<JSSharedArrayBuffer>());
+  }
   ByteData byteData = ByteData.view(buffer);
   Expect.isTrue(byteData.jsify().isA<JSDataView>());
-  _expectIterableEquals(byteData.buffer.asUint8List(),
-      (byteData.jsify().dartify() as ByteData).buffer.asUint8List());
+  _expectIterableEquals(
+    byteData.buffer.asUint8List(),
+    (byteData.jsify().dartify() as ByteData).buffer.asUint8List(),
+  );
 
   // JS to Dart.
   eval(r'''
@@ -168,43 +204,63 @@ void main() {
     'd': 'foo',
     'e': {
       'f': 2,
-      'g': [2, 4, 6]
+      'g': [2, 4, 6],
     },
   }, gc['h'].dartify() as Map<Object?, Object?>);
-  _expectRecEquals({
-    'a': {},
-  }, gc['rec'].dartify() as Map<Object?, Object?>);
+  _expectRecEquals({'a': {}}, gc['rec'].dartify() as Map<Object?, Object?>);
 
-  _expectIterableEquals(Int8List.fromList(<int>[-128, 0, 127]),
-      gc['int8Array'].dartify() as Int8List);
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      gc['uint8Array'].dartify() as Uint8List);
-  _expectIterableEquals(Uint8ClampedList.fromList([-1, 0, 255, 256]),
-      gc['uint8ClampedArray'].dartify() as Uint8ClampedList);
-  _expectIterableEquals(Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
-      gc['int16Array'].dartify() as Int16List);
-  _expectIterableEquals(Uint16List.fromList([-1, 0, 65535, 65536]),
-      gc['uint16Array'].dartify() as Uint16List);
-  _expectIterableEquals(Int32List.fromList([-2147483648, 0, 2147483647]),
-      gc['int32Array'].dartify() as Int32List);
-  _expectIterableEquals(Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
-      gc['uint32Array'].dartify() as Uint32List);
   _expectIterableEquals(
-      Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      gc['float32Array'].dartify() as Float32List);
+    Int8List.fromList(<int>[-128, 0, 127]),
+    gc['int8Array'].dartify() as Int8List,
+  );
   _expectIterableEquals(
-      Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      gc['float64Array'].dartify() as Float64List);
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      (gc['arrayBuffer'].dartify() as ByteBuffer).asUint8List());
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      (gc['dataView'].dartify() as ByteData).buffer.asUint8List());
+    Uint8List.fromList([-1, 0, 255, 256]),
+    gc['uint8Array'].dartify() as Uint8List,
+  );
+  _expectIterableEquals(
+    Uint8ClampedList.fromList([-1, 0, 255, 256]),
+    gc['uint8ClampedArray'].dartify() as Uint8ClampedList,
+  );
+  _expectIterableEquals(
+    Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
+    gc['int16Array'].dartify() as Int16List,
+  );
+  _expectIterableEquals(
+    Uint16List.fromList([-1, 0, 65535, 65536]),
+    gc['uint16Array'].dartify() as Uint16List,
+  );
+  _expectIterableEquals(
+    Int32List.fromList([-2147483648, 0, 2147483647]),
+    gc['int32Array'].dartify() as Int32List,
+  );
+  _expectIterableEquals(
+    Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
+    gc['uint32Array'].dartify() as Uint32List,
+  );
+  _expectIterableEquals(
+    Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
+    gc['float32Array'].dartify() as Float32List,
+  );
+  _expectIterableEquals(
+    Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
+    gc['float64Array'].dartify() as Float64List,
+  );
+  _expectIterableEquals(
+    Uint8List.fromList([-1, 0, 255, 256]),
+    (gc['arrayBuffer'].dartify() as ByteBuffer).asUint8List(),
+  );
+  _expectIterableEquals(
+    Uint8List.fromList([-1, 0, 255, 256]),
+    (gc['dataView'].dartify() as ByteData).buffer.asUint8List(),
+  );
 
   // Confirm a function that takes a roundtrip remains a function.
   // TODO(srujzs): Delete this test after we remove this conversion.
   JSFunction foo = gc['g'].dartify() as JSFunction;
   Expect.equals(
-      'hello world', gc.callMethod<JSString>('invoke'.toJS, foo).toDart);
+    'hello world',
+    gc.callMethod<JSString>('invoke'.toJS, foo).toDart,
+  );
 
   // Confirm arrays, which need to be converted implicitly, are still
   // recursively converted by dartify() when desired.
@@ -214,7 +270,7 @@ void main() {
       1,
       2,
       3,
-      {'baz': 'boo'}
+      {'baz': 'boo'},
     ],
   ], gc['implicitExplicit'].dartify() as List<Object?>);
 

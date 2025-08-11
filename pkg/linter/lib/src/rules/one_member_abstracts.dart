@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,13 +18,10 @@ class OneMemberAbstracts extends LintRule {
     : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.one_member_abstracts;
+  DiagnosticCode get diagnosticCode => LinterLintCode.one_member_abstracts;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
@@ -45,17 +44,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (element.interfaces.isNotEmpty) return;
     if (element.mixins.isNotEmpty) return;
-    if (element.fields2.isNotEmpty) return;
+    if (element.fields.isNotEmpty) return;
 
-    var methods = element.methods2;
+    var methods = element.methods;
     if (methods.length != 1) return;
 
     var method = methods.first;
     if (!method.isAbstract) return;
 
-    var name = method.name3;
+    var name = method.name;
     if (name == null) return;
 
-    rule.reportLintForToken(node.name, arguments: [name]);
+    rule.reportAtToken(node.name, arguments: [name]);
   }
 }

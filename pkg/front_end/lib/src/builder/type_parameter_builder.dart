@@ -53,6 +53,9 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     return sb.toString();
   }
 
+  @override
+  int get typeParametersCount => 0;
+
   Variance get variance;
 
   void set variance(Variance value);

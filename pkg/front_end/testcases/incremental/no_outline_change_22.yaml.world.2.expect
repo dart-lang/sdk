@@ -17,26 +17,6 @@ library from "org-dartlang-test:///main.dart" as main {
     const synthetic constructor •() → main::_WithListMixin&Object&ListMixin
       : super dart.core::Object::•()
       ;
-    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → dart.core::int {
-      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
-        throw dart._internal::IterableElementError::noElement();
-      return this.{dart.core::List::[]}(0){(dart.core::int) → dart.core::int};
-    }
-    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(covariant-by-class dart.core::int value) → void {
-      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
-        throw dart._internal::IterableElementError::noElement();
-      this.{dart.core::List::[]=}(0, value){(dart.core::int, dart.core::int) → void};
-    }
-    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → dart.core::int {
-      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
-        throw dart._internal::IterableElementError::noElement();
-      return this.{dart.core::List::[]}(this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}){(dart.core::int) → dart.core::int};
-    }
-    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(covariant-by-class dart.core::int value) → void {
-      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
-        throw dart._internal::IterableElementError::noElement();
-      this.{dart.core::List::[]=}(this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}, value){(dart.core::int, dart.core::int) → void};
-    }
     @#C3
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int>
       return new dart._internal::ListIterator::•<dart.core::int>(this);
@@ -58,6 +38,26 @@ library from "org-dartlang-test:///main.dart" as main {
       return this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0;
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
       return !this.{dart.collection::ListBase::isEmpty}{dart.core::bool};
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → dart.core::int {
+      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
+        throw dart._internal::IterableElementError::noElement();
+      return this.{dart.core::List::[]}(0){(dart.core::int) → dart.core::int};
+    }
+    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(covariant-by-class dart.core::int value) → void {
+      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
+        throw dart._internal::IterableElementError::noElement();
+      this.{dart.core::List::[]=}(0, value){(dart.core::int, dart.core::int) → void};
+    }
+    get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → dart.core::int {
+      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
+        throw dart._internal::IterableElementError::noElement();
+      return this.{dart.core::List::[]}(this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}){(dart.core::int) → dart.core::int};
+    }
+    set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(covariant-by-class dart.core::int value) → void {
+      if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
+        throw dart._internal::IterableElementError::noElement();
+      this.{dart.core::List::[]=}(this.{dart.core::List::length}{dart.core::int}.{dart.core::num::-}(1){(dart.core::num) → dart.core::int}, value){(dart.core::int, dart.core::int) → void};
+    }
     get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → dart.core::int {
       if(this.{dart.core::List::length}{dart.core::int} =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} 0)
         throw dart._internal::IterableElementError::noElement();
@@ -242,7 +242,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return false;
     }
-    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(dart.core::int start, dart.core::int end) → void {
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ dart.collection::_closeGap(dart.core::int start, dart.core::int end) → void {
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       assert(0.{dart.core::num::<=}(start){(dart.core::num) → dart.core::bool});
       assert(start.{dart.core::num::<}(end){(dart.core::num) → dart.core::bool});
@@ -259,7 +259,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((dart.core::int) → dart.core::bool test) → void {
       this.{dart.collection::ListBase::_filter}(test, true){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
     }
-    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int) → dart.core::bool test, dart.core::bool retainMatching) → void {
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ dart.collection::_filter((dart.core::int) → dart.core::bool test, dart.core::bool retainMatching) → void {
       dart.core::List<dart.core::int> retained = dart.core::_GrowableList::•<dart.core::int>(0);
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {

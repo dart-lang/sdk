@@ -50,12 +50,12 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  web: ^0.5.1
+  web: ^1.1.1
 
 dev_dependencies:
-  build_runner: ^2.4.8
-  build_web_compilers: ^4.0.9
-  lints: ^5.0.0
+  build_runner: ^2.4.15
+  build_web_compilers: ^4.1.6
+  lints: ^6.0.0
 ''';
 
 final String _readme = '''
@@ -113,7 +113,7 @@ import 'package:web/web.dart' as web;
 void main() {
   final now = DateTime.now();
   final element = web.document.querySelector('#output') as web.HTMLDivElement;
-  element.text =
+  element.textContent =
       'The time is \${now.hour}:\${now.minute} '
       'and your Dart web app is running!';
 }

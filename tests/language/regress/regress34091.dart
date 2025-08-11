@@ -22,9 +22,10 @@ void main() {
     }
   */
   final uri = Uri.parse(
-      "data:application/dart;charset=utf8,import%20%22dart%3Aisolate%22%3Bvoi" +
-          "d%20main(_%2Cp)%7Btry%7Bthrow(%22Hello%20World%22)%3B%7Dcatch(e%2C" +
-          "%20s)%7Bp.send(%22%24e%5Cn%24s%22)%3B%7D%7D");
+    "data:application/dart;charset=utf8,import%20%22dart%3Aisolate%22%3Bvoi" +
+        "d%20main(_%2Cp)%7Btry%7Bthrow(%22Hello%20World%22)%3B%7Dcatch(e%2C" +
+        "%20s)%7Bp.send(%22%24e%5Cn%24s%22)%3B%7D%7D",
+  );
   ReceivePort port = new ReceivePort();
   Isolate.spawnUri(uri, [], port.sendPort);
   port.listen((trace) {

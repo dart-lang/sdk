@@ -16,13 +16,12 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -188,19 +187,19 @@ class FeatureComputer {
   /// setters are always mapped into a different kind: FIELD for getters and
   /// setters declared in a class or extension, and TOP_LEVEL_VARIABLE for
   /// top-level getters and setters.
-  protocol.ElementKind computeElementKind(Element2 element) {
-    if (element is LibraryElement2) {
+  protocol.ElementKind computeElementKind(Element element) {
+    if (element is LibraryElement) {
       return protocol.ElementKind.PREFIX;
-    } else if (element is EnumElement2) {
+    } else if (element is EnumElement) {
       return protocol.ElementKind.ENUM;
-    } else if (element is MixinElement2) {
+    } else if (element is MixinElement) {
       return protocol.ElementKind.MIXIN;
-    } else if (element is ClassElement2) {
+    } else if (element is ClassElement) {
       return protocol.ElementKind.CLASS;
-    } else if (element is FieldElement2 && element.isEnumConstant) {
+    } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
-    } else if (element is PropertyAccessorElement2) {
-      var variable = element.variable3;
+    } else if (element is PropertyAccessorElement) {
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -244,19 +243,19 @@ class FeatureComputer {
   /// setters are always mapped into a different kind: FIELD for getters and
   /// setters declared in a class or extension, and TOP_LEVEL_VARIABLE for
   /// top-level getters and setters.
-  protocol.ElementKind computeElementKind2(Element2 element) {
-    if (element is LibraryElement2) {
+  protocol.ElementKind computeElementKind2(Element element) {
+    if (element is LibraryElement) {
       return protocol.ElementKind.PREFIX;
-    } else if (element is EnumElement2) {
+    } else if (element is EnumElement) {
       return protocol.ElementKind.ENUM;
-    } else if (element is MixinElement2) {
+    } else if (element is MixinElement) {
       return protocol.ElementKind.MIXIN;
-    } else if (element is ClassElement2) {
+    } else if (element is ClassElement) {
       return protocol.ElementKind.CLASS;
-    } else if (element is FieldElement2 && element.isEnumConstant) {
+    } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
-    } else if (element is PropertyAccessorElement2) {
-      var variable = element.variable3;
+    } else if (element is PropertyAccessorElement) {
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -331,7 +330,7 @@ class FeatureComputer {
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
   double elementKindFeature(
-    Element2 element,
+    Element element,
     String? completionLocation, {
     double? distance,
   }) {
@@ -353,7 +352,7 @@ class FeatureComputer {
   }
 
   // Return the value of the _has deprecated_ feature for the given [element].
-  double hasDeprecatedFeature(Element2 element) {
+  double hasDeprecatedFeature(Element element) {
     return element.hasOrInheritsDeprecated ? -1.0 : 0.0;
   }
 
@@ -364,8 +363,8 @@ class FeatureComputer {
   /// supertype if the two types are not the same. Return `-1` if the [subclass]
   /// is not a subclass of the [superclass].
   int inheritanceDistance(
-    InterfaceElement2 subclass,
-    InterfaceElement2 superclass,
+    InterfaceElement subclass,
+    InterfaceElement superclass,
   ) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
@@ -376,25 +375,23 @@ class FeatureComputer {
   /// defined in the [superclass] that is being accessed through an expression
   /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
-    InterfaceElement2 subclass,
-    InterfaceElement2 superclass,
+    InterfaceElement subclass,
+    InterfaceElement superclass,
   ) {
     var distance = _inheritanceDistance(subclass, superclass, {});
     return distanceToPercent(distance);
   }
 
   /// Return the value of the _is constant_ feature for the given [element].
-  double isConstantFeature(Element2 element) {
-    if (element is ConstructorElement2 && element.isConst) {
+  double isConstantFeature(Element element) {
+    if (element is ConstructorElement && element.isConst) {
       return 1.0;
-    } else if (element is FieldElement2 &&
-        element.isStatic &&
-        element.isConst) {
+    } else if (element is FieldElement && element.isStatic && element.isConst) {
       return 1.0;
-    } else if (element is TopLevelVariableElement2 && element.isConst) {
+    } else if (element is TopLevelVariableElement && element.isConst) {
       return 1.0;
-    } else if (element is PropertyAccessorElement2 && element.isSynthetic) {
-      var variable = element.variable3;
+    } else if (element is PropertyAccessorElement && element.isSynthetic) {
+      var variable = element.variable;
       if (variable != null && variable.isStatic && variable.isConst) {
         return 1.0;
       }
@@ -412,7 +409,7 @@ class FeatureComputer {
       // override of `noSuchMethod`.
       return 0.0;
     }
-    return proposedMemberName == MethodElement2.NO_SUCH_METHOD_METHOD_NAME
+    return proposedMemberName == MethodElement.NO_SUCH_METHOD_METHOD_NAME
         ? -1.0
         : 0.0;
   }
@@ -469,9 +466,9 @@ class FeatureComputer {
   ///
   /// This is the implementation of [inheritanceDistance].
   int _inheritanceDistance(
-    InterfaceElement2? subclass,
-    InterfaceElement2 superclass,
-    Set<InterfaceElement2> visited,
+    InterfaceElement? subclass,
+    InterfaceElement superclass,
+    Set<InterfaceElement> visited,
   ) {
     if (subclass == null) {
       return -1;
@@ -481,21 +478,21 @@ class FeatureComputer {
       return -1;
     }
     var minDepth = _inheritanceDistance(
-      subclass.supertype?.element3,
+      subclass.supertype?.element,
       superclass,
       visited,
     );
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element3, superclass, visited);
+        var depth = _inheritanceDistance(type.element, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }
       }
     }
 
-    if (subclass is MixinElement2) {
+    if (subclass is MixinElement) {
       visitTypes(subclass.superclassConstraints);
     }
     visitTypes(subclass.mixins);
@@ -558,7 +555,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           }
           if (argument.contains(offset)) {
             if (offset >= argument.name.end) {
-              return argument.element2?.type;
+              return argument.element?.type;
             }
             return null;
           }
@@ -664,7 +661,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (node.equals.end <= offset) {
       var element = node.fieldName.element;
-      if (element is FieldElement2) {
+      if (element is FieldElement) {
         return element.type;
       }
     }
@@ -709,11 +706,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       } else if (parent is FunctionExpressionImpl) {
         // If the surrounding function has a context type, use it.
         var functionContextType = parent.body.bodyContext?.contextType;
-        if (functionContextType != null) {
+        if (functionContextType != null &&
+            functionContextType is! InvalidType) {
           return functionContextType;
-        } else if (parent.parent is FunctionDeclaration) {
+        } else if (parent.parent case FunctionDeclaration(:var returnType)) {
           // Don't walk up past the function declaration.
-          return null;
+          return returnType?.type;
         }
         return _visitParent(parent);
       }
@@ -768,6 +766,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitForElement(ForElement node) {
+    if (range
+        .endStart(node.leftParenthesis, node.rightParenthesis)
+        .contains(offset)) {
+      return node.forLoopParts.accept(this);
+    }
+    return node.parent!.accept(this);
+  }
+
+  @override
   DartType? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     if (range
         .endStart(node.leftSeparator, node.rightSeparator)
@@ -814,7 +822,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
         .contains(offset)) {
       return typeProvider.boolType;
     }
-    return null;
+    return node.parent?.accept(this);
   }
 
   @override
@@ -1075,7 +1083,14 @@ parent3: ${node.parent?.parent?.parent}
     if (node.returnKeyword.end < offset) {
       var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return functionBody.bodyContext?.contextType;
+        AstNode? invocationParent;
+        if (functionBody.parent?.parent case FunctionExpressionInvocation(
+          :var parent,
+        )) {
+          invocationParent = parent;
+        }
+        return functionBody.bodyContext?.contextType ??
+            invocationParent?.accept(this);
       }
     }
     return null;
@@ -1135,6 +1150,14 @@ parent3: ${node.parent?.parent?.parent}
       }
     }
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  DartType? visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (node.parent case SwitchExpression(:var parent?)) {
+      return parent.accept(this);
+    }
+    return super.visitSwitchExpressionCase(node);
   }
 
   @override
@@ -1226,17 +1249,17 @@ parent3: ${node.parent?.parent?.parent}
     // TODO(brianwilkerson): Replace with `patternTypeSchema` (on AST) where
     //  possible.
     pattern = pattern.unParenthesized;
-    Element2? element;
+    Element? element;
     if (pattern is AssignedVariablePattern) {
-      element = pattern.element2;
+      element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement2;
+      element = pattern.declaredElement;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {
       return pattern.requiredType;
     }
-    if (element is VariableElement2) {
+    if (element is VariableElement) {
       return element.type;
     }
     return null;
@@ -1258,13 +1281,12 @@ parent3: ${node.parent?.parent?.parent}
     if (type is! InterfaceType) {
       return null;
     }
-    var declaredElement = field.element2?.library2;
+    var declaredElement = field.element?.library;
     var uri = declaredElement?.uri;
-    var manager = InheritanceManager3();
-    var member = manager.getMember3(type, Name(uri, name));
+    var member = type.element.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {
       return member.returnType;
-    } else if (member is MethodElement2) {
+    } else if (member is MethodElement) {
       return member.returnType;
     }
     return null;

@@ -16,30 +16,35 @@ main() {
 @reflectiveTest
 class SuperInExtensionTest extends PubPackageResolutionTest {
   test_binaryOperator_inMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   int plusOne() => super + 1;
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5)],
+    );
   }
 
   test_binaryOperator_withGenericExtendedType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension <T> on T {
   f() {
     super + 1;
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 23, 1),
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 33, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 23, 1),
+        error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 33, 5),
+      ],
+    );
   }
 
   test_getter_inSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int get value => 0;
   set value(int newValue) {}
@@ -49,67 +54,74 @@ extension E on C {
     value = super.value * sign;
   }
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 117, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 117, 5)],
+    );
   }
 
   test_indexOperator_inMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int operator[](int i) => 0;
 }
 extension E on C {
   int at(int i) => super[i];
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 80, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 80, 5)],
+    );
   }
 
   test_method_inGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   String get displayText => super.toString();
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 49, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 49, 5)],
+    );
   }
 
   test_methodInvocation_field_instance_late() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   late final v = super.foo();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1),
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 38, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1),
+        error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 38, 5),
+      ],
+    );
   }
 
   test_methodInvocation_method_instance() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   void foo() {
     super.foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5)],
+    );
   }
 
   test_prefixOperator_inGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C operator-() => this;
 }
 extension E on C {
   C get negated => -super;
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 76, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 76, 5)],
+    );
   }
 }

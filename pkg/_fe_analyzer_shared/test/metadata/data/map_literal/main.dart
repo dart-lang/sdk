@@ -111,7 +111,7 @@ void mapLiterals9() {}
 @Helper(<int, int>{
   0: 0,
   1: 1,
-  ...{2: 2, 3: 3}
+  ...{2: 2, 3: 3},
 })
 /*member: mapLiterals10:
 unresolved=UnresolvedExpression(UnresolvedInvoke(

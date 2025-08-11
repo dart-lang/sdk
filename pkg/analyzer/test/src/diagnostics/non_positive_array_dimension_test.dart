@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class NonPositiveArrayDimensionTest extends PubPackageResolutionTest {
   test_multi_negative() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([-1])
   external Array<Uint8> a0;
 }
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2)],
+    );
   }
 
   test_multi_oneOfMany() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([1, 2, 3, -4, 5, 6])
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 83, 2),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 83, 2)],
+    );
   }
 
   test_multi_positive() async {
@@ -53,29 +55,31 @@ final class MyStruct extends Struct {
   }
 
   test_multi_zero() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array.multi([0])
   external Array<Uint8> a0;
 }
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1)],
+    );
   }
 
   test_single_negative() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array(-12)
   external Array<Uint8> a0;
 }
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 3),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 3)],
+    );
   }
 
   test_single_positive() async {
@@ -90,15 +94,16 @@ final class MyStruct extends Struct {
   }
 
   test_single_zero() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   @Array(0)
   external Array<Uint8> a0;
 }
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1)],
+    );
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -31,6 +30,8 @@ class TypePropertyResolver {
   late Expression? _receiver;
   late SyntacticEntity _nameErrorEntity;
   late String _name;
+  late bool _hasRead;
+  late bool _hasWrite;
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
@@ -43,10 +44,10 @@ class TypePropertyResolver {
   ExecutableElement2OrMember? _setterRecovery;
 
   TypePropertyResolver(this._resolver)
-      : _definingLibrary = _resolver.definingLibrary,
-        _typeSystem = _resolver.typeSystem,
-        _typeProvider = _resolver.typeProvider,
-        _extensionResolver = _resolver.extensionResolver;
+    : _definingLibrary = _resolver.definingLibrary,
+      _typeSystem = _resolver.typeSystem,
+      _typeProvider = _resolver.typeProvider,
+      _extensionResolver = _resolver.extensionResolver;
 
   bool get _hasGetterOrSetter {
     return _getterRequested != null || _setterRequested != null;
@@ -64,12 +65,16 @@ class TypePropertyResolver {
     required ExpressionImpl? receiver,
     required TypeImpl receiverType,
     required String name,
+    required bool hasRead,
+    required bool hasWrite,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
     AstNode? parentNode,
   }) {
     _receiver = receiver;
     _name = name;
+    _hasRead = hasRead;
+    _hasWrite = hasWrite;
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
@@ -81,10 +86,7 @@ class TypePropertyResolver {
 
     if (_typeSystem.isDynamicBounded(receiverType) ||
         _typeSystem.isInvalidBounded(receiverType)) {
-      _lookupInterfaceType(
-        _typeProvider.objectType,
-        recoverWithStatic: false,
-      );
+      _lookupInterfaceType(_typeProvider.objectType, recoverWithStatic: false);
       _needsGetterError = false;
       _needsSetterError = false;
       return _toResult();
@@ -114,9 +116,11 @@ class TypePropertyResolver {
         } else if (propertyErrorEntity is AstNode) {
           parentNode = propertyErrorEntity.parent;
         } else {
-          throw StateError('Either `receiver` must be non-null or '
-              '`propertyErrorEntity` must be an AstNode to report an unchecked '
-              'invocation of a nullable value.');
+          throw StateError(
+            'Either `receiver` must be non-null or '
+            '`propertyErrorEntity` must be an AstNode to report an unchecked '
+            'invocation of a nullable value.',
+          );
         }
       }
 
@@ -130,13 +134,15 @@ class TypePropertyResolver {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          errorCode = CompileTimeErrorCode
-              .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+          errorCode =
+              CompileTimeErrorCode
+                  .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          errorCode = CompileTimeErrorCode
-              .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+          errorCode =
+              CompileTimeErrorCode
+                  .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
           errorCode =
@@ -154,18 +160,26 @@ class TypePropertyResolver {
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(
-              nameErrorEntity, flow.whyNotPromoted(receiver)());
+            nameErrorEntity,
+            flow.whyNotPromoted(receiver)(),
+          );
         } else {
           var thisType = _resolver.thisType;
           if (thisType != null) {
-            messages = _resolver.computeWhyNotPromotedMessages(nameErrorEntity,
-                flow.whyNotPromotedImplicitThis(SharedTypeView(thisType))());
+            messages = _resolver.computeWhyNotPromotedMessages(
+              nameErrorEntity,
+              flow.whyNotPromotedImplicitThis(SharedTypeView(thisType))(),
+            );
           }
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-          errorCode, propertyErrorEntity, receiverType,
-          arguments: arguments, messages: messages);
+        errorCode,
+        propertyErrorEntity,
+        receiverType,
+        arguments: arguments,
+        messages: messages,
+      );
       _reportedGetterError = true;
       _reportedSetterError = true;
 
@@ -185,7 +199,7 @@ class TypePropertyResolver {
           return _toResult();
         }
         if (receiverTypeResolved.isDartCoreFunction &&
-            _name == MethodElement2.CALL_METHOD_NAME) {
+            _name == MethodElement.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
@@ -193,7 +207,7 @@ class TypePropertyResolver {
       }
 
       if (receiverTypeResolved is FunctionTypeImpl &&
-          _name == MethodElement2.CALL_METHOD_NAME) {
+          _name == MethodElement.CALL_METHOD_NAME) {
         return ResolutionResult(
           needsGetterError: false,
           needsSetterError: false,
@@ -211,10 +225,7 @@ class TypePropertyResolver {
       if (receiverTypeResolved is RecordTypeImpl) {
         var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
-          return ResolutionResult(
-            recordField: field,
-            needsGetterError: false,
-          );
+          return ResolutionResult(recordField: field, needsGetterError: false);
         }
         _needsGetterError = true;
         _needsSetterError = true;
@@ -233,8 +244,11 @@ class TypePropertyResolver {
 
   void _lookupExtension(TypeImpl type) {
     var getterName = Name(_definingLibrary.source.uri, _name);
-    var result =
-        _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
+    var result = _extensionResolver.findExtension(
+      type,
+      _nameErrorEntity,
+      getterName,
+    );
     _reportedGetterError = result == ExtensionResolutionError.ambiguous;
     _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 
@@ -255,31 +269,62 @@ class TypePropertyResolver {
   }) {
     var isSuper = _receiver is SuperExpression;
 
-    var getterName = Name(_definingLibrary.source.uri, _name);
-    _getterRequested = _resolver.inheritance
-        .getMember(type, getterName, forSuper: isSuper)
-        ?.asElement2;
-    _needsGetterError = _getterRequested == null;
+    if (_hasRead) {
+      var getterName = Name(_definingLibrary.source.uri, _name);
+      _getterRequested = _resolver.inheritance.getMember3(
+        type,
+        getterName,
+        forSuper: isSuper,
+      );
+      _needsGetterError = _getterRequested == null;
 
-    if (_getterRequested == null && recoverWithStatic) {
-      var classElement = type.element3;
-      _getterRecovery ??=
-          classElement.lookupStaticGetter(_name, _definingLibrary) ??
-              classElement.lookupStaticMethod(_name, _definingLibrary);
-      _needsGetterError = _getterRecovery == null;
+      if (_getterRequested == null && recoverWithStatic) {
+        var classElement = type.element;
+        _getterRecovery ??=
+            classElement.lookupStaticGetter(_name, _definingLibrary) ??
+            classElement.lookupStaticMethod(_name, _definingLibrary);
+        _needsGetterError = _getterRecovery == null;
+      }
     }
 
-    var setterName = Name(_definingLibrary.source.uri, '$_name=');
-    _setterRequested = _resolver.inheritance
-        .getMember(type, setterName, forSuper: isSuper)
-        ?.asElement2;
-    _needsSetterError = _setterRequested == null;
+    if (_hasWrite) {
+      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      _setterRequested = _resolver.inheritance.getMember3(
+        type,
+        setterName,
+        forSuper: isSuper,
+      );
+      _needsSetterError = _setterRequested == null;
 
-    if (_setterRequested == null && recoverWithStatic) {
-      var classElement = type.element3;
-      _setterRecovery ??=
-          classElement.lookupStaticSetter(_name, _definingLibrary);
-      _needsSetterError = _setterRecovery == null;
+      if (_setterRequested == null && recoverWithStatic) {
+        var classElement = type.element;
+        _setterRecovery ??= classElement.lookupStaticSetter(
+          _name,
+          _definingLibrary,
+        );
+        _needsSetterError = _setterRecovery == null;
+      }
+    }
+
+    // If we wanted a getter, but it is not in the interface, then check
+    // if there is the setter, i.e. the basename at all. If there is, we
+    // should not check extensions.
+    if (_hasRead && _getterRequested == null) {
+      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      _setterRequested = _resolver.inheritance.getMember3(
+        type,
+        setterName,
+        forSuper: isSuper,
+      );
+    }
+
+    if (_hasWrite && _setterRequested == null) {
+      var getterName = Name(_definingLibrary.source.uri, _name);
+      _getterRequested = _resolver.inheritance.getMember3(
+        type,
+        getterName,
+        forSuper: isSuper,
+      );
     }
   }
 

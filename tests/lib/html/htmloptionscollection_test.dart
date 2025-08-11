@@ -10,12 +10,14 @@ main() {
   test('indexedAccessTest', () {
     // FIXME: we need some massaging to dart:html to enable HTMLOptionsCollection.add
     // and hence programmatic building of collection.
-    SelectElement selectElement = new Element.html('''
+    SelectElement selectElement =
+        new Element.html('''
       <select>
         <option value="0">Option0</option>
         <option value="1">Option1</option>
         <option value="2">Option2</option>
-      ''') as SelectElement;
+      ''')
+            as SelectElement;
     final optionsCollection = selectElement.options;
 
     expect(optionsCollection[0].value, equals('0'));

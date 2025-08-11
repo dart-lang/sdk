@@ -99,20 +99,24 @@ void checkD8Steps(
     outputFilename,
   );
 
-  List<_DartStackTraceDataEntry> trace =
-      result.map((entry) => entry.first).toList();
+  List<_DartStackTraceDataEntry> trace = result
+      .map((entry) => entry.first)
+      .toList();
   if (debug) _debugPrint(trace, outputPath);
 
-  List<String> recordStops =
-      trace.where((entry) => !entry.isError).map((entry) => '$entry').toList();
+  List<String> recordStops = trace
+      .where((entry) => !entry.isError)
+      .map((entry) => '$entry')
+      .toList();
 
-  Set<int> recordStopLines =
-      trace.where((entry) => !entry.isError).map((entry) => entry.line).toSet();
-  Set<String> recordStopLineColumns =
-      trace
-          .where((entry) => !entry.isError)
-          .map((entry) => '${entry.line}:${entry.column}')
-          .toSet();
+  Set<int> recordStopLines = trace
+      .where((entry) => !entry.isError)
+      .map((entry) => entry.line)
+      .toSet();
+  Set<String> recordStopLineColumns = trace
+      .where((entry) => !entry.isError)
+      .map((entry) => '${entry.line}:${entry.column}')
+      .toSet();
 
   List<String?> expectedStops = [];
   for (Annotation annotation in code.annotations.where(

@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/having_part_with_parts_and_annotation_lib1.dart:3:6: Error: A file that's a part of a library can't have parts itself.
+// pkg/front_end/testcases/general/having_part_with_parts_and_annotation_lib1.dart:7:6: Error: A file that's a part of a library can't have parts itself.
 // Try moving the 'part' declaration to the containing library.
 // part 'having_part_with_parts_and_annotation_lib2.dart';
 //      ^
 // pkg/front_end/testcases/general/having_part_with_parts_and_annotation.dart: Context: This is the containing library.
 //
-// pkg/front_end/testcases/general/having_part_with_parts_and_annotation_lib1.dart:5:6: Error: A file that's a part of a library can't have parts itself.
+// pkg/front_end/testcases/general/having_part_with_parts_and_annotation_lib1.dart:9:6: Error: A file that's a part of a library can't have parts itself.
 // Try moving the 'part' declaration to the containing library.
 // part 'having_part_with_parts_and_annotation_lib2.dart';
 //      ^

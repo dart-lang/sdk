@@ -142,8 +142,8 @@ class NonCanonicalizingUri implements Uri {
   String toString() =>
       "${hasScheme ? "$scheme:" : ""}"
       "${hasAuthority ? "//${hasUserInfo ? "$userInfo@" : ""}"
-              "$host"
-              "${hasPort ? ":$port" : ""}" : ""}"
+                "$host"
+                "${hasPort ? ":$port" : ""}" : ""}"
       "$path${hasQuery ? "?$query" : ""}${hasFragment ? "#$fragment" : ""}";
 
   int get hashCode => toString().hashCode;

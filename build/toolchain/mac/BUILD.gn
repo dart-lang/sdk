@@ -78,6 +78,55 @@ mac_toolchain_suite("ios_clang_x64_sim") {
       "-isysroot $ios_sdk_path -mios-simulator-version-min=$ios_sdk_min"
 }
 
+if (is_watchos) {
+  # Toolchain used for watchOS device targets.
+  mac_toolchain_suite("watchos_clang_arm64") {
+    toolchain_cpu = "arm64"
+    toolchain_os = "watchos"
+    prefix = rebased_clang_dir
+    cc = "${compiler_prefix}${prefix}/clang"
+    cxx = "${compiler_prefix}${prefix}/clang++"
+    if (use_rbe) {
+      cc = "${cc} --target=arm64-apple-darwin"
+      cxx = "${cxx} --target=arm64-apple-darwin"
+    }
+    asm = "${assembler_prefix}${prefix}/clang"
+    ar = "${prefix}/llvm-ar"
+    ld = "${link_prefix}${prefix}/clang++"
+    strip = "${prefix}/llvm-strip"
+    nm = "${prefix}/llvm-nm"
+    is_clang = true
+    if (ios_enable_relative_sdk_path) {
+      ios_sdk_path = rebase_path(ios_sdk_path, root_build_dir)
+    }
+    sysroot_flags = "-isysroot $ios_sdk_path -mwatchos-version-min=$ios_sdk_min"
+  }
+
+  # Toolchain used for watchOS simulator targets (arm64).
+  mac_toolchain_suite("watchos_clang_arm64_sim") {
+    toolchain_cpu = "arm64"
+    toolchain_os = "watchos"
+    prefix = rebased_clang_dir
+    cc = "${compiler_prefix}${prefix}/clang"
+    cxx = "${compiler_prefix}${prefix}/clang++"
+    if (use_rbe) {
+      cc = "${cc} --target=arm64-apple-darwin"
+      cxx = "${cxx} --target=arm64-apple-darwin"
+    }
+    asm = "${assembler_prefix}${prefix}/clang"
+    ar = "${prefix}/llvm-ar"
+    ld = "${link_prefix}${prefix}/clang++"
+    strip = "${prefix}/llvm-strip"
+    nm = "${prefix}/llvm-nm"
+    is_clang = true
+    if (ios_enable_relative_sdk_path) {
+      ios_sdk_path = rebase_path(ios_sdk_path, root_build_dir)
+    }
+    sysroot_flags =
+        "-isysroot $ios_sdk_path -mwatchos-simulator-version-min=$ios_sdk_min"
+  }
+}
+
 mac_toolchain_suite("clang_x64") {
   toolchain_cpu = "x64"
   toolchain_os = "mac"

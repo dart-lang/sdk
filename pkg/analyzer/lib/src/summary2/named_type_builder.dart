@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -27,7 +27,7 @@ class NamedTypeBuilder extends TypeBuilder {
   final TypeSystemImpl typeSystem;
 
   @override
-  final Element2 element3;
+  final Element element;
 
   final List<TypeImpl> arguments;
 
@@ -45,17 +45,22 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   TypeImpl? _type;
 
-  NamedTypeBuilder(this.linker, this.typeSystem, this.element3, this.arguments,
-      this.nullabilitySuffix,
-      {this.node});
+  NamedTypeBuilder({
+    required this.linker,
+    required this.typeSystem,
+    required this.element,
+    required this.arguments,
+    required this.nullabilitySuffix,
+    this.node,
+  });
 
-  factory NamedTypeBuilder.of(
-    Linker linker,
-    TypeSystemImpl typeSystem,
-    NamedTypeImpl node,
-    Element2 element,
-    NullabilitySuffix nullabilitySuffix,
-  ) {
+  factory NamedTypeBuilder.of({
+    required Linker linker,
+    required TypeSystemImpl typeSystem,
+    required NamedTypeImpl node,
+    required Element element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
     List<TypeImpl> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
@@ -65,31 +70,18 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element, arguments, nullabilitySuffix,
-        node: node);
-  }
-
-  factory NamedTypeBuilder.v2({
-    required Linker linker,
-    required TypeSystemImpl typeSystem,
-    required Element2 element,
-    required List<TypeImpl> arguments,
-    required NullabilitySuffix nullabilitySuffix,
-    NamedTypeImpl? node,
-  }) {
-    return NamedTypeBuilder(
-      linker,
-      typeSystem,
-      element,
-      arguments,
-      nullabilitySuffix,
+      linker: linker,
+      typeSystem: typeSystem,
+      element: element,
+      arguments: arguments,
+      nullabilitySuffix: nullabilitySuffix,
       node: node,
     );
   }
 
   // TODO(scheglov): Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
-    return element3.library2!.featureSet.isEnabled(
+    return element.library!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,
     );
   }
@@ -110,28 +102,28 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
-    var element3 = this.element3;
-    if (element3 is InterfaceElementImpl2) {
-      var parameters = element3.typeParameters2;
+    var element = this.element;
+    if (element is InterfaceElementImpl) {
+      var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
-      _type = element3.instantiateImpl(
+      _type = element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element3 is TypeAliasElementImpl2) {
-      var aliasedType = _getAliasedType(element3);
-      var parameters = element3.typeParameters2;
+    } else if (element is TypeAliasElementImpl) {
+      var aliasedType = _getAliasedType(element);
+      var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
-      element3.aliasedType = aliasedType;
-      _type = element3.instantiateImpl(
+      element.aliasedType = aliasedType;
+      _type = element.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else if (element3 is NeverElementImpl2) {
+    } else if (element is NeverElementImpl) {
       _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (element3 is TypeParameterElementImpl2) {
+    } else if (element is TypeParameterElementImpl) {
       _type = TypeParameterTypeImpl(
-        element3: element3,
+        element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -145,7 +137,7 @@ class NamedTypeBuilder extends TypeBuilder {
   @override
   String toString() {
     var buffer = StringBuffer();
-    buffer.write(element3.displayName);
+    buffer.write(element.displayName);
     if (arguments.isNotEmpty) {
       buffer.write('<');
       buffer.write(arguments.join(', '));
@@ -161,8 +153,13 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element3, arguments, nullabilitySuffix,
-        node: node);
+      linker: linker,
+      typeSystem: typeSystem,
+      element: element,
+      arguments: arguments,
+      nullabilitySuffix: nullabilitySuffix,
+      node: node,
+    );
   }
 
   TypeImpl _buildAliasedType(TypeAnnotation? node) {
@@ -177,7 +174,7 @@ class NamedTypeBuilder extends TypeBuilder {
         return _buildType(node.typeOrThrow);
       } else {
         return FunctionTypeImpl.v2(
-          typeParameters: const <TypeParameterElementImpl2>[],
+          typeParameters: const <TypeParameterElementImpl>[],
           formalParameters: const <FormalParameterElementMixin>[],
           returnType: _dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
@@ -187,7 +184,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   /// Build arguments that correspond to the type [parameters].
-  List<TypeImpl> _buildArguments(List<TypeParameterElement2> parameters) {
+  List<TypeImpl> _buildArguments(List<TypeParameterElement> parameters) {
     if (parameters.isEmpty) {
       return const <TypeImpl>[];
     } else if (arguments.isNotEmpty) {
@@ -201,7 +198,7 @@ class NamedTypeBuilder extends TypeBuilder {
       }
     } else {
       return List.generate(parameters.length, (index) {
-        var parameter = parameters[index] as TypeParameterElementImpl2;
+        var parameter = parameters[index] as TypeParameterElementImpl;
         var defaultType = parameter.defaultType!;
         return _buildType(defaultType);
       }, growable: false);
@@ -261,7 +258,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }).toFixedList();
   }
 
-  TypeImpl _getAliasedType(TypeAliasElementImpl2 element) {
+  TypeImpl _getAliasedType(TypeAliasElementImpl element) {
     var typedefNode = linker.getLinkingNode2(element.firstFragment);
 
     // If the element is not being linked, the types have already been built.
@@ -317,14 +314,15 @@ class NamedTypeBuilder extends TypeBuilder {
     return List<TypeImpl>.filled(length, _dynamicType);
   }
 
-  static List<TypeParameterElementImpl2> _typeParameters(
-      TypeParameterListImpl? node) {
+  static List<TypeParameterElementImpl> _typeParameters(
+    TypeParameterListImpl? node,
+  ) {
     if (node != null) {
       return node.typeParameters
           .map((p) => p.declaredFragment!.element)
           .toFixedList();
     } else {
-      return const <TypeParameterElementImpl2>[];
+      return const <TypeParameterElementImpl>[];
     }
   }
 }

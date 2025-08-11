@@ -10,12 +10,7 @@
 class Foo<T> implements I<T> {
   Foo() {}
 
-  static
-
-      m(
-
-          f) {
-
+  static m(f) {
     return new Foo<String>();
   }
 
@@ -27,16 +22,11 @@ class Foo<T> implements I<T> {
 
   // T is not in scope for a static field.
 
-
-  static
-
-      get f {
+  static get f {
     return new Foo<String>();
   }
 
-  static void set f(
-
-      value) {}
+  static void set f(value) {}
 }
 
 abstract class I<T> {

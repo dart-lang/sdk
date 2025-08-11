@@ -44,7 +44,10 @@ void runTest(period, maxElapsed, pauseDuration) {
 
 main() {
   test("stream-periodic4", () {
-    runTest(const Duration(milliseconds: 2), const Duration(milliseconds: 8),
-        const Duration(milliseconds: 10));
+    runTest(
+      const Duration(milliseconds: 2),
+      const Duration(milliseconds: 8),
+      const Duration(milliseconds: 10),
+    );
   });
 }

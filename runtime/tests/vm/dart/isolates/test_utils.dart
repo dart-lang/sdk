@@ -11,10 +11,12 @@ export '../../../../../benchmarks/IsolateFibonacci/dart/IsolateFibonacci.dart'
 
 final bool isDebugMode = Platform.resolvedExecutable.contains('Debug');
 final bool isSimulator = Platform.resolvedExecutable.contains('SIM');
-final bool isArtificialReloadMode = Platform.executableArguments.any((arg) => [
-      '--hot-reload-rollback-test-mode',
-      '--hot-reload-test-mode'
-    ].contains(arg));
+final bool isArtificialReloadMode = Platform.executableArguments.any(
+  (arg) => [
+    '--hot-reload-rollback-test-mode',
+    '--hot-reload-test-mode',
+  ].contains(arg),
+);
 
 // Implements recursive summation:
 //   sum(n) => n == 0 ? 0
@@ -65,8 +67,9 @@ class Ring {
     for (int i = 0; i < n; ++i) {
       final port = ReceivePort();
       ports.add(StreamIterator(port));
-      spawnFutures
-          .add(Isolate.spawn(_ringEntry, port.sendPort, debugName: 'ring-$i'));
+      spawnFutures.add(
+        Isolate.spawn(_ringEntry, port.sendPort, debugName: 'ring-$i'),
+      );
     }
     await Future.wait(spawnFutures);
     final controlSendPorts = <SendPort>[];
@@ -116,14 +119,19 @@ class Ring {
   Future<List> run(RingElement buildRingElement(int id)) async {
     for (int i = 0; i < size; i++) {
       final nextNeighbor = dataSendPorts[(i + 1) % size];
-      controlSendPorts[i]
-          .send([Command.kRun, buildRingElement(i), nextNeighbor]);
+      controlSendPorts[i].send([
+        Command.kRun,
+        buildRingElement(i),
+        nextNeighbor,
+      ]);
     }
 
-    final results = await Future.wait(receivePorts.map((si) async {
-      await si.moveNext();
-      return si.current;
-    }).toList());
+    final results = await Future.wait(
+      receivePorts.map((si) async {
+        await si.moveNext();
+        return si.current;
+      }).toList(),
+    );
 
     return results;
   }
@@ -131,14 +139,19 @@ class Ring {
   Future<List> runAndClose(RingElement buildRingElement(int id)) async {
     for (int i = 0; i < size; i++) {
       final nextNeighbor = dataSendPorts[(i + 1) % size];
-      controlSendPorts[i]
-          .send([Command.kRunAndClose, buildRingElement(i), nextNeighbor]);
+      controlSendPorts[i].send([
+        Command.kRunAndClose,
+        buildRingElement(i),
+        nextNeighbor,
+      ]);
     }
 
-    final results = await Future.wait(receivePorts.map((si) async {
-      await si.moveNext();
-      return si.current;
-    }).toList());
+    final results = await Future.wait(
+      receivePorts.map((si) async {
+        await si.moveNext();
+        return si.current;
+      }).toList(),
+    );
     finalize();
     return results;
   }
@@ -147,10 +160,12 @@ class Ring {
     for (int i = 0; i < size; i++) {
       controlSendPorts[i].send([Command.kClose]);
     }
-    final results = await Future.wait(receivePorts.map((si) async {
-      await si.moveNext();
-      return si.current;
-    }).toList());
+    final results = await Future.wait(
+      receivePorts.map((si) async {
+        await si.moveNext();
+        return si.current;
+      }).toList(),
+    );
     finalize();
     return results;
   }

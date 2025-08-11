@@ -33,6 +33,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
@@ -66,6 +67,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
+// This flag is defined in "runtime/vm/microtask_mirror_queues.cc".
+DECLARE_FLAG(bool, profile_microtasks);
 DECLARE_FLAG(bool, profile_vm);
 DEFINE_FLAG(charp,
             vm_name,
@@ -259,7 +262,7 @@ class EnumListParameter : public MethodParameter {
   }
 
  private:
-  // For now observatory enums are ascii letters plus underscore.
+  // For now VM service enums are ascii letters plus underscore.
   static bool IsEnumChar(char c) {
     return (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
             (c == '_'));
@@ -431,6 +434,9 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
+  if (obj.IsSmi()) {
+    return zone->PrintToString("objects/int-%" Pd, Smi::Cast(obj).Value());
+  }
   const intptr_t object_part_of_service_id = GetIdForObject(obj.ptr());
   return zone->PrintToString("objects/%" Pd "/%" Pd, object_part_of_service_id,
                              id());
@@ -440,8 +446,8 @@ void RingServiceIdZone::Invalidate() {
   ring_.Invalidate();
 }
 
-void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
-  ring_.VisitPointers(&visitor);
+void RingServiceIdZone::VisitPointers(ObjectPointerVisitor* visitor) const {
+  ring_.VisitPointers(visitor);
 }
 
 void RingServiceIdZone::PrintJSON(JSONStream& js) const {
@@ -468,7 +474,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name);
 // Support for streams defined in embedders.
 Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = nullptr;
 Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = nullptr;
-Dart_GetVMServiceAssetsArchive Service::get_service_assets_callback_ = nullptr;
 Dart_EmbedderInformationCallback Service::embedder_information_callback_ =
     nullptr;
 
@@ -480,6 +485,7 @@ StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::heapsnapshot_stream("HeapSnapshot");
 StreamInfo Service::logging_stream("Logging");
+StreamInfo Service::timer_stream("Timer");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 StreamInfo Service::profiler_stream("Profiler");
@@ -490,11 +496,12 @@ intptr_t Service::dart_library_kernel_len_ = 0;
 // Keep streams_ in sync with the protected streams in
 // lib/developer/extension.dart
 static StreamInfo* const streams_[] = {
-    &Service::vm_stream,       &Service::isolate_stream,
-    &Service::debug_stream,    &Service::gc_stream,
-    &Service::echo_stream,     &Service::heapsnapshot_stream,
-    &Service::logging_stream,  &Service::extension_stream,
-    &Service::timeline_stream, &Service::profiler_stream,
+    &Service::vm_stream,        &Service::isolate_stream,
+    &Service::debug_stream,     &Service::gc_stream,
+    &Service::echo_stream,      &Service::heapsnapshot_stream,
+    &Service::logging_stream,   &Service::timer_stream,
+    &Service::extension_stream, &Service::timeline_stream,
+    &Service::profiler_stream,
 };
 
 bool Service::ListenStream(const char* stream_id,
@@ -534,47 +541,6 @@ void Service::CancelStream(const char* stream_id) {
     TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
   }
-}
-
-ObjectPtr Service::RequestAssets() {
-  Thread* T = Thread::Current();
-  Object& object = Object::Handle();
-  {
-    Api::Scope api_scope(T);
-    Dart_Handle handle;
-    {
-      TransitionVMToNative transition(T);
-      if (get_service_assets_callback_ == nullptr) {
-        return Object::null();
-      }
-      handle = get_service_assets_callback_();
-      if (Dart_IsError(handle)) {
-        Dart_PropagateError(handle);
-      }
-    }
-    object = Api::UnwrapHandle(handle);
-  }
-  if (object.IsNull()) {
-    return Object::null();
-  }
-  if (!object.IsTypedData()) {
-    const String& error_message = String::Handle(
-        String::New("An implementation of Dart_GetVMServiceAssetsArchive "
-                    "should return a Uint8Array or null."));
-    const Error& error = Error::Handle(ApiError::New(error_message));
-    Exceptions::PropagateError(error);
-    return Object::null();
-  }
-  const TypedData& typed_data = TypedData::Cast(object);
-  if (typed_data.ElementSizeInBytes() != 1) {
-    const String& error_message = String::Handle(
-        String::New("An implementation of Dart_GetVMServiceAssetsArchive "
-                    "should return a Uint8Array or null."));
-    const Error& error = Error::Handle(ApiError::New(error_message));
-    Exceptions::PropagateError(error);
-    return Object::null();
-  }
-  return object.ptr();
 }
 
 static void PrintSuccess(JSONStream* js) {
@@ -784,6 +750,10 @@ class BoolParameter : public MethodParameter {
     return (strcmp("true", value) == 0) || (strcmp("false", value) == 0);
   }
 
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsBool();
+  }
+
   static bool Parse(const char* value, bool default_value = false) {
     if (value == nullptr) {
       return default_value;
@@ -870,9 +840,15 @@ class RunnableIsolateParameter : public MethodParameter {
       : MethodParameter(name, true) {}
 
   virtual bool Validate(const char* value) const {
-    Isolate* isolate = Isolate::Current();
-    return (value != nullptr) && (isolate != nullptr) &&
-           (isolate->is_runnable());
+    // We assume the request has been forwarded to the current isolate and
+    // isolateId matches it.
+    return (value != nullptr) && ValidateCurrentIsolate();
+  }
+
+  virtual bool ValidateObject(const Object& value) const {
+    // We assume the request has been forwarded to the current isolate and
+    // isolateId matches it.
+    return value.IsString() && ValidateCurrentIsolate();
   }
 
   virtual void PrintError(const char* name,
@@ -880,6 +856,12 @@ class RunnableIsolateParameter : public MethodParameter {
                           JSONStream* js) const {
     js->PrintError(kIsolateMustBeRunnable,
                    "Isolate must be runnable before this request is made.");
+  }
+
+ private:
+  static bool ValidateCurrentIsolate() {
+    Isolate* isolate = Isolate::Current();
+    return (isolate != nullptr) && (isolate->is_runnable());
   }
 };
 
@@ -995,15 +977,13 @@ void Service::PostError(const String& method_name,
   js.PostReply();
 }
 
-ErrorPtr Service::InvokeMethod(Isolate* I,
-                               const Array& msg,
-                               bool parameters_are_dart_objects) {
+ErrorPtr Service::InvokeMethod(Isolate* I, const Array& msg) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != nullptr);
   ASSERT(T->execution_state() == Thread::kThreadInVM);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.Length() == 6);
+  ASSERT(msg.Length() == 7);
 
   {
     StackZone zone(T);
@@ -1012,13 +992,15 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
     String& method_name = String::Handle(Z);
+    Bool& parameters_are_dart_objects = Bool::Handle(Z);
     Array& param_keys = Array::Handle(Z);
     Array& param_values = Array::Handle(Z);
     reply_port ^= msg.At(1);
     seq ^= msg.At(2);
     method_name ^= msg.At(3);
-    param_keys ^= msg.At(4);
-    param_values ^= msg.At(5);
+    parameters_are_dart_objects ^= msg.At(4);
+    param_keys ^= msg.At(5);
+    param_values ^= msg.At(6);
 
     ASSERT(!method_name.IsNull());
     ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
@@ -1037,7 +1019,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     Dart_Port reply_port_id =
         (reply_port.IsNull() ? ILLEGAL_PORT : SendPort::Cast(reply_port).Id());
     js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
-             param_values, parameters_are_dart_objects);
+             param_values, parameters_are_dart_objects.value());
 
     // |id_zone| is the zone that will be stored into the |JSONStream| that we
     // are about to create, meaning that it is where temporary Service IDs may
@@ -1103,11 +1085,6 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
 ErrorPtr Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
   return InvokeMethod(isolate, msg_instance);
-}
-
-ErrorPtr Service::HandleObjectRootMessage(const Array& msg_instance) {
-  Isolate* isolate = Isolate::Current();
-  return InvokeMethod(isolate, msg_instance, true);
 }
 
 ErrorPtr Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
@@ -1488,11 +1465,6 @@ void Service::SetEmbedderStreamCallbacks(
   stream_cancel_callback_ = cancel_callback;
 }
 
-void Service::SetGetServiceAssetsCallback(
-    Dart_GetVMServiceAssetsArchive get_service_assets) {
-  get_service_assets_callback_ = get_service_assets;
-}
-
 void Service::SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback) {
   embedder_information_callback_ = callback;
@@ -1640,12 +1612,12 @@ static void ActOnIsolateGroup(JSONStream* js,
     PrintInvalidParamError(js, "isolateGroupId");
     return;
   }
-  uint64_t isolate_group_id = UInt64Parameter::Parse(
+  Dart_Port isolate_group_id = Int64Parameter::Parse(
       String::Handle(String::SubString(s, prefix.Length())).ToCString());
   IsolateGroup::RunWithIsolateGroup(
       isolate_group_id,
       [&visitor](IsolateGroup* isolate_group) { visitor(isolate_group); },
-      /*if_not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
+      /*not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
 }
 
 static void GetIsolateGroup(Thread* thread, JSONStream* js) {
@@ -3687,7 +3659,7 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
-    HeapIterationScope iteration_scope(Thread::Current(), true);
+    HeapIterationScope iteration_scope(thread, true);
     MarkClasses(cls, include_subclasses, include_implementers);
     graph.IterateObjects(&visitor);
     UnmarkClasses();
@@ -3737,7 +3709,7 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
     GetInstancesVisitor visitor(&storage, kSmiMax);
     {
       ObjectGraph graph(thread);
-      HeapIterationScope iteration_scope(Thread::Current(), true);
+      HeapIterationScope iteration_scope(thread, true);
       MarkClasses(cls, include_subclasses, include_implementers);
       graph.IterateObjects(&visitor);
       UnmarkClasses();
@@ -3830,6 +3802,32 @@ static void GetPorts(Thread* thread, JSONStream* js) {
         arr.AddValue(port);
       }
     }
+  }
+}
+
+static const MethodParameter* const get_queued_microtasks_params[] = {
+    ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void GetQueuedMicrotasks(Thread* thread, JSONStream* js) {
+  if (!FLAG_profile_microtasks) {
+    js->PrintError(kFeatureDisabled,
+                   "getQueuedMicrotaks is only available when the VM is "
+                   "started with the flag --profile-microtasks.");
+    return;
+  }
+
+  const MicrotaskMirrorQueue& queue =
+      *MicrotaskMirrorQueues::GetQueue(thread->isolate()->main_port());
+
+  if (queue.is_disabled()) {
+    js->PrintError(
+        kCannotGetQueuedMicrotasks,
+        "An exception has gone unhandled in the specified isolate, so "
+        "information about the microtasks queued in it cannot be retrieved.");
+  } else {
+    queue.PrintJSON(*js);
   }
 }
 
@@ -3958,7 +3956,7 @@ static const MethodParameter* const reload_kernel_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
     new BoolParameter("pause", false),
-    new StringParameter("kernelFilePath", false),
+    new DartStringParameter("kernelFilePath", true),
     nullptr,
 };
 
@@ -3969,11 +3967,6 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
 #else
-  if (!js->HasParam("kernelFilePath")) {
-    PrintMissingParamError(js, "kernelFilePath");
-    return;
-  }
-
   IsolateGroup* isolate_group = thread->isolate_group();
   if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
@@ -4013,7 +4006,9 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
     return;
   }
 
-  void* file = (*file_open)(js->LookupParam("kernelFilePath"), /*write=*/false);
+  const String& kernel_file_path = String::CheckedHandle(
+      thread->zone(), js->LookupObjectParam("kernelFilePath"));
+  void* file = (*file_open)(kernel_file_path.ToCString(), /*write=*/false);
   if (file == nullptr) {
     js->PrintError(kIsolateReloadBarred,
                    "The specified kernel file could not be read. Please ensure "
@@ -4026,7 +4021,7 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
   (*file_read)(&kernel_buffer, &kernel_buffer_size, file);
 
   const bool force_reload =
-      BoolParameter::Parse(js->LookupParam("force"), false);
+      js->LookupObjectParam("force") == Bool::True().ptr();
   isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
                               kernel_buffer_size);
 
@@ -4040,8 +4035,8 @@ static const MethodParameter* const reload_sources_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new BoolParameter("force", false),
     new BoolParameter("pause", false),
-    new StringParameter("rootLibUri", false),
-    new StringParameter("packagesUri", false),
+    new DartStringParameter("rootLibUri", false),
+    new DartStringParameter("packagesUri", false),
     nullptr,
 };
 
@@ -4075,10 +4070,18 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
     return;
   }
   const bool force_reload =
-      BoolParameter::Parse(js->LookupParam("force"), false);
+      js->LookupObjectParam("force") == Bool::True().ptr();
 
-  isolate_group->ReloadSources(js, force_reload, js->LookupParam("rootLibUri"),
-                               js->LookupParam("packagesUri"));
+  String& root_lib_uri = String::Handle(thread->zone());
+  root_lib_uri ^= js->LookupObjectParam("rootLibUri");
+
+  String& packages_uri = String::Handle(thread->zone());
+  packages_uri ^= js->LookupObjectParam("packagesUri");
+
+  isolate_group->ReloadSources(
+      js, force_reload,
+      root_lib_uri.IsNull() ? nullptr : root_lib_uri.ToCString(),
+      packages_uri.IsNull() ? nullptr : packages_uri.ToCString());
 
   Service::CheckForPause(isolate, js);
 
@@ -4088,7 +4091,7 @@ static void ReloadSources(Thread* thread, JSONStream* js) {
 void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
   // Should we pause?
   isolate->set_should_pause_post_service_request(
-      BoolParameter::Parse(stream->LookupParam("pause"), false));
+      stream->LookupObjectParam("pause") == Bool::True().ptr());
 }
 
 ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
@@ -5106,12 +5109,18 @@ void Service::SendLogEvent(Isolate* isolate,
   Service::HandleEvent(&event);
 }
 
+void Service::SendTimerEvent(Isolate* isolate, intptr_t milliseconds_overdue) {
+  if (!Service::timer_stream.enabled()) {
+    return;
+  }
+  ServiceEvent event(isolate, ServiceEvent::kTimerSignificantlyOverdue);
+  event.set_milliseconds_overdue(milliseconds_overdue);
+  Service::HandleEvent(&event);
+}
+
 void Service::SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
                                  const String& event_data) {
-  if (!Service::extension_stream.enabled()) {
-    return;
-  }
   ServiceEvent::ExtensionEvent extension_event;
   extension_event.event_kind = &event_kind;
   extension_event.event_data = &event_data;
@@ -5128,8 +5137,8 @@ static const MethodParameter* const get_persistent_handles_params[] = {
 template <typename T>
 class PersistentHandleVisitor : public HandleVisitor {
  public:
-  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
-      : HandleVisitor(thread), handles_(handles) {
+  explicit PersistentHandleVisitor(JSONArray* handles)
+      : HandleVisitor(), handles_(handles) {
     ASSERT(handles_ != nullptr);
   }
 
@@ -5191,7 +5200,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
             PersistentHandleVisitor<PersistentHandle> visitor(
-                thread, &persistent_handles);
+                &persistent_handles);
             handles.Visit(&visitor);
           });
     }
@@ -5201,7 +5210,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedWeakPersistentHandles(
           [&](FinalizablePersistentHandles& handles) {
             PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-                thread, &weak_persistent_handles);
+                &weak_persistent_handles);
             handles.VisitHandles(&visitor);
           });
     }
@@ -6260,6 +6269,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     lookup_resolved_package_uris_params },
   { "lookupPackageUris", LookupPackageUris,
     lookup_package_uris_params },
+  { "getQueuedMicrotasks", GetQueuedMicrotasks,
+    get_queued_microtasks_params },
   { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getScripts", GetScripts,

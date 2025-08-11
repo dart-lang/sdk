@@ -18,24 +18,24 @@ void main() {
 @reflectiveTest
 class ConvertIntoExpressionBodyTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_EXPRESSION_BODY;
+  AssistKind get kind => DartAssistKind.convertIntoExpressionBody;
 
   Future<void> test_already() async {
     await resolveTestCode('''
-fff() => 42;
+^fff() => 42;
 ''');
-    await assertNoAssistAt('fff()');
+    await assertNoAssist();
   }
 
   Future<void> test_async() async {
     await resolveTestCode('''
 class A {
-  mmm() async {
+  ^mmm() async {
     return 42;
   }
 }
 ''');
-    await assertHasAssistAt('mmm', '''
+    await assertHasAssist('''
 class A {
   mmm() async => 42;
 }
@@ -50,7 +50,7 @@ class A {
     await resolveTestCode('''
 class A {
   mmm() async {
-    return 42;
+    ^return 42;
   }
 }
 ''');
@@ -62,11 +62,11 @@ class A {
 setup(x) {}
 void f() {
   setup(() {
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertHasAssistAt('return', '''
+    await assertHasAssist('''
 setup(x) {}
 void f() {
   setup(() => 42);
@@ -79,12 +79,12 @@ void f() {
 setup(x) {}
 void f() {
   setup(() {
-    return 42;
+    ^return 42;
     // Comment.
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasBlockComment_beforeReturnKeyword() async {
@@ -93,11 +93,11 @@ setup(x) {}
 void f() {
   setup(() {
     // Comment.
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasBlockComment_multiple() async {
@@ -108,11 +108,11 @@ void f() {
     // Comment.
 
     // Comment 2.
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasInlineComment_beforeBodyKeyword() async {
@@ -120,11 +120,11 @@ void f() {
 setup(x) {}
 void f() {
   setup(() /* Comment. */ async {
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasInlineComment_beforeOpenBrace() async {
@@ -132,11 +132,11 @@ void f() {
 setup(x) {}
 void f() {
   setup(() /* Comment. */ {
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasInlineComment_beforeReturn() async {
@@ -145,11 +145,11 @@ setup(x) {}
 void f() {
   setup(() {
     /* Comment. */
-    return 42;
+    ^return 42;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_hasInlineComment_beforeReturnSemicolon() async {
@@ -157,23 +157,23 @@ void f() {
 setup(x) {}
 void f() {
   setup(() {
-    return  42 /* Comment. */;
+    ^return  42 /* Comment. */;
   });
 }
 ''');
-    await assertNoAssistAt('return');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_voidExpression() async {
     await resolveTestCode('''
 setup(x) {}
 void f() {
-  setup((_) {
+  setup(^(_) {
     print('test');
   });
 }
 ''');
-    await assertHasAssistAt('(_) {', '''
+    await assertHasAssist('''
 setup(x) {}
 void f() {
   setup((_) => print('test'));
@@ -186,12 +186,12 @@ void f() {
 class A {
   A.named();
 
-  factory A() {
+  factory ^A() {
     return A.named();
   }
 }
 ''');
-    await assertHasAssistAt('A()', '''
+    await assertHasAssist('''
 class A {
   A.named();
 
@@ -205,32 +205,32 @@ class A {
 class A {
   int x = 0;
 
-  A() {
+  ^A() {
     x = 3;
   }
 }
 ''');
-    await assertNoAssistAt('A()');
+    await assertNoAssist();
   }
 
   Future<void> test_function_onBlock() async {
     await resolveTestCode('''
-fff() {
+fff() ^{
   return 42;
 }
 ''');
-    await assertHasAssistAt('{', '''
+    await assertHasAssist('''
 fff() => 42;
 ''');
   }
 
   Future<void> test_function_onName() async {
     await resolveTestCode('''
-fff() {
+f^ff() {
   return 42;
 }
 ''');
-    await assertHasAssistAt('ff()', '''
+    await assertHasAssist('''
 fff() => 42;
 ''');
   }
@@ -238,21 +238,21 @@ fff() => 42;
   Future<void> test_inExpression() async {
     await resolveTestCode('''
 int f() {
-  return 42;
+  return ^42;
 }
 ''');
-    await assertNoAssistAt('42;');
+    await assertNoAssist();
   }
 
   Future<void> test_method_onBlock() async {
     await resolveTestCode('''
 class A {
-  m() {
+  ^m() {
     return 42;
   }
 }
 ''');
-    await assertHasAssistAt('m() {', '''
+    await assertHasAssist('''
 class A {
   m() => 42;
 }
@@ -261,46 +261,46 @@ class A {
 
   Future<void> test_moreThanOneStatement() async {
     await resolveTestCode('''
-fff() {
+^fff() {
   var v = 42;
   return v;
 }
 ''');
-    await assertNoAssistAt('fff()');
+    await assertNoAssist();
   }
 
   Future<void> test_noEnclosingFunction() async {
     await resolveTestCode('''
-var V = 42;
+var ^V = 42;
 ''');
-    await assertNoAssistAt('V = ');
+    await assertNoAssist();
   }
 
   Future<void> test_noReturn() async {
     await resolveTestCode('''
-fff() {
+^fff() {
   var v = 42;
 }
 ''');
-    await assertNoAssistAt('fff()');
+    await assertNoAssist();
   }
 
   Future<void> test_noReturnValue() async {
     await resolveTestCode('''
-fff() {
+^fff() {
   return;
 }
 ''');
-    await assertNoAssistAt('fff()');
+    await assertNoAssist();
   }
 
   Future<void> test_topFunction_onReturnStatement() async {
     await resolveTestCode('''
 fff() {
-  return 42;
+  ^return 42;
 }
 ''');
-    await assertHasAssistAt('return', '''
+    await assertHasAssist('''
 fff() => 42;
 ''');
   }

@@ -54,10 +54,9 @@ Stream<int> produceIntStreamWithController(int count, int delayMs) {
 }
 
 Future<int> sumIntStream(int count, int delayMs, bool useAsyncStar) async {
-  final stream =
-      useAsyncStar
-          ? produceIntStreamWithAsyncStar(count, delayMs)
-          : produceIntStreamWithController(count, delayMs);
+  final stream = useAsyncStar
+      ? produceIntStreamWithAsyncStar(count, delayMs)
+      : produceIntStreamWithController(count, delayMs);
   var sum = 0;
   await for (var value in stream) {
     sum += value;

@@ -55,8 +55,7 @@ Future<void> main() async {
     processesRunning++;
     String testPath = testPaths.removeLast();
     Stopwatch stopwatch = new Stopwatch()..start();
-    // ignore: unawaited_futures
-    Process.run(Platform.resolvedExecutable, [
+    unawaited(Process.run(Platform.resolvedExecutable, [
       coverageRunner.toFilePath(),
       "--enable-asserts",
       testPath
@@ -69,7 +68,7 @@ Future<void> main() async {
       Completer<void> oldCompleter = completer;
       completer = new Completer();
       oldCompleter.complete();
-    });
+    }));
   }
   while (processesRunning > 0) {
     log("Awaiting $processesRunning processes");

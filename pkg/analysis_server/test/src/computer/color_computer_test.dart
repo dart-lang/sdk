@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -137,8 +137,9 @@ class ColorComputerTest extends AbstractContextTest {
     Map<String, int> expectedColorValues, {
     String? otherCode,
   }) async {
-    dartCode = _withCommonImports(dartCode);
-    otherCode = otherCode != null ? _withCommonImports(otherCode) : null;
+    dartCode = _withCommonImportsNormalized(dartCode);
+    otherCode =
+        otherCode != null ? _withCommonImportsNormalized(otherCode) : null;
 
     newFile(testPath, dartCode);
     if (otherCode != null) {
@@ -195,10 +196,7 @@ class ColorComputerTest extends AbstractContextTest {
 
   void expectNoErrors(ResolvedUnitResult result) {
     // If the test code has errors, generate a suitable failure to help debug.
-    var errors =
-        result.errors
-            .where((error) => error.severity == Severity.error)
-            .toList();
+    var errors = result.diagnostics.errors;
     if (errors.isNotEmpty) {
       throw 'Code has errors: $errors\n\n${result.content}';
     }
@@ -460,10 +458,12 @@ final a = [[COLOR]];
     await checkAllColors(testCode);
   }
 
-  String _withCommonImports(String code) => '''
+  String _withCommonImportsNormalized(String code) {
+    return normalizeSource('''
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/material.dart';
 
-$code''';
+$code''');
+  }
 }

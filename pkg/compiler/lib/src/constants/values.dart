@@ -29,7 +29,7 @@ enum ConstantValueKind {
   interceptor,
   javaScriptObject,
   jsName,
-  dummyInterceptor,
+  dummy,
   lateSentinel,
   unreachable,
   instantiation,
@@ -62,10 +62,7 @@ abstract class ConstantValueVisitor<R, A> {
     covariant JavaScriptObjectConstantValue constant,
     covariant A arg,
   );
-  R visitDummyInterceptor(
-    covariant DummyInterceptorConstantValue constant,
-    covariant A arg,
-  );
+  R visitDummy(covariant DummyConstantValue constant, covariant A arg);
   R visitLateSentinel(
     covariant LateSentinelConstantValue constant,
     covariant A arg,
@@ -826,14 +823,14 @@ class JsNameConstantValue extends ConstantValue {
   }
 }
 
-/// A constant used as the dummy receiver value for intercepted calls with
-/// a known non-interceptor target.
-// TODO(sra): Rename fo 'DummyReceiverConstantValue'.
-class DummyInterceptorConstantValue extends ConstantValue {
-  factory DummyInterceptorConstantValue() =>
-      const DummyInterceptorConstantValue._();
+/// A constant used as an argument or receiver when the target does not use the
+/// corresponding parameter. Used as the dummy receiver value for calls using
+/// the intercepted calling convention when the target is 'self-intercepting'
+/// and does not use the explicit receiver parameter.
+class DummyConstantValue extends ConstantValue {
+  factory DummyConstantValue() => const DummyConstantValue._();
 
-  const DummyInterceptorConstantValue._();
+  const DummyConstantValue._();
 
   @override
   bool get isDummy => true;
@@ -843,20 +840,20 @@ class DummyInterceptorConstantValue extends ConstantValue {
 
   @override
   R accept<R, A>(ConstantValueVisitor<R, A> visitor, A arg) {
-    return visitor.visitDummyInterceptor(this, arg);
+    return visitor.visitDummy(this, arg);
   }
 
   @override
   DartType getType(CommonElements types) => types.dynamicType;
 
   @override
-  ConstantValueKind get kind => ConstantValueKind.dummyInterceptor;
+  ConstantValueKind get kind => ConstantValueKind.dummy;
 
   @override
-  String toDartText(DartTypes? dartTypes) => 'dummy_interceptor()';
+  String toDartText(DartTypes? dartTypes) => 'dummy()';
 
   @override
-  String toStructuredText(DartTypes? dartTypes) => 'DummyInterceptorConstant()';
+  String toStructuredText(DartTypes? dartTypes) => 'DummyConstant()';
 }
 
 /// A constant used to represent the sentinel for uninitialized late fields and

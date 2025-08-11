@@ -20,8 +20,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 final SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 final SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -30,8 +32,12 @@ main() async {
   List<int> message = "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n".codeUnits;
   int written = 0;
   List<int> body = <int>[];
-  var server =
-      await HttpServer.bindSecure("localhost", 0, serverContext, backlog: 5);
+  var server = await HttpServer.bindSecure(
+    "localhost",
+    0,
+    serverContext,
+    backlog: 5,
+  );
   server.listen((HttpRequest request) async {
     await request.drain();
     request.response.contentLength = 100;
@@ -40,33 +46,39 @@ main() async {
     }
     request.response.close();
   });
-  var socket = await RawSecureSocket.connect("localhost", server.port,
-      context: clientContext);
-  socket.listen((RawSocketEvent event) {
-    switch (event) {
-      case RawSocketEvent.read:
-        body.addAll(socket.read()!);
-        break;
-      case RawSocketEvent.write:
-        written += socket.write(message, written, message.length - written);
-        if (written < message.length) {
-          socket.writeEventsEnabled = true;
-        } else {
-          socket.shutdown(SocketDirection.send);
-        }
-        break;
-      case RawSocketEvent.readClosed:
-        Expect.isTrue(body.length > 100, "$body\n${body.length}");
-        Expect.equals(72, body[0]);
-        Expect.equals(9, body[body.length - 1]);
-        server.close();
-        break;
-      default:
-        throw "Unexpected event $event";
-    }
-  }, onError: (e, trace) {
-    String msg = "onError handler of RawSecureSocket stream hit $e";
-    if (trace != null) msg += "\nStackTrace: $trace";
-    Expect.fail(msg);
-  });
+  var socket = await RawSecureSocket.connect(
+    "localhost",
+    server.port,
+    context: clientContext,
+  );
+  socket.listen(
+    (RawSocketEvent event) {
+      switch (event) {
+        case RawSocketEvent.read:
+          body.addAll(socket.read()!);
+          break;
+        case RawSocketEvent.write:
+          written += socket.write(message, written, message.length - written);
+          if (written < message.length) {
+            socket.writeEventsEnabled = true;
+          } else {
+            socket.shutdown(SocketDirection.send);
+          }
+          break;
+        case RawSocketEvent.readClosed:
+          Expect.isTrue(body.length > 100, "$body\n${body.length}");
+          Expect.equals(72, body[0]);
+          Expect.equals(9, body[body.length - 1]);
+          server.close();
+          break;
+        default:
+          throw "Unexpected event $event";
+      }
+    },
+    onError: (e, trace) {
+      String msg = "onError handler of RawSecureSocket stream hit $e";
+      if (trace != null) msg += "\nStackTrace: $trace";
+      Expect.fail(msg);
+    },
+  );
 }

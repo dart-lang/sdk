@@ -16,11 +16,13 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -28,44 +30,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
-
-// TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
-// package).
-String analysisOptionsContent({
-  String? include,
-  List<String> experiments = const [],
-  List<String> plugins = const [],
-  List<String> rules = const [],
-}) {
-  var buffer = StringBuffer();
-
-  if (include != null) {
-    buffer.writeln('include: $include');
-  }
-  buffer.writeln('analyzer:');
-  if (experiments.isNotEmpty) {
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-  }
-  if (plugins.isNotEmpty) {
-    buffer.writeln('  plugins:');
-    for (var plugin in plugins) {
-      buffer.writeln('    - $plugin');
-    }
-  }
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
+import 'utils/message_scheduler_test_view.dart';
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
@@ -96,6 +61,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
+  MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
 
   DartFixPromptManager? dartFixPromptManager;
@@ -198,6 +164,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
     serverChannel.notifications.listen(processNotification);
 
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
@@ -209,7 +176,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
 
     server.completionState.budgetDuration = const Duration(seconds: 30);
@@ -242,7 +209,13 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     '$testPackageLibPath/test.dart',
   );
 
+  late String pubspecFilePath = pathContext.normalize(
+    resourceProvider.convertPath('$testPackageRootPath/pubspec.yaml'),
+  );
+
   late TestCode parsedTestCode;
+
+  final String testPackageName = 'test';
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
@@ -266,7 +239,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   Folder get testPackageRoot => getFolder(testPackageRootPath);
 
   @override
-  String get testPackageRootPath => '$workspaceRootPath/test';
+  String get testPackageRootPath => '$workspaceRootPath/$testPackageName';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
 
@@ -296,19 +269,27 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   @override
   void createDefaultFiles() {
     writeTestPackageConfig();
-    writeTestPackagePubspecYamlFile('name: test');
+    writeTestPackagePubspecYamlFile('name: $testPackageName');
 
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(experiments: experiments),
     );
   }
 
+  /// Deletes the analysis options YAML file at [testPackageRootPath].
   void deleteTestPackageAnalysisOptionsFile() {
-    deleteAnalysisOptionsYamlFile(testPackageRootPath);
+    var path = join(testPackageRootPath, file_paths.analysisOptionsYaml);
+    deleteFile(path);
   }
 
+  /// Deletes the `package_config.json` file at [testPackageRootPath].
   void deleteTestPackageConfigJsonFile() {
-    deletePackageConfigJsonFile(testPackageRootPath);
+    var filePath = join(
+      testPackageRootPath,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    deleteFile(filePath);
   }
 
   /// Returns the offset of [search] in [testFileContent].
@@ -319,7 +300,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   }
 
   void modifyTestFile(String content) {
-    modifyFile(testFilePath, content);
+    modifyFile2(testFile, content);
   }
 
   /// Returns the offset of [search] in [file].

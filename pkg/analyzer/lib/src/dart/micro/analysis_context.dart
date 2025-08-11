@@ -81,8 +81,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 
   @override
   AnalysisSessionImpl get currentSession {
-    _currentSession = fileResolver.contextObjects?.analysisSession
-        as _MicroAnalysisSessionImpl;
+    _currentSession =
+        fileResolver.contextObjects?.analysisSession
+            as _MicroAnalysisSessionImpl;
     return _currentSession;
   }
 
@@ -111,7 +112,7 @@ class _FakeAnalysisDriver implements AnalysisDriver {
     var library = kind.library ?? kind.asLibrary;
     var element = libraryContext.computeUnitElement(library, file);
     return UnitElementResultImpl(
-      element: element,
+      fragment: element,
       fileState: file,
       session: currentSession,
     );
@@ -124,8 +125,7 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 class _MicroAnalysisContextImpl implements AnalysisContext {
   final FileResolver fileResolver;
 
-  @override
-  AnalysisOptionsImpl analysisOptions;
+  final AnalysisOptionsImpl analysisOptions;
 
   final ResourceProvider resourceProvider;
 

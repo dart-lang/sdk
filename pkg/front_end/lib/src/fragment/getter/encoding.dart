@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
@@ -23,6 +24,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceGetterEncoding extends GetterEncoding
@@ -121,19 +123,19 @@ sealed class GetterEncoding implements InferredTypeListener {
   void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
@@ -211,17 +213,20 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
     buildTypeParametersForOutlineExpressions(
         classHierarchy,
         libraryBuilder,
@@ -241,7 +246,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
@@ -293,7 +298,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -302,17 +307,16 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       DartType getterType = function.returnType;
       DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
           getterExtensionTypeParameters: null);
-      libraryBuilder.checkGetterSetterTypes(typeEnvironment,
-          getterType: getterType,
-          getterName: _fragment.name,
-          getterFileOffset: _fragment.nameOffset,
-          getterFileUri: _fragment.fileUri,
-          getterNameLength: _fragment.name.length,
-          setterType: setterType,
-          setterName: setterBuilder.name,
-          setterFileOffset: setterBuilder.fileOffset,
-          setterFileUri: setterBuilder.fileUri,
-          setterNameLength: setterBuilder.name.length);
+      libraryBuilder.checkGetterSetterTypes(
+        typeEnvironment,
+        getterType: getterType,
+        getterName: _fragment.name,
+        getterUriOffset: new UriOffsetLength(
+            _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
+        setterType: setterType,
+        setterName: setterBuilder.name,
+        setterUriOffset: setterBuilder.setterUriOffset!,
+      );
     }
   }
 
@@ -392,7 +396,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals =>
       [_thisFormal, ...?_fragment.declaredFormals];
 
@@ -429,17 +432,20 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
 
     buildTypeParametersForOutlineExpressions(
         classHierarchy,
@@ -467,7 +473,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;
@@ -531,7 +537,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -543,14 +549,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       libraryBuilder.checkGetterSetterTypes(typeEnvironment,
           getterType: getterType,
           getterName: _fragment.name,
-          getterFileOffset: _fragment.nameOffset,
-          getterFileUri: _fragment.fileUri,
-          getterNameLength: _fragment.name.length,
+          getterUriOffset: new UriOffsetLength(
+              _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
           setterType: setterType,
           setterName: setterBuilder.name,
-          setterFileOffset: setterBuilder.fileOffset,
-          setterFileUri: setterBuilder.fileUri,
-          setterNameLength: setterBuilder.name.length);
+          setterUriOffset: setterBuilder.setterUriOffset!);
     }
   }
 
@@ -608,7 +611,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
 
   @override
   LocalScope createFormalParameterScope(LookupScope typeParameterScope) {
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     assert(!_thisFormal.isWildcard);
     local[_thisFormal.name] = _thisFormal;
     return new FormalParameterScope(local: local, parent: typeParameterScope);

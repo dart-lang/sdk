@@ -13,10 +13,10 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 AstNode? _tweakLocatedNode(AstNode? node, int offset) {
   if (node is RepresentationDeclaration) {
@@ -61,10 +61,10 @@ class PrepareRenameHandler
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return (unit, offset).mapResults((unit, offset) async {
-      var node = NodeLocator(offset).searchWithin(unit.unit);
+    return (unit, offset).mapResults((result, offset) async {
+      var node = result.unit.nodeCovering(offset: offset);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node, useMockForImport: true);
+      var element = node?.getElement(useMockForImport: true);
 
       if (node == null || element == null) {
         return success(null);
@@ -77,7 +77,7 @@ class PrepareRenameHandler
 
       var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
-        unit,
+        result,
         refactorDetails.element,
       );
       if (refactoring == null) {
@@ -97,7 +97,7 @@ class PrepareRenameHandler
         TextDocumentPrepareRenameResult.t1(
           PrepareRenamePlaceholder(
             range: toRange(
-              unit.lineInfo,
+              result.lineInfo,
               // If the offset is set to -1 it means there is no location for the
               // old name. However since we must provide a range for LSP, we'll use
               // a 0-character span at the originally requested location to ensure
@@ -155,12 +155,12 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     return (path, docIdentifier, unit, offset).mapResults((
       path,
       docIdentifier,
-      unit,
+      result,
       offset,
     ) async {
-      var node = NodeLocator(offset).searchWithin(unit.unit);
+      var node = result.unit.nodeCovering(offset: offset);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node, useMockForImport: true);
+      var element = node?.getElement(useMockForImport: true);
       if (node == null || element == null) {
         return success(null);
       }
@@ -172,7 +172,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
       var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
-        unit,
+        result,
         refactorDetails.element,
       );
       if (refactoring == null) {
@@ -320,7 +320,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element is InterfaceElement2;
+      refactoring.element is InterfaceElement;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

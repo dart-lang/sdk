@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -217,17 +217,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     var parent = node.parent;
     List<FormalParameterElement>? parameters;
     if (parent is InstanceCreationExpression) {
-      Element2? constructor;
+      Element? constructor;
       var name = parent.constructorName.name;
       if (name != null) {
         constructor = name.element;
       } else {
-        var classElem = parent.constructorName.type.element2;
-        if (classElem is ClassElement2) {
-          constructor = classElem.unnamedConstructor2;
+        var classElem = parent.constructorName.type.element;
+        if (classElem is ClassElement) {
+          constructor = classElem.unnamedConstructor;
         }
       }
-      if (constructor is ConstructorElement2) {
+      if (constructor is ConstructorElement) {
         parameters = constructor.formalParameters;
       } else if (constructor == null) {
         // If unresolved, then include named arguments
@@ -237,7 +237,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       var function = parent.function;
       if (function is SimpleIdentifier) {
         var elem = function.element;
-        if (elem is FunctionTypedElement2) {
+        if (elem is FunctionTypedElement) {
           parameters = elem.formalParameters;
         } else if (elem == null) {
           // If unresolved, then include named arguments
@@ -249,8 +249,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     } else if (parent is RedirectingConstructorInvocation) {
       parameters = parent.element?.formalParameters;
     } else if (parent is Annotation) {
-      var constructor = parent.element2;
-      if (constructor is ConstructorElement2) {
+      var constructor = parent.element;
+      if (constructor is ConstructorElement) {
         parameters = constructor.formalParameters;
       } else if (constructor == null) {
         // If unresolved, then include named arguments
@@ -602,6 +602,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    optype.completionLocation = 'DotShorthandPropertyAccess_propertyName';
+    optype.includeReturnValueSuggestions = true;
   }
 
   @override
@@ -1153,7 +1159,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else {
         var argKind = 'unnamed';
         var method = node.methodName.element;
-        if (method is MethodElement2 &&
+        if (method is MethodElement &&
             method.formalParameters.isNotEmpty &&
             method.formalParameters[0].isNamed) {
           argKind = 'named';
@@ -1189,7 +1195,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
       // Check for named parameters in constructor calls.
       var grandparent = node.parent?.parent;
-      Element2? element;
+      Element? element;
       if (grandparent is ConstructorReferenceNode) {
         element = grandparent.element;
       } else if (grandparent is InstanceCreationExpression) {
@@ -1197,13 +1203,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else if (grandparent is MethodInvocation) {
         element = grandparent.methodName.element;
       }
-      if (element is ExecutableElement2) {
+      if (element is ExecutableElement) {
         var parameters = element.formalParameters;
         var parameterElement = parameters.firstWhereOrNull((e) {
-          if (e is FieldFormalParameterElement2) {
-            return e.field2?.name3 == node.name.label.name;
+          if (e is FieldFormalParameterElement) {
+            return e.field?.name == node.name.label.name;
           }
-          return e.isNamed && e.name3 == node.name.label.name;
+          return e.isNamed && e.name == node.name.label.name;
         });
         // Suggest tear-offs.
         if (parameterElement?.type is FunctionType) {
@@ -1215,7 +1221,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     if (identical(entity, nameToken) ||
         // In addition to the standard case,
         // handle the exceptional case where the parser considers the would-be

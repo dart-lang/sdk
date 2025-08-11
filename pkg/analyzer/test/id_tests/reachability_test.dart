@@ -14,20 +14,23 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
-  return runTests<Set<_ReachabilityAssertion>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _ReachabilityDataComputer(), [analyzerDefaultConfig]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data',
+    ),
+  );
+  return runTests<Set<_ReachabilityAssertion>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _ReachabilityDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
-enum _ReachabilityAssertion {
-  doesNotComplete,
-  unreachable,
-}
+enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataComputer
     extends DataComputer<Set<_ReachabilityAssertion>> {
@@ -38,8 +41,11 @@ class _ReachabilityDataComputer
       const _ReachabilityDataInterpreter();
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
     _ReachabilityDataExtractor(unitUri, actualMap, flowResult).run(unit);
@@ -60,8 +66,10 @@ class _ReachabilityDataExtractor
       // contains should always be the same.  We check this with an assert
       // statement, and only annotate the expression statement, to reduce the
       // amount of redundancy in the test files.
-      assert(_flowResult.unreachableNodes.contains(node) ==
-          _flowResult.unreachableNodes.contains(node.parent));
+      assert(
+        _flowResult.unreachableNodes.contains(node) ==
+            _flowResult.unreachableNodes.contains(node.parent),
+      );
     } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
@@ -76,7 +84,9 @@ class _ReachabilityDataExtractor
   }
 
   void _checkBodyCompletion(
-      FunctionBody? body, Set<_ReachabilityAssertion> result) {
+    FunctionBody? body,
+    Set<_ReachabilityAssertion> result,
+  ) {
     if (body != null &&
         _flowResult.functionBodiesThatDontComplete.contains(body)) {
       result.add(_ReachabilityAssertion.doesNotComplete);
@@ -89,13 +99,16 @@ class _ReachabilityDataInterpreter
   const _ReachabilityDataInterpreter();
 
   @override
-  String getText(Set<_ReachabilityAssertion> actualData,
-          [String? indentation]) =>
-      _sortedRepresentation(_toStrings(actualData));
+  String getText(
+    Set<_ReachabilityAssertion> actualData, [
+    String? indentation,
+  ]) => _sortedRepresentation(_toStrings(actualData));
 
   @override
   String? isAsExpected(
-      Set<_ReachabilityAssertion> actualData, String? expectedData) {
+    Set<_ReachabilityAssertion> actualData,
+    String? expectedData,
+  ) {
     var actualStrings = _toStrings(actualData);
     var actualSorted = _sortedRepresentation(actualStrings);
     var expectedSorted = _sortedRepresentation(expectedData?.split(','));
@@ -115,7 +128,8 @@ class _ReachabilityDataInterpreter
     return list.join(',');
   }
 
-  List<String> _toStrings(Set<_ReachabilityAssertion> actualData) => actualData
-      .map((flowAssertion) => flowAssertion.toString().split('.')[1])
-      .toList();
+  List<String> _toStrings(Set<_ReachabilityAssertion> actualData) =>
+      actualData
+          .map((flowAssertion) => flowAssertion.toString().split('.')[1])
+          .toList();
 }

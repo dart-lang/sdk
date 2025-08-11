@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -33,15 +33,15 @@ String format(String content, {Version? languageVersion}) {
 
 /// Returns a [ParseStringResult]. If successful, the result contains the sorted
 /// code. On failure, the result contains the unsorted original code, and the
-/// cause of the failure, a list of [AnalysisError]'s.
+/// cause of the failure, a list of [Diagnostic]s.
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
-  var (unit, errors) = _parse(contents, fullName: fileName);
+  var (unit, diagnostics) = _parse(contents, fullName: fileName);
   var parseErrors =
-      errors
+      diagnostics
           .where(
-            (error) =>
-                error.errorCode is ScannerErrorCode ||
-                error.errorCode is ParserErrorCode,
+            (d) =>
+                d.diagnosticCode is ScannerErrorCode ||
+                d.diagnosticCode is ParserErrorCode,
           )
           .toList();
   if (parseErrors.isNotEmpty) {
@@ -52,18 +52,18 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   return ParseStringResultImpl(sorter.code, unit, parseErrors);
 }
 
-(CompilationUnit, List<AnalysisError>) _parse(
+(CompilationUnit, List<Diagnostic>) _parse(
   String contents, {
   String? fullName,
 }) {
   var source = StringSource(contents, fullName);
-  var errorListener = RecordingErrorListener();
+  var diagnosticListener = RecordingDiagnosticListener();
   var reader = CharSequenceReader(contents);
   var featureSet = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, errorListener)..configureFeatures(
+  var scanner = Scanner(source, reader, diagnosticListener)..configureFeatures(
     featureSetForOverriding: FeatureSet.latestLanguageVersion(),
     featureSet: featureSet,
   );
@@ -76,12 +76,12 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
 
   var parser = p.Parser(
     source,
-    errorListener,
+    diagnosticListener,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
     languageVersion: languageVersion,
   );
 
   var unit = parser.parseCompilationUnit(token);
-  return (unit, errorListener.errors);
+  return (unit, diagnosticListener.diagnostics);
 }

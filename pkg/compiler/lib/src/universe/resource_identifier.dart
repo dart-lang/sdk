@@ -44,10 +44,9 @@ class ResourceIdentifier {
     Uri uri = source.readUri();
 
     bool hasLocation = source.readBool();
-    ResourceIdentifierLocation? location =
-        hasLocation
-            ? ResourceIdentifierLocation.readFromDataSource(source)
-            : null;
+    ResourceIdentifierLocation? location = hasLocation
+        ? ResourceIdentifierLocation.readFromDataSource(source)
+        : null;
 
     bool nonconstant = source.readBool();
     String arguments = source.readString();

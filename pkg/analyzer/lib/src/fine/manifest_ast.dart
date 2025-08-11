@@ -6,13 +6,40 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+enum ManifestAstElementKind {
+  null_,
+  dynamic_,
+  formalParameter,
+  importPrefix,
+  typeParameter,
+  regular;
+
+  static final _bitCount = values.length.bitLength;
+  static final _bitMask = (1 << _bitCount) - 1;
+
+  int encodeRawIndex(int rawIndex) {
+    assert(rawIndex < (1 << 16));
+    return (rawIndex << _bitCount) | index;
+  }
+
+  static (ManifestAstElementKind, int) decode(int index) {
+    var kindIndex = index & _bitMask;
+    var kind = ManifestAstElementKind.values[kindIndex];
+    var rawIndex = index >> _bitCount;
+    return (kind, rawIndex);
+  }
+}
 
 /// Enough information to decide if the node is the same.
 ///
@@ -32,10 +59,8 @@ class ManifestNode {
   final List<ManifestElement> elements;
 
   /// For each property in the AST structure summarized by this manifest that
-  /// might point to an element:
-  ///   - `0` if the element pointer is `null`;
-  ///   - `1` if the element is an import prefix;
-  ///   - otherwise `2 + ` the index of the element in [elements].
+  /// might point to an element, [ManifestAstElementKind.encodeRawIndex]
+  /// produces the corresponding value.
   ///
   /// The order of this list reflects the AST structure, according to the
   /// behavior of [_ElementCollector].
@@ -55,15 +80,19 @@ class ManifestNode {
       token = token.next ?? (throw StateError('endToken not found'));
     }
 
-    var collector = _ElementCollector();
+    var collector = _ElementCollector(
+      indexOfTypeParameter: context.indexOfTypeParameter,
+      indexOfFormalParameter: context.indexOfFormalParameter,
+    );
     node.accept(collector);
 
     return ManifestNode._(
       tokenBuffer: buffer.toString(),
       tokenLengthList: Uint32List.fromList(lengthList),
-      elements: collector.map.keys
-          .map((element) => ManifestElement.encode(context, element))
-          .toFixedList(),
+      elements:
+          collector.map.keys
+              .map((element) => ManifestElement.encode(context, element))
+              .toFixedList(),
       elementIndexList: Uint32List.fromList(collector.elementIndexList),
     );
   }
@@ -105,7 +134,10 @@ class ManifestNode {
       token = token.next ?? (throw StateError('endToken not found'));
     }
 
-    var collector = _ElementCollector();
+    var collector = _ElementCollector(
+      indexOfTypeParameter: context.indexOfTypeParameter,
+      indexOfFormalParameter: context.indexOfFormalParameter,
+    );
     node.accept(collector);
 
     // Must reference the same elements.
@@ -136,17 +168,25 @@ class ManifestNode {
     sink.writeUint30List(elementIndexList);
   }
 
+  static List<ManifestNode> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestNode.read(reader));
+  }
+
   static ManifestNode? readOptional(SummaryDataReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
 }
 
 class _ElementCollector extends ThrowingAstVisitor<void> {
-  static const int _nullIndex = 0;
-  static const int _importPrefixIndex = 1;
-
-  final Map<Element2, int> map = Map.identity();
+  final int Function(TypeParameterElementImpl) indexOfTypeParameter;
+  final int Function(FormalParameterElementImpl) indexOfFormalParameter;
+  final Map<Element, int> map = Map.identity();
   final List<int> elementIndexList = [];
+
+  _ElementCollector({
+    required this.indexOfTypeParameter,
+    required this.indexOfFormalParameter,
+  });
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -156,11 +196,21 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
     node.visitChildren(this);
   }
 
@@ -172,6 +222,16 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {}
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    node.visitChildren(this);
+  }
 
   @override
   void visitConstructorName(ConstructorName node) {
@@ -236,7 +296,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override
@@ -261,6 +321,13 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+    RedirectingConstructorInvocation node,
+  ) {
     node.visitChildren(this);
   }
 
@@ -293,20 +360,71 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
   }
 
-  void _addElement(Element2? element) {
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    node.visitChildren(this);
+  }
+
+  void _addElement(Element? element) {
+    ManifestAstElementKind kind;
+    int rawIndex;
     switch (element) {
       case null:
-        elementIndexList.add(_nullIndex);
-      case PrefixElement2():
-        elementIndexList.add(_importPrefixIndex);
+        kind = ManifestAstElementKind.null_;
+        rawIndex = 0;
+      case DynamicElementImpl():
+        kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case FormalParameterElementImpl():
+        kind = ManifestAstElementKind.formalParameter;
+        rawIndex = indexOfFormalParameter(element);
+      case TypeParameterElementImpl():
+        kind = ManifestAstElementKind.typeParameter;
+        rawIndex = indexOfTypeParameter(element);
+      case PrefixElement():
+        kind = ManifestAstElementKind.importPrefix;
+        rawIndex = 0;
       default:
-        var index = map[element] ??= 2 + map.length;
-        elementIndexList.add(index);
+        kind = ManifestAstElementKind.regular;
+        rawIndex = map[element] ??= map.length;
     }
+
+    var index = kind.encodeRawIndex(rawIndex);
+    elementIndexList.add(index);
+
+    // We resolve `a` in `const b = a;` as a getter. But during constant
+    // evaluation we will access the corresponding constant variable for
+    // its initializer. So, we also depend on the variable.
+    if (element is GetterElementImpl) {
+      _addElement(element.variable!);
+    }
+  }
+}
+
+extension ListOfManifestNodeExtension on List<ManifestNode> {
+  bool match(MatchContext context, List<AstNode> nodes) {
+    if (nodes.length != length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (!this[i].match(context, nodes[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void writeList(BufferedSink sink) {
+    sink.writeList(this, (x) => x.write(sink));
   }
 }
 

@@ -5,12 +5,38 @@
 // Dart test program for testing File.copy*
 
 import 'dart:io';
+import 'dart:ffi' as ffi;
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+import 'package:ffi/ffi.dart';
 
 const FILE_CONTENT1 = 'some string';
 const FILE_CONTENT2 = 'some other string';
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>, ffi.Int)>()
+external int mkfifo(ffi.Pointer<ffi.Char> pathname, int mode);
+
+void testFifo() async {
+  var tmp = Directory.systemTemp.createTempSync('copy-fifo');
+  if (!Platform.isLinux) {
+    return;
+  }
+
+  using((arena) {
+    // 432 => rw-rw----
+    if (mkfifo("${tmp.path}/fifo".toNativeUtf8(allocator: arena).cast(), 432) ==
+        -1) {
+      throw FileSystemException('error creating FIFO');
+    }
+  });
+
+  final write = File("${tmp.path}/fifo").writeAsString("Hello World!");
+  final copy = File("${tmp.path}/fifo").copy("${tmp.path}/copy");
+  await Future.wait([write, copy]);
+  Expect.equals("Hello World!", File("${tmp.path}/copy").readAsStringSync());
+  tmp.deleteSync(recursive: true);
+}
 
 void testCopySync() {
   var tmp = Directory.systemTemp.createTempSync('dart-file-copy');
@@ -83,35 +109,39 @@ void testCopy() {
   Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
 
   // Copy to new file works.
-  file1.copy('${tmp.path}/file2').then((file2) {
-    Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
-    Expect.equals(FILE_CONTENT1, file2.readAsStringSync());
+  file1
+      .copy('${tmp.path}/file2')
+      .then((file2) {
+        Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
+        Expect.equals(FILE_CONTENT1, file2.readAsStringSync());
 
-    // Override works for files.
-    file2.writeAsStringSync(FILE_CONTENT2);
-    return file2.copy(file1.path).then((_) {
-      Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
-      Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
+        // Override works for files.
+        file2.writeAsStringSync(FILE_CONTENT2);
+        return file2.copy(file1.path).then((_) {
+          Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+          Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
 
-      // Fail when coping to directory.
-      var dir = new Directory('${tmp.path}/dir')..createSync();
+          // Fail when coping to directory.
+          var dir = new Directory('${tmp.path}/dir')..createSync();
 
-      return file1
-          .copy(dir.path)
-          .then((_) => Expect.fail('expected error'), onError: (_) {})
-          .then((_) {
-        Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+          return file1
+              .copy(dir.path)
+              .then((_) => Expect.fail('expected error'), onError: (_) {})
+              .then((_) {
+                Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+              });
+        });
+      })
+      .whenComplete(() {
+        tmp.deleteSync(recursive: true);
+        asyncEnd();
       });
-    });
-  }).whenComplete(() {
-    tmp.deleteSync(recursive: true);
-    asyncEnd();
-  });
 }
 
 main() {
   testCopySync();
   testCopy();
+  testFifo();
   // This is Windows only test.
   testWithForwardSlashes();
 }

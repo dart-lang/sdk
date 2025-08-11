@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemTest {
-  late TypeParameterElementImpl2 T;
+  late TypeParameterElementImpl T;
   late TypeParameterTypeImpl T_none;
 
   @override
@@ -45,28 +45,27 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
     _checkTrue(functionTypeNone(returnType: T_none));
 
     _checkTrue(
-      functionTypeNone(returnType: voidNone, formalParameters: [
-        requiredParameter(type: T_none),
-      ]),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: T_none)],
+      ),
     );
 
     _checkTrue(
       functionTypeNone(
-        typeParameters: [
-          typeParameter('U', bound: T_none),
-        ],
+        typeParameters: [typeParameter('U', bound: T_none)],
         returnType: voidNone,
       ),
     );
   }
 
   void _checkFalse(TypeImpl type) {
-    var actual = type.referencesAny2({T});
+    var actual = type.referencesAny({T});
     expect(actual, isFalse);
   }
 
   void _checkTrue(TypeImpl type) {
-    var actual = type.referencesAny2({T});
+    var actual = type.referencesAny({T});
     expect(actual, isTrue);
   }
 }

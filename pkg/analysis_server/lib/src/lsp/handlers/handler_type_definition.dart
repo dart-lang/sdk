@@ -9,11 +9,10 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 typedef StaticOptions =
@@ -75,7 +74,7 @@ class TypeDefinitionHandler
 
       var offset = toOffset(result.lineInfo, pos);
       return offset.mapResult((offset) async {
-        var node = NodeLocator(offset).searchWithin(result.unit);
+        var node = result.unit.nodeCovering(offset: offset);
         if (node == null) {
           return success(_emptyResult);
         }
@@ -83,9 +82,9 @@ class TypeDefinitionHandler
         SyntacticEntity? originEntity;
         DartType? type;
         if (node is NamedType) {
-          originEntity = node.name2;
-          var element = node.element2;
-          if (element case InterfaceElement2 element) {
+          originEntity = node.name;
+          var element = node.element;
+          if (element case analyzer.InterfaceElement element) {
             type = element.thisType;
           }
         } else if (node is VariableDeclaration) {
@@ -105,26 +104,26 @@ class TypeDefinitionHandler
           return success(_emptyResult);
         }
 
-        Element2? element;
+        analyzer.Element? element;
         if (type is InterfaceType) {
-          element = type.element3;
+          element = type.element;
         } else if (type is TypeParameterType) {
-          element = type.element3;
+          element = type.element;
         }
-        if (element is! Element2) {
+        if (element is! analyzer.Element) {
           return success(_emptyResult);
         }
 
         // TODO(dantup): Consider returning all fragments for the type instead
         //  of only the first.
-        var targetFragment = element.nonSynthetic2.firstFragment;
+        var targetFragment = element.nonSynthetic.firstFragment;
         var targetUnit = targetFragment.libraryFragment;
         if (targetUnit == null) {
           return success(_emptyResult);
         }
 
         var nameOffset = targetFragment.nameOffset2;
-        var nameLength = targetFragment.name2?.length;
+        var nameLength = targetFragment.name?.length;
         if (nameOffset == null || nameLength == null) {
           return success(_emptyResult);
         }
@@ -155,9 +154,9 @@ class TypeDefinitionHandler
 
   /// Creates an LSP [Location] for navigating to [targetFragment].
   Location _toLocation(
-    Fragment targetFragment,
+    analyzer.Fragment targetFragment,
     Range targetNameRange,
-    LibraryFragment targetUnit,
+    analyzer.LibraryFragment targetUnit,
   ) {
     return Location(
       uri: uriConverter.toClientUri(targetUnit.source.fullName),
@@ -172,12 +171,12 @@ class TypeDefinitionHandler
   LocationLink _toLocationLink(
     SyntacticEntity originEntity,
     LineInfo originLineInfo,
-    Fragment targetFragment,
+    analyzer.Fragment targetFragment,
     Range targetNameRange,
-    LibraryFragment targetUnit,
+    analyzer.LibraryFragment targetUnit,
   ) {
     var (codeOffset, codeLength) = switch (targetFragment) {
-      ElementImpl e => (e.codeOffset, e.codeLength),
+      FragmentImpl e => (e.codeOffset, e.codeLength),
       _ => (null, null),
     };
 
@@ -203,9 +202,9 @@ class TypeDefinitionHandler
   static DartType? _getType(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.element;
-      if (element case InterfaceElement2 element) {
+      if (element case analyzer.InterfaceElement element) {
         return element.thisType;
-      } else if (element case VariableElement2 element) {
+      } else if (element case analyzer.VariableElement element) {
         if (node.inDeclarationContext()) {
           return element.type;
         }
@@ -214,11 +213,11 @@ class TypeDefinitionHandler
           return element.type;
         }
       } else if (node.inSetterContext()) {
-        var writeElement = node.writeOrReadElement2;
+        var writeElement = node.writeOrReadElement;
         if (writeElement
-            case GetterElement(:var variable3) ||
-                SetterElement(:var variable3)) {
-          return variable3?.type;
+            case analyzer.GetterElement(:var variable) ||
+                analyzer.SetterElement(:var variable)) {
+          return variable?.type;
         }
       }
     }

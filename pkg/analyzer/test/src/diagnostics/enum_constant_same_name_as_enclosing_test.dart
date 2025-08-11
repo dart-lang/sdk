@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class EnumConstantSameNameAsEnclosingTest extends PubPackageResolutionTest {
   test_name() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   E
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING, 11, 1)],
+    );
   }
 }

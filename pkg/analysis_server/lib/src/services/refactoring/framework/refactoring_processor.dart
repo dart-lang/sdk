@@ -40,9 +40,9 @@ class RefactoringProcessor {
 
   /// Return a list containing one code action for each of the refactorings that
   /// are available in the current context.
-  Future<List<CodeAction>> compute() async {
+  Future<List<CodeActionLiteral>> compute() async {
     _timer.start();
-    var refactorings = <CodeAction>[];
+    var refactorings = <CodeActionLiteral>[];
     for (var entry in RefactoringProcessor.generators.entries) {
       var generator = entry.value;
       var producer = generator(context);
@@ -83,7 +83,7 @@ class RefactoringProcessor {
       );
 
       refactorings.add(
-        CodeAction(
+        CodeActionLiteral(
           title: producer.title,
           kind: producer.kind,
           command: Command(

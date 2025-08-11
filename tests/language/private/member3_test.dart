@@ -11,7 +11,7 @@ class Test extends B {
     _fun();
     // [error column 5]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method '_fun' isn't defined for the class 'Test'.
+    // [cfe] The method '_fun' isn't defined for the type 'Test'.
   }
 }
 

@@ -24,15 +24,16 @@ void f(Future<int> future) {
   }
 
   test_blockFunctionBody_async_emptyReturn_nonVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError((e, st) async {
     return;
   });
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 69, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 69, 6)],
+    );
   }
 
   test_blockFunctionBody_async_emptyReturn_void() async {
@@ -56,15 +57,16 @@ void f(Future<dynamic> future) {
   }
 
   test_blockFunctionBody_emptyReturn_nonVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError((e, st) {
     return;
   });
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 63, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 63, 6)],
+    );
   }
 
   test_blockFunctionBody_emptyReturn_void() async {
@@ -78,7 +80,8 @@ void f(Future<void> future) {
   }
 
   test_blockFunctionBody_invalidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError((e, st) {
     if (1 == 2) {
@@ -88,9 +91,9 @@ void f(Future<int> future) {
     }
   });
 }
-''', [
-      error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 119, 3),
-    ]);
+''',
+      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 119, 3)],
+    );
   }
 
   test_blockFunctionBody_withLocalFunction_expression_okReturnType() async {
@@ -120,13 +123,14 @@ void f(Future<int> future) {
   }
 
   test_expressionFunctionBody_invalidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError((e, st) => 'c');
 }
-''', [
-      error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 60, 3),
-    ]);
+''',
+      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 60, 3)],
+    );
   }
 
   test_Null_okReturnType() async {
@@ -138,25 +142,27 @@ void f(Future<Null> future) {
   }
 
   test_nullableType_emptyReturn() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int?> future) {
   future.catchError((e, st) {
     return;
   });
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 64, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 64, 6)],
+    );
   }
 
   test_nullableType_invalidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int?> future) {
   future.catchError((e, st) => '');
 }
-''', [
-      error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 61, 2),
-    ]);
+''',
+      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 61, 2)],
+    );
   }
 
   test_okReturnType() async {
@@ -176,12 +182,13 @@ void f(Future<void> future) {
   }
 
   test_voidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, void Function() g) {
   future.catchError((e, st) => g());
 }
-''', [
-      error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 79, 3),
-    ]);
+''',
+      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 79, 3)],
+    );
   }
 }

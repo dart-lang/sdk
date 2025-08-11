@@ -20,11 +20,14 @@ main() {
       futureWasExecuted = true;
     });
     return 'allDone';
-  }).listen((x) {
-    Expect.fail("Unexpected callback");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      Expect.fail("Unexpected callback");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.whenComplete(asyncEnd);
 }

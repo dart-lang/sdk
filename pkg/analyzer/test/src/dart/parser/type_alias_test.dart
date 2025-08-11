@@ -51,6 +51,7 @@ GenericTypeAlias
   equals: =
   type: NamedType
     name: int
+  semicolon: ;
 ''');
   }
 
@@ -60,9 +61,7 @@ GenericTypeAlias
     var parseResult = parseStringWithErrors(r'''
 typedef = int;
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -74,6 +73,7 @@ CompilationUnit
       equals: =
       type: NamedType
         name: int
+      semicolon: ;
 ''');
   }
 }

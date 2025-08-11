@@ -177,10 +177,7 @@ void testUnboxedRecordInTryCatch() {
 void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
-    match.block('Function', [
-      match.CheckStackOverflow(),
-      match.Goto('B3'),
-    ]),
+    match.block('Function', [match.CheckStackOverflow(), match.Goto('B3')]),
     'B3' << match.tryBlock(tryBody: 'B4', catches: 'B6'),
     'B4' <<
         match.block('Join', [
@@ -198,10 +195,7 @@ void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
           match.StaticCall(),
           match.Goto('B5'),
         ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(),
-        ]),
+    'B5' << match.block('Join', [match.DartReturn()]),
   ]);
 }
 
@@ -211,8 +205,14 @@ void main(List<String> args) {
   final intValue = args.length > 50 ? 1 << 53 : 42;
   final doubleValue = args.length > 50 ? 42.5 : 24.5;
 
-  testSimple(intValue, intValue == 4, 'foo' + intValue.toString(), intValue,
-      B(intValue, doubleValue), intValue == 42 ? B(1, 2) : C());
+  testSimple(
+    intValue,
+    intValue == 4,
+    'foo' + intValue.toString(),
+    intValue,
+    B(intValue, doubleValue),
+    intValue == 42 ? B(1, 2) : C(),
+  );
 
   testUnboxedRecordInTryCatch();
 }

@@ -19,22 +19,29 @@ const String MESSAGE_LENGTH_ERROR =
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext clientContext() => new SecurityContext()
-  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
+SecurityContext clientContext() =>
+    new SecurityContext()
+      ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 SecurityContext serverContext() => new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 // Tests that client/server with same protocol can securely establish a
 // connection, negotiate the protocol and can send data to each other.
-void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
-    List<String> serverProtocols, String? selectedProtocol) {
+void testSuccessfulAlpnNegotiationConnection(
+  List<String> clientProtocols,
+  List<String> serverProtocols,
+  String? selectedProtocol,
+) {
   asyncStart();
   var sContext = serverContext()..setAlpnProtocols(serverProtocols, true);
-  SecureServerSocket.bind('localhost', 0, sContext)
-      .then((SecureServerSocket server) {
+  SecureServerSocket.bind('localhost', 0, sContext).then((
+    SecureServerSocket server,
+  ) {
     asyncStart();
     server.first.then((SecureSocket socket) {
       Expect.equals(selectedProtocol, socket.selectedProtocol);
@@ -48,9 +55,12 @@ void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
     });
 
     asyncStart();
-    SecureSocket.connect('localhost', server.port,
-            context: clientContext(), supportedProtocols: clientProtocols)
-        .then((socket) {
+    SecureSocket.connect(
+      'localhost',
+      server.port,
+      context: clientContext(),
+      supportedProtocols: clientProtocols,
+    ).then((socket) {
       Expect.equals(selectedProtocol, socket.selectedProtocol);
       socket
         ..write('client message')
@@ -73,7 +83,9 @@ void testInvalidArgument(List<String> protocols, String errorIncludes) {
 }
 
 void testInvalidArgumentServerContext(
-    List<String> protocols, String errorIncludes) {
+  List<String> protocols,
+  String errorIncludes,
+) {
   Expect.throws(() => serverContext().setAlpnProtocols(protocols, true), (e) {
     Expect.isTrue(e is ArgumentError);
     Expect.isTrue(e.toString().contains(errorIncludes));
@@ -82,7 +94,9 @@ void testInvalidArgumentServerContext(
 }
 
 void testInvalidArgumentClientContext(
-    List<String> protocols, String errorIncludes) {
+  List<String> protocols,
+  String errorIncludes,
+) {
   Expect.throws(() => clientContext().setAlpnProtocols(protocols, false), (e) {
     Expect.isTrue(e is ArgumentError);
     Expect.isTrue(e.toString().contains(errorIncludes));
@@ -91,32 +105,46 @@ void testInvalidArgumentClientContext(
 }
 
 void testInvalidArgumentClientConnect(
-    List<String> protocols, String errorIncludes) {
+  List<String> protocols,
+  String errorIncludes,
+) {
   asyncStart();
   var sContext = serverContext()..setAlpnProtocols(['abc'], true);
   SecureServerSocket.bind('localhost', 0, sContext).then((server) async {
     asyncStart();
-    server.listen((SecureSocket socket) {
-      Expect.fail(
-          "Unexpected connection made to server, with bad client argument");
-    }, onError: (e) {
-      Expect.fail("Unexpected error on server stream: $e");
-    }, onDone: () {
-      asyncEnd();
-    });
+    server.listen(
+      (SecureSocket socket) {
+        Expect.fail(
+          "Unexpected connection made to server, with bad client argument",
+        );
+      },
+      onError: (e) {
+        Expect.fail("Unexpected error on server stream: $e");
+      },
+      onDone: () {
+        asyncEnd();
+      },
+    );
 
     asyncStart();
-    SecureSocket.connect('localhost', server.port,
-            context: clientContext(), supportedProtocols: protocols)
-        .then((socket) {
-      Expect.fail(
-          "Unexpected connection made from client, with bad client argument");
-    }, onError: (e) {
-      Expect.isTrue(e is ArgumentError);
-      Expect.isTrue(e.toString().contains(errorIncludes));
-      server.close();
-      asyncEnd();
-    });
+    SecureSocket.connect(
+      'localhost',
+      server.port,
+      context: clientContext(),
+      supportedProtocols: protocols,
+    ).then(
+      (socket) {
+        Expect.fail(
+          "Unexpected connection made from client, with bad client argument",
+        );
+      },
+      onError: (e) {
+        Expect.isTrue(e is ArgumentError);
+        Expect.isTrue(e.toString().contains(errorIncludes));
+        server.close();
+        asyncEnd();
+      },
+    );
     asyncEnd();
   });
 }
@@ -129,13 +157,17 @@ main() {
 
   // This produces a message of (1 << 13) - 2 bytes. 2^12 -1 strings are each
   // encoded by 1 length byte and 1 ascii byte.
-  final List<String> manyProtocols =
-      new Iterable.generate((1 << 12) - 1, (i) => '0').toList();
+  final List<String> manyProtocols = new Iterable.generate(
+    (1 << 12) - 1,
+    (i) => '0',
+  ).toList();
 
   // This produces a message of (1 << 13) bytes. 2^12 strings are each
   // encoded by 1 length byte and 1 ascii byte.
-  final List<String> tooManyProtocols =
-      new Iterable.generate((1 << 12), (i) => '0').toList();
+  final List<String> tooManyProtocols = new Iterable.generate(
+    (1 << 12),
+    (i) => '0',
+  ).toList();
 
   // Protocols are in order of decreasing priority. The server will select
   // the first protocol from its list that has a match in the client list.
@@ -143,24 +175,39 @@ main() {
   testSuccessfulAlpnNegotiationConnection(['a'], ['a'], 'a');
 
   testSuccessfulAlpnNegotiationConnection(
-      [longname255], [longname255], longname255);
+    [longname255],
+    [longname255],
+    longname255,
+  );
 
   testSuccessfulAlpnNegotiationConnection(
-      [strangelongname255], [strangelongname255], strangelongname255);
+    [strangelongname255],
+    [strangelongname255],
+    strangelongname255,
+  );
   testSuccessfulAlpnNegotiationConnection(manyProtocols, manyProtocols, '0');
   testSuccessfulAlpnNegotiationConnection(
-      ['a', 'b', 'c'], ['a', 'b', 'c'], 'a');
+    ['a', 'b', 'c'],
+    ['a', 'b', 'c'],
+    'a',
+  );
 
   testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'], ['c'], 'c');
 
   // Server precedence.
   testSuccessfulAlpnNegotiationConnection(
-      ['a', 'b', 'c'], ['c', 'b', 'a'], 'c');
+    ['a', 'b', 'c'],
+    ['c', 'b', 'a'],
+    'c',
+  );
 
   testSuccessfulAlpnNegotiationConnection(['c'], ['a', 'b', 'c'], 'c');
 
   testSuccessfulAlpnNegotiationConnection(
-      ['s1', 'b', 'e1'], ['s2', 'b', 'e2'], 'b');
+    ['s1', 'b', 'e1'],
+    ['s2', 'b', 'e2'],
+    'b',
+  );
   // Test no protocol negotiation support
   testSuccessfulAlpnNegotiationConnection([], ['a', 'b', 'c'], null);
 

@@ -522,4 +522,9 @@ CStringUniquePtr ResolveUri(const char* ref_uri, const char* base_uri) {
   }
 }
 
+CStringUniquePtr ResolvePath(const char* ref_path, const char* base_path) {
+  CStringUniquePtr merged_paths = MergePaths(base_path, ref_path);
+  return RemoveDotSegments(merged_paths.get());
+}
+
 }  // namespace dart

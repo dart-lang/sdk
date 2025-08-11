@@ -44,13 +44,6 @@ library;
 //   element; // Error.
 //   ^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:35:3: Error: This static member conflicts with an instance member.
-//   element; // Error.
-//   ^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:37:12: Context: This is the instance member.
-//   void set element(E6 value) {}
-//            ^^^^^^^
-//
 // pkg/front_end/testcases/enhanced_enums/conflicting_elements.dart:51:3: Error: Can't declare a member that conflicts with an inherited one.
 //   element // Error.
 //   ^^^^^^^
@@ -85,7 +78,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
@@ -94,7 +87,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum /*isEnum*/  {
@@ -103,7 +96,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class E4 extends core::_Enum /*isEnum*/  {
@@ -112,7 +105,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
 class E5 extends core::_Enum /*isEnum*/  {
@@ -121,7 +114,7 @@ class E5 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
 class E6 extends core::_Enum /*isEnum*/  {
@@ -130,10 +123,8 @@ class E6 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
-  set element(self::E6 value) → void
-    ;
 }
 class E7 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
@@ -141,7 +132,7 @@ class E7 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
   static set element(self::E7 value) → void
     ;
@@ -156,7 +147,7 @@ class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E8
     : super self::_E8&_Enum&A8::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class A9 extends core::Object /*isMixinDeclaration*/  {
@@ -168,7 +159,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E9
     : super self::_E9&_Enum&A9::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class A10 extends core::Object /*isMixinDeclaration*/  {
@@ -181,30 +172,30 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E10
     : super self::_E10&_Enum&A10::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&A8
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub set element(dynamic value) → void
+  synthetic mixin-super-stub set element(dynamic value) → void
     return super.{self::A8::element} = value;
 }
 abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub set element(core::int value) → void
-    return super.{self::A9::element} = value;
-  mixin-super-stub get element() → core::int
+  synthetic mixin-super-stub get element() → core::int
     return super.{self::A9::element};
+  synthetic mixin-super-stub set element(core::int value) → void
+    return super.{self::A9::element} = value;
 }
 abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub method element() → void
+  synthetic mixin-super-stub method element() → void
     return super.{self::A10::element}();
 }
 static method main() → dynamic

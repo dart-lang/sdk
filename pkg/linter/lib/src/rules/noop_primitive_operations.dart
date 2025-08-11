@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,13 +17,10 @@ class NoopPrimitiveOperations extends LintRule {
     : super(name: LintNames.noop_primitive_operations, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.noop_primitive_operations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noop_primitive_operations;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAdjacentStrings(this, visitor);
     registry.addInterpolationExpression(this, visitor);
@@ -32,7 +31,7 @@ class NoopPrimitiveOperations extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   @override
@@ -42,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 1; i < node.strings.length - 1; i++) {
       var literal = node.strings[i];
       if (literal.stringValue?.isEmpty ?? false) {
-        rule.reportLint(literal);
+        rule.reportAtNode(literal);
       }
     }
   }
@@ -68,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type.isDartCoreString &&
         node.methodName.name == 'toString' &&
         context.typeSystem.isNonNullable(type)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
 
@@ -81,13 +80,13 @@ class _Visitor extends SimpleAstVisitor<void> {
           'floor',
           'truncate',
         ].contains(node.methodName.name)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
 
     // double.toDouble()
     if (type.isDartCoreDouble && node.methodName.name == 'toDouble') {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
   }
@@ -98,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         expression.realTarget is! SuperExpression &&
         expression.methodName.name == 'toString' &&
         expression.argumentList.arguments.isEmpty) {
-      rule.reportLint(expression.methodName);
+      rule.reportAtNode(expression.methodName);
     }
   }
 }

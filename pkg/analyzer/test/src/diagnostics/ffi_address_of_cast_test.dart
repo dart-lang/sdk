@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class FfiAddressOfCast extends PubPackageResolutionTest {
   test_struct_error_1() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -33,11 +34,14 @@ final class MyStruct extends Struct {
   @Array(2)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.ADDRESS_POSITION, 200, 7)]);
+''',
+      [error(FfiCode.ADDRESS_POSITION, 200, 7)],
+    );
   }
 
   test_struct_error_2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -54,7 +58,9 @@ final class MyStruct extends Struct {
   @Array(2)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.ADDRESS_POSITION, 202, 7)]);
+''',
+      [error(FfiCode.ADDRESS_POSITION, 202, 7)],
+    );
   }
 
   test_struct_no_error() async {
@@ -80,7 +86,8 @@ final class MyStruct extends Struct {
   }
 
   test_typed_data_error() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -91,7 +98,9 @@ main() {
   final buffer = Int8List(2);
   myNonLeafNative(buffer.address.cast());
 }
-''', [error(FfiCode.ADDRESS_POSITION, 204, 7)]);
+''',
+      [error(FfiCode.ADDRESS_POSITION, 204, 7)],
+    );
   }
 
   test_typed_data_no_error() async {
@@ -110,7 +119,8 @@ main() {
   }
 
   test_union_error_1() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -127,11 +137,14 @@ final class MyUnion extends Union {
   @Array(2)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.ADDRESS_POSITION, 196, 7)]);
+''',
+      [error(FfiCode.ADDRESS_POSITION, 196, 7)],
+    );
   }
 
   test_union_error_2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -147,7 +160,9 @@ final class MyUnion extends Union {
   @Array(2)
   external Array<Int8> arr;
       }
-''', [error(FfiCode.ADDRESS_POSITION, 198, 7)]);
+''',
+      [error(FfiCode.ADDRESS_POSITION, 198, 7)],
+    );
   }
 
   test_union_no_error() async {

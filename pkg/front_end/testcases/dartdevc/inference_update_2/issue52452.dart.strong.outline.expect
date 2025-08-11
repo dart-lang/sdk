@@ -8,13 +8,13 @@ class C extends core::Object {
   final field core::int? _f4;
   constructor •(core::int? i) → self::C
     ;
-  static method _#new#tearOff(core::int? i) → self::C
+  static synthetic method _#new#tearOff(core::int? i) → self::C
     return new self::C::•(i);
 }
 class A extends core::Object {
   constructor •(core::int? i) → self::A
     ;
-  static method _#new#tearOff(core::int? i) → self::A
+  static synthetic method _#new#tearOff(core::int? i) → self::A
     return new self::A::•(i);
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
@@ -40,13 +40,13 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
 class B extends core::Object {
   constructor •(core::int? i) → self::B
     ;
-  static method _#new#tearOff(core::int? i) → self::B
+  static synthetic method _#new#tearOff(core::int? i) → self::B
     return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
   constructor •(core::int? i) → self::E
     ;
-  static method _#new#tearOff(core::int? i) → self::E
+  static synthetic method _#new#tearOff(core::int? i) → self::E
     return new self::E::•(i);
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
@@ -61,40 +61,16 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int? i) → self::_E&B&M1
     : super self::B::•(i)
     ;
-  mixin-super-stub get _#M1#_f2() → core::int?
-    return super.{self::M1::_#M1#_f2};
-  mixin-super-stub set _#M1#_f2(core::int? value) → void
-    return super.{self::M1::_#M1#_f2} = value;
-  mixin-super-stub get _f2() → core::int?
+  synthetic mixin-super-stub get _f2() → core::int?
     return super.{self::M1::_f2};
-  mixin-super-stub set _f2(core::int? _f2#param) → void
+  synthetic mixin-super-stub set _f2(core::int? _f2#param) → void
     return super.{self::M1::_f2} = _f2#param;
-  mixin-super-stub get _#M1#_f2#isSet() → core::bool
-    return super.{self::M1::_#M1#_f2#isSet};
-  mixin-super-stub set _#M1#_f2#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f2#isSet} = value;
-  mixin-super-stub get _#M1#_f3() → core::int?
-    return super.{self::M1::_#M1#_f3};
-  mixin-super-stub set _#M1#_f3(core::int? value) → void
-    return super.{self::M1::_#M1#_f3} = value;
-  mixin-super-stub get _f3() → core::int?
+  synthetic mixin-super-stub get _f3() → core::int?
     return super.{self::M1::_f3};
-  mixin-super-stub set _f3(core::int? _f3#param) → void
+  synthetic mixin-super-stub set _f3(core::int? _f3#param) → void
     return super.{self::M1::_f3} = _f3#param;
-  mixin-super-stub get _#M1#_f3#isSet() → core::bool
-    return super.{self::M1::_#M1#_f3#isSet};
-  mixin-super-stub set _#M1#_f3#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f3#isSet} = value;
-  mixin-super-stub get _#M1#_f4() → core::int?
-    return super.{self::M1::_#M1#_f4};
-  mixin-super-stub set _#M1#_f4(core::int? value) → void
-    return super.{self::M1::_#M1#_f4} = value;
-  mixin-super-stub get _f4() → core::int?
+  synthetic mixin-super-stub get _f4() → core::int?
     return super.{self::M1::_f4};
-  mixin-super-stub get _#M1#_f4#isSet() → core::bool
-    return super.{self::M1::_#M1#_f4#isSet};
-  mixin-super-stub set _#M1#_f4#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f4#isSet} = value;
 }
 static method acceptsInt(core::int x) → void
   ;
@@ -110,4 +86,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:47:4 -> InstanceConstant(const _Override{})
-Extra constant evaluation: evaluated: 36, effectively constant: 1
+Extra constant evaluation: evaluated: 18, effectively constant: 1

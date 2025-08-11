@@ -12,6 +12,8 @@ namespace elf {
 
 #pragma pack(push, 1)
 
+static constexpr uint8_t ELFMAG[] = {'\x7f', 'E', 'L', 'F'};
+
 struct ElfHeader {
   uint8_t ident[16];
   uint16_t type;

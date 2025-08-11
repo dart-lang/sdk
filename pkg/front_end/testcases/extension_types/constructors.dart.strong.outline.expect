@@ -14,9 +14,9 @@ extension type Class2(core::int field) {
 }
 static extension-type-member method Class1|constructor#(core::int field) → self::Class1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Class1|constructor#_#new#tearOff(core::int field) → self::Class1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Class1|constructor#_#new#tearOff(core::int field) → self::Class1% /* erasure=core::int, declared=! */
   return self::Class1|constructor#(field);
 static extension-type-member method Class2|constructor#(core::int field) → self::Class2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Class2|constructor#_#new#tearOff(core::int field) → self::Class2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Class2|constructor#_#new#tearOff(core::int field) → self::Class2% /* erasure=core::int, declared=! */
   return self::Class2|constructor#(field);

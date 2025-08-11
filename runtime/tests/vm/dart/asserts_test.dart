@@ -7,14 +7,18 @@
 import "package:expect/expect.dart";
 
 main(List<String> args) {
-  Expect.throws(() {
-    assert(/* this */ args.length == -1 && /* that */ args.length == 0);
-  }, (e) {
-    if (e is! AssertionError) {
-      return false;
-    }
-    print('Exception: $e');
-    return e.toString().contains(
-        "asserts_test.dart': Failed assertion: line 11 pos 23: 'args.length == -1 && /* that */ args.length == 0':");
-  });
+  Expect.throws(
+    () {
+      assert(/* this */ args.length == -1 && /* that */ args.length == 0);
+    },
+    (e) {
+      if (e is! AssertionError) {
+        return false;
+      }
+      print('Exception: $e');
+      return e.toString().contains(
+        "asserts_test.dart': Failed assertion: line 12 pos 25: 'args.length == -1 && /* that */ args.length == 0':",
+      );
+    },
+  );
 }

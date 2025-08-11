@@ -11,9 +11,10 @@ import 'dart:html';
 import 'package:js/js.dart';
 
 injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
   var bar = { };
 
   bar.nonFunctionStatic = function() {
@@ -25,7 +26,8 @@ injectJs() {
   };
 
   var foo = { 'bar' : bar };
-""");
+""",
+  );
 }
 
 typedef int AddFn(int x, int y);

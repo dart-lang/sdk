@@ -12,8 +12,8 @@ class C extends core::Object {
     ;
 }
 extension /* unnamed */ _extension#0 on self::C? {
-  operator []= = self::_extension#0|[]=;
   set setter = self::_extension#0|set#setter;
+  operator []= = self::_extension#0|[]=;
 }
 static extension-member method _extension#0|set#setter(lowered final self::C? #this, core::String v) → void
   ;

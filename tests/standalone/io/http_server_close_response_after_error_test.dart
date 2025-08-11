@@ -16,19 +16,23 @@ const CLIENT_SCRIPT = "http_server_close_response_after_error_client.dart";
 void main() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      request.listen(null, onError: (e) {}, onDone: () {
-        request.response.close();
-      });
+      request.listen(
+        null,
+        onError: (e) {},
+        onDone: () {
+          request.response.close();
+        },
+      );
     });
     Process.run(
-            Platform.executable,
-            []
-              ..addAll(Platform.executableArguments)
-              ..addAll([
-                Platform.script.resolve(CLIENT_SCRIPT).toString(),
-                server.port.toString()
-              ]))
-        .then((result) {
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..addAll([
+          Platform.script.resolve(CLIENT_SCRIPT).toString(),
+          server.port.toString(),
+        ]),
+    ).then((result) {
       if (result.exitCode != 0) throw "Bad exit code";
       server.close();
     });

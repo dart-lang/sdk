@@ -17,13 +17,19 @@ main() {
 class MixinSuperClassConstraintDeferredClassTest
     extends PubPackageResolutionTest {
   test_error_onClause_deferredClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 mixin M on math.Random {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
-          48, 11),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
+          48,
+          11,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''

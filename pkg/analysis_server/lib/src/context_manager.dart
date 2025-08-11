@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -21,7 +23,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -45,7 +46,7 @@ import 'package:yaml/yaml.dart';
 // it and re-enable it everywhere.
 // Not private to enable testing.
 // NB: If you set this to `false` remember to disable the
-// `test/integration/serve/blaze_changes_test.dart`.
+// `integration_test/serve/blaze_changes_test.dart`.
 var experimentalEnableBlazeWatching = true;
 
 /// Class that maintains a mapping from included/excluded paths to a set of
@@ -91,6 +92,9 @@ abstract class ContextManager {
   /// If no driver contains the given path, `null` is returned.
   AnalysisDriver? getDriverFor(String path);
 
+  /// Handle an [event] from a file watcher.
+  void handleWatchEvent(WatchEvent event);
+
   /// Return `true` if the file or directory with the given [path] will be
   /// analyzed in one of the analysis contexts.
   bool isAnalyzed(String path);
@@ -123,6 +127,9 @@ abstract class ContextManager {
 // operations return data structures describing how context state should be
 // modified.
 abstract class ContextManagerCallbacks {
+  /// The analysis server that created this callback object.
+  AnalysisServer get analysisServer;
+
   /// Called after analysis contexts are created, usually when new analysis
   /// roots are set, or after detecting a change that required rebuilding
   /// the set of analysis contexts.
@@ -140,7 +147,7 @@ abstract class ContextManagerCallbacks {
   /// Sent the given watch [event] to any interested plugins.
   void broadcastWatchEvent(WatchEvent event);
 
-  /// Invoked on any [FileResult] in the analyzer events stream.
+  /// Invoked on every [FileResult] in the analyzer events stream.
   void handleFileResult(FileResult result);
 
   /// Add listeners to the [driver]. This must be the only listener.
@@ -181,9 +188,6 @@ class ContextManagerImpl implements ContextManager {
 
   /// The cache of already deserialized unlinked units.
   final UnlinkedUnitStore _unlinkedUnitStore;
-
-  /// The cache of already deserialized data from a SummaryDataReader.
-  final InfoDeclarationStore _infoDeclarationStore;
 
   /// The logger used to create analysis contexts.
   final PerformanceLog _performanceLog;
@@ -267,7 +271,6 @@ class ContextManagerImpl implements ContextManager {
     this._byteStore,
     this._fileContentCache,
     this._unlinkedUnitStore,
-    this._infoDeclarationStore,
     this._performanceLog,
     this._scheduler,
     this._instrumentationService, {
@@ -307,6 +310,13 @@ class ContextManagerImpl implements ContextManager {
   @override
   AnalysisDriver? getDriverFor(String path) {
     return getContextFor(path)?.driver;
+  }
+
+  @override
+  void handleWatchEvent(WatchEvent event) {
+    callbacks.broadcastWatchEvent(event);
+    _handleWatchEvent(event);
+    callbacks.afterWatchEvent(event);
   }
 
   @override
@@ -371,7 +381,7 @@ class ContextManagerImpl implements ContextManager {
   /// options file at the given [path].
   void _analyzeAnalysisOptionsYaml(
     AnalysisDriver driver,
-    WorkspacePackage? package,
+    WorkspacePackageImpl? package,
     String path,
   ) {
     var convertedErrors = const <protocol.AnalysisError>[];
@@ -458,14 +468,17 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = file.readAsStringSync();
-      var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(errorListener, FileSource(file));
-      var parser = TransformSetParser(errorReporter, packageName);
+      var diagnosticListener = RecordingDiagnosticListener();
+      var diagnosticReporter = DiagnosticReporter(
+        diagnosticListener,
+        FileSource(file),
+      );
+      var parser = TransformSetParser(diagnosticReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       convertedErrors = converter.convertAnalysisErrors(
-        errorListener.errors,
+        diagnosticListener.diagnostics,
         lineInfo: LineInfo.fromContent(content),
         options: analysisOptions,
       );
@@ -583,7 +596,6 @@ class ContextManagerImpl implements ContextManager {
               packagesFile: packagesFile,
               fileContentCache: _fileContentCache,
               unlinkedUnitStore: _unlinkedUnitStore,
-              infoDeclarationStore: _infoDeclarationStore,
               updateAnalysisOptions3: ({
                 required analysisOptions,
                 required sdk,
@@ -610,7 +622,7 @@ class ContextManagerImpl implements ContextManager {
             watchers.add(watcher);
             watcherSubscriptions.add(
               watcher.changes.listen(
-                _handleWatchEvent,
+                _scheduleWatchEvent,
                 onError: _handleWatchInterruption,
               ),
             );
@@ -808,18 +820,14 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  /// Handle an [event] from a file watcher.
   void _handleWatchEvent(WatchEvent event) {
-    callbacks.broadcastWatchEvent(event);
-    _handleWatchEventImpl(event);
-    callbacks.afterWatchEvent(event);
-  }
-
-  void _handleWatchEventImpl(WatchEvent event) {
     // Figure out which context this event applies to.
-    // TODO(brianwilkerson): If a file is explicitly included in one context
-    // but implicitly referenced in another context, we will only send a
-    // changeSet to the context that explicitly includes the file (because
-    // that's the only context that's watching the file).
+    //
+    // If a file is explicitly included in one context but implicitly referenced
+    // in another context, we will only notify the context that explicitly
+    // includes the file (because that's the only context that's watching the
+    // file).
     var path = event.path;
     var type = event.type;
 
@@ -877,7 +885,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// On windows, the directory watcher may overflow, and we must recover.
-  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+  void _handleWatchInterruption(Object? error, StackTrace stackTrace) {
     // If the watcher failed because the directory does not exist, rebuilding
     // the contexts will result in infinite looping because it will just
     // re-occur.
@@ -915,6 +923,15 @@ class ContextManagerImpl implements ContextManager {
         existingExcludedSet.containsAll(excludedPaths);
   }
 
+  /// Schedule the handling of a watch event.
+  ///
+  /// This places the watch event on the message scheduler's queue so that it
+  /// can be processed when we're not in the middle of handling some other
+  /// message.
+  void _scheduleWatchEvent(WatchEvent event) {
+    callbacks.analysisServer.messageScheduler.add(WatcherMessage(event));
+  }
+
   /// Listens to files generated by Blaze that were found or searched for.
   ///
   /// This is handled specially because the files are outside the package
@@ -941,6 +958,12 @@ class ContextManagerImpl implements ContextManager {
 }
 
 class NoopContextManagerCallbacks implements ContextManagerCallbacks {
+  @override
+  AnalysisServer get analysisServer =>
+      throw StateError(
+        'The callback object should have been set by the server.',
+      );
+
   @override
   void afterContextsCreated() {}
 

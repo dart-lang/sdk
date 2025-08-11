@@ -18,7 +18,7 @@ class ConvertToMultilineString extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
+  AssistKind get assistKind => DartAssistKind.convertToMultilineString;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

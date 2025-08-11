@@ -754,10 +754,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
     beginLabel(newLabel("Function start"));
     // AsyncStar needs a return label for its handling of cancellation. See
     // [visitDartYield].
-    exitLabel =
-        (analysis.hasExplicitReturns || isAsyncStar)
-            ? newLabel("return")
-            : null;
+    exitLabel = (analysis.hasExplicitReturns || isAsyncStar)
+        ? newLabel("return")
+        : null;
     handlerLabels[node] = rethrowLabel = newLabel("rethrow");
     js.Statement body = node.body;
     jumpTargets.add(node);
@@ -836,8 +835,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
         js.VariableDeclarationList(variables);
 
     // Names are already safe when added.
-    List<js.Parameter> typeParameters =
-        typeArgumentNames.map((name) => js.Parameter(name)).toList();
+    List<js.Parameter> typeParameters = typeArgumentNames
+        .map((name) => js.Parameter(name))
+        .toList();
     return finishFunction(
       node.params,
       typeParameters,
@@ -968,10 +968,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
       int thenLabel = newLabel("then");
       int joinLabel = newLabel("join");
       withExpression(node.left, (js.Expression left) {
-        js.Statement assignLeft =
-            isResult(left)
-                ? js.Block.empty()
-                : js.js.statement('# = #;', [result, left]);
+        js.Statement assignLeft = isResult(left)
+            ? js.Block.empty()
+            : js.js.statement('# = #;', [result, left]);
         if (node.op == "&&") {
           addStatement(
             js.js.statement('if (#) #; else #', [
@@ -1240,8 +1239,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
     int startLabel = newLabel("for condition");
     // If there is no update, continuing the loop is the same as going to the
     // start.
-    int continueLabel =
-        (node.update == null) ? startLabel : newLabel("for update");
+    int continueLabel = (node.update == null)
+        ? startLabel
+        : newLabel("for update");
     continueLabels[node] = continueLabel;
     int afterLabel = newLabel("after for");
     breakLabels[node] = afterLabel;
@@ -1314,8 +1314,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
     }
     int thenLabel = newLabel("then");
     int joinLabel = newLabel("join");
-    int elseLabel =
-        (node.otherwise is js.EmptyStatement) ? joinLabel : newLabel("else");
+    int elseLabel = (node.otherwise is js.EmptyStatement)
+        ? joinLabel
+        : newLabel("else");
 
     withExpression(node.condition, (js.Expression condition) {
       addExpressionStatement(
@@ -1571,19 +1572,13 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
       bool oldInsideUntranslated = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       withExpression(node.key, (js.Expression key) {
-        List<js.SwitchClause> cases =
-            node.cases.map((js.SwitchClause clause) {
-              if (clause is js.Case) {
-                return js.Case(
-                  clause.expression,
-                  translateToBlock(clause.body),
-                );
-              } else {
-                return js.Default(
-                  translateToBlock((clause as js.Default).body),
-                );
-              }
-            }).toList();
+        List<js.SwitchClause> cases = node.cases.map((js.SwitchClause clause) {
+          if (clause is js.Case) {
+            return js.Case(clause.expression, translateToBlock(clause.body));
+          } else {
+            return js.Default(translateToBlock((clause as js.Default).body));
+          }
+        }).toList();
         addStatement(js.Switch(key, cases));
       }, store: false);
       insideUntranslatedBreakable = oldInsideUntranslated;
@@ -1691,8 +1686,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
 
   void setErrorHandler([int? errorHandler]) {
     hasHandlerLabels = true; // TODO(sra): Add short form error handler.
-    js.Expression label =
-        (errorHandler == null) ? currentErrorHandler : js.number(errorHandler);
+    js.Expression label = (errorHandler == null)
+        ? currentErrorHandler
+        : js.number(errorHandler);
     addStatement(js.js.statement('# = #;', [handler, label]));
   }
 
@@ -1736,8 +1732,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
         );
         variableRenamings.removeLast();
       }
-      js.Block? translatedFinallyPart =
-          (finallyPart == null) ? null : translateToBlock(finallyPart);
+      js.Block? translatedFinallyPart = (finallyPart == null)
+          ? null
+          : translateToBlock(finallyPart);
       addStatement(js.Try(body, translatedCatchPart, translatedFinallyPart));
       return;
     }
@@ -2057,8 +2054,9 @@ class AsyncRewriter extends AsyncRewriterBase {
     js.Expression runtimeHelperCall = js
         .js("#runtimeHelper(#returnValue, #completer)", {
           "runtimeHelper": asyncReturn,
-          "returnValue":
-              analysis.hasExplicitReturns ? returnValue : js.LiteralNull(),
+          "returnValue": analysis.hasExplicitReturns
+              ? returnValue
+              : js.LiteralNull(),
           "completer": completer,
         })
         .withSourceInformation(sourceInformation);
@@ -2560,8 +2558,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<int> enclosingFinallyLabels = [
       // At the bottom of the stack is the return label.
       exitLabel!,
-      for (final node in jumpTargets)
-        if (finallyLabels[node] != null) finallyLabels[node]!,
+      for (final node in jumpTargets) ?finallyLabels[node],
     ];
 
     addStatement(
@@ -2574,8 +2571,9 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     );
     js.Expression yieldExpressionCall = js
         .js("#yieldExpression(#expression)", {
-          "yieldExpression":
-              node.hasStar ? yieldStarExpression : yieldExpression,
+          "yieldExpression": node.hasStar
+              ? yieldStarExpression
+              : yieldExpression,
           "expression": expression,
         })
         .withSourceInformation(sourceInformation);
@@ -3260,8 +3258,9 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
     if (node.finallyPart != null) hasFinally = true;
     bool body = visit(node.body);
     bool catchPart = (node.catchPart == null) ? false : visit(node.catchPart!);
-    bool finallyPart =
-        (node.finallyPart == null) ? false : visit(node.finallyPart!);
+    bool finallyPart = (node.finallyPart == null)
+        ? false
+        : visit(node.finallyPart!);
     return body || catchPart || finallyPart;
   }
 

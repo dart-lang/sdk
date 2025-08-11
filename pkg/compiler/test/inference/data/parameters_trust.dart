@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   trustParameters();
 }
@@ -13,19 +13,21 @@ main() {
 // Test that we trust the explicit type of a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _trustParameters:[exact=JSUInt31|powerset=0]*/
+/*member: _trustParameters:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _trustParameters(
   int
-  /*spec.Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-  /*prod.[exact=JSUInt31|powerset=0]*/
+  /*spec.Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+  /*prod.[exact=JSUInt31|powerset={I}{O}{N}]*/
   i,
 ) {
   return i;
 }
 
-/*member: trustParameters:[null|powerset=1]*/
+/*member: trustParameters:[null|powerset={null}]*/
 trustParameters() {
   dynamic f = _trustParameters;
   Expect.equals(0, f(0));
-  Expect.throws(/*[null|subclass=Object|powerset=1]*/ () => f('foo'));
+  Expect.throws(
+    /*[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/ () => f('foo'),
+  );
 }

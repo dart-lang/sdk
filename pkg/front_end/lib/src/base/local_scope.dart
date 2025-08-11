@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/variable_builder.dart';
+import 'lookup_result.dart';
 import 'scope.dart';
 
 abstract class LocalScope implements LookupScope {
@@ -16,12 +16,12 @@ abstract class LocalScope implements LookupScope {
 
   LocalScope createNestedFixedScope(
       {required String debugName,
-      required Map<String, Builder> local,
+      required Map<String, VariableBuilder> local,
       required ScopeKind kind});
 
-  Iterable<Builder> get localVariables;
+  Iterable<VariableBuilder> get localVariables;
 
-  Builder? lookupLocalVariable(String name);
+  VariableBuilder? lookupLocalVariable(String name);
 
   /// Declares that the meaning of [name] in this scope is [builder].
   ///
@@ -29,12 +29,6 @@ abstract class LocalScope implements LookupScope {
   /// offsets which can be used for reporting a compile-time error about
   /// [name] being used before its declared.
   List<int>? declare(String name, VariableBuilder builder);
-
-  @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri uri);
 
   Map<String, List<int>>? get usedNames;
 }
@@ -49,51 +43,30 @@ abstract base class BaseLocalScope implements LocalScope {
   @override
   LocalScope createNestedFixedScope(
       {required String debugName,
-      required Map<String, Builder> local,
+      required Map<String, VariableBuilder> local,
       required ScopeKind kind}) {
     return new FixedLocalScope(
         kind: kind, parent: this, local: local, debugName: debugName);
   }
 }
 
-mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
+mixin LocalScopeMixin implements LocalScope {
   LookupScope? get _parent;
 
-  Map<String, Builder>? get _local;
+  Map<String, VariableBuilder>? get _local;
 
   @override
-  String get classNameOrDebugName;
+  Iterable<VariableBuilder> get localVariables => _local?.values ?? const [];
 
   @override
-  Iterable<Builder> get localVariables => _local?.values ?? const {};
-
-  @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    _recordUse(name, charOffset);
-    if (_local != null) {
-      Builder? builder = lookupGetableIn(name, charOffset, fileUri, _local!);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    return _parent?.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    _recordUse(name, fileOffset);
+    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
   }
 
   @override
-  Builder? lookupLocalVariable(String name) {
+  VariableBuilder? lookupLocalVariable(String name) {
     return _local?[name];
-  }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    _recordUse(name, charOffset);
-    if (_local != null) {
-      Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    return _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   void _recordUse(String name, int charOffset) {}
@@ -106,13 +79,12 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
 }
 
 final class LocalScopeImpl extends BaseLocalScope
-    with LookupScopeMixin, LocalScopeMixin
+    with LocalScopeMixin
     implements LocalScope {
   @override
   final LocalScope? _parent;
 
-  @override
-  final String classNameOrDebugName;
+  final String _debugName;
 
   /// Names declared in this scope.
   @override
@@ -124,7 +96,7 @@ final class LocalScopeImpl extends BaseLocalScope
   @override
   final ScopeKind kind;
 
-  LocalScopeImpl(this._parent, this.kind, this.classNameOrDebugName);
+  LocalScopeImpl(this._parent, this.kind, this._debugName);
 
   @override
   List<int>? declare(String name, VariableBuilder builder) {
@@ -145,8 +117,7 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  String toString() =>
-      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
 }
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
@@ -161,12 +132,12 @@ mixin ImmutableLocalScopeMixin implements LocalScope {
 }
 
 final class LocalTypeParameterScope extends BaseLocalScope
-    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
-  @override
+    with ImmutableLocalScopeMixin {
   final LocalScope? _parent;
+
   @override
   final ScopeKind kind;
-  @override
+
   final Map<String, TypeParameterBuilder>? _local;
 
   final String _debugName;
@@ -181,49 +152,61 @@ final class LocalTypeParameterScope extends BaseLocalScope
         _debugName = debugName;
 
   @override
-  String get classNameOrDebugName => _debugName;
+  // Coverage-ignore(suite): Not run.
+  Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  String toString() =>
-      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableBuilder? lookupLocalVariable(String name) => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _parent?.forEachExtension(f);
+  }
+
+  @override
+  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
 }
 
 final class FixedLocalScope extends BaseLocalScope
-    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
+    with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
   final LocalScope? _parent;
   @override
   final ScopeKind kind;
   @override
-  final Map<String, Builder>? _local;
+  final Map<String, VariableBuilder>? _local;
 
   final String _debugName;
 
   FixedLocalScope(
       {required this.kind,
       LocalScope? parent,
-      Map<String, Builder>? local,
+      Map<String, VariableBuilder>? local,
       required String debugName})
       : _parent = parent,
         _local = local,
         _debugName = debugName;
 
   @override
-  String get classNameOrDebugName => _debugName;
-
-  @override
-  String toString() =>
-      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
 }
 
 final class FormalParameterScope extends BaseLocalScope
-    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
+    with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
   final LookupScope? _parent;
   @override
-  final Map<String, Builder>? _local;
+  final Map<String, VariableBuilder>? _local;
 
-  FormalParameterScope({LookupScope? parent, Map<String, Builder>? local})
+  FormalParameterScope(
+      {LookupScope? parent, Map<String, VariableBuilder>? local})
       : _parent = parent,
         _local = local;
 
@@ -231,11 +214,8 @@ final class FormalParameterScope extends BaseLocalScope
   ScopeKind get kind => ScopeKind.formals;
 
   @override
-  String get classNameOrDebugName => "formal parameter";
-
-  @override
   String toString() =>
-      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
+      "$runtimeType(${kind}, formal parameter, ${_local?.keys})";
 }
 
 final class EnclosingLocalScope extends BaseLocalScope
@@ -249,21 +229,16 @@ final class EnclosingLocalScope extends BaseLocalScope
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Builder> get localVariables => const [];
+  Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    return _scope.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    return _scope.lookup(name, fileOffset, fileUri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? lookupLocalVariable(String name) => null;
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri uri) {
-    return _scope.lookupSetable(name, charOffset, uri);
-  }
+  VariableBuilder? lookupLocalVariable(String name) => null;
 
   @override
   // Coverage-ignore(suite): Not run.

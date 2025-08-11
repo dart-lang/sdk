@@ -50,10 +50,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   var sdkBundle = PackageBundleReader(sdkSummaryBytes);
   var sdk = SummaryBasedDartSdk.forBundle(sdkBundle);
 
-  var sourceFactory = SourceFactory([
-    DartUriResolver(sdk),
-    ...uriResolvers,
-  ]);
+  var sourceFactory = SourceFactory([DartUriResolver(sdk), ...uriResolvers]);
 
   var dataStore = SummaryDataStore();
   dataStore.addBundle('', sdkBundle);
@@ -86,10 +83,7 @@ class AnalysisDriverForPackageBuild {
   final List<Uri> _sdkLibraryUris;
   final AnalysisDriver _driver;
 
-  AnalysisDriverForPackageBuild._(
-    this._sdkLibraryUris,
-    this._driver,
-  );
+  AnalysisDriverForPackageBuild._(this._sdkLibraryUris, this._driver);
 
   AnalysisSession get currentSession {
     return _driver.currentSession;

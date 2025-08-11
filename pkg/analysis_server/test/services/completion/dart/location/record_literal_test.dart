@@ -435,4 +435,36 @@ suggestions
     kind: topLevelVariable
 ''');
   }
+
+  Future<void> test_futureAsync_suggests_fieldNames() async {
+    await computeSuggestions('''
+Future<({int foo01, String foo02})> f() async => (foo0^);
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  |foo01: |
+    kind: namedArgument
+  |foo02: |
+    kind: namedArgument
+''');
+  }
+
+  Future<void> test_futureOr_suggests_fieldNames() async {
+    await computeSuggestions('''
+import 'dart:async';
+
+FutureOr<({int foo01, String foo02})> f() => (foo0^);
+''');
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  |foo01: |
+    kind: namedArgument
+  |foo02: |
+    kind: namedArgument
+''');
+  }
 }

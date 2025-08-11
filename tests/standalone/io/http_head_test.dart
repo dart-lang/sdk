@@ -48,19 +48,23 @@ void testHEAD(int totalConnections) {
           .open("HEAD", "127.0.0.1", server.port, "/test$len")
           .then((request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(len, response.contentLength);
-        response.listen((_) => Expect.fail("Data from HEAD request"),
-            onDone: requestDone);
-      });
+            Expect.equals(len, response.contentLength);
+            response.listen(
+              (_) => Expect.fail("Data from HEAD request"),
+              onDone: requestDone,
+            );
+          });
 
       client
           .open("HEAD", "127.0.0.1", server.port, "/testChunked$len")
           .then((request) => request.close())
           .then((HttpClientResponse response) {
-        Expect.equals(-1, response.contentLength);
-        response.listen((_) => Expect.fail("Data from HEAD request"),
-            onDone: requestDone);
-      });
+            Expect.equals(-1, response.contentLength);
+            response.listen(
+              (_) => Expect.fail("Data from HEAD request"),
+              onDone: requestDone,
+            );
+          });
     }
   });
 }

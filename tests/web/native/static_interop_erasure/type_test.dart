@@ -91,8 +91,10 @@ void main() {
   expect(() => null as StaticJSClass?, returnsNormally);
   expect(null is StaticJSClass, false);
   expect(confuse(null) is StaticJSClass, false);
-  expect(() => null as StaticJSClass,
-      hasUnsoundNullSafety ? returnsNormally : throws);
+  expect(
+    () => null as StaticJSClass,
+    hasUnsoundNullSafety ? returnsNormally : throws,
+  );
 
   // Native objects can be interop'd with static interop classes.
   expect(nativeClass is StaticNativeClass, true);
@@ -172,29 +174,39 @@ void main() {
   // `JavaScriptObject Function() is JavaScriptObject Function()`. This behavior
   // is similar to non-static interop classes.
   expect(
-      returnGenericStaticJSClassInt is GenericStaticJSClass<String> Function(),
-      true);
+    returnGenericStaticJSClassInt is GenericStaticJSClass<String> Function(),
+    true,
+  );
   expect(
-      confuse(returnGenericStaticJSClassInt) is GenericStaticJSClass<String>
-          Function(),
-      true);
+    confuse(returnGenericStaticJSClassInt)
+        is GenericStaticJSClass<String> Function(),
+    true,
+  );
   expect(
-      () => returnGenericStaticJSClassInt as GenericStaticJSClass<String>
-          Function(),
-      returnsNormally);
+    () =>
+        returnGenericStaticJSClassInt
+            as GenericStaticJSClass<String> Function(),
+    returnsNormally,
+  );
 
   // Test that nullability is respected.
   expect(returnStaticJSClass is StaticJSClass? Function(), true);
   expect(confuse(returnStaticJSClass) is StaticJSClass? Function(), true);
-  expect(returnNullableStaticJSClass is StaticJSClass Function(),
-      hasUnsoundNullSafety);
-  expect(confuse(returnNullableStaticJSClass) is StaticJSClass Function(),
-      hasUnsoundNullSafety);
+  expect(
+    returnNullableStaticJSClass is StaticJSClass Function(),
+    hasUnsoundNullSafety,
+  );
+  expect(
+    confuse(returnNullableStaticJSClass) is StaticJSClass Function(),
+    hasUnsoundNullSafety,
+  );
 
   // static interop class A <: static interop class A
   expect(returnStaticNativeClass is StaticNativeClass Function(), true);
   expect(
-      confuse(returnStaticNativeClass) is StaticNativeClass Function(), true);
+    confuse(returnStaticNativeClass) is StaticNativeClass Function(),
+    true,
+  );
   expect(returnStaticJSClass is StaticJSClass Function(), true);
   expect(confuse(returnStaticJSClass) is StaticJSClass Function(), true);
 

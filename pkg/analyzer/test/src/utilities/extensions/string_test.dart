@@ -16,8 +16,10 @@ main() {
 @reflectiveTest
 class IterableOfStringExtensionTest {
   void test_commaSeparatedWithAnd_five() {
-    expect(<String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithAnd,
-        'a, b, c, d, and e');
+    expect(
+      <String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithAnd,
+      'a, b, c, d, and e',
+    );
   }
 
   void test_commaSeparatedWithAnd_one() {
@@ -44,8 +46,10 @@ class IterableOfStringExtensionTest {
   }
 
   void test_commaSeparatedWithOr_five() {
-    expect(<String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithOr,
-        'a, b, c, d, or e');
+    expect(
+      <String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithOr,
+      'a, b, c, d, or e',
+    );
   }
 
   void test_commaSeparatedWithOr_one() {
@@ -69,8 +73,10 @@ class IterableOfStringExtensionTest {
   }
 
   void test_quotedAndCommaSeparatedWithAnd_three() {
-    expect(<String>['a', 'b', 'c'].quotedAndCommaSeparatedWithAnd,
-        "'a', 'b', and 'c'");
+    expect(
+      <String>['a', 'b', 'c'].quotedAndCommaSeparatedWithAnd,
+      "'a', 'b', and 'c'",
+    );
   }
 
   void test_quotedAndCommaSeparatedWithAnd_two() {
@@ -86,8 +92,10 @@ class IterableOfStringExtensionTest {
   }
 
   void test_quotedAndCommaSeparatedWithOr_three() {
-    expect(<String>['a', 'b', 'c'].quotedAndCommaSeparatedWithOr,
-        "'a', 'b', or 'c'");
+    expect(
+      <String>['a', 'b', 'c'].quotedAndCommaSeparatedWithOr,
+      "'a', 'b', or 'c'",
+    );
   }
 
   void test_quotedAndCommaSeparatedWithOr_two() {

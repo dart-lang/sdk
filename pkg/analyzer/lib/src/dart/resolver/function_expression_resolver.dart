@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -9,26 +10,29 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/summary2/default_types_builder.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
 
   FunctionExpressionResolver({required ResolverVisitor resolver})
-      : _resolver = resolver;
+    : _resolver = resolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
     var parent = node.parent;
-    // Note: `isFunctionDeclaration` must have an explicit type to work around
-    // https://github.com/dart-lang/language/issues/1785.
-    bool isFunctionDeclaration = parent is FunctionDeclaration;
+    var isFunctionDeclaration = parent is FunctionDeclaration;
     var body = node.body;
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-      _resolver.flowAnalysis
-          .executableDeclaration_enter(node, node.parameters, isClosure: true);
+      _resolver.flowAnalysis.executableDeclaration_enter(
+        node,
+        node.parameters,
+        isClosure: true,
+      );
     }
 
     bool wasFunctionTypeSupplied = contextType is FunctionTypeImpl;
@@ -59,12 +63,28 @@ class FunctionExpressionResolver {
     _resolve2(node, imposedType);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-      _resolver.checkForBodyMayCompleteNormally(
-        body: body,
-        errorNode: body,
-      );
+      _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
       _resolver.flowAnalysis.flow?.functionExpression_end();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
+    }
+
+    var typeParameterList = node.typeParameters;
+    if (typeParameterList != null) {
+      // Computing the default types for type parameters will normalize the
+      // recursive bounds, so we need to check for recursion first.
+      //
+      // This is only needed for local functions because top-level and
+      checkForTypeParameterBoundRecursion(
+        _resolver.diagnosticReporter,
+        typeParameterList.typeParameters,
+      );
+      var map = <Fragment, TypeParameter>{};
+      for (var typeParameter in typeParameterList.typeParameters) {
+        map[typeParameter.declaredFragment!] = typeParameter;
+      }
+      DefaultTypesBuilder(
+        getTypeParameterNode: (fragment) => map[fragment],
+      ).build([node]);
     }
   }
 
@@ -93,6 +113,7 @@ class FunctionExpressionResolver {
           inferredType = _typeSystem.objectQuestion;
         }
         if (inferredType is! DynamicType) {
+          p.type = inferredType;
           p.firstFragment.type = inferredType;
         }
       }
@@ -100,13 +121,15 @@ class FunctionExpressionResolver {
 
     var nodeParameterFragments = node.parameterFragments.nonNulls;
     {
-      var nodePositional = nodeParameterFragments
-          .map((fragment) => fragment.element)
-          .where((element) => element.isPositional)
-          .iterator;
-      var contextPositional = contextType.formalParameters
-          .where((element) => element.isPositional)
-          .iterator;
+      var nodePositional =
+          nodeParameterFragments
+              .map((fragment) => fragment.element)
+              .where((element) => element.isPositional)
+              .iterator;
+      var contextPositional =
+          contextType.formalParameters
+              .where((element) => element.isPositional)
+              .iterator;
       while (nodePositional.moveNext() && contextPositional.moveNext()) {
         inferType(
           nodePositional.current as FormalParameterElementImpl,
@@ -121,12 +144,12 @@ class FunctionExpressionResolver {
           .map((fragment) => fragment.element)
           .where((element) => element.isNamed);
       for (var element in nodeNamed) {
-        if (!contextNamedTypes.containsKey(element.name3)) {
+        if (!contextNamedTypes.containsKey(element.name)) {
           continue;
         }
         inferType(
           element as FormalParameterElementImpl,
-          contextNamedTypes[element.name3]!,
+          contextNamedTypes[element.name]!,
         );
       }
     }
@@ -138,7 +161,9 @@ class FunctionExpressionResolver {
   /// Return `null` is the number of element in [typeParameterList] is not
   /// the same as the number of type parameters in the [type].
   FunctionTypeImpl? _matchTypeParameters(
-      TypeParameterListImpl? typeParameterList, FunctionTypeImpl type) {
+    TypeParameterListImpl? typeParameterList,
+    FunctionTypeImpl type,
+  ) {
     if (typeParameterList == null) {
       if (type.typeParameters.isEmpty) {
         return type;
@@ -151,11 +176,13 @@ class FunctionExpressionResolver {
       return null;
     }
 
-    return type.instantiate(typeParameters.map((typeParameter) {
-      return typeParameter.declaredFragment!.element.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }).toList());
+    return type.instantiate(
+      typeParameters.map((typeParameter) {
+        return typeParameter.declaredFragment!.element.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }).toList(),
+    );
   }
 
   void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
@@ -163,7 +190,7 @@ class FunctionExpressionResolver {
 
     if (_shouldUpdateReturnType(node)) {
       var firstFragment =
-          functionElement.firstFragment as ExecutableElementImpl;
+          functionElement.firstFragment as ExecutableFragmentImpl;
       firstFragment.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 

@@ -47,7 +47,9 @@ bool checkDeleteNonExistentFileSystemException(e) {
 
 bool checkLengthNonExistentFileSystemException(e) {
   return checkNonExistentFileSystemException(
-      e, "Cannot retrieve length of file");
+    e,
+    "Cannot retrieve length of file",
+  );
 }
 
 void testOpenBlankFilename() {
@@ -72,7 +74,9 @@ void testOpenNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(
-      () => file.openSync(), (e) => checkOpenNonExistentFileSystemException(e));
+    () => file.openSync(),
+    (e) => checkOpenNonExistentFileSystemException(e),
+  );
 
   var openFuture = file.open(mode: FileMode.read);
   openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
@@ -89,8 +93,10 @@ void testDeleteNonExistent() {
   var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.deleteSync(),
-      (e) => checkDeleteNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.deleteSync(),
+    (e) => checkDeleteNonExistentFileSystemException(e),
+  );
 
   var delete = file.delete();
   delete.then((ignore) => Expect.fail("Unreachable code")).catchError((error) {
@@ -107,8 +113,10 @@ void testLengthNonExistent() {
   var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.lengthSync(),
-      (e) => checkLengthNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.lengthSync(),
+    (e) => checkLengthNonExistentFileSystemException(e),
+  );
 
   var lenFuture = file.length();
   lenFuture.then((len) => Expect.fail("Unreachable code")).catchError((error) {
@@ -140,8 +148,10 @@ void testCreateInNonExistentDirectory() {
   var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
   // Create in nonexistent directory should throw exception.
-  Expect.throws(() => file.createSync(),
-      (e) => checkCreateInNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.createSync(),
+    (e) => checkCreateInNonExistentFileSystemException(e),
+  );
 
   var create = file.create();
   create.then((ignore) => Expect.fail("Unreachable code")).catchError((error) {
@@ -168,18 +178,20 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
   var file = new File("${temp.path}/nonExistentDirectory");
 
   // Full path nonexistent directory should throw exception.
-  Expect.throws(() => file.resolveSymbolicLinksSync(),
-      (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.resolveSymbolicLinksSync(),
+    (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e),
+  );
 
   var resolvedFuture = file.resolveSymbolicLinks();
   resolvedFuture
       .then((path) => Expect.fail("Unreachable code $path"))
       .catchError((error) {
-    checkResolveSymbolicLinksOnNonExistentFileSystemException(error);
-    temp.deleteSync(recursive: true);
-    asyncEnd();
-    return file;
-  });
+        checkResolveSymbolicLinksOnNonExistentFileSystemException(error);
+        temp.deleteSync(recursive: true);
+        asyncEnd();
+        return file;
+      });
 }
 
 void testReadAsBytesNonExistent() {
@@ -188,13 +200,15 @@ void testReadAsBytesNonExistent() {
   var file = new File("${temp.path}/nonExistentFile3");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.readAsBytesSync(),
-      (e) => checkOpenNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.readAsBytesSync(),
+    (e) => checkOpenNonExistentFileSystemException(e),
+  );
 
   var readAsBytesFuture = file.readAsBytes();
-  readAsBytesFuture
-      .then((data) => Expect.fail("Unreachable code"))
-      .catchError((error) {
+  readAsBytesFuture.then((data) => Expect.fail("Unreachable code")).catchError((
+    error,
+  ) {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
@@ -208,18 +222,20 @@ void testReadAsTextNonExistent() {
   var file = new File("${temp.path}/nonExistentFile4");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.readAsStringSync(),
-      (e) => checkOpenNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.readAsStringSync(),
+    (e) => checkOpenNonExistentFileSystemException(e),
+  );
 
   var readAsStringFuture = file.readAsString(encoding: ascii);
-  readAsStringFuture
-      .then((data) => Expect.fail("Unreachable code"))
-      .catchError((error) {
-    checkOpenNonExistentFileSystemException(error);
-    temp.deleteSync(recursive: true);
-    asyncEnd();
-    return file;
-  });
+  readAsStringFuture.then((data) => Expect.fail("Unreachable code")).catchError(
+    (error) {
+      checkOpenNonExistentFileSystemException(error);
+      temp.deleteSync(recursive: true);
+      asyncEnd();
+      return file;
+    },
+  );
 }
 
 testReadAsLinesNonExistent() {
@@ -228,13 +244,15 @@ testReadAsLinesNonExistent() {
   var file = new File("${temp.path}/nonExistentFile5");
 
   // Non-existing file should throw exception.
-  Expect.throws(() => file.readAsLinesSync(),
-      (e) => checkOpenNonExistentFileSystemException(e));
+  Expect.throws(
+    () => file.readAsLinesSync(),
+    (e) => checkOpenNonExistentFileSystemException(e),
+  );
 
   var readAsLinesFuture = file.readAsLines(encoding: ascii);
-  readAsLinesFuture
-      .then((data) => Expect.fail("Unreachable code"))
-      .catchError((error) {
+  readAsLinesFuture.then((data) => Expect.fail("Unreachable code")).catchError((
+    error,
+  ) {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
@@ -268,8 +286,10 @@ testWriteByteToReadOnlyFile() {
     var openedFile = file.openSync(mode: FileMode.read);
 
     // Writing to read only file should throw an exception.
-    Expect.throws(() => openedFile.writeByteSync(0),
-        (e) => checkWriteReadOnlyFileSystemException(e));
+    Expect.throws(
+      () => openedFile.writeByteSync(0),
+      (e) => checkWriteReadOnlyFileSystemException(e),
+    );
 
     var writeByteFuture = openedFile.writeByte(0);
     writeByteFuture.catchError((error) {
@@ -286,8 +306,10 @@ testWriteFromToReadOnlyFile() {
 
     List<int> data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
-    Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
-        (e) => checkWriteReadOnlyFileSystemException(e));
+    Expect.throws(
+      () => openedFile.writeFromSync(data, 0, data.length),
+      (e) => checkWriteReadOnlyFileSystemException(e),
+    );
 
     var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
     writeFromFuture.catchError((error) {
@@ -306,17 +328,19 @@ testTruncateReadOnlyFile() {
     openedFile = file.openSync(mode: FileMode.read);
 
     // Truncating read only file should throw an exception.
-    Expect.throws(() => openedFile.truncateSync(0),
-        (e) => checkWriteReadOnlyFileSystemException(e));
+    Expect.throws(
+      () => openedFile.truncateSync(0),
+      (e) => checkWriteReadOnlyFileSystemException(e),
+    );
 
     var truncateFuture = openedFile.truncate(0);
-    truncateFuture
-        .then((ignore) => Expect.fail("Unreachable code"))
-        .catchError((error) {
-      checkWriteReadOnlyFileSystemException(error);
-      openedFile.close().then((_) => done());
-      return openedFile;
-    });
+    truncateFuture.then((ignore) => Expect.fail("Unreachable code")).catchError(
+      (error) {
+        checkWriteReadOnlyFileSystemException(error);
+        openedFile.close().then((_) => done());
+        return openedFile;
+      },
+    );
   });
 }
 
@@ -334,25 +358,45 @@ testOperateOnClosedFile() {
 
     List<int> data = [0, 1, 2, 3];
     Expect.throws(
-        () => openedFile.readByteSync(), (e) => checkFileClosedException(e));
+      () => openedFile.readByteSync(),
+      (e) => checkFileClosedException(e),
+    );
     Expect.throws(
-        () => openedFile.writeByteSync(0), (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
-        (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.readIntoSync(data, 0, data.length),
-        (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.writeStringSync("Hello"),
-        (e) => checkFileClosedException(e));
+      () => openedFile.writeByteSync(0),
+      (e) => checkFileClosedException(e),
+    );
     Expect.throws(
-        () => openedFile.positionSync(), (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.setPositionSync(0),
-        (e) => checkFileClosedException(e));
+      () => openedFile.writeFromSync(data, 0, data.length),
+      (e) => checkFileClosedException(e),
+    );
     Expect.throws(
-        () => openedFile.truncateSync(0), (e) => checkFileClosedException(e));
+      () => openedFile.readIntoSync(data, 0, data.length),
+      (e) => checkFileClosedException(e),
+    );
     Expect.throws(
-        () => openedFile.lengthSync(), (e) => checkFileClosedException(e));
+      () => openedFile.writeStringSync("Hello"),
+      (e) => checkFileClosedException(e),
+    );
     Expect.throws(
-        () => openedFile.flushSync(), (e) => checkFileClosedException(e));
+      () => openedFile.positionSync(),
+      (e) => checkFileClosedException(e),
+    );
+    Expect.throws(
+      () => openedFile.setPositionSync(0),
+      (e) => checkFileClosedException(e),
+    );
+    Expect.throws(
+      () => openedFile.truncateSync(0),
+      (e) => checkFileClosedException(e),
+    );
+    Expect.throws(
+      () => openedFile.lengthSync(),
+      (e) => checkFileClosedException(e),
+    );
+    Expect.throws(
+      () => openedFile.flushSync(),
+      (e) => checkFileClosedException(e),
+    );
 
     var errorCount = 0;
 
@@ -445,7 +489,9 @@ testReadSyncClosedFile() {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(
-        () => openedFile.readSync(1), (e) => e is FileSystemException);
+      () => openedFile.readSync(1),
+      (e) => e is FileSystemException,
+    );
     done();
   });
 }

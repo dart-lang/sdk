@@ -62,16 +62,6 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Checks the signature types of this member.
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment);
-
-  /// Returns `true` if this member is declared using the `augment` modifier.
-  bool get isAugmentation;
-
-  /// Returns `true` if this member is a member declared in an augmentation
-  /// library that conflicts with a declaration in the origin library.
-  bool get isConflictingAugmentationMember;
-  void set isConflictingAugmentationMember(bool value);
-
-  AugmentSuperTarget? get augmentSuperTarget;
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -86,27 +76,9 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int buildBodyNodes(BuildNodesCallback f) {
     return 0;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => false;
-
-  @override
-  bool get isConflictingAugmentationMember => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isConflictingAugmentationMember(bool value) {
-    assert(false,
-        "Unexpected call to $runtimeType.isConflictingAugmentationMember=");
-  }
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    throw new UnimplementedError('$runtimeType.augmentSuperTarget');
   }
 }
 
@@ -121,34 +93,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null;
-
-  bool? _isConflictingSetter;
-
-  @override
-  bool get isConflictingSetter {
-    return _isConflictingSetter ??= false;
-  }
-
-  void set isConflictingSetter(bool value) {
-    assert(_isConflictingSetter == null,
-        '$this.isConflictingSetter has already been fixed.');
-    _isConflictingSetter = value;
-  }
-
-  bool? _isConflictingAugmentationMember;
-
-  @override
-  bool get isConflictingAugmentationMember {
-    return _isConflictingAugmentationMember ??= false;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isConflictingAugmentationMember(bool value) {
-    assert(_isConflictingAugmentationMember == null,
-        '$this.isConflictingAugmentationMember has already been fixed.');
-    _isConflictingAugmentationMember = value;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -167,11 +111,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
     sb.write(name);
     sb.write(')');
     return sb.toString();
-  }
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    throw new UnimplementedError('$runtimeType.augmentSuperTarget}');
   }
 }
 
@@ -194,6 +133,7 @@ enum BuiltMemberKind {
   ExtensionTypeFactory,
   ExtensionTypeRedirectingFactory,
   ExtensionTypeRepresentationField,
+  LateBackingField,
   LateIsSetField,
   LateGetter,
   LateSetter,

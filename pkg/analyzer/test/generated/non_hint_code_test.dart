@@ -18,21 +18,23 @@ main() {
 class NonHintCodeTest extends PubPackageResolutionTest {
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var message, var dynamic_) {
   if (message is Function) {
     message = dynamic_;
   }
   int s = message;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 1)],
+    );
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_3() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var message) {
   var dynamic_;
   if (message is Function) {
@@ -42,14 +44,15 @@ f(var message) {
   }
   int s = message;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1)],
+    );
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_4() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var message) {
   if (message is Function) {
     message = '';
@@ -58,9 +61,9 @@ f(var message) {
   }
   String s = message;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1)],
+    );
   }
 
   test_propagatedFieldType() async {
@@ -145,53 +148,72 @@ class PubSuggestionCodeTest extends PubPackageResolutionTest {
   //  the first would fail. We should implement these checks and enable the
   //  tests.
   test_import_package() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:somepackage/other.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0)],
+    );
   }
 
   test_import_referenceIntoLibDirectory_no_pubspec() async {
     newFile("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
-        "/myproj/web/test.dart", "import '../lib/other.dart';", []);
+      "/myproj/web/test.dart",
+      "import '../lib/other.dart';",
+      [],
+    );
   }
 
   test_import_referenceOutOfLibDirectory_no_pubspec() async {
     newFile("/myproj/web/other.dart", '');
     await _assertErrorsInCodeInFile(
-        "/myproj/lib/test.dart", "import '../web/other.dart';", []);
+      "/myproj/lib/test.dart",
+      "import '../web/other.dart';",
+      [],
+    );
   }
 
   test_import_valid_inside_lib1() async {
     newFile("/myproj/pubspec.yaml", '');
     newFile("/myproj/lib/other.dart", '');
     await _assertErrorsInCodeInFile(
-        "/myproj/lib/test.dart", "import 'other.dart';", []);
+      "/myproj/lib/test.dart",
+      "import 'other.dart';",
+      [],
+    );
   }
 
   test_import_valid_inside_lib2() async {
     newFile("/myproj/pubspec.yaml", '');
     newFile("/myproj/lib/bar/other.dart", '');
     await _assertErrorsInCodeInFile(
-        "/myproj/lib/foo/test.dart", "import '../bar/other.dart';", []);
+      "/myproj/lib/foo/test.dart",
+      "import '../bar/other.dart';",
+      [],
+    );
   }
 
   test_import_valid_outside_lib() async {
     newFile("/myproj/pubspec.yaml", '');
     newFile("/myproj/web/other.dart", '');
     await _assertErrorsInCodeInFile(
-        "/myproj/lib2/test.dart", "import '../web/other.dart';", []);
+      "/myproj/lib2/test.dart",
+      "import '../web/other.dart';",
+      [],
+    );
   }
 
   Future<void> _assertErrorsInCodeInFile(
-      String path, String content, List<ExpectedError> expectedErrors) async {
+    String path,
+    String content,
+    List<ExpectedError> expectedErrors,
+  ) async {
     var file = newFile(path, content);
     result = await resolveFile(file);
 
-    var errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    diagnosticListener.addAll(result.diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 }

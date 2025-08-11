@@ -16,16 +16,23 @@ main() {
 @reflectiveTest
 class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case var a && var a) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
-          contextMessages: [message(testFile, 33, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          42,
+          1,
+          contextMessages: [message(testFile, 33, 1)],
+        ),
+      ],
+    );
     var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
@@ -33,7 +40,7 @@ IfStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
   caseClause: CaseClause
     caseKeyword: case
@@ -42,15 +49,19 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@33
-            type: int
+          declaredFragment: isPublic a@33
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: &&
         rightOperand: DeclaredVariablePattern
           keyword: var
           name: a
-          declaredElement: hasImplicitType a@42
-            type: int
+          declaredFragment: isPublic a@42
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         matchedValueType: int
   rightParenthesis: )
@@ -68,17 +79,24 @@ IfStatement
   }
 
   test_switchStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case var a && var a:
       a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
-          contextMessages: [message(testFile, 44, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          53,
+          1,
+          contextMessages: [message(testFile, 44, 1)],
+        ),
+      ],
+    );
     var node = findNode.singleSwitchPatternCase;
     assertResolvedNodeText(node, r'''
 SwitchPatternCase
@@ -88,15 +106,19 @@ SwitchPatternCase
       leftOperand: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: int
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       operator: &&
       rightOperand: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@53
-          type: int
+        declaredFragment: isPublic a@53
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       matchedValueType: int
   colon: :
@@ -111,15 +133,22 @@ SwitchPatternCase
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var [a, a] = [0, 1];
   a;
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 21, 1,
-          contextMessages: [message(testFile, 18, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          21,
+          1,
+          contextMessages: [message(testFile, 18, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
@@ -134,13 +163,17 @@ Block
           elements
             DeclaredVariablePattern
               name: a
-              declaredElement: hasImplicitType a@18
-                type: int
+              declaredFragment: isPublic a@18
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
             DeclaredVariablePattern
               name: a
-              declaredElement: hasImplicitType a@21
-                type: int
+              declaredFragment: isPublic a@21
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
           rightBracket: ]
           matchedValueType: List<int>

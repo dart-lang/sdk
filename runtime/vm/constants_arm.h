@@ -470,6 +470,11 @@ struct LateInitializationErrorABI {
   static constexpr Register kFieldReg = R9;
 };
 
+// ABI for FieldAccessError stubs.
+struct FieldAccessErrorABI {
+  static constexpr Register kFieldReg = R9;
+};
+
 // ABI for ThrowStub.
 struct ThrowABI {
   static constexpr Register kExceptionReg = R0;

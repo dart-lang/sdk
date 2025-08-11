@@ -6,19 +6,26 @@ import 'native_testing.dart';
 import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
 import 'dart:_interceptors'
     show
-        JSObject, // The interface, which may be re-exported by a
-        // js-interop library.
-        LegacyJavaScriptObject, //   The interceptor abstract class.
-        PlainJavaScriptObject, //     The interceptor concrete class.
-        UnknownJavaScriptObject, //     The interceptor concrete class.
-        Interceptor;
+        // The interface, which may be re-exported by a js-interop library.
+        JSObject,
+        // The interceptor base class for all non-Dart objects. @Native classes
+        // should extend this class.
+        JavaScriptObject,
+        // The interceptor abstract class for non-Dart, non-@Native objects.
+        LegacyJavaScriptObject,
+        // The interceptor concrete sublass of LegacyJavaScriptObject for object
+        // literals and objects with `null` prototype.
+        PlainJavaScriptObject,
+        // The interceptor concrete subclass of LegacyJavaScriptObject for
+        // Objects with a prototype chain.
+        UnknownJavaScriptObject;
 
 // Test for JavaScript objects from outside the Dart program.  Although we only
 // export the interface [JSObject] to user level code, this test makes sure we
 // can distinguish plain JavaScript objects from ones with a complex prototype.
 
 @Native('QQ')
-class Q {}
+class Q extends JavaScriptObject {}
 
 makeA() native;
 makeB() native;
@@ -49,18 +56,18 @@ static_test() {
   Expect.isTrue(x is JSObject);
   Expect.isTrue(x is LegacyJavaScriptObject);
   Expect.isTrue(x is PlainJavaScriptObject);
-  Expect.isTrue(x is! UnknownJavaScriptObject);
+  Expect.isFalse(x is UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeB();
   Expect.isTrue(x is JSObject);
   Expect.isTrue(x is LegacyJavaScriptObject);
-  Expect.isTrue(x is! PlainJavaScriptObject);
+  Expect.isFalse(x is PlainJavaScriptObject);
   Expect.isTrue(x is UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeQ();
-  Expect.isFalse(x is JSObject);
+  Expect.isTrue(x is JSObject);
   Expect.isFalse(x is LegacyJavaScriptObject);
   Expect.isFalse(x is PlainJavaScriptObject);
   Expect.isFalse(x is UnknownJavaScriptObject);
@@ -79,18 +86,18 @@ dynamic_test() {
   Expect.isTrue(isJSObject(x));
   Expect.isTrue(isLegacyJavaScriptObject(x));
   Expect.isTrue(isPlainJavaScriptObject(x));
-  Expect.isTrue(!isUnknownJavaScriptObject(x));
+  Expect.isFalse(isUnknownJavaScriptObject(x));
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeB();
   Expect.isTrue(isJSObject(x));
   Expect.isTrue(isLegacyJavaScriptObject(x));
-  Expect.isTrue(!isPlainJavaScriptObject(x));
+  Expect.isFalse(isPlainJavaScriptObject(x));
   Expect.isTrue(isUnknownJavaScriptObject(x));
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeQ();
-  Expect.isFalse(isJSObject(x));
+  Expect.isTrue(isJSObject(x));
   Expect.isFalse(isLegacyJavaScriptObject(x));
   Expect.isFalse(isPlainJavaScriptObject(x));
   Expect.isFalse(isUnknownJavaScriptObject(x));

@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../analysis_server_base.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -315,6 +315,23 @@ void f() {
 test({required String a}) {}
 void f() {
   test(a: "");
+}
+''');
+  }
+
+  Future<void> test_functionType_noParameterName() async {
+    await resolveTestCode('''
+void foo({required void Function(int) f}) {}
+
+void bar() {
+  foo();
+}
+''');
+    await assertHasFix('''
+void foo({required void Function(int) f}) {}
+
+void bar() {
+  foo(f: (int p1) {  });
 }
 ''');
   }

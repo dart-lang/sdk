@@ -55,7 +55,8 @@ class GnWorkspace extends Workspace {
   ) {
     if (summaryData != null) {
       throw UnsupportedError(
-          'Summary files are not supported in a GN workspace.');
+        'Summary files are not supported in a GN workspace.',
+      );
     }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
@@ -80,7 +81,7 @@ class GnWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage? findPackageFor(String filePath) {
+  WorkspacePackageImpl? findPackageFor(String filePath) {
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
       if (folder.path.length < root.length) {
@@ -90,7 +91,7 @@ class GnWorkspace extends Workspace {
       }
 
       if (folder.getChildAssumingFile(file_paths.buildGn).exists) {
-        return GnWorkspacePackage(folder.path, this);
+        return GnWorkspacePackage(folder, this);
       }
     }
     return null;
@@ -147,14 +148,17 @@ class GnWorkspace extends Workspace {
     File buildGnFile,
   ) {
     path.Context pathContext = provider.pathContext;
-    String sourceDirectory =
-        pathContext.relative(buildGnFile.parent.path, from: root);
+    String sourceDirectory = pathContext.relative(
+      buildGnFile.parent.path,
+      from: root,
+    );
     var outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
       return const <File>[];
     }
     Folder genDir = outDirectory.getChildAssumingFolder(
-        pathContext.join('dartlang', 'gen', sourceDirectory));
+      pathContext.join('dartlang', 'gen', sourceDirectory),
+    );
     if (!genDir.exists) {
       return const <File>[];
     }
@@ -174,8 +178,9 @@ class GnWorkspace extends Workspace {
     const String fuchsiaDirConfigFile = '.fx-build-dir';
 
     path.Context pathContext = provider.pathContext;
-    File configFile =
-        provider.getFile(pathContext.join(root, fuchsiaDirConfigFile));
+    File configFile = provider.getFile(
+      pathContext.join(root, fuchsiaDirConfigFile),
+    );
     if (configFile.exists) {
       String buildDirPath = configFile.readAsStringSync().trim();
       if (buildDirPath.isNotEmpty) {
@@ -189,14 +194,14 @@ class GnWorkspace extends Workspace {
     if (!outDirectory.exists) {
       return null;
     }
-    return outDirectory.getChildren().whereType<Folder>().firstWhereOrNull(
-      (folder) {
-        String baseName = pathContext.basename(folder.path);
-        // Taking a best guess to identify a build dir. This is clearly a fallback
-        // to the config-based method.
-        return baseName.startsWith('debug') || baseName.startsWith('release');
-      },
-    );
+    return outDirectory.getChildren().whereType<Folder>().firstWhereOrNull((
+      folder,
+    ) {
+      String baseName = pathContext.basename(folder.path);
+      // Taking a best guess to identify a build dir. This is clearly a fallback
+      // to the config-based method.
+      return baseName.startsWith('debug') || baseName.startsWith('release');
+    });
   }
 }
 
@@ -205,9 +210,9 @@ class GnWorkspace extends Workspace {
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a GnWorkspace.
-class GnWorkspacePackage extends WorkspacePackage {
+class GnWorkspacePackage extends WorkspacePackageImpl {
   @override
-  final String root;
+  final Folder root;
 
   @override
   final GnWorkspace workspace;
@@ -221,14 +226,14 @@ class GnWorkspacePackage extends WorkspacePackage {
     if (workspace.findFile(filePath) == null) {
       return false;
     }
-    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
+    if (!root.contains(filePath)) {
       return false;
     }
 
     // Just because [filePath] is within [root] does not mean it is in this
     // package; it could be in a "subpackage." Must go through the work of
     // learning exactly which package [filePath] is contained in.
-    return workspace.findPackageFor(filePath)!.root == root;
+    return workspace.findPackageFor(filePath)!.root.path == root.path;
   }
 
   @override
@@ -238,11 +243,12 @@ class GnWorkspacePackage extends WorkspacePackage {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = workspace.provider.pathContext.join(root, 'lib');
-    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
-      var libSrcFolder =
-          workspace.provider.pathContext.join(root, 'lib', 'src');
-      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    var libFolder = root.getChildAssumingFolder('lib');
+    if (libFolder.contains(filePath)) {
+      var libSrcFolder = root
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('src');
+      return !libSrcFolder.contains(filePath);
     }
     return false;
   }

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToMapLiteralTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
+  AssistKind get kind => DartAssistKind.convertToMapLiteral;
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

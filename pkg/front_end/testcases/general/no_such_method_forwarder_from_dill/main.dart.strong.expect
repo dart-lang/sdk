@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static method main() → void {
+  new mai::B::•();
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class B extends core::Object implements mai2::A {
+  synthetic constructor •() → mai::B
+    : super core::Object::•()
+    ;
+  method _method() → void {
+    throw "A._method";
+  }
+  synthetic no-such-method-forwarder method mai2::_method() → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+}
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → mai2::A
+    : super core::Object::•()
+    ;
+  method _method() → void {
+    throw "A._method";
+  }
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///main_lib1.dart::_method
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol, dynamic>{}
+}

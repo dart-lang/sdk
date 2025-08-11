@@ -16,17 +16,21 @@ test(MirrorSystem mirrors) {
   LibraryMirror b = mirrors.findLibrary(#library_imports_b);
   LibraryMirror core = mirrors.findLibrary(#dart.core);
 
-  Expect.setEquals(
-      [a, b, core], shown.libraryDependencies.map((dep) => dep.targetLibrary));
+  Expect.setEquals([
+    a,
+    b,
+    core,
+  ], shown.libraryDependencies.map((dep) => dep.targetLibrary));
 
   Expect.stringEquals(
-      'import dart.core\n'
-      'import library_imports_a\n'
-      ' show somethingFromA\n'
-      ' show somethingFromBoth\n'
-      'import library_imports_b\n'
-      ' show somethingFromB\n',
-      stringifyDependencies(shown));
+    'import dart.core\n'
+    'import library_imports_a\n'
+    ' show somethingFromA\n'
+    ' show somethingFromBoth\n'
+    'import library_imports_b\n'
+    ' show somethingFromB\n',
+    stringifyDependencies(shown),
+  );
 }
 
 main() {

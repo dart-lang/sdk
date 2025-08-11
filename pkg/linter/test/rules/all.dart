@@ -12,7 +12,6 @@ import 'always_put_required_named_parameters_first_test.dart'
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'analyzer_public_api_test.dart' as analyzer_public_api;
-import 'analyzer_use_new_elements_test.dart' as analyzer_use_new_elements;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
@@ -243,6 +242,7 @@ import 'specify_nonobvious_local_variable_types_test.dart'
 import 'specify_nonobvious_property_types_test.dart'
     as specify_nonobvious_property_types;
 import 'strict_top_level_inference_test.dart' as strict_top_level_inference;
+import 'switch_on_type_test.dart' as switch_on_type;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -289,6 +289,7 @@ import 'unnecessary_string_interpolations_test.dart'
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
+import 'unnecessary_unawaited_test.dart' as unnecessary_unawaited;
 import 'unnecessary_underscores_test.dart' as unnecessary_underscores;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
@@ -334,7 +335,6 @@ void main() {
   always_specify_types.main();
   always_use_package_imports.main();
   analyzer_public_api.main();
-  analyzer_use_new_elements.main();
   annotate_overrides.main();
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
@@ -503,6 +503,7 @@ void main() {
   specify_nonobvious_local_variable_types.main();
   specify_nonobvious_property_types.main();
   strict_top_level_inference.main();
+  switch_on_type.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
@@ -538,6 +539,7 @@ void main() {
   unnecessary_string_interpolations.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
+  unnecessary_unawaited.main();
   unnecessary_underscores.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();

@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -22,7 +22,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_FOR_ELEMENT;
+  AssistKind get assistKind => DartAssistKind.convertToForElement;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT;
@@ -41,8 +41,8 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     }
     var element = creation.constructorName.element;
     if (element == null ||
-        element.name3 != 'fromIterable' ||
-        element.enclosingElement2 != typeProvider.mapElement2) {
+        element.name != 'fromIterable' ||
+        element.enclosingElement != typeProvider.mapElement) {
       return;
     }
     //
@@ -243,7 +243,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
     for (var i = references.length - 1; i >= 0; i--) {
       var oldOffset = references[i].offset - offset;
       // SAFETY: we cannot reference a formal parameter without a name.
-      var oldLength = parameter.name3!.length;
+      var oldLength = parameter.name!.length;
       source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
     }
     return source;

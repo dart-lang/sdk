@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -22,9 +22,9 @@ import 'package:analyzer/src/generated/java_core.dart';
 class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   final String newName;
-  final LocalElement2 target;
-  final Map<Element2, SourceRange> visibleRangeMap;
-  final Set<Element2> conflictingLocals = <Element2>{};
+  final LocalElement target;
+  final Map<Element, SourceRange> visibleRangeMap;
+  final Set<Element> conflictingLocals = <Element>{};
 
   ConflictValidatorVisitor(
     this.result,
@@ -46,7 +46,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var nodeElement = node.element;
-    if (nodeElement != null && nodeElement.name3 == newName) {
+    if (nodeElement != null && nodeElement.name == newName) {
       if (conflictingLocals.contains(nodeElement)) {
         return;
       }
@@ -81,7 +81,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _checkDeclaration({
-    required Element2? declaredElement,
+    required Element? declaredElement,
     required Token nameToken,
   }) {
     if (declaredElement != null && nameToken.lexeme == newName) {
@@ -101,13 +101,13 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  SourceRange? _getVisibleRange(LocalElement2 element) {
+  SourceRange? _getVisibleRange(LocalElement element) {
     return visibleRangeMap[element];
   }
 
   /// Returns whether [element] and [target] are visible together.
-  bool _isVisibleWithTarget(Element2 element) {
-    if (element is LocalElement2) {
+  bool _isVisibleWithTarget(Element element) {
+    if (element is LocalElement) {
       var targetRange = _getVisibleRange(target);
       var elementRange = _getVisibleRange(element);
       return elementRange != null && elementRange.intersects(targetRange);
@@ -121,17 +121,17 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A [Refactoring] for renaming [LocalElement2]s (excluding
+/// A [Refactoring] for renaming [LocalElement]s (excluding
 /// [FormalParameterElement]s).
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   RenameLocalRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    LocalElement2 super.element,
+    LocalElement super.element,
   ) : super();
 
   @override
-  LocalElement2 get element => super.element as LocalElement2;
+  LocalElement get element => super.element as LocalElement;
 
   @override
   String get refactoringName {
@@ -160,7 +160,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       result.addStatus(validateVariableName(newName));
     } else if (element is LocalFunctionElement) {
       result.addStatus(validateFunctionName(newName));
@@ -173,18 +173,18 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
     var element = this.element;
-    if (element is PatternVariableElement2) {
+    if (element is PatternVariableElement) {
       var rootVariable =
-          (element.firstFragment as PatternVariableElementImpl).rootVariable;
+          (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
       var declaredFragments =
-          rootVariable is JoinPatternVariableElementImpl
+          rootVariable is JoinPatternVariableFragmentImpl
               ? rootVariable.transitiveVariables
-                  .whereType<BindPatternVariableElementImpl>()
+                  .whereType<BindPatternVariableFragmentImpl>()
                   .toList()
               : [element.firstFragment];
       for (var declaredFragment in declaredFragments) {
         processor.addDeclarationEdit(declaredFragment.element);
-        if (declaredFragment is BindPatternVariableElementImpl) {
+        if (declaredFragment is BindPatternVariableFragmentImpl) {
           // If a variable is used to resolve a named field with an implicit
           // name, we need to make the field name explicit.
           var fieldName = declaredFragment.node.fieldNameWithImplicitName;
@@ -193,7 +193,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
               referenceElement: element,
               offset: fieldName.colon.offset,
               length: 0,
-              code: element.name3!,
+              code: element.name!,
             );
           }
         }
@@ -207,14 +207,14 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-extension on Element2 {
+extension on Element {
   String get declarationLocation {
     var sourceName = firstFragment.libraryFragment!.source.shortName;
-    var executable = enclosingElement2;
+    var executable = enclosingElement;
     String className = '';
     String executableName = '';
-    if (executable is MethodElement2) {
-      var namescope = executable.enclosingElement2 as ClassElement2?;
+    if (executable is MethodElement) {
+      var namescope = executable.enclosingElement as ClassElement?;
       className = namescope?.displayName ?? '';
       if (className.isNotEmpty && executable.displayName.isNotEmpty) {
         className += '.';

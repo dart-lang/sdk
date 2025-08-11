@@ -111,7 +111,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
                 static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
 
       // head -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
       EXPECT_EQ(e1->list_prev(), nullptr);
       EXPECT_EQ(e1->list_next(), nullptr);
@@ -135,8 +135,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
     {
       // head -> tramp2 -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
-      auto* e2 = fcm->MetadataOfTrampoline(tramp2);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
+      auto* e2 = fcm->MetadataEntryOfTrampoline(tramp2);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e2);
       EXPECT_EQ(e2->list_prev(), nullptr);
       EXPECT_EQ(e2->list_next(), e1);
@@ -151,7 +151,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
       EXPECT(!m1.IsLive());
 
       // head -> tramp2
-      auto* e2 = fcm->MetadataOfTrampoline(tramp2);
+      auto* e2 = fcm->MetadataEntryOfTrampoline(tramp2);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e2);
       EXPECT_EQ(e2->list_prev(), nullptr);
       EXPECT_EQ(e2->list_next(), nullptr);
@@ -206,7 +206,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
                 static_cast<int>(FfiCallbackMetadata::TrampolineType::kAsync));
 
       // head -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
       EXPECT_EQ(e1->list_prev(), nullptr);
       EXPECT_EQ(e1->list_next(), nullptr);
@@ -230,8 +230,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
     {
       // head -> tramp2 -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
-      auto* e2 = fcm->MetadataOfTrampoline(tramp2);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
+      auto* e2 = fcm->MetadataEntryOfTrampoline(tramp2);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e2);
       EXPECT_EQ(e2->list_prev(), nullptr);
       EXPECT_EQ(e2->list_next(), e1);
@@ -246,7 +246,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
       EXPECT(!m2.IsLive());
 
       // head -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
       EXPECT_EQ(e1->list_prev(), nullptr);
       EXPECT_EQ(e1->list_next(), nullptr);
@@ -308,7 +308,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
                 static_cast<int>(FfiCallbackMetadata::TrampolineType::kSync));
 
       // head -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
       EXPECT_EQ(e1->list_prev(), nullptr);
       EXPECT_EQ(e1->list_next(), nullptr);
@@ -334,8 +334,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
 
     {
       // head -> tramp2 -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
-      auto* e2 = fcm->MetadataOfTrampoline(tramp2);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
+      auto* e2 = fcm->MetadataEntryOfTrampoline(tramp2);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e2);
       EXPECT_EQ(e2->list_prev(), nullptr);
       EXPECT_EQ(e2->list_next(), e1);
@@ -350,7 +350,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
       EXPECT(!m2.IsLive());
 
       // head -> tramp1
-      auto* e1 = fcm->MetadataOfTrampoline(tramp1);
+      auto* e1 = fcm->MetadataEntryOfTrampoline(tramp1);
       EXPECT_EQ(isolate->ffi_callback_list_head(), e1);
       EXPECT_EQ(e1->list_prev(), nullptr);
       EXPECT_EQ(e1->list_next(), nullptr);
@@ -378,7 +378,7 @@ ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
   EXPECT(!code.IsNull());
 
   auto port = PortMap::CreatePort(new FakeMessageHandler());
-  FfiCallbackMetadata::Metadata* list_head = nullptr;
+  FfiCallbackMetadata::MetadataEntry* list_head = nullptr;
 
   // Allocate and free one callback at a time, and verify that we don't reuse
   // them. Allocate enough that the whole page fills up with dead trampolines.
@@ -437,7 +437,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   auto* fcm = FfiCallbackMetadata::Instance();
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramps;
-  FfiCallbackMetadata::Metadata* list_head = nullptr;
+  FfiCallbackMetadata::MetadataEntry* list_head = nullptr;
 
   const auto& sync_func = Function::Handle(
       CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
@@ -446,9 +446,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   // Create some callbacks.
   for (int itr = 0; itr < kCreations; ++itr) {
-    tramps.insert(fcm->CreateIsolateLocalFfiCallback(
-        isolate, thread->zone(), sync_func, Closure::Handle(Closure::null()),
-        &list_head));
+    tramps.insert(fcm->CreateLocalFfiCallback(
+        isolate, /*isolate_group=*/nullptr, thread->zone(), sync_func,
+        Closure::Handle(Closure::null()), &list_head));
   }
 
   // Delete some of the callbacks.
@@ -470,23 +470,23 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   // Verify the list of callbacks.
   uword list_length = 0;
-  for (FfiCallbackMetadata::Metadata* m = list_head; m != nullptr;) {
+  for (FfiCallbackMetadata::MetadataEntry* me = list_head; me != nullptr;) {
     ++list_length;
-    auto tramp = fcm->TrampolineOfMetadata(m);
-    EXPECT(m->IsLive());
-    EXPECT_EQ(m->target_isolate(), isolate);
+    auto tramp = fcm->TrampolineOfMetadataEntry(me);
+    EXPECT(me->metadata()->IsLive());
+    EXPECT_EQ(me->metadata()->target_isolate(), isolate);
     EXPECT_EQ(tramps.count(tramp), 1u);
-    auto* next = m->list_next();
-    auto* prev = m->list_prev();
+    auto* next = me->list_next();
+    auto* prev = me->list_prev();
     if (prev != nullptr) {
-      EXPECT_EQ(prev->list_next(), m);
+      EXPECT_EQ(prev->list_next(), me);
     } else {
-      EXPECT_EQ(list_head, m);
+      EXPECT_EQ(list_head, me);
     }
     if (next != nullptr) {
-      EXPECT_EQ(next->list_prev(), m);
+      EXPECT_EQ(next->list_prev(), me);
     }
-    m = m->list_next();
+    me = me->list_next();
   }
   EXPECT_EQ(list_length, tramps.size());
 
@@ -518,7 +518,7 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
   Random random(seed);
   std::vector<TrampolineWithPort> tramps;
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramp_set;
-  FfiCallbackMetadata::Metadata* list_head = nullptr;
+  FfiCallbackMetadata::MetadataEntry* list_head = nullptr;
 
   const Function& async_func =
       Function::Handle(CreateTestFunction(FfiCallbackKind::kAsyncCallback));
@@ -559,8 +559,8 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
       if ((random.NextUInt32() % 2) == 0) {
         // 50% chance of creating a sync callback.
         tramp.port = ILLEGAL_PORT;
-        tramp.tramp = fcm->CreateIsolateLocalFfiCallback(
-            isolate, thread->zone(), sync_func,
+        tramp.tramp = fcm->CreateLocalFfiCallback(
+            isolate, /*isolate_group=*/nullptr, thread->zone(), sync_func,
             Closure::Handle(Closure::null()), &list_head);
       } else {
         // 50% chance of creating an async callback.
@@ -589,13 +589,13 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
 
     // Verify the isolate's list of callbacks.
     uword list_length = 0;
-    for (FfiCallbackMetadata::Metadata* m = list_head; m != nullptr;) {
+    for (FfiCallbackMetadata::MetadataEntry* me = list_head; me != nullptr;) {
       ++list_length;
-      auto tramp = fcm->TrampolineOfMetadata(m);
-      EXPECT(m->IsLive());
-      EXPECT_EQ(m->target_isolate(), isolate);
+      auto tramp = fcm->TrampolineOfMetadataEntry(me);
+      EXPECT(me->metadata()->IsLive());
+      EXPECT_EQ(me->metadata()->target_isolate(), isolate);
       EXPECT_EQ(tramp_set.count(tramp), 1u);
-      m = m->list_next();
+      me = me->list_next();
     }
     EXPECT_EQ(list_length, tramps.size());
     EXPECT_EQ(list_length, tramp_set.size());

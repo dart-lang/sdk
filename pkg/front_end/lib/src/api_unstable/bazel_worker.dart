@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 import 'package:kernel/kernel.dart' show Component, Library, dummyComponent;
 import 'package:kernel/target/targets.dart' show Target;
-import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 
 import '../api_prototype/compiler_options.dart';
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
@@ -54,9 +53,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<String, String> environmentDefines, {
   bool trackNeededDillLibraries = false,
   bool verbose = false,
-  bool requirePrebuiltMacros = false,
-  List<String> precompiledMacros = const [],
-  SerializationMode macroSerializationMode = SerializationMode.byteData,
 }) {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>.filled(additionalDills.length, dummyComponent);

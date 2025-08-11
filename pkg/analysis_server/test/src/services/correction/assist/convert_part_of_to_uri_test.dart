@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertPartOfToUriTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_PART_OF_TO_URI;
+  AssistKind get kind => DartAssistKind.convertPartOfToUri;
 
   Future<void> test_nonSibling() async {
     newFile('$testPackageLibPath/foo.dart', '''
@@ -31,12 +31,12 @@ part 'src/bar.dart';
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts
-part of foo;
+part of f^oo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 // @dart = 3.4
 // preEnhancedParts
 part of '../foo.dart';
@@ -55,12 +55,12 @@ part 'bar.dart';
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts
-part of foo;
+part of f^oo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 // @dart = 3.4
 // preEnhancedParts
 part of 'foo.dart';

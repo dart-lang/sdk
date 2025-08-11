@@ -21,14 +21,20 @@ mixin SpreadExpressionFromDeferredLibraryTestCases on PubPackageResolutionTest {
   test_inList_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const List c = [];''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const [...a.c];
-}''', [
-      error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inList_deferred_notConst() async {
@@ -54,14 +60,20 @@ f() {
   test_inMap_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const Map c = <int, int>{};''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {...a.c};
-}''', [
-      error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inMap_notConst() async {
@@ -87,14 +99,20 @@ f() {
   test_inSet_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const Set c = <int>{};''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {...a.c};
-}''', [
-      error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inSet_notConst() async {

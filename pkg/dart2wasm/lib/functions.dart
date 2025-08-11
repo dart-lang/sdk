@@ -35,9 +35,10 @@ class FunctionCollector {
   FunctionCollector(this.translator);
 
   void _collectImportsAndExports() {
-    final isDynamicModule = translator.isDynamicModule;
+    final isDynamicSubmodule = translator.isDynamicSubmodule;
     for (Library library in translator.libraries) {
-      if (isDynamicModule && library.isFromMainModule(translator.coreTypes)) {
+      if (isDynamicSubmodule &&
+          library.isFromMainModule(translator.coreTypes)) {
         continue;
       }
       library.procedures.forEach(_importOrExport);
@@ -127,8 +128,8 @@ class FunctionCollector {
       }
 
       final module = translator.moduleForReference(target);
-      if (translator.isDynamicModule && module == translator.mainModule) {
-        return _importFunctionToDynamicModule(target);
+      if (translator.isDynamicSubmodule && module == translator.mainModule) {
+        return _importFunctionToDynamicSubmodule(target);
       }
 
       // If this function is exported via
@@ -150,15 +151,16 @@ class FunctionCollector {
       final function = module.functions.define(ftype, getFunctionName(target));
       if (exportName != null) module.exports.export(exportName, function);
 
-      // Export the function from the main module if it is callable from dynamic
-      // modules.
+      // Export the function from the main module if it is callable from
+      // dynamic submodules.
       if (translator.dynamicModuleSupportEnabled &&
-          !translator.isDynamicModule) {
+          !translator.isDynamicSubmodule) {
         final callableReferenceId =
             translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
         if (callableReferenceId != null) {
           translator.mainModule.exports.export(
-              _generateDynamicCallableName(callableReferenceId), function);
+              _generateDynamicSubmoduleCallableName(callableReferenceId),
+              function);
         }
       }
 
@@ -168,23 +170,24 @@ class FunctionCollector {
     });
   }
 
-  String _generateDynamicCallableName(int key) => '#dc$key';
+  String _generateDynamicSubmoduleCallableName(int key) => '#dc$key';
 
-  w.BaseFunction _importFunctionToDynamicModule(Reference target) {
-    assert(translator.isDynamicModule);
+  w.BaseFunction _importFunctionToDynamicSubmodule(Reference target) {
+    assert(translator.isDynamicSubmodule);
 
-    // Export the function from the main module if it is callable from dynamic
-    // modules.
-    final dynamicModuleCallableReferenceId =
+    // Export the function from the main module if it is callable from
+    // dynamic submodules.
+    final dynamicSubmoduleCallableReferenceId =
         translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
-    if (dynamicModuleCallableReferenceId == null) {
+    if (dynamicSubmoduleCallableReferenceId == null) {
       throw StateError(
           'Cannot invoke ${target.asMember} since it is not labeled as '
           'callable in the dynamic interface.');
     }
-    return translator.dynamicModule.functions.import(
+    return translator.dynamicSubmodule.functions.import(
         translator.mainModule.moduleName,
-        _generateDynamicCallableName(dynamicModuleCallableReferenceId),
+        _generateDynamicSubmoduleCallableName(
+            dynamicSubmoduleCallableReferenceId),
         translator.signatureForMainModule(target),
         getFunctionName(target));
   }
@@ -343,8 +346,11 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       return _makeFunctionType(translator, target, null);
     }
     assert(!translator.dispatchTable
-        .selectorForTarget(target)
-        .containsTarget(target));
+            .selectorForTarget(target)
+            .containsTarget(target) &&
+        !translator.dispatchTable
+            .selectorForTarget(target)
+            .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);
@@ -362,8 +368,11 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     }
 
     assert(!translator.dispatchTable
-        .selectorForTarget(target)
-        .containsTarget(target));
+            .selectorForTarget(target)
+            .containsTarget(target) &&
+        !translator.dispatchTable
+            .selectorForTarget(target)
+            .containsTarget(target));
 
     final receiverType = target.asMember.enclosingClass!
         .getThisType(translator.coreTypes, Nullability.nonNullable);

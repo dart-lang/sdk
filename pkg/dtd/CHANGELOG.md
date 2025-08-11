@@ -1,3 +1,30 @@
+## 4.0.0
+- **Breaking Change**: rename `EventParameters` constants to `DtdParameters`.
+- **Breaking Change**: delete the `kFileSystemServiceName` constant in favor of
+`FileSystemServiceConstants.serviceName`.
+- **Breaking Change**: delete the `kUnifiedAnalyticsServiceName` constant in
+favor of `UnifiedAnalyticsServiceConstants.serviceName`.
+- Added `CoreDtdServiceConstants` and `FileSystemServiceConstants` for shared
+use among DTD clients.
+
+## 3.0.0
+
+- Added `ConnectedAppService` to store the connections to Dart and Flutter
+applications that DTD is aware of.
+- Log exceptions from invalid `streamNotify` events.
+- Added `getRegisteredServices` API.
+- Added new response types `RegisteredServicesResponse` and
+`VmServicesResponse`.
+- **Breaking Change**: Changed the `serviceName` parameter for the
+`DartToolingDaemon.call` method to have type `String?` instead of `String.`
+- **Breaking Change**: When the `params` parameter for the
+`DartToolingDaemon.call` method is null, pass the null value along to the client
+peer request instead of sending an empty Map value.
+
+## 2.5.1
+
+- Widen the dependency on `unified_analytics` to include 8.0.0.
+
 ## 2.5.0
 
 - Update SDK constraints to `^3.5.0`.

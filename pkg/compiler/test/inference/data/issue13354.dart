@@ -4,26 +4,26 @@
 
 // Regression test for issue 13354.
 
-/*member: bar:[exact=JSUInt31|powerset=0]*/
+/*member: bar:[exact=JSUInt31|powerset={I}{O}{N}]*/
 bar() => 42;
 
-/*member: baz:[subclass=Closure|powerset=0]*/
+/*member: baz:[subclass=Closure|powerset={N}{O}{N}]*/
 baz() => bar;
 
-/*member: A.:[exact=A|powerset=0]*/
+/*member: A.:[empty|powerset=empty]*/
 class A {
-  /*member: A.foo:[exact=JSUInt31|powerset=0]*/
+  /*member: A.foo:[exact=JSUInt31|powerset={I}{O}{N}]*/
   foo() => 42;
 }
 
-/*member: B.:[exact=B|powerset=0]*/
+/*member: B.:[exact=B|powerset={N}{O}{N}]*/
 class B extends A {
-  /*member: B.foo:[subclass=Closure|powerset=0]*/
+  /*member: B.foo:[subclass=Closure|powerset={N}{O}{N}]*/
   foo() => super.foo;
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   baz();
-  B(). /*invoke: [exact=B|powerset=0]*/ foo();
+  B(). /*invoke: [exact=B|powerset={N}{O}{N}]*/ foo();
 }

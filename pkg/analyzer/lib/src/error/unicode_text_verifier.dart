@@ -4,14 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// A verifier that checks for unsafe Unicode text.
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
 class UnicodeTextVerifier {
-  final ErrorReporter errorReporter;
-  UnicodeTextVerifier(this.errorReporter);
+  final DiagnosticReporter _diagnosticReporter;
+  UnicodeTextVerifier(this._diagnosticReporter);
 
   void verify(CompilationUnit unit, String source) {
     for (var offset = 0; offset < source.length; ++offset) {
@@ -20,8 +19,7 @@ class UnicodeTextVerifier {
       if (0x202a <= codeUnit &&
           codeUnit <= 0x2069 &&
           (codeUnit <= 0x202e || 0x2066 <= codeUnit)) {
-        // This uses an AST visitor; consider a more direct approach.
-        var node = NodeLocator(offset).searchWithin(unit);
+        var node = unit.nodeCovering(offset: offset);
         // If it's not in a string literal, we assume we're in a comment.
         // This can potentially over-report on syntactically incorrect sources
         // (where Unicode is outside a string or comment).
@@ -30,10 +28,10 @@ class UnicodeTextVerifier {
                 ? WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL
                 : WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT;
         var code = codeUnit.toRadixString(16).toUpperCase();
-        errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: 1,
-          errorCode: errorCode,
+          diagnosticCode: errorCode,
           arguments: [code],
         );
       }

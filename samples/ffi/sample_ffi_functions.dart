@@ -18,72 +18,121 @@ typedef NativeQuadOpUnsigned = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
 typedef NativeFunc4 = IntPtr Function(IntPtr);
 typedef NativeDoubleUnaryOp = Double Function(Double);
 typedef NativeFloatUnaryOp = Float Function(Float);
-typedef NativeDecenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
-    IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
-typedef NativeDecenaryOp2 = Int16 Function(
-    Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16);
-typedef NativeDoubleDecenaryOp = Double Function(Double, Double, Double, Double,
-    Double, Double, Double, Double, Double, Double);
-typedef NativeVigesimalOp = Double Function(
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double,
-    IntPtr,
-    Float,
-    IntPtr,
-    Double);
+typedef NativeDecenaryOp =
+    IntPtr Function(
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+      IntPtr,
+    );
+typedef NativeDecenaryOp2 =
+    Int16 Function(
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+      Int8,
+      Int16,
+    );
+typedef NativeDoubleDecenaryOp =
+    Double Function(
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+      Double,
+    );
+typedef NativeVigesimalOp =
+    Double Function(
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+      IntPtr,
+      Float,
+      IntPtr,
+      Double,
+    );
 typedef Int64PointerUnOp = Pointer<Int64> Function(Pointer<Int64>);
 typedef QuadOp = int Function(int, int, int, int);
 typedef DoubleUnaryOp = double Function(double);
-typedef DecenaryOp = int Function(
-    int, int, int, int, int, int, int, int, int, int);
-typedef DoubleDecenaryOp = double Function(double, double, double, double,
-    double, double, double, double, double, double);
-typedef VigesimalOp = double Function(
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double,
-    int,
-    double);
+typedef DecenaryOp =
+    int Function(int, int, int, int, int, int, int, int, int, int);
+typedef DoubleDecenaryOp =
+    double Function(
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+      double,
+    );
+typedef VigesimalOp =
+    double Function(
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+      int,
+      double,
+    );
 
 main() {
   print('start main');
 
-  DynamicLibrary ffiTestFunctions =
-      dlopenPlatformSpecific("ffi_test_functions");
+  DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+    "ffi_test_functions",
+  );
 
   {
     // A int32 bin op.
-    BinaryOp sumPlus42 =
-        ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
+    BinaryOp sumPlus42 = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
 
     var result = sumPlus42(3, 17);
     print(result);
@@ -172,10 +221,22 @@ main() {
 
   {
     // Function with many double arguments.
-    DoubleDecenaryOp sumManyDoubles = ffiTestFunctions.lookupFunction<
-        NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
-    var result =
-        sumManyDoubles(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+    DoubleDecenaryOp sumManyDoubles = ffiTestFunctions
+        .lookupFunction<NativeDoubleDecenaryOp, DoubleDecenaryOp>(
+          "SumManyDoubles",
+        );
+    var result = sumManyDoubles(
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+    );
     print(result);
     print(result.runtimeType);
   }
@@ -184,8 +245,28 @@ main() {
     // Function with many arguments, ints and doubles mixed.
     VigesimalOp sumManyNumbers = ffiTestFunctions
         .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
-    var result = sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11,
-        12.0, 13, 14.0, 15, 16.0, 17, 18.0, 19, 20.0);
+    var result = sumManyNumbers(
+      1,
+      2.0,
+      3,
+      4.0,
+      5,
+      6.0,
+      7,
+      8.0,
+      9,
+      10.0,
+      11,
+      12.0,
+      13,
+      14.0,
+      15,
+      16.0,
+      17,
+      18.0,
+      19,
+      20.0,
+    );
     print(result);
     print(result.runtimeType);
   }
@@ -211,9 +292,10 @@ main() {
 
   {
     // Passing in nullptr for a pointer argument results in a nullptr in c.
-    Int64PointerUnOp nullableInt64ElemAt1 =
-        ffiTestFunctions.lookupFunction<Int64PointerUnOp, Int64PointerUnOp>(
-            "NullableInt64ElemAt1");
+    Int64PointerUnOp nullableInt64ElemAt1 = ffiTestFunctions
+        .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>(
+          "NullableInt64ElemAt1",
+        );
 
     Pointer<Int64> result = nullableInt64ElemAt1(nullptr);
     print(result);

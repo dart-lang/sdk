@@ -14,12 +14,12 @@ extension type A(core::int i) {
 }
 static extension-type-member method A|constructor#(core::int i) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#new#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method A|constructor#_#new#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(i);
 @core::Deprecated::•("")
 static extension-type-member method A|constructor#constructor(core::int i) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#constructor#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method A|constructor#_#constructor#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#constructor(i);
 @core::Deprecated::•("")
 static extension-type-member method A|m(lowered final self::A% /* erasure=core::int, declared=! */ #this) → void

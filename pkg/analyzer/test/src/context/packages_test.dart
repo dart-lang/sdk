@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,28 +30,26 @@ class PackagesTest with ResourceProviderMixin {
   }
 
   test_packageForPath() {
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: getFolder('/home/aaa'),
-          libFolder: getFolder('/home/aaa/lib'),
-          languageVersion: Version.parse('2.7.0'),
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: getFolder('/home/aaa/bbb'),
-          libFolder: getFolder('/home/aaa/bbb/lib'),
-          languageVersion: Version.parse('2.7.0'),
-        ),
-        'ccc': Package(
-          name: 'ccc',
-          rootFolder: getFolder('/home/ccc'),
-          libFolder: getFolder('/home/ccc/lib'),
-          languageVersion: Version.parse('2.7.0'),
-        ),
-      },
-    );
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: getFolder('/home/aaa'),
+        libFolder: getFolder('/home/aaa/lib'),
+        languageVersion: Version.parse('2.7.0'),
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: getFolder('/home/aaa/bbb'),
+        libFolder: getFolder('/home/aaa/bbb/lib'),
+        languageVersion: Version.parse('2.7.0'),
+      ),
+      'ccc': Package(
+        name: 'ccc',
+        rootFolder: getFolder('/home/ccc'),
+        libFolder: getFolder('/home/ccc/lib'),
+        languageVersion: Version.parse('2.7.0'),
+      ),
+    });
 
     void check(String posixPath, String? expectedPackageName) {
       var path = convertPath(posixPath);

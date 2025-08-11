@@ -161,5 +161,6 @@ final class pragma {
   /// Creates a hint named [name] with optional [options].
   const factory pragma(String name, [Object? options]) = pragma._;
 
+  @pragma('dyn-module:language-impl:callable')
   const pragma._(this.name, [this.options]);
 }

@@ -141,9 +141,6 @@ class _E {
 ''',
       [
         // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 29, 1),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
         error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 76, 2),
         // We are reversing the deprecation: This code will remain a `HintCode`.
         error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
@@ -152,8 +149,7 @@ class _E {
   }
 
   test_no_lint_constructorUsedOutsideClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class _E {
   static const _E a = _E();
   static const _E b = _E();
@@ -162,13 +158,7 @@ class _E {
 }
 
 _E get e => _E();
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 29, 1),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
-      ],
-    );
+''');
   }
 
   test_no_lint_extended() async {
@@ -198,26 +188,18 @@ class A extends O {
   }
 
   test_no_lint_factoryAll() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class _E {
   static _E c = _E();
   static _E d = _E();
 
   factory _E() => c;
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 45, 1),
-      ],
-    );
+''');
   }
 
   test_no_lint_factorySome() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class _E {
   static _E c0 = _E._();
   static _E c1 = _E();
@@ -225,18 +207,11 @@ class _E {
   factory _E() => c0;
   const _E._();
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 48, 2),
-      ],
-    );
+''');
   }
 
   test_no_lint_implemented() async {
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 class _E {
   static const _E c = _E();
   static const _E d = _E();
@@ -244,13 +219,7 @@ class _E {
   const _E();
 }
 class F implements _E  {}
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 29, 1),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
-      ],
-    );
+''');
   }
 
   test_no_lint_implements_index_field() async {
@@ -298,42 +267,27 @@ class A {
   }
 
   test_no_lint_nonConstConstructor() async {
-    await assertDiagnostics(
-      '''
+    // TODO(pq): consider relaxing the lint to flag cases w/o a const
+    // but all final fields.
+    await assertNoDiagnostics('''
 class _E {
   static final _E a = _E();
   static final _E b = _E();
 
   _E();
 }
-''',
-      [
-        // No lint.
-        // TODO(pq): consider relaxing the lint to flag cases w/o a const
-        // but all final fields.
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 29, 1),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
-      ],
-    );
+''');
   }
 
   test_no_lint_nonInstanceCreationInitialization() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class _E {
   static const _E a = _E();
   static const _E b = a;
 
   const _E();
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
-      ],
-    );
+''');
   }
 
   test_no_lint_overrides_equals() async {
@@ -374,7 +328,7 @@ class _E {
 
 _E e = _E.withValue(0);
 ''',
-      [lint(6, 2), error(WarningCode.UNUSED_FIELD, 57, 1)],
+      [lint(6, 2)],
     );
   }
 
@@ -404,12 +358,7 @@ class _A {
   const _A();
 }
 ''',
-      [
-        error(WarningCode.UNUSED_ELEMENT, 6, 2),
-        error(WarningCode.UNUSED_FIELD, 29, 1),
-        error(WarningCode.UNUSED_FIELD, 57, 1),
-        lint(6, 2),
-      ],
+      [lint(6, 2)],
     );
   }
 

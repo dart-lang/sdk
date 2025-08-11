@@ -19,13 +19,20 @@ class ExportOfNonLibraryTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib1.dart', '''
 part of lib;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library L;
 export 'lib1.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 18, 11,
-          messageContains: ["library 'lib1.dart' "]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+          18,
+          11,
+          messageContains: ["library 'lib1.dart' "],
+        ),
+      ],
+    );
   }
 
   test_libraryDeclared() async {

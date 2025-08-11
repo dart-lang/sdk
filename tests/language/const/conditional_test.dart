@@ -23,8 +23,6 @@ const zeroConst = 0;
 
 const cond1 = trueConst ? const0 : const1;
 const cond1a = trueConst ? nonConst : const1;
-//                       ^
-// [cfe] Constant evaluation error:
 //                         ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
@@ -39,8 +37,6 @@ const cond2a = falseConst ? nonConst : const1;
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
 const cond2b = falseConst ? const0 : nonConst;
-//                        ^
-// [cfe] Constant evaluation error:
 //                                   ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
@@ -49,22 +45,16 @@ const cond3 = nonConst ? const0 : const1;
 //            ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
-//                     ^
-// [cfe] Constant evaluation error:
 const cond3a = nonConst ? nonConst : const1;
 //             ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
-//                      ^
-// [cfe] Constant evaluation error:
 //                        ^
 // [cfe] Not a constant expression.
 const cond3b = nonConst ? const0 : nonConst;
 //             ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] Not a constant expression.
-//                      ^
-// [cfe] Constant evaluation error:
 //                                 ^
 // [cfe] Not a constant expression.
 

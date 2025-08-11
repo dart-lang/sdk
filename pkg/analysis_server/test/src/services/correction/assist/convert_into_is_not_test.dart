@@ -17,15 +17,15 @@ void main() {
 @reflectiveTest
 class ConvertIntoIsNotTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_IS_NOT;
+  AssistKind get kind => DartAssistKind.convertIntoIsNot;
 
   Future<void> test_childOfIs_left() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is String);
+  !(^p is String);
 }
 ''');
-    await assertHasAssistAt('p is', '''
+    await assertHasAssist('''
 void f(p) {
   p is! String;
 }
@@ -35,10 +35,10 @@ void f(p) {
   Future<void> test_childOfIs_right() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is String);
+  !(p is ^String);
 }
 ''');
-    await assertHasAssistAt('String)', '''
+    await assertHasAssist('''
 void f(p) {
   p is! String;
 }
@@ -48,10 +48,10 @@ void f(p) {
   Future<void> test_is() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is String);
+  !(p ^is String);
 }
 ''');
-    await assertHasAssistAt('is String', '''
+    await assertHasAssist('''
 void f(p) {
   p is! String;
 }
@@ -61,19 +61,19 @@ void f(p) {
   Future<void> test_is_alreadyIsNot() async {
     await resolveTestCode('''
 void f(p) {
-  p is! String;
+  p ^is! String;
 }
 ''');
-    await assertNoAssistAt('is!');
+    await assertNoAssist();
   }
 
   Future<void> test_is_higherPrecedencePrefix() async {
     await resolveTestCode('''
 void f(p) {
-  !!(p is String);
+  !!(p ^is String);
 }
 ''');
-    await assertHasAssistAt('is String', '''
+    await assertHasAssist('''
 void f(p) {
   !(p is! String);
 }
@@ -83,28 +83,28 @@ void f(p) {
   Future<void> test_is_noEnclosingParenthesis() async {
     await resolveTestCode('''
 void f(p) {
-  p is String;
+  p ^is String;
 }
 ''');
-    await assertNoAssistAt('is String');
+    await assertNoAssist();
   }
 
   Future<void> test_is_noPrefix() async {
     await resolveTestCode('''
 void f(p) {
-  (p is String);
+  (p ^is String);
 }
 ''');
-    await assertNoAssistAt('is String');
+    await assertNoAssist();
   }
 
   Future<void> test_is_not_higherPrecedencePrefix() async {
     await resolveTestCode('''
 void f(p) {
-  !!(p is String);
+  !^!(p is String);
 }
 ''');
-    await assertHasAssistAt('!(p', '''
+    await assertHasAssist('''
 void f(p) {
   !(p is! String);
 }
@@ -114,29 +114,29 @@ void f(p) {
   Future<void> test_is_notIsExpression() async {
     await resolveTestCode('''
 void f(p) {
-  123 + 456;
+  ^123 + 456;
 }
 ''');
-    await assertNoAssistAt('123 +');
+    await assertNoAssist();
   }
 
   Future<void> test_is_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f(p) {
-  ++(p is String);
+  ++(p ^is String);
 }
 ''');
-    await assertNoAssistAt('is String');
+    await assertNoAssist();
   }
 
   Future<void> test_not() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is String);
+  ^!(p is String);
 }
 ''');
-    await assertHasAssistAt('!(p', '''
+    await assertHasAssist('''
 void f(p) {
   p is! String;
 }
@@ -146,47 +146,47 @@ void f(p) {
   Future<void> test_not_alreadyIsNot() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is! String);
+  ^!(p is! String);
 }
 ''');
-    await assertNoAssistAt('!(p');
+    await assertNoAssist();
   }
 
   Future<void> test_not_noEnclosingParenthesis() async {
     await resolveTestCode('''
 void f(p) {
-  !p;
+  ^!p;
 }
 ''');
-    await assertNoAssistAt('!p');
+    await assertNoAssist();
   }
 
   Future<void> test_not_notIsExpression() async {
     await resolveTestCode('''
 void f(p) {
-  !(p == null);
+  ^!(p == null);
 }
 ''');
-    await assertNoAssistAt('!(p');
+    await assertNoAssist();
   }
 
   Future<void> test_not_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f(p) {
-  ++(p is String);
+  ^++(p is String);
 }
 ''');
-    await assertNoAssistAt('++(');
+    await assertNoAssist();
   }
 
   Future<void> test_parentheses() async {
     await resolveTestCode('''
 void f(p) {
-  !(p is String);
+  !^(p is String);
 }
 ''');
-    await assertHasAssistAt('(p is', '''
+    await assertHasAssist('''
 void f(p) {
   p is! String;
 }

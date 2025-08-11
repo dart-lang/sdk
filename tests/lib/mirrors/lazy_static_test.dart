@@ -11,15 +11,14 @@ import 'package:expect/expect.dart';
 import 'stringify.dart';
 
 class Foo {
-  static dynamic hello = {
-    'a': 'b',
-    'c': 'd',
-  };
+  static dynamic hello = {'a': 'b', 'c': 'd'};
 }
 
 void main() {
-  expect('Variable(s(hello) in s(Foo), static)',
-      reflectClass(Foo).declarations[#hello]);
+  expect(
+    'Variable(s(hello) in s(Foo), static)',
+    reflectClass(Foo).declarations[#hello],
+  );
   var reflectee = reflectClass(Foo).getField(#hello).reflectee;
   Expect.stringEquals('a, c', reflectee.keys.join(', '));
   // Call the lazy getter twice as different things probably happen in the

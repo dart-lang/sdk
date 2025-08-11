@@ -45,7 +45,7 @@ class A extends core::_Enum /*isEnum*/  {
   A() : super();
         ^"
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 class B extends core::_Enum /*isEnum*/  {
@@ -60,7 +60,7 @@ class B extends core::_Enum /*isEnum*/  {
   const B() : super();
               ^"
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "B.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}

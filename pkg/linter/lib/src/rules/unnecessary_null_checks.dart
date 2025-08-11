@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -66,7 +69,7 @@ DartType? getExpectedType(PostfixExpression node) {
   }
   // in variable declaration
   if (parent is VariableDeclaration) {
-    var element = parent.declaredFragment?.element ?? parent.declaredElement2;
+    var element = parent.declaredFragment?.element ?? parent.declaredElement;
     return element?.type;
   }
   // as right member of binary operator
@@ -112,17 +115,17 @@ DartType? getExpectedType(PostfixExpression node) {
       var constructor = grandParent.constructorName.element;
       if (constructor != null) {
         if (constructor.returnType.isDartAsyncFuture &&
-            constructor.name3 == 'value') {
+            constructor.name == 'value') {
           return null;
         }
       }
     } else if (grandParent is MethodInvocation) {
       var targetType = grandParent.realTarget?.staticType;
       if (targetType is InterfaceType) {
-        var targetClass = targetType.element3;
+        var targetClass = targetType.element;
 
-        if (targetClass.library2.isDartAsync &&
-            targetClass.name3 == 'Completer' &&
+        if (targetClass.library.isDartAsync &&
+            targetClass.name == 'Completer' &&
             grandParent.methodName.name == 'complete') {
           return null;
         }
@@ -138,17 +141,14 @@ class UnnecessaryNullChecks extends LintRule {
     : super(
         name: LintNames.unnecessary_null_checks,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_null_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_null_checks;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addNullAssertPattern(this, visitor);
     registry.addPostfixExpression(this, visitor);
@@ -158,14 +158,14 @@ class UnnecessaryNullChecks extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     var expectedType = node.matchedValueType;
     if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 
@@ -175,7 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var expectedType = getExpectedType(node);
     if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 }

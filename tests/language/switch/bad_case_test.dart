@@ -32,14 +32,14 @@ caesarSays(n) {
 archimedesSays(n) {
   switch (n) {
     case 3.14:
-    //   ^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    // [cfe] Case expression '3.14' does not have a primitive operator '=='.
+      // ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+      // [cfe] Case expression '3.14' does not have a primitive operator '=='.
       return "Pi";
     case 2.71828:
-    //   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    // [cfe] Case expression '2.71828' does not have a primitive operator '=='.
+      // ^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+      // [cfe] Case expression '2.71828' does not have a primitive operator '=='.
       return "Huh?";
   }
   return null;

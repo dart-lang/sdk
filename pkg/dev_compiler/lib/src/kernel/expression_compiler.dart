@@ -18,11 +18,18 @@ import '../js_ast/js_ast.dart' as js_ast;
 import 'compiler.dart' show Compiler;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
-  return Message(Code<String>('Expression Compiler Internal error'),
-          problemMessage: msg)
+  return Message(
+        Code<String>('Expression Compiler Internal error'),
+        problemMessage: msg,
+      )
       .withLocation(uri, 0, 0)
-      .withFormatting(PlainAndColorizedString.plainOnly('Internal error: $msg'),
-          line, col, Severity.internalProblem, []);
+      .withFormatting(
+        PlainAndColorizedString.plainOnly('Internal error: $msg'),
+        line,
+        col,
+        Severity.internalProblem,
+        [],
+      );
 }
 
 class ExpressionCompiler {
@@ -51,8 +58,8 @@ class ExpressionCompiler {
     this._compiler,
     this._kernel2jsCompiler,
     this._component,
-  )   : onDiagnostic = _options.onDiagnostic!,
-        _context = _compiler.context;
+  ) : onDiagnostic = _options.onDiagnostic!,
+      _context = _compiler.context;
 
   /// Compiles [expression] in library [libraryUri] and file [scriptUri]
   /// at [line]:[column] to JavaScript in [moduleName].
@@ -76,19 +83,24 @@ class ExpressionCompiler {
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
   Future<String?> compileExpressionToJs(
-      String libraryUri,
-      String? scriptUri,
-      int line,
-      int column,
-      Map<String, String> jsScope,
-      String expression) async {
+    String libraryUri,
+    String? scriptUri,
+    int line,
+    int column,
+    Map<String, String> jsScope,
+    String expression,
+  ) async {
     try {
       // 1. find dart scope where debugger is paused
 
       _log('Compiling expression \n$expression');
 
-      var dartScope = _findScopeAt(Uri.parse(libraryUri),
-          scriptUri == null ? null : Uri.parse(scriptUri), line, column);
+      var dartScope = _findScopeAt(
+        Uri.parse(libraryUri),
+        scriptUri == null ? null : Uri.parse(scriptUri),
+        line,
+        column,
+      );
       if (dartScope == null) {
         _log('Scope not found at $libraryUri:$line:$column');
         return null;
@@ -112,15 +124,16 @@ class ExpressionCompiler {
           if (isLateLoweredLocalName(name)) name,
       ];
       for (var localName in dartLateLocals) {
-        dartScope.definitions[extractLocalName(localName)] =
-            dartScope.definitions.remove(localName)!;
+        dartScope.definitions[extractLocalName(localName)] = dartScope
+            .definitions
+            .remove(localName)!;
       }
 
       // Create a mapping from Dart variable names in scope to the corresponding
-      // JS variable names. The Dart variable may have had a suffix of the
+      // JS values. The Dart variable may have had a suffix of the
       // form '$N' added to it where N is either the empty string or an
       // integer >= 0.
-      final dartNameToJsName = <String, String>{};
+      final dartNameToJsValue = <String, String>{};
 
       int nameCompare(String a, String b) {
         final lengthCmp = b.length.compareTo(a.length);
@@ -144,24 +157,31 @@ class ExpressionCompiler {
       const removedSentinel = '';
       const thisJsName = r'$this';
 
+      // Get the available async scopes.
+      final asyncScopeRegexp = RegExp(r'^asyncScope(\$[0-9]*)?$');
+      final asyncScopes = [
+        ...jsNames.where((e) => asyncScopeRegexp.hasMatch(e)),
+      ];
+
       for (final dartName in dartNames) {
         if (isExtensionThisName(dartName)) {
           if (jsScope.containsKey(thisJsName)) {
-            dartNameToJsName[dartName] = thisJsName;
+            dartNameToJsValue[dartName] = jsScope[thisJsName]!;
           }
           continue;
         }
         // Any name containing a '$' symbol will have that symbol expanded to
         // '$36' in JS. We do a similar expansion here to normalize the names.
-        final jsNamePrefix =
-            js_ast.toJSIdentifier(dartName).replaceAll('\$', '\\\$');
+        final jsNamePrefix = js_ast
+            .toJSIdentifier(dartName)
+            .replaceAll('\$', '\\\$');
         final regexp = RegExp(r'^' + jsNamePrefix + r'(\$[0-9]*)?$');
         for (var i = 0; i < jsNames.length; i++) {
           final jsName = jsNames[i];
           if (jsName == removedSentinel) continue;
           if (jsName.length < dartName.length) break;
           if (regexp.hasMatch(jsName)) {
-            dartNameToJsName[dartName] = jsName;
+            dartNameToJsValue[dartName] = jsScope[jsName]!;
             jsNames[i] = removedSentinel;
 
             // Remove any additional JS names that match this name as these will
@@ -182,22 +202,67 @@ class ExpressionCompiler {
             break;
           }
         }
+
+        if (asyncScopes.isNotEmpty) {
+          // Look up the value in the available async scopes.
+          //
+          // Creates an expression of the form:
+          // "<dartName>" in asyncScope
+          //   ? asyncScope["<dartName>"]
+          //   : ("<dartName>" in asyncScope1
+          //        ? asyncScope1["<dartName>"]
+          //        : (...))
+          //
+          // Each 'asyncScope' variable represents a single Dart scope and the
+          // keys in it match the names of the available Dart variables.
+          // Each scope object is declared up front but values are not inserted
+          // into it until the Dart scope is actually entered. So only "live"
+          // scopes will contain keys.
+          //
+          // This expression will start at the innermost available scope and
+          // and work its way out until it finds the first live scope that has
+          // a value for the given Dart variable name.
+          //
+          // If the value is not found in any async scope then it defaults to
+          // the nearest matching js value calculated above (which may be
+          // captured from an outer scope).
+          //
+          // If there was no value found then this means that the variable does
+          // not exist in any scope. This can occur if the browser detects the
+          // JS variable is unused and so the browser doesn't capture it. In
+          // this case return a special sentinel value that we can detect and
+          // throw on.
+          final defaultValue = dartNameToJsValue[dartName] ?? 'sentinel';
+          dartNameToJsValue[dartName] = asyncScopes.fold(
+            defaultValue,
+            (p, e) => '"$dartName" in $e ? $e["$dartName"] : ($p)',
+          );
+        }
       }
 
-      // remove undefined js variables (this allows us to get a reference error
-      // from chrome on evaluation)
       dartScope.definitions.removeWhere(
-          (variable, type) => !dartNameToJsName.containsKey(variable));
+        (variable, type) =>
+            // Remove undefined js variables (this allows us to get a reference
+            // error from chrome on evaluation).
+            !dartNameToJsValue.containsKey(variable) ||
+            // Remove wildcard method arguments which are lowered to have Dart
+            // names that are invalid for Dart compilations.
+            // Wildcard local variables are not appearing here at this time.
+            isWildcardLoweredFormalParameter(variable),
+      );
 
-      dartScope.typeParameters
-          .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
+      // Wildcard type parameters already matched by this existing test.
+      dartScope.typeParameters.removeWhere(
+        (parameter) => !jsScope.containsKey(parameter.name),
+      );
 
       // map from values from the stack when available (this allows to evaluate
       // captured variables optimized away in chrome)
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
-        ...dartScope.definitions.keys
-            .map((variable) => jsScope[dartNameToJsName[variable]])
+        ...dartScope.definitions.keys.map(
+          (variable) => dartNameToJsValue[variable],
+        ),
       ];
 
       _log('Performed scope substitutions for expression');
@@ -234,30 +299,49 @@ class ExpressionCompiler {
       var args = localJsScope.join(',\n    ');
       jsExpression = jsExpression.split('\n').join('\n  ');
       // We check for '_boundMethod' in case tearoffs are returned.
-      var callExpression = '((() => {var output = $jsExpression($args); '
+      var callExpression =
+          '((() => {var sentinel = {}; var output = $jsExpression($args); '
+          'if (output === sentinel) throw Error("Value not found in scope");'
           'return output?._boundMethod || output;})())';
 
       _log('Compiled expression \n$expression to $callExpression');
       return callExpression;
     } catch (e, s) {
       onDiagnostic(
-          _createInternalError(Uri.parse(libraryUri), line, column, '$e:$s'));
+        _createInternalError(Uri.parse(libraryUri), line, column, '$e:$s'),
+      );
       return null;
     }
   }
 
   DartScope? _findScopeAt(
-      Uri libraryUri, Uri? scriptFileUri, int line, int column) {
+    Uri libraryUri,
+    Uri? scriptFileUri,
+    int line,
+    int column,
+  ) {
     if (line < 0) {
-      onDiagnostic(_createInternalError(
-          libraryUri, line, column, 'Invalid source location'));
+      onDiagnostic(
+        _createInternalError(
+          libraryUri,
+          line,
+          column,
+          'Invalid source location',
+        ),
+      );
       return null;
     }
 
     var library = _getLibrary(libraryUri);
     if (library == null) {
-      onDiagnostic(_createInternalError(
-          libraryUri, line, column, 'Dart library not found for location'));
+      onDiagnostic(
+        _createInternalError(
+          libraryUri,
+          line,
+          column,
+          'Dart library not found for location',
+        ),
+      );
       return null;
     }
 
@@ -265,8 +349,11 @@ class ExpressionCompiler {
     // but for now use the old mechanism when no script is provided.
     if (scriptFileUri != null) {
       final offset = _component.getOffset(library.fileUri, line, column);
-      final scope2 =
-          DartScopeBuilder2.findScopeFromOffset(library, scriptFileUri, offset);
+      final scope2 = DartScopeBuilder2.findScopeFromOffset(
+        library,
+        scriptFileUri,
+        offset,
+      );
       return scope2;
     }
 
@@ -286,8 +373,14 @@ class ExpressionCompiler {
         _log('Fallback: use library scope for the Dart SDK');
         scope = DartScope(library, null, null, {}, []);
       } else {
-        onDiagnostic(_createInternalError(
-            libraryUri, line, column, 'Dart scope not found for location'));
+        onDiagnostic(
+          _createInternalError(
+            libraryUri,
+            line,
+            column,
+            'Dart scope not found for location',
+          ),
+        );
         return null;
       }
     }
@@ -313,14 +406,15 @@ class ExpressionCompiler {
       }
     }
     var procedure = await _compiler.compileExpression(
-        expression,
-        scope.definitions,
-        scope.typeParameters,
-        debugProcedureName,
-        scope.library.importUri,
-        methodName: methodName,
-        className: scope.cls?.name,
-        isStatic: scope.isStatic);
+      expression,
+      scope.definitions,
+      scope.typeParameters,
+      debugProcedureName,
+      scope.library.importUri,
+      methodName: methodName,
+      className: scope.cls?.name,
+      isStatic: scope.isStatic,
+    );
 
     _log('Compiled expression to kernel');
 
@@ -331,19 +425,26 @@ class ExpressionCompiler {
     }
 
     var imports = <js_ast.ModuleItem>[];
-    var jsFun = _kernel2jsCompiler.emitFunctionIncremental(imports,
-        scope.library, scope.cls, procedure!.function, debugProcedureName);
+    var jsFun = _kernel2jsCompiler.emitFunctionIncremental(
+      imports,
+      scope.library,
+      scope.cls,
+      procedure!.function,
+      debugProcedureName,
+    );
 
     _log('Generated JavaScript for expression');
 
     // print JS ast to string for evaluation
     var context = js_ast.SimpleJavaScriptPrintingContext();
-    var opts =
-        js_ast.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
+    var opts = js_ast.JavaScriptPrintingOptions(
+      allowKeywordsInProperties: true,
+    );
 
     var tree = transformFunctionModuleFormat(imports, jsFun, _moduleFormat);
     tree.accept(
-        js_ast.Printer(opts, context, localNamer: js_ast.ScopedNamer(tree)));
+      js_ast.Printer(opts, context, localNamer: js_ast.ScopedNamer(tree)),
+    );
 
     _log('Added imports and renamed variables for expression');
 

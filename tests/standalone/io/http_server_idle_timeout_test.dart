@@ -23,10 +23,13 @@ void testTimeoutAfterRequest() {
     Socket.connect("127.0.0.1", server.port).then((socket) {
       var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
       socket.write(data);
-      socket.listen(null, onDone: () {
-        socket.close();
-        server.close();
-      });
+      socket.listen(
+        null,
+        onDone: () {
+          socket.close();
+          server.close();
+        },
+      );
     });
   });
 }
@@ -38,10 +41,13 @@ void testTimeoutBeforeRequest() {
     server.listen((request) => request.response.close());
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.listen(null, onDone: () {
-        socket.close();
-        server.close();
-      });
+      socket.listen(
+        null,
+        onDone: () {
+          socket.close();
+          server.close();
+        },
+      );
     });
   });
 }

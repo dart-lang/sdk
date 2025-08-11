@@ -48,18 +48,18 @@ class A extends core::Object {
 class C extends core::Object {
   synthetic constructor •() → self::C
     ;
-  static method test1(dynamic v, [self::A a]) → void
+  static method test1(dynamic v, [erroneously-initialized self::A a]) → void
     ;
-  static method test2(dynamic v, {self::A a}) → void
+  static method test2(dynamic v, {erroneously-initialized self::A a}) → void
     ;
-  method test11(dynamic v, [self::A a = null]) → void
+  method test11(dynamic v, [erroneously-initialized self::A a = null]) → void
     ;
-  method test22(dynamic v, {self::A a = null}) → void
+  method test22(dynamic v, {erroneously-initialized self::A a = null}) → void
     ;
 }
-static method test1(dynamic v, [self::A a]) → void
+static method test1(dynamic v, [erroneously-initialized self::A a]) → void
   ;
-static method test2(dynamic v, {self::A a}) → void
+static method test2(dynamic v, {erroneously-initialized self::A a}) → void
   ;
 static method main() → dynamic
   ;

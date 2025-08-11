@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -24,12 +25,14 @@ class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.exhaustive_cases;
 
-  bool Function(AnalysisError) get _filter {
-    var hasError = false;
-    return (error) {
-      var errorCode = error.errorCode;
-      if (!hasError && errorCode is LintCode && errorCode.name == lintCode) {
-        hasError = true;
+  bool Function(Diagnostic) get _filter {
+    var hasDiagnostic = false;
+    return (diagnostic) {
+      var diagnosticCode = diagnostic.diagnosticCode;
+      if (!hasDiagnostic &&
+          diagnosticCode is LintCode &&
+          diagnosticCode.name == lintCode) {
+        hasDiagnostic = true;
         return true;
       }
       return false;

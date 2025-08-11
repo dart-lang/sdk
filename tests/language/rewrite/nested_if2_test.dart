@@ -14,7 +14,8 @@ check_true_true(x, y) {
 }
 
 check_false_true(x, y) {
-  if (x) {} else {
+  if (x) {
+  } else {
     if (y) {
       return true;
     }
@@ -24,7 +25,8 @@ check_false_true(x, y) {
 
 check_true_false(x, y) {
   if (x) {
-    if (y) {} else {
+    if (y) {
+    } else {
       return true;
     }
   }
@@ -32,8 +34,10 @@ check_true_false(x, y) {
 }
 
 check_false_false(x, y) {
-  if (x) {} else {
-    if (y) {} else {
+  if (x) {
+  } else {
+    if (y) {
+    } else {
       return true;
     }
   }

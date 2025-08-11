@@ -36,7 +36,7 @@ static method test() → dynamic {
     ^^^";
   #C2;
 }
-static method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
+static synthetic method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
   return self::Class::redirect();
 
 constants  {

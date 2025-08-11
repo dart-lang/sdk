@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -48,10 +48,9 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
     }
 
     var classElement = declaredFragment?.element;
-    if (classElement is! InterfaceElement2) return;
+    if (classElement is! InterfaceElement) return;
 
-    var parentMethod = inheritanceManager.getInherited4(
-      classElement,
+    var parentMethod = classElement.getInheritedMember(
       Name.forLibrary(libraryElement2, method.name.lexeme),
     );
     if (parentMethod == null) return;
@@ -62,7 +61,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
 
     var i = parameters.indexOf(parameter);
     if (0 <= i && i < parentParameters.length) {
-      var newName = parentParameters[i].name3;
+      var newName = parentParameters[i].name;
       if (newName == null) return;
 
       var collector = _Collector(newName, parameter.declaredFragment!.element);
@@ -108,7 +107,7 @@ class _Collector extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
-  void _addNameToken(Token? nameToken, Element2? element) {
+  void _addNameToken(Token? nameToken, Element? element) {
     if (error) return;
 
     if (nameToken != null) {

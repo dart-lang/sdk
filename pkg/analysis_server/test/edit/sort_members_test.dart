@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';

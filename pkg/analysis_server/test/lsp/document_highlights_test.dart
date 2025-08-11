@@ -66,6 +66,43 @@ var /*[0*/^a/*0]*/ = [''].where((_) => true).toList();
 var b = /*[1*/a/*1]*/;
 ''');
 
+  Future<void> test_dotShorthand_class() => _testMarkedContent('''
+A topA = ./*[0*/^a/*0]*/;
+class A {
+  static A get /*[1*/a/*1]*/ => A();
+}
+void fn(A a) => print(a);
+void f() {
+  A a = ./*[2*/a/*2]*/;
+  fn(./*[3*/a/*3]*/);
+  A aa = A./*[4*/a/*4]*/;
+}
+''');
+
+  Future<void> test_dotShorthand_enum() => _testMarkedContent('''
+const A constA = ./*[0*/^a/*0]*/;
+enum A { /*[1*/a/*1]*/ }
+void fn(A a) => print(a);
+void f() {
+  A a = ./*[2*/a/*2]*/;
+  fn(./*[3*/a/*3]*/);
+  A aa = A./*[4*/a/*4]*/;
+}
+''');
+
+  Future<void> test_dotShorthand_extensionType() => _testMarkedContent('''
+A topA = ./*[0*/^a/*0]*/;
+extension type A(int x) {
+  static A get /*[1*/a/*1]*/ => A(1);
+}
+void fn(A a) => print(a);
+void f() {
+  A a = ./*[2*/a/*2]*/;
+  fn(./*[3*/a/*3]*/);
+  A aa = A./*[4*/a/*4]*/;
+}
+''');
+
   Future<void> test_forInLoop() => _testMarkedContent('''
 void f() {
   for (final /*[0*/x^/*0]*/ in []) {

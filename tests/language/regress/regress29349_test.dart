@@ -6,6 +6,6 @@ List<T> get<T>(T item) => <T>[item];
 List<T> get2<T>(T item) => <T>[item];
 
 void main() {
- print(get(1));
- print(get2(1));
+  print(get(1));
+  print(get2(1));
 }

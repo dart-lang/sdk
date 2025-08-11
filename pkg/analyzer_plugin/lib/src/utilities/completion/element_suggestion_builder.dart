@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -24,7 +24,7 @@ mixin ElementSuggestionBuilder {
       <String, CompletionSuggestion>{};
 
   /// Return the library in which the completion is requested.
-  LibraryElement2? get containingLibrary;
+  LibraryElement? get containingLibrary;
 
   /// Return the kind of suggestions that should be built.
   CompletionSuggestionKind? get kind;
@@ -33,10 +33,10 @@ mixin ElementSuggestionBuilder {
   ResourceProvider? get resourceProvider;
 
   /// Add a suggestion based upon the given element.
-  void addSuggestion(Element2 element,
+  void addSuggestion(Element element,
       {String? prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         return;
       }
     }
@@ -55,8 +55,8 @@ mixin ElementSuggestionBuilder {
     var suggestion = builder.forElement(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
-      if (element.isSynthetic && element is PropertyAccessorElement2) {
-        var cacheKey = element.name3;
+      if (element.isSynthetic && element is PropertyAccessorElement) {
+        var cacheKey = element.name;
         if (cacheKey != null) {
           var existingSuggestion = _syntheticMap[cacheKey];
 
@@ -64,7 +64,7 @@ mixin ElementSuggestionBuilder {
           if (existingSuggestion != null) {
             var getter =
                 element is GetterElement ? suggestion : existingSuggestion;
-            var elemKind = element.enclosingElement2 is ClassElement2
+            var elemKind = element.enclosingElement is ClassElement
                 ? protocol.ElementKind.FIELD
                 : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(

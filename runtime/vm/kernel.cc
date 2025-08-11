@@ -18,87 +18,6 @@
 namespace dart {
 namespace kernel {
 
-KernelLineStartsReader::KernelLineStartsReader(
-    const dart::TypedData& line_starts_data,
-    dart::Zone* zone)
-    : line_starts_data_(line_starts_data) {
-  TypedDataElementType type = line_starts_data_.ElementType();
-  if (type == kUint16ArrayElement) {
-    helper_ = new KernelUint16LineStartsHelper();
-  } else if (type == kUint32ArrayElement) {
-    helper_ = new KernelUint32LineStartsHelper();
-  } else {
-    UNREACHABLE();
-  }
-}
-
-uint32_t KernelLineStartsReader::MaxPosition() const {
-  const intptr_t line_count = line_starts_data_.Length();
-  if (line_count == 0) {
-    return 0;
-  }
-  return helper_->At(line_starts_data_, line_count - 1);
-}
-
-bool KernelLineStartsReader::LocationForPosition(intptr_t position,
-                                                 intptr_t* line,
-                                                 intptr_t* col) const {
-  const intptr_t line_count = line_starts_data_.Length();
-  if (position < 0 || static_cast<uint32_t>(position) > MaxPosition() ||
-      line_count == 0) {
-    return false;
-  }
-
-  intptr_t lo = 0;
-  intptr_t hi = line_count;
-  while (hi > lo + 1) {
-    const intptr_t mid = lo + (hi - lo) / 2;
-    const intptr_t mid_position = helper_->At(line_starts_data_, mid);
-    if (mid_position > position) {
-      hi = mid;
-    } else {
-      lo = mid;
-    }
-  }
-  *line = lo + 1;
-  if (col != nullptr) {
-    *col = position - helper_->At(line_starts_data_, lo) + 1;
-  }
-
-  return true;
-}
-
-bool KernelLineStartsReader::TokenRangeAtLine(
-    intptr_t line_number,
-    TokenPosition* first_token_index,
-    TokenPosition* last_token_index) const {
-  const intptr_t line_count = line_starts_data_.Length();
-  if (line_number <= 0 || line_number > line_count) {
-    return false;
-  }
-  *first_token_index = dart::TokenPosition::Deserialize(
-      helper_->At(line_starts_data_, line_number - 1));
-  if (line_number == line_count) {
-    *last_token_index = *first_token_index;
-  } else {
-    *last_token_index = dart::TokenPosition::Deserialize(
-        helper_->At(line_starts_data_, line_number) - 1);
-  }
-  return true;
-}
-
-uint32_t KernelLineStartsReader::KernelUint16LineStartsHelper::At(
-    const dart::TypedData& data,
-    intptr_t index) const {
-  return data.GetUint16(index << 1);
-}
-
-uint32_t KernelLineStartsReader::KernelUint32LineStartsHelper::At(
-    const dart::TypedData& data,
-    intptr_t index) const {
-  return data.GetUint32(index << 2);
-}
-
 class KernelTokenPositionCollector : public KernelReaderHelper {
  public:
   KernelTokenPositionCollector(
@@ -162,42 +81,6 @@ void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   }
 }
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-/**
- * If index exists as sublist in list, sort the sublist from lowest to highest,
- * then copy it, as Smis and without duplicates,
- * to a new Array in Heap::kOld which is returned.
- * Note that the source list is both sorted and de-duplicated as well, but will
- * possibly contain duplicate and unsorted data at the end.
- * Otherwise (when sublist doesn't exist in list) return new empty array.
- */
-static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
-  intptr_t size = source->length();
-  if (size == 0) {
-    return Object::empty_array().ptr();
-  }
-
-  source->Sort(LowestFirst);
-
-  intptr_t last = 0;
-  for (intptr_t current = 1; current < size; ++current) {
-    if (source->At(last) != source->At(current)) {
-      (*source)[++last] = source->At(current);
-    }
-  }
-  Array& array_object = Array::Handle();
-  array_object = Array::New(last + 1, Heap::kOld);
-  Smi& smi_value = Smi::Handle();
-  for (intptr_t i = 0; i <= last; ++i) {
-    smi_value = Smi::New(source->At(i));
-    array_object.SetAt(i, smi_value);
-  }
-  return array_object.ptr();
-}
-
 static void CollectKernelLibraryTokenPositions(
     const TypedDataView& kernel_data,
     const Script& script,
@@ -218,19 +101,17 @@ static void CollectKernelLibraryTokenPositions(
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
 
-}  // namespace kernel
-
-void Script::CollectTokenPositionsFor() const {
+void CollectScriptTokenPositionsFromKernel(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
   const auto& kernel_info =
-      KernelProgramInfo::Handle(zone, kernel_program_info());
+      KernelProgramInfo::Handle(zone, interesting_script.kernel_program_info());
 
-  kernel::TranslationHelper helper(thread);
+  TranslationHelper helper(thread);
   helper.InitFromKernelProgramInfo(kernel_info);
-
-  GrowableArray<intptr_t> token_positions(10);
 
   auto isolate_group = thread->isolate_group();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -239,8 +120,6 @@ void Script::CollectTokenPositionsFor() const {
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
   auto& data = TypedDataView::Handle(zone);
-
-  auto& interesting_script = *this;
 
   auto& temp_array = Array::Handle(zone);
   auto& temp_field = Field::Handle(zone);
@@ -255,8 +134,8 @@ void Script::CollectTokenPositionsFor() const {
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.ptr()) {
-          token_positions.Add(klass.token_pos().Serialize());
-          token_positions.Add(klass.end_token_pos().Serialize());
+          token_positions->Add(klass.token_pos().Serialize());
+          token_positions->Add(klass.end_token_pos().Serialize());
         }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
@@ -274,7 +153,7 @@ void Script::CollectTokenPositionsFor() const {
             CollectKernelLibraryTokenPositions(data, interesting_script,
                                                temp_field.kernel_offset(),
                                                temp_field.KernelLibraryOffset(),
-                                               zone, &helper, &token_positions);
+                                               zone, &helper, token_positions);
           }
           temp_array = klass.current_functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
@@ -287,7 +166,7 @@ void Script::CollectTokenPositionsFor() const {
             CollectKernelLibraryTokenPositions(
                 data, interesting_script, temp_function.kernel_offset(),
                 temp_function.KernelLibraryOffset(), zone, &helper,
-                &token_positions);
+                token_positions);
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
@@ -304,7 +183,7 @@ void Script::CollectTokenPositionsFor() const {
           }
           CollectKernelLibraryTokenPositions(
               data, interesting_script, class_offset, library_kernel_offset,
-              zone, &helper, &token_positions);
+              zone, &helper, token_positions);
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.ptr();
@@ -316,7 +195,7 @@ void Script::CollectTokenPositionsFor() const {
         CollectKernelLibraryTokenPositions(data, interesting_script,
                                            temp_function.kernel_offset(),
                                            temp_function.KernelLibraryOffset(),
-                                           zone, &helper, &token_positions);
+                                           zone, &helper, token_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
         if (field.kernel_offset() <= 0) {
@@ -330,16 +209,13 @@ void Script::CollectTokenPositionsFor() const {
         data = field.KernelLibrary();
         CollectKernelLibraryTokenPositions(
             data, interesting_script, field.kernel_offset(),
-            field.KernelLibraryOffset(), zone, &helper, &token_positions);
+            field.KernelLibraryOffset(), zone, &helper, token_positions);
       }
     }
   }
-
-  Script& script = Script::Handle(zone, interesting_script.ptr());
-  Array& array_object = Array::Handle(zone);
-  array_object = kernel::AsSortedDuplicateFreeArray(&token_positions);
-  script.set_debug_positions(array_object);
 }
+
+}  // namespace kernel
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
@@ -381,9 +257,9 @@ namespace kernel {
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
     auto& kernel_program_info =
@@ -406,7 +282,7 @@ ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
 
     return constant_reader.ReadConstantInitializer();
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -467,9 +343,9 @@ class MetadataEvaluator : public KernelReaderHelper {
 ObjectPtr EvaluateMetadata(const Library& library,
                            intptr_t kernel_offset,
                            bool is_annotations_offset) {
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
     const auto& kernel_info =
@@ -488,7 +364,7 @@ ObjectPtr EvaluateMetadata(const Library& library,
                                                is_annotations_offset);
 
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -571,9 +447,9 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
 }
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
 
     const auto& kernel_info =
@@ -592,7 +468,7 @@ ObjectPtr BuildParameterDescriptor(const Function& function) {
 
     return builder.BuildParameterDescriptor(function);
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -652,89 +528,6 @@ void ReadParameterCovariance(const Function& function,
       is_generic_covariant_impl->Add(param_index);
     }
   }
-}
-
-bool NeedsDynamicInvocationForwarder(const Function& function) {
-  Zone* zone = Thread::Current()->zone();
-
-  // Right now closures do not need a dyn:* forwarder.
-  // See https://github.com/dart-lang/sdk/issues/40813
-  if (function.IsClosureFunction()) return false;
-
-  // Method extractors have no parameters to check and return value is a closure
-  // and therefore not an unboxed primitive type.
-  if (function.IsMethodExtractor()) {
-    return false;
-  }
-
-  // Record field getters have no parameters to check and 'dynamic' return type.
-  if (function.IsRecordFieldGetter()) {
-    return false;
-  }
-
-  // Invoke field dispatchers are dynamically generated, will invoke a getter to
-  // obtain the field value and then invoke ".call()" on the result.
-  // Those dynamically generated dispathers don't have proper kernel metadata
-  // associated with them - we can therefore not query if there are dynamic
-  // calls to them or not and are therefore conservative.
-  if (function.IsInvokeFieldDispatcher()) {
-    return true;
-  }
-
-  // The dyn:* forwarders perform unboxing of parameters before calling the
-  // actual target (which accepts unboxed parameters) and boxes return values
-  // of the return value.
-  if (function.HasUnboxedParameters() || function.HasUnboxedReturnValue()) {
-    return true;
-  }
-
-  if (function.MaxNumberOfParametersInRegisters(zone) > 0) {
-    return true;
-  }
-
-  // There are no parameters to type check for getters and if the return value
-  // is boxed, then the dyn:* forwarder is not needed.
-  if (function.IsImplicitGetterFunction()) {
-    return false;
-  }
-
-  // Covariant parameters (both explicitly covariant and generic-covariant-impl)
-  // are checked in the body of a function and therefore don't need checks in a
-  // dynamic invocation forwarder. So dynamic invocation forwarder is only
-  // needed if there are non-covariant parameters of non-top type.
-  if (function.IsImplicitSetterFunction()) {
-    const auto& field = Field::Handle(zone, function.accessor_field());
-    return !(field.is_covariant() || field.is_generic_covariant_impl());
-  }
-
-  const auto& type_params =
-      TypeParameters::Handle(zone, function.type_parameters());
-  if (!type_params.IsNull()) {
-    auto& bound = AbstractType::Handle(zone);
-    for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
-      bound = type_params.BoundAt(i);
-      if (!bound.IsTopTypeForSubtyping() &&
-          !type_params.IsGenericCovariantImplAt(i)) {
-        return true;
-      }
-    }
-  }
-
-  const intptr_t num_params = function.NumParameters();
-  BitVector is_covariant(zone, num_params);
-  BitVector is_generic_covariant_impl(zone, num_params);
-  ReadParameterCovariance(function, &is_covariant, &is_generic_covariant_impl);
-
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
-    type = function.ParameterTypeAt(i);
-    if (!type.IsTopTypeForSubtyping() &&
-        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 static ProcedureAttributesMetadata ProcedureAttributesOf(

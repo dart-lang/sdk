@@ -18,7 +18,8 @@ break_beforeAssignment(bool c) {
     if (c) break;
     v = 0;
   } while (c);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 breakOuterFromInner(bool c) {
@@ -34,13 +35,15 @@ breakOuterFromInner(bool c) {
     v2;
   } while (c);
   v1;
-  /*unassigned*/ v3;
+  /*unassigned*/
+  v3;
 }
 
 condition() {
   late int v1, v2;
   do {
-    /*unassigned*/ v1; // assigned in the condition, but not yet
+    /*unassigned*/
+    v1; // assigned in the condition, but not yet
   } while ((v1 = 0) + (v2 = 0) >= 0);
   v2;
 }
@@ -50,7 +53,8 @@ condition_break(bool c) {
   do {
     if (c) break;
   } while ((v = 0) >= 0);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 condition_break_continue(bool c1, bool c2) {
@@ -66,9 +70,12 @@ condition_break_continue(bool c1, bool c2) {
   } while ((v6 = v1 + v2 + /*unassigned*/ v4) ==
       0); // has break => v6 is not visible outside
   v1;
-  /*unassigned*/ v3;
-  /*unassigned*/ v5;
-  /*unassigned*/ v6;
+  /*unassigned*/
+  v3;
+  /*unassigned*/
+  v5;
+  /*unassigned*/
+  v6;
 }
 
 condition_continue(bool c) {
@@ -78,10 +85,11 @@ condition_continue(bool c) {
     if (c) continue;
     v2 = 0; // not visible
     v3 = 0; // not visible
-  } while (
-      (v4 = v1 + /*unassigned*/ v2) == 0); // no break => v4 visible outside
+  } while ((v4 = v1 + /*unassigned*/ v2) ==
+      0); // no break => v4 visible outside
   v1;
-  /*unassigned*/ v3;
+  /*unassigned*/
+  v3;
   v4;
 }
 
@@ -91,5 +99,6 @@ continue_beforeAssignment(bool c) {
     if (c) continue;
     v = 0;
   } while (c);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

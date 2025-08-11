@@ -186,34 +186,6 @@ library;
 // enum Enum {
 //      ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:43:3: Error: 'C' is already declared in this scope.
-//   C(a, b);
-//   ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:42:3: Context: Previous declaration of 'C'.
-//   C(a);
-//   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:46:7: Error: 'field' is already declared in this scope.
-//   var field = "2nd";
-//       ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:44:7: Context: Previous declaration of 'field'.
-//   var field = "1st";
-//       ^^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:52:3: Error: 'm' is already declared in this scope.
-//   m() {
-//   ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:48:3: Context: Previous declaration of 'm'.
-//   m() {
-//   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:60:10: Error: 's' is already declared in this scope.
-//   static s() {
-//          ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:56:10: Context: Previous declaration of 's'.
-//   static s() {
-//          ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:45:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
@@ -242,27 +214,55 @@ library;
 //   static s() {
 //          ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:76:3: Error: A class member can't have the same name as the enclosing class.
-// Try renaming the member.
-//   Enum,
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:43:3: Error: 'C' is already declared in this scope.
+//   C(a, b);
+//   ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:42:3: Context: Previous declaration of 'C'.
+//   C(a);
 //   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:78:3: Error: 'a' is already declared in this scope.
-//   a,
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:46:7: Error: 'field' is already declared in this scope.
+//   var field = "2nd";
+//       ^^^^^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:44:7: Context: Previous declaration of 'field'.
+//   var field = "1st";
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:52:3: Error: 'm' is already declared in this scope.
+//   m() {
 //   ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:77:3: Context: Previous declaration of 'a'.
-//   a,
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:48:3: Context: Previous declaration of 'm'.
+//   m() {
 //   ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:60:10: Error: 's' is already declared in this scope.
+//   static s() {
+//          ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:56:10: Context: Previous declaration of 's'.
+//   static s() {
+//          ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:79:3: Error: A class member can't have the same name as the enclosing class.
 // Try renaming the member.
 //   Enum,
-//   ^
+//   ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:81:3: Error: 'a' is already declared in this scope.
 //   a,
 //   ^
 // pkg/front_end/testcases/general/duplicated_declarations.dart:80:3: Context: Previous declaration of 'a'.
+//   a,
+//   ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:76:3: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   Enum,
+//   ^^^^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:78:3: Error: 'a' is already declared in this scope.
+//   a,
+//   ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:77:3: Context: Previous declaration of 'a'.
 //   a,
 //   ^
 //
@@ -318,12 +318,19 @@ import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
 part duplicated_declarations_part.dart;
 typedef Typedef = () → void;
 typedef OldTypedef = () → void;
-class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#4
+class C extends core::Object {
+  field core::String field;
+  constructor •(dynamic a) → self::C
+    ;
+  method m() → dynamic
+    ;
+  static method s() → dynamic
+    ;
+  static method f() → dynamic
     ;
 }
-class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#3
+class C#1 extends core::Object {
+  constructor _() → self::C#1
     ;
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -337,19 +344,12 @@ class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
   static method f() → dynamic
     ;
 }
-class C#1 extends core::Object {
-  constructor _() → self::C#1
+class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  constructor _() → self::C#3
     ;
 }
-class C extends core::Object {
-  field core::String field;
-  constructor •(dynamic a) → self::C
-    ;
-  method m() → dynamic
-    ;
-  static method s() → dynamic
-    ;
-  static method f() → dynamic
+class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  constructor _() → self::C#4
     ;
 }
 class Sub extends core::Object {
@@ -357,48 +357,6 @@ class Sub extends core::Object {
     ;
   method m() → dynamic
     ;
-}
-class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  enum-element static const field self::Enum#4 a = const self::Enum#4::•(0, "a");
-  static const field core::List<self::Enum#4> values = const <self::Enum#4>[self::Enum#4::a];
-  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#4
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "Enum#4.${this.{core::_Enum::_name}{core::String}}";
-}
-class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  enum-element static const field self::Enum#3 a = const self::Enum#3::•(0, "a");
-  enum-element static const field self::Enum#3 b = const self::Enum#3::•(1, "b");
-  enum-element static const field self::Enum#3 c = const self::Enum#3::•(2, "c");
-  static const field core::List<self::Enum#3> values = const <self::Enum#3>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
-  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#3
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "Enum#3.${this.{core::_Enum::_name}{core::String}}";
-}
-class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  enum-element static const field self::Enum#2 Enum = const self::Enum#2::•(0, "Enum");
-  enum-element static const field self::Enum#2 a = const self::Enum#2::•(1, "a");
-  enum-element static const field self::Enum#2 b = const self::Enum#2::•(2, "b");
-  static const field core::List<self::Enum#2> values = const <self::Enum#2>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
-  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#2
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "Enum#2.${this.{core::_Enum::_name}{core::String}}";
-}
-class Enum#1 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::Enum#1 a = const self::Enum#1::•(0, "a");
-  enum-element static const field self::Enum#1 b = const self::Enum#1::•(1, "b");
-  enum-element static const field self::Enum#1 c = const self::Enum#1::•(2, "c");
-  static const field core::List<self::Enum#1> values = const <self::Enum#1>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
-  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#1
-    : super core::_Enum::•(#index, #name)
-    ;
-  method _enumToString() → core::String
-    return "Enum#1.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum extends core::_Enum /*isEnum*/  {
   enum-element static const field self::Enum Enum = const self::Enum::•(0, "Enum");
@@ -408,8 +366,50 @@ class Enum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum#1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum#1 a = const self::Enum#1::•(0, "a");
+  enum-element static const field self::Enum#1 b = const self::Enum#1::•(1, "b");
+  enum-element static const field self::Enum#1 c = const self::Enum#1::•(2, "c");
+  static const field core::List<self::Enum#1> values = const <self::Enum#1>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum#1.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  enum-element static const field self::Enum#2 Enum = const self::Enum#2::•(0, "Enum");
+  enum-element static const field self::Enum#2 a = const self::Enum#2::•(1, "a");
+  enum-element static const field self::Enum#2 b = const self::Enum#2::•(2, "b");
+  static const field core::List<self::Enum#2> values = const <self::Enum#2>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum#2.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  enum-element static const field self::Enum#3 a = const self::Enum#3::•(0, "a");
+  enum-element static const field self::Enum#3 b = const self::Enum#3::•(1, "b");
+  enum-element static const field self::Enum#3 c = const self::Enum#3::•(2, "c");
+  static const field core::List<self::Enum#3> values = const <self::Enum#3>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum#3.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
+  enum-element static const field self::Enum#4 a = const self::Enum#4::•(0, "a");
+  static const field core::List<self::Enum#4> values = const <self::Enum#4>[self::Enum#4::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum#4.${this.{core::_Enum::_name}{core::String}}";
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
   enum-element static const field self::AnotherEnum a = const self::AnotherEnum::•(0, "a");
@@ -422,7 +422,7 @@ class AnotherEnum extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 static field core::String field;
@@ -439,24 +439,24 @@ import self as self2;
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:89:3 -> InstanceConstant(const Enum#4{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:88:6 -> ListConstant(const <Enum#4>[const Enum#4{_Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:83:3 -> InstanceConstant(const Enum#3{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:84:3 -> InstanceConstant(const Enum#3{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:85:3 -> InstanceConstant(const Enum#3{_Enum.index: 2, _Enum._name: "c"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:82:6 -> ListConstant(const <Enum#3>[const Enum#3{_Enum.index: 0, _Enum._name: "a"}, const Enum#3{_Enum.index: 1, _Enum._name: "b"}, const Enum#3{_Enum.index: 2, _Enum._name: "c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:76:3 -> InstanceConstant(const Enum#2{_Enum.index: 0, _Enum._name: "Enum"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:77:3 -> InstanceConstant(const Enum#2{_Enum.index: 1, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:79:3 -> InstanceConstant(const Enum#2{_Enum.index: 2, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:75:6 -> ListConstant(const <Enum#2>[const Enum#2{_Enum.index: 0, _Enum._name: "Enum"}, const Enum#2{_Enum.index: 1, _Enum._name: "a"}, const Enum#2{_Enum.index: 2, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:86:3 -> InstanceConstant(const Enum#1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:87:3 -> InstanceConstant(const Enum#1{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:88:3 -> InstanceConstant(const Enum#1{_Enum.index: 2, _Enum._name: "c"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:85:6 -> ListConstant(const <Enum#1>[const Enum#1{_Enum.index: 0, _Enum._name: "a"}, const Enum#1{_Enum.index: 1, _Enum._name: "b"}, const Enum#1{_Enum.index: 2, _Enum._name: "c"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:79:3 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "Enum"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:80:3 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:82:3 -> InstanceConstant(const Enum{_Enum.index: 2, _Enum._name: "b"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:78:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "Enum"}, const Enum{_Enum.index: 1, _Enum._name: "a"}, const Enum{_Enum.index: 2, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:86:3 -> InstanceConstant(const Enum#1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:87:3 -> InstanceConstant(const Enum#1{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:88:3 -> InstanceConstant(const Enum#1{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:85:6 -> ListConstant(const <Enum#1>[const Enum#1{_Enum.index: 0, _Enum._name: "a"}, const Enum#1{_Enum.index: 1, _Enum._name: "b"}, const Enum#1{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:76:3 -> InstanceConstant(const Enum#2{_Enum.index: 0, _Enum._name: "Enum"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:77:3 -> InstanceConstant(const Enum#2{_Enum.index: 1, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:79:3 -> InstanceConstant(const Enum#2{_Enum.index: 2, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:75:6 -> ListConstant(const <Enum#2>[const Enum#2{_Enum.index: 0, _Enum._name: "Enum"}, const Enum#2{_Enum.index: 1, _Enum._name: "a"}, const Enum#2{_Enum.index: 2, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:83:3 -> InstanceConstant(const Enum#3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:84:3 -> InstanceConstant(const Enum#3{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:85:3 -> InstanceConstant(const Enum#3{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:82:6 -> ListConstant(const <Enum#3>[const Enum#3{_Enum.index: 0, _Enum._name: "a"}, const Enum#3{_Enum.index: 1, _Enum._name: "b"}, const Enum#3{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:89:3 -> InstanceConstant(const Enum#4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:88:6 -> ListConstant(const <Enum#4>[const Enum#4{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:92:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:93:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 1, _Enum._name: "b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:94:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 2, _Enum._name: "c"})

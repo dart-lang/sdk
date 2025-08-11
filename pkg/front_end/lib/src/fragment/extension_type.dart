@@ -18,9 +18,13 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   late final int startOffset;
   late final int endOffset;
 
-  final List<FieldFragment> primaryConstructorFields = [];
+  final List<PrimaryConstructorFieldFragment> primaryConstructorFields = [];
 
   SourceExtensionTypeDeclarationBuilder? _builder;
+
+  @override
+  late final UriOffsetLength uriOffset =
+      new UriOffsetLength(fileUri, nameOffset, name.length);
 
   ExtensionTypeFragment(
       {required this.name,
@@ -31,9 +35,6 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       required super.typeParameterScope,
       required super.nominalParameterNameSpace,
       required super.enclosingCompilationUnit});
-
-  @override
-  int get fileOffset => nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -54,14 +55,14 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       modifiers.isAugment;
 
   @override
-  void addPrimaryConstructorField(FieldFragment fragment) {
-    primaryConstructorFields.add(fragment);
-  }
-
-  @override
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionTypeDeclaration;
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+  void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
+    primaryConstructorFields.add(fragment);
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }

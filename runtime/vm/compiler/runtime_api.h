@@ -1238,6 +1238,8 @@ class Thread : public AllStatic {
   static word range_error_shared_with_fpu_regs_stub_offset();
   static word write_error_shared_without_fpu_regs_stub_offset();
   static word write_error_shared_with_fpu_regs_stub_offset();
+  static word field_access_error_shared_without_fpu_regs_stub_offset();
+  static word field_access_error_shared_with_fpu_regs_stub_offset();
   static word resume_stub_offset();
   static word return_async_not_future_stub_offset();
   static word return_async_star_stub_offset();
@@ -1296,6 +1298,10 @@ class Thread : public AllStatic {
 
   static word suspend_state_handle_exception_entry_point_offset();
 
+#if !defined(PRODUCT)
+  static word single_step_offset();
+#endif  // !defined(PRODUCT)
+
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);
 };
@@ -1344,7 +1350,6 @@ class Isolate : public AllStatic {
   static word user_tag_offset();
   static word finalizers_offset();
 #if !defined(PRODUCT)
-  static word single_step_offset();
   static word has_resumption_breakpoints_offset();
 #endif  // !defined(PRODUCT)
 };

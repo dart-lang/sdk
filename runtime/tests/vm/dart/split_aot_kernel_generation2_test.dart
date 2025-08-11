@@ -13,6 +13,9 @@ import 'split_aot_kernel_generation_test.dart'
     show runSplitAOTKernelGenerationTest;
 
 main() async {
-  await runSplitAOTKernelGenerationTest(Platform.script.resolve(
-      '../../../../tests/language/mixin/regress_flutter_55345_test.dart'));
+  await runSplitAOTKernelGenerationTest(
+    Platform.script.resolve(
+      '../../../../tests/language/mixin/regress_flutter_55345_test.dart',
+    ),
+  );
 }

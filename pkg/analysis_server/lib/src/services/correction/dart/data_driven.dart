@@ -10,7 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -59,9 +59,7 @@ class DataDriven extends MultiCorrectionProducer {
 
   /// Return the transform sets that are available for fixing issues in the
   /// given [library].
-  List<TransformSet> _availableTransformSetsForLibrary(
-    LibraryElement2 library,
-  ) {
+  List<TransformSet> _availableTransformSetsForLibrary(LibraryElement library) {
     var setsForTests = transformSetsForTests;
     if (setsForTests != null) {
       return setsForTests;

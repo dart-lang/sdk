@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -18,16 +20,13 @@ class PreferFinalLocals extends LintRule {
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_locals;
+
+  @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_final_locals;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
@@ -36,11 +35,11 @@ class PreferFinalLocals extends LintRule {
 }
 
 class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
-  final List<BindPatternVariableElement2> declaredElements = [];
+  final List<BindPatternVariableElement> declaredElements = [];
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element != null) {
       declaredElements.add(element);
     }
@@ -54,8 +53,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement2;
-      if (element == null || function.isPotentiallyMutatedInScope2(element)) {
+      var element = pattern.declaredElement;
+      if (element == null || function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
     }
@@ -76,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       var forEachPattern = node.thisOrAncestorOfType<ForEachPartsWithPattern>();
@@ -92,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (!inCaseClause) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -108,12 +107,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       if (!node.hasPotentiallyMutatedDeclaredVariableInScope(function)) {
         if (node.pattern.containsJustWildcards) return;
-        rule.reportLintForToken(node.keyword);
+        rule.reportAtToken(node.keyword);
       }
     }
   }
@@ -129,17 +128,18 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement2;
+      var declaredElement = variable.declaredElement;
       if (declaredElement != null &&
           (declaredElement.isWildcardVariable ||
-              function.isPotentiallyMutatedInScope2(declaredElement))) {
+              function.isPotentiallyMutatedInScope(declaredElement))) {
         return;
       }
     }
-    if (node.keyword != null) {
-      rule.reportLintForToken(node.keyword);
+    var keyword = node.keyword;
+    if (keyword != null) {
+      rule.reportAtToken(keyword);
     } else if (node.type != null) {
-      rule.reportLint(node.type);
+      rule.reportAtNode(node.type);
     }
   }
 }
@@ -183,7 +183,7 @@ extension on AstNode {
     accept(declaredVariableVisitor);
     var declaredElements = declaredVariableVisitor.declaredElements;
     for (var element in declaredElements) {
-      if (function.isPotentiallyMutatedInScope2(element)) {
+      if (function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
     }

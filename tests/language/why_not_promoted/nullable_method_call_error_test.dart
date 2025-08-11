@@ -36,66 +36,66 @@ extension on int? {
 property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
-//^^^^^
-// [context 1] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
-// [context 8] Variable 'i' could not be promoted due to an assignment.
+  // [error column 3, length 5]
+  // [context 1] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 8] Variable 'i' could not be promoted due to an assignment.
   i.isEven;
-//  ^^^^^^
-// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  //^^^^^^
+  // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }
 
 extension_property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
-//^^^^^
-// [context 2] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
-// [context 9] Variable 'i' could not be promoted due to an assignment.
+  // [error column 3, length 5]
+  // [context 2] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 9] Variable 'i' could not be promoted due to an assignment.
   i.propertyOnNullableInt;
   i.propertyOnNonNullInt;
-//  ^^^^^^^^^^^^^^^^^^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 9] Property 'propertyOnNonNullInt' cannot be accessed on 'int?' because it is potentially null.
+  //^^^^^^^^^^^^^^^^^^^^
+  // [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 9] Property 'propertyOnNonNullInt' cannot be accessed on 'int?' because it is potentially null.
 }
 
 property_get_of_expression(C c) {
   if (c.i == null) return;
   c.i.isEven;
-//    ^^^^^^
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 10] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  //  ^^^^^^
+  // [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 10] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }
 
 extension_property_get_of_expression(C c) {
   if (c.i == null) return;
   c.i.propertyOnNullableInt;
   c.i.propertyOnNonNullInt;
-//    ^^^^^^^^^^^^^^^^^^^^
-// [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 11] Property 'propertyOnNonNullInt' cannot be accessed on 'int?' because it is potentially null.
+  //  ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 11] Property 'propertyOnNonNullInt' cannot be accessed on 'int?' because it is potentially null.
 }
 
 method_invocation(C c) {
   if (c.i == null) return;
   c.i.abs();
-//    ^^^
-// [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 12] Method 'abs' cannot be called on 'int?' because it is potentially null.
+  //  ^^^
+  // [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 12] Method 'abs' cannot be called on 'int?' because it is potentially null.
 }
 
 extension_method_invocation(C c) {
   if (c.i == null) return;
   c.i.methodOnNullableInt();
   c.i.methodOnNonNullInt();
-//    ^^^^^^^^^^^^^^^^^^
-// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 13] Method 'methodOnNonNullInt' cannot be called on 'int?' because it is potentially null.
+  //  ^^^^^^^^^^^^^^^^^^
+  // [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 13] Method 'methodOnNonNullInt' cannot be called on 'int?' because it is potentially null.
 }
 
 call_invocation(C c) {
   if (c.f == null) return;
   c.f.call();
-//    ^^^^
-// [analyzer 7] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 14] Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+  //  ^^^^
+  // [analyzer 7] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 14] Method 'call' cannot be called on 'void Function()?' because it is potentially null.
 }

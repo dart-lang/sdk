@@ -175,15 +175,17 @@ class _AsyncRun {
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateJSOverride(void Function() callback) {
+    final createdGeneration = dart.hotRestartGeneration();
     JS('void', '#.scheduleImmediate(#)', dart.global_, () {
-      callback();
+      if (createdGeneration == dart.hotRestartGeneration()) callback();
     });
   }
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateWithPromise(void Function() callback) {
+    final createdGeneration = dart.hotRestartGeneration();
     JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
-      callback();
+      if (createdGeneration == dart.hotRestartGeneration()) callback();
     });
   }
 }
@@ -487,7 +489,6 @@ class _AsyncStarImpl<T> {
 class _AsyncAwaitCompleter<T> implements Completer<T> {
   final _future = _Future<T>();
   bool isSync;
-  int hotRestartIteration = dart.hotRestartIteration;
 
   _AsyncAwaitCompleter() : isSync = false;
 
@@ -589,8 +590,8 @@ void _asyncRethrow(Object? object, _AsyncAwaitCompleter completer) {
 /// The [bodyFunction] argument is the continuation that should be invoked
 /// when the future completes.
 void _awaitOnObject(Object? object, _WrappedAsyncBody bodyFunction) {
-  FutureOr<dynamic> Function(dynamic) thenCallback =
-      (result) => bodyFunction(async_status_codes.SUCCESS, result);
+  FutureOr<dynamic> Function(dynamic) thenCallback = (result) =>
+      bodyFunction(async_status_codes.SUCCESS, result);
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
     final wrappedException = dart.createErrorWithStack(error, stackTrace);
@@ -747,10 +748,9 @@ void _asyncStarHelper(
         // No need to check for pause because to get here the stream either
         // completed normally or was cancelled. The stream cannot be paused
         // after either of these states.
-        int errorCode =
-            controller.isCanceled
-                ? async_status_codes.STREAM_WAS_CANCELED
-                : async_status_codes.SUCCESS;
+        int errorCode = controller.isCanceled
+            ? async_status_codes.STREAM_WAS_CANCELED
+            : async_status_codes.SUCCESS;
         bodyFunction(errorCode, null);
       });
       return;

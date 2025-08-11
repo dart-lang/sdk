@@ -247,7 +247,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to safe
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
     __ EnterFrame(0);
@@ -287,17 +287,23 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(ECX != THR);
 
   Label async_callback;
+  Label sync_isolate_group_shared_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
   // callback was invoked after it was deleted. In this case, do nothing.
   __ cmpl(THR, Immediate(0));
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ j(EQUAL, &done, Assembler::kFarJump);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpl(EBX, Immediate(static_cast<uword>(
                    FfiCallbackMetadata::TrampolineType::kAsync)));
   __ j(EQUAL, &async_callback, Assembler::kNearJump);
+
+  __ cmpl(EBX,
+          Immediate(static_cast<uword>(
+              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
+  __ j(EQUAL, &sync_isolate_group_shared_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -324,6 +330,34 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ Bind(&ret_4);
   __ ret(Immediate(4));
+
+  __ Bind(&sync_isolate_group_shared_callback);
+
+  __ call(ECX);
+
+  // Exit isolate group shared isolate.
+  {
+    __ pushl(CallingConventions::kReturnReg);
+    __ pushl(CallingConventions::kSecondReturnReg);
+    __ subl(ESP, Immediate(kFpuRegisterSize));
+    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movl(EAX, Immediate(reinterpret_cast<int64_t>(
+                     DLRT_ExitIsolateGroupSharedIsolate)));
+    __ CallCFunction(EAX);
+
+    __ LeaveFrame();
+
+    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+    __ addl(ESP, Immediate(kFpuRegisterSize));
+    __ popl(CallingConventions::kSecondReturnReg);
+    __ popl(CallingConventions::kReturnReg);
+  }
+
+  __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&async_callback);
 
@@ -1901,21 +1935,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
-  Register ic_reg = ECX;
   Register func_reg = EAX;
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ pushl(func_reg);  // Preserve
-    __ pushl(ic_reg);    // Preserve.
-    __ pushl(ic_reg);    // Argument.
-    __ pushl(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popl(EAX);       // Discard argument;
-    __ popl(EAX);       // Discard argument;
-    __ popl(ic_reg);    // Restore.
-    __ popl(func_reg);  // Restore.
-    __ LeaveFrame();
-  }
   __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 
@@ -2065,8 +2085,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(EAX);
-    __ cmpb(Address(EAX, target::Isolate::single_step_offset()), Immediate(0));
+    __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -2382,8 +2401,7 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ cmpb(Address(EAX, target::Isolate::single_step_offset()), Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
 #endif
@@ -2601,9 +2619,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ movzxb(EAX, Address(EAX, target::Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
   __ ret();
@@ -3099,9 +3115,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ movzxb(EAX, Address(EAX, target::Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 #endif

@@ -5,9 +5,9 @@
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -28,7 +28,8 @@ main() {
 
     group('merging', () {
       test('integration', () {
-        expectMergesTo('''
+        expectMergesTo(
+          '''
 analyzer:
   plugins:
     - p1
@@ -39,7 +40,8 @@ linter:
   rules:
     - camel_case_types
     - one_member_abstracts
-''', '''
+''',
+          '''
 analyzer:
   plugins:
     - p3
@@ -49,7 +51,8 @@ linter:
   rules:
     one_member_abstracts: false # promotes and disables
     always_specify_return_types: true
-''', '''
+''',
+          '''
 analyzer:
   plugins:
     - p1
@@ -62,7 +65,8 @@ linter:
     camel_case_types: true
     one_member_abstracts: false
     always_specify_return_types: true
-''');
+''',
+        );
       });
     });
   });
@@ -75,8 +79,10 @@ strong-mode: true
 ''';
 
       var optionsProvider = AnalysisOptionsProvider();
-      expect(() => optionsProvider.getOptionsFromString(src),
-          throwsA(TypeMatcher<OptionsFormatException>()));
+      expect(
+        () => optionsProvider.getOptionsFromString(src),
+        throwsA(TypeMatcher<OptionsFormatException>()),
+      );
     });
 
     test('test_bad_yaml (2)', () {
@@ -129,8 +135,10 @@ void expectEquals(YamlNode? actual, YamlNode? expected) {
         }
       }
       for (var expectedKey in expectedNodes.keys) {
-        expectEquals(_getValue(actualNodes, expectedKey),
-            _getValue(expectedNodes, expectedKey));
+        expectEquals(
+          _getValue(actualNodes, expectedKey),
+          _getValue(expectedNodes, expectedKey),
+        );
       }
     } else {
       fail('Expected a YamlMap, found ${actual.runtimeType}');

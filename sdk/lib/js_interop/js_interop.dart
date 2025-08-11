@@ -22,13 +22,14 @@
 /// and previous JavaScript interop.
 ///
 /// > [!NOTE]
-/// > The types defined in this library only provide static guarantees.
-/// > The runtime types differ based on the backend, so it is important to rely
-/// > on static functionality like the conversion functions, for example `toJS`
-/// > and not runtime mechanisms like type checks (`is`) and casts (`as`).
-/// > Similarly, `identical` may return different results for the same JS value
-/// > depending on the compiler. Use `==` to check for equality of two JS types
-/// > instead.
+/// > The types defined in this library only provide static guarantees. The
+/// > runtime types differ based on the backend, so it is important to rely on
+/// > static functionality like the conversion functions. Similarly, don't rely
+/// > on `is` checks that involve JS types or JS-typed values. Furthermore,
+/// > `identical` may also return different results for the same JS value
+/// > depending on the compiler. Use `==` to check for equality of two JS-typed
+/// > values instead, but do not check for equality between a Dart value and a
+/// > JS-typed value.
 ///
 /// {@category Web}
 library;
@@ -572,34 +573,71 @@ extension JSAnyUtilityExtension on JSAny? {
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 
-  /// Converts a JavaScript value to the Dart equivalent if possible.
+  /// Converts a JavaScript JSON-like value to the Dart equivalent if possible.
   ///
   /// Effectively the inverse of [NullableObjectUtilExtension.jsify], [dartify]
-  /// takes a JavaScript value and recursively converts it to a Dart object.
-  /// Only JavaScript primitives, `Array`s, typed arrays, and map-like objects
-  /// with string property names are supported.
+  /// takes a JavaScript JSON-like value and recursively converts it to a Dart
+  /// object, doing the following:
+  ///
+  /// - If the value is a string, number, boolean, `null`, `undefined`,
+  ///   `DataView` or a typed array, does the equivalent `toDart` operation if
+  ///   it exists and returns the result.
+  /// - If the value is a simple JS object (the protoype is either `null` or JS
+  ///   `Object`), creates and returns a `[Map]<Object?, Object?>` whose keys
+  ///   are the recursively converted keys obtained from `Object.keys` and its
+  ///   values are the associated values of the keys in the JS object.
+  /// - If the value is a JS `Array`, each item in it is recursively converted
+  ///   and added to a new `[List]<Object?>`, which is then returned.
+  /// - Otherwise, the conversion is undefined.
+  ///
+  /// If the value contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
   /// > Prefer using the specific conversion method like `toDart` if you know
-  /// > the JavaScript type as this method may perform many type-checks.
+  /// > the JavaScript type as this method may perform many type-checks. You
+  /// > should generally call this method with values that only contain
+  /// > JSON-like values as the conversion may be platform- and
+  /// > compiler-specific otherwise.
   // TODO(srujzs): We likely need stronger tests for this method to ensure
-  // consistency.
+  // consistency. We should also limit the accepted types in this API to avoid
+  // confusion. Once the conversion for unrelated types is consistent across all
+  // backends, we can update the documentation to say that the value is
+  // internalized instead of the conversion being undefined.
   external Object? dartify();
 }
 
 /// Common utility functions for <code>[Object]?</code>s.
 extension NullableObjectUtilExtension on Object? {
-  /// Converts a Dart object to the JavaScript equivalent if possible.
+  /// Converts a Dart JSON-like object to the JavaScript equivalent if possible.
   ///
   /// Effectively the inverse of [JSAnyUtilityExtension.dartify], [jsify] takes
-  /// a Dart object and recursively converts it to a JavaScript value. Only Dart
-  /// primitives, [Iterable]s, typed lists, and [Map]s are supported.
+  /// a Dart JSON-like object and recursively converts it to a JavaScript value,
+  /// doing the following:
+  ///
+  /// - If the object is a JS value, returns the object.
+  /// - If the object is a Dart primitive type, `null`, or a `dart:typed_data`
+  ///   type, does the equivalent `toJS` operation if it exists and returns the
+  ///   result.
+  /// - If the object is a [Map], creates and returns a new JS object whose
+  ///   properties and associated values are the recursively converted keys and
+  ///   values of the [Map].
+  /// - If the object is an [Iterable], each item in it is recursively converted
+  ///   and pushed into a new JS `Array` which is then returned.
+  /// - Otherwise, the conversion is undefined.
+  ///
+  /// If the object contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
   /// > Prefer using the specific conversion method like `toJS` if you know the
-  /// > Dart type as this method may perform many type-checks.
+  /// > Dart type as this method may perform many type-checks. You should
+  /// > generally call this method with objects that only contain JSON-like
+  /// > values as the conversion may be platform- and compiler-specific
+  /// > otherwise.
   // TODO(srujzs): We likely need stronger tests for this method to ensure
-  // consistency.
+  // consistency. We should also limit the accepted types in this API to avoid
+  // confusion. Once the conversion for unrelated types is consistent across all
+  // backends, we can update the documentation to say that the object is
+  // externalized instead of the conversion being undefined.
   external JSAny? jsify();
 }
 
@@ -832,16 +870,19 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   /// Converts this [ByteBuffer] to a [JSArrayBuffer] by either casting,
   /// unwrapping, or cloning the [ByteBuffer].
   ///
+  /// Throws if the [ByteBuffer] wraps a JS `SharedArrayBuffer`.
+  ///
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
+  /// > When compiling to JavaScript, [ByteBuffer]s are either `ArrayBuffer`s or
+  /// > `SharedArrayBuffer`s so this will just check the type and cast.
   /// > When compiling to Wasm, this [ByteBuffer] may or may not be a wrapper
   /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [ByteBuffer]'s values into a new
-  /// > [JSArrayBuffer].
+  /// > Dart. If it's a wrapper, this method unwraps it and either returns the
+  /// > `ArrayBuffer` or throws if the unwrapped buffer was a
+  /// > `SharedArrayBuffer`. If it's instantiated in Dart, this method clones
+  /// > this [ByteBuffer]'s values into a new [JSArrayBuffer].
   /// > Avoid assuming that modifications to this [ByteBuffer] will affect the
   /// > [JSArrayBuffer] and vice versa unless it was instantiated in JavaScript.
   external JSArrayBuffer get toJS;
@@ -1351,11 +1392,14 @@ extension JSAnyOperatorExtension on JSAny? {
 /// For example:
 ///
 /// ```
+/// library;
+///
 /// @JS()
 /// external String get name;
 /// ```
 ///
-/// Reading `name` will execute JavaScript code like `globalContext.name`.
+/// Reading the top-level member `name` will execute JavaScript code like
+/// `<globalContext>.name`.
 ///
 /// There are subtle differences depending on the compiler, but in general,
 /// [globalContext] can be treated like JavaScript's `globalThis`.

@@ -112,6 +112,24 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define SUPPORT_TIMELINE 1
 #endif
 
+// Include IL printer and disassembler functionality into non-PRODUCT builds,
+// in all AOT compiler builds or when forced.
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
+    defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
+#error Requested to include IL printer into PRODUCT AOT runtime
+#endif
+#define INCLUDE_IL_PRINTER 1
+#if !defined(FORCE_INCLUDE_DISASSEMBLER)
+#define FORCE_INCLUDE_DISASSEMBLER 1
+#endif
+#endif
+
+// Include HeapSnapshotWriter functionality if not in PRODUCT.
+#if !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER) && !defined(PRODUCT)
+#define DART_ENABLE_HEAP_SNAPSHOT_WRITER 1
+#endif
+
 #if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_HOST64)
 #define HASH_IN_OBJECT_HEADER 1
 #endif

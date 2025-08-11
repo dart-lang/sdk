@@ -40,5 +40,5 @@ static extension-type-member method foo|constructor#(dynamic whatnot) → self::
   lowered final self::foo% /* erasure=dynamic, declared=! */ #this = whatnot;
   return #this;
 }
-static extension-type-member method foo|constructor#_#new#tearOff(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method foo|constructor#_#new#tearOff(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */
   return self::foo|constructor#(whatnot);

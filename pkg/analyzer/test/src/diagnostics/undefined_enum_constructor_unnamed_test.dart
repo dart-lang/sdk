@@ -16,24 +16,26 @@ main() {
 @reflectiveTest
 class UndefinedEnumConstructorUnnamedTest extends PubPackageResolutionTest {
   test_withArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v();
   const E.named();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+    );
   }
 
   test_withoutArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E.named();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+    );
   }
 }

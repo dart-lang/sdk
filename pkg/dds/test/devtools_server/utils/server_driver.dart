@@ -10,6 +10,8 @@ import 'package:dds/devtools_server.dart';
 import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:vm_service/vm_service.dart';
 
+import '../../common/test_helper.dart';
+
 const verbose = true;
 
 class DevToolsServerDriver {
@@ -76,9 +78,8 @@ class DevToolsServerDriver {
     int? tryPorts,
     List<String> additionalArgs = const [],
   }) async {
-    final script = Platform.script.resolveUri(
-      Uri.parse('utils/serve_devtools.dart'),
-    );
+    final script =
+        resolveTestRelativePath('devtools_server/utils/serve_devtools.dart');
     final args = [
       script.toFilePath(),
       '--machine',
@@ -217,9 +218,9 @@ class DevToolsServerTestController {
 
   Future<void> startApp({bool runPubGet = false}) async {
     emptyDartAppRoot =
-        Platform.script.resolveUri(Uri.parse('fixtures/empty_dart_app/'));
-    packageWithExtensionsRoot = Platform.script
-        .resolveUri(Uri.parse('fixtures/package_with_extensions/'));
+        resolveTestRelativePath('devtools_server/fixtures/empty_dart_app/');
+    packageWithExtensionsRoot = resolveTestRelativePath(
+        'devtools_server/fixtures/package_with_extensions/');
 
     if (runPubGet) {
       final pubResult = await Process.run(
@@ -276,7 +277,7 @@ class DevToolsServerTestController {
       return requiredConnectionState ?? false
           // If we require a connected client, also require a non-null page.
           // This avoids a race in tests where we may proceed to send messages
-          // to a client that is not fully initialised.
+          // to a client that is not fully initialized.
           ? (client['hasConnection'] && client['currentPage'] != null)
           : !client['hasConnection'];
     }

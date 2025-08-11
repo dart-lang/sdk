@@ -28,19 +28,21 @@ class Parser {
   /// based on the Fasta parser.
   final AstBuilder astBuilder;
 
-  Parser(Source source, AnalysisErrorListener errorListener,
-      {required FeatureSet featureSet,
-      bool allowNativeClause = true,
-      required LibraryLanguageVersion languageVersion,
-      required LineInfo lineInfo})
-      : astBuilder = AstBuilder(
-          ErrorReporter(errorListener, source),
-          source.uri,
-          true,
-          featureSet,
-          languageVersion,
-          lineInfo,
-        ) {
+  Parser(
+    Source source,
+    DiagnosticOrErrorListener diagnosticListener, {
+    required FeatureSet featureSet,
+    bool allowNativeClause = true,
+    required LibraryLanguageVersion languageVersion,
+    required LineInfo lineInfo,
+  }) : astBuilder = AstBuilder(
+         DiagnosticReporter(diagnosticListener, source),
+         source.uri,
+         true,
+         featureSet,
+         languageVersion,
+         lineInfo,
+       ) {
     fastaParser = fasta.Parser(
       astBuilder,
       allowPatterns: featureSet.isEnabled(Feature.patterns),
@@ -75,9 +77,10 @@ class Parser {
   Expression parseArgument() {
     currentToken = SimpleToken(TokenType.OPEN_PAREN, 0)..setNext(currentToken);
     appendToken(currentToken, SimpleToken(TokenType.CLOSE_PAREN, 0));
-    currentToken = fastaParser
-        .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
-        .next!;
+    currentToken =
+        fastaParser
+            .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
+            .next!;
     var invocation = astBuilder.pop() as MethodInvocation;
     return invocation.argumentList.arguments[0];
   }
@@ -104,9 +107,12 @@ class Parser {
   Expression parseConditionalExpression() => parseExpression2();
 
   Configuration parseConfiguration() {
-    currentToken = fastaParser
-        .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
-        .next!;
+    currentToken =
+        fastaParser
+            .parseConditionalUri(
+              fastaParser.syntheticPreviousToken(currentToken),
+            )
+            .next!;
     return astBuilder.pop() as Configuration;
   }
 
@@ -123,9 +129,10 @@ class Parser {
   }
 
   DottedName parseDottedName() {
-    currentToken = fastaParser
-        .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
-        .next!;
+    currentToken =
+        fastaParser
+            .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
+            .next!;
     return astBuilder.pop() as DottedName;
   }
 
@@ -137,31 +144,41 @@ class Parser {
   }
 
   Expression parseExpression2() {
-    currentToken = fastaParser
-        .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
-        .next!;
+    currentToken =
+        fastaParser
+            .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
+            .next!;
     return astBuilder.pop() as Expression;
   }
 
   Expression parseExpressionWithoutCascade() => parseExpression2();
 
   FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
-    currentToken = fastaParser
-        .parseFormalParametersRequiredOpt(
-            fastaParser.syntheticPreviousToken(currentToken),
-            inFunctionType
-                ? fasta.MemberKind.GeneralizedFunctionType
-                : fasta.MemberKind.NonStaticMethod)
-        .next!;
+    currentToken =
+        fastaParser
+            .parseFormalParametersRequiredOpt(
+              fastaParser.syntheticPreviousToken(currentToken),
+              inFunctionType
+                  ? fasta.MemberKind.GeneralizedFunctionType
+                  : fasta.MemberKind.NonStaticMethod,
+            )
+            .next!;
     return astBuilder.pop() as FormalParameterList;
   }
 
   FunctionBody parseFunctionBody(
-      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    bool mayBeEmpty,
+    ParserErrorCode emptyErrorCode,
+    bool inExpression,
+  ) {
     currentToken = fastaParser.parseAsyncModifierOpt(
-        fastaParser.syntheticPreviousToken(currentToken));
-    currentToken =
-        fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
+      fastaParser.syntheticPreviousToken(currentToken),
+    );
+    currentToken = fastaParser.parseFunctionBody(
+      currentToken,
+      inExpression,
+      mayBeEmpty,
+    );
     return astBuilder.pop() as FunctionBody;
   }
 
@@ -182,12 +199,14 @@ class Parser {
   Identifier parsePrefixedIdentifier() => parseExpression2() as Identifier;
 
   Expression parsePrimaryExpression() {
-    currentToken = fastaParser
-        .parsePrimary(
-            fastaParser.syntheticPreviousToken(currentToken),
-            fasta.IdentifierContext.expression,
-            fasta.ConstantPatternContext.none)
-        .next!;
+    currentToken =
+        fastaParser
+            .parsePrimary(
+              fastaParser.syntheticPreviousToken(currentToken),
+              fasta.IdentifierContext.expression,
+              fasta.ConstantPatternContext.none,
+            )
+            .next!;
     return astBuilder.pop() as Expression;
   }
 
@@ -197,9 +216,10 @@ class Parser {
 
   Expression parseShiftExpression() => parseExpression2();
 
-  SimpleIdentifier parseSimpleIdentifier(
-          {bool allowKeyword = false, bool isDeclaration = false}) =>
-      parseExpression2() as SimpleIdentifier;
+  SimpleIdentifier parseSimpleIdentifier({
+    bool allowKeyword = false,
+    bool isDeclaration = false,
+  }) => parseExpression2() as SimpleIdentifier;
 
   Statement parseStatement(Token token) {
     currentToken = token;
@@ -207,9 +227,10 @@ class Parser {
   }
 
   Statement parseStatement2() {
-    currentToken = fastaParser
-        .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
-        .next!;
+    currentToken =
+        fastaParser
+            .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
+            .next!;
     return astBuilder.pop() as Statement;
   }
 
@@ -229,35 +250,39 @@ class Parser {
 
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
     Token previous = fastaParser.syntheticPreviousToken(currentToken);
-    currentToken = fasta
-        .computeType(previous, true, !inExpression)
-        .parseType(previous, fastaParser)
-        .next!;
+    currentToken =
+        fasta
+            .computeType(previous, true, !inExpression)
+            .parseType(previous, fastaParser)
+            .next!;
     return astBuilder.pop() as TypeAnnotation;
   }
 
   TypeArgumentList parseTypeArgumentList() {
     Token previous = fastaParser.syntheticPreviousToken(currentToken);
-    currentToken = fasta
-        .computeTypeParamOrArg(previous)
-        .parseArguments(previous, fastaParser)
-        .next!;
+    currentToken =
+        fasta
+            .computeTypeParamOrArg(previous)
+            .parseArguments(previous, fastaParser)
+            .next!;
     return astBuilder.pop() as TypeArgumentList;
   }
 
   NamedType parseTypeName(bool inExpression) {
     Token previous = fastaParser.syntheticPreviousToken(currentToken);
-    currentToken = fasta
-        .computeType(previous, true, !inExpression)
-        .parseType(previous, fastaParser)
-        .next!;
+    currentToken =
+        fasta
+            .computeType(previous, true, !inExpression)
+            .parseType(previous, fastaParser)
+            .next!;
     return astBuilder.pop() as NamedType;
   }
 
   TypeParameter parseTypeParameter() {
-    currentToken = SyntheticBeginToken(TokenType.LT, 0)
-      ..endGroup = SyntheticToken(TokenType.GT, 0)
-      ..setNext(currentToken);
+    currentToken =
+        SyntheticBeginToken(TokenType.LT, 0)
+          ..endGroup = SyntheticToken(TokenType.GT, 0)
+          ..setNext(currentToken);
     appendToken(currentToken, currentToken.endGroup!);
     TypeParameterList typeParams = parseTypeParameterList()!;
     return typeParams.typeParameters[0];
@@ -265,10 +290,11 @@ class Parser {
 
   TypeParameterList? parseTypeParameterList() {
     Token token = fastaParser.syntheticPreviousToken(currentToken);
-    currentToken = fasta
-        .computeTypeParamOrArg(token, true)
-        .parseVariables(token, fastaParser)
-        .next!;
+    currentToken =
+        fasta
+            .computeTypeParamOrArg(token, true)
+            .parseVariables(token, fastaParser)
+            .next!;
     return astBuilder.pop() as TypeParameterList?;
   }
 

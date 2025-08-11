@@ -31,7 +31,9 @@ testExclusiveCreate() async {
   Expect.equals(file, createdFile);
   Expect.isTrue(await createdFile.exists());
   Expect.throws(
-      () => file.createSync(exclusive: true), (e) => e is FileSystemException);
+    () => file.createSync(exclusive: true),
+    (e) => e is FileSystemException,
+  );
   bool createFailed = false;
   try {
     await file.create(exclusive: true);

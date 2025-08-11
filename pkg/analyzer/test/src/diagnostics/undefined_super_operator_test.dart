@@ -16,69 +16,76 @@ main() {
 @reflectiveTest
 class UndefinedSuperOperatorTest extends PubPackageResolutionTest {
   test_class_binaryExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator +(value) {
     return super + value;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 1)],
+    );
   }
 
   test_class_indexBoth() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index]++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+      ],
+    );
   }
 
   test_class_indexGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index + 1];
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 11)],
+    );
   }
 
   test_class_indexSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator []=(index, value) {
     super[index] = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7)],
+    );
   }
 
   test_enum_binaryExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super + 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 37, 1)],
+    );
   }
 
   test_enum_binaryExpression_OK() async {
@@ -97,17 +104,20 @@ enum E with M {
   }
 
   test_enum_indexBoth() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super[0]++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+      ],
+    );
   }
 
   test_enum_indexBoth_OK() async {
@@ -127,28 +137,30 @@ enum E with M {
   }
 
   test_enum_indexGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super[0];
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3)],
+    );
   }
 
   test_enum_indexSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super[0] = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3)],
+    );
   }
 }

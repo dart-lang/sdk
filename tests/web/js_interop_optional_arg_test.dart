@@ -23,7 +23,7 @@ main() {
   function C(a){
     this.isUndefined = a === undefined;
   };
-  """
+  """,
   ]);
 
   Expect.isTrue(new C().isUndefined);

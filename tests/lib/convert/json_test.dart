@@ -19,17 +19,25 @@ void testJson(jsonText, expected) {
       }
     } else if (expected is Map) {
       Expect.isTrue(actual is Map);
-      Expect.equals(expected.length, actual.length,
-          "$path: Map size in $jsonText");
+      Expect.equals(
+        expected.length,
+        actual.length,
+        "$path: Map size in $jsonText",
+      );
       expected.forEach((key, value) {
         Expect.isTrue(actual.containsKey(key));
         compare(value, actual[key], "$path[$key] in $jsonText");
       });
     } else if (expected is num) {
-      Expect.equals(expected is int, actual is int,
-          "$path: not same number type in $jsonText");
-      Expect.isTrue(expected.compareTo(actual) == 0,
-          "$path: Expected: $expected, was: $actual in $jsonText");
+      Expect.equals(
+        expected is int,
+        actual is int,
+        "$path: not same number type in $jsonText",
+      );
+      Expect.isTrue(
+        expected.compareTo(actual) == 0,
+        "$path: Expected: $expected, was: $actual in $jsonText",
+      );
     } else {
       // String, bool, null.
       Expect.equals(expected, actual, "$path in $jsonText");
@@ -99,7 +107,10 @@ String escape(String s) {
       sb.writeCharCode(code);
     else {
       String hex = '000${code.toRadixString(16)}';
-      sb.write(r'\u' '${hex.substring(hex.length - 4)}');
+      sb.write(
+        r'\u'
+        '${hex.substring(hex.length - 4)}',
+      );
     }
   }
   return '$sb';
@@ -107,15 +118,22 @@ String escape(String s) {
 
 void testThrows(jsonText) {
   var message = "json = '${escape(jsonText)}'";
-  Expect.throwsFormatException(() => json.decode(jsonText),
-      "json.decode, $message");
-  Expect.throwsFormatException(() => jsonDecode(jsonText),
-      "jsonDecode, $message");
-  Expect.throwsFormatException(() => json.decoder.convert(jsonText),
-      "json.decoder.convert, $message");
-  Expect.throwsFormatException(() =>
-      utf8.decoder.fuse(json.decoder).convert(utf8.encode(jsonText)),
-      "utf8.decoder.fuse(json.decoder) o utf.encode, $message");
+  Expect.throwsFormatException(
+    () => json.decode(jsonText),
+    "json.decode, $message",
+  );
+  Expect.throwsFormatException(
+    () => jsonDecode(jsonText),
+    "jsonDecode, $message",
+  );
+  Expect.throwsFormatException(
+    () => json.decoder.convert(jsonText),
+    "json.decoder.convert, $message",
+  );
+  Expect.throwsFormatException(
+    () => utf8.decoder.fuse(json.decoder).convert(utf8.encode(jsonText)),
+    "utf8.decoder.fuse(json.decoder) o utf.encode, $message",
+  );
 }
 
 testNumbers() {
@@ -255,7 +273,9 @@ testNumbers() {
 
 testStrings() {
   // String parser accepts and understands escapes.
-  var input = r'"\u0000\uffff\n\r\f\t\b\/\\\"' '\x20\ufffd\uffff"';
+  var input =
+      r'"\u0000\uffff\n\r\f\t\b\/\\\"'
+      '\x20\ufffd\uffff"';
   var expected = "\u0000\uffff\n\r\f\t\b\/\\\"\x20\ufffd\uffff";
   testJson(input, expected);
   // Empty string.
@@ -314,8 +334,8 @@ testObjects() {
   testJson(r'{"x":42}', {"x": 42});
   testJson(r'{"x":{"x":{"x":42}}}', {
     "x": {
-      "x": {"x": 42}
-    }
+      "x": {"x": 42},
+    },
   });
   testJson(r'{"x":10,"x":42}', {"x": 42});
   testJson(r'{"":42}', {"": 42});
@@ -334,25 +354,31 @@ testObjects() {
 
 testArrays() {
   testJson(r'[]', []);
-  testJson(r'[1.1e1,"string",true,false,null,{}]',
-      [1.1e1, "string", true, false, null, {}]);
+  testJson(r'[1.1e1,"string",true,false,null,{}]', [
+    1.1e1,
+    "string",
+    true,
+    false,
+    null,
+    {},
+  ]);
   testJson(r'[[[[[[]]]],[[[]]],[[]]]]', [
     [
       [
         [
-          [[]]
-        ]
+          [[]],
+        ],
       ],
       [
-        [[]]
+        [[]],
       ],
-      [[]]
-    ]
+      [[]],
+    ],
   ]);
   testJson(r'[{},[{}],{"x":[]}]', [
     {},
     [{}],
-    {"x": []}
+    {"x": []},
   ]);
 
   testThrows(r'[1,,2]');
@@ -389,7 +415,7 @@ testWhitespace() {
   testJson('$v[${v}-2.2e2$v,$v{$v"key"$v:${v}true$v}$v,$v"ab"$v]$v', [
     -2.2e2,
     {"key": true},
-    "ab"
+    "ab",
   ]);
 
   // IE9 accepts invalid characters at the end, so some of these tests have been

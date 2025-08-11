@@ -47,6 +47,76 @@ final /*[1*/a^/*1]*/ = A();
     expect(result.targetRange, rangeOfString(code, 'class A {}'));
   }
 
+  Future<void> test_dotShorthand_class() async {
+    var code = TestCode.parse('''
+void f() {
+  A a = ./*[0*/gett^er/*0]*/;
+}
+
+class /*[1*/A/*1]*/ {
+  static A get getter => A();
+}
+  ''');
+
+    var ranges = code.ranges.ranges;
+    var originRange = ranges[0];
+    var targetRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(
+      result.targetRange,
+      rangeOfPattern(code, RegExp(r'class A \{.*\}', dotAll: true)),
+    );
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    var code = TestCode.parse('''
+void f() {
+  A a = ./*[0*/on^e/*0]*/;
+}
+
+enum /*[1*/A/*1]*/ { one }
+  ''');
+
+    var ranges = code.ranges.ranges;
+    var originRange = ranges[0];
+    var targetRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(result.targetRange, rangeOfString(code, 'enum A { one }'));
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    var code = TestCode.parse('''
+void f() {
+  A a = ./*[0*/gett^er/*0]*/;
+}
+
+extension type /*[1*/A/*1]*/(int x) {
+  static A get getter => A(1);
+}
+  ''');
+
+    var ranges = code.ranges.ranges;
+    var originRange = ranges[0];
+    var targetRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(
+      result.targetRange,
+      rangeOfPattern(
+        code,
+        RegExp(r'extension type A\(int x\) \{.*\}', dotAll: true),
+      ),
+    );
+  }
+
   Future<void> test_doubleLiteral() async {
     var code = TestCode.parse('''
 const a = [!12^.3!];

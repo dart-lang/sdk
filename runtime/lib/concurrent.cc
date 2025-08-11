@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
+#include "vm/heap/safepoint.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -67,7 +68,8 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Initialize,
 DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Wait,
                         void,
                         (Dart_Handle condvar_handle,
-                         Dart_Handle mutex_handle)) {
+                         Dart_Handle mutex_handle,
+                         intptr_t timeout)) {
   Mutex* mutex;
   Dart_Handle result_mutex = Dart_GetNativeInstanceField(
       mutex_handle, kCondVarNativeField, reinterpret_cast<intptr_t*>(&mutex));
@@ -81,7 +83,7 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Wait,
   if (Dart_IsError(result_condvar)) {
     Dart_PropagateError(result_condvar);
   }
-  condvar->Wait(mutex);
+  condvar->Wait(mutex, timeout);
 }
 
 DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Notify,
@@ -108,6 +110,47 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_NotifyAll,
     Dart_PropagateError(result_condvar);
   }
   condvar->NotifyAll();
+}
+
+DEFINE_FFI_NATIVE_ENTRY(IsolateGroup_runSync,
+                        Dart_Handle,
+                        (Dart_Handle closure)) {
+  Thread* current_thread = Thread::Current();
+  ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+  Isolate* saved_isolate = current_thread->isolate();
+  current_thread->ExitSafepointFromNative();
+  current_thread->set_execution_state(Thread::kThreadInVM);
+  Thread::ExitIsolate(/*isolate_shutdown=*/false);
+
+  Thread::EnterIsolateGroupAsMutator(current_thread->isolate_group(),
+                                     /*bypass_safepoint=*/false);
+
+  auto mutator_thread = Thread::Current();
+
+  ApiState* state = mutator_thread->isolate_group()->api_state();
+  ASSERT(state != nullptr);
+  mutator_thread->EnterApiScope();
+  ASSERT(mutator_thread->execution_state() == Thread::kThreadInVM);
+
+  Dart_PersistentHandle persistent_result;
+  {
+    TransitionVMToNative transition(mutator_thread);
+    Dart_Handle result = Dart_InvokeClosure(closure, 0, nullptr);
+    persistent_result = Dart_NewPersistentHandle(result);
+  }
+
+  mutator_thread->ExitApiScope();
+
+  Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+  Thread::EnterIsolate(saved_isolate);
+
+  Thread* T = Thread::Current();
+  T->set_execution_state(Thread::kThreadInNative);
+  T->EnterSafepoint();
+
+  Dart_Handle local_handle = Dart_HandleFromPersistent(persistent_result);
+  Dart_DeletePersistentHandle(persistent_result);
+  return local_handle;
 }
 
 }  // namespace dart

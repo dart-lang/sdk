@@ -95,9 +95,8 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardObjectId) {
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
-  Isolate* isolate = Isolate::Current();
-  isolate->set_forward_table_new(new WeakTable());
-  isolate->set_forward_table_old(new WeakTable());
+  thread->set_forward_table_new(new WeakTable());
+  thread->set_forward_table_old(new WeakTable());
 
   const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
   const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
@@ -105,11 +104,11 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
 
   intptr_t id = 42;
   intptr_t no_id = 0;
-  isolate->forward_table_old()->SetValueExclusive(before_obj.ptr(), id);
+  thread->forward_table_old()->SetValueExclusive(before_obj.ptr(), id);
   EXPECT_EQ(id,
-            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+            thread->forward_table_old()->GetValueExclusive(before_obj.ptr()));
   EXPECT_EQ(no_id,
-            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+            thread->forward_table_old()->GetValueExclusive(after_obj.ptr()));
 
   Become become;
   become.Add(before_obj, after_obj);
@@ -117,12 +116,12 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
   EXPECT_EQ(id,
-            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+            thread->forward_table_old()->GetValueExclusive(before_obj.ptr()));
   EXPECT_EQ(id,
-            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+            thread->forward_table_old()->GetValueExclusive(after_obj.ptr()));
 
-  isolate->set_forward_table_new(nullptr);
-  isolate->set_forward_table_old(nullptr);
+  thread->set_forward_table_new(nullptr);
+  thread->set_forward_table_old(nullptr);
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {

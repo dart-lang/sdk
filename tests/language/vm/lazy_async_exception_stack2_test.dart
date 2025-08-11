@@ -27,13 +27,9 @@ test1() async {
   } catch (e, st) {
     // st has foo,2,3 and not bar,2,3.
     expect(
-        h.stringContainsInOrder(st.toString(), [
-          'foo3',
-          'foo2',
-          'foo',
-          'test1',
-        ]),
-        isTrue);
+      h.stringContainsInOrder(st.toString(), ['foo3', 'foo2', 'foo', 'test1']),
+      isTrue,
+    );
     expect(st.toString().contains('bar'), isFalse);
   }
 
@@ -42,13 +38,9 @@ test1() async {
   } catch (e, st) {
     // st has bar,2,3 but not foo,2,3
     expect(
-        h.stringContainsInOrder(st.toString(), [
-          'bar3',
-          'bar2',
-          'bar',
-          'test1',
-        ]),
-        isTrue);
+      h.stringContainsInOrder(st.toString(), ['bar3', 'bar2', 'bar', 'test1']),
+      isTrue,
+    );
     expect(st.toString().contains('foo'), isFalse);
   }
 }
@@ -64,13 +56,9 @@ test2() async {
   } catch (e, st) {
     // st has foo,2,3 but not bar,2,3
     expect(
-        h.stringContainsInOrder(st.toString(), [
-          'foo3',
-          'foo2',
-          'foo',
-          'test2',
-        ]),
-        isTrue);
+      h.stringContainsInOrder(st.toString(), ['foo3', 'foo2', 'foo', 'test2']),
+      isTrue,
+    );
     expect(st.toString().contains('bar'), isFalse);
   }
 
@@ -79,13 +67,9 @@ test2() async {
   } catch (e, st) {
     // st has bar,2,3 but not foo,2,3
     expect(
-        h.stringContainsInOrder(st.toString(), [
-          'bar3',
-          'bar2',
-          'bar',
-          'test2',
-        ]),
-        isTrue);
+      h.stringContainsInOrder(st.toString(), ['bar3', 'bar2', 'bar', 'test2']),
+      isTrue,
+    );
     expect(st.toString().contains('foo'), isFalse);
   }
 }

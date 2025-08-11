@@ -20,8 +20,10 @@ void test() {
   InstanceMirror im1 = reflect(null);
   Expect.equals(cm, im1.type);
   if (!unsoundNullSafety) {
-    Expect.throwsTypeError(() => im1.invoke(const Symbol("=="), [null]),
-        'null not assignable to Object');
+    Expect.throwsTypeError(
+      () => im1.invoke(const Symbol("=="), [null]),
+      'null not assignable to Object',
+    );
   } else {
     Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);
   }
@@ -31,8 +33,10 @@ void test() {
   InstanceMirror im2 = reflect(obj);
   Expect.equals(cm, im2.type);
   if (!unsoundNullSafety) {
-    Expect.throwsTypeError(() => im2.invoke(const Symbol("=="), [null]),
-        'null not assignable to Object');
+    Expect.throwsTypeError(
+      () => im2.invoke(const Symbol("=="), [null]),
+      'null not assignable to Object',
+    );
   } else {
     Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);
   }
@@ -44,14 +48,18 @@ void test() {
   Expect.equals('Null', nullMirror.getField(#runtimeType).reflectee.toString());
   if (!unsoundNullSafety) {
     Expect.throwsTypeError(
-        () => nullMirror.invoke(#==, [null]), 'null not assignable to Object');
+      () => nullMirror.invoke(#==, [null]),
+      'null not assignable to Object',
+    );
   } else {
     Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
   }
   Expect.isFalse(nullMirror.invoke(#==, [new Object()]).reflectee);
   Expect.equals('null', nullMirror.invoke(#toString, []).reflectee);
   Expect.throwsNoSuchMethodError(
-      () => nullMirror.invoke(#notDefined, []), 'noSuchMethod');
+    () => nullMirror.invoke(#notDefined, []),
+    'noSuchMethod',
+  );
 
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);
@@ -63,8 +71,9 @@ void test() {
   LibraryMirror? coreLibrary = libraries[Uri.parse('dart:core')];
   if (coreLibrary == null) {
     // In minified mode we don't preserve the URIs.
-    coreLibrary = libraries.values
-        .firstWhere((LibraryMirror lm) => lm.simpleName == #dart.core);
+    coreLibrary = libraries.values.firstWhere(
+      (LibraryMirror lm) => lm.simpleName == #dart.core,
+    );
     Uri uri = coreLibrary.uri;
     Expect.equals("https", uri.scheme);
     Expect.equals("dartlang.org", uri.host);

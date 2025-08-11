@@ -550,10 +550,10 @@ class _WebSocketTransformerImpl
       response.headers.add("Sec-WebSocket-Extensions", info.headerValue);
       var serverNoContextTakeover =
           (hv.parameters.containsKey(_serverNoContextTakeover) &&
-              compression.serverNoContextTakeover);
+          compression.serverNoContextTakeover);
       var clientNoContextTakeover =
           (hv.parameters.containsKey(_clientNoContextTakeover) &&
-              compression.clientNoContextTakeover);
+          compression.clientNoContextTakeover);
       var deflate = _WebSocketPerMessageDeflate(
         serverNoContextTakeover: serverNoContextTakeover,
         clientNoContextTakeover: clientNoContextTakeover,
@@ -618,17 +618,15 @@ class _WebSocketPerMessageDeflate {
     this.serverSide = false,
   });
 
-  RawZLibFilter _ensureDecoder() =>
-      decoder ??= RawZLibFilter.inflateFilter(
-        windowBits: serverSide ? clientMaxWindowBits : serverMaxWindowBits,
-        raw: true,
-      );
+  RawZLibFilter _ensureDecoder() => decoder ??= RawZLibFilter.inflateFilter(
+    windowBits: serverSide ? clientMaxWindowBits : serverMaxWindowBits,
+    raw: true,
+  );
 
-  RawZLibFilter _ensureEncoder() =>
-      encoder ??= RawZLibFilter.deflateFilter(
-        windowBits: serverSide ? serverMaxWindowBits : clientMaxWindowBits,
-        raw: true,
-      );
+  RawZLibFilter _ensureEncoder() => encoder ??= RawZLibFilter.deflateFilter(
+    windowBits: serverSide ? serverMaxWindowBits : clientMaxWindowBits,
+    raw: true,
+  );
 
   Uint8List processIncomingMessage(List<int> msg) {
     var decoder = _ensureDecoder();
@@ -941,13 +939,12 @@ class _WebSocketConsumer implements StreamConsumer {
   StreamController _ensureController() {
     var controller = _controller;
     if (controller != null) return controller;
-    controller =
-        _controller = StreamController(
-          sync: true,
-          onPause: _onPause,
-          onResume: _onResume,
-          onCancel: _onListen,
-        );
+    controller = _controller = StreamController(
+      sync: true,
+      onPause: _onPause,
+      onResume: _onResume,
+      onCancel: _onListen,
+    );
     var stream = controller.stream.transform(
       _WebSocketOutgoingTransformer(webSocket),
     );
@@ -993,15 +990,14 @@ class _WebSocketConsumer implements StreamConsumer {
     }
     _ensureController();
     var completer = _completer = Completer();
-    var subscription =
-        _subscription = stream.listen(
-          (data) {
-            _controller!.add(data);
-          },
-          onDone: _done,
-          onError: _done,
-          cancelOnError: true,
-        );
+    var subscription = _subscription = stream.listen(
+      (data) {
+        _controller!.add(data);
+      },
+      onDone: _done,
+      onError: _done,
+      cancelOnError: true,
+    );
     if (_issuedPause) {
       subscription.pause();
       _issuedPause = false;
@@ -1243,51 +1239,49 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _deflate = deflate;
 
     var transformer = _WebSocketProtocolTransformer(_serverSide, deflate);
-    var subscription =
-        _subscription = transformer
-            .bind(_socket)
-            .listen(
-              (data) {
-                if (data is _WebSocketPing) {
-                  if (!_writeClosed)
-                    _consumer.add(_WebSocketPong(data.payload));
-                } else if (data is _WebSocketPong) {
-                  // Simply set pingInterval, as it'll cancel any timers.
-                  pingInterval = _pingInterval;
-                } else {
-                  _controller.add(data);
-                }
-              },
-              onError: (Object error, StackTrace stackTrace) {
-                _closeTimer?.cancel();
-                if (error is FormatException) {
-                  _close(WebSocketStatus.invalidFramePayloadData);
-                } else {
-                  _close(WebSocketStatus.protocolError);
-                }
-                // An error happened, set the close code set above.
-                _closeCode = _outCloseCode;
-                _closeReason = _outCloseReason;
-                _controller.close();
-              },
-              onDone: () {
-                _closeTimer?.cancel();
-                if (_readyState == WebSocket.open) {
-                  _readyState = WebSocket.closing;
-                  if (!_isReservedStatusCode(transformer.closeCode)) {
-                    _close(transformer.closeCode, transformer.closeReason);
-                  } else {
-                    _close();
-                  }
-                  _readyState = WebSocket.closed;
-                }
-                // Protocol close, use close code from transformer.
-                _closeCode = transformer.closeCode;
-                _closeReason = transformer.closeReason;
-                _controller.close();
-              },
-              cancelOnError: true,
-            );
+    var subscription = _subscription = transformer
+        .bind(_socket)
+        .listen(
+          (data) {
+            if (data is _WebSocketPing) {
+              if (!_writeClosed) _consumer.add(_WebSocketPong(data.payload));
+            } else if (data is _WebSocketPong) {
+              // Simply set pingInterval, as it'll cancel any timers.
+              pingInterval = _pingInterval;
+            } else {
+              _controller.add(data);
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            _closeTimer?.cancel();
+            if (error is FormatException) {
+              _close(WebSocketStatus.invalidFramePayloadData);
+            } else {
+              _close(WebSocketStatus.protocolError);
+            }
+            // An error happened, set the close code set above.
+            _closeCode = _outCloseCode;
+            _closeReason = _outCloseReason;
+            _controller.close();
+          },
+          onDone: () {
+            _closeTimer?.cancel();
+            if (_readyState == WebSocket.open) {
+              _readyState = WebSocket.closing;
+              if (!_isReservedStatusCode(transformer.closeCode)) {
+                _close(transformer.closeCode, transformer.closeReason);
+              } else {
+                _close();
+              }
+              _readyState = WebSocket.closed;
+            }
+            // Protocol close, use close code from transformer.
+            _closeCode = transformer.closeCode;
+            _closeReason = transformer.closeReason;
+            _controller.close();
+          },
+          cancelOnError: true,
+        );
     subscription.pause();
     _controller
       ..onListen = subscription.resume

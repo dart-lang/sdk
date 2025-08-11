@@ -18,18 +18,8 @@ namespace dart {
 namespace bin {
 
 bool FDUtils::SetCloseOnExec(intptr_t fd) {
-  intptr_t status;
-  status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFD));
-  if (status < 0) {
-    perror("fcntl(F_GETFD) failed");
-    return false;
-  }
-  status |= FD_CLOEXEC;
-  if (NO_RETRY_EXPECTED(fcntl(fd, F_SETFD, status)) < 0) {
-    perror("fcntl(F_SETFD, FD_CLOEXEC) failed");
-    return false;
-  }
-  return true;
+  FATAL("Use O_CLOEXEC instead");
+  return false;
 }
 
 static bool SetBlockingHelper(intptr_t fd, bool blocking) {

@@ -36,13 +36,13 @@ extension type E(core::int x) {
 }
 static extension-type-member method E|constructor#(core::int x) → self::E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(x);
-static extension-type-member method E|constructor#testPositional([core::int x = null, core::int y = null]) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#testPositional([erroneously-initialized core::int x = null, erroneously-initialized core::int y = null]) → self::E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E|constructor#_#testPositional#tearOff([core::int x, core::int y]) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#testPositional#tearOff([core::int x, core::int y]) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#testPositional(x, y);
-static extension-type-member method E|constructor#testNamed({core::int x = null, core::String y = null}) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#testNamed({erroneously-initialized core::int x = null, erroneously-initialized core::String y = null}) → self::E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E|constructor#_#testNamed#tearOff({core::int x, core::String y}) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#testNamed#tearOff({core::int x, core::String y}) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#testNamed(x: x, y: y);

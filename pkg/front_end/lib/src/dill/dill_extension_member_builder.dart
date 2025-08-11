@@ -3,7 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 
+import '../base/uri_offset.dart';
+import '../builder/method_builder.dart';
+import '../builder/property_builder.dart';
+import 'dill_builder_mixins.dart';
 import 'dill_extension_builder.dart';
 import 'dill_member_builder.dart';
 
@@ -18,81 +23,82 @@ abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExternal => member.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   String get name => _descriptor.name.text;
-
-  @override
-  ProcedureKind? get kind {
-    switch (_descriptor.kind) {
-      case ExtensionMemberKind.Method:
-        return ProcedureKind.Method;
-      case ExtensionMemberKind.Getter:
-        return ProcedureKind.Getter;
-      case ExtensionMemberKind.Operator:
-        return ProcedureKind.Operator;
-      case ExtensionMemberKind.Setter:
-        return ProcedureKind.Setter;
-      case ExtensionMemberKind.Field:
-    }
-    return null;
-  }
 }
 
-class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
-  final Field field;
+class DillExtensionFieldBuilder extends DillExtensionMemberBuilder
+    with DillFieldBuilderMixin
+    implements PropertyBuilder {
+  final Field _field;
 
-  DillExtensionFieldBuilder(this.field, super.descriptor, super.libraryBuilder,
+  DillExtensionFieldBuilder(this._field, super.descriptor, super.libraryBuilder,
       super.declarationBuilder);
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => field;
+  Member get member => _field;
 
   @override
-  Member get readTarget => field;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => field.getterReference;
-
-  @override
-  Member? get writeTarget => isAssignable ? field : null;
+  Member get readTarget => _field;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => field.setterReference;
+  Reference get readTargetReference => _field.getterReference;
 
   @override
-  Member get invokeTarget => field;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => field.getterReference;
-
-  @override
-  bool get isField => true;
-
-  @override
-  bool get isAssignable => field.hasSetter;
+  Member? get writeTarget => _field.hasSetter ? _field : null;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isProperty => true;
+  Reference? get writeTargetReference => _field.setterReference;
+
+  @override
+  Member get invokeTarget => _field;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => field.isEnumElement;
+  Reference get invokeTargetReference => _field.getterReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isEnumElement => _field.isEnumElement;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
-      [field.getterReference, if (field.hasSetter) field.setterReference!];
+      [_field.getterReference, if (_field.hasSetter) _field.setterReference!];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  FieldQuality get fieldQuality => FieldQuality.Concrete;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  GetterQuality get getterQuality => GetterQuality.Implicit;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength? get setterUriOffset => hasSetter
+      ? new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length)
+      : null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasConstField => _field.isConst;
+
+  @override
+  SetterQuality get setterQuality =>
+      _field.hasSetter ? SetterQuality.Implicit : SetterQuality.Absent;
 }
 
-class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
+class DillExtensionSetterBuilder extends DillExtensionMemberBuilder
+    with DillSetterBuilderMixin
+    implements PropertyBuilder {
   final Procedure procedure;
 
   DillExtensionSetterBuilder(this.procedure, super.descriptor,
@@ -100,18 +106,8 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
       : assert(descriptor.kind == ExtensionMemberKind.Setter);
 
   @override
-  bool get isProperty => true;
-
-  @override
   // Coverage-ignore(suite): Not run.
   Member get member => procedure;
-
-  @override
-  Member? get readTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference => null;
 
   @override
   Member get writeTarget => procedure;
@@ -122,179 +118,173 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member? get invokeTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get invokeTargetReference => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  FieldQuality get fieldQuality => FieldQuality.Absent;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  GetterQuality get getterQuality => GetterQuality.Absent;
+
+  @override
+  SetterQuality get setterQuality =>
+      procedure.isExternal ? SetterQuality.External : SetterQuality.Concrete;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get setterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
-class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
-  final Procedure procedure;
+class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
+    with DillGetterBuilderMixin
+    implements PropertyBuilder {
+  final Procedure _procedure;
 
-  DillExtensionGetterBuilder(this.procedure, super.descriptor,
+  DillExtensionGetterBuilder(this._procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Getter);
 
   @override
-  bool get isProperty => true;
+  // Coverage-ignore(suite): Not run.
+  Member get member => _procedure;
+
+  @override
+  Member get readTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => procedure;
+  Reference get readTargetReference => _procedure.reference;
 
   @override
-  Member get readTarget => procedure;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => procedure.reference;
+  Member get invokeTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
+  Reference get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
+  Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
-  Member get invokeTarget => procedure;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => procedure.reference;
+  FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
+  GetterQuality get getterQuality =>
+      _procedure.isExternal ? GetterQuality.External : GetterQuality.Concrete;
+
+  @override
+  SetterQuality get setterQuality => SetterQuality.Absent;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+  UriOffsetLength get getterUriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
-class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
-  final Procedure procedure;
+class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
+    with DillOperatorBuilderMixin
+    implements MethodBuilder {
+  final Procedure _procedure;
 
-  DillExtensionOperatorBuilder(this.procedure, super.descriptor,
+  DillExtensionOperatorBuilder(this._procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Operator);
 
   @override
-  bool get isProperty => false;
+  // Coverage-ignore(suite): Not run.
+  bool get isAbstract => _procedure.isAbstract;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => procedure;
+  Member get member => _procedure;
 
   @override
-  Member? get readTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference => null;
+  Member get invokeTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
+  Reference get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
-
-  @override
-  Member get invokeTarget => procedure;
+  Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => procedure.reference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
+      _descriptor.name == unaryMinusName ? 1 : _descriptor.name.text.length);
 }
 
-class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
-  final Procedure procedure;
+class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
+    with DillMethodBuilderMixin
+    implements MethodBuilder {
+  final Procedure _procedure;
 
-  DillExtensionStaticMethodBuilder(this.procedure, super.descriptor,
+  DillExtensionStaticMethodBuilder(this._procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Method),
         assert(descriptor.isStatic);
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isProperty => false;
+  bool get isAbstract => _procedure.isAbstract;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => procedure;
+  Member get member => _procedure;
 
   @override
-  Member get readTarget => procedure;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => procedure.reference;
+  Member get readTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
+  Reference get readTargetReference => _procedure.reference;
+
+  @override
+  Member get invokeTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
-
-  @override
-  Member get invokeTarget => procedure;
+  Reference get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => procedure.reference;
+  Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }
 
-class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
-  final Procedure procedure;
+class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
+    with DillMethodBuilderMixin
+    implements MethodBuilder {
+  final Procedure _procedure;
 
   final Procedure _extensionTearOff;
 
-  DillExtensionInstanceMethodBuilder(this.procedure, super.descriptor,
+  DillExtensionInstanceMethodBuilder(this._procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder, this._extensionTearOff)
       : assert(descriptor.kind == ExtensionMemberKind.Method),
         assert(!descriptor.isStatic);
 
   @override
-  bool get isProperty => false;
+  // Coverage-ignore(suite): Not run.
+  bool get isAbstract => _procedure.isAbstract;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => procedure;
+  Member get member => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
-      [procedure.reference, _extensionTearOff.reference];
+      [_procedure.reference, _extensionTearOff.reference];
 
   @override
   Member get readTarget => _extensionTearOff;
@@ -304,21 +294,14 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
   Reference get readTargetReference => _extensionTearOff.reference;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
+  Member get invokeTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
-
-  @override
-  Member get invokeTarget => procedure;
+  Reference get invokeTargetReference => _procedure.reference;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => procedure.reference;
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, _descriptor.name.text.length);
 }

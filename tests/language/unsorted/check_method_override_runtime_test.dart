@@ -10,10 +10,7 @@ class A {
   foo(var a, [x, y]) {}
 }
 
-class C extends A {
-
-
-}
+class C extends A {}
 
 main() {
   new A().foo(2);

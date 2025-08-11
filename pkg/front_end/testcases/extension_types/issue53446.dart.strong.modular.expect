@@ -27,7 +27,7 @@ static extension-type-member method A|constructor#(core::num _it) → self::A% /
   lowered final self::A% /* erasure=core::num, declared=! */ #this = _it;
   return #this;
 }
-static extension-type-member method A|constructor#_#new#tearOff(core::num _it) → self::A% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method A|constructor#_#new#tearOff(core::num _it) → self::A% /* erasure=core::num, declared=! */
   return self::A|constructor#(_it);
 static extension-type-member method A|foo(lowered final self::A% /* erasure=core::num, declared=! */ #this) → void {
   if((#this as{Unchecked} core::num) is core::int) {
@@ -40,7 +40,7 @@ static extension-type-member method B|constructor#(core::num _it) → self::B% /
   lowered final self::B% /* erasure=core::num, declared=! */ #this = _it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff(core::num _it) → self::B% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff(core::num _it) → self::B% /* erasure=core::num, declared=! */
   return self::B|constructor#(_it);
 static extension-type-member method B|foo(lowered final self::B% /* erasure=core::num, declared=! */ #this) → void {
   if((#this as{Unchecked} core::num) is core::int) {
@@ -53,7 +53,7 @@ static extension-type-member method C|constructor#(core::num _it2) → self::C% 
   lowered final self::C% /* erasure=core::num, declared=! */ #this = _it2;
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff(core::num _it2) → self::C% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method C|constructor#_#new#tearOff(core::num _it2) → self::C% /* erasure=core::num, declared=! */
   return self::C|constructor#(_it2);
 static extension-type-member method C|foo(lowered final self::C% /* erasure=core::num, declared=! */ #this) → void {
   if((#this as{Unchecked} core::num) is core::int) {

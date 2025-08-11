@@ -25,51 +25,37 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_dynamic_typeParameter_hasBound_dynamic() {
     var T = typeParameter('T', bound: dynamicType);
 
-    _assertDynamicBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertDynamicBounded(typeParameterTypeNone(T));
   }
 
   test_dynamic_typeParameter_hasBound_notDynamic() {
     var T = typeParameter('T', bound: intNone);
 
-    _assertNotDynamicBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotDynamicBounded(typeParameterTypeNone(T));
   }
 
   test_dynamic_typeParameter_hasPromotedBound_dynamic() {
     var T = typeParameter('T');
 
-    _assertDynamicBounded(
-      typeParameterTypeNone(T, promotedBound: dynamicType),
-    );
+    _assertDynamicBounded(typeParameterTypeNone(T, promotedBound: dynamicType));
   }
 
   test_dynamic_typeParameter_hasPromotedBound_notDynamic() {
     var T = typeParameter('T');
 
-    _assertNotDynamicBounded(
-      typeParameterTypeNone(T, promotedBound: intNone),
-    );
+    _assertNotDynamicBounded(typeParameterTypeNone(T, promotedBound: intNone));
   }
 
   test_dynamic_typeParameter_noBound() {
     var T = typeParameter('T');
 
-    _assertNotDynamicBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotDynamicBounded(typeParameterTypeNone(T));
   }
 
   test_functionType() {
-    _assertNotDynamicBounded(
-      functionTypeNone(returnType: voidNone),
-    );
+    _assertNotDynamicBounded(functionTypeNone(returnType: voidNone));
 
-    _assertNotDynamicBounded(
-      functionTypeNone(returnType: dynamicType),
-    );
+    _assertNotDynamicBounded(functionTypeNone(returnType: dynamicType));
   }
 
   test_interfaceType() {
@@ -102,14 +88,9 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic_typeParameter_hasBound_functionType_none() {
-    var T = typeParameter(
-      'T',
-      bound: functionTypeNone(returnType: voidNone),
-    );
+    var T = typeParameter('T', bound: functionTypeNone(returnType: voidNone));
 
-    _assertFunctionBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertFunctionBounded(typeParameterTypeNone(T));
   }
 
   test_dynamic_typeParameter_hasBound_functionType_question() {
@@ -118,17 +99,13 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
       bound: functionTypeQuestion(returnType: voidNone),
     );
 
-    _assertNotFunctionBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotFunctionBounded(typeParameterTypeNone(T));
   }
 
   test_dynamic_typeParameter_hasBound_notFunction() {
     var T = typeParameter('T', bound: intNone);
 
-    _assertNotFunctionBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotFunctionBounded(typeParameterTypeNone(T));
   }
 
   test_dynamic_typeParameter_hasPromotedBound_functionType_none() {
@@ -137,9 +114,7 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     _assertFunctionBounded(
       typeParameterTypeNone(
         T,
-        promotedBound: functionTypeNone(
-          returnType: voidNone,
-        ),
+        promotedBound: functionTypeNone(returnType: voidNone),
       ),
     );
   }
@@ -150,9 +125,7 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     _assertNotFunctionBounded(
       typeParameterTypeNone(
         T,
-        promotedBound: functionTypeQuestion(
-          returnType: voidNone,
-        ),
+        promotedBound: functionTypeQuestion(returnType: voidNone),
       ),
     );
   }
@@ -160,30 +133,20 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_dynamic_typeParameter_hasPromotedBound_notFunction() {
     var T = typeParameter('T');
 
-    _assertNotFunctionBounded(
-      typeParameterTypeNone(T, promotedBound: intNone),
-    );
+    _assertNotFunctionBounded(typeParameterTypeNone(T, promotedBound: intNone));
   }
 
   test_dynamic_typeParameter_noBound() {
     var T = typeParameter('T');
 
-    _assertNotFunctionBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotFunctionBounded(typeParameterTypeNone(T));
   }
 
   test_functionType() {
-    _assertFunctionBounded(
-      functionTypeNone(returnType: voidNone),
-    );
-    _assertNotFunctionBounded(
-      functionTypeQuestion(returnType: voidNone),
-    );
+    _assertFunctionBounded(functionTypeNone(returnType: voidNone));
+    _assertNotFunctionBounded(functionTypeQuestion(returnType: voidNone));
 
-    _assertFunctionBounded(
-      functionTypeNone(returnType: dynamicType),
-    );
+    _assertFunctionBounded(functionTypeNone(returnType: dynamicType));
   }
 
   test_interfaceType() {
@@ -214,19 +177,13 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_dynamic_typeParameter_hasPromotedBound_notDynamic() {
     var T = typeParameter('T');
 
-    _assertNotInvalidBounded(
-      typeParameterTypeNone(T, promotedBound: intNone),
-    );
+    _assertNotInvalidBounded(typeParameterTypeNone(T, promotedBound: intNone));
   }
 
   test_functionType() {
-    _assertNotInvalidBounded(
-      functionTypeNone(returnType: voidNone),
-    );
+    _assertNotInvalidBounded(functionTypeNone(returnType: voidNone));
 
-    _assertNotInvalidBounded(
-      functionTypeNone(returnType: invalidType),
-    );
+    _assertNotInvalidBounded(functionTypeNone(returnType: invalidType));
   }
 
   test_interfaceType() {
@@ -246,33 +203,25 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_typeParameter_hasBound_invalid() {
     var T = typeParameter('T', bound: invalidType);
 
-    _assertInvalidBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertInvalidBounded(typeParameterTypeNone(T));
   }
 
   test_typeParameter_hasBound_notInvalid() {
     var T = typeParameter('T', bound: intNone);
 
-    _assertNotInvalidBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotInvalidBounded(typeParameterTypeNone(T));
   }
 
   test_typeParameter_hasPromotedBound_invalidType() {
     var T = typeParameter('T');
 
-    _assertInvalidBounded(
-      typeParameterTypeNone(T, promotedBound: invalidType),
-    );
+    _assertInvalidBounded(typeParameterTypeNone(T, promotedBound: invalidType));
   }
 
   test_typeParameter_noBound() {
     var T = typeParameter('T');
 
-    _assertNotInvalidBounded(
-      typeParameterTypeNone(T),
-    );
+    _assertNotInvalidBounded(typeParameterTypeNone(T));
   }
 
   test_void() {

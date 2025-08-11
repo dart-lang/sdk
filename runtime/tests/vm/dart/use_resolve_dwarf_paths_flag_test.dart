@@ -19,14 +19,19 @@ main(List<String> args) async {
   if (Platform.isAndroid) {
     return;
   }
+  if (Platform.script.toString().endsWith(".dll")) {
+    return;
+  }
 
   final isDwarfStackTraces = StackTrace.current.toString().contains('*** ***');
   if (!isDwarfStackTraces) {
     return;
   }
 
-  final dwarfPath =
-      p.join(Platform.environment['TEST_COMPILATION_DIR']!, 'debug.so');
+  final dwarfPath = p.join(
+    Platform.environment['TEST_COMPILATION_DIR']!,
+    'debug.so',
+  );
   final dwarf = Dwarf.fromFile(dwarfPath)!;
 
   final stack = StackTrace.current.toString();
@@ -51,7 +56,9 @@ void checkDwarfInfo(Dwarf dwarf, Iterable<PCOffset> offsets) {
       }
       if (filenames.add(filename)) {
         Expect.isTrue(
-            File(filename).existsSync(), 'File $filename does not exist.');
+          File(filename).existsSync(),
+          'File $filename does not exist.',
+        );
       }
     }
   }
@@ -60,6 +67,9 @@ void checkDwarfInfo(Dwarf dwarf, Iterable<PCOffset> offsets) {
     print('- ${filename}');
   }
   Expect.isNotEmpty(filenames);
-  Expect.isNotEmpty(filenames
-      .where((p) => p.endsWith('use_resolve_dwarf_paths_flag_test.dart')));
+  Expect.isNotEmpty(
+    filenames.where(
+      (p) => p.endsWith('use_resolve_dwarf_paths_flag_test.dart'),
+    ),
+  );
 }

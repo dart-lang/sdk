@@ -17,20 +17,20 @@ void main() {
 @reflectiveTest
 class ReplaceIfElseWithConditionalTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
+  AssistKind get kind => DartAssistKind.replaceIfElseWithConditional;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''
 void f() {
   int vvv;
-  if (true) {
+  i^f (true) {
     vvv = 111;
   } else {
     vvv = 222;
   }
 }
 ''');
-    await assertHasAssistAt('if (true)', '''
+    await assertHasAssist('''
 void f() {
   int vvv;
   vvv = true ? 111 : 222;
@@ -43,12 +43,12 @@ void f() {
 void f() {
   if (true) {
     print(42);
-  } else {
+  } el^se {
     return;
   }
 }
 ''');
-    await assertNoAssistAt('else');
+    await assertNoAssist();
   }
 
   Future<void> test_ifCasePattern() async {
@@ -56,30 +56,30 @@ void f() {
 f() {
   var json = [1, 2, 3];
   int vvv;
-  if (json case [3, 4]) {
+  i^f (json case [3, 4]) {
     vvv = 111;
   } else {
     vvv = 222;
   }
 }
 ''');
-    await assertNoAssistAt('if (json case [3, 4])');
+    await assertNoAssist();
   }
 
   Future<void> test_notIfStatement() async {
     await resolveTestCode('''
 void f() {
-  print(0);
+  p^rint(0);
 }
 ''');
-    await assertNoAssistAt('print');
+    await assertNoAssist();
   }
 
   Future<void> test_notSingleStatement() async {
     await resolveTestCode('''
 void f() {
   int vvv;
-  if (true) {
+  i^f (true) {
     print(0);
     vvv = 111;
   } else {
@@ -88,20 +88,20 @@ void f() {
   }
 }
 ''');
-    await assertNoAssistAt('if (true)');
+    await assertNoAssist();
   }
 
   Future<void> test_return_expression_expression() async {
     await resolveTestCode('''
 int f() {
-  if (true) {
+  i^f (true) {
     return 111;
   } else {
     return 222;
   }
 }
 ''');
-    await assertHasAssistAt('if (true)', '''
+    await assertHasAssist('''
 int f() {
   return true ? 111 : 222;
 }
@@ -112,27 +112,27 @@ int f() {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f(bool c) {
-  if (c) {
+  i^f (c) {
     return 111;
   } else {
     return;
   }
 }
 ''');
-    await assertNoAssistAt('if (c)');
+    await assertNoAssist();
   }
 
   Future<void> test_return_nothing_expression() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f(bool c) {
-  if (c) {
+  ^if (c) {
     return;
   } else {
     return 222;
   }
 }
 ''');
-    await assertNoAssistAt('if (c)');
+    await assertNoAssist();
   }
 }

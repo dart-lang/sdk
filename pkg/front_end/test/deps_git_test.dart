@@ -14,7 +14,7 @@ import 'package:front_end/src/base/import_chains.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/ticker.dart';
 import 'package:front_end/src/base/uri_translator.dart';
-import 'package:front_end/src/builder/library_builder.dart';
+import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/dill/dill_target.dart';

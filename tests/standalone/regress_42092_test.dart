@@ -9,12 +9,9 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 Future<void> main() async {
-  final process = await Process.start(
-    Platform.resolvedExecutable,
-    [
-      Platform.script.resolve('regress_42092_script.dart').toString(),
-    ],
-  );
+  final process = await Process.start(Platform.resolvedExecutable, [
+    Platform.script.resolve('regress_42092_script.dart').toString(),
+  ]);
   late StreamSubscription sub;
   int count = 0;
   sub = process.stdout.transform(Utf8Decoder()).listen((event) {

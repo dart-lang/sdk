@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionFromDeferredLibraryTest);
     defineReflectiveTests(
-        NonConstantCaseExpressionFromDeferredLibraryTest_Language219);
+      NonConstantCaseExpressionFromDeferredLibraryTest_Language219,
+    );
   });
 }
 
@@ -28,7 +29,8 @@ class NonConstantCaseExpressionFromDeferredLibraryTest
 const int c = 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 
 void f(int e) {
@@ -37,9 +39,15 @@ void f(int e) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY, 81, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY,
+          81,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -57,7 +65,8 @@ class NonConstantCaseExpressionFromDeferredLibraryTest_Language219
 const int c = 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 
 void f(int e) {
@@ -66,13 +75,16 @@ void f(int e) {
       break;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
           74,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -85,17 +97,19 @@ mixin NonConstantCaseExpressionFromDeferredLibraryTestCases
 const int c = 0;
 ''');
 
-    ErrorCode expectedErrorCode;
+    DiagnosticCode expectedDiagnosticCode;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrorCode = CompileTimeErrorCode
-            .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        expectedDiagnosticCode =
+            CompileTimeErrorCode
+                .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
       case _Variant.patterns:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
     }
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 
 void f(int e) {
@@ -104,9 +118,9 @@ void f(int e) {
       break;
   }
 }
-''', [
-      error(expectedErrorCode, 74, 1),
-    ]);
+''',
+      [error(expectedDiagnosticCode, 74, 1)],
+    );
   }
 
   test_simple_typeLiteral() async {
@@ -114,17 +128,19 @@ void f(int e) {
 class A {}
 ''');
 
-    ErrorCode expectedErrorCode;
+    DiagnosticCode expectedDiagnosticCode;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrorCode = CompileTimeErrorCode
-            .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        expectedDiagnosticCode =
+            CompileTimeErrorCode
+                .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
       case _Variant.patterns:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
     }
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 
 void f(Object? x) {
@@ -133,9 +149,9 @@ void f(Object? x) {
       break;
   }
 }
-''', [
-      error(expectedErrorCode, 78, 1),
-    ]);
+''',
+      [error(expectedDiagnosticCode, 78, 1)],
+    );
   }
 }
 

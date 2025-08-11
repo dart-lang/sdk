@@ -221,10 +221,7 @@ enum DocDirectiveType {
   ///
   /// See documentation at
   /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#category-and-subcategory---categories>.
-  category(
-    'category',
-    restParametersAllowed: true,
-  ),
+  category('category', restParametersAllowed: true),
 
   /// The end tag for the [DocDirectiveType.injectHtml] tag.
   ///
@@ -370,25 +367,23 @@ enum DocDirectiveType {
     this.positionalParameters = const <DocDirectiveParameter>[],
     this.namedParameters = const <DocDirectiveParameter>[],
     this.restParametersAllowed = false,
-  })  : isBlock = false,
-        opposingName = null;
+  }) : isBlock = false,
+       opposingName = null;
 
   const DocDirectiveType.block(
     this.name,
     this.opposingName, {
     this.positionalParameters = const <DocDirectiveParameter>[],
     this.restParametersAllowed = false,
-  })  : isBlock = true,
-        namedParameters = const <DocDirectiveParameter>[];
+  }) : isBlock = true,
+       namedParameters = const <DocDirectiveParameter>[];
 
-  const DocDirectiveType.end(
-    this.name, {
-    required String openingTag,
-  })  : opposingName = openingTag,
-        isBlock = false,
-        positionalParameters = const <DocDirectiveParameter>[],
-        namedParameters = const <DocDirectiveParameter>[],
-        restParametersAllowed = false;
+  const DocDirectiveType.end(this.name, {required String openingTag})
+    : opposingName = openingTag,
+      isBlock = false,
+      positionalParameters = const <DocDirectiveParameter>[],
+      namedParameters = const <DocDirectiveParameter>[],
+      restParametersAllowed = false;
 }
 
 /// A documentation import, found in a doc comment.

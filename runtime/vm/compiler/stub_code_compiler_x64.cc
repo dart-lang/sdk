@@ -79,7 +79,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -87,7 +87,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // Save & Restore the volatile CPU registers across the setjmp() call.
   const RegisterSet volatile_registers(
       CallingConventions::kVolatileCpuRegisters & ~(1 << RAX),
-      /*fpu_registers=*/0);
+      /*fpu_register_mask=*/0);
 
   const Register kSavedRspReg = R12;
   COMPILE_ASSERT(IsCalleeSavedRegister(kSavedRspReg));
@@ -149,11 +149,11 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ Bind(&do_native_call);
     __ MoveRegister(kSavedRspReg, RSP);
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
   fun();
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_target_thread_sanitizer) {
     __ MoveRegister(RSP, kSavedRspReg);
     __ AddImmediate(RSP, Immediate(kJumpBufferSize));
@@ -161,7 +161,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
     __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 // Input parameters:
@@ -468,8 +468,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to safe
-  // code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
+  // code size of this shared stub.
   {
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
@@ -530,17 +530,23 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   //            All argument registers are untouched.
 
   Label async_callback;
+  Label sync_isolate_group_shared_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the
   // callback was invoked after it was deleted. In this case, do nothing.
   __ cmpq(THR, Immediate(0));
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ j(EQUAL, &done);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpq(RAX, Immediate(static_cast<uword>(
                    FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+  __ j(EQUAL, &async_callback);
+
+  __ cmpq(RAX,
+          Immediate(static_cast<uword>(
+              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
+  __ j(EQUAL, &sync_isolate_group_shared_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -554,6 +560,45 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint();
 
   __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&sync_isolate_group_shared_callback);
+
+  __ call(TMP);
+
+  // Exit isolate group shared isolate.
+  {
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+                           RAX, TMP);
+    } else {
+      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
+                       DLRT_ExitIsolateGroupSharedIsolate)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+
+    __ LeaveFrame();
+
+    __ PopRegisters(return_registers);
+  }
+
+  __ jmp(&done, Assembler::kNearJump);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and
@@ -2453,21 +2498,7 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     __ Breakpoint();
     return;
   }
-  Register ic_reg = RBX;
   Register func_reg = RDI;
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ pushq(func_reg);  // Preserve
-    __ pushq(ic_reg);    // Preserve.
-    __ pushq(ic_reg);    // Argument.
-    __ pushq(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popq(RAX);       // Discard argument;
-    __ popq(RAX);       // Discard argument;
-    __ popq(ic_reg);    // Restore.
-    __ popq(func_reg);  // Restore.
-    __ LeaveStubFrame();
-  }
   __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 
@@ -2631,8 +2662,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(RAX);
-    __ cmpb(Address(RAX, target::Isolate::single_step_offset()), Immediate(0));
+    __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -2969,9 +2999,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ movzxb(RAX, Address(RAX, target::Isolate::single_step_offset()));
-  __ cmpq(RAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
 #if defined(DEBUG)
   static auto const kJumpLength = Assembler::kFarJump;
 #else
@@ -3212,9 +3240,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ movzxb(RAX, Address(RAX, target::Isolate::single_step_offset()));
-  __ cmpq(RAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
   __ ret();
@@ -3500,9 +3526,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(RAX);
-  __ movzxb(RAX, Address(RAX, target::Isolate::single_step_offset()));
-  __ cmpq(RAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 #endif
@@ -3649,7 +3673,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ j(ZERO, &miss, Assembler::kNearJump);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);

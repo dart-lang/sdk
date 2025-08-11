@@ -13,7 +13,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -21,7 +21,7 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 /// will cause any conflicts.
 Future<RefactoringStatus> validateCreateFunction(
   SearchEngine searchEngine,
-  LibraryElement2 library,
+  LibraryElement library,
   String name,
 ) {
   return _CreateUnitMemberValidator(
@@ -36,19 +36,19 @@ Future<RefactoringStatus> validateCreateFunction(
 /// will cause any conflicts.
 Future<RefactoringStatus> validateRenameTopLevel(
   SearchEngine searchEngine,
-  Element2 element,
+  Element element,
   String name,
 ) {
   return _RenameUnitMemberValidator(searchEngine, element, name).validate();
 }
 
-/// A [Refactoring] for renaming compilation unit member [Element2]s.
+/// A [Refactoring] for renaming compilation unit member [Element]s.
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
 
   /// If the element is a Flutter `StatefulWidget` declaration, this is the
   /// corresponding `State` declaration.
-  ClassElement2? _flutterWidgetState;
+  ClassElement? _flutterWidgetState;
 
   /// If [_flutterWidgetState] is set, this is the new name of it.
   String? _flutterWidgetStateNewName;
@@ -62,19 +62,19 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    if (element is ExtensionElement2) {
+    if (element is ExtensionElement) {
       return 'Rename Extension';
     }
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       return 'Rename Extension Type';
     }
     if (element is TopLevelFunctionElement) {
       return 'Rename Top-Level Function';
     }
-    if (element is TopLevelVariableElement2) {
+    if (element is TopLevelVariableElement) {
       return 'Rename Top-Level Variable';
     }
-    if (element is TypeAliasElement2) {
+    if (element is TypeAliasElement) {
       return 'Rename Type Alias';
     }
     return 'Rename Class';
@@ -107,19 +107,19 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       result.addStatus(validateExtensionTypeName(newName));
     }
     if (element is TopLevelFunctionElement) {
       result.addStatus(validateFunctionName(newName));
     }
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       result.addStatus(validateClassName(newName));
     }
-    if (element is TopLevelVariableElement2) {
+    if (element is TopLevelVariableElement) {
       result.addStatus(validateVariableName(newName));
     }
-    if (element is TypeAliasElement2) {
+    if (element is TypeAliasElement) {
       result.addStatus(validateTypeAliasName(newName));
     }
     return result;
@@ -128,11 +128,11 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     // prepare elements
-    var elements = <Element2>[];
-    if (element is PropertyInducingElement2 && element.isSynthetic) {
-      var property = element as PropertyInducingElement2;
-      var getter = property.getter2;
-      var setter = property.setter2;
+    var elements = <Element>[];
+    if (element is PropertyInducingElement && element.isSynthetic) {
+      var property = element as PropertyInducingElement;
+      var getter = property.getter;
+      var setter = property.setter;
       if (getter != null) {
         elements.add(getter);
       }
@@ -164,12 +164,11 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   void _findFlutterStateClass() {
     var element = this.element;
-    if (element is ClassElement2 && element.isStatefulWidgetDeclaration) {
+    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${oldName}State';
-      var library = element.library2;
+      var library = element.library;
       _flutterWidgetState =
-          library.getClass2(oldStateName) ??
-          library.getClass2('_$oldStateName');
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
     }
   }
 
@@ -178,7 +177,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (flutterWidgetState != null) {
       var flutterWidgetStateNewName = '${newName}State';
       // If the State was private, ensure that it stays private.
-      if (flutterWidgetState.name3!.startsWith('_') &&
+      if (flutterWidgetState.name!.startsWith('_') &&
           !flutterWidgetStateNewName.startsWith('_')) {
         flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
       }
@@ -190,7 +189,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 /// The base class for the create and rename validators.
 class _BaseUnitMemberValidator {
   final SearchEngine searchEngine;
-  final LibraryElement2 library;
+  final LibraryElement library;
   final ElementKind elementKind;
   final String name;
 
@@ -204,8 +203,8 @@ class _BaseUnitMemberValidator {
   );
 
   /// Returns `true` if [element] is visible at the given [SearchMatch].
-  bool _isVisibleAt(Element2 element, SearchMatch at) {
-    var atLibrary = at.element.library2!;
+  bool _isVisibleAt(Element element, SearchMatch at) {
+    var atLibrary = at.element.library!;
     // may be the same library
     if (library == atLibrary) {
       return true;
@@ -228,9 +227,9 @@ class _BaseUnitMemberValidator {
   }
 
   /// Validates if an element with the [name] will conflict with another
-  /// top-level [Element2] in the same library.
+  /// top-level [Element] in the same library.
   void _validateWillConflict() {
-    for (var element in library.children2) {
+    for (var element in library.children) {
       if (hasDisplayName(element, name)) {
         var message = format(
           "Library already declares {0} with name '{1}'.",
@@ -242,12 +241,12 @@ class _BaseUnitMemberValidator {
     }
   }
 
-  /// Validates if renamed [element] will shadow any [Element2] named [name].
-  Future<void> _validateWillShadow(Element2? element) async {
+  /// Validates if renamed [element] will shadow any [Element] named [name].
+  Future<void> _validateWillShadow(Element? element) async {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;
-      var declaringClass = member.enclosingElement2 as InterfaceElement2;
+      var declaringClass = member.enclosingElement as InterfaceElement;
       var memberReferences = await searchEngine.searchReferences(member);
       for (var memberReference in memberReferences) {
         var refElement = memberReference.element;
@@ -256,7 +255,7 @@ class _BaseUnitMemberValidator {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        var refClass = refElement.thisOrAncestorOfType2<InterfaceElement2>();
+        var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
         if (refClass == declaringClass) {
           continue;
         }
@@ -297,14 +296,14 @@ class _CreateUnitMemberValidator extends _BaseUnitMemberValidator {
 
 /// Helper to check if the renamed element will cause any conflicts.
 class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
-  final Element2 element;
+  final Element element;
   List<SearchMatch> references = <SearchMatch>[];
 
   _RenameUnitMemberValidator(
     SearchEngine searchEngine,
     this.element,
     String name,
-  ) : super(searchEngine, element.library2!, element.kind, name);
+  ) : super(searchEngine, element.library!, element.kind, name);
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();
@@ -322,7 +321,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
     }
     for (var reference in references) {
       var refElement = reference.element;
-      var refLibrary = refElement.library2!;
+      var refLibrary = refElement.library!;
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",
@@ -338,7 +337,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   void _validateWillBeShadowed() {
     for (var reference in references) {
       var refElement = reference.element;
-      var refClass = refElement.thisOrAncestorOfType2<InterfaceElement2>();
+      var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {

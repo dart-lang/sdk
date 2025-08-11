@@ -137,11 +137,9 @@ void testDirectCalls3(String str, int ia, int ib) {
 }
 
 void main(List<String> args) {
-  runTests(args, [
-    ...directCallsTests,
-    testDirectCalls3,
-  ], [
-    ...childClassFactories,
-    ChildWithBoxedParameterOverride.new,
-  ]);
+  runTests(
+    args,
+    [...directCallsTests, testDirectCalls3],
+    [...childClassFactories, ChildWithBoxedParameterOverride.new],
+  );
 }

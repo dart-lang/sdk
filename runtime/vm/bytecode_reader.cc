@@ -24,6 +24,7 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/scopes.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
@@ -314,7 +315,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
 
   auto& signature = FunctionType::Handle(Z, closure.signature());
   signature = ReadFunctionSignature(
-      signature, (flags & kHasOptionalPositionalParamsFlag) != 0,
+      signature, closure, (flags & kHasOptionalPositionalParamsFlag) != 0,
       (flags & kHasOptionalNamedParamsFlag) != 0,
       (flags & kHasTypeParamsFlag) != 0,
       /* has_positional_param_names = */ true,
@@ -325,6 +326,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
 
 FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
     const FunctionType& signature,
+    const Function& closure_function,
     bool has_optional_positional_params,
     bool has_optional_named_params,
     bool has_type_params,
@@ -351,6 +353,11 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
   signature.set_parameter_types(
       Array::Handle(Z, Array::New(num_params, Heap::kOld)));
   signature.CreateNameArrayIncludingFlags(Heap::kOld);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (has_positional_param_names) {
+    closure_function.CreateNameArray();
+  }
+#endif
 
   intptr_t i = 0;
   signature.SetParameterTypeAt(i, AbstractType::dynamic_type());
@@ -364,6 +371,10 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       name ^= ReadObject();
       if (has_optional_named_params && (i >= num_required_params)) {
         signature.SetParameterNameAt(i, name);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        closure_function.SetParameterNameAt(i, name);
+#endif
       }
     }
     type ^= ReadObject();
@@ -452,6 +463,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInterfaceCall,
     kInstantiatedInterfaceCall,
     kDynamicCall,
+    kExternalCall,
   };
 
   Object& obj = Object::Handle(Z);
@@ -606,6 +618,21 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         // The second entry is used for arguments descriptor.
         obj = ReadObject();
       } break;
+      case ConstantPoolTag::kExternalCall: {
+        // ExternalCall constant occupies 2 entries:
+        // trampoline and native function.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetRawValueAt(i, 0);
+        ++i;
+        ASSERT(i < obj_count);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetRawValueAt(i, 0);
+        continue;
+      }
       default:
         UNREACHABLE();
     }
@@ -718,7 +745,13 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
     return;
   }
 
-  reader_.ReadUInt();  // Skip local variables offset.
+  const intptr_t offset = reader_.ReadUInt();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bytecode.set_local_variables_binary_offset(
+      bytecode_component_->GetLocalVariablesOffset() + offset);
+#else
+  USE(offset);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
@@ -1031,7 +1064,10 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     }
     case kScript: {
       const String& uri = String::CheckedHandle(Z, ReadObject());
-      RELEASE_ASSERT((flags & kFlagHasSourceFile) == 0);
+      if ((flags & kFlagHasSourceFile) != 0) {
+        return ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
+                                       reader_.ReadUInt());
+      }
       return Script::New(uri, Object::null_string());
     }
     case kType: {
@@ -1354,7 +1390,8 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
           Z, FunctionType::New(num_parent_type_args, nullability));
       // TODO(alexmarkov): skip type finalization
       return ReadFunctionSignature(
-          signature_type, (flags & kFlagHasOptionalPositionalParams) != 0,
+          signature_type, Function::null_function(),
+          (flags & kFlagHasOptionalPositionalParams) != 0,
           (flags & kFlagHasOptionalNamedParams) != 0,
           (flags & kFlagHasTypeParams) != 0,
           /* has_positional_param_names = */ false,
@@ -1455,6 +1492,72 @@ StringPtr BytecodeReaderHelper::ReadString(bool is_canonical) {
   }
 }
 
+TypedDataPtr BytecodeReaderHelper::ReadLineStartsData(
+    intptr_t line_starts_offset) {
+  AlternativeReadingScope alt(&reader_, line_starts_offset);
+
+  const intptr_t num_line_starts = reader_.ReadUInt();
+
+  // Choose representation between Uint16 and Uint32 typed data.
+  intptr_t max_start = 0;
+  {
+    AlternativeReadingScope alt2(&reader_, reader_.offset());
+    for (intptr_t i = 0; i < num_line_starts; ++i) {
+      const intptr_t delta = reader_.ReadUInt();
+      max_start += delta;
+    }
+  }
+
+  const intptr_t cid = (max_start <= kMaxUint16) ? kTypedDataUint16ArrayCid
+                                                 : kTypedDataUint32ArrayCid;
+  const TypedData& line_starts_data =
+      TypedData::Handle(Z, TypedData::New(cid, num_line_starts, Heap::kOld));
+
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < num_line_starts; ++i) {
+    const intptr_t delta = reader_.ReadUInt();
+    current_start += delta;
+    if (cid == kTypedDataUint16ArrayCid) {
+      line_starts_data.SetUint16(i << 1, static_cast<uint16_t>(current_start));
+    } else {
+      line_starts_data.SetUint32(i << 2, current_start);
+    }
+  }
+
+  return line_starts_data.ptr();
+}
+
+ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
+                                               intptr_t offset) {
+  // SourceFile flags, must be in sync with SourceFile constants in
+  // pkg/dart2bytecode/lib/declarations.dart.
+  const int kHasLineStartsFlag = 1 << 0;
+  const int kHasSourceFlag = 1 << 1;
+
+  AlternativeReadingScope alt(&reader_, offset);
+
+  const intptr_t flags = reader_.ReadUInt();
+  const String& import_uri = String::CheckedHandle(Z, ReadObject());
+
+  TypedData& line_starts = TypedData::Handle(Z);
+  if ((flags & kHasLineStartsFlag) != 0) {
+    const intptr_t line_starts_offset =
+        bytecode_component_->GetLineStartsOffset() + reader_.ReadUInt();
+    line_starts = ReadLineStartsData(line_starts_offset);
+  }
+
+  String& source = String::Handle(Z);
+  if ((flags & kHasSourceFlag) != 0) {
+    source = ReadString(/* is_canonical = */ false);
+  }
+
+  const Script& script =
+      Script::Handle(Z, Script::New(import_uri, uri, source));
+  script.set_line_starts(line_starts);
+
+  return script.ptr();
+}
+
 TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {
   const intptr_t length = reader_.ReadUInt();
   TypeArguments& type_arguments =
@@ -1465,6 +1568,24 @@ TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {
     type_arguments.SetTypeAt(i, type);
   }
   return type_arguments.Canonicalize(thread_);
+}
+
+void BytecodeReaderHelper::ReadAnnotations(const Class& cls,
+                                           const Object& declaration,
+                                           bool has_pragma) {
+  const intptr_t annotations_offset =
+      reader_.ReadUInt() + bytecode_component_->GetAnnotationsOffset();
+  ASSERT(annotations_offset > 0);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_enable_mirrors || has_pragma) {
+    AlternativeReadingScope alt(&reader_, annotations_offset);
+    const auto& metadata = Object::Handle(Z, ReadObject());
+    ASSERT(metadata.IsArray());
+    const auto& library = Library::Handle(Z, cls.library());
+    library.AddMetadata(declaration, metadata);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void BytecodeReaderHelper::ReadMembers(const Class& cls, bool discard_fields) {
@@ -1604,16 +1725,10 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
       SetupFieldAccessorFunction(cls, function, type);
-      if (is_const && has_nontrivial_initializer) {
-        BytecodeLoader* loader = thread_->bytecode_loader();
-        ASSERT(loader != nullptr);
-        loader->SetOffset(function, loader->GetOffset(field));
+      if (is_static) {
+        function.AttachBytecode(Object::implicit_static_getter_bytecode());
       } else {
-        if (is_static) {
-          function.AttachBytecode(Object::implicit_static_getter_bytecode());
-        } else {
-          function.AttachBytecode(Object::implicit_getter_bytecode());
-        }
+        function.AttachBytecode(Object::implicit_getter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }
@@ -1645,7 +1760,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if ((flags & kHasAnnotationsFlag) != 0) {
-      reader_.ReadUInt();  // Skip annotations offset.
+      ReadAnnotations(cls, field, has_pragma);
     }
 
     if (field.is_static()) {
@@ -1922,7 +2037,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if ((flags & kHasAnnotationsFlag) != 0) {
-      reader_.ReadUInt();  // Skip annotations offset.
+      ReadAnnotations(cls, function, has_pragma);
     }
 
     functions_->SetAt(function_index_++, function);
@@ -2041,7 +2156,7 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
 
   if ((flags & kHasAnnotationsFlag) != 0) {
-    reader_.ReadUInt();  // Skip annotations offset.
+    ReadAnnotations(cls, cls, has_pragma);
   }
 
   const intptr_t members_offset = reader_.ReadUInt();
@@ -2482,6 +2597,206 @@ void BytecodeReader::ReadParameterCovariance(
   bytecode_reader.ReadParameterCovariance(function, offset, is_covariant,
                                           is_generic_covariant_impl);
 }
+
+static void CollectTokenPosition(TokenPosition token_pos,
+                                 GrowableArray<intptr_t>* token_positions) {
+  if (!token_pos.IsReal()) {
+    return;
+  }
+  const intptr_t token_pos_value = token_pos.Serialize();
+  if (!token_positions->is_empty() &&
+      token_positions->Last() == token_pos_value) {
+    return;
+  }
+  token_positions->Add(token_pos_value);
+}
+
+static void CollectBytecodeFunctionTokenPositions(
+    Zone* zone,
+    const Function& function,
+    GrowableArray<intptr_t>* token_positions) {
+  ASSERT(function.is_declared_in_bytecode());
+  CollectTokenPosition(function.token_pos(), token_positions);
+  CollectTokenPosition(function.end_token_pos(), token_positions);
+  if (!function.HasBytecode()) {
+    return;
+  }
+  Bytecode& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  ASSERT(!bytecode.IsNull());
+  if (bytecode.HasSourcePositions()) {
+    BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      CollectTokenPosition(iter.TokenPos(), token_positions);
+    }
+    if (!function.IsNonImplicitClosureFunction()) {
+      // Find closure functions in the object pool.
+      const ObjectPool& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+      Object& object = Object::Handle(zone);
+      for (intptr_t i = 0; i < pool.Length(); i++) {
+        ObjectPool::EntryType entry_type = pool.TypeAt(i);
+        if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
+        object = pool.ObjectAt(i);
+        if (object.IsFunction()) {
+          const auto& closure = Function::Cast(object);
+          if (closure.IsNonImplicitClosureFunction()) {
+            CollectBytecodeFunctionTokenPositions(zone, closure,
+                                                  token_positions);
+          }
+        }
+      }
+    }
+  }
+}
+
+void BytecodeReader::CollectScriptTokenPositionsFromBytecode(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, thread->isolate_group()->object_store()->libraries());
+  auto& lib = Library::Handle(zone);
+  auto& cls = Class::Handle(zone);
+  auto& array = Array::Handle(zone);
+  auto& function = Function::Handle(zone);
+  auto& field = Field::Handle(zone);
+
+  for (intptr_t i = 0, n = libs.Length(); i < n; ++i) {
+    lib ^= libs.At(i);
+    cls = lib.toplevel_class();
+    if (!cls.is_declared_in_bytecode()) {
+      continue;
+    }
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      ASSERT(cls.is_declared_in_bytecode());
+      if (cls.script() == interesting_script.ptr()) {
+        CollectTokenPosition(cls.token_pos(), token_positions);
+        CollectTokenPosition(cls.end_token_pos(), token_positions);
+      }
+      array = cls.fields();
+      for (intptr_t i = 0, n = array.Length(); i < n; ++i) {
+        field ^= array.At(i);
+        if (field.Script() != interesting_script.ptr()) {
+          continue;
+        }
+        CollectTokenPosition(field.token_pos(), token_positions);
+        CollectTokenPosition(field.end_token_pos(), token_positions);
+        if ((field.is_static() || field.is_late()) &&
+            field.has_nontrivial_initializer()) {
+          function = field.EnsureInitializerFunction();
+          CollectBytecodeFunctionTokenPositions(zone, function,
+                                                token_positions);
+        }
+      }
+      array = cls.current_functions();
+      for (intptr_t i = 0, n = array.Length(); i < n; ++i) {
+        function ^= array.At(i);
+        if (function.script() != interesting_script.ptr()) {
+          continue;
+        }
+        CollectBytecodeFunctionTokenPositions(zone, function, token_positions);
+      }
+    }
+  }
+}
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
+    Zone* zone,
+    const Function& function,
+    const Bytecode& bytecode) {
+  ASSERT(function.is_declared_in_bytecode());
+  ASSERT(function.HasBytecode());
+  ASSERT(!bytecode.IsNull());
+  ASSERT(function.GetBytecode() == bytecode.ptr());
+
+  LocalVarDescriptorsBuilder vars;
+
+  if (function.IsLocalFunction()) {
+    const auto& parent = Function::Handle(zone, function.parent_function());
+    ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
+    const auto& parent_bytecode = Bytecode::Handle(zone, parent.GetBytecode());
+    const auto& parent_vars = LocalVarDescriptors::Handle(
+        zone, parent_bytecode.GetLocalVarDescriptors());
+    for (intptr_t i = 0; i < parent_vars.Length(); ++i) {
+      UntaggedLocalVarDescriptors::VarInfo var_info;
+      parent_vars.GetInfo(i, &var_info);
+      // Include parent's context variable if variable's scope
+      // intersects with the local function range.
+      // It is not enough to check if local function is declared within the
+      // scope of variable, because in case of async functions closure has
+      // the same range as original function.
+      if (var_info.kind() == UntaggedLocalVarDescriptors::kContextVar &&
+          ((var_info.begin_pos <= function.token_pos() &&
+            function.token_pos() <= var_info.end_pos) ||
+           (function.token_pos() <= var_info.begin_pos &&
+            var_info.begin_pos <= function.end_token_pos()))) {
+        vars.Add(LocalVarDescriptorsBuilder::VarDesc{
+            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+      }
+    }
+  }
+
+  if (bytecode.HasLocalVariablesInfo()) {
+    intptr_t scope_id = 0;
+    intptr_t context_level = -1;
+    BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+    while (local_vars.MoveNext()) {
+      switch (local_vars.Kind()) {
+        case BytecodeLocalVariablesIterator::kScope: {
+          ++scope_id;
+          context_level = local_vars.ContextLevel();
+        } break;
+        case BytecodeLocalVariablesIterator::kVariableDeclaration: {
+          LocalVarDescriptorsBuilder::VarDesc desc;
+          desc.name = &String::Handle(zone, local_vars.Name());
+          if (local_vars.IsCaptured()) {
+            desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
+            desc.info.scope_id = context_level;
+            desc.info.set_index(local_vars.Index());
+          } else {
+            desc.info.set_kind(UntaggedLocalVarDescriptors::kStackVar);
+            desc.info.scope_id = scope_id;
+            if (local_vars.Index() < 0) {
+              // Parameter
+              ASSERT(local_vars.Index() < -kKBCParamEndSlotFromFp);
+              desc.info.set_index(-local_vars.Index() - kKBCParamEndSlotFromFp);
+            } else {
+              desc.info.set_index(-local_vars.Index());
+            }
+          }
+          desc.info.declaration_pos = local_vars.DeclarationTokenPos();
+          desc.info.begin_pos = local_vars.StartTokenPos();
+          desc.info.end_pos = local_vars.EndTokenPos();
+          vars.Add(desc);
+        } break;
+        case BytecodeLocalVariablesIterator::kContextVariable: {
+          ASSERT(local_vars.Index() >= 0);
+          const intptr_t context_variable_index = -local_vars.Index();
+          LocalVarDescriptorsBuilder::VarDesc desc;
+          desc.name = &Symbols::CurrentContextVar();
+          desc.info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
+          desc.info.scope_id = 0;
+          desc.info.declaration_pos = TokenPosition::kMinSource;
+          desc.info.begin_pos = TokenPosition::kMinSource;
+          desc.info.end_pos = TokenPosition::kMinSource;
+          desc.info.set_index(context_variable_index);
+          vars.Add(desc);
+        } break;
+      }
+    }
+  }
+
+  return vars.Done();
+}
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace bytecode
 }  // namespace dart

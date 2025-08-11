@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithVarTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REPLACE_WITH_VAR;
+  AssistKind get kind => DartAssistKind.replaceWithVar;
 
   Future<void> test_for() async {
     await resolveTestCode('''

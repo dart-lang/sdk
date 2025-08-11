@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
@@ -34,19 +33,20 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return sdk.allows(since);
   }
 
-  LintRule? getRegisteredLint(Object value) => Registry.ruleRegistry.rules
+  AbstractAnalysisRule? getRegisteredLint(Object value) => Registry
+      .ruleRegistry
+      .rules
       .firstWhereOrNull((rule) => rule.name == value);
 
-  bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
-      currentSdkAllows(state.since);
+  bool isDeprecatedInCurrentSdk(RuleState state) =>
+      state.isDeprecated && currentSdkAllows(state.since);
 
-  bool isRemovedInCurrentSdk(State state) {
-    if (state is! RemovedState) return false;
-    return currentSdkAllows(state.since);
+  bool isRemovedInCurrentSdk(RuleState state) {
+    return state.isRemoved && currentSdkAllows(state.since);
   }
 
   @override
-  List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
+  List<Diagnostic> validate(DiagnosticReporter reporter, YamlMap options) {
     var node = options.valueAt(linter);
     if (node is YamlMap) {
       var rules = node.valueAt(rulesKey);
@@ -55,10 +55,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return const [];
   }
 
-  void _validateRules(YamlNode? rules, ErrorReporter reporter) {
+  void _validateRules(YamlNode? rules, DiagnosticReporter reporter) {
     var seenRules = <String>{};
 
-    String? findIncompatibleRule(LintRule rule) {
+    String? findIncompatibleRule(AbstractAnalysisRule rule) {
       for (var incompatibleRule in rule.incompatibleRules) {
         if (seenRules.contains(incompatibleRule)) {
           return incompatibleRule;
@@ -92,7 +92,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         } else if (!seenRules.add(rule.name)) {
           reporter.atSourceSpan(
             node.span,
-            AnalysisOptionsHintCode.DUPLICATE_RULE,
+            AnalysisOptionsWarningCode.DUPLICATE_RULE,
             arguments: [value],
           );
         }
@@ -101,24 +101,24 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (sourceIsOptionsForContextRoot) {
         var state = rule.state;
-        if (state is DeprecatedState && isDeprecatedInCurrentSdk(state)) {
+        if (state.isDeprecated && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT,
               arguments: [value, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT,
               arguments: [value],
             );
           }
         } else if (isRemovedInCurrentSdk(state)) {
           var since = state.since.toString();
-          var replacedBy = (state as RemovedState).replacedBy;
+          var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,

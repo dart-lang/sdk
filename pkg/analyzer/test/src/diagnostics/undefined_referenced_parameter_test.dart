@@ -22,16 +22,17 @@ class UndefinedReferencedParameterTest extends PubPackageResolutionTest {
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class Foo {
   @UseResult.unless(parameterDefined: 'undef')
   int foo([int? value]) => value ?? 0;
 }
-''', [
-      error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 84, 7),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 84, 7)],
+    );
   }
 
   test_method_parameterDefined() async {
@@ -46,13 +47,14 @@ class Foo {
   }
 
   test_topLevelFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @UseResult.unless(parameterDefined: 'undef')
 int foo([int? value]) => value ?? 0;
-''', [
-      error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 70, 7),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 70, 7)],
+    );
   }
 }

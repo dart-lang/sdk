@@ -13,9 +13,10 @@ class FutureExpect {
   static Future check(Future result, check) =>
       result.then((value) => check(value));
   static Future throws(Future result) => result.then((value) {
-        throw new ExpectException(
-            "FutureExpect.throws received $value instead of an exception");
-      }, onError: (_) => null);
+    throw new ExpectException(
+      "FutureExpect.throws received $value instead of an exception",
+    );
+  }, onError: (_) => null);
 }
 
 testDatagramBroadcastOptions() {
@@ -70,18 +71,22 @@ testDatagramMulticastOptions() {
 testDatagramSocketReuseAddress() {
   test(address, reuseAddress) {
     asyncStart();
-    RawDatagramSocket.bind(address, 0,
-            reuseAddress: reuseAddress,
-            reusePort: Platform.isMacOS && reuseAddress)
-        .then((socket) async {
+    RawDatagramSocket.bind(
+      address,
+      0,
+      reuseAddress: reuseAddress,
+      reusePort: Platform.isMacOS && reuseAddress,
+    ).then((socket) async {
       if (reuseAddress) {
-        RawDatagramSocket.bind(address, socket.port,
-                reusePort: Platform.isMacOS)
-            .then((s) => Expect.isTrue(s is RawDatagramSocket))
-            .then(asyncSuccess);
+        RawDatagramSocket.bind(
+          address,
+          socket.port,
+          reusePort: Platform.isMacOS,
+        ).then((s) => Expect.isTrue(s is RawDatagramSocket)).then(asyncSuccess);
       } else {
-        await FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
-            .then(asyncSuccess);
+        await FutureExpect.throws(
+          RawDatagramSocket.bind(address, socket.port),
+        ).then(asyncSuccess);
       }
     });
   }
@@ -123,8 +128,11 @@ testDatagramSocketMulticastIf() {
     RawSocketOption option;
     late int idx;
     if (address.type == InternetAddressType.IPv4) {
-      option = RawSocketOption(RawSocketOption.levelIPv4,
-          RawSocketOption.IPv4MulticastInterface, address.rawAddress);
+      option = RawSocketOption(
+        RawSocketOption.levelIPv4,
+        RawSocketOption.IPv4MulticastInterface,
+        address.rawAddress,
+      );
     } else {
       if (!NetworkInterface.listSupported) {
         asyncEnd();
@@ -136,8 +144,11 @@ testDatagramSocketMulticastIf() {
         return;
       }
       idx = interface[0].index;
-      option = RawSocketOption.fromInt(RawSocketOption.levelIPv6,
-          RawSocketOption.IPv6MulticastInterface, idx);
+      option = RawSocketOption.fromInt(
+        RawSocketOption.levelIPv6,
+        RawSocketOption.IPv6MulticastInterface,
+        idx,
+      );
     }
 
     socket.setRawOption(option);
@@ -148,7 +159,9 @@ testDatagramSocketMulticastIf() {
     } else {
       // RawSocketOption.fromInt() will create a Uint8List(4).
       Expect.equals(
-          getResult.buffer.asByteData().getUint32(0, Endian.host), idx);
+        getResult.buffer.asByteData().getUint32(0, Endian.host),
+        idx,
+      );
     }
 
     asyncSuccess(socket);
@@ -165,7 +178,7 @@ testBroadcast() {
     asyncStart();
     Future.wait([
       RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
-      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
     ]).then((values) {
       var broadcastTimer;
       var sender = values[0];
@@ -186,8 +199,11 @@ testBroadcast() {
 
       int sendCount = 0;
       send(_) {
-        int bytes =
-            sender.send(new Uint8List(1), broadcastAddress, receiver.port);
+        int bytes = sender.send(
+          new Uint8List(1),
+          broadcastAddress,
+          receiver.port,
+        );
         Expect.isTrue(bytes == 0 || bytes == 1);
         sendCount++;
         if (!enabled && sendCount == 50) {
@@ -212,7 +228,7 @@ testLoopbackMulticast() {
     asyncStart();
     Future.wait([
       RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
-      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+      RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
     ]).then((values) {
       var senderTimer;
       var sender = values[0];
@@ -242,8 +258,11 @@ testLoopbackMulticast() {
 
       int sendCount = 0;
       send(_) {
-        int bytes =
-            sender.send(new Uint8List(1), multicastAddress, receiver.port);
+        int bytes = sender.send(
+          new Uint8List(1),
+          multicastAddress,
+          receiver.port,
+        );
         Expect.isTrue(bytes == 0 || bytes == 1);
         sendCount++;
         if (!enabled && sendCount == 50) {
@@ -273,7 +292,7 @@ testLoopbackMulticastError() {
   asyncStart();
   Future.wait([
     RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
-    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
   ]).then((values) {
     var sender = values[0];
     var receiver = values[1];
@@ -298,7 +317,7 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
 
   Future.wait([
     RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
-    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
   ]).then((values) {
     var sender = values[0];
     var receiver = values[1];
@@ -326,8 +345,11 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
 
     void sendData(int seq) {
       // Send a datagram acknowledging the received sequence.
-      int bytes =
-          sender.send(createDataPackage(seq), bindAddress, receiver.port);
+      int bytes = sender.send(
+        createDataPackage(seq),
+        bindAddress,
+        receiver.port,
+      );
       Expect.isTrue(bytes == 0 || bytes == dataSize);
     }
 
@@ -338,7 +360,9 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
       // Start a "long" timer for more data.
       ackTimer?.cancel();
       ackTimer = new Timer.periodic(
-          new Duration(milliseconds: 100), (_) => sendAck(address, port));
+        new Duration(milliseconds: 100),
+        (_) => sendAck(address, port),
+      );
     }
 
     sender.listen((event) {
@@ -406,7 +430,7 @@ void testTooLarge(InternetAddress bindAddress, int dataSize) {
   asyncStart();
   Future.wait([
     RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
-    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
   ]).then((values) {
     var sender = values[0];
     var receiver = values[1];
@@ -419,32 +443,37 @@ void testTooLarge(InternetAddress bindAddress, int dataSize) {
     }
 
     var data = new Uint8List(dataSize);
-    sender.listen((event) {
-      switch (event) {
-        case RawSocketEvent.write:
-          final numBytes = sender.send(data, bindAddress, receiver.port);
-          Expect.isTrue(numBytes == 0 || numBytes == data.length,
-              "Unexpected send() result: $numBytes");
+    sender.listen(
+      (event) {
+        switch (event) {
+          case RawSocketEvent.write:
+            final numBytes = sender.send(data, bindAddress, receiver.port);
+            Expect.isTrue(
+              numBytes == 0 || numBytes == data.length,
+              "Unexpected send() result: $numBytes",
+            );
 
-          break;
-        case RawSocketEvent.closed:
-          break;
-        default:
-          throw "Unexpected event $event";
-      }
-    }, onError: (e) {
-      sender.close();
-      receiver.close();
+            break;
+          case RawSocketEvent.closed:
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      },
+      onError: (e) {
+        sender.close();
+        receiver.close();
 
-      Expect.type<SocketException>(e);
-      final osError = (e as SocketException).osError!;
-      if (Platform.isMacOS) {
-        Expect.equals(40, osError.errorCode); // EMSGSIZE
-      } else if (Platform.isWindows) {
-        Expect.equals(1784, osError.errorCode); // ERROR_INVALID_USER_BUFFER
-      } else {}
-      asyncEnd();
-    });
+        Expect.type<SocketException>(e);
+        final osError = (e as SocketException).osError!;
+        if (Platform.isMacOS) {
+          Expect.equals(40, osError.errorCode); // EMSGSIZE
+        } else if (Platform.isWindows) {
+          Expect.equals(1784, osError.errorCode); // ERROR_INVALID_USER_BUFFER
+        } else {}
+        asyncEnd();
+      },
+    );
   });
 }
 

@@ -10,7 +10,11 @@ import 'package:expect/expect.dart';
 confuse(x) => x;
 
 void testListFunctions<T extends num>(
-    List<T> list, first, last, T toElementType(dynamic x)) {
+  List<T> list,
+  first,
+  last,
+  T toElementType(dynamic x),
+) {
   assert(list.length > 0);
 
   var reversed = list.reversed;
@@ -72,22 +76,31 @@ void testListFunctions<T extends num>(
   }
 
   list.setAll(
-      1, list.getRange(1, list.length - 1).map((x) => toElementType(2)));
+    1,
+    list.getRange(1, list.length - 1).map((x) => toElementType(2)),
+  );
   Expect.equals(copy.first, list.first);
   Expect.equals(copy.last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
     Expect.equals(2, list[i]);
   }
 
-  list.setRange(1, list.length - 1,
-      new Iterable.generate(list.length - 2, (x) => toElementType(x + 5)));
+  list.setRange(
+    1,
+    list.length - 1,
+    new Iterable.generate(list.length - 2, (x) => toElementType(x + 5)),
+  );
   Expect.equals(first, list.first);
   Expect.equals(last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
     Expect.equals(4 + i, list[i]);
   }
-  list.setRange(1, list.length - 1,
-      new Iterable.generate(list.length - 1, (x) => toElementType(x + 5)), 1);
+  list.setRange(
+    1,
+    list.length - 1,
+    new Iterable.generate(list.length - 1, (x) => toElementType(x + 5)),
+    1,
+  );
   Expect.equals(first, list.first);
   Expect.equals(last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
@@ -104,8 +117,10 @@ void testListFunctions<T extends num>(
     Expect.equals(i, list[i]);
   }
 
-  Expect.listEquals(list.getRange(1, list.length - 1).toList(),
-      list.sublist(1, list.length - 1));
+  Expect.listEquals(
+    list.getRange(1, list.length - 1).toList(),
+    list.sublist(1, list.length - 1),
+  );
   Expect.listEquals(list.getRange(1, list.length).toList(), list.sublist(1));
   Expect.listEquals(list, list.sublist(0));
 
@@ -172,9 +187,17 @@ main() {
   int toInt(x) => x.toInt();
 
   testListFunctions(
-      new Float32List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
+    new Float32List.fromList([1.5, 6.3, 9.5]),
+    1.5,
+    9.5,
+    toDouble,
+  );
   testListFunctions(
-      new Float64List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
+    new Float64List.fromList([1.5, 6.3, 9.5]),
+    1.5,
+    9.5,
+    toDouble,
+  );
   testListFunctions(new Int8List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Int16List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Int32List.fromList([3, 5, 9]), 3, 9, toInt);

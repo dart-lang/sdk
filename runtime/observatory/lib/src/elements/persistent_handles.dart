@@ -5,14 +5,17 @@
 library persistent_handles_page;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -78,12 +81,12 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -96,7 +99,7 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     ]
       ..addAll(_createHandlers('Persistent Handles',
           _handles?.elements.toList(), _createLine, _updateLine))
-      ..add(new BRElement())
+      ..add(new HTMLBRElement())
       ..addAll(_createHandlers(
           'Weak Persistent Handles',
           _handles == null
@@ -107,27 +110,27 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
           createHeader: _createWeakHeader));
   }
 
-  List<Element> _createHandlers(String name, List? items, create, update,
+  List<HTMLElement> _createHandlers(String name, List? items, create, update,
       {createHeader}) {
     return [
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h1()
-            ..text = items == null ? '$name' : '$name (${items.length})',
-          new HRElement(),
-        ],
-      new DivElement()
-        ..classes = ['persistent-handles']
-        ..children = <Element>[
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = items == null ? '$name' : '$name (${items.length})',
+          new HTMLHRElement(),
+        ]),
+      new HTMLDivElement()
+        ..className = 'persistent-handles'
+        ..appendChildren(<HTMLElement>[
           items == null
-              ? (new HeadingElement.h2()
-                ..classes = ['content-centered-big']
-                ..text = 'Loading...')
+              ? (new HTMLHeadingElement.h2()
+                ..className = 'content-centered-big'
+                ..textContent = 'Loading...')
               : new VirtualCollectionElement(create, update,
                       items: items, createHeader: createHeader, queue: _r.queue)
                   .element
-        ]
+        ])
     ];
   }
 
@@ -158,46 +161,46 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     }
   }
 
-  static HtmlElement _createLine() => new DivElement()
-    ..classes = ['collection-item']
-    ..text = 'object';
+  static HTMLElement _createLine() => new HTMLDivElement()
+    ..className = 'collection-item'
+    ..textContent = 'object';
 
-  static HtmlElement _createWeakLine() => new DivElement()
-    ..classes = ['weak-item']
-    ..children = <Element>[
-      new SpanElement()
-        ..classes = ['external-size']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['peer']
-        ..text = '0x00000',
-      new SpanElement()..classes = ['object'],
-      new SpanElement()
-        ..classes = ['finalizer']
-        ..text = 'dart::Class::Method()'
-    ];
+  static HTMLElement _createWeakLine() => new HTMLDivElement()
+    ..className = 'weak-item'
+    ..appendChildren(<HTMLElement>[
+      new HTMLSpanElement()
+        ..className = 'external-size'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'peer'
+        ..textContent = '0x00000',
+      new HTMLSpanElement()..className = 'object',
+      new HTMLSpanElement()
+        ..className = 'finalizer'
+        ..textContent = 'dart::Class::Method()'
+    ]);
 
-  List<HtmlElement> _createWeakHeader() => [
-        new DivElement()
-          ..classes = ['weak-item']
-          ..children = <Element>[
-            _createHeaderButton(const ['external-size'], 'External Size',
+  List<HTMLElement> _createWeakHeader() => [
+        new HTMLDivElement()
+          ..className = 'weak-item'
+          ..appendChildren(<HTMLElement>[
+            _createHeaderButton('external-size', 'External Size',
                 _SortingField.externalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['peer'], 'Peer', _SortingField.peer,
+            _createHeaderButton('peer', 'Peer', _SortingField.peer,
                 _SortingDirection.descending),
-            new SpanElement()
-              ..classes = ['object']
-              ..text = 'Object',
-            _createHeaderButton(const ['finalizer'], 'Finalizer Callback',
+            new HTMLSpanElement()
+              ..className = 'object'
+              ..textContent = 'Object',
+            _createHeaderButton('finalizer', 'Finalizer Callback',
                 _SortingField.finalizerCallback, _SortingDirection.ascending)
-          ]
+          ])
       ];
 
-  ButtonElement _createHeaderButton(List<String> classes, String text,
+  HTMLButtonElement _createHeaderButton(String className, String text,
           _SortingField field, _SortingDirection direction) =>
-      new ButtonElement()
-        ..classes = classes
-        ..text = _sortingField != field
+      new HTMLButtonElement()
+        ..className = className
+        ..textContent = _sortingField != field
             ? text
             : _sortingDirection == _SortingDirection.ascending
                 ? '$text▼'
@@ -221,23 +224,29 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateWeakLine(Element e, itemDynamic, index) {
+  void _updateWeakLine(HTMLElement e, itemDynamic, index) {
     M.WeakPersistentHandle item = itemDynamic;
-    e.children[0].text = Utils.formatSize(_getExternalSize(item));
-    e.children[1].text = '${_getPeer(item)}';
-    e.children[2] = anyRef(_isolate, item.object, _objects, queue: _r.queue)
-      ..classes = ['object'];
-    e.children[3]
-      ..text = '${_getFinalizerCallback(item)}'
+    (e.children.item(0) as HTMLElement).textContent =
+        Utils.formatSize(_getExternalSize(item));
+    (e.children.item(1) as HTMLElement).textContent = '${_getPeer(item)}';
+
+    final old = e.childNodes.item(2)!;
+    e.insertBefore(
+        old,
+        e.appendChild(anyRef(_isolate, item.object, _objects, queue: _r.queue)
+          ..className = 'object'));
+    e.removeChild(old);
+    (e.children.item(3) as HTMLElement)
+      ..textContent = '${_getFinalizerCallback(item)}'
       ..title = '${_getFinalizerCallback(item)}';
   }
 
-  void _updateLine(Element e, itemDynamic, index) {
+  void _updateLine(HTMLElement e, itemDynamic, index) {
     M.PersistentHandle item = itemDynamic;
-    e.children = <Element>[
+    e.setChildren(<HTMLElement>[
       anyRef(_isolate, item.object, _objects, queue: _r.queue)
-        ..classes = ['object']
-    ];
+        ..className = 'object'
+    ]);
   }
 
   Future _refresh() async {

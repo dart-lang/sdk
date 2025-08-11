@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +17,10 @@ class UseTestThrowsMatchers extends LintRule {
     : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_test_throws_matchers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_test_throws_matchers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addTryStatement(this, visitor);
   }
@@ -38,9 +37,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is! MethodInvocation) return false;
     var element = expression.methodName.element;
     return element is TopLevelFunctionElement &&
-        element.library2.uri ==
+        element.library.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
-        element.name3 == functionName;
+        element.name == functionName;
   }
 
   @override
@@ -51,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (isTestInvocation(lastBodyStatement, 'fail') &&
         node.finallyBlock == null) {
-      rule.reportLint(lastBodyStatement);
+      rule.reportAtNode(lastBodyStatement);
     }
   }
 }

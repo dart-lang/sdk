@@ -149,17 +149,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_functionType_returnType() {
-    void check(
-      TypeImpl T1_returnType,
-      TypeImpl T2_returnType,
-      bool expected,
-    ) {
-      var T1 = functionTypeNone(
-        returnType: T1_returnType,
-      );
-      var T2 = functionTypeNone(
-        returnType: T2_returnType,
-      );
+    void check(TypeImpl T1_returnType, TypeImpl T2_returnType, bool expected) {
+      var T1 = functionTypeNone(returnType: T1_returnType);
+      var T2 = functionTypeNone(returnType: T2_returnType);
       _check(T1, T2, expected);
     }
 
@@ -171,13 +163,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     {
       var T1_T = typeParameter('T', bound: numNone);
       _check(
-        functionTypeNone(
-          typeParameters: [T1_T],
-          returnType: voidNone,
-        ),
-        functionTypeNone(
-          returnType: voidNone,
-        ),
+        functionTypeNone(typeParameters: [T1_T], returnType: voidNone),
+        functionTypeNone(returnType: voidNone),
         false,
       );
     }
@@ -186,14 +173,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T1_T = typeParameter('T', bound: numNone);
       var T2_U = typeParameter('U');
       _check(
-        functionTypeNone(
-          typeParameters: [T1_T],
-          returnType: voidNone,
-        ),
-        functionTypeNone(
-          typeParameters: [T2_U],
-          returnType: voidNone,
-        ),
+        functionTypeNone(typeParameters: [T1_T], returnType: voidNone),
+        functionTypeNone(typeParameters: [T2_U], returnType: voidNone),
         false,
       );
     }
@@ -206,18 +187,14 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
           typeParameters: [T1_T],
           returnType: typeParameterTypeNone(T1_T),
           formalParameters: [
-            requiredParameter(
-              type: typeParameterTypeNone(T1_T),
-            )
+            requiredParameter(type: typeParameterTypeNone(T1_T)),
           ],
         ),
         functionTypeNone(
           typeParameters: [T2_U],
           returnType: typeParameterTypeNone(T2_U),
           formalParameters: [
-            requiredParameter(
-              type: typeParameterTypeNone(T2_U),
-            )
+            requiredParameter(type: typeParameterTypeNone(T2_U)),
           ],
         ),
         true,
@@ -333,10 +310,7 @@ T2: ${typeString(T2)}
   }
 
   void _equal2(String T1, String T2) {
-    _equal(
-      typeOfString(T1),
-      typeOfString(T2),
-    );
+    _equal(typeOfString(T1), typeOfString(T2));
   }
 
   void _notEqual(TypeImpl T1, TypeImpl T2) {
@@ -344,9 +318,6 @@ T2: ${typeString(T2)}
   }
 
   void _notEqual2(String T1, String T2) {
-    _notEqual(
-      typeOfString(T1),
-      typeOfString(T2),
-    );
+    _notEqual(typeOfString(T1), typeOfString(T2));
   }
 }

@@ -24,18 +24,12 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   /// Initialize a newly created context that uses the given [resourceProvider]
   /// to access the file system and that is based on the given analysis
   /// [driver].
-  DriverBasedAnalysisContext(
-    this.resourceProvider,
-    this.contextRoot,
-  );
+  DriverBasedAnalysisContext(this.resourceProvider, this.contextRoot);
 
   /// Get all the analysis options objects associated with this context.
-  List<AnalysisOptions> get allAnalysisOptions =>
-      [...driver.analysisOptionsMap.entries.map((e) => e.options)];
-
-  @override
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => driver.analysisOptions;
+  List<AnalysisOptions> get allAnalysisOptions => [
+    ...driver.analysisOptionsMap.entries.map((e) => e.options),
+  ];
 
   @override
   AnalysisSession get currentSession => driver.currentSession;

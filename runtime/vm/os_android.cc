@@ -204,6 +204,23 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
+uintptr_t OS::CurrentRSS() {
+  // The second value in /proc/self/statm is the current RSS in pages.
+  // It is not possible to use getrusage() because the interested fields are not
+  // implemented by the linux kernel.
+  FILE* statm = fopen("/proc/self/statm", "r");
+  if (statm == nullptr) {
+    return 0;
+  }
+  int64_t current_rss_pages = 0;
+  int matches = fscanf(statm, "%*s%" Pd64 "", &current_rss_pages);
+  fclose(statm);
+  if (matches != 1) {
+    return 0;
+  }
+  return current_rss_pages * getpagesize();
+}
+
 void OS::Sleep(int64_t millis) {
   int64_t micros = millis * kMicrosecondsPerMillisecond;
   SleepMicros(micros);
@@ -286,10 +303,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
+bool OS::ParseInitialInt64(const char* str, int64_t* value, char** end) {
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr &&
+         end != nullptr);
   int32_t base = 10;
-  char* endptr;
   int i = 0;
   if (str[0] == '-') {
     i = 1;
@@ -304,11 +321,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (base == 16) {
     // Unsigned 64-bit hexadecimal integer literals are allowed but
     // immediately interpreted as signed 64-bit integers.
-    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+    *value = static_cast<int64_t>(strtoull(str, end, base));
   } else {
-    *value = strtoll(str, &endptr, base);
+    *value = strtoll(str, end, base);
   }
-  return ((errno == 0) && (endptr != str) && (*endptr == 0));
+  return (errno == 0) && (*end != str);
 }
 
 void OS::RegisterCodeObservers() {

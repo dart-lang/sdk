@@ -23,12 +23,14 @@ class TypeConstraintGatherer
 
   final constraints = <String>[];
 
-  TypeConstraintGatherer(Set<String> typeVariablesBeingConstrained,
-      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false})
-      : super(inferenceUsingBoundsIsEnabled: false) {
+  TypeConstraintGatherer(
+    Set<String> typeVariablesBeingConstrained, {
+    this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false,
+  }) : super(inferenceUsingBoundsIsEnabled: false) {
     for (var typeVariableName in typeVariablesBeingConstrained) {
-      typeParametersToConstrain
-          .add(TypeRegistry.addTypeParameter(typeVariableName));
+      typeParametersToConstrain.add(
+        TypeRegistry.addTypeParameter(typeVariableName),
+      );
     }
   }
 
@@ -37,28 +39,36 @@ class TypeConstraintGatherer
       TypeConstraintGeneratorState(constraints.length);
 
   @override
-  void addLowerConstraintForParameter(TypeParameter typeParameter, Type lower,
-      {required Node? astNodeForTesting}) {
+  void addLowerConstraintForParameter(
+    TypeParameter typeParameter,
+    Type lower, {
+    required Node? astNodeForTesting,
+  }) {
     constraints.add('$lower <: $typeParameter');
   }
 
   @override
-  void addUpperConstraintForParameter(TypeParameter typeParameter, Type upper,
-      {required Node? astNodeForTesting}) {
+  void addUpperConstraintForParameter(
+    TypeParameter typeParameter,
+    Type upper, {
+    required Node? astNodeForTesting,
+  }) {
     constraints.add('$typeParameter <: $upper');
   }
 
   @override
   Map<TypeParameter, MergedTypeConstraint<Var, Type, String>>
-      computeConstraints() {
+  computeConstraints() {
     // TODO(cstefantsova): implement computeConstraints
     throw UnimplementedError();
   }
 
   @override
   void eliminateTypeParametersInGeneratedConstraints(
-      Object eliminator, TypeConstraintGeneratorState eliminationStartState,
-      {required Node? astNodeForTesting}) {
+    Object eliminator,
+    TypeConstraintGeneratorState eliminationStartState, {
+    required Node? astNodeForTesting,
+  }) {
     // TODO(paulberry): implement eliminateTypeParametersInGeneratedConstraints
   }
 
@@ -83,15 +93,18 @@ class TypeConstraintGatherer
         return null;
       default:
         throw UnimplementedError(
-            'getTypeArgumentsAsInstanceOf($type, $typeDeclaration)');
+          'getTypeArgumentsAsInstanceOf($type, $typeDeclaration)',
+        );
     }
   }
 
   @override
   (Type, Type, {List<TypeParameter> typeParametersToEliminate})
-      instantiateFunctionTypesAndProvideFreshTypeParameters(
-          SharedFunctionType p, SharedFunctionType q,
-          {required bool leftSchema}) {
+  instantiateFunctionTypesAndProvideFreshTypeParameters(
+    SharedFunctionType p,
+    SharedFunctionType q, {
+    required bool leftSchema,
+  }) {
     // TODO(paulberry): implement instantiateFunctionTypesAndProvideEliminator
     throw UnimplementedError();
   }

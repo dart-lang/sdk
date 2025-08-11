@@ -21,3 +21,4 @@ linter:
     - no_default_cases
     - unnecessary_ignore
     - unnecessary_statements
+    - use_null_aware_elements

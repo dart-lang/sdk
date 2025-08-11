@@ -110,7 +110,7 @@ void f() {
   void g() async => null;
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1), lint(18, 1)],
+      [lint(18, 1)],
     );
   }
 
@@ -121,7 +121,7 @@ void f() {
   void main() async => null;
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 4), lint(18, 4)],
+      [lint(18, 4)],
     );
   }
 
@@ -156,7 +156,7 @@ Future<void> f() async {
   void g() async {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 32, 1), lint(32, 1)],
+      [lint(32, 1)],
     );
   }
 

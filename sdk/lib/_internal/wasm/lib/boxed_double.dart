@@ -190,11 +190,11 @@ final class BoxedDouble implements double {
   bool operator ==(Object other) {
     return other is double
         ? this ==
-            other // Intrinsic ==
+              other // Intrinsic ==
         : other is int
         ? this ==
-            other
-                .toDouble() // Intrinsic ==
+              other
+                  .toDouble() // Intrinsic ==
         : false;
   }
 
@@ -353,7 +353,7 @@ final class BoxedDouble implements double {
       return "Infinity";
     }
 
-    String result = JSStringImpl(
+    String result = JSStringImpl.fromRefUnchecked(
       JS<WasmExternRef?>(
         'Function.prototype.call.bind(Number.prototype.toString)',
         WasmF64.fromDouble(value),
@@ -400,7 +400,7 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) => JSStringImpl(
+  String _toStringAsFixed(int fractionDigits) => JSStringImpl.fromRefUnchecked(
     JS<WasmExternRef>(
       "(d, digits) => d.toFixed(digits)",
       value,
@@ -434,15 +434,16 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsExponential(int? fractionDigits) => JSStringImpl(
-    fractionDigits == null
-        ? JS<WasmExternRef>("d => d.toExponential()", value)
-        : JS<WasmExternRef>(
-          "(d, f) => d.toExponential(f)",
-          value,
-          fractionDigits.toDouble(),
-        ),
-  );
+  String _toStringAsExponential(int? fractionDigits) =>
+      JSStringImpl.fromRefUnchecked(
+        fractionDigits == null
+            ? JS<WasmExternRef>("d => d.toExponential()", value)
+            : JS<WasmExternRef>(
+                "(d, f) => d.toExponential(f)",
+                value,
+                fractionDigits.toDouble(),
+              ),
+      );
 
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
@@ -463,13 +464,14 @@ final class BoxedDouble implements double {
     return result;
   }
 
-  String _toStringAsPrecision(int fractionDigits) => JSStringImpl(
-    JS<WasmExternRef>(
-      "(d, precision) => d.toPrecision(precision)",
-      value,
-      fractionDigits.toDouble(),
-    ),
-  );
+  String _toStringAsPrecision(int fractionDigits) =>
+      JSStringImpl.fromRefUnchecked(
+        JS<WasmExternRef>(
+          "(d, precision) => d.toPrecision(precision)",
+          value,
+          fractionDigits.toDouble(),
+        ),
+      );
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {

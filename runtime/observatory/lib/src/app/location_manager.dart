@@ -18,18 +18,18 @@ class LocationManager {
   Uri get uri => _uri!;
 
   LocationManager(this._app) {
-    window.onPopState.listen(_onBrowserNavigation);
+    web.window.onPopState.listen(_onBrowserNavigation);
     // Determine initial application path.
-    var applicationPath = '${window.location.hash}';
-    if ((window.location.hash == '') || (window.location.hash == '#')) {
+    var applicationPath = '${web.window.location.hash}';
+    if ((web.window.location.hash == '') || (web.window.location.hash == '#')) {
       // Observatory has loaded but no application path has been specified,
       // use the default.
       // By default we navigate to the VM page.
       applicationPath = Uris.vm();
     }
     // Update current application path.
-    window.history
-        .replaceState(applicationPath, document.title, applicationPath);
+    web.window.history.replaceState(
+        applicationPath.toJS, web.document.title, applicationPath);
     _updateApplicationLocation(applicationPath);
   }
 
@@ -42,8 +42,8 @@ class LocationManager {
 
   /// Called whenever the browser changes the location bar (e.g. forward or
   /// back button press).
-  void _onBrowserNavigation(PopStateEvent event) {
-    _updateApplicationLocation(window.location.hash);
+  void _onBrowserNavigation(web.PopStateEvent event) {
+    _updateApplicationLocation(web.window.location.hash);
     _visit();
   }
 
@@ -85,7 +85,7 @@ class LocationManager {
 
   /// Add [url] to the browser history.
   _addToBrowserHistory(String url) {
-    window.history.pushState(url, document.title, url);
+    web.window.history.pushState(url.toJS, web.document.title, url);
   }
 
   /// Notify the current page that something has changed.
@@ -147,7 +147,7 @@ class LocationManager {
   }
 
   /// Utility event handler when clicking on application url link.
-  void onGoto(MouseEvent event) {
+  void onGoto(web.MouseEvent event) {
     if ((event.button > 0) ||
         event.metaKey ||
         event.ctrlKey ||
@@ -161,7 +161,7 @@ class LocationManager {
     event.preventDefault();
     // 'currentTarget' is the dom element that would process the event.
     // If we use 'target' we might get an <em> element or somesuch.
-    Element target = event.currentTarget as Element;
-    go(target.attributes['href']!);
+    web.HTMLElement target = event.currentTarget as web.HTMLElement;
+    go(target.attributes.getNamedItem('href')!.value);
   }
 }

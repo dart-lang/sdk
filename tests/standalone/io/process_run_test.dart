@@ -10,19 +10,30 @@ import "package:path/path.dart" as path;
 import "process_test_util.dart";
 
 void testProcessRunBinaryOutput() {
-  var result = Process.runSync(
-      getProcessTestFileName(), const ["0", "0", "0", "0"],
-      stdoutEncoding: null);
+  var result = Process.runSync(getProcessTestFileName(), const [
+    "0",
+    "0",
+    "0",
+    "0",
+  ], stdoutEncoding: null);
   Expect.isTrue(result.stdout is List<int>);
   Expect.isTrue(result.stderr is String);
 
-  result = Process.runSync(getProcessTestFileName(), const ["0", "0", "0", "0"],
-      stderrEncoding: null);
+  result = Process.runSync(getProcessTestFileName(), const [
+    "0",
+    "0",
+    "0",
+    "0",
+  ], stderrEncoding: null);
   Expect.isTrue(result.stdout is String);
   Expect.isTrue(result.stderr is List<int>);
 
-  result = Process.runSync(getProcessTestFileName(), const ["0", "0", "0", "0"],
-      stdoutEncoding: null, stderrEncoding: null);
+  result = Process.runSync(
+    getProcessTestFileName(),
+    const ["0", "0", "0", "0"],
+    stdoutEncoding: null,
+    stderrEncoding: null,
+  );
   Expect.isTrue(result.stdout is List<int>);
   Expect.isTrue(result.stderr is List<int>);
 }
@@ -35,8 +46,12 @@ void testProcessPathWithSpace() {
     File(path.join(dir.path, 'path')).createSync();
     var innerDir = Directory(path.join(dir.path, 'path with space'));
     innerDir.createSync();
-    processTest = processTest.copySync(path.join(
-        innerDir.path, 'process_run_test${getPlatformExecutableExtension()}'));
+    processTest = processTest.copySync(
+      path.join(
+        innerDir.path,
+        'process_run_test${getPlatformExecutableExtension()}',
+      ),
+    );
     // It will run executables without throwing exception.
     var result = Process.runSync(processTest.path, []);
     // Kill the isolate because next test reuse the exe file.

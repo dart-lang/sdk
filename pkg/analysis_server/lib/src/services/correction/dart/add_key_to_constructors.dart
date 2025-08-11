@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -45,7 +45,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
   bool _canBeConst(
     ClassDeclaration classDeclaration,
-    List<ConstructorElement2> constructors,
+    List<ConstructorElement> constructors,
   ) {
     for (var constructor in constructors) {
       if (constructor.isDefaultConstructor && !constructor.isConst) {
@@ -80,7 +80,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       return;
     }
     var className = node.name.lexeme;
-    var constructors = node.declaredFragment!.element.supertype?.constructors2;
+    var constructors = node.declaredFragment!.element.supertype?.constructors;
     if (constructors == null) {
       return;
     }

@@ -6,12 +6,14 @@ void g() {}
 
 void tryCatch_assigned_body(Object x) {
   if (x is! String) return;
-  /*String*/ x;
+  /*String*/
+  x;
   try {
     x = 42;
     g(); // might throw
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   } catch (_) {}
   x;
 }
@@ -19,7 +21,8 @@ void tryCatch_assigned_body(Object x) {
 void tryCatch_isNotType_exit_body(Object x) {
   try {
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   } catch (_) {}
   x;
 }
@@ -27,29 +30,35 @@ void tryCatch_isNotType_exit_body(Object x) {
 void isNotType_exit_body_catch(Object x) {
   try {
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   } catch (_) {
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   }
-  /*String*/ x;
+  /*String*/
+  x;
 }
 
 void isNotType_exit_body_catchRethrow(Object x) {
   try {
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   } catch (_) {
     x;
     rethrow;
   }
-  /*String*/ x;
+  /*String*/
+  x;
 }
 
 void isNotType_exit_catch(Object x) {
   try {} catch (_) {
     if (x is! String) return;
-    /*String*/ x;
+    /*String*/
+    x;
   }
   x;
 }

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,18 +16,15 @@ class AvoidFinalParameters extends LintRule {
     : super(name: LintNames.avoid_final_parameters, description: _desc);
 
   @override
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_final_parameters;
+
+  @override
   List<String> get incompatibleRules => const [
     LintNames.prefer_final_parameters,
   ];
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_final_parameters;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionExpression(this, visitor);
@@ -55,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters != null) {
       for (var param in parameters.parameters) {
         if (param.isFinal) {
-          rule.reportLint(param);
+          rule.reportAtNode(param);
         }
       }
     }

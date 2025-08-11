@@ -119,25 +119,19 @@ class StaticInteropMockValidator {
     for (var MapEntry(key: exportName, value: descriptors)
         in exportNameToDescriptors.entries) {
       String getAsErrorString(Iterable<ExtensionMemberDescriptor> descriptors) {
-        var withExtensionNameAndType =
-            descriptors.map((descriptor) {
-                var extension = _descriptorToExtensionName[descriptor]!;
-                var name = descriptor.name.text;
-                var type = _getTypeOfDescriptor(descriptor);
-                if (descriptor.isGetter) {
-                  type = FunctionType([], type, Nullability.nonNullable);
-                } else if (descriptor.isSetter) {
-                  type = FunctionType(
-                    [type],
-                    VoidType(),
-                    Nullability.nonNullable,
-                  );
-                  name += '=';
-                }
-                type = typeParameterResolver.resolve(type);
-                return '$extension.$name ($type)';
-              }).toList()
-              ..sort();
+        var withExtensionNameAndType = descriptors.map((descriptor) {
+          var extension = _descriptorToExtensionName[descriptor]!;
+          var name = descriptor.name.text;
+          var type = _getTypeOfDescriptor(descriptor);
+          if (descriptor.isGetter) {
+            type = FunctionType([], type, Nullability.nonNullable);
+          } else if (descriptor.isSetter) {
+            type = FunctionType([type], VoidType(), Nullability.nonNullable);
+            name += '=';
+          }
+          type = typeParameterResolver.resolve(type);
+          return '$extension.$name ($type)';
+        }).toList()..sort();
         return withExtensionNameAndType.join(', ');
       }
 
@@ -233,10 +227,9 @@ class StaticInteropMockValidator {
       assert(interopDescriptor.isMethod);
       // We don't care about the method's own type parameters to determine
       // subtyping. We simply substitute them by their bounds, if any.
-      final interopMemberType =
-          interopMember.function
-              .computeThisFunctionType(Nullability.nonNullable)
-              .withoutTypeParameters;
+      final interopMemberType = interopMember.function
+          .computeThisFunctionType(Nullability.nonNullable)
+          .withoutTypeParameters;
       // Ignore the first argument `this` in the generated procedure.
       return FunctionType(
         interopMemberType.positionalParameters.skip(1).toList(),
@@ -271,7 +264,6 @@ class StaticInteropMockValidator {
       return _typeEnvironment.isSubtypeOf(
         typeParameterResolver.resolve(dartType),
         typeParameterResolver.resolve(interopType),
-        SubtypeCheckMode.withNullabilities,
       );
     }
 

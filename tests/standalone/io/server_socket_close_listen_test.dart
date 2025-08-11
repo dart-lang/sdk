@@ -16,8 +16,10 @@ void serverSocketCloseListenTest() {
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.destroy();
       server.close();
-      server.listen((incoming) => Expect.fail("Unexpected socket"),
-          onDone: asyncEnd);
+      server.listen(
+        (incoming) => Expect.fail("Unexpected socket"),
+        onDone: asyncEnd,
+      );
     });
   });
 }

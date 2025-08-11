@@ -310,8 +310,9 @@ class _GraphGenerator extends TypeInformationVisitor<void> {
       var tracerSet = global.assignmentsBeforeTracing[node] ?? const {};
       var currentSet = node.inputs.toSet();
       for (TypeInformation assignment in currentSet) {
-        String color =
-            originalSet.contains(assignment) ? unchangedEdge : addedEdge;
+        String color = originalSet.contains(assignment)
+            ? unchangedEdge
+            : addedEdge;
         addEdge(assignment, node, color: color);
       }
       for (TypeInformation assignment in originalSet) {

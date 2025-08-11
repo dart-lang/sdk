@@ -170,6 +170,21 @@
 //   print(C8());
 //         ^
 //
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:129:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
+// Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as callable.
+//   print(ExtType1);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
+//   print(ExtType1(42));
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
+//   print(42.isPositive);
+//            ^
+//
 library;
 import self as self;
 import "main_lib1.dart" as mai;
@@ -255,7 +270,7 @@ abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Impl2&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{mai::Mixin::foo}();
 }
 static field dynamic x;
@@ -317,9 +332,15 @@ static method test() → void {
   mai::field2 = 42;
   core::print(new mai::C8::_());
   core::print(new mai::C9::_());
+  core::print(#C13);
+  core::print(mai::ExtType1|constructor#(42));
+  core::print(mai::Ext1|get#isPositive(42));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
+  core::print(#C13);
+  core::print(mai2::Lib3ExtType|constructor#(42));
+  core::print(mai2::Lib3Ext|get#lib3IsPositive(42));
 }
 static method main() → void {}
 
@@ -430,16 +451,32 @@ class C9 extends core::Object {
   static factory •() → mai::C9 /* redirection-target: mai::C9::_ */
     return new mai::C9::_();
 }
+extension Ext1 on core::int {
+  get isPositive = mai::Ext1|get#isPositive;
+}
+extension type ExtType1(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType1|constructor#;
+  constructor tearoff • = mai::ExtType1|constructor#_#new#tearOff;
+}
 static field core::int field1 = 4;
 static field core::int field2 = 4;
-static const field mai::_C5 const1 = #C14;
-static const field mai::_C5 const2 = #C16;
+static const field mai::_C5 const1 = #C15;
+static const field mai::_C5 const2 = #C17;
 static method method1() → void {}
 static method method2() → void {}
 static method _privateMethod1() → void {}
 static method _privateMethod2() → void {}
 static method _privateMethodForC6() → void {}
 static method _privateMethodForC7() → void {}
+static extension-type-member method ExtType1|constructor#(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType1% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
+  return mai::ExtType1|constructor#(raw);
+static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
+  return #this.{core::num::>}(0){(core::num) → core::bool};
 
 library;
 import self as self2;
@@ -447,7 +484,9 @@ import "main_lib3.dart" as mai2;
 additionalExports = (mai2::Lib3Class,
   mai2::lib3Method,
   mai2::lib3Field,
-  mai2::lib3Field)
+  mai2::lib3Field,
+  mai2::Lib3ExtType,
+  mai2::Lib3Ext)
 
 export "org-dartlang-testcase:///main_lib3.dart";
 
@@ -461,8 +500,24 @@ class Lib3Class extends core::Object {
     : super core::Object::•()
     ;
 }
+extension Lib3Ext on core::int {
+  get lib3IsPositive = mai2::Lib3Ext|get#lib3IsPositive;
+}
+extension type Lib3ExtType(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai2::Lib3ExtType|constructor#;
+  constructor tearoff • = mai2::Lib3ExtType|constructor#_#new#tearOff;
+}
 static field core::int? lib3Field;
 static method lib3Method() → void {}
+static extension-type-member method Lib3ExtType|constructor#(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */ {
+  lowered final mai2::Lib3ExtType% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tearOff(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
+  return mai2::Lib3ExtType|constructor#(raw);
+static extension-member method Lib3Ext|get#lib3IsPositive(lowered final core::int #this) → core::bool
+  return #this.{core::num::>}(0){(core::num) → core::bool};
 
 constants  {
   #C1 = static-tearoff mai::_privateMethodForC6
@@ -477,10 +532,11 @@ constants  {
   #C10 = constructor-tearoff mai::C2::•
   #C11 = static-tearoff mai::method1
   #C12 = static-tearoff mai::method2
-  #C13 = static-tearoff mai::_privateMethod1
-  #C14 = mai::_C5 {func:#C13}
-  #C15 = static-tearoff mai::_privateMethod2
-  #C16 = mai::_C5 {func:#C15}
+  #C13 = TypeLiteralConstant(core::int)
+  #C14 = static-tearoff mai::_privateMethod1
+  #C15 = mai::_C5 {func:#C14}
+  #C16 = static-tearoff mai::_privateMethod2
+  #C17 = mai::_C5 {func:#C16}
 }
 
 

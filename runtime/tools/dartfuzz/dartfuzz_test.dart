@@ -12,6 +12,7 @@ import 'package:args/args.dart';
 import 'package:matcher/matcher.dart';
 
 import 'dartfuzz.dart';
+import 'flag_fuzzer.dart';
 
 const debug = false;
 const sigkill = 9;
@@ -32,11 +33,17 @@ class TestResult {
 
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
-  var res = Process.runSync('timeout', ['-s', '$sigkill', '$timeout', ...cmd],
-      environment: env);
+  var res = Process.runSync('timeout', [
+    '-s',
+    '$sigkill',
+    '$timeout',
+    ...cmd,
+  ], environment: env);
   if (debug) {
-    print('\nrunning $cmd yields:\n'
-        '${res.exitCode}\n${res.stdout}\n${res.stderr}\n');
+    print(
+      '\nrunning $cmd yields:\n'
+      '${res.exitCode}\n${res.stdout}\n${res.stderr}\n',
+    );
   }
   return TestResult(res.stdout, res.stderr, res.exitCode);
 }
@@ -47,55 +54,21 @@ abstract class TestRunner {
   late String description;
 
   // Factory.
-  static TestRunner getTestRunner(String mode, String top, String tmp,
-      Map<String, String> env, String fileName, Random rand) {
+  static TestRunner getTestRunner(
+    String mode,
+    String top,
+    String tmp,
+    Map<String, String> env,
+    String fileName,
+    Random rand,
+  ) {
     var prefix = mode.substring(0, 3).toUpperCase();
     var tag = getTag(mode);
     var extraFlags = <String>[];
-    // Every once in a while, stress test JIT.
-    if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
-      final r = rand.nextInt(7);
-      if (r == 0) {
-        prefix += '-NOFIELDGUARDS';
-        extraFlags += ['--use_field_guards=false'];
-      } else if (r == 1) {
-        prefix += '-NOINTRINSIFY';
-        extraFlags += ['--intrinsify=false'];
-      } else if (r == 2) {
-        final freq = rand.nextInt(1000) + 500;
-        prefix += '-COMPACTEVERY-$freq';
-        extraFlags += ['--gc_every=$freq', '--use_compactor=true'];
-      } else if (r == 3) {
-        final freq = rand.nextInt(1000) + 500;
-        prefix += '-MARKSWEEPEVERY-$freq';
-        extraFlags += ['--gc_every=$freq', '--use_compactor=false'];
-      } else if (r == 4) {
-        final freq = rand.nextInt(100) + 50;
-        prefix += '-DEPOPTEVERY-$freq';
-        extraFlags += ['--deoptimize_every=$freq'];
-      } else if (r == 5) {
-        final freq = rand.nextInt(100) + 50;
-        prefix += '-STACKTRACEEVERY-$freq';
-        extraFlags += ['--stacktrace_every=$freq'];
-      } else if (r == 6) {
-        prefix += '-OPTCOUNTER';
-        extraFlags += ['--optimization_counter_threshold=1'];
-      }
-    }
-    // Every once in a while, use -O3 compiler.
-    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
-      prefix += '-O3';
-      extraFlags += ['--optimization_level=3'];
-    }
-    // Every once in a while, use the slowpath flag.
-    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
-      prefix += '-SLOWPATH';
-      extraFlags += ['--use-slow-path'];
-    }
-    // Every once in a while, use the deterministic flag.
-    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
-      prefix += '-DET';
-      extraFlags += ['--deterministic'];
+    if (mode.startsWith('jit')) {
+      extraFlags += someJitRuntimeFlags();
+    } else if (mode.startsWith('aot')) {
+      extraFlags += someGenSnapshotFlags();
     }
     // Construct runner.
     if (mode.startsWith('jit')) {
@@ -110,7 +83,6 @@ abstract class TestRunner {
 
   // Convert mode to tag.
   static String getTag(String mode) {
-    if (mode.endsWith('debug-ia32')) return 'DebugIA32';
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-x64c')) return 'DebugX64C';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
@@ -118,7 +90,6 @@ abstract class TestRunner {
     if (mode.endsWith('debug-arm64c')) return 'DebugSIMARM64C';
     if (mode.endsWith('debug-riscv32')) return 'DebugSIMRISCV32';
     if (mode.endsWith('debug-riscv64')) return 'DebugSIMRISCV64';
-    if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('x64c')) return 'ReleaseX64C';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
@@ -135,8 +106,15 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String prefix, String tag, this.top, String tmp, this.env,
-      this.fileName, List<String> extraFlags) {
+  TestRunnerJIT(
+    String prefix,
+    String tag,
+    this.top,
+    String tmp,
+    this.env,
+    this.fileName,
+    List<String> extraFlags,
+  ) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     cmd = [dart, ...extraFlags, '--old_gen_heap_size=$dartHeapSize', fileName];
@@ -162,8 +140,15 @@ class TestRunnerJIT implements TestRunner {
 
 /// Concrete test runner of Dart AOT.
 class TestRunnerAOT implements TestRunner {
-  TestRunnerAOT(String prefix, String tag, this.top, this.tmp,
-      Map<String, String> e, this.fileName, List<String> extraFlags) {
+  TestRunnerAOT(
+    String prefix,
+    String tag,
+    this.top,
+    this.tmp,
+    Map<String, String> e,
+    this.fileName,
+    List<String> extraFlags,
+  ) {
     description = '$prefix-$tag';
     precompiler = '$top/pkg/vm/tool/precompiler2';
     dart = '$top/out/$tag/dartaotruntime';
@@ -180,21 +165,28 @@ class TestRunnerAOT implements TestRunner {
     if (result.exitCode != 0) {
       return result;
     }
-    return runCommand(
-        [dart, '--old_gen_heap_size=$dartHeapSize', snapshot], env);
+    return runCommand([
+      dart,
+      '--old_gen_heap_size=$dartHeapSize',
+      snapshot,
+    ], env);
   }
 
   @override
   void printReproductionCommand() {
-    print([
-      "DART_CONFIGURATION='${env['DART_CONFIGURATION']}'",
-      "DART_VM_FLAGS='${env['DART_VM_FLAGS']}'",
-      ...cmd
-    ].join(' ').replaceAll('$top/', '').replaceAll('$tmp/', ''));
-    print([dart, snapshot]
-        .join(' ')
-        .replaceAll('$top/', '')
-        .replaceAll('$tmp/', ''));
+    print(
+      [
+        "DART_CONFIGURATION='${env['DART_CONFIGURATION']}'",
+        "DART_VM_FLAGS='${env['DART_VM_FLAGS']}'",
+        ...cmd,
+      ].join(' ').replaceAll('$top/', '').replaceAll('$tmp/', ''),
+    );
+    print(
+      [
+        dart,
+        snapshot,
+      ].join(' ').replaceAll('$top/', '').replaceAll('$tmp/', ''),
+    );
   }
 
   @override
@@ -212,7 +204,13 @@ class TestRunnerAOT implements TestRunner {
 /// Concrete test runner of Dart2JS.
 class TestRunnerDJS implements TestRunner {
   TestRunnerDJS(
-      String prefix, String tag, this.top, this.tmp, this.env, this.fileName) {
+    String prefix,
+    String tag,
+    this.top,
+    this.tmp,
+    this.env,
+    this.fileName,
+  ) {
     description = '$prefix-$tag';
     dart2js = '$top/sdk/bin/dart2js';
     js = '$tmp/out.js';
@@ -229,10 +227,14 @@ class TestRunnerDJS implements TestRunner {
 
   @override
   void printReproductionCommand() {
-    print([dart2js, fileName, '-o', js]
-        .join(' ')
-        .replaceAll('$top/', '')
-        .replaceAll('$tmp/', ''));
+    print(
+      [
+        dart2js,
+        fileName,
+        '-o',
+        js,
+      ].join(' ').replaceAll('$top/', '').replaceAll('$tmp/', ''),
+    );
     print('nodejs out.js');
   }
 
@@ -249,17 +251,18 @@ class TestRunnerDJS implements TestRunner {
 /// Class to run fuzz testing.
 class DartFuzzTest {
   DartFuzzTest(
-      this.env,
-      this.repeat,
-      this.time,
-      this.numOutputLines,
-      this.trueDivergence,
-      this.showStats,
-      this.top,
-      this.mode1,
-      this.mode2,
-      this.rerun,
-      this.dartSdkRevision);
+    this.env,
+    this.repeat,
+    this.time,
+    this.numOutputLines,
+    this.trueDivergence,
+    this.showStats,
+    this.top,
+    this.mode1,
+    this.mode2,
+    this.rerun,
+    this.dartSdkRevision,
+  );
 
   int run() {
     setup();
@@ -314,10 +317,22 @@ class DartFuzzTest {
     // Resort to flat types for the more expensive modes.
     flatTp = !nestedTypesAllowed(mode1, mode2);
 
-    runner1 =
-        TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
-    runner2 =
-        TestRunner.getTestRunner(mode2, top, tmpDir.path, env, fileName, rand);
+    runner1 = TestRunner.getTestRunner(
+      mode1,
+      top,
+      tmpDir.path,
+      env,
+      fileName,
+      rand,
+    );
+    runner2 = TestRunner.getTestRunner(
+      mode2,
+      top,
+      tmpDir.path,
+      env,
+      fileName,
+      rand,
+    );
     isolate =
         'Isolate (${tmpDir.path}) ${fp ? "" : "NO-"}FP ${ffi ? "" : "NO-"}FFI ${flatTp ? "" : "NO-"}FLAT : '
         '${runner1.description} - ${runner2.description}';
@@ -339,10 +354,10 @@ class DartFuzzTest {
 
   bool sameArchitecture(String mode1, String mode2) =>
       ((mode1.contains('arm32') && mode2.contains('arm32')) ||
-          (mode1.contains('arm64') && mode2.contains('arm64')) ||
-          (mode1.contains('x64') && mode2.contains('x64')) ||
-          (mode1.contains('riscv32') && mode2.contains('riscv32')) ||
-          (mode1.contains('riscv64') && mode2.contains('riscv64')));
+      (mode1.contains('arm64') && mode2.contains('arm64')) ||
+      (mode1.contains('x64') && mode2.contains('x64')) ||
+      (mode1.contains('riscv32') && mode2.contains('riscv32')) ||
+      (mode1.contains('riscv64') && mode2.contains('riscv64')));
 
   bool ffiCapable(String mode1, String mode2) =>
       mode1.startsWith('jit') &&
@@ -375,9 +390,11 @@ class DartFuzzTest {
   }
 
   void showStatistics() {
-    stdout.write('\rTests: $numTests Success: $numSuccess (Rerun: $numRerun) '
-        'Skipped: $numSkipped Timeout: $numTimeout '
-        'Divergences: $numDivergences');
+    stdout.write(
+      '\rTests: $numTests Success: $numSuccess (Rerun: $numRerun) '
+      'Skipped: $numSkipped Timeout: $numTimeout '
+      'Divergences: $numDivergences',
+    );
   }
 
   void generateTest() {
@@ -491,11 +508,13 @@ class DartFuzzTest {
       // For any other divergence, always report what went wrong.
       if (result1.exitCode != 0) {
         print(
-            '\nfail1:\n${result1.exitCode}\n${result1.output}\n${result1.stderr}\n');
+          '\nfail1:\n${result1.exitCode}\n${result1.output}\n${result1.stderr}\n',
+        );
       }
       if (result2.exitCode != 0) {
         print(
-            '\nfail2:\n${result2.exitCode}\n${result2.output}\n${result2.stderr}\n');
+          '\nfail2:\n${result2.exitCode}\n${result2.output}\n${result2.stderr}\n',
+        );
       }
     }
   }
@@ -504,9 +523,10 @@ class DartFuzzTest {
     print('\n-- BEGIN REPRODUCE  --\n');
     print('DART SDK REVISION: $dartSdkRevision\n');
     print(
-        "dart runtime/tools/dartfuzz/dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
-        "--${flatTp ? "" : "no-"}flat "
-        '--seed $seed fuzz.dart');
+      "dart runtime/tools/dartfuzz/dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
+      "--${flatTp ? "" : "no-"}flat "
+      '--seed $seed fuzz.dart',
+    );
     print('\n-- RUN 1 --\n');
     runner1.printReproductionCommand();
     print('\n-- RUN 2 --\n');
@@ -559,18 +579,18 @@ class DartFuzzTest {
 /// Class to start fuzz testing session.
 class DartFuzzTestSession {
   DartFuzzTestSession(
-      this.isolates,
-      this.repeat,
-      this.time,
-      this.numOutputLines,
-      this.trueDivergence,
-      this.showStats,
-      String? tp,
-      this.mode1,
-      this.mode2,
-      this.rerun)
-      : top = getTop(tp),
-        dartSdkRevision = getDartSdkRevision(tp);
+    this.isolates,
+    this.repeat,
+    this.time,
+    this.numOutputLines,
+    this.trueDivergence,
+    this.showStats,
+    String? tp,
+    this.mode1,
+    this.mode2,
+    this.rerun,
+  ) : top = getTop(tp),
+      dartSdkRevision = getDartSdkRevision(tp);
 
   Future<void> start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');
@@ -614,17 +634,18 @@ class DartFuzzTestSession {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
       final fuzz = DartFuzzTest(
-          Platform.environment,
-          session.repeat,
-          session.time,
-          session.numOutputLines,
-          session.trueDivergence,
-          session.showStats,
-          session.top,
-          m1,
-          m2,
-          session.rerun,
-          session.dartSdkRevision);
+        Platform.environment,
+        session.repeat,
+        session.time,
+        session.numOutputLines,
+        session.trueDivergence,
+        session.showStats,
+        session.top,
+        m1,
+        m2,
+        session.rerun,
+        session.dartSdkRevision,
+      );
       divergences = fuzz.run();
     } catch (e, st) {
       print('Isolate: $e\n$st');
@@ -638,7 +659,7 @@ class DartFuzzTestSession {
       top = Platform.environment['DART_TOP'];
     }
     if (top == null || top == '') {
-      top = Directory.current.path;
+      top = '.';
     }
     return top;
   }
@@ -683,7 +704,6 @@ class DartFuzzTestSession {
 
   // Modes used on cluster runs.
   static const List<String> clusterModes = [
-    'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-x64c',
     'jit-debug-arm32',
@@ -691,7 +711,6 @@ class DartFuzzTestSession {
     'jit-debug-arm64c',
     'jit-debug-riscv32',
     'jit-debug-riscv64',
-    'jit-ia32',
     'jit-x64',
     'jit-x64c',
     'jit-arm32',
@@ -733,29 +752,49 @@ void main(List<String> arguments) {
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
     ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
-    ..addOption('num-output-lines',
-        help:
-            'number of output lines to be printed in the case of a divergence',
-        defaultsTo: '200')
-    ..addFlag('true-divergence',
-        negatable: true, help: 'only report true divergences', defaultsTo: true)
-    ..addFlag('show-stats',
-        negatable: true, help: 'show session statistics', defaultsTo: true)
+    ..addOption(
+      'num-output-lines',
+      help: 'number of output lines to be printed in the case of a divergence',
+      defaultsTo: '200',
+    )
+    ..addFlag(
+      'true-divergence',
+      negatable: true,
+      help: 'only report true divergences',
+      defaultsTo: true,
+    )
+    ..addFlag(
+      'show-stats',
+      negatable: true,
+      help: 'show session statistics',
+      defaultsTo: true,
+    )
     ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
     ..addOption('mode1', help: 'execution mode 1')
     ..addOption('mode2', help: 'execution mode 2')
-    ..addFlag('rerun',
-        negatable: true,
-        help: 're-run if test only diverges on return code (not in the output)',
-        defaultsTo: true)
+    ..addFlag(
+      'rerun',
+      negatable: true,
+      help: 're-run if test only diverges on return code (not in the output)',
+      defaultsTo: true,
+    )
     // Undocumented options for cluster runs.
-    ..addOption('shards',
-        help: 'number of shards used in cluster run', defaultsTo: '1')
+    ..addOption(
+      'shards',
+      help: 'number of shards used in cluster run',
+      defaultsTo: '1',
+    )
     ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1')
-    ..addOption('output_directory',
-        help: 'path to output (ignored)', defaultsTo: null)
-    ..addOption('output-directory',
-        help: 'path to output (ignored)', defaultsTo: null);
+    ..addOption(
+      'output_directory',
+      help: 'path to output (ignored)',
+      defaultsTo: null,
+    )
+    ..addOption(
+      'output-directory',
+      help: 'path to output (ignored)',
+      defaultsTo: null,
+    );
 
   // Starts fuzz testing session.
   ArgResults results;
@@ -772,15 +811,15 @@ void main(List<String> arguments) {
     print('\nSHARD $shard OF $shards');
   }
   DartFuzzTestSession(
-          int.parse(results['isolates']),
-          int.parse(results['repeat']),
-          int.parse(results['time']),
-          int.parse(results['num-output-lines']),
-          results['true-divergence'],
-          results['show-stats'],
-          results['dart-top'],
-          results['mode1'],
-          results['mode2'],
-          results['rerun'])
-      .start();
+    int.parse(results['isolates']),
+    int.parse(results['repeat']),
+    int.parse(results['time']),
+    int.parse(results['num-output-lines']),
+    results['true-divergence'],
+    results['show-stats'],
+    results['dart-top'],
+    results['mode1'],
+    results['mode2'],
+    results['rerun'],
+  ).start();
 }

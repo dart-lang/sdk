@@ -226,7 +226,7 @@ class Driver {
     var scanner = Scanner(
       _TestSource(),
       CharSequenceReader(text),
-      error.AnalysisErrorListener.NULL_LISTENER,
+      error.DiagnosticListener.nullListener,
     )..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,

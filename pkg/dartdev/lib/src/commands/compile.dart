@@ -6,16 +6,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:code_assets/code_assets.dart' show Architecture, OS;
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart'
-    show Architecture, OS, Target;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -361,6 +360,11 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       )
+      ..addFlag(
+        enableAssertsOption.flag,
+        negatable: false,
+        help: enableAssertsOption.help,
+      )
       ..addFlag(soundNullSafetyOption.flag,
           help: soundNullSafetyOption.help,
           defaultsTo: soundNullSafetyOption.flagDefaultsTo,
@@ -410,6 +414,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     final enabledExperiments = args.enabledExperiments;
     final defines = args.multiOption(defineOption.flag);
+    final enableAsserts = args.flag(enableAssertsOption.flag);
 
     // Build arguments.
     final buildArgs = <String>[];
@@ -440,6 +445,11 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     for (final define in defines) {
       buildArgs.add('-D$define');
     }
+
+    if (enableAsserts) {
+      buildArgs.add('--${enableAssertsOption.flag}');
+    }
+
     buildArgs.add(path.canonicalize(sourcePath));
 
     // Add the training arguments.
@@ -457,7 +467,9 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   static const String exeCmdName = 'exe';
   static const String aotSnapshotCmdName = 'aot-snapshot';
   static final supportedTargetPlatforms = <Target>{
+    Target.linuxArm,
     Target.linuxArm64,
+    Target.linuxRiscv64,
     Target.linuxX64
   };
 
@@ -494,9 +506,9 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         valueHelp: defineOption.valueHelp,
       )
       ..addFlag(
-        'enable-asserts',
+        enableAssertsOption.flag,
         negatable: false,
-        help: 'Enable assert statements.',
+        help: enableAssertsOption.help,
       )
       ..addOption(
         packagesOption.flag,
@@ -589,7 +601,9 @@ Remove debugging information from the output and save it separately to the speci
       }
 
       var cacheDir = getDartStorageDirectory();
-      if (cacheDir == null) {
+      if (cacheDir != null) {
+        cacheDir = Directory(path.join(cacheDir.path, 'dartdev', 'sdk_cache'));
+      } else {
         cacheDir = Directory.systemTemp.createTempSync();
         log.stdout('Cannot get dart storage directory. '
             'Using temp dir ${cacheDir.path}');
@@ -611,35 +625,27 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
-    final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
-    if (packageConfig != null) {
+    if (packageConfigUri != null) {
+      final packageConfig =
+          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      if (packageConfig == null) {
+        return compileErrorExitCode;
+      }
       final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
         Directory.current.uri,
       );
       if (runPackageName != null) {
-        final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return 255;
-          }
-        }
+        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri);
         final builder = DartNativeAssetsBuilder(
-            pubspec: pubspec,
-            packageConfigUri: packageConfig,
+            pubspecUri: pubspecUri,
+            packageConfigUri: packageConfigUri,
+            packageConfig: packageConfig,
             runPackageName: runPackageName,
+            includeDevDependencies: false,
             verbose: verbose,
             target: target);
         if (!nativeAssetsExperimentEnabled) {
@@ -672,7 +678,7 @@ Remove debugging information from the output and save it separately to the speci
         defines: args.multiOption(defineOption.flag),
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
-        enableAsserts: args.flag('enable-asserts'),
+        enableAsserts: args.flag(enableAssertsOption.flag),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
@@ -739,7 +745,15 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   // file for the flags. So please keep the formatting.
 
   final List<String> binaryenFlags = _flagList('''
-      --all-features
+      --enable-gc
+      --enable-reference-types
+      --enable-multivalue
+      --enable-exception-handling
+      --enable-nontrapping-float-to-int
+      --enable-sign-ext
+      --enable-bulk-memory
+      --enable-threads
+
       --closed-world
       --traps-never-happen
       --type-unfinalizing
@@ -830,9 +844,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         negatable: false,
       )
       ..addFlag(
-        'enable-asserts',
-        help: 'Enable assert statements.',
+        enableAssertsOption.flag,
         negatable: false,
+        help: enableAssertsOption.help,
       )
       ..addOption(
         'shared-memory',
@@ -986,7 +1000,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (packages != null) '--packages=$packages',
       if (args.flag('print-wasm')) '--print-wasm',
       if (args.flag('print-kernel')) '--print-kernel',
-      if (args.flag('enable-asserts')) '--enable-asserts',
+      if (args.flag(enableAssertsOption.flag)) '--${enableAssertsOption.flag}',
       if (!generateSourceMap) '--no-source-maps',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
@@ -1017,6 +1031,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
 
     final bool strip = args.flag('strip-wasm');
+
+    // When running in dry run mode there will not be any file emitted.
+    final isDryRun = extraCompilerOptions.any((e) => e.contains('dry-run'));
+
+    if (isDryRun) return 0;
 
     if (runWasmOpt) {
       final unoptFile = '$outputFileBasename.unopt.wasm';
@@ -1083,27 +1102,29 @@ Sets the verbosity level of the compilation.
     flagDefaultsTo: true,
   );
 
-  final Option defineOption;
-  final Option packagesOption;
-
-  CompileSubcommandCommand(super.name, super.description, super.verbose,
-      {super.hidden})
-      : defineOption = Option(
-          flag: 'define',
-          abbr: 'D',
-          valueHelp: 'key=value',
-          help: '''
+  late final Option defineOption = Option(
+    flag: 'define',
+    abbr: 'D',
+    valueHelp: 'key=value',
+    help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
 For example: dart compile $name -Da=1,b=2 main.dart''',
-        ),
-        packagesOption = Option(
-            flag: 'packages',
-            abbr: 'p',
-            valueHelp: 'path',
-            help:
-                '''Get package locations from the specified file instead of .dart_tool/package_config.json.
+  );
+
+  late final Option packagesOption = Option(
+      flag: 'packages',
+      abbr: 'p',
+      valueHelp: 'path',
+      help:
+          '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
 For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
+
+  final Option enableAssertsOption =
+      Option(flag: 'enable-asserts', help: 'Enable assert statements.');
+
+  CompileSubcommandCommand(super.name, super.description, super.verbose,
+      {super.hidden});
 }
 
 class CompileCommand extends DartdevCommand {
@@ -1134,4 +1155,7 @@ class CompileCommand extends DartdevCommand {
     ));
     addSubcommand(CompileWasmCommand(verbose: verbose));
   }
+
+  @override
+  CommandCategory get commandCategory => CommandCategory.project;
 }

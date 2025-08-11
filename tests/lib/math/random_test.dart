@@ -145,7 +145,7 @@ void checkSeed() {
     39797,
     50801,
     22184,
-    58686
+    58686,
   ];
   var negative_seed_expectations = [
     12170,
@@ -222,7 +222,7 @@ void checkSeed() {
     7935,
     51459,
     36766,
-    50711
+    50711,
   ];
   for (var i = 0, m = 1; i < 75; i++) {
     if (rawSeed * m < 0) {
@@ -231,7 +231,9 @@ void checkSeed() {
     }
     Expect.equals(expectations[i], new Random(rawSeed * m).nextInt(65536));
     Expect.equals(
-        negative_seed_expectations[i], new Random(rawSeed * -m).nextInt(65536));
+      negative_seed_expectations[i],
+      new Random(rawSeed * -m).nextInt(65536),
+    );
     m *= 2;
   }
   // And test zero seed too.

@@ -12,15 +12,15 @@ import 'package:path/path.dart' as path;
 import 'package:test_runner/src/options.dart';
 
 import '../vm/dart/snapshot_test_helper.dart';
+import '../../tools/dartfuzz/flag_fuzzer.dart';
 
 int crashCounter = 0;
 
 void forwardStream(Stream<List<int>> input, IOSink output) {
   // Print the information line-by-line.
-  input
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((String line) {
+  input.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
     output.writeln(line);
   });
 }
@@ -33,13 +33,21 @@ class PotentialCrash {
 }
 
 Future<bool> run(
-    String executable, List<String> args, List<PotentialCrash> crashes) async {
-  print('Running "$executable ${args.join(' ')}"');
-  final Process process = await Process.start(executable, args,
-      environment: sanitizerEnvironmentVariables);
+  String executable,
+  List<String> args,
+  List<PotentialCrash> crashes,
+) async {
+  print('\n\nRunning "$executable ${args.join(' ')}"');
+  final sw = Stopwatch()..start();
+  final Process process = await Process.start(
+    executable,
+    args,
+    environment: sanitizerEnvironmentVariables,
+  );
   forwardStream(process.stdout, stdout);
   forwardStream(process.stderr, stderr);
   final int exitCode = await process.exitCode;
+  print('Completed in ${sw.elapsed}');
   if (exitCode != 0) {
     // Ignore normal exceptions and compile-time errors for the purpose of
     // crashdump reporting.
@@ -81,12 +89,15 @@ class AotTestRunner extends TestRunner {
     await withTempDir((String dir) async {
       final elfFile = path.join(dir, 'app.elf');
 
-      if (await run(
-          '$buildDir/gen_snapshot',
-          ['--snapshot-kind=app-aot-elf', '--elf=$elfFile', ...arguments],
-          crashes)) {
-        await run(
-            '$buildDir/dartaotruntime', [...aotArguments, elfFile], crashes);
+      if (await run('$buildDir/gen_snapshot', [
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$elfFile',
+        ...arguments,
+      ], crashes)) {
+        await run('$buildDir/dartaotruntime', [
+          ...aotArguments,
+          elfFile,
+        ], crashes);
       }
     });
   }
@@ -133,55 +144,75 @@ void writeUnexpectedCrashesFile(List<PotentialCrash> crashes) {
   File(unexpectedCrashesFile).writeAsStringSync(buffer.toString());
 }
 
-const int tsanShards = 200;
+const int tsanShards = 64;
 
-final configurations = <TestRunner>[
-  JitTestRunner('out/DebugX64', [
-    '--disable-dart-dev',
-    'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-  ]),
-  JitTestRunner('out/ReleaseX64', [
-    '--disable-dart-dev',
-    '--no-inline-alloc',
-    '--use-slow-path',
-    '--deoptimize-on-runtime-call-every=3',
-    'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-  ]),
-  for (int i = 0; i < tsanShards; ++i)
-    JitTestRunner('out/ReleaseTSANX64', [
-      '--disable-dart-dev',
-      '-Drepeat=4',
-      '-Dshard=$i',
-      '-Dshards=$tsanShards',
-      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-    ]),
-  AotTestRunner(
-    'out/ReleaseX64',
-    ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
-    [],
-  ),
-  AotTestRunner(
-    'out/DebugX64',
-    ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
-    [],
-  ),
-];
+late final List<TestRunner> configurations;
 
 main(List<String> arguments) async {
   final parser = ArgParser()
     ..addOption('shards', help: 'number of shards used', defaultsTo: '1')
     ..addOption('shard', help: 'shard id', defaultsTo: '1')
-    ..addOption('output-directory',
-        help: 'unused parameter to make sharding infra work', defaultsTo: '')
-    ..addFlag('copy-coredumps',
-        help: 'whether to copy binaries for coredumps', defaultsTo: false)
-    ..addOption("previous-results",
-        help: "An earlier results.json for balancing tests across shards.");
+    ..addOption(
+      'output-directory',
+      help: 'unused parameter to make sharding infra work',
+      defaultsTo: '',
+    )
+    ..addFlag(
+      'copy-coredumps',
+      help: 'whether to copy binaries for coredumps',
+      defaultsTo: false,
+    )
+    ..addOption(
+      'previous-results',
+      help: 'An earlier results.json for balancing tests across shards.',
+    )
+    ..addOption('arch', help: 'architecture to be tested', defaultsTo: 'X64');
 
   final options = parser.parse(arguments);
   final shards = int.parse(options['shards']);
   final shard = int.parse(options['shard']) - 1;
   final copyCoredumps = options['copy-coredumps'] as bool;
+  final arch = options['arch'].toUpperCase();
+  configurations = <TestRunner>[
+    JitTestRunner('out/Debug$arch', [
+      '--disable-dart-dev',
+      ...someJitRuntimeFlags(),
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+    ]),
+    JitTestRunner('out/Release$arch', [
+      '--disable-dart-dev',
+      ...someJitRuntimeFlags(),
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+    ]),
+    AotTestRunner(
+      'out/Debug$arch',
+      [
+        ...someGenSnapshotFlags(),
+        'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+      ],
+      [...someAotRuntimeFlags()],
+    ),
+    AotTestRunner(
+      'out/Release$arch',
+      [
+        ...someGenSnapshotFlags(),
+        'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+      ],
+      [...someAotRuntimeFlags()],
+    ),
+    // TSAN last so the other steps are evenly distributed.
+    for (int i = 0; i < tsanShards; ++i)
+      JitTestRunner('out/ReleaseTSAN$arch', [
+        '--disable-dart-dev',
+        ...someJitRuntimeFlags(),
+        '--no-profiler', // TODO(https://github.com/dart-lang/sdk/issues/60804, https://github.com/dart-lang/sdk/issues/60805)
+        '--no-gc_at_throw', // Too slow under TSAN
+        '-Drepeat=4',
+        '-Dshard=$i',
+        '-Dshards=$tsanShards',
+        'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+      ]),
+  ];
 
   // Tasks will eventually be killed if they do not have any output for some
   // time. So we'll explicitly print something every 4 minutes.

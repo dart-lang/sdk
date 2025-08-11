@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The value 'null' can't be assigned to the parameter type 'num' because 'num' is not nullable.
+// pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The argument type 'Null' can't be assigned to the parameter type 'num'.
 //   extendsNumReturnArg/*<Null>*/(null);
 //                                 ^
 //
@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 static field <T extends core::num = dynamic>(T) → T extendsNumReturnArg = <S extends core::num>(S s) → S => s;
 static method functionInvocations() → dynamic {
-  self::extendsNumReturnArg<core::num>(invalid-expression "pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The value 'null' can't be assigned to the parameter type 'num' because 'num' is not nullable.
+  self::extendsNumReturnArg<core::num>(invalid-expression "pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The argument type 'Null' can't be assigned to the parameter type 'num'.
   extendsNumReturnArg/*<Null>*/(null);
                                 ^" in null as{TypeError} core::num){(core::num) → core::num};
   self::extendsNumReturnArg<core::num>(invalid-expression "pkg/front_end/testcases/general/issue45660.dart:9:35: Error: The argument type 'String' can't be assigned to the parameter type 'num'.

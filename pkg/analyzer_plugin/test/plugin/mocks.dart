@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
@@ -113,7 +113,7 @@ class MockChannel implements PluginCommunicationChannel {
 
 class MockResolvedUnitResult implements ResolvedUnitResult {
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> diagnostics;
 
   @override
   final LineInfo lineInfo;
@@ -122,8 +122,8 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
   final String path;
 
   MockResolvedUnitResult(
-      {List<AnalysisError>? errors, LineInfo? lineInfo, String? path})
-      : errors = errors ?? [],
+      {List<Diagnostic>? errors, LineInfo? lineInfo, String? path})
+      : diagnostics = errors ?? [],
         lineInfo = lineInfo ?? LineInfo([0]),
         path = path ?? '';
 

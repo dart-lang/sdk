@@ -16,23 +16,25 @@ main() {
 @reflectiveTest
 class OptionalParameterInOperatorTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   operator +({p}) {}
 }
-''', [
-      error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1)],
+    );
   }
 
   test_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   operator +([p]) {}
 }
-''', [
-      error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1)],
+    );
   }
 
   test_single_required_parameter() async {

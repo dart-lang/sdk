@@ -19,15 +19,21 @@ main() {
   catchErrors(() {
     catchErrors(() {
       controller = new StreamController();
-      controller.stream.map((x) {
-        events.add("map $x");
-        return x + 100;
-      }).transform(
-          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-        sink.add("error $e");
-      })).listen((x) {
-        events.add("stream $x");
-      });
+      controller.stream
+          .map((x) {
+            events.add("map $x");
+            return x + 100;
+          })
+          .transform(
+            new StreamTransformer.fromHandlers(
+              handleError: (e, st, sink) {
+                sink.add("error $e");
+              },
+            ),
+          )
+          .listen((x) {
+            events.add("stream $x");
+          });
     }).listen((x) {
       events.add(x);
     });
@@ -35,12 +41,15 @@ main() {
     controller.addError(2);
     new Future.error("outer error");
     controller.close();
-  }).listen((x) {
-    events.add("outer: $x");
-    if (x == "outer error") done.complete(true);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+      if (x == "outer error") done.complete(true);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     Timer.run(() {

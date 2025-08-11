@@ -7,9 +7,9 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -17,21 +17,25 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/inheritance/data',
+    ),
+  );
   return runTests<String>(
     dataDir,
     args: args,
     createUriForFileName: createUriForFileName,
     onFailure: onFailure,
-    runTest:
-        runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
+    runTest: runTestFor(const _InheritanceDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
   );
 }
 
 String supertypeToString(InterfaceType type) {
   var sb = StringBuffer();
-  sb.write(type.element3.name3);
+  sb.write(type.element.name);
   if (type.typeArguments.isNotEmpty) {
     sb.write('<');
     var comma = '';
@@ -55,16 +59,25 @@ class _InheritanceDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(TestConfig config, TestingData testingData, Id id,
-      List<AnalysisError> errors) {
-    return errors.map((e) => e.errorCode).join(',');
+  String computeErrorData(
+    TestConfig config,
+    TestingData testingData,
+    Id id,
+    List<Diagnostic> diagnostics,
+  ) {
+    return diagnostics.map((e) => e.diagnosticCode).join(',');
   }
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
-    _InheritanceDataExtractor(unit.declaredFragment!.source.uri, actualMap)
-        .run(unit);
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
+    _InheritanceDataExtractor(
+      unit.declaredFragment!.source.uri,
+      actualMap,
+    ).run(unit);
   }
 }
 
@@ -74,7 +87,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   _InheritanceDataExtractor(super.uri, super.actualMap);
 
   @override
-  String? computeElementValue(Id id, Element2 element) {
+  String? computeElementValue(Id id, Element element) {
     return null;
   }
 
@@ -85,32 +98,33 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       var element = node.declaredFragment!.element;
 
       void registerMember(
-          MemberId id, int offset, Object object, DartType type) {
+        MemberId id,
+        int offset,
+        Object object,
+        DartType type,
+      ) {
         registerValue(uri, offset, id, type.getDisplayString(), object);
       }
 
-      var interface = inheritance.getInterface2(element);
-      for (var name in interface.map2.keys) {
-        var executable = interface.map2[name]!;
+      var interface = inheritance.getInterface(element);
+      for (var name in interface.map.keys) {
+        var executable = interface.map[name]!;
 
-        var enclosingClass = executable.enclosingElement2 as InterfaceElement2;
-        if (enclosingClass is ClassElement2 &&
-            enclosingClass.isDartCoreObject) {
+        var enclosingClass = executable.enclosingElement as InterfaceElement;
+        if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
           continue;
         }
 
-        var id = MemberId.internal(
-          name.name,
-          className: element.name3,
-        );
+        var id = MemberId.internal(name.name, className: element.name);
 
-        var offset = enclosingClass == element
-            ? executable.firstFragment.nameOffset2
-            : element.firstFragment.nameOffset2;
+        var offset =
+            enclosingClass == element
+                ? executable.firstFragment.nameOffset2
+                : element.firstFragment.nameOffset2;
         offset ??= -1;
 
         DartType type;
-        if (executable is MethodElement2) {
+        if (executable is MethodElement) {
           type = executable.type;
         } else if (executable is GetterElement) {
           type = executable.returnType;

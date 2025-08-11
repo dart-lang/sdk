@@ -28,15 +28,18 @@ final b = new A().a;
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final a = b + 1;
 }
 final b = new A().a;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 18, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 37, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 18, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 37, 1),
+      ],
+    );
 
     assertTypeDynamic(findElement2.field('a').type);
     assertTypeDynamic(findElement2.topVar('b').type);

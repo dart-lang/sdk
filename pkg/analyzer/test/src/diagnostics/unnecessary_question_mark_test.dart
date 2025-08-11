@@ -22,21 +22,23 @@ dynamic a;
   }
 
   test_dynamicQuestionMark() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 dynamic? a;
-''', [
-      error(WarningCode.UNNECESSARY_QUESTION_MARK, 7, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 7, 1)],
+    );
   }
 
   test_dynamicQuestionMark_inVariableDeclarationPattern() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(List<Object> a) {
   var [dynamic? _] = a;
 }
-''', [
-      error(WarningCode.UNNECESSARY_QUESTION_MARK, 39, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 39, 1)],
+    );
   }
 
   test_Null() async {
@@ -46,24 +48,28 @@ Null a;
   }
 
   test_NullQuestionMark() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Null? a;
-''', [
-      error(WarningCode.UNNECESSARY_QUESTION_MARK, 4, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 4, 1)],
+    );
   }
 
   test_NullQuestionMark_inCastPattern() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Object a) {
   switch (a) {
     case var _ as Null?:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 52, 5),
-      error(WarningCode.UNNECESSARY_QUESTION_MARK, 56, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 52, 5),
+        error(WarningCode.UNNECESSARY_QUESTION_MARK, 56, 1),
+      ],
+    );
   }
 
   test_typeAliasQuestionMark() async {

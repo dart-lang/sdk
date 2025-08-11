@@ -248,8 +248,7 @@ void WriteBarrierElimination::IndexDefinitions(Zone* zone) {
       if (auto phi_use = it.Current()->instruction()->AsPhi()) {
         const intptr_t index = Index(phi_use);
         if (!large_array_allocations.Get(index)) {
-          large_array_allocations.Set(index,
-                                      /*can_be_create_large_array=*/true);
+          large_array_allocations.Set(index, true);  // Can be large array.
           create_array_worklist.Add(phi_use);
         }
       }
@@ -389,6 +388,14 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
 
 void WriteBarrierElimination::UpdateVectorForBlock(BlockEntryInstr* entry,
                                                    bool finalize) {
+  if (entry->IsCatchBlockEntry()) {
+    // Control flow from potentially-throwing instructions in the try block to
+    // the catch block is not explicitly represented in the flow graph.
+    // Conservatively assume the try block corresponding to this catch block
+    // contains at least one CanCallDart instruction.
+    vector_->Clear();
+  }
+
   for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
     Instruction* const current = it.Current();
 

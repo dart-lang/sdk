@@ -4,6 +4,7 @@
 
 import 'dart:mirrors';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -12,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,29 +33,31 @@ class ErrorCodeValuesTest {
     // Now that we're using unique names for comparison, the only reason to
     // split the codes by class is to find all of the classes that need to be
     // checked against `errorCodeValues`.
-    var errorTypeMap = <Type, List<ErrorCode>>{};
-    for (ErrorCode code in errorCodeValues) {
+    var errorTypeMap = <Type, List<DiagnosticCode>>{};
+    for (DiagnosticCode code in diagnosticCodeValues) {
       Type type = code.runtimeType;
-      errorTypeMap.putIfAbsent(type, () => <ErrorCode>[]).add(code);
+      errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
     }
 
     StringBuffer missingCodes = StringBuffer();
-    errorTypeMap.forEach((Type errorType, List<ErrorCode> codes) {
-      var listedNames = codes.map((ErrorCode code) => code.uniqueName).toSet();
+    errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
+      var listedNames =
+          codes.map((DiagnosticCode code) => code.uniqueName).toSet();
 
-      var declaredNames = reflectClass(errorType)
-          .declarations
-          .values
-          .map((DeclarationMirror declarationMirror) {
-        String name = declarationMirror.simpleName.toString();
-        // TODO(danrubel): find a better way to extract the text from the symbol
-        assert(name.startsWith('Symbol("') && name.endsWith('")'));
-        return '$errorType.${name.substring(8, name.length - 2)}';
-      }).where((String name) {
-        return name == name.toUpperCase();
-      }).toList();
+      var declaredNames =
+          reflectClass(errorType).declarations.values
+              .map((DeclarationMirror declarationMirror) {
+                String name = declarationMirror.simpleName.toString();
+                // TODO(danrubel): find a better way to extract the text from the symbol
+                assert(name.startsWith('Symbol("') && name.endsWith('")'));
+                return '$errorType.${name.substring(8, name.length - 2)}';
+              })
+              .where((String name) {
+                return name == name.toUpperCase();
+              })
+              .toList();
 
-      // Assert that all declared names are in errorCodeValues
+      // Assert that all declared names are in errorCodeValues.
 
       for (String declaredName in declaredNames) {
         if (!listedNames.contains(declaredName)) {
@@ -82,11 +85,14 @@ class OptionsFileValidatorTest with LintRegistrationMixin {
   }
 
   test_analyzer_cannotIgnore_badValue() {
-    validate('''
+    validate(
+      '''
 analyzer:
   cannot-ignore:
     - not_an_error_code
-''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+''',
+      [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE],
+    );
   }
 
   test_analyzer_cannotIgnore_goodValue() {
@@ -107,11 +113,14 @@ analyzer:
   }
 
   test_analyzer_cannotIgnore_notAList() {
-    validate('''
+    validate(
+      '''
 analyzer:
   cannot-ignore:
     one_error_code: true
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_cannotIgnore_severity() {
@@ -123,28 +132,37 @@ analyzer:
   }
 
   test_analyzer_cannotIgnore_valueNotAString() {
-    validate('''
+    validate(
+      '''
 analyzer:
   cannot-ignore:
     one_error_code:
       foo: bar
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_enableExperiment_badValue() {
-    validate('''
+    validate(
+      '''
 analyzer:
   enable-experiment:
     - not-an-experiment
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+    ''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES],
+    );
   }
 
   test_analyzer_enableExperiment_notAList() {
-    validate('''
+    validate(
+      '''
 analyzer:
   enable-experiment:
     experiment: true
-    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+    ''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_error_code_supported() {
@@ -159,76 +177,108 @@ analyzer:
   }
 
   test_analyzer_error_code_supported_bad_value() {
-    var errors = validate('''
+    var diagnostics = validate(
+      '''
 analyzer:
   errors:
     unused_local_variable: ftw
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
-    expect(errors.single.problemMessage.messageText(includeUrl: false),
-        contains("The option 'ftw'"));
+    ''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
+    );
+    expect(
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
+      contains("The option 'ftw'"),
+    );
   }
 
   test_analyzer_error_code_supported_bad_value_null() {
-    var errors = validate('''
+    var diagnostics = validate(
+      '''
 analyzer:
   errors:
     unused_local_variable: null
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
-    expect(errors.single.problemMessage.messageText(includeUrl: false),
-        contains("The option 'null'"));
+    ''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
+    );
+    expect(
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
+      contains("The option 'null'"),
+    );
   }
 
   test_analyzer_error_code_unsupported() {
-    var errors = validate('''
+    var diagnostics = validate(
+      '''
 analyzer:
   errors:
     not_supported: ignore
-    ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
-    expect(errors.single.problemMessage.messageText(includeUrl: false),
-        contains("'not_supported' isn't a recognized error code"));
+    ''',
+      [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE],
+    );
+    expect(
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
+      contains("'not_supported' isn't a recognized error code"),
+    );
   }
 
   test_analyzer_error_code_unsupported_null() {
-    var errors = validate('''
+    var diagnostics = validate(
+      '''
 analyzer:
   errors:
     null: ignore
-    ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
-    expect(errors.single.problemMessage.messageText(includeUrl: false),
-        contains("'null' isn't a recognized error code"));
+    ''',
+      [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE],
+    );
+    expect(
+      diagnostics.single.problemMessage.messageText(includeUrl: false),
+      contains("'null' isn't a recognized error code"),
+    );
   }
 
   test_analyzer_errors_notAMap() {
-    validate('''
+    validate(
+      '''
 analyzer:
   errors:
     - invalid_annotation
     - unused_import
-    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+    ''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_errors_valueNotAScalar() {
-    validate('''
+    validate(
+      '''
 analyzer:
   errors:
     invalid_annotation: ignore
     unused_import: [1, 2, 3]
-    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+    ''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_language_bad_format_list() {
-    validate('''
+    validate(
+      '''
 analyzer:
   language:
     - notAnOption: true
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_language_bad_format_scalar() {
-    validate('''
+    validate(
+      '''
 analyzer:
   language: true
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_analyzer_language_supports_empty() {
@@ -239,11 +289,14 @@ analyzer:
   }
 
   test_analyzer_language_unsupported_key() {
-    validate('''
+    validate(
+      '''
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
+    );
   }
 
   test_analyzer_lint_codes_recognized() {
@@ -264,10 +317,13 @@ analyzer:
   }
 
   test_analyzer_unsupported_option() {
-    validate('''
+    validate(
+      '''
 analyzer:
   not_supported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
+    );
   }
 
   test_chromeos_manifest_checks() {
@@ -279,19 +335,25 @@ analyzer:
   }
 
   test_chromeos_manifest_checks_invalid() {
-    validate('''
+    validate(
+      '''
 analyzer:
   optional-checks:
     chromeos-manifest
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES],
+    );
   }
 
   test_chromeos_manifest_checks_notAMap() {
-    validate('''
+    validate(
+      '''
 analyzer:
   optional-checks:
     - chrome-os-manifest-checks
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_codeStyle_format_false() {
@@ -302,10 +364,13 @@ code-style:
   }
 
   test_codeStyle_format_invalid() {
-    validate('''
+    validate(
+      '''
 code-style:
   format: 80
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE],
+    );
   }
 
   test_codeStyle_format_true() {
@@ -316,77 +381,96 @@ code-style:
   }
 
   test_codeStyle_unsupported_list() {
-    validate('''
+    validate(
+      '''
 code-style:
   - format
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_codeStyle_unsupported_scalar() {
-    validate('''
+    validate(
+      '''
 code-style: format
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_codeStyle_unsupportedOption() {
-    validate('''
+    validate(
+      '''
 code-style:
   not_supported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES],
+    );
   }
 
   test_formatter_invalid_key() {
-    validate('''
+    validate(
+      '''
 formatter:
   wrong: 123
-''', [
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-    ]);
+''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES],
+    );
   }
 
   test_formatter_invalid_keys() {
-    validate('''
+    validate(
+      '''
 formatter:
   wrong: 123
   wrong2: 123
-''', [
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-    ]);
+''',
+      [
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+      ],
+    );
   }
 
   test_formatter_pageWidth_invalid_decimal() {
-    validate('''
+    validate(
+      '''
 formatter:
   page_width: 123.45
-''', [
-      AnalysisOptionsWarningCode.INVALID_OPTION,
-    ]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
   }
 
   test_formatter_pageWidth_invalid_negativeInteger() {
-    validate('''
+    validate(
+      '''
 formatter:
   page_width: -123
-''', [
-      AnalysisOptionsWarningCode.INVALID_OPTION,
-    ]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
   }
 
   test_formatter_pageWidth_invalid_string() {
-    validate('''
+    validate(
+      '''
 formatter:
   page_width: "123"
-''', [AnalysisOptionsWarningCode.INVALID_OPTION]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
   }
 
   test_formatter_pageWidth_invalid_zero() {
-    validate('''
+    validate(
+      '''
 formatter:
   page_width: 0
-''', [
-      AnalysisOptionsWarningCode.INVALID_OPTION,
-    ]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
   }
 
   test_formatter_pageWidth_valid_integer() {
@@ -450,10 +534,13 @@ linter:
   }
 
   test_linter_unsupported_option() {
-    validate('''
+    validate(
+      '''
 linter:
   unsupported: true
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+    ''',
+      [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE],
+    );
   }
 
   test_plugins_each_invalid_mapKey() {
@@ -480,9 +567,12 @@ plugins:
   }
 
   test_plugins_invalid_scalar() {
-    validate('''
+    validate(
+      '''
 plugins: 7
-''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_plugins_valid_empty() {
@@ -491,12 +581,14 @@ plugins:
 ''', []);
   }
 
-  List<AnalysisError> validate(String source, List<ErrorCode> expected) {
+  List<Diagnostic> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
-    var errors = validator.validate(options);
-    expect(errors.map((AnalysisError e) => e.errorCode),
-        unorderedEquals(expected));
-    return errors;
+    var diagnostics = validator.validate(options);
+    expect(
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
+      unorderedEquals(expected),
+    );
+    return diagnostics;
   }
 }
 
@@ -509,18 +601,21 @@ class OptionsProviderTest with ResourceProviderMixin {
   String get optionsFilePath => '/analysis_options.yaml';
 
   void assertErrorsInList(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
-    errorListener.assertErrors(expectedErrors);
+    GatheringDiagnosticListener diagnosticListener =
+        GatheringDiagnosticListener();
+    diagnosticListener.addAll(diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertErrorsInOptionsFile(
-      String code, List<ExpectedError> expectedErrors) {
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) {
     newFile(optionsFilePath, code);
-    var errors = analyzeAnalysisOptions(
+    var diagnostics = analyzeAnalysisOptions(
       sourceFactory.forUri2(toUri(optionsFilePath))!,
       code,
       sourceFactory,
@@ -528,11 +623,11 @@ class OptionsProviderTest with ResourceProviderMixin {
       null /*sdkVersionConstraint*/,
     );
 
-    assertErrorsInList(errors, expectedErrors);
+    assertErrorsInList(diagnostics, expectedErrors);
   }
 
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     Pattern? correctionContains,
@@ -540,16 +635,15 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) =>
-      ExpectedError(
-        code,
-        offset,
-        length,
-        correctionContains: correctionContains,
-        message: text,
-        messageContains: messageContains,
-        expectedContextMessages: contextMessages,
-      );
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    correctionContains: correctionContains,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
@@ -562,14 +656,15 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10)],
+    );
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_mapForm() {
@@ -578,15 +673,16 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 include: other_options.yaml
 analyzer:
   plugins:
     plugin_two:
       foo: bar
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 53, 10),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 53, 10)],
+    );
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_scalarForm() {
@@ -595,13 +691,14 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 include: other_options.yaml
 analyzer:
   plugins: plugin_two
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 49, 10),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 49, 10)],
+    );
   }
 
   test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirect() {
@@ -613,14 +710,15 @@ analyzer:
     newFile('/other_options.yaml', '''
 include: more_options.yaml
 ''');
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10)],
+    );
   }
 
   test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirectlyIncluded() {
@@ -635,24 +733,28 @@ analyzer:
   plugins:
     - plugin_two
 ''');
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 include: other_options.yaml
-''', [
-      error(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, 9, 18),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, 9, 18)],
+    );
   }
 
   test_multiplePlugins_multipleDirect_listForm() {
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 analyzer:
   plugins:
     - plugin_one
     - plugin_two
     - plugin_three
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 44, 10),
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 61, 12),
-    ]);
+''',
+      [
+        error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 44, 10),
+        error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 61, 12),
+      ],
+    );
   }
 
   test_multiplePlugins_multipleDirect_listForm_nonString() {
@@ -674,30 +776,32 @@ analyzer:
   }
 
   test_multiplePlugins_multipleDirect_mapForm() {
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_two: sure
-''', [
-      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 45, 10),
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 45, 10)],
+    );
   }
 
   test_multiplePlugins_multipleDirect_mapForm_sameName() {
-    assertErrorsInOptionsFile(r'''
+    assertErrorsInOptionsFile(
+      r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_one: sure
-''', [
-      error(AnalysisOptionsErrorCode.PARSE_ERROR, 45, 10),
-    ]);
+''',
+      [error(AnalysisOptionsErrorCode.PARSE_ERROR, 45, 10)],
+    );
   }
 
-  List<AnalysisError> validate(String code, List<ErrorCode> expected) {
+  List<Diagnostic> validate(String code, List<DiagnosticCode> expected) {
     newFile(optionsFilePath, code);
-    var errors = analyzeAnalysisOptions(
+    var diagnostics = analyzeAnalysisOptions(
       sourceFactory.forUri('file://$optionsFilePath')!,
       code,
       sourceFactory,
@@ -705,30 +809,24 @@ analyzer:
       null /*sdkVersionConstraint*/,
     );
     expect(
-      errors.map((AnalysisError e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
     );
-    return errors;
+    return diagnostics;
   }
 }
 
 class TestRule extends LintRule {
   static const LintCode code = LintCode(
-      'fantastic_test_rule', 'Fantastic test rule.',
-      correctionMessage: 'Try fantastic test rule.');
+    'fantastic_test_rule',
+    'Fantastic test rule.',
+    correctionMessage: 'Try fantastic test rule.',
+  );
 
-  TestRule()
-      : super(
-          name: 'fantastic_test_rule',
-          description: '',
-        );
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name)
-      : super(
-          name: name,
-          description: '',
-        );
+  TestRule.withName(String name) : super(name: name, description: '');
 
   @override
-  LintCode get lintCode => code;
+  DiagnosticCode get diagnosticCode => code;
 }

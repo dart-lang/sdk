@@ -131,8 +131,9 @@ class InterceptorDataImpl implements InterceptorData {
       interceptedMembers[name] = members;
     }
     Set<ClassEntity> interceptedClasses = source.readClasses().toSet();
-    Set<ClassEntity> classesMixedIntoInterceptedClasses =
-        source.readClasses().toSet();
+    Set<ClassEntity> classesMixedIntoInterceptedClasses = source
+        .readClasses()
+        .toSet();
     source.end(tag);
     return InterceptorDataImpl(
       nativeData,
@@ -192,16 +193,15 @@ class InterceptorDataImpl implements InterceptorData {
     AbstractValue? mask,
     JClosedWorld closedWorld,
   ) {
-    Set<MemberEntity> elements =
-        _interceptedMixinElements[selector.name] ??=
-            (interceptedMembers[selector.name]
-                    ?.where(
-                      (element) => classesMixedIntoInterceptedClasses.contains(
-                        element.enclosingClass,
-                      ),
-                    )
-                    .toSet() ??
-                const {});
+    Set<MemberEntity> elements = _interceptedMixinElements[selector.name] ??=
+        (interceptedMembers[selector.name]
+            ?.where(
+              (element) => classesMixedIntoInterceptedClasses.contains(
+                element.enclosingClass,
+              ),
+            )
+            .toSet() ??
+        const {});
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
@@ -420,8 +420,10 @@ class OneShotInterceptorData {
     String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
     Map<String, OneShotInterceptor> interceptors =
         _oneShotInterceptors[selector] ??= {};
-    OneShotInterceptor interceptor =
-        interceptors[key] ??= OneShotInterceptor(key, selector);
+    OneShotInterceptor interceptor = interceptors[key] ??= OneShotInterceptor(
+      key,
+      selector,
+    );
     interceptor.classes.addAll(classes);
     registerSpecializedGetInterceptor(classes);
     return namer.nameForOneShotInterceptor(selector, classes);
@@ -434,8 +436,8 @@ class OneShotInterceptorData {
       classes = _interceptorData.interceptedClasses;
     }
     String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
-    SpecializedGetInterceptor interceptor =
-        _specializedGetInterceptors[key] ??= SpecializedGetInterceptor(key);
+    SpecializedGetInterceptor interceptor = _specializedGetInterceptors[key] ??=
+        SpecializedGetInterceptor(key);
     interceptor.classes.addAll(classes);
   }
 }

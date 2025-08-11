@@ -16,17 +16,17 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension on self::Class {
   get simpleSetter = self::Extension|get#simpleSetter;
+  set simpleSetter = self::Extension|set#simpleSetter;
   get simpleNullableSetter = self::Extension|get#simpleNullableSetter;
+  set simpleNullableSetter = self::Extension|set#simpleNullableSetter;
   get mutatingSetter = self::Extension|get#mutatingSetter;
+  set mutatingSetter = self::Extension|set#mutatingSetter;
   get setterWithReturn = self::Extension|get#setterWithReturn;
+  set setterWithReturn = self::Extension|set#setterWithReturn;
   get setterWithClosure = self::Extension|get#setterWithClosure;
+  set setterWithClosure = self::Extension|set#setterWithClosure;
   method testInternal = self::Extension|testInternal;
   method tearoff testInternal = self::Extension|get#testInternal;
-  set simpleSetter = self::Extension|set#simpleSetter;
-  set simpleNullableSetter = self::Extension|set#simpleNullableSetter;
-  set mutatingSetter = self::Extension|set#mutatingSetter;
-  set setterWithReturn = self::Extension|set#setterWithReturn;
-  set setterWithClosure = self::Extension|set#setterWithClosure;
 }
 extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
   set setter = self::GenericExtension|set#setter;

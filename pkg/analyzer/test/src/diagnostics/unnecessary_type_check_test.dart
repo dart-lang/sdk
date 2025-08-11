@@ -17,21 +17,23 @@ main() {
 @reflectiveTest
 class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
   test_null_isNot_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var b = null is! Null;
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13)],
+    );
   }
 
   test_typeNonNullable_isNot_same() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is! int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9)],
+    );
   }
 
   test_typeNonNullable_isNot_subtype() async {
@@ -43,23 +45,25 @@ void f(num a) {
   }
 
   test_typeNonNullable_isNot_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is! num;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9)],
+    );
   }
 
   test_typeNullable_isNot_same() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? a) {
   a is! int?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10)],
+    );
   }
 
   test_typeNullable_isNot_same_nonNullable() async {
@@ -87,13 +91,14 @@ void f(num? a) {
   }
 
   test_typeNullable_isNot_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? a) {
   a is! num?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10)],
+    );
   }
 
   test_typeNullable_isNot_supertype_nonNullable() async {
@@ -105,13 +110,14 @@ void f(int? a) {
   }
 
   test_typeParameter_isNot_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T a) {
   a is! dynamic;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13)],
+    );
   }
 
   test_typeParameter_isNot_object() async {
@@ -123,64 +129,70 @@ void f<T>(T a) {
   }
 
   test_typeParameter_isNot_objectQuestion() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T a) {
   a is! Object?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13)],
+    );
   }
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest {
   test_expressionInvalidType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(A a) {
   a is num;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1)],
+    );
   }
 
   test_null_is_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var b = null is Null;
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12)],
+    );
   }
 
   test_type_is_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is dynamic;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12)],
+    );
   }
 
   test_type_is_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is Unresolved;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10)],
+    );
   }
 
   test_typeNonNullable_is_same() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8)],
+    );
   }
 
   test_typeNonNullable_is_subtype() async {
@@ -192,23 +204,25 @@ void f(num a) {
   }
 
   test_typeNonNullable_is_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   a is num;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8)],
+    );
   }
 
   test_typeNullable_is_same() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? a) {
   a is int?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9)],
+    );
   }
 
   test_typeNullable_is_same_nonNullable() async {
@@ -236,13 +250,14 @@ void f(num? a) {
   }
 
   test_typeNullable_is_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? a) {
   a is num?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9)],
+    );
   }
 
   test_typeNullable_is_supertype_nonNullable() async {
@@ -254,13 +269,14 @@ void f(int? a) {
   }
 
   test_typeParameter_is_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T a) {
   a is dynamic;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12)],
+    );
   }
 
   test_typeParameter_is_object() async {
@@ -272,12 +288,13 @@ void f<T>(T a) {
   }
 
   test_typeParameter_is_objectQuestion() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T a) {
   a is Object?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12)],
+    );
   }
 }

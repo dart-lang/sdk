@@ -11,23 +11,19 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordLiteral]s.
 class RecordLiteralResolver {
   final ResolverVisitor _resolver;
 
-  RecordLiteralResolver({
-    required ResolverVisitor resolver,
-  }) : _resolver = resolver;
+  RecordLiteralResolver({required ResolverVisitor resolver})
+    : _resolver = resolver;
 
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
-  void resolve(
-    RecordLiteralImpl node, {
-    required DartType contextType,
-  }) {
+  void resolve(RecordLiteralImpl node, {required DartType contextType}) {
     _resolveFields(node, contextType);
 
     _reportDuplicateFieldDefinitions(node);
@@ -42,7 +38,9 @@ class RecordLiteralResolver {
   /// inferring the expressions in [node] if it is a record type with a shape
   /// that matches the shape of [node].
   RecordTypeImpl? _matchContextType(
-      RecordLiteralImpl node, DartType contextType) {
+    RecordLiteralImpl node,
+    DartType contextType,
+  ) {
     if (contextType is! RecordTypeImpl) return null;
     if (contextType.namedFields.length + contextType.positionalFields.length !=
         node.fields.length) {
@@ -85,9 +83,13 @@ class RecordLiteralResolver {
         var name = field.name.label.name;
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInLiteral(
-                  errorReporter.source, field, previousField));
+          _diagnosticReporter.reportError(
+            DiagnosticFactory().duplicateFieldDefinitionInLiteral(
+              _diagnosticReporter.source,
+              field,
+              previousField,
+            ),
+          );
         } else {
           usedNames[name] = field;
         }
@@ -109,7 +111,7 @@ class RecordLiteralResolver {
         var nameNode = field.name.label;
         var name = nameNode.name;
         if (name.startsWith('_')) {
-          errorReporter.atNode(
+          _diagnosticReporter.atNode(
             nameNode,
             CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
           );
@@ -117,13 +119,13 @@ class RecordLiteralResolver {
           var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
             if (index < positionalCount) {
-              errorReporter.atNode(
+              _diagnosticReporter.atNode(
                 nameNode,
                 CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
               );
             }
           } else if (isForbiddenNameForRecordField(name)) {
-            errorReporter.atNode(
+            _diagnosticReporter.atNode(
               nameNode,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
             );
@@ -134,23 +136,26 @@ class RecordLiteralResolver {
   }
 
   DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
-    var staticType = _resolver
-        .analyzeExpression(field, SharedTypeSchemaView(contextType))
-        .unwrapTypeView<TypeImpl>();
+    var staticType =
+        _resolver
+            .analyzeExpression(field, SharedTypeSchemaView(contextType))
+            .unwrapTypeView<TypeImpl>();
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema =
-          _resolver.typeSystem.greatestClosureOfSchema(contextType);
-      if (!_resolver.typeSystem
-          .isSubtypeOf(staticType, greatestClosureOfSchema)) {
+      var greatestClosureOfSchema = _resolver.typeSystem
+          .greatestClosureOfSchema(contextType);
+      if (!_resolver.typeSystem.isSubtypeOf(
+        staticType,
+        greatestClosureOfSchema,
+      )) {
         return greatestClosureOfSchema;
       }
     }
 
     if (staticType is VoidType) {
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         field,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -167,16 +172,24 @@ class RecordLiteralResolver {
     for (var field in node.fields) {
       if (field is NamedExpressionImpl) {
         var name = field.name.label.name;
-        var fieldContextType = contextTypeAsRecord?.namedField(name)!.type ??
+        var fieldContextType =
+            contextTypeAsRecord?.namedField(name)!.type ??
             UnknownInferredType.instance;
-        namedFields.add(RecordTypeNamedFieldImpl(
-            name: name, type: _resolveField(field, fieldContextType)));
+        namedFields.add(
+          RecordTypeNamedFieldImpl(
+            name: name,
+            type: _resolveField(field, fieldContextType),
+          ),
+        );
       } else {
         var fieldContextType =
             contextTypeAsRecord?.positionalFields[index++].type ??
-                UnknownInferredType.instance;
-        positionalFields.add(RecordTypePositionalFieldImpl(
-            type: _resolveField(field, fieldContextType)));
+            UnknownInferredType.instance;
+        positionalFields.add(
+          RecordTypePositionalFieldImpl(
+            type: _resolveField(field, fieldContextType),
+          ),
+        );
       }
     }
 
@@ -194,12 +207,7 @@ class RecordLiteralResolver {
   /// clashes with members from [Object] as specified by
   /// https://github.com/dart-lang/language/blob/main/accepted/3.0/records/feature-specification.md#record-type-annotations
   static bool isForbiddenNameForRecordField(String name) {
-    const forbidden = {
-      'hashCode',
-      'runtimeType',
-      'noSuchMethod',
-      'toString',
-    };
+    const forbidden = {'hashCode', 'runtimeType', 'noSuchMethod', 'toString'};
 
     return forbidden.contains(name);
   }

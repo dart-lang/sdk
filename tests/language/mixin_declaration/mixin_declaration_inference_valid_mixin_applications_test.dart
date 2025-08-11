@@ -19,7 +19,8 @@ mixin class C1<T> implements I<T> {}
 mixin M0<T> on I<T> {}
 
 mixin M1<T> on I<T> {
-  T Function(T) get value => (param) => param;
+  T Function(T) get value =>
+      (param) => param;
 }
 
 mixin M2<T> implements I<T> {}
@@ -33,8 +34,10 @@ class C2 extends C1<int> implements J<double> {}
 class C3 extends J<double> {}
 
 mixin M4<S, T> on I<S>, J<T> {
-  S Function(S) get value0 => (param) => param;
-  T Function(T) get value1 => (param) => param;
+  S Function(S) get value0 =>
+      (param) => param;
+  T Function(T) get value1 =>
+      (param) => param;
 }
 
 ///////////////////////////////////////////////////////
@@ -349,13 +352,17 @@ class A23 = _A23 with M4, A23Mixin;
 ///////////////////////////////////////////////////////
 
 mixin M5<S, T extends String> on I<S> {
-  S Function(S) get value0 => (param) => param;
-  T Function(T) get value1 => (param) => param;
+  S Function(S) get value0 =>
+      (param) => param;
+  T Function(T) get value1 =>
+      (param) => param;
 }
 
 mixin M6<S, T extends S> on I<S> {
-  S Function(S) get value0 => (param) => param;
-  T Function(T) get value1 => (param) => param;
+  S Function(S) get value0 =>
+      (param) => param;
+  T Function(T) get value1 =>
+      (param) => param;
 }
 
 mixin A30Mixin on C0<int>, M5<int, String> {
@@ -387,7 +394,8 @@ class A31 = C0<int> with M6, A31Mixin;
 ///////////////////////////////////////////////////////
 
 mixin M7<T> on I<List<T>> {
-  T Function(T) get value0 => (param) => param;
+  T Function(T) get value0 =>
+      (param) => param;
 }
 
 class A40<T> extends I<List<T>> {}

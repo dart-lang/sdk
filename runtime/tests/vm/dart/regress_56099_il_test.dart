@@ -37,30 +37,29 @@ void matchIL$addElement(FlowGraph graph) {
       'length_unboxed' << match.UnboxInt64('list.length'),
       'capacity_unboxed' << match.UnboxInt64('capacity'),
       match.Branch(
-          match.EqualityCompare('length_unboxed', 'capacity_unboxed',
-              kind: '=='),
-          ifTrue: 'B5',
-          ifFalse: 'B6'),
+        match.EqualityCompare('length_unboxed', 'capacity_unboxed', kind: '=='),
+        ifTrue: 'B5',
+        ifFalse: 'B6',
+      ),
     ]),
-    'B5' <<
-        match.block('Target', [
-          match.StaticCall(),
-          match.Goto('B7'),
-        ]),
-    'B6' <<
-        match.block('Target', [
-          match.Goto('B7'),
-        ]),
+    'B5' << match.block('Target', [match.StaticCall(), match.Goto('B7')]),
+    'B6' << match.block('Target', [match.Goto('B7')]),
     'B7' <<
         match.block('Join', [
           'length_plus_1' << match.BinaryInt64Op('length_unboxed', 'c_one'),
           'length_plus_1_boxed' << match.BoxInt64('length_plus_1'),
-          match.StoreField('list', 'length_plus_1_boxed',
-              slot: 'GrowableObjectArray.length'),
+          match.StoreField(
+            'list',
+            'length_plus_1_boxed',
+            slot: 'GrowableObjectArray.length',
+          ),
           // No bounds check here.
           'list.data_v2' <<
-              match.LoadField('list',
-                  slot: 'GrowableObjectArray.data', skipUntilMatched: false),
+              match.LoadField(
+                'list',
+                slot: 'GrowableObjectArray.data',
+                skipUntilMatched: false,
+              ),
           'value_boxed' << match.BoxInt64('value', skipUntilMatched: false),
           match.StoreIndexed('list.data_v2', 'length_unboxed', 'value_boxed'),
           match.DartReturn('c_null'),

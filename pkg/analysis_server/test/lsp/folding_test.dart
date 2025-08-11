@@ -470,6 +470,67 @@ void f(int a) {
     }, requireAll: false);
   }
 
+  /// Even without lineFolding, try/catch/finally folding regions end
+  /// on the last statement of each block (matching if/else) to avoid long
+  /// lines when folded.
+  Future<void> test_tryCatchFinally() async {
+    var content = '''
+void f() {
+  try {/*[0*/
+    print('');
+    print('');/*0]*/
+  } on ArgumentError catch (_) {/*[1*/
+    print('');
+    print('');/*1]*/
+  } catch (e) {/*[2*/
+    print('');
+    print('');/*2]*/
+  } finally {/*[3*/
+    print('');
+    print('');/*3]*/
+  }
+}
+''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+      3: noFoldingKind,
+    });
+  }
+
+  Future<void> test_tryCatchFinally_lineFoldingOnly() async {
+    lineFoldingOnly = true;
+
+    var content = '''
+void f() {
+  try {/*[0*/
+    print('');
+    print('');/*0]*/
+  } on ArgumentError catch (_) {/*[1*/
+    print('');
+    print('');/*1]*/
+  } catch (e) {/*[2*/
+    print('');
+    print('');/*2]*/
+  } finally {/*[3*/
+    print('');
+    print('');/*3]*/
+  }
+}
+''';
+
+    await computeRanges(content);
+    expectRangesContain({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+      3: noFoldingKind,
+    });
+  }
+
   Future<void> test_whileLoop() async {
     var content = '''
 f(int i) {

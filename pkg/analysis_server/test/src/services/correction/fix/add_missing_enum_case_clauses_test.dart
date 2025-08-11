@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,11 +27,11 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
-  bool Function(AnalysisError) get _filter {
+  bool Function(Diagnostic) get _filter {
     var hasError = false;
     return (error) {
       if (!hasError &&
-          error.errorCode ==
+          error.diagnosticCode ==
               StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
         hasError = true;
         return true;

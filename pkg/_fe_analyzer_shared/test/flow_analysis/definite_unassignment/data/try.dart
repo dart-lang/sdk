@@ -38,11 +38,14 @@ tryCatch_try() {
 tryCatch_none() {
   late int v;
   try {
-    /*unassigned*/ v;
+    /*unassigned*/
+    v;
   } catch (_) {
-    /*unassigned*/ v;
+    /*unassigned*/
+    v;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryCatch_try_catch() {
@@ -114,11 +117,14 @@ tryFinally_try() {
 tryFinally_none() {
   late int v;
   try {
-    /*unassigned*/ v;
+    /*unassigned*/
+    v;
   } finally {
-    /*unassigned*/ v;
+    /*unassigned*/
+    v;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 tryFinally_try_finally() {

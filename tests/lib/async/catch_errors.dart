@@ -22,25 +22,37 @@ Stream catchErrors(dynamic body()) {
   return controller.stream;
 }
 
-runZonedScheduleMicrotask(body(),
-    {void onScheduleMicrotask(void callback())?, Function? onError}) {
+runZonedScheduleMicrotask(
+  body(), {
+  void onScheduleMicrotask(void callback())?,
+  Function? onError,
+}) {
   if (onScheduleMicrotask == null) {
     return runZonedGuarded(body, onError as void Function(Object, StackTrace));
   }
   HandleUncaughtErrorHandler? errorHandler;
   if (onError != null) {
-    errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
-        StackTrace stackTrace) {
-      try {
-        return self.parent!.runUnary(onError as void Function(Object), error);
-      } catch (e, s) {
-        if (identical(e, error)) {
-          return parent.handleUncaughtError(zone, error, stackTrace);
-        } else {
-          return parent.handleUncaughtError(zone, e, s);
-        }
-      }
-    };
+    errorHandler =
+        (
+          Zone self,
+          ZoneDelegate parent,
+          Zone zone,
+          error,
+          StackTrace stackTrace,
+        ) {
+          try {
+            return self.parent!.runUnary(
+              onError as void Function(Object),
+              error,
+            );
+          } catch (e, s) {
+            if (identical(e, error)) {
+              return parent.handleUncaughtError(zone, error, stackTrace);
+            } else {
+              return parent.handleUncaughtError(zone, e, s);
+            }
+          }
+        };
   }
   ScheduleMicrotaskHandler? asyncHandler;
   if (onScheduleMicrotask != null) {
@@ -49,7 +61,9 @@ runZonedScheduleMicrotask(body(),
     };
   }
   ZoneSpecification specification = new ZoneSpecification(
-      handleUncaughtError: errorHandler, scheduleMicrotask: asyncHandler);
+    handleUncaughtError: errorHandler,
+    scheduleMicrotask: asyncHandler,
+  );
   Zone zone = Zone.current.fork(specification: specification);
   if (onError != null) {
     return zone.runGuarded(body);

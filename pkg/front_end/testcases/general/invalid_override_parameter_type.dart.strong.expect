@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_parameter_type.dart:10:11: Error: The parameter 'x' of the method 'Sub.foo' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.foo'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   foo(int x) {}
+//           ^
+// pkg/front_end/testcases/general/invalid_override_parameter_type.dart:6:3: Context: This is the overridden method ('foo').
+//   foo(num x) {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method foo(core::num x) → dynamic {}
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    : super self::Super::•()
+    ;
+  erroneous method foo(core::int x) → dynamic {}
+}

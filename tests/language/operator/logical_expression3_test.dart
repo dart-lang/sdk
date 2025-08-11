@@ -25,7 +25,7 @@ main() {
   if ((o is! num && o.length == 4) || (nonInlinedNumTypeCheck(o))) {
     //                ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'length' isn't defined for the class 'Object'.
+    // [cfe] The getter 'length' isn't defined for the type 'Object'.
     Expect.fail("Type-check failed");
   }
 }

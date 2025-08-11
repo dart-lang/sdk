@@ -7,14 +7,14 @@ class B extends core::Object implements self::A {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::B
+  static synthetic method _#new#tearOff() → self::B
     return new self::B::•();
 }
 abstract class A extends core::Object {
   abstract get x() → core::int;
   static factory •() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::B::•();
 }
 extension type C(self::A point) implements self::A {
@@ -28,13 +28,13 @@ static extension-type-member method C|constructor#_(self::A point) → self::C /
   lowered final self::C /* erasure=self::A */ #this = point;
   return #this;
 }
-static extension-type-member method C|constructor#_#_#tearOff(self::A point) → self::C /* erasure=self::A */
+static extension-type-member synthetic method C|constructor#_#_#tearOff(self::A point) → self::C /* erasure=self::A */
   return self::C|constructor#_(point);
 static extension-type-member method C|constructor#() → self::C /* erasure=self::A */ {
   lowered final self::C /* erasure=self::A */ #this = new self::B::•();
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff() → self::C /* erasure=self::A */
+static extension-type-member synthetic method C|constructor#_#new#tearOff() → self::C /* erasure=self::A */
   return self::C|constructor#();
 static method main() → void {
   self::expectEquals(new self::B::•().{self::A::x}{core::int}, 1);

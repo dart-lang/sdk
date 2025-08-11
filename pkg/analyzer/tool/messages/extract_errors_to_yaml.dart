@@ -18,7 +18,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/todo_codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
@@ -26,13 +26,14 @@ import 'error_code_info.dart';
 
 void main() {
   var errorDeclarations = _findErrorDeclarations();
-  var errorCodesByClass = _findErrorCodesByClass();
+  var errorCodesByClass = _findDiagnosticCodesByClass();
   _generateYaml(errorCodesByClass, errorDeclarations);
 }
 
 /// The path to the `analyzer` package.
-final String _analyzerPkgPath =
-    normalize(join(pkg_root.packageRoot, 'analyzer'));
+final String _analyzerPkgPath = normalize(
+  join(pkg_root.packageRoot, 'analyzer'),
+);
 
 /// Encodes [yaml] into a string parseable as YAML.
 ///
@@ -96,7 +97,8 @@ String _encodeYaml(Map<Object?, Object?> yaml) {
 /// Extract comments from the parsed AST of a field declaration, so that we can
 /// include them in the YAML output.
 _CommentInfo _extractCommentInfo(FieldDeclaration fieldDeclaration) {
-  var firstToken = fieldDeclaration.metadata.beginToken ??
+  var firstToken =
+      fieldDeclaration.metadata.beginToken ??
       fieldDeclaration.firstTokenAfterCommentAndMetadata;
   var commentToken = firstToken.precedingComments;
   StringBuffer? documentationComment;
@@ -104,49 +106,58 @@ _CommentInfo _extractCommentInfo(FieldDeclaration fieldDeclaration) {
   while (commentToken != null) {
     var lexeme = commentToken.lexeme;
     if (lexeme.startsWith('///')) {
-      (documentationComment ??= StringBuffer())
-          .writeln(lexeme.replaceFirst(RegExp('/// ?'), '').trimRight());
+      (documentationComment ??= StringBuffer()).writeln(
+        lexeme.replaceFirst(RegExp('/// ?'), '').trimRight(),
+      );
     } else if (lexeme.startsWith('/**')) {
-      (documentationComment ??= StringBuffer()).writeln(lexeme
-          .substring(0, lexeme.length - 2)
-          .replaceFirst(RegExp('/\\*\\*\n?'), '')
-          .replaceAll(RegExp(' *\\* ?'), '')
-          .trimRight());
+      (documentationComment ??= StringBuffer()).writeln(
+        lexeme
+            .substring(0, lexeme.length - 2)
+            .replaceFirst(RegExp('/\\*\\*\n?'), '')
+            .replaceAll(RegExp(' *\\* ?'), '')
+            .trimRight(),
+      );
     } else if (lexeme.startsWith('//')) {
-      (otherComment ??= StringBuffer())
-          .writeln(lexeme.replaceFirst(RegExp('// ?'), '').trimRight());
+      (otherComment ??= StringBuffer()).writeln(
+        lexeme.replaceFirst(RegExp('// ?'), '').trimRight(),
+      );
     } else if (lexeme.startsWith('/*')) {
-      (otherComment ??= StringBuffer()).writeln(lexeme
-          .substring(0, lexeme.length - 2)
-          .replaceFirst(RegExp('/\\*(\n| )?'), '')
-          .replaceAll(RegExp(' *(\\*|//) ?'), '')
-          .trimRight());
+      (otherComment ??= StringBuffer()).writeln(
+        lexeme
+            .substring(0, lexeme.length - 2)
+            .replaceFirst(RegExp('/\\*(\n| )?'), '')
+            .replaceAll(RegExp(' *(\\*|//) ?'), '')
+            .trimRight(),
+      );
     } else {
       throw 'Unexpected comment type: ${json.encode(lexeme)}';
     }
     commentToken = commentToken.next as CommentToken?;
   }
   return _CommentInfo(
-      documentationComment: documentationComment?.toString().trim(),
-      otherComment: otherComment?.toString().trim());
+    documentationComment: documentationComment?.toString().trim(),
+    otherComment: otherComment?.toString().trim(),
+  );
 }
 
-/// Computes a map from class name to a list of all the error codes defined by
-/// that class.  Uses the analyzer's global variable `errorCodeValues` to find
-/// all the error codes.
-Map<String, List<ErrorCode>> _findErrorCodesByClass() {
-  var errorCodesByClass = <String, List<ErrorCode>>{};
-  for (var errorCode in errorCodeValues) {
-    if (errorCode is ScannerErrorCode) {
-      continue; // Will deal with later
+/// Computes a map from class name to a list of all the diagnostic codes defined
+/// by that class.
+///
+/// Uses the analyzer's global variable `diagnosticCodeValues` to find all the
+/// diagnostic codes.
+Map<String, List<DiagnosticCode>> _findDiagnosticCodesByClass() {
+  var codesByClass = <String, List<DiagnosticCode>>{};
+  for (var diagnostic in diagnosticCodeValues) {
+    if (diagnostic is ScannerErrorCode) {
+      continue; // Will deal with later.
     }
-    if (errorCode is TodoCode) {
+    if (diagnostic is TodoCode) {
       continue; // It's not worth converting these to YAML.
     }
-    var className = errorCode.runtimeType.toString();
-    (errorCodesByClass[className] ??= []).add(errorCode);
+    var className = diagnostic.runtimeType.toString();
+    (codesByClass[className] ??= []).add(diagnostic);
   }
-  return errorCodesByClass;
+  return codesByClass;
 }
 
 /// Finds all the variable declaration ASTs in the analyzer that might represent
@@ -154,23 +165,47 @@ Map<String, List<ErrorCode>> _findErrorCodesByClass() {
 /// and then by error code name.
 Map<String, Map<String, VariableDeclaration>> _findErrorDeclarations() {
   var filePaths = [
-    join(_analyzerPkgPath, 'lib', 'src', 'analysis_options', 'error',
-        'option_codes.dart'),
+    join(
+      _analyzerPkgPath,
+      'lib',
+      'src',
+      'analysis_options',
+      'error',
+      'option_codes.dart',
+    ),
     join(_analyzerPkgPath, 'lib', 'src', 'dart', 'error', 'ffi_code.dart'),
     join(_analyzerPkgPath, 'lib', 'src', 'dart', 'error', 'hint_codes.dart'),
-    join(_analyzerPkgPath, 'lib', 'src', 'dart', 'error',
-        'syntactic_errors.dart'),
-    join(_analyzerPkgPath, 'lib', 'src', 'error', 'codes.dart'),
-    join(_analyzerPkgPath, 'lib', 'src', 'manifest',
-        'manifest_warning_code.dart'),
     join(
-        _analyzerPkgPath, 'lib', 'src', 'pubspec', 'pubspec_warning_code.dart'),
+      _analyzerPkgPath,
+      'lib',
+      'src',
+      'dart',
+      'error',
+      'syntactic_errors.dart',
+    ),
+    join(_analyzerPkgPath, 'lib', 'src', 'error', 'codes.dart'),
+    join(
+      _analyzerPkgPath,
+      'lib',
+      'src',
+      'manifest',
+      'manifest_warning_code.dart',
+    ),
+    join(
+      _analyzerPkgPath,
+      'lib',
+      'src',
+      'pubspec',
+      'pubspec_warning_code.dart',
+    ),
   ];
   var result = <String, Map<String, VariableDeclaration>>{};
   for (var filePath in filePaths) {
-    var unit = parseFile(
-            path: filePath, featureSet: FeatureSet.latestLanguageVersion())
-        .unit;
+    var unit =
+        parseFile(
+          path: filePath,
+          featureSet: FeatureSet.latestLanguageVersion(),
+        ).unit;
     for (var declaration in unit.declarations) {
       if (declaration is! ClassDeclaration) continue;
       var className = declaration.name.lexeme;
@@ -185,14 +220,16 @@ Map<String, Map<String, VariableDeclaration>> _findErrorDeclarations() {
   return result;
 }
 
-/// Combines the information in [errorCodesByClass] (obtained from
-/// [_findErrorCodesByClass]) and [errorDeclarations] (obtained from
+/// Combines the information in [codesByClass] (obtained from
+/// [_findDiagnosticCodesByClass]) and [errorDeclarations] (obtained from
 /// [_findErrorDeclarations]) into a YAML representation of the errors, and
 /// prints the resulting YAML.
-void _generateYaml(Map<String, List<ErrorCode>> errorCodesByClass,
-    Map<String, Map<String, VariableDeclaration>> errorDeclarations) {
+void _generateYaml(
+  Map<String, List<DiagnosticCode>> codesByClass,
+  Map<String, Map<String, VariableDeclaration>> errorDeclarations,
+) {
   var yaml = <String, Map<String, Object?>>{};
-  for (var entry in errorCodesByClass.entries) {
+  for (var entry in codesByClass.entries) {
     var yamlCodes = <String, Object?>{};
     var className = entry.key;
     yaml[className] = yamlCodes;
@@ -221,15 +258,16 @@ void _generateYaml(Map<String, List<ErrorCode>> errorCodesByClass,
       var commentInfo = _extractCommentInfo(fieldDeclaration);
       var documentationComment = commentInfo.documentationComment;
       var otherComment = commentInfo.otherComment;
-      yamlCodes[uniqueNameSuffix] = AnalyzerErrorCodeInfo(
-              sharedName: uniqueNameSuffix == name ? null : name,
-              problemMessage: code.problemMessage,
-              correctionMessage: code.correctionMessage,
-              isUnresolvedIdentifier: code.isUnresolvedIdentifier,
-              hasPublishedDocs: code.hasPublishedDocs,
-              comment: documentationComment,
-              documentation: otherComment)
-          .toYaml();
+      yamlCodes[uniqueNameSuffix] =
+          AnalyzerErrorCodeInfo(
+            sharedName: uniqueNameSuffix == name ? null : name,
+            problemMessage: code.problemMessage,
+            correctionMessage: code.correctionMessage,
+            isUnresolvedIdentifier: code.isUnresolvedIdentifier,
+            hasPublishedDocs: code.hasPublishedDocs,
+            comment: documentationComment,
+            documentation: otherComment,
+          ).toYaml();
     }
   }
   String encodedYaml = _encodeYaml(yaml);

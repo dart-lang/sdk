@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,7 +21,7 @@ class NormalizeHelper {
   final TypeSystemImpl typeSystem;
   final TypeProviderImpl typeProvider;
 
-  final Set<TypeParameterElement2> _typeParameters = {};
+  final Set<TypeParameterElement> _typeParameters = {};
 
   NormalizeHelper(this.typeSystem) : typeProvider = typeSystem.typeProvider;
 
@@ -29,12 +29,20 @@ class NormalizeHelper {
     return _normalize(T);
   }
 
+  FunctionTypeImpl normalizeFunctionType(FunctionTypeImpl T) {
+    return _normalize(T) as FunctionTypeImpl;
+  }
+
+  InterfaceTypeImpl normalizeInterfaceType(InterfaceTypeImpl T) {
+    return _normalize(T) as InterfaceTypeImpl;
+  }
+
   /// `NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)`
   ///   * where R1 = NORM(R)
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
   FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
-    var fresh = getFreshTypeParameters2(functionType.typeParameters);
+    var fresh = getFreshTypeParameters(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
       var bound = typeParameter.firstFragment.bound;
       if (bound != null) {
@@ -46,11 +54,10 @@ class NormalizeHelper {
 
     return FunctionTypeImpl.v2(
       typeParameters: functionType.typeParameters,
-      formalParameters: functionType.formalParameters.map((e) {
-        return e.copyWith(
-          type: _normalize(e.type),
-        );
-      }).toFixedList(),
+      formalParameters:
+          functionType.formalParameters.map((e) {
+            return e.copyWith(type: _normalize(e.type));
+          }).toFixedList(),
       returnType: _normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -76,7 +83,7 @@ class NormalizeHelper {
 
     // * if S is Never then Future<Never>
     if (identical(S, NeverTypeImpl.instance)) {
-      return typeProvider.futureElement2.instantiateImpl(
+      return typeProvider.futureElement.instantiateImpl(
         typeArguments: [NeverTypeImpl.instance],
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -84,14 +91,14 @@ class NormalizeHelper {
 
     // * if S is Null then Future<Null>?
     if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-      return typeProvider.futureElement2.instantiateImpl(
+      return typeProvider.futureElement.instantiateImpl(
         typeArguments: [typeSystem.nullNone],
         nullabilitySuffix: NullabilitySuffix.question,
       );
     }
 
     // * else FutureOr<S>
-    return typeProvider.futureOrElement2.instantiateImpl(
+    return typeProvider.futureOrElement.instantiateImpl(
       typeArguments: [S],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -133,7 +140,7 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceTypeImpl) {
-      return T.element3.instantiateImpl(
+      return T.element.instantiateImpl(
         typeArguments: T.typeArguments.map(_normalize).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -142,17 +149,19 @@ class NormalizeHelper {
     // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
     if (T is RecordTypeImpl) {
       return RecordTypeImpl(
-        positionalFields: T.positionalFields.map((field) {
-          return RecordTypePositionalFieldImpl(
-            type: _normalize(field.type),
-          );
-        }).toFixedList(),
-        namedFields: T.namedFields.map((field) {
-          return RecordTypeNamedFieldImpl(
-            name: field.name,
-            type: _normalize(field.type),
-          );
-        }).toFixedList(),
+        positionalFields:
+            T.positionalFields.map((field) {
+              return RecordTypePositionalFieldImpl(
+                type: _normalize(field.type),
+              );
+            }).toFixedList(),
+        namedFields:
+            T.namedFields.map((field) {
+              return RecordTypeNamedFieldImpl(
+                name: field.name,
+                type: _normalize(field.type),
+              );
+            }).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
@@ -201,7 +210,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   TypeImpl _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element3;
+    var element = T.element;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -236,8 +245,7 @@ class NormalizeHelper {
 
   /// NORM(X & T)
   /// * let S be NORM(T)
-  TypeImpl _typeParameterType_promoted(
-      TypeParameterElementImpl2 X, TypeImpl S) {
+  TypeImpl _typeParameterType_promoted(TypeParameterElementImpl X, TypeImpl S) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;
@@ -245,18 +253,14 @@ class NormalizeHelper {
 
     // * if S is a top type then X
     if (typeSystem.isTop(S)) {
-      return X.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }
 
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element3 == X) {
-      return X.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+        S.element == X) {
+      return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }
 
     // * if S is Object and NORM(B) is Object where B is the bound of X then X
@@ -266,16 +270,14 @@ class NormalizeHelper {
         var B_norm = _normalize(B);
         if (B_norm.nullabilitySuffix == NullabilitySuffix.none &&
             B_norm.isDartCoreObject) {
-          return X.instantiate(
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
+          return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
         }
       }
     }
 
     // * else X & S
     return TypeParameterTypeImpl(
-      element3: X,
+      element: X,
       nullabilitySuffix: NullabilitySuffix.none,
       promotedBound: S,
     );

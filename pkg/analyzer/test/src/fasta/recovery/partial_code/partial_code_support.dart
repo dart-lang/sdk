@@ -11,8 +11,8 @@ import 'package:test/test.dart';
 import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
 
-typedef AdjustValidUnitBeforeComparison = CompilationUnitImpl Function(
-    CompilationUnitImpl unit);
+typedef AdjustValidUnitBeforeComparison =
+    CompilationUnitImpl Function(CompilationUnitImpl unit);
 
 /// A base class that adds support for tests that test how well the parser
 /// recovers when the user has entered an incomplete (but otherwise correct)
@@ -35,7 +35,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     TestSuffix('methodNonVoid', 'int a(b) => 0;'),
     TestSuffix('methodVoid', 'void a(b) {}'),
     TestSuffix('getter', 'int get a => 0;'),
-    TestSuffix('setter', 'set a(b) {}')
+    TestSuffix('setter', 'set a(b) {}'),
   ];
 
   /// A list of suffixes that can be used by tests of top-level constructs that
@@ -43,7 +43,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
     TestSuffix('class', 'class A {}'),
     TestSuffix('enum', 'enum E { v }'),
-//    new TestSuffix('extension', 'extension E on A {}'),
+    //    new TestSuffix('extension', 'extension E on A {}'),
     TestSuffix('mixin', 'mixin M {}'),
     TestSuffix('typedef', 'typedef A = B Function(C, D);'),
     TestSuffix('functionVoid', 'void f() {}'),
@@ -52,14 +52,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     TestSuffix('const', 'const a = 0;'),
     TestSuffix('final', 'final a = 0;'),
     TestSuffix('getter', 'int get a => 0;'),
-    TestSuffix('setter', 'set a(b) {}')
+    TestSuffix('setter', 'set a(b) {}'),
   ];
 
   /// A list of suffixes that can be used by tests of top-level constructs that
   /// can validly be followed by anything that is valid after a part directive.
   static final List<TestSuffix> postPartSuffixes = <TestSuffix>[
     TestSuffix('part', "part 'a.dart';"),
-    ...declarationSuffixes
+    ...declarationSuffixes,
   ];
 
   /// A list of suffixes that can be used by tests of top-level constructs that
@@ -68,7 +68,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   static final List<TestSuffix> prePartSuffixes = <TestSuffix>[
     TestSuffix('import', "import 'a.dart';"),
     TestSuffix('export', "export 'a.dart';"),
-    ...postPartSuffixes
+    ...postPartSuffixes,
   ];
 
   /// A list of suffixes that can be used by tests of statements.
@@ -96,23 +96,36 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   /// where the suffix is the empty string (to test partial declarations at the
   /// end of the file). In total, there will be
   /// `descriptors.length * (suffixes.length + 1)` tests generated.
-  buildTests(String groupName, List<TestDescriptor> descriptors,
-      List<TestSuffix> suffixes,
-      {FeatureSet? featureSet,
-      String? head,
-      bool includeEof = true,
-      String? tail}) {
+  buildTests(
+    String groupName,
+    List<TestDescriptor> descriptors,
+    List<TestSuffix> suffixes, {
+    FeatureSet? featureSet,
+    String? head,
+    bool includeEof = true,
+    String? tail,
+  }) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
         if (includeEof) {
           _buildTestForDescriptorAndSuffix(
-              descriptor, TestSuffix.eof, 0, head, tail,
-              featureSet: featureSet);
+            descriptor,
+            TestSuffix.eof,
+            0,
+            head,
+            tail,
+            featureSet: featureSet,
+          );
         }
         for (int i = 0; i < suffixes.length; i++) {
           _buildTestForDescriptorAndSuffix(
-              descriptor, suffixes[i], i + 1, head, tail,
-              featureSet: featureSet);
+            descriptor,
+            suffixes[i],
+            i + 1,
+            head,
+            tail,
+            featureSet: featureSet,
+          );
         }
         var descriptorFailing = descriptor.failing;
         if (descriptorFailing != null) {
@@ -122,9 +135,12 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
               failing.remove('eof');
             }
             failing.removeAll(suffixes.map((suffix) => suffix.name));
-            expect(failing, isEmpty,
-                reason:
-                    'There are tests marked as failing that are not being run');
+            expect(
+              failing,
+              isEmpty,
+              reason:
+                  'There are tests marked as failing that are not being run',
+            );
           });
         }
       }
@@ -132,9 +148,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   }
 
   /// Build a single test based on the given [descriptor] and [suffix].
-  _buildTestForDescriptorAndSuffix(TestDescriptor descriptor, TestSuffix suffix,
-      int suffixIndex, String? head, String? tail,
-      {FeatureSet? featureSet}) {
+  _buildTestForDescriptorAndSuffix(
+    TestDescriptor descriptor,
+    TestSuffix suffix,
+    int suffixIndex,
+    String? head,
+    String? tail, {
+    FeatureSet? featureSet,
+  }) {
     test('${descriptor.name}_${suffix.name}', () {
       //
       // Compose the invalid and valid pieces of code.
@@ -166,28 +187,29 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       // Determine the existing errors in the code without either valid or
       // invalid code.
       //
-      GatheringErrorListener listener = GatheringErrorListener();
+      GatheringDiagnosticListener listener = GatheringDiagnosticListener();
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
-      var baseErrorCodes = <ErrorCode>[];
-      for (var error in listener.errors) {
-        if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
-            error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
-            error.errorCode == ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
-          baseErrorCodes.add(error.errorCode);
+      var baseDiagnosticCodes = <DiagnosticCode>[];
+      for (var diagnostic in listener.diagnostics) {
+        if (diagnostic.diagnosticCode ==
+                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
+                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
+                ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
+          baseDiagnosticCodes.add(diagnostic.diagnosticCode);
         }
       }
 
-      var expectedValidCodeErrors = <ErrorCode>[];
-      expectedValidCodeErrors.addAll(baseErrorCodes);
-      if (descriptor.expectedErrorsInValidCode != null) {
-        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode!);
-      }
+      var expectedValidCodeDiagnostics = <DiagnosticCode>[
+        ...baseDiagnosticCodes,
+        ...?descriptor.expectedDiagnosticsInValidCode,
+      ];
 
-      var expectedInvalidCodeErrors = <ErrorCode>[];
-      expectedInvalidCodeErrors.addAll(baseErrorCodes);
-      if (descriptor.errorCodes != null) {
-        expectedInvalidCodeErrors.addAll(descriptor.errorCodes!);
-      }
+      var expectedInvalidCodeErrors = <DiagnosticCode>[
+        ...baseDiagnosticCodes,
+        ...?descriptor.diagnosticCodes,
+      ];
       //
       // Run the test.
       //
@@ -197,10 +219,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         bool failed = false;
         try {
           testRecovery(
-              invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
-              adjustValidUnitBeforeComparison:
-                  descriptor.adjustValidUnitBeforeComparison,
-              expectedErrorsInValidCode: expectedValidCodeErrors);
+            invalid.toString(),
+            expectedInvalidCodeErrors,
+            valid.toString(),
+            adjustValidUnitBeforeComparison:
+                descriptor.adjustValidUnitBeforeComparison,
+            expectedDiagnosticsInValidCode: expectedValidCodeDiagnostics,
+          );
           failed = true;
         } catch (e) {
           // Expected to fail.
@@ -210,11 +235,14 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
       } else {
         testRecovery(
-            invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
-            adjustValidUnitBeforeComparison:
-                descriptor.adjustValidUnitBeforeComparison,
-            expectedErrorsInValidCode: expectedValidCodeErrors,
-            featureSet: featureSet);
+          invalid.toString(),
+          expectedInvalidCodeErrors,
+          valid.toString(),
+          adjustValidUnitBeforeComparison:
+              descriptor.adjustValidUnitBeforeComparison,
+          expectedDiagnosticsInValidCode: expectedValidCodeDiagnostics,
+          featureSet: featureSet,
+        );
       }
     });
   }
@@ -228,15 +256,15 @@ class TestDescriptor {
   /// Invalid code that the parser is expected to recover from.
   final String invalid;
 
-  /// Error codes that the parser is expected to produce.
-  final List<ErrorCode>? errorCodes;
+  /// Diagnostic codes that the parser is expected to produce.
+  final List<DiagnosticCode>? diagnosticCodes;
 
   /// Valid code that is equivalent to what the parser should produce as part of
   /// recovering from the invalid code.
   final String valid;
 
-  /// Error codes that the parser is expected to produce in the valid code.
-  final List<ErrorCode>? expectedErrorsInValidCode;
+  /// Diagnostic codes that the parser is expected to produce in the valid code.
+  final List<DiagnosticCode>? expectedDiagnosticsInValidCode;
 
   /// A flag indicating whether all of the tests are expected to fail.
   final bool allFailing;
@@ -250,11 +278,16 @@ class TestDescriptor {
   AdjustValidUnitBeforeComparison? adjustValidUnitBeforeComparison;
 
   /// Initialize a newly created test descriptor.
-  TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing = false,
-      this.failing,
-      this.expectedErrorsInValidCode,
-      this.adjustValidUnitBeforeComparison});
+  TestDescriptor(
+    this.name,
+    this.invalid,
+    this.diagnosticCodes,
+    this.valid, {
+    this.allFailing = false,
+    this.failing,
+    this.expectedDiagnosticsInValidCode,
+    this.adjustValidUnitBeforeComparison,
+  });
 }
 
 /// A description of a set of suffixes that are to be used to construct tests.

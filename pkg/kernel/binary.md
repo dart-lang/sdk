@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 124;
+  UInt32 formatVersion = 125;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -356,7 +356,7 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }
@@ -382,7 +382,7 @@ enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method =
 type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }
@@ -400,7 +400,8 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isInternalImplementation, isEnumElement, isExtensionTypeMember);
+                isInternalImplementation, isEnumElement, isExtensionTypeMember,
+                isErroneous);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -414,7 +415,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -454,8 +455,9 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isExtensionMember, isSynthetic, isInternalImplementation, 
-              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField);
+              isExtensionMember, isSynthetic, isInternalImplementation,
+              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
+              isErroneous);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -1500,7 +1502,8 @@ type VariableDeclarationPlain {
 
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
-              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal);
+              isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
+              isErroneouslyInitialized);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1524,7 +1527,7 @@ type FunctionDeclaration extends Statement {
   FunctionNode function;
 }
 
-enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
+enum Nullability { nullable = 0, nonNullable = 1, neither = 2, }
 
 enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, legacyCovariant = 4, }
 

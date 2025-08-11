@@ -39,7 +39,7 @@ class ErrorOrRecord2ExtensionTest {
   }
 
   test_mapResults_error() async {
-    var result = await (success(1), errorX).mapResults((a, b) async {
+    var result = await (success(1), errorX).mapResults((a, b) {
       throw 'function should not be called';
     });
     expect(result, errorX);
@@ -91,11 +91,7 @@ class ErrorOrRecord3ExtensionTest {
   }
 
   test_mapResults_error() async {
-    var result = await (success(1), success(2), errorX).mapResults((
-      a,
-      b,
-      c,
-    ) async {
+    var result = await (success(1), success(2), errorX).mapResults((a, b, c) {
       throw 'function should not be called';
     });
     expect(result, errorX);
@@ -164,7 +160,7 @@ class ErrorOrRecord4ExtensionTest {
       b,
       c,
       d,
-    ) async {
+    ) {
       throw 'function should not be called';
     });
     expect(result, errorX);

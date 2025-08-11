@@ -111,8 +111,8 @@ class Globals {
         if (module == translator.initFunction.enclosingModule) {
           // We have to initialize the global field in the same module as where
           // the field value is defined in.
-          // TODO: Once dynamic modules only compile code for the dynamic module
-          // and not the main module, we should turn this into an assert.
+          // TODO: Once dynamic modules only compile code for the submodule and
+          // not the main module, we should turn this into an assert.
           EagerStaticFieldInitializerCodeGenerator(translator, field, global)
               .generate(translator.initFunction.body, [], null);
         }

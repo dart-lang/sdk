@@ -326,9 +326,8 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o =
-          (local2 ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (local2 ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
 
     local2 = null as Function?;
@@ -350,9 +349,8 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o =
-          (local2 ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (local2 ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
 
     local2 = null as Function?;
@@ -374,9 +372,8 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o =
-          (local2 ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (local2 ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }

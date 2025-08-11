@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+
 /// A common interface that can be implemented by a set of base classes to
 /// allow tests to be written to run in different configurations
 /// (LSP and LSP-over-Legacy, and in-process and out-of-process).
@@ -27,12 +29,26 @@ abstract interface class SharedTestInterface {
   /// Gets the full normalized path of the test project folder.
   String get projectFolderPath;
 
+  /// Gets the full normalized file path of the `pubspec.yaml` in the test
+  /// project.
+  String get pubspecFilePath;
+
+  /// Gets a file:/// URI for [pubspecFilePath].
+  Uri get pubspecFileUri;
+
   /// Gets the full normalized file path of a file named "test.dart" in the test
   /// project.
   String get testFilePath;
 
   /// Gets a file:/// URI for [testFilePath];
-  Uri get testFileUri => Uri.file(testFilePath);
+  Uri get testFileUri;
+
+  /// The name of the test package (and the folder where the package lives).
+  ///
+  /// For legacy tests, this is currently 'test' but for LSP it is 'my_project'
+  /// because using 'test' in the path triggers some different behaviour (for
+  /// example in snippets that are different for test folders).
+  String get testPackageName;
 
   /// Tells the server that file with [uri] has been closed and any overlay
   /// should be removed.
@@ -56,4 +72,14 @@ abstract interface class SharedTestInterface {
   Future<void> replaceFile(int newVersion, Uri uri, String content);
 
   FutureOr<void> setUp();
+
+  /// Writes a package_config.json for the package under test (considered
+  /// 'package:test').
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+    bool flutter = false,
+    bool meta = false,
+    bool pedantic = false,
+  });
 }

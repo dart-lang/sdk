@@ -17,28 +17,17 @@ void main() {
 @reflectiveTest
 class ReplaceConditionalWithIfElseTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE;
+  AssistKind get kind => DartAssistKind.replaceConditionalWithIfElse;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''
 void f(bool c) {
   var v;
-  v = c ? 111 : 222;
-}
-''');
-    // on conditional
-    await assertHasAssistAt('11 :', '''
-void f(bool c) {
-  var v;
-  if (c) {
-    v = 111;
-  } else {
-    v = 222;
-  }
+  /*0*/v = c ? 1/*1*/11 : 222;
 }
 ''');
     // on variable
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 void f(bool c) {
   var v;
   if (c) {
@@ -48,31 +37,42 @@ void f(bool c) {
   }
 }
 ''');
+    // on conditional
+    await assertHasAssist('''
+void f(bool c) {
+  var v;
+  if (c) {
+    v = 111;
+  } else {
+    v = 222;
+  }
+}
+''', index: 1);
   }
 
   Future<void> test_noEnclosingStatement() async {
     await resolveTestCode('''
-var v = true ? 111 : 222;
+var v = true ^? 111 : 222;
 ''');
-    await assertNoAssistAt('? 111');
+    await assertNoAssist();
   }
 
   Future<void> test_notConditional() async {
     await resolveTestCode('''
 void f() {
-  var v = 42;
+  var ^v = 42;
 }
 ''');
-    await assertNoAssistAt('v = 42');
+    await assertNoAssist();
   }
 
   Future<void> test_return() async {
     await resolveTestCode('''
 int f(bool c) {
-  return c ? 111 : 222;
+  ^return c ? 111 : 222;
 }
 ''');
-    await assertHasAssistAt('return ', '''
+    await assertHasAssist('''
 int f(bool c) {
   if (c) {
     return 111;
@@ -86,10 +86,10 @@ int f(bool c) {
   Future<void> test_variableDeclaration_final() async {
     await resolveTestCode('''
 void f(bool c) {
-  final a = c ? 111 : 222;
+  final a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   final int a;
   if (c) {
@@ -104,10 +104,10 @@ void f(bool c) {
   Future<void> test_variableDeclaration_oneOfMany() async {
     await resolveTestCode('''
 void f(bool c) {
-  int a = 1, vvv = c ? 111 : 222, b = 2;
+  int a = 1, vvv = c ? 1^11 : 222, b = 2;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   int a = 1, vvv, b = 2;
   if (c) {
@@ -122,10 +122,10 @@ void f(bool c) {
   Future<void> test_variableDeclaration_type() async {
     await resolveTestCode('''
 void f(bool c) {
-  num a = c ? 111 : 222;
+  num a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   num a;
   if (c) {
@@ -140,10 +140,10 @@ void f(bool c) {
   Future<void> test_variableDeclaration_type_final() async {
     await resolveTestCode('''
 void f(bool c) {
-  final num a = c ? 111 : 222;
+  final num a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   final num a;
   if (c) {
@@ -159,10 +159,10 @@ void f(bool c) {
     writeTestPackageConfig(languageVersion: '2.12.0');
     await resolveTestCode('''
 void f(bool c) {
-  late num a = c ? 111 : 222;
+  late num a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   late num a;
   if (c) {
@@ -177,10 +177,10 @@ void f(bool c) {
   Future<void> test_variableDeclaration_var() async {
     await resolveTestCode('''
 void f(bool c) {
-  var a = c ? 111 : 222;
+  var a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   int a;
   if (c) {
@@ -196,10 +196,10 @@ void f(bool c) {
     writeTestPackageConfig(languageVersion: '2.12.0');
     await resolveTestCode('''
 void f(bool c) {
-  late var a = c ? 111 : 222;
+  late var a = c ? 1^11 : 222;
 }
 ''');
-    await assertHasAssistAt('11 :', '''
+    await assertHasAssist('''
 void f(bool c) {
   late int a;
   if (c) {

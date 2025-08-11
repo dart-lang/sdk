@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
@@ -55,35 +55,22 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
-    @Deprecated('Use updateAnalysisOptions3 instead')
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
-      required DartSdk sdk,
-    })? updateAnalysisOptions2,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
-    })? updateAnalysisOptions3,
+    })?
+    updateAnalysisOptions3,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE {
+           resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
 
-    if (updateAnalysisOptions2 != null && updateAnalysisOptions3 != null) {
-      throw ArgumentError(
-        'Only one of updateAnalysisOptions2 and updateAnalysisOptions3 may be '
-        'given',
-      );
-    }
-
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
       if (drainStreams) {
-        scheduler.events.drain<void>();
+        unawaited(scheduler.events.drain<void>());
       }
       scheduler.start();
     }
@@ -105,24 +92,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     );
 
     byteStore ??= MemoryByteStore();
-    var linkedBundleProvider = LinkedBundleProvider(
-      byteStore: byteStore,
-    );
+    var linkedBundleProvider = LinkedBundleProvider(byteStore: byteStore);
 
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
-    // While users can use the deprecated `updateAnalysisOptions2` and the new
-    // `updateAnalysisOptions3` parameter, prefer `updateAnalysisOptions3`, but
-    // create a new closure with the signature of the old.
-    var updateAnalysisOptions = updateAnalysisOptions3 != null
-        ? ({
-            required AnalysisOptionsImpl analysisOptions,
-            required ContextRoot? contextRoot,
-            required DartSdk sdk,
-          }) =>
-            updateAnalysisOptions3(analysisOptions: analysisOptions, sdk: sdk)
-        : updateAnalysisOptions2;
+
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
@@ -138,10 +113,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions2: updateAnalysisOptions,
+        updateAnalysisOptions3: updateAnalysisOptions3,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-        infoDeclarationStore: infoDeclarationStore,
         ownedFiles: ownedFiles,
         enableLintRuleTiming: enableLintRuleTiming,
       );
@@ -177,9 +151,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   }
 
   @override
-  Future<void> dispose({
-    bool forTesting = false,
-  }) async {
+  Future<void> dispose({bool forTesting = false}) async {
     for (var analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
@@ -198,7 +170,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var pathContext = resourceProvider.pathContext;
     if (!pathContext.isAbsolute(path) || pathContext.normalize(path) != path) {
       throw ArgumentError(
-          'Only absolute normalized paths are supported: $path');
+        'Only absolute normalized paths are supported: $path',
+      );
     }
   }
 }

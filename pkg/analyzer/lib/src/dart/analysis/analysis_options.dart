@@ -43,7 +43,7 @@ final class AnalysisOptionsBuilder {
 
   bool lint = false;
 
-  List<LintRule> lintRules = [];
+  List<AbstractAnalysisRule> lintRules = [];
 
   bool propagateLinterExceptions = false;
 
@@ -59,7 +59,7 @@ final class AnalysisOptionsBuilder {
 
   FormatterOptions formatterOptions = FormatterOptions();
 
-  Set<String> unignorableNames = {};
+  Set<String> unignorableDiagnosticCodeNames = {};
 
   List<PluginConfiguration> pluginConfigurations = [];
 
@@ -81,7 +81,7 @@ final class AnalysisOptionsBuilder {
       chromeOsManifestChecks: chromeOsManifestChecks,
       codeStyleOptions: codeStyleOptions,
       formatterOptions: formatterOptions,
-      unignorableNames: unignorableNames,
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
     );
   }
 
@@ -209,7 +209,9 @@ final class AnalysisOptionsBuilder {
   }
 
   void _applyPluginsOptions(
-      YamlNode? plugins, ResourceProvider? resourceProvider) {
+    YamlNode? plugins,
+    ResourceProvider? resourceProvider,
+  ) {
     if (plugins is! YamlMap) {
       return;
     }
@@ -223,10 +225,12 @@ final class AnalysisOptionsBuilder {
       // If the plugin name just maps to a String, then that is the version
       // constraint; use it and move on.
       if (pluginNode case YamlScalar(:String value)) {
-        pluginConfigurations.add(PluginConfiguration(
-          name: pluginName,
-          source: VersionedPluginSource(constraint: value),
-        ));
+        pluginConfigurations.add(
+          PluginConfiguration(
+            name: pluginName,
+            source: VersionedPluginSource(constraint: value),
+          ),
+        );
         return;
       }
 
@@ -258,8 +262,10 @@ final class AnalysisOptionsBuilder {
               resourceProvider.pathContext.isRelative(pathValue)) {
             // We need to store the absolute path, before this value is used in
             // a synthetic pub package.
-            pathValue =
-                resourceProvider.pathContext.join(file.parent.path, pathValue);
+            pathValue = resourceProvider.pathContext.join(
+              file.parent.path,
+              pathValue,
+            );
             pathValue = resourceProvider.pathContext.normalize(pathValue);
           }
           source = PathPluginSource(path: pathValue);
@@ -273,16 +279,19 @@ final class AnalysisOptionsBuilder {
       }
 
       var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
-      var diagnosticConfigurations = diagnostics == null
-          ? const <String, RuleConfig>{}
-          : parseDiagnosticsSection(diagnostics);
+      var diagnosticConfigurations =
+          diagnostics == null
+              ? const <String, RuleConfig>{}
+              : parseDiagnosticsSection(diagnostics);
 
-      pluginConfigurations.add(PluginConfiguration(
-        name: pluginName,
-        source: source,
-        diagnosticConfigs: diagnosticConfigurations,
-        // TODO(srawlins): Implement `enabled: false`.
-      ));
+      pluginConfigurations.add(
+        PluginConfiguration(
+          name: pluginName,
+          source: source,
+          diagnosticConfigs: diagnosticConfigurations,
+          // TODO(srawlins): Implement `enabled: false`.
+        ),
+      );
     });
   }
 
@@ -293,29 +302,32 @@ final class AnalysisOptionsBuilder {
     var stringValues = cannotIgnore.whereType<String>().toSet();
     for (var severity in AnalysisOptionsFile.severities) {
       if (stringValues.contains(severity)) {
-        // [severity] is a marker denoting all error codes with severity
+        // [severity] is a marker denoting all diagnostic codes with severity
         // equal to [severity].
         stringValues.remove(severity);
-        // Replace name like 'error' with error codes with this named
+        // Replace name like 'error' with diagnostic codes with this named
         // severity.
-        for (var e in errorCodeValues) {
+        for (var d in diagnosticCodeValues) {
           // If the severity of [error] is also changed in this options file
           // to be [severity], we add [error] to the un-ignorable list.
-          var processors =
-              errorProcessors.where((processor) => processor.code == e.name);
+          var processors = errorProcessors.where(
+            (processor) => processor.code == d.name,
+          );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {
-            unignorableNames.add(e.name);
+            unignorableDiagnosticCodeNames.add(d.name);
             continue;
           }
           // Otherwise, add [error] if its default severity is [severity].
-          if (e.errorSeverity.displayName == severity) {
-            unignorableNames.add(e.name);
+          if (d.severity.displayName == severity) {
+            unignorableDiagnosticCodeNames.add(d.name);
           }
         }
       }
     }
-    unignorableNames.addAll(stringValues.map((name) => name.toUpperCase()));
+    unignorableDiagnosticCodeNames.addAll(
+      stringValues.map((name) => name.toUpperCase()),
+    );
   }
 }
 
@@ -333,8 +345,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
-  final VersionConstraint? sourceLanguageConstraint =
-      VersionConstraint.parse('>= 2.12.0');
+  final VersionConstraint? sourceLanguageConstraint = VersionConstraint.parse(
+    '>= 2.12.0',
+  );
 
   ExperimentStatus _contextFeatures;
 
@@ -367,7 +380,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool warning = true;
 
   @override
-  List<LintRule> lintRules = [];
+  List<AbstractAnalysisRule> lintRules = [];
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
@@ -391,10 +404,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final FormatterOptions formatterOptions;
 
-  /// The set of "un-ignorable" error names, as parsed from an analysis options
-  /// file.
-  // TODO(srawlins): Rename to `unignorableCodes`. 'Names' is ambiguous.
-  final Set<String> unignorableNames;
+  /// The set of "un-ignorable" diagnostic names, as parsed from an analysis
+  /// options file.
+  final Set<String> unignorableDiagnosticCodeNames;
 
   /// Returns a newly instantiated [AnalysisOptionsImpl].
   ///
@@ -422,8 +434,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       builder.errorProcessors = ErrorConfig(filters).processors;
 
       // Process enabled experiments.
-      var experimentNames =
-          analyzer.valueAt(AnalysisOptionsFile.enableExperiment);
+      var experimentNames = analyzer.valueAt(
+        AnalysisOptionsFile.enableExperiment,
+      );
       if (experimentNames is YamlList) {
         var enabledExperiments = <String>[];
         for (var element in experimentNames.nodes) {
@@ -432,10 +445,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             enabledExperiments.add(experimentName);
           }
         }
-        builder.contextFeatures = FeatureSet.fromEnableFlags2(
-          sdkLanguageVersion: ExperimentStatus.currentVersion,
-          flags: enabledExperiments,
-        ) as ExperimentStatus;
+        builder.contextFeatures =
+            FeatureSet.fromEnableFlags2(
+                  sdkLanguageVersion: ExperimentStatus.currentVersion,
+                  flags: enabledExperiments,
+                )
+                as ExperimentStatus;
         builder.nonPackageFeatureSet = builder.contextFeatures;
       }
 
@@ -500,7 +515,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.chromeOsManifestChecks,
     required this.codeStyleOptions,
     required this.formatterOptions,
-    required this.unignorableNames,
+    required this.unignorableDiagnosticCodeNames,
   }) : _contextFeatures = contextFeatures {
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
@@ -537,8 +552,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
-      for (ErrorProcessor processor
-          in errorProcessors.sortedBy((processor) => processor.description)) {
+      for (ErrorProcessor processor in errorProcessors.sortedBy(
+        (processor) => processor.description,
+      )) {
         buffer.addString(processor.description);
       }
 
@@ -556,8 +572,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append plugin configurations.
       buffer.addInt(pluginConfigurations.length);
-      for (var pluginConfiguration in pluginConfigurations
-          .sortedBy((pluginConfiguration) => pluginConfiguration.name)) {
+      for (var pluginConfiguration in pluginConfigurations.sortedBy(
+        (pluginConfiguration) => pluginConfiguration.name,
+      )) {
         buffer.addString(pluginConfiguration.name);
         buffer.addBool(pluginConfiguration.isEnabled);
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);

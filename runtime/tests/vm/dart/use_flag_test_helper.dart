@@ -4,9 +4,14 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ffi';
 
 import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/src/elf.dart' show Elf;
+import 'package:native_stack_traces/src/dwarf_container.dart'
+    show DwarfContainer;
+import 'package:native_stack_traces/src/macho.dart' show MachO;
 import 'package:path/path.dart' as path;
 
 final isAOTRuntime = isVmAotConfiguration;
@@ -15,19 +20,24 @@ final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {
   final possiblePaths = [
     // No cross compilation.
-    path.join(buildDir, 'vm_platform_strong.dill'),
+    path.join(buildDir, 'vm_platform.dill'),
     // ${MODE}SIMARM_X64 for X64->SIMARM cross compilation.
-    path.join('${buildDir}_X64', 'vm_platform_strong.dill'),
+    path.join('${buildDir}_X64', 'vm_platform.dill'),
   ];
   for (final path in possiblePaths) {
     if (File(path).existsSync()) {
       return path;
     }
   }
-  throw 'Could not find vm_platform_strong.dill for build directory $buildDir';
+  throw 'Could not find vm_platform.dill for build directory $buildDir';
 }();
-final genKernel = path.join(sdkDir, 'pkg', 'vm', 'tool',
-    'gen_kernel' + (Platform.isWindows ? '.bat' : ''));
+final genKernel = path.join(
+  sdkDir,
+  'pkg',
+  'vm',
+  'tool',
+  'gen_kernel' + (Platform.isWindows ? '.bat' : ''),
+);
 final genKernelDart = path.join('pkg', 'vm', 'bin', 'gen_kernel.dart');
 final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
 // Lazily initialize `genSnapshot` so that tests that don't use it on platforms
@@ -49,38 +59,70 @@ late final genSnapshot = () {
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
 final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
-final dartPrecompiledRuntime =
-    path.join(buildDir, 'dartaotruntime' + (Platform.isWindows ? '.exe' : ''));
-final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
-    'dart' + (Platform.isWindows ? '.exe' : ''));
-// Lazily initialize 'lipo' so that tests that don't use it on platforms
-// that don't have it don't fail.
-late final lipo = () {
-  final path = "/usr/bin/lipo";
-  if (File(path).existsSync()) {
-    return path;
+final dartPrecompiledRuntime = path.join(
+  buildDir,
+  'dartaotruntime' + (Platform.isWindows ? '.exe' : ''),
+);
+final checkedInDartVM = path.join(
+  'tools',
+  'sdks',
+  'dart-sdk',
+  'bin',
+  'dart' + (Platform.isWindows ? '.exe' : ''),
+);
+String? llvmTool(String name, {bool verbose = false}) {
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    final toolPath = path.join(clangBuildTools, name);
+    if (File(toolPath).existsSync()) {
+      return toolPath;
+    }
+    if (verbose) {
+      print('Could not find $name binary at $toolPath');
+    }
+    return null;
   }
-  throw 'Could not find lipo binary at $path';
-}();
+  if (verbose) {
+    print('Could not find $name binary');
+  }
+  return null;
+}
 
 final isSimulator = path.basename(buildDir).contains('SIM');
 
 String? get clangBuildToolsDir {
   String archDir;
-  if (Platform.isLinux) {
-    archDir = 'linux-x64';
-  } else if (Platform.isMacOS) {
-    archDir = 'mac-x64';
-  } else {
-    return null;
+  switch (Abi.current()) {
+    case Abi.linuxX64:
+      archDir = 'linux-x64';
+      break;
+    case Abi.linuxArm64:
+      archDir = 'linux-arm64';
+      break;
+    case Abi.macosX64:
+      archDir = 'mac-x64';
+      break;
+    case Abi.macosArm64:
+      archDir = 'mac-arm64';
+      break;
+    case Abi.windowsX64:
+    case Abi.windowsArm64: // We don't have a proper host win-arm64 toolchain.
+      archDir = 'win-x64';
+      break;
+    default:
+      return null;
   }
   var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
+  print(clangDir);
   return Directory(clangDir).existsSync() ? clangDir : null;
 }
 
-Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
-    {bool debug = false}) async {
-  if (!Platform.isLinux && !Platform.isMacOS) {
+Future<void> assembleSnapshot(
+  String assemblyPath,
+  String snapshotPath, {
+  bool debug = false,
+}) async {
+  if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
     throw "Unsupported platform ${Platform.operatingSystem} for assembling";
   }
 
@@ -89,36 +131,35 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
   String cc = 'gcc';
   String shared = '-shared';
 
-  if (buildDir.endsWith('SIMRISCV64')) {
-    cc = 'riscv64-linux-gnu-gcc';
-  } else if (isSimulator) {
-    // For other simulators, depend on buildtools existing.
-    final clangBuildTools = clangBuildToolsDir;
-    if (clangBuildTools != null) {
-      cc = path.join(clangBuildTools, 'clang');
-    } else {
-      throw 'Cannot assemble for ${path.basename(buildDir)} '
-          'without //buildtools on ${Platform.operatingSystem}';
-    }
-  } else if (Platform.isMacOS) {
-    cc = 'clang';
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    cc = path.join(clangBuildTools, Platform.isWindows ? 'clang.exe' : 'clang');
+  } else {
+    throw 'Cannot assemble for ${path.basename(buildDir)} '
+        'without //buildtools on ${Platform.operatingSystem}';
   }
 
-  if (buildDir.endsWith('SIMARM')) {
-    ccFlags.add('--target=armv7-linux-gnueabihf');
-  } else if (buildDir.endsWith('SIMARM64')) {
-    ccFlags.add('--target=aarch64-linux-gnu');
-  } else if (buildDir.endsWith('SIMRISCV64')) {
-    ccFlags.add('--target=riscv64-linux-gnu');
-  } else if (Platform.isMacOS) {
+  if (Platform.isMacOS) {
     shared = '-dynamiclib';
     // Tell Mac linker to give up generating eh_frame from dwarf.
     ldFlags.add('-Wl,-no_compact_unwind');
+    if (buildDir.endsWith('ARM64')) {
+      ccFlags.add('--target=arm64-apple-darwin');
+    } else {
+      ccFlags.add('--target=x86_64-apple-darwin');
+    }
+  } else if (Platform.isLinux) {
+    if (buildDir.endsWith('ARM')) {
+      ccFlags.add('--target=armv7-linux-gnueabihf');
+    } else if (buildDir.endsWith('ARM64')) {
+      ccFlags.add('--target=aarch64-linux-gnu');
+    } else if (buildDir.endsWith('X64')) {
+      ccFlags.add('--target=x86_64-linux-gnu');
+    } else if (buildDir.endsWith('RISCV64')) {
+      ccFlags.add('--target=riscv64-linux-gnu');
+    }
   }
 
-  if (buildDir.endsWith('X64') || buildDir.endsWith('SIMARM64')) {
-    ccFlags.add('-m64');
-  }
   if (debug) {
     ccFlags.add('-g');
   }
@@ -126,53 +167,56 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
   await run(cc, <String>[
     ...ccFlags,
     ...ldFlags,
+    '-nostdlib',
     shared,
-    if (!Platform.isMacOS) '-nostdlib',
     '-o',
     snapshotPath,
     assemblyPath,
   ]);
 }
 
-Future<void> stripSnapshot(String snapshotPath, String strippedPath,
-    {bool forceElf = false}) async {
-  if (!Platform.isLinux && !Platform.isMacOS) {
+Future<void> stripSnapshot(
+  String snapshotPath,
+  String strippedPath, {
+  bool forceElf = false,
+}) async {
+  if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
     throw "Unsupported platform ${Platform.operatingSystem} for stripping";
   }
 
   var strip = 'strip';
 
-  if (isSimulator || (Platform.isMacOS && forceElf)) {
-    final clangBuildTools = clangBuildToolsDir;
-    if (clangBuildTools != null) {
-      strip = path.join(clangBuildTools, 'llvm-strip');
-    } else {
-      throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
-          'without //buildtools on ${Platform.operatingSystem}';
-    }
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools != null) {
+    strip = path.join(
+      clangBuildTools,
+      Platform.isWindows ? 'llvm-strip.exe' : 'llvm-strip',
+    );
+  } else {
+    throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
+        'without //buildtools on ${Platform.operatingSystem}';
   }
 
-  await run(strip, <String>[
-    '-o',
-    strippedPath,
-    snapshotPath,
-  ]);
+  await run(strip, <String>['-o', strippedPath, snapshotPath]);
 }
 
-Future<ProcessResult> runHelper(String executable, List<String> args) async {
+Future<ProcessResult> runHelper(
+  String executable,
+  List<String> args, {
+  bool printStdout = true,
+  bool printStderr = true,
+}) async {
   print('Running $executable ${args.join(' ')}');
 
   final result = await Process.run(executable, args);
   print('Subcommand terminated with exit code ${result.exitCode}.');
-  if (result.stdout.isNotEmpty) {
+  if (printStdout && result.stdout.isNotEmpty) {
     print('Subcommand stdout:');
     print(result.stdout);
   }
-  if (result.exitCode != 0) {
-    if (result.stderr.isNotEmpty) {
-      print('Subcommand stderr:');
-      print(result.stderr);
-    }
+  if (printStderr && result.stderr.isNotEmpty) {
+    print('Subcommand stderr:');
+    print(result.stderr);
   }
 
   return result;
@@ -196,14 +240,33 @@ Future<void> run(String executable, List<String> args) async {
   }
 }
 
-Future<List<String>> runOutput(String executable, List<String> args) async {
+Future<void> runSilent(String executable, List<String> args) async {
+  final result = await runHelper(
+    executable,
+    args,
+    printStdout: false,
+    printStderr: false,
+  );
+
+  if (result.exitCode != 0) {
+    throw 'Command failed with unexpected exit code (was ${result.exitCode})';
+  }
+}
+
+Future<List<String>> runOutput(
+  String executable,
+  List<String> args, {
+  bool ignoreStdErr = false,
+}) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode != 0) {
     throw 'Command failed with unexpected exit code (was ${result.exitCode})';
   }
   Expect.isTrue(result.stdout.isNotEmpty);
-  Expect.isTrue(result.stderr.isEmpty);
+  if (!ignoreStdErr) {
+    Expect.isTrue(result.stderr.isEmpty);
+  }
 
   return LineSplitter.split(result.stdout).toList(growable: false);
 }
@@ -231,5 +294,75 @@ Future<void> withTempDir(String name, Future<void> fun(String dir)) async {
         Platform.environment[keepTempKey]!.isEmpty) {
       tempDir.deleteSync(recursive: true);
     }
+  }
+}
+
+enum SnapshotType {
+  elf,
+  machoDylib,
+  assembly;
+
+  String get kindString {
+    switch (this) {
+      case elf:
+        return 'app-aot-elf';
+      case machoDylib:
+        return 'app-aot-macho-dylib';
+      case assembly:
+        return 'app-aot-assembly';
+    }
+  }
+
+  String get fileArgumentName {
+    switch (this) {
+      case elf:
+        return 'elf';
+      case machoDylib:
+        return 'macho';
+      case assembly:
+        return 'assembly';
+    }
+  }
+
+  DwarfContainer? fromFile(String filename) {
+    switch (this) {
+      case elf:
+        return Elf.fromFile(filename);
+      case machoDylib:
+        return MachO.fromFile(filename);
+      case assembly:
+        return Elf.fromFile(filename) ?? MachO.fromFile(filename);
+    }
+  }
+
+  @override
+  String toString() => name;
+}
+
+const _commonGenSnapshotArgs = <String>[
+  // Make sure that the runs are deterministic so we can depend on the same
+  // snapshot being generated each time.
+  '--deterministic',
+];
+
+Future<void> createSnapshot(
+  String scriptDill,
+  SnapshotType snapshotType,
+  String finalPath, [
+  List<String> extraArgs = const [],
+]) async {
+  String output = finalPath;
+  if (snapshotType == SnapshotType.assembly) {
+    output = path.withoutExtension(finalPath) + '.S';
+  }
+  await run(genSnapshot, <String>[
+    ..._commonGenSnapshotArgs,
+    ...extraArgs,
+    '--snapshot-kind=${snapshotType.kindString}',
+    '--${snapshotType.fileArgumentName}=$output',
+    scriptDill,
+  ]);
+  if (snapshotType == SnapshotType.assembly) {
+    await assembleSnapshot(output, finalPath);
   }
 }

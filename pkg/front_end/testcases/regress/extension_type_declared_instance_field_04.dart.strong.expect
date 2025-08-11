@@ -28,7 +28,7 @@ static extension-type-member method foo|constructor#_(core::int _x) → self::fo
   lowered final self::foo% /* erasure=core::int, declared=! */ #this = _x;
   return #this;
 }
-static extension-type-member method foo|constructor#_#_#tearOff(core::int _x) → self::foo% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method foo|constructor#_#_#tearOff(core::int _x) → self::foo% /* erasure=core::int, declared=! */
   return self::foo|constructor#_(_x);
 static extension-type-member method foo|bar(lowered final self::foo% /* erasure=core::int, declared=! */ #this) → void {
   self::foo|set#foo(#this, self::foo|get#foo(#this).{core::num::+}(1){(core::num) → core::int});

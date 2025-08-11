@@ -38,19 +38,19 @@ static extension-type-member method E|constructor#(core::int x) → self::E% /* 
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(x);
-static extension-type-member method E|constructor#testPositional([core::int x = #C1, core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */ {
+static extension-type-member method E|constructor#testPositional([erroneously-initialized core::int x = #C1, erroneously-initialized core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */ {
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E|constructor#_#testPositional#tearOff([core::int x = #C1, core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#testPositional#tearOff([erroneously-initialized core::int x = #C1, erroneously-initialized core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#testPositional(x, y);
-static extension-type-member method E|constructor#testNamed({core::int x = #C1, core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */ {
+static extension-type-member method E|constructor#testNamed({erroneously-initialized core::int x = #C1, erroneously-initialized core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */ {
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E|constructor#_#testNamed#tearOff({core::int x = #C1, core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#testNamed#tearOff({erroneously-initialized core::int x = #C1, erroneously-initialized core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#testNamed(x: x, y: y);
 
 constants  {

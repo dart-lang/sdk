@@ -13,6 +13,11 @@ import("../executable_suffix.gni")
 #   faster than using dart_action() in debug and cross builds.
 #   However, prebuilt_dart_action() should *not* be used to generate snapshots.
 #
+# - prebuilt_dartaotruntime_action()
+#   Runs Dart AOT snapshots using the downloaded prebuilt Dart SDK. This is the
+#   preferred method of running Dart AOT code during the build as it avoids
+#   the multiple layers of code that prebuilt_dart_action goes through.
+#
 # - dart_action()
 #   Runs Dart scripts using the binary built for runtime/bin:dart using the
 #   host toolchain. It should only be used when an artifact agreeing exactly
@@ -98,6 +103,8 @@ template("_compiled_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
+    } else if (!defined(invoker.pool)) {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
@@ -148,6 +155,8 @@ template("_prebuilt_tool_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
+    } else if (!defined(invoker.pool)) {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
@@ -199,6 +208,45 @@ template("prebuilt_dart_action") {
     forward_variables_from(invoker, "*")
     binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
     dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
+  }
+}
+
+# A template for running Dart AOT snapshots during the build using the prebuilt
+# Dart SDK. This should *not* be used for generating snapshots. It uses the dart
+# binary from the prebuilt Dart SDK.
+#
+# Parameters:
+#  script:
+#    The un-rebased path to the Dart AOT snapshot.
+#
+# vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart AOT snapshot.
+#
+#  packages (optional):
+#    The un-rebased path to the package_config.json file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    metadata
+#    outputs
+#    testonly
+#    visibility
+template("prebuilt_dartaotruntime_action") {
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+  assert(
+      !defined(invoker.sources),
+      "prebuilt_dartaotruntime_action doesn't take a sources arg. Use inputs instead.")
+
+  _prebuilt_tool_action(target_name) {
+    forward_variables_from(invoker, "*")
+    binary =
+        "$_dart_root/tools/sdks/dart-sdk/bin/dartaotruntime$executable_suffix"
   }
 }
 

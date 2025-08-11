@@ -17,24 +17,26 @@ main() {
 class InstantiateEnumTest extends PubPackageResolutionTest
     with WithoutEnhancedEnumsMixin {
   test_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { ONE }
 E e(String name) {
   return const E();
 }
-''', [
-      error(CompileTimeErrorCode.INSTANTIATE_ENUM, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANTIATE_ENUM, 49, 1)],
+    );
   }
 
   test_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { ONE }
 E e(String name) {
   return new E();
 }
-''', [
-      error(CompileTimeErrorCode.INSTANTIATE_ENUM, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANTIATE_ENUM, 47, 1)],
+    );
   }
 }

@@ -9,13 +9,20 @@ import 'common.dart';
 import 'ddc_common.dart';
 import 'sourcemaps_suite.dart';
 
-Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return StackTraceContext();
+Future<ChainContext> _createContext(
+  Chain suite,
+  Map<String, String> environment,
+) async {
+  return StackTraceContext(moduleFormat: 'es6', canary: false);
 }
 
 class StackTraceContext extends ChainContextWithCleanupHelper
     implements WithCompilerState {
+  final String moduleFormat;
+  final bool canary;
+
+  StackTraceContext({required this.moduleFormat, required this.canary});
+
   @override
   fe.InitializedCompilerState? compilerState;
 
@@ -26,10 +33,20 @@ class StackTraceContext extends ChainContextWithCleanupHelper
     return _steps ??= <Step>[
       const Setup(),
       const SetCwdToSdkRoot(),
-      TestStackTrace(DevCompilerRunner(this, debugging: false), 'ddc', ['ddc']),
+      TestStackTrace(
+        DevCompilerRunner(
+          this,
+          debugging: false,
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+        'ddc',
+        ['ddc'],
+      ),
     ];
   }
 }
 
-void main(List<String> arguments) =>
-    runMe(arguments, createContext, configurationPath: 'testing.json');
+void main(List<String> arguments) {
+  runMe(arguments, _createContext, configurationPath: 'testing.json');
+}

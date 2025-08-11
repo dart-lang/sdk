@@ -42,13 +42,13 @@ class D extends self::C {
 class E extends core::Object {
   synthetic constructor •() → self::E
     ;
-  operator ==() → core::bool
+  erroneous operator ==() → core::bool
     ;
 }
 class F extends self::E {
   synthetic constructor •() → self::F
     ;
-  operator ==(core::Object? other) → core::bool
+  erroneous operator ==(core::Object? other) → core::bool
     ;
 }
 static method main() → dynamic

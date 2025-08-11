@@ -14,7 +14,7 @@ class B<T> {
     T.func();
     //^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'func' isn't defined for the class 'Type'.
+    // [cfe] The method 'func' isn't defined for the type 'Type'.
   }
 }
 

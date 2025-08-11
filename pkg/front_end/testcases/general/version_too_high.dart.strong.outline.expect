@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/version_too_high.dart:5:1: Error: The specified language version 100.200 is too high. The highest supported language version is 3.8.
+// pkg/front_end/testcases/general/version_too_high.dart:5:1: Error: The specified language version 100.200 is too high. The highest supported language version is 3.9.
 // // @dart=100.200
 // ^^^^^^^^^^^^^^^^
 //

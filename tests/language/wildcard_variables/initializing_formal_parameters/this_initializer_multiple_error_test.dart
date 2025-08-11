@@ -8,12 +8,12 @@ class C {
   var _;
 
   C(this._, this._);
-//               ^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
-// [cfe] '_' was already initialized by this constructor.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
+  // [cfe] '_' was already initialized by this constructor.
 
   C.named(this._, this._);
-//                     ^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
-// [cfe] '_' was already initialized by this constructor.
+  //                   ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_FIELD_FORMAL_PARAMETER
+  // [cfe] '_' was already initialized by this constructor.
 }

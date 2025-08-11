@@ -61,7 +61,7 @@ BSD-style license that can be found in the LICENSE file.
     position: absolute;
     box-sizing: border-box;
     border: solid 1px;
-    font-size: 10;
+    font-size: 13px;
     text-align: center;
     overflow: hidden;
     white-space: nowrap;

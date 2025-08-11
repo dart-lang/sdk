@@ -16,14 +16,17 @@ main() {
 @reflectiveTest
 class InvalidSuperInInitializerTest extends PubPackageResolutionTest {
   test_constructor_name_is_keyword() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C() : super.const();
 }
-''', [
-      error(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 18, 5),
-      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 24, 5),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 24, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 18, 5),
+        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 24, 5),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 24, 5),
+      ],
+    );
   }
 }

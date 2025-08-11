@@ -23,7 +23,7 @@ Object get skipAssembly {
   if (isSimulator) {
     return "running on a simulated architecture";
   }
-  return (Platform.isLinux || Platform.isMacOS)
+  return (Platform.isLinux || Platform.isMacOS || Platform.isWindows)
       ? false
       : "no process for assembling snapshots on this platform";
 }
@@ -46,58 +46,129 @@ class DwarfTestOutput {
   DwarfTestOutput(this.trace, this.allocateObjectStart, this.allocateObjectEnd);
 }
 
-class NonDwarfState {
+abstract class State {
   final DwarfTestOutput output;
   final DwarfTestOutput outputWithOppositeFlag;
 
-  NonDwarfState(this.output, this.outputWithOppositeFlag);
+  State(this.output, this.outputWithOppositeFlag);
+}
+
+class NonDwarfState extends State {
+  NonDwarfState(super.output, super.outputWithOppositeFlag);
 
   void check() => expect(outputWithOppositeFlag.trace, equals(output.trace));
 }
 
-abstract class ElfState<T> {
+abstract class DwarfState<T> extends State {
   final T snapshot;
   final T debugInfo;
-  final DwarfTestOutput output;
-  final DwarfTestOutput outputWithOppositeFlag;
+  DwarfState(
+    super.output,
+    super.outputWithOppositeFlag,
+    this.snapshot,
+    this.debugInfo,
+  );
 
-  ElfState(
-      this.snapshot, this.debugInfo, this.output, this.outputWithOppositeFlag);
+  String get description;
 
   Future<void> check(Trace trace, T t);
+
+  Future<void> makeTests(Trace nonDwarfTrace) async {
+    test(
+      'Testing $description traces with separate debugging info',
+      () async => await check(nonDwarfTrace, debugInfo),
+    );
+
+    test(
+      'Testing $description traces with original snapshot',
+      () async => await check(nonDwarfTrace, snapshot),
+    );
+  }
 }
 
-abstract class AssemblyState<T> {
-  final T snapshot;
-  final T debugInfo;
-  final DwarfTestOutput output;
-  final DwarfTestOutput outputWithOppositeFlag;
+abstract class ElfState<T> extends DwarfState<T> {
+  ElfState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo,
+  );
+
+  @override
+  String get description => 'ELF';
+}
+
+abstract class MultiArchDwarfState<T> extends DwarfState<T> {
   final T? singleArch;
   final T? multiArch;
 
-  AssemblyState(
-      this.snapshot, this.debugInfo, this.output, this.outputWithOppositeFlag,
-      [this.singleArch, this.multiArch]);
+  MultiArchDwarfState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo, [
+    this.singleArch,
+    this.multiArch,
+  ]);
 
-  Future<void> check(Trace trace, T t);
+  @override
+  Future<void> makeTests(Trace nonDwarfTrace) async {
+    await super.makeTests(nonDwarfTrace);
+
+    test(
+      'Testing $description single-architecture universal binary',
+      () async {
+        expect(singleArch, isNotNull);
+        await check(nonDwarfTrace, singleArch!);
+      },
+      skip: skipUniversalBinary,
+    );
+
+    test(
+      'Testing $description multi-architecture universal binary',
+      () async {
+        expect(multiArch, isNotNull);
+        await check(nonDwarfTrace, multiArch!);
+      },
+      skip: skipUniversalBinary,
+    );
+  }
 }
 
-abstract class UniversalBinaryState<T> {
-  final T singleArch;
-  final T multiArch;
+abstract class AssemblyState<T> extends MultiArchDwarfState<T> {
+  AssemblyState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo, [
+    super.singleArch,
+    super.multiArch,
+  ]);
 
-  UniversalBinaryState(this.singleArch, this.multiArch);
+  @override
+  String get description => 'assembly';
+}
 
-  Future<void> checkSingleArch(Trace trace, AssemblyState assemblyState);
-  Future<void> checkMultiArch(Trace trace, AssemblyState assemblyState);
+abstract class MachOState<T> extends MultiArchDwarfState<T> {
+  MachOState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo, [
+    super.singleArch,
+    super.multiArch,
+  ]);
+
+  @override
+  String get description => 'Mach-O';
 }
 
 Future<void> runTests<T>(
-    String tempPrefix,
-    String scriptPath,
-    Future<NonDwarfState> Function(String, String) runNonDwarf,
-    Future<ElfState<T>> Function(String, String) runElf,
-    Future<AssemblyState<T>?> Function(String, String) runAssembly) async {
+  String tempPrefix,
+  String scriptPath,
+  Future<NonDwarfState> Function(String, String) runNonDwarf,
+  Iterable<Future<DwarfState?> Function(String, String)> runDwarfs,
+) async {
   if (!isAOTRuntime) {
     return; // Running in JIT: AOT binaries not available.
   }
@@ -133,40 +204,17 @@ Future<void> runTests<T>(
     ]);
 
     final nonDwarfState = await runNonDwarf(tempDir, scriptDill);
-    final elfState = await runElf(tempDir, scriptDill);
-    final assemblyState = await runAssembly(tempDir, scriptDill);
+    final dwarfStates = [
+      for (final f in runDwarfs) await f(tempDir, scriptDill),
+    ];
 
     test('Testing symbolic traces', nonDwarfState.check);
 
     final nonDwarfTrace = nonDwarfState.output.trace;
 
-    test('Testing ELF traces with separate debugging info',
-        () async => await elfState.check(nonDwarfTrace, elfState.debugInfo));
-
-    test('Testing ELF traces with original snapshot',
-        () async => await elfState.check(nonDwarfTrace, elfState.snapshot));
-
-    test('Testing assembly traces with separate debugging info', () async {
-      expect(assemblyState, isNotNull);
-      await assemblyState!.check(nonDwarfTrace, assemblyState.debugInfo);
-    }, skip: skipAssembly);
-
-    test('Testing assembly traces with debug snapshot ', () async {
-      expect(assemblyState, isNotNull);
-      await assemblyState!.check(nonDwarfTrace, assemblyState.snapshot);
-    }, skip: skipAssembly);
-
-    test('Testing single-architecture universal binary', () async {
-      expect(assemblyState, isNotNull);
-      expect(assemblyState!.singleArch, isNotNull);
-      await assemblyState.check(nonDwarfTrace, assemblyState.singleArch!);
-    }, skip: skipUniversalBinary);
-
-    test('Testing multi-architecture universal binary', () async {
-      expect(assemblyState, isNotNull);
-      expect(assemblyState!.multiArch, isNotNull);
-      await assemblyState.check(nonDwarfTrace, assemblyState.multiArch!);
-    }, skip: skipUniversalBinary);
+    for (final dwarfState in dwarfStates.whereType<DwarfState>()) {
+      dwarfState.makeTests(nonDwarfTrace);
+    }
   });
 }
 
@@ -183,8 +231,12 @@ void checkHeader(StackTraceHeader header) {
 }
 
 void checkRootUnitAssumptions(
-    DwarfTestOutput output1, DwarfTestOutput output2, Dwarf rootDwarf,
-    {required PCOffset sampleOffset, bool matchingBuildIds = true}) {
+  DwarfTestOutput output1,
+  DwarfTestOutput output2,
+  Dwarf rootDwarf, {
+  required PCOffset sampleOffset,
+  bool matchingBuildIds = true,
+}) {
   // We run the test program on the same host OS as the test, so any
   // PCOffset from the trace should have this information.
   expect(sampleOffset.os, isNotNull);
@@ -193,7 +245,8 @@ void checkRootUnitAssumptions(
   expect(sampleOffset.compressedPointers, isNotNull);
 
   expect(sampleOffset.os, equals(Platform.operatingSystem));
-  final archString = '${sampleOffset.usingSimulator! ? 'SIM' : ''}'
+  final archString =
+      '${sampleOffset.usingSimulator! ? 'SIM' : ''}'
       '${sampleOffset.architecture!.toUpperCase()}'
       '${sampleOffset.compressedPointers! ? 'C' : ''}';
   final baseBuildDir = path.basename(buildDir);
@@ -236,32 +289,50 @@ void checkRootUnitAssumptions(
   checkAllocateObjectOffset(rootDwarf, allocateObjectEnd, expectedValue: false);
   // The byte before the start should also be in either a different stub or
   // not in a stub altogether.
-  checkAllocateObjectOffset(rootDwarf, allocateObjectStart - 1,
-      expectedValue: false);
+  checkAllocateObjectOffset(
+    rootDwarf,
+    allocateObjectStart - 1,
+    expectedValue: false,
+  );
   // Check the midpoint of the stub, as the stub should be large enough that the
   // midpoint won't be in any possible padding.
-  expect(allocateObjectEnd - allocateObjectStart, greaterThanOrEqualTo(16),
-      reason: 'midpoint of stub may be in bare payload padding');
+  expect(
+    allocateObjectEnd - allocateObjectStart,
+    greaterThanOrEqualTo(16),
+    reason: 'midpoint of stub may be in bare payload padding',
+  );
   checkAllocateObjectOffset(
-      rootDwarf, (allocateObjectStart + allocateObjectEnd) ~/ 2);
+    rootDwarf,
+    (allocateObjectStart + allocateObjectEnd) ~/ 2,
+  );
 
   print("Successfully matched AllocateObject stub addresses");
 }
 
-void checkAllocateObjectOffset(Dwarf dwarf, int offset,
-    {bool expectedValue = true}) {
+void checkAllocateObjectOffset(
+  Dwarf dwarf,
+  int offset, {
+  bool expectedValue = true,
+}) {
   final pcOffset = PCOffset(offset, InstructionsSection.isolate);
   print('Offset of tested stub address is $pcOffset');
-  final callInfo =
-      dwarf.callInfoForPCOffset(pcOffset, includeInternalFrames: true);
+  final callInfo = dwarf.callInfoForPCOffset(
+    pcOffset,
+    includeInternalFrames: true,
+  );
   print('Call info for tested stub address is $callInfo');
-  final got = callInfo != null &&
+  final got =
+      callInfo != null &&
       callInfo.length == 1 &&
       callInfo.single is StubCallInfo &&
       (callInfo.single as StubCallInfo).name.endsWith('AllocateObjectStub');
-  expect(got, equals(expectedValue),
-      reason: 'address is ${expectedValue ? 'not within' : 'within'} '
-          'the AllocateObject stub');
+  expect(
+    got,
+    equals(expectedValue),
+    reason:
+        'address is ${expectedValue ? 'not within' : 'within'} '
+        'the AllocateObject stub',
+  );
 }
 
 void checkTranslatedTrace(List<String> nonDwarfTrace, List<String> dwarfTrace) {
@@ -289,7 +360,9 @@ void checkTranslatedTrace(List<String> nonDwarfTrace, List<String> dwarfTrace) {
 }
 
 Future<DwarfTestOutput> runTestProgram(
-    String executable, List<String> args) async {
+  String executable,
+  List<String> args,
+) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode == 0) {
@@ -307,7 +380,10 @@ Future<DwarfTestOutput> runTestProgram(
   final end = int.parse(stdoutLines[1]);
 
   return DwarfTestOutput(
-      LineSplitter.split(result.stderr).toList(), start, end);
+    LineSplitter.split(result.stderr).toList(),
+    start,
+    end,
+  );
 }
 
 final _buildIdRE = RegExp(r"build_id: '([a-f\d]+)'");

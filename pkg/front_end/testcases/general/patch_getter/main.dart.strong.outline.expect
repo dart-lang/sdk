@@ -13,7 +13,7 @@ library;
 // pkg/front_end/testcases/general/patch_getter/patch_lib.dart:29:1: Error: Can't inject public 'methodInPatch' into 'dart:test'.
 // Make 'methodInPatch' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // methodInPatch() {
-// ^
+// ^^^^^^^^^^^^^
 //
 import self as self2;
 import "dart:_internal" as _in;
@@ -32,7 +32,7 @@ class Class extends core::Object {
   static get /* from org-dartlang-testcase:///patch_lib.dart */ staticGetter() → core::int
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension Extension on core::int {
   get instanceGetter = self2::Extension|get#instanceGetter;
   static get staticGetter = get self2::Extension|staticGetter;
@@ -56,7 +56,7 @@ Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:11:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:9 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:20:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:8:2 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:22:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:25:4 -> InstanceConstant(const _Patch{})

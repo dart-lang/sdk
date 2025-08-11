@@ -10,7 +10,9 @@ import 'package:path/path.dart' as path;
 import 'snapshot_test_helper.dart';
 
 Future<List<TimelineEvent>> runAndCollectTimeline(
-    String streams, List<String> args) async {
+  String streams,
+  List<String> args,
+) async {
   return await withTempDir((String tmp) async {
     final String timelinePath = path.join(tmp, 'timeline.json');
     final p = await Process.run(Platform.executable, [
@@ -51,8 +53,9 @@ List<TimelineEvent> parseTimeline(List l) {
 
 String findMainIsolateId(List<TimelineEvent> events) {
   return events
-      .firstWhere((e) =>
-          e.name == 'InitializeIsolate' && e.args['isolateName'] == 'main')
+      .firstWhere(
+        (e) => e.name == 'InitializeIsolate' && e.args['isolateName'] == 'main',
+      )
       .isolateId!;
 }
 
@@ -66,8 +69,16 @@ class TimelineEvent {
   final String ph;
   final Map<String, String> args;
 
-  TimelineEvent._(this.name, this.cat, this.tid, this.pid, this.ts, this.tts,
-      this.ph, this.args);
+  TimelineEvent._(
+    this.name,
+    this.cat,
+    this.tid,
+    this.pid,
+    this.ts,
+    this.tts,
+    this.ph,
+    this.args,
+  );
 
   factory TimelineEvent.from(Map m) {
     return TimelineEvent._(

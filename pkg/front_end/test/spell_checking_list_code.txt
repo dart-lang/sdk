@@ -50,6 +50,7 @@ ainv
 aka
 al
 alexmarkov
+align
 aligned
 alive
 allocate
@@ -118,6 +119,7 @@ augments
 author
 auto
 automagically
+automatic
 auxiliary
 averages
 awaited
@@ -452,6 +454,7 @@ depended
 dependency's
 depfile
 deprecating
+deprecation
 deps
 dereference
 dereferences
@@ -568,6 +571,7 @@ emit
 emits
 emitted
 emitting
+emptied
 en
 encapsulation
 end'ed
@@ -677,6 +681,7 @@ file's
 filenames
 filesystem
 fileuri
+filters
 finality
 finally's
 finv
@@ -720,6 +725,7 @@ frontends
 frozen
 fs
 fsource
+ft
 fuchsia
 fue
 fuller
@@ -1322,6 +1328,7 @@ postfix
 pound
 pow
 pragma
+pragmas
 pre
 prebuild
 prebuilt
@@ -1339,6 +1346,7 @@ preexisting
 preferably
 prefixing
 preliminary
+preloaded
 premark
 preorder
 prepares
@@ -1347,6 +1355,7 @@ presented
 pressure
 presubmit
 presumably
+presume
 presuming
 prev
 primarily
@@ -1483,6 +1492,7 @@ redirections
 redirector
 redo
 reevaluation
+reexport
 reexports
 ref
 refactoring
@@ -1825,6 +1835,7 @@ supernode
 supers
 supplies
 suppose
+suppresses
 surfaced
 surprising
 surrounded
@@ -1910,6 +1921,7 @@ tm
 tmp
 tn
 todo
+todos
 token's
 tokenize
 tokenized
@@ -1935,6 +1947,7 @@ transfer
 transferable
 transformers
 transforming
+transitioning
 transitively
 translation
 traversal
@@ -1945,6 +1958,7 @@ trees
 tricky
 triggering
 triggers
+tripping
 trips
 trivially
 truncated

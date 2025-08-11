@@ -61,17 +61,17 @@ asM(x) => x as M;
 setM(x) => gM = x;
 
 checkTrue(f) => (x) {
-      Expect.isTrue(f(x));
-    };
+  Expect.isTrue(f(x));
+};
 checkFalse(f) => (x) {
-      Expect.isFalse(f(x));
-    };
+  Expect.isFalse(f(x));
+};
 checkId(f) => (x) {
-      Expect.identical(x, f(x));
-    };
+  Expect.identical(x, f(x));
+};
 checkThrows(f) => (x) {
-      Expect.throws(() => f(x));
-    };
+  Expect.throws(() => f(x));
+};
 
 bool get checkedMode {
   try {

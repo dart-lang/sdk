@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show Target;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class TargetEvent {
   final M.Target target;
@@ -52,7 +54,7 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -65,13 +67,13 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    children = <Element>[
-      new AnchorElement()
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
         ..text = current ? '${target.name} (Connected)' : '${target.name}'
         ..onClick.where(_filter).map(_toEvent).listen(_connect),
-      new ButtonElement()
-        ..text = '✖ Remove'
-        ..classes = ['delete-button']
+      new HTMLButtonElement()
+        ..textContent = '✖ Remove'
+        ..className = 'delete-button'
         ..onClick.map(_toEvent).listen(_delete)
     ];
   }

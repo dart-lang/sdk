@@ -52,9 +52,9 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(ContextScope)                                                              \
   V(Sentinel)                                                                  \
   V(SingleTargetCache)                                                         \
-  V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \
   V(CallSiteData)                                                              \
+  V(UnlinkedCall)                                                              \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -210,6 +210,86 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(Object)                                                                    \
   CLASS_LIST_NO_OBJECT(V)
 
+#define LEAF_HANDLE_LIST(V)                                                    \
+  V(Class)                                                                     \
+  V(PatchClass)                                                                \
+  V(Function)                                                                  \
+  V(TypeParameters)                                                            \
+  V(ClosureData)                                                               \
+  V(FfiTrampolineData)                                                         \
+  V(Field)                                                                     \
+  V(Script)                                                                    \
+  V(Library)                                                                   \
+  V(Namespace)                                                                 \
+  V(KernelProgramInfo)                                                         \
+  V(WeakSerializationReference)                                                \
+  V(WeakArray)                                                                 \
+  V(Code)                                                                      \
+  V(Bytecode)                                                                  \
+  V(Instructions)                                                              \
+  V(InstructionsSection)                                                       \
+  V(InstructionsTable)                                                         \
+  V(ObjectPool)                                                                \
+  V(PcDescriptors)                                                             \
+  V(CodeSourceMap)                                                             \
+  V(CompressedStackMaps)                                                       \
+  V(LocalVarDescriptors)                                                       \
+  V(ExceptionHandlers)                                                         \
+  V(Context)                                                                   \
+  V(ContextScope)                                                              \
+  V(Sentinel)                                                                  \
+  V(SingleTargetCache)                                                         \
+  V(UnlinkedCall)                                                              \
+  V(MonomorphicSmiableCall)                                                    \
+  V(ICData)                                                                    \
+  V(MegamorphicCache)                                                          \
+  V(SubtypeTestCache)                                                          \
+  V(LoadingUnit)                                                               \
+  V(ApiError)                                                                  \
+  V(LanguageError)                                                             \
+  V(UnhandledException)                                                        \
+  V(UnwindError)                                                               \
+  V(LibraryPrefix)                                                             \
+  V(TypeArguments)                                                             \
+  V(Type)                                                                      \
+  V(FunctionType)                                                              \
+  V(RecordType)                                                                \
+  V(TypeParameter)                                                             \
+  V(Finalizer)                                                                 \
+  V(NativeFinalizer)                                                           \
+  V(FinalizerEntry)                                                            \
+  V(Closure)                                                                   \
+  V(Smi)                                                                       \
+  V(Mint)                                                                      \
+  V(Double)                                                                    \
+  V(Bool)                                                                      \
+  V(Float32x4)                                                                 \
+  V(Int32x4)                                                                   \
+  V(Float64x2)                                                                 \
+  V(Record)                                                                    \
+  V(TypedData)                                                                 \
+  V(ExternalTypedData)                                                         \
+  V(TypedDataView)                                                             \
+  V(Pointer)                                                                   \
+  V(DynamicLibrary)                                                            \
+  V(Capability)                                                                \
+  V(ReceivePort)                                                               \
+  V(SendPort)                                                                  \
+  V(StackTrace)                                                                \
+  V(SuspendState)                                                              \
+  V(RegExp)                                                                    \
+  V(WeakProperty)                                                              \
+  V(WeakReference)                                                             \
+  V(MirrorReference)                                                           \
+  V(FutureOr)                                                                  \
+  V(UserTag)                                                                   \
+  V(TransferableTypedData)                                                     \
+  V(Map)                                                                       \
+  V(Set)                                                                       \
+  V(Array)                                                                     \
+  V(GrowableObjectArray)                                                       \
+  V(String)
+
 enum ClassId : intptr_t {
   // Illegal class id.
   kIllegalCid = 0,
@@ -307,6 +387,13 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
+inline bool IsCallSiteDataClassId(intptr_t index) {
+  COMPILE_ASSERT(kCallSiteDataCid + 1 == kUnlinkedCallCid &&
+                 kCallSiteDataCid + 2 == kICDataCid &&
+                 kCallSiteDataCid + 3 == kMegamorphicCacheCid);
+  return (index >= kCallSiteDataCid && index <= kMegamorphicCacheCid);
+}
+
 // Make sure this function is updated when new Error types are added.
 static const ClassId kFirstErrorCid = kErrorCid;
 static const ClassId kLastErrorCid = kUnwindErrorCid;
@@ -321,6 +408,14 @@ COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
 
 inline bool IsErrorClassId(intptr_t index) {
   return (index >= kFirstErrorCid && index <= kLastErrorCid);
+}
+
+inline bool IsAbstractTypeClassId(intptr_t index) {
+  COMPILE_ASSERT(kAbstractTypeCid + 1 == kTypeCid &&
+                 kAbstractTypeCid + 2 == kFunctionTypeCid &&
+                 kAbstractTypeCid + 3 == kRecordTypeCid &&
+                 kAbstractTypeCid + 4 == kTypeParameterCid);
+  return (index >= kAbstractTypeCid && index <= kTypeParameterCid);
 }
 
 inline bool IsConcreteTypeClassId(intptr_t index) {

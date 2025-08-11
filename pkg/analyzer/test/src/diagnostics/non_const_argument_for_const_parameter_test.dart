@@ -34,7 +34,8 @@ class C {
   }
 
   test_binaryOperator_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(A a) {
@@ -45,9 +46,9 @@ void f(A a) {
 class A {
   bool operator <(@mustBeConst A other) => false;
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 86, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 86, 1)],
+    );
   }
 
   test_binaryOperator_succeeds() async {
@@ -96,7 +97,8 @@ class C {
   }
 
   test_constructor_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 final v = 3;
@@ -106,9 +108,9 @@ final c = C(v);
 class C {
   C(@mustBeConst int i);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 77, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 77, 1)],
+    );
   }
 
   test_functionExpression_constantLiteral_succeeds() async {
@@ -123,16 +125,17 @@ void f() {
   }
 
   test_functionExpression_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(int x) {
   var g = (@mustBeConst int i) {};
   g(x);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 106, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 106, 1)],
+    );
   }
 
   test_functionType_constantLiteral_succeeds() async {
@@ -146,15 +149,16 @@ void f(void g(@mustBeConst int i)) {
   }
 
   test_functionType_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(void g(@mustBeConst int i), int x) {
   g(x);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 99, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 99, 1)],
+    );
   }
 
   test_indexExpression_constExpression_succeeds() async {
@@ -175,7 +179,8 @@ class A {
   }
 
   test_indexExpression_nonConstant_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(A a) {
@@ -187,13 +192,14 @@ class A {
 
   void operator []=(@mustBeConst int i, @mustBeConst A v) {}
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 3),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 3)],
+    );
   }
 
   test_interpolationLiteral_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 const a = 'ello';
@@ -203,9 +209,9 @@ final c = C('H$a');
 class C {
   C(@mustBeConst String s);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 82, 5),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 82, 5)],
+    );
   }
 
   test_localFunction_constantLiteral_succeeds() async {
@@ -220,16 +226,17 @@ void f() {
   }
 
   test_localFunction_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(int x) {
   void g(@mustBeConst int i) {}
   g(x);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 103, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 103, 1)],
+    );
   }
 
   test_method_constantLiteral_succeeds() async {
@@ -245,7 +252,8 @@ class C {
   }
 
   test_method_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 final v = 3;
@@ -255,9 +263,9 @@ void f(C c) => c.g(v);
 class C {
   void g([@mustBeConst int? value]) {}
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 84, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 84, 1)],
+    );
   }
 
   test_optionalNamed_constVariable_succeeds() async {
@@ -283,7 +291,8 @@ void g({@mustBeConst int? value}) {}
   }
 
   test_optionalNamed_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 final v = 3;
@@ -291,9 +300,9 @@ final v = 3;
 void f() => g(value: v);
 
 void g({@mustBeConst int? value}) {}
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 8),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 8)],
+    );
   }
 
   test_optionalPositional_constVariable_succeeds() async {
@@ -319,7 +328,8 @@ void g([@mustBeConst int? value]) {}
   }
 
   test_optionalPositional_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 final v = 3;
@@ -327,22 +337,23 @@ final v = 3;
 void f() => g(v);
 
 void g([@mustBeConst int? value]) {}
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1)],
+    );
   }
 
   test_redirectingConstructor_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 class A {
   A(@mustBeConst int i);
   A.named(int i) : this(i);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 110, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 110, 1)],
+    );
   }
 
   test_redirectingFactoryConstructor_variable_succeeds() async {
@@ -411,15 +422,16 @@ void g(@mustBeConst List<int> value) {}
   }
 
   test_requiredPositional_localVariable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 void f(int value) => g(value);
 
 void g(@mustBeConst int value) {}
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 5),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 5)],
+    );
   }
 
   test_requiredPositional_map_constVariable_succeeds() async {
@@ -435,7 +447,8 @@ void g(@mustBeConst Map<String, int> value) {}
   }
 
   test_requiredPositional_topLevelVariable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 final v = 3;
@@ -443,9 +456,9 @@ final v = 3;
 void f() => g(v);
 
 void g(@mustBeConst int value) {}
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1)],
+    );
   }
 
   test_setter_fails() async {
@@ -532,14 +545,13 @@ class B extends A {
   void f(@mustBeConst int i) {}
 }
 ''',
-      [
-        error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 81, 1),
-      ],
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 81, 1)],
     );
   }
 
   test_superConstructor_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 class A {
@@ -549,9 +561,9 @@ class A {
 class B extends A {
   B(int i) : super(i);
 }
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 128, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 128, 1)],
+    );
   }
 
   test_superParameter_variable_succeeds() async {
@@ -595,7 +607,8 @@ void f(int x, Td td) {
   }
 
   test_typedef_nonFunction_variable_fails() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart' show mustBeConst;
 
 typedef T = C;
@@ -605,8 +618,8 @@ class C {
 }
 
 void g(int x) => T(x);
-''', [
-      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 124, 1),
-    ]);
+''',
+      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 124, 1)],
+    );
   }
 }

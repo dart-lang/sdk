@@ -16,7 +16,7 @@ class Example {
     this.nextVar = 1;
     //   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
+    // [cfe] The setter 'nextVar' isn't defined for the type 'Example'.
   }
   static test() {
     nextVar = 0;

@@ -20,7 +20,8 @@ class UnqualifiedReferenceToNonLocalStaticMemberTest
       CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER;
 
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int get a => 0;
 }
@@ -29,13 +30,14 @@ class B extends A {
     return a;
   }
 }
-''', [
-      error(_errorCode, 80, 1),
-    ]);
+''',
+      [error(_errorCode, 80, 1)],
+    );
   }
 
   test_getter_invokeTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int foo = 1;
 }
@@ -45,13 +47,14 @@ class B extends A {
     foo.abs();
   }
 }
-''', [
-      error(_errorCode, 76, 3),
-    ]);
+''',
+      [error(_errorCode, 76, 3)],
+    );
   }
 
   test_methodTearoff() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static void a<T>() {}
 }
@@ -60,13 +63,14 @@ class B extends A {
     a<int>;
   }
 }
-''', [
-      error(_errorCode, 73, 1),
-    ]);
+''',
+      [error(_errorCode, 73, 1)],
+    );
   }
 
   test_readWrite() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int get x => 0;
   static set x(int _) {}
@@ -79,11 +83,13 @@ class B extends A {
     x++;
   }
 }
-''', [
-      error(_errorCode, 99, 1),
-      error(_errorCode, 110, 1),
-      error(_errorCode, 124, 1),
-      error(_errorCode, 131, 1),
-    ]);
+''',
+      [
+        error(_errorCode, 99, 1),
+        error(_errorCode, 110, 1),
+        error(_errorCode, 124, 1),
+        error(_errorCode, 131, 1),
+      ],
+    );
   }
 }

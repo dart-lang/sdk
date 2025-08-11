@@ -21,9 +21,9 @@ import "dart:core" as core;
 
 static method foo({required has-declared-initializer core::int parameter}) → dynamic
   ;
-static method foo2({core::int parameter}) → dynamic
+static method foo2({erroneously-initialized core::int parameter}) → dynamic
   ;
-static method foo3([core::int parameter]) → dynamic
+static method foo3([erroneously-initialized core::int parameter]) → dynamic
   ;
 static method bar({required core::int parameter}) → dynamic
   ;

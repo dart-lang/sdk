@@ -5,4 +5,4 @@ extension C on int {
   static void set property3(int? x) {}
 }
 
-void main() {}
+void test() {}

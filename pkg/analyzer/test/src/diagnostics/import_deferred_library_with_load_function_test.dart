@@ -22,14 +22,15 @@ void loadLibrary() {}
 void f() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' deferred as p;
 void main() {
   p.f();
 }
-''', [
-      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 30),
-    ]);
+''',
+      [error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 30)],
+    );
   }
 
   test_deferredImport_withLoadLibraryFunction_hide() async {
@@ -53,14 +54,15 @@ void f() {}
 void f2() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' deferred as p hide f2;
 void main() {
   p.f();
 }
-''', [
-      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 38),
-    ]);
+''',
+      [error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 38)],
+    );
   }
 
   test_deferredImport_withLoadLibraryFunction_show() async {

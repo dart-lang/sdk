@@ -23,31 +23,34 @@ mixin B on A {}
   }
 
   test_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B on A? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 22, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 22, 2)],
+    );
   }
 
   test_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A;
 mixin C on B? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 37, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 37, 2)],
+    );
   }
 
   test_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A?;
 mixin C on B {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 38, 1)],
+    );
   }
 }

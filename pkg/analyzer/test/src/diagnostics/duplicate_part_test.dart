@@ -20,12 +20,13 @@ class DuplicatePartTest extends PubPackageResolutionTest {
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'part.dart';
 part 'foo/../part.dart';
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PART, 23, 18),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_PART, 23, 18)],
+    );
   }
 
   test_library_sameUri() async {
@@ -33,12 +34,13 @@ part 'foo/../part.dart';
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'part.dart';
 part 'part.dart';
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PART, 23, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_PART, 23, 11)],
+    );
   }
 
   test_no_duplicates() async {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   simpleIfThen();
   simpleIfThenElse();
@@ -12,13 +12,13 @@ main() {
 // Test if-then statement
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _simpleIfThen:[null|exact=JSUInt31|powerset=1]*/
-_simpleIfThen(/*[exact=JSBool|powerset=0]*/ c) {
+/*member: _simpleIfThen:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_simpleIfThen(/*[exact=JSBool|powerset={I}{O}{N}]*/ c) {
   if (c) return 1;
   return null;
 }
 
-/*member: simpleIfThen:[null|powerset=1]*/
+/*member: simpleIfThen:[null|powerset={null}]*/
 simpleIfThen() {
   _simpleIfThen(true);
   _simpleIfThen(false);
@@ -28,15 +28,15 @@ simpleIfThen() {
 // Test if-then-else statement
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _simpleIfThenElse:[null|exact=JSUInt31|powerset=1]*/
-_simpleIfThenElse(/*[exact=JSBool|powerset=0]*/ c) {
+/*member: _simpleIfThenElse:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_simpleIfThenElse(/*[exact=JSBool|powerset={I}{O}{N}]*/ c) {
   if (c)
     return 1;
   else
     return null;
 }
 
-/*member: simpleIfThenElse:[null|powerset=1]*/
+/*member: simpleIfThenElse:[null|powerset={null}]*/
 simpleIfThenElse() {
   _simpleIfThenElse(true);
   _simpleIfThenElse(false);

@@ -245,20 +245,17 @@ class ConstantToTextVisitor
     sb.write(')');
   }
 
-  void _unsupported(ConstantValue constant) =>
-      throw UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}',
-      );
+  void _unsupported(ConstantValue constant) => throw UnsupportedError(
+    'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}',
+  );
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, StringBuffer sb) =>
       _unsupported(constant);
 
   @override
-  void visitDummyInterceptor(
-    DummyInterceptorConstantValue constant,
-    StringBuffer sb,
-  ) => _unsupported(constant);
+  void visitDummy(DummyConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
   void visitLateSentinel(LateSentinelConstantValue constant, StringBuffer sb) =>

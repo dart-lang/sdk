@@ -21,7 +21,7 @@ static method main() → void {
     {
       final hoisted core::String barValue;
       hoisted core::String fooValue;
-      if(#1#0 is core::String && (let final core::String #t1 = barValue = #1#0 in true) && #1#0 is core::String) {
+      if(#1#0 is core::String && (let final dynamic #t1 = barValue = #1#0 in true) && #1#0 is core::String) {
         fooValue = #1#0;
         {
           core::print(barValue);
@@ -56,7 +56,7 @@ static method main() → void {
     final synthesized core::String #3#0 = fooValue{core::String};
     {
       hoisted core::String fooValue;
-      if(#3#0 is core::String && (let final core::String #t3 = fooValue = #3#0 in true)) {
+      if(#3#0 is core::String && (let final dynamic #t3 = fooValue = #3#0 in true)) {
         {
           core::print(fooValue);
         }

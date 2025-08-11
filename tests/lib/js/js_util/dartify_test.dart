@@ -54,7 +54,7 @@ main() {
       6,
       [1, 2],
       {'foo': 'bar'},
-      null
+      null,
     ];
     Expect.deepEquals(expectedValues, dartArray);
   });
@@ -72,11 +72,7 @@ main() {
     Map<Object?, Object?> expectedValues = {
       'a': 1,
       'b': [1, 2, 3],
-      'c': {
-        'a': true,
-        'b': 'foo',
-        'c': null,
-      },
+      'c': {'a': true, 'b': 'foo', 'c': null},
     };
     Expect.deepEquals(expectedValues, dartObject);
   });
@@ -84,9 +80,7 @@ main() {
   test('convert a recursive object literal', () {
     Object? jsObject = js_util.getProperty(js_util.globalThis, 'recObjectData');
     Object? dartObject = js_util.dartify(jsObject);
-    Map<Object?, Object?> expectedValues = {
-      'foo': {},
-    };
+    Map<Object?, Object?> expectedValues = {'foo': {}};
     Expect.deepEquals(expectedValues, dartObject);
   });
 
@@ -107,8 +101,9 @@ main() {
 
   test('throws if object is a regexp', () {
     expect(
-        () => js_util
-            .dartify(js_util.getProperty(js_util.globalThis, 'throwData')),
-        throwsArgumentError);
+      () =>
+          js_util.dartify(js_util.getProperty(js_util.globalThis, 'throwData')),
+      throwsArgumentError,
+    );
   });
 }

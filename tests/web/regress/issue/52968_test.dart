@@ -15,12 +15,12 @@ void main() {
 typedef FieldValidator<T> = List<String> Function(T? value);
 typedef Validator<T> = bool Function(T? value);
 FieldValidator<T> createValidator<T>(
-        List<({Validator<T> validate, String message})> validators) =>
-    (T? value) {
-      return validators
-          .where((validator) => !validator.validate(value))
-          .map((validator) => validator.message)
-          .toList();
-    };
+  List<({Validator<T> validate, String message})> validators,
+) => (T? value) {
+  return validators
+      .where((validator) => !validator.validate(value))
+      .map((validator) => validator.message)
+      .toList();
+};
 
 bool isNotEmpty(String? value) => value != null && value.isNotEmpty;

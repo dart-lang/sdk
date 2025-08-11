@@ -162,11 +162,7 @@ class _ConstantOrdering
   }
 
   @override
-  int visitDummyInterceptor(
-    DummyInterceptorConstantValue a,
-    DummyInterceptorConstantValue b,
-  ) {
-    // Never emitted.
+  int visitDummy(DummyConstantValue a, DummyConstantValue b) {
     return 0;
   }
 

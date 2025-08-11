@@ -12,45 +12,42 @@ main() {
 
 class AnnotationTest extends PartialCodeTest {
   buildAll() {
+    buildTests('annotation_topLevel', [
+      TestDescriptor(
+        'ampersand',
+        '@',
+        [
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_EXECUTABLE,
+        ],
+        '@_s_',
+        expectedDiagnosticsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
+      ),
+      TestDescriptor(
+        'leftParen',
+        '@a(',
+        [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_EXECUTABLE],
+        '@a()',
+        expectedDiagnosticsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
+      ),
+    ], []);
     buildTests(
       'annotation_topLevel',
       [
         TestDescriptor(
-            'ampersand',
-            '@',
-            [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_EXECUTABLE
-            ],
-            '@_s_',
-            expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE]),
+          'ampersand',
+          '@',
+          [ParserErrorCode.MISSING_IDENTIFIER],
+          '@_s_',
+          failing: ['typedef', 'functionNonVoid', 'getter', 'mixin', 'setter'],
+        ),
         TestDescriptor(
-            'leftParen',
-            '@a(',
-            [
-              ScannerErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.EXPECTED_EXECUTABLE
-            ],
-            '@a()',
-            expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE]),
-      ],
-      [],
-    );
-    buildTests(
-      'annotation_topLevel',
-      [
-        TestDescriptor(
-            'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
-            failing: [
-              'typedef',
-              'functionNonVoid',
-              'getter',
-              'mixin',
-              'setter'
-            ]),
-        TestDescriptor(
-            'leftParen', '@a(', [ScannerErrorCode.EXPECTED_TOKEN], '@a()',
-            allFailing: true),
+          'leftParen',
+          '@a(',
+          [ScannerErrorCode.EXPECTED_TOKEN],
+          '@a()',
+          allFailing: true,
+        ),
       ],
       PartialCodeTest.declarationSuffixes,
       includeEof: false,
@@ -60,23 +57,29 @@ class AnnotationTest extends PartialCodeTest {
       'annotation_classMember',
       [
         TestDescriptor(
-            'ampersand',
-            '@',
-            [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_CLASS_MEMBER
-            ],
-            '@_s_',
-            expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_CLASS_MEMBER]),
+          'ampersand',
+          '@',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
+          '@_s_',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
+        ),
         TestDescriptor(
-            'leftParen',
-            '@a(',
-            [
-              ScannerErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.EXPECTED_CLASS_MEMBER
-            ],
-            '@a()',
-            expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_CLASS_MEMBER]),
+          'leftParen',
+          '@a(',
+          [
+            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
+          '@a()',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
+        ),
       ],
       [],
       head: 'class C { ',
@@ -86,11 +89,19 @@ class AnnotationTest extends PartialCodeTest {
       'annotation_classMember',
       [
         TestDescriptor(
-            'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
-            failing: ['methodNonVoid', 'getter', 'setter']),
+          'ampersand',
+          '@',
+          [ParserErrorCode.MISSING_IDENTIFIER],
+          '@_s_',
+          failing: ['methodNonVoid', 'getter', 'setter'],
+        ),
         TestDescriptor(
-            'leftParen', '@a(', [ScannerErrorCode.EXPECTED_TOKEN], '@a()',
-            allFailing: true),
+          'leftParen',
+          '@a(',
+          [ScannerErrorCode.EXPECTED_TOKEN],
+          '@a()',
+          allFailing: true,
+        ),
       ],
       PartialCodeTest.classMemberSuffixes,
       includeEof: false,
@@ -102,31 +113,33 @@ class AnnotationTest extends PartialCodeTest {
       'annotation_local',
       [
         TestDescriptor(
-            'ampersand',
-            '@',
-            [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
-            ],
-            '@_s_',
-            expectedErrorsInValidCode: [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN
-            ]),
+          'ampersand',
+          '@',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+          ],
+          '@_s_',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+        ),
         TestDescriptor(
-            'leftParen',
-            '@a(',
-            [
-              ScannerErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
-            ],
-            '@a()',
-            expectedErrorsInValidCode: [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN
-            ]),
+          'leftParen',
+          '@a(',
+          [
+            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+          ],
+          '@a()',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+        ),
       ],
       [],
       head: 'f() { ',
@@ -138,26 +151,34 @@ class AnnotationTest extends PartialCodeTest {
     const localAllowed = [
       'localVariable',
       'localFunctionNonVoid',
-      'localFunctionVoid'
+      'localFunctionVoid',
     ];
-    List<TestSuffix> localAnnotationAllowedSuffixes = PartialCodeTest
-        .statementSuffixes
-        .where((t) => localAllowed.contains(t.name))
-        .toList();
-    List<TestSuffix> localAnnotationNotAllowedSuffixes = PartialCodeTest
-        .statementSuffixes
-        .where((t) => !localAllowed.contains(t.name))
-        .toList();
+    List<TestSuffix> localAnnotationAllowedSuffixes =
+        PartialCodeTest.statementSuffixes
+            .where((t) => localAllowed.contains(t.name))
+            .toList();
+    List<TestSuffix> localAnnotationNotAllowedSuffixes =
+        PartialCodeTest.statementSuffixes
+            .where((t) => !localAllowed.contains(t.name))
+            .toList();
 
     buildTests(
       'annotation_local',
       [
         TestDescriptor(
-            'ampersand', '@', [ParserErrorCode.MISSING_IDENTIFIER], '@_s_',
-            failing: ['localFunctionNonVoid']),
+          'ampersand',
+          '@',
+          [ParserErrorCode.MISSING_IDENTIFIER],
+          '@_s_',
+          failing: ['localFunctionNonVoid'],
+        ),
         TestDescriptor(
-            'leftParen', '@a(', [ParserErrorCode.MISSING_IDENTIFIER], '@a()',
-            allFailing: true),
+          'leftParen',
+          '@a(',
+          [ParserErrorCode.MISSING_IDENTIFIER],
+          '@a()',
+          allFailing: true,
+        ),
       ],
       localAnnotationAllowedSuffixes,
       includeEof: false,
@@ -168,33 +189,35 @@ class AnnotationTest extends PartialCodeTest {
       'annotation_local',
       [
         TestDescriptor(
-            'ampersand',
-            '@',
-            [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
-            ],
-            '@_s_',
-            expectedErrorsInValidCode: [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN
-            ],
-            failing: ['labeled']),
+          'ampersand',
+          '@',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+          ],
+          '@_s_',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          failing: ['labeled'],
+        ),
         TestDescriptor(
-            'leftParen',
-            '@a(',
-            [
-              ScannerErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
-            ],
-            '@a()',
-            expectedErrorsInValidCode: [
-              ParserErrorCode.MISSING_IDENTIFIER,
-              ParserErrorCode.EXPECTED_TOKEN
-            ],
-            allFailing: true),
+          'leftParen',
+          '@a(',
+          [
+            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+          ],
+          '@a()',
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          allFailing: true,
+        ),
       ],
       localAnnotationNotAllowedSuffixes,
       includeEof: false,

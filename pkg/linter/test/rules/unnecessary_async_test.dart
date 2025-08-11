@@ -74,16 +74,13 @@ void f() {
   }
 
   test_localFunction_void_hasAwait() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 void foo() {
   void f() async {
     await 0;
   }
 }
-''',
-      [error(WarningCode.UNUSED_ELEMENT, 20, 1)],
-    );
+''');
   }
 
   test_localFunction_void_noAwait() async {
@@ -93,7 +90,7 @@ void foo() {
   void f() async {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 20, 1), lint(24, 5)],
+      [lint(24, 5)],
     );
   }
 
@@ -105,7 +102,7 @@ Future<void> foo() async {
   await 0;
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 34, 1), lint(38, 5)],
+      [lint(38, 5)],
     );
   }
 

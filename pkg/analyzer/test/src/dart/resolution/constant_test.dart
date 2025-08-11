@@ -24,16 +24,23 @@ class A {
   const A({int p});
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 const a = const A();
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 27, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          27,
+          9,
+        ),
+      ],
+    );
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
-    var p = aConstructor.parameters.single as DefaultParameterElementImpl;
+    var p = aConstructor.formalParameters.single as FormalParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
@@ -67,49 +74,53 @@ main() {}
   }
 
   test_constList_withNullAwareElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const [?A()];
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+    );
     assertType(findNode.listLiteral('const ['), 'List<A>');
   }
 
   test_constMap_withNullAwareKey() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {?A(): 0};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
 
   test_constMap_withNullAwareValue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {0: ?A()};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
 
   test_constNotInitialized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class B {
   const B(_);
 }
@@ -118,22 +129,23 @@ class C extends B {
   static const a;
   const C() : super(a);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1)],
+    );
   }
 
   test_constSet_withNullAwareElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {?A()};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
 
@@ -267,9 +279,8 @@ class B extends A {
     await resolveFile2(a);
     assertErrorsInResolvedUnit(result, []);
 
-    var bElement = findElement2.field('b');
-    var bFragment = bElement.firstFragment as ConstVariableElement;
-    var bValue = bFragment.evaluationResult as DartObjectImpl;
+    var bElement = findElement2.field('b') as FieldElementImpl;
+    var bValue = bElement.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);
   }

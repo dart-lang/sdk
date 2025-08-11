@@ -31,7 +31,7 @@ class Box<T> {
     // compile type it's being checked against. It's only the instantiated
     // versions at runtime that could differ: the first instance type argument
     // of box (box.v) vs. the first instance type argument of this (T).
-    baz(box.v/*=T*/ as T/*=T*/);
+    baz(box.v /*=T*/ as T /*=T*/);
   }
 }
 

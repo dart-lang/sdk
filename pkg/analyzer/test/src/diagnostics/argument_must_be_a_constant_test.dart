@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class ArgumentMustBeAConstantTest extends PubPackageResolutionTest {
   test_AsFunctionIsLeafGlobal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef Int8UnOp = Int8 Function(Int8);
 typedef IntUnOp = int Function(int);
@@ -26,13 +27,14 @@ doThings() {
   IntUnOp f = p.asFunction(isLeaf:isLeaf);
   f(8);
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 231, 6),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 231, 6)],
+    );
   }
 
   test_AsFunctionIsLeafLocal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef Int8UnOp = Int8 Function(Int8);
 typedef IntUnOp = int Function(int);
@@ -42,13 +44,14 @@ doThings() {
   IntUnOp f = p.asFunction(isLeaf:isLeaf);
   f(8);
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 233, 6),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 233, 6)],
+    );
   }
 
   test_AsFunctionIsLeafParam() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef Int8UnOp = Int8 Function(Int8);
 typedef IntUnOp = int Function(int);
@@ -57,13 +60,14 @@ doThings(bool isLeaf) {
   IntUnOp f = p.asFunction(isLeaf:isLeaf);
   f(8);
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 221, 6),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 221, 6)],
+    );
   }
 
   test_FromFunctionExceptionReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef NativeDoubleUnOp = Double Function(Double);
 double myTimesThree(double d) => d * 3;
@@ -71,13 +75,14 @@ void testFromFunctionFunctionExceptionValueMustBeConst() {
   final notAConst = 1.1;
   Pointer.fromFunction<NativeDoubleUnOp>(myTimesThree, notAConst);
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 250, 9),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 250, 9)],
+    );
   }
 
   test_LookupFunctionIsLeaf() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef Int8UnOp = Int8 Function(Int8);
 typedef IntUnOp = int Function(int);
@@ -85,8 +90,8 @@ doThings(bool isLeaf) {
   DynamicLibrary l = DynamicLibrary.open("my_lib");
   l.lookupFunction<Int8UnOp, IntUnOp>("timesFour", isLeaf:isLeaf);
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 230, 6),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 230, 6)],
+    );
   }
 }

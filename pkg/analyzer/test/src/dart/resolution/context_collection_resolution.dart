@@ -16,15 +16,16 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -34,87 +35,6 @@ import '../../../generated/test_support.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
-
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
-// TODO(srawlins): This is duplicate with pkg/linter/test/rule_test_support.dart
-// and pkg/analysis_server/test/analysis_server_base.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
-// package).
-String analysisOptionsContent({
-  List<String> experiments = const [],
-  List<String> plugins = const [],
-  List<String> rules = const [],
-  bool strictCasts = false,
-  bool strictInference = false,
-  bool strictRawTypes = false,
-  List<String> unignorableNames = const [],
-}) {
-  var buffer = StringBuffer();
-
-  buffer.writeln('analyzer:');
-  if (experiments.isNotEmpty) {
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-  }
-
-  buffer.writeln('  language:');
-  buffer.writeln('    strict-casts: $strictCasts');
-  buffer.writeln('    strict-inference: $strictInference');
-  buffer.writeln('    strict-raw-types: $strictRawTypes');
-  buffer.writeln('  cannot-ignore:');
-  for (var name in unignorableNames) {
-    buffer.writeln('    - $name');
-  }
-
-  if (plugins.isNotEmpty) {
-    buffer.writeln('  plugins:');
-    for (var plugin in plugins) {
-      buffer.writeln('    - $plugin');
-    }
-  }
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
-
-// TODO(scheglov): This is duplicate with
-// pkg/linter/test/rule_test_support.dart. Keep them as consistent with each
-// other as they are today. Ultimately combine them in a shared analyzer test
-// utilities package.
-String pubspecYamlContent({
-  String? name,
-  String? sdkVersion,
-  List<PubspecYamlFileDependency> dependencies = const [],
-}) {
-  var buffer = StringBuffer();
-
-  if (name != null) {
-    buffer.writeln('name: $name');
-  }
-
-  if (sdkVersion != null) {
-    buffer.writeln('environment:');
-    buffer.writeln("  sdk: '$sdkVersion'");
-  }
-
-  if (dependencies.isNotEmpty) {
-    buffer.writeln('dependencies:');
-    for (var dependency in dependencies) {
-      buffer.writeln('  ${dependency.name}: ${dependency.version}');
-    }
-  }
-
-  return buffer.toString();
-}
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -248,10 +168,7 @@ abstract class ContextResolutionTest
       libraryContext: analysisDriver.libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: TreeStringSink(
-        sink: buffer,
-        indent: '',
-      ),
+      sink: TreeStringSink(sink: buffer, indent: ''),
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     var actual = buffer.toString();
@@ -280,9 +197,7 @@ abstract class ContextResolutionTest
   Future<void> disposeAnalysisContextCollection() async {
     var analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      await analysisContextCollection.dispose(
-        forTesting: true,
-      );
+      await analysisContextCollection.dispose(forTesting: true);
       _analysisContextCollection = null;
     }
   }
@@ -401,9 +316,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     var targetFile = getFile(rootFolder.path);
     var analysisDriver = driverFor(targetFile);
     var bundleBytes = await analysisDriver.buildPackageBundle(
-      uriList: [
-        Uri.parse('package:foo/foo.dart'),
-      ],
+      uriList: [Uri.parse('package:foo/foo.dart')],
     );
 
     var bundleFile = getFile('/home/summaries/packages.sum');
@@ -424,18 +337,14 @@ class PubPackageResolutionTest extends ContextResolutionTest
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(experiments: experiments),
     );
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder());
   }
 
   void writePackageConfig(
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(
-      toUriStr: toUriStr,
-    );
+    var content = config.toContent(pathContext: pathContext);
     newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -508,16 +417,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
   }
-}
-
-class PubspecYamlFileDependency {
-  final String name;
-  final String version;
-
-  PubspecYamlFileDependency({
-    required this.name,
-    this.version = 'any',
-  });
 }
 
 mixin WithLanguage219Mixin on PubPackageResolutionTest {

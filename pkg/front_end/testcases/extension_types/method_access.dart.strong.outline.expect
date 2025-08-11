@@ -17,11 +17,11 @@ extension type InlineClass(core::int it) {
   get getter = self::InlineClass|get#getter;
   method method = self::InlineClass|method;
   method tearoff method = self::InlineClass|get#method;
+  set setter = self::InlineClass|set#setter;
   method genericMethod = self::InlineClass|genericMethod;
   method tearoff genericMethod = self::InlineClass|get#genericMethod;
   method call = self::InlineClass|call;
   method tearoff call = self::InlineClass|get#call;
-  set setter = self::InlineClass|set#setter;
   constructor • = self::InlineClass|constructor#;
   constructor tearoff • = self::InlineClass|constructor#_#new#tearOff;
 }
@@ -31,7 +31,7 @@ static extension-member method _extension#0|set#getter(lowered final core::Objec
   ;
 static extension-type-member method InlineClass|constructor#(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   return self::InlineClass|constructor#(it);
 static extension-type-member method InlineClass|test(lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this) → dynamic
   ;

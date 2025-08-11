@@ -84,7 +84,7 @@ main() {
       (p + i).value = i * 3;
     }
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
-      print('p.elementAt($i) value: ${(p + i).value}');
+      print('p + $i value: ${(p + i).value}');
     }
     calloc.free(p);
   }

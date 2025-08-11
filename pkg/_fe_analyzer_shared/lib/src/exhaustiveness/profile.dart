@@ -21,14 +21,20 @@ void count(String name, [String? subname]) {
 void log() {
   List<String> names = _counts.keys.toList();
   names.sort();
-  int nameLength =
-      names.fold<int>(0, (length, name) => max(length, name.length));
-  int countLength = _counts.values
-      .fold<int>(0, (length, count) => max(length, count.toString().length));
+  int nameLength = names.fold<int>(
+    0,
+    (length, name) => max(length, name.length),
+  );
+  int countLength = _counts.values.fold<int>(
+    0,
+    (length, count) => max(length, count.toString().length),
+  );
 
   for (String name in names) {
-    print('${name.padRight(nameLength)} = '
-        '${_counts[name].toString().padLeft(countLength)}');
+    print(
+      '${name.padRight(nameLength)} = '
+      '${_counts[name].toString().padLeft(countLength)}',
+    );
   }
 }
 

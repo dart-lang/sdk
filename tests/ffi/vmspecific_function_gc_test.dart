@@ -110,14 +110,16 @@ void testRegress37069() {
   regress37069(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 }
 
-final unprotectCode = ffiTestFunctions.lookupFunction<
-  ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>),
-  ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)
->("TestUnprotectCode");
-final waitForHelper = ffiTestFunctions.lookupFunction<
-  ffi.Void Function(ffi.Pointer<ffi.Void>),
-  void Function(ffi.Pointer<ffi.Void>)
->("WaitForHelper");
+final unprotectCode = ffiTestFunctions
+    .lookupFunction<
+      ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>),
+      ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)
+    >("TestUnprotectCode");
+final waitForHelper = ffiTestFunctions
+    .lookupFunction<
+      ffi.Void Function(ffi.Pointer<ffi.Void>),
+      void Function(ffi.Pointer<ffi.Void>)
+    >("WaitForHelper");
 
 void testWriteProtection() {
   waitForHelper(unprotectCode(ffi.nullptr));

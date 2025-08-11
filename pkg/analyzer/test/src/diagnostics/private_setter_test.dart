@@ -21,15 +21,16 @@ class A {
   static int _foo = 0;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
@@ -49,11 +50,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::__foo#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::__foo
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -81,15 +82,16 @@ class A {
   static int get _foo => 0;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
@@ -109,11 +111,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -126,15 +128,16 @@ class A {
   static set _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
@@ -154,11 +157,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int

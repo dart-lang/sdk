@@ -13,8 +13,9 @@ Future main() async {
   var syncFile;
 
   test('Non-UTF8 Filename', () async {
-    final tmp =
-        await Directory.systemTemp.createTemp('non_utf8_file_test_async');
+    final tmp = await Directory.systemTemp.createTemp(
+      'non_utf8_file_test_async',
+    );
     try {
       final rawPath = new Uint8List.fromList([182]);
       asyncFile = new File.fromRawPath(rawPath);

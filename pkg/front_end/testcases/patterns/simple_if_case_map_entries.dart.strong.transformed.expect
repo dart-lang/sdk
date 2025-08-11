@@ -44,7 +44,7 @@ static method test3(dynamic x) → dynamic
       final synthesized dynamic #0#0 = x;
       {
         hoisted core::bool b;
-        if(#0#0 is core::bool && (let final core::bool #t4 = b = #0#0{core::bool} in true) && b)
+        if(#0#0 is core::bool && (let final dynamic #t4 = b = #0#0{core::bool} in true) && b)
           #t3.{core::Map::[]=}{Invariant}(2, b){(core::int, core::Object) → void};
       }
     }

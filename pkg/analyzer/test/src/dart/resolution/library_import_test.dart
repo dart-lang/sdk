@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
   test_inLibrary_combinators_hide() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' hide Random;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
 
     var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
@@ -44,12 +45,15 @@ ImportDirective
   }
 
   test_inLibrary_combinators_hide_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' hide Unresolved;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
+      ],
+    );
 
     var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
@@ -73,11 +77,12 @@ ImportDirective
   }
 
   test_inLibrary_combinators_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Random;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
 
     var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
@@ -101,12 +106,15 @@ ImportDirective
   }
 
   test_inLibrary_combinators_show_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' show Unresolved;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-      error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
+      ],
+    );
 
     var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
@@ -218,12 +226,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a.dart::@class::A
                   type: A
-                element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -318,12 +326,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a_html.dart::@class::A
                   type: A
-                element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a_html.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -540,12 +548,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a_io.dart::@class::A
                   type: A
-                element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a_io.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -573,11 +581,12 @@ ImportDirective
   }
 
   test_inLibrary_library_fileDoesNotExist() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+    );
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -594,9 +603,7 @@ ImportDirective
 
   test_inLibrary_library_inSummary() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': 'class F {}',
-      }),
+      await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -619,11 +626,12 @@ ImportDirective
   }
 
   test_inLibrary_noRelativeUri() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import ':net';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_URI, 7, 6)],
+    );
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -639,11 +647,12 @@ ImportDirective
   }
 
   test_inLibrary_noRelativeUriStr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import '${'foo'}.dart';
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+    );
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -669,11 +678,12 @@ ImportDirective
   }
 
   test_inLibrary_noSource() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo:bar';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9)],
+    );
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -693,11 +703,12 @@ ImportDirective
 part of my.lib;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8)],
+    );
 
     var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
@@ -717,11 +728,12 @@ ImportDirective
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8)],
+    );
 
     var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
@@ -738,18 +750,21 @@ ImportDirective
 
   test_inLibrary_notLibrary_partOfUri_inSummary() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': "part 'foo2.dart';",
-        'lib/foo2.dart': "part of 'foo.dart';",
-      }),
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': "part 'foo2.dart';",
+          'lib/foo2.dart': "part of 'foo.dart';",
+        },
+      ),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:foo/foo2.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 23),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 23)],
+    );
 
     var node = findNode.import('package:foo');
     assertResolvedNodeText(node, r'''
@@ -834,9 +849,7 @@ import ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_URI, 25, 6),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.INVALID_URI, 25, 6)]);
 
     var node = findNode.import('import');
     assertResolvedNodeText(node, r'''

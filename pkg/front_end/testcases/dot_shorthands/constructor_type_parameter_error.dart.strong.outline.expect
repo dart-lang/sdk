@@ -15,7 +15,7 @@ extension type ET<T extends core::Object? = dynamic>(T% v) {
 }
 static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% v) → self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(v);
 static method test() → void
   ;

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
@@ -18,16 +18,17 @@ void main(List<String> args) async {
   // stdout.
 
   for (final package in [
-    'native_add',
+    'dev_dependency_with_hook',
     'native_add_version_skew',
+    'native_add',
     'native_dynamic_linking',
     'system_library',
   ]) {
     test('package:$package dart test', timeout: longTimeout, () async {
-      await nativeAssetsTest(package, (packageUri) async {
+      await nativeAssetsTest(package, usePubWorkspace: true,
+          (packageUri) async {
         final result = await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'test',
           ],
           workingDirectory: packageUri,
@@ -49,7 +50,6 @@ void main(List<String> args) async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           'test:test',
         ],
@@ -68,22 +68,6 @@ void main(List<String> args) async {
     });
   });
 
-  test('dart build native assets disabled', timeout: longTimeout, () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final result = await runDart(
-        arguments: [
-          'test',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: false,
-      );
-      expect(result.exitCode, isNot(0));
-      expect(result.stderr, contains('Enable native assets'));
-      expect(result.stderr, contains('native_add'));
-    });
-  });
-
   test('run pub get if needed', timeout: longTimeout, () async {
     await nativeAssetsTest(
       'native_add',
@@ -95,9 +79,8 @@ void main(List<String> args) async {
           ],
           workingDirectory: dartAppUri,
           logger: logger,
-          expectExitCodeZero: false,
         );
-        expect(result.exitCode, isNot(0));
+        expect(result.exitCode, equals(0));
       },
     );
   });
@@ -106,7 +89,6 @@ void main(List<String> args) async {
     await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'test',
         ],
         workingDirectory: packageUri,
@@ -123,28 +105,31 @@ void main(List<String> args) async {
       );
     });
   });
-  test(
-    'dart test with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'test',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(
-          result.stdout,
-          stringContainsInOrder(
-            [
-              'All tests passed!',
+
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart test with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              'test',
             ],
-          ),
-        );
-      });
-    },
-  );
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(
+            result.stdout,
+            stringContainsInOrder(
+              [
+                'All tests passed!',
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
 }

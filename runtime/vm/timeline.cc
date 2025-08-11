@@ -16,6 +16,10 @@
 #include <tuple>
 #include <utility>
 
+#if defined(DART_HOST_OS_MACOS)
+#include <os/signpost.h>
+#endif
+
 #include "platform/atomic.h"
 #include "platform/hashmap.h"
 #include "vm/isolate.h"
@@ -77,7 +81,7 @@ DEFINE_FLAG(charp,
             nullptr,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, CompilerVerbose, Dart, "
-            "Debugger, Embedder, GC, Isolate, and VM.");
+            "Debugger, Embedder, GC, Isolate, Microtask, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
             DEFAULT_TIMELINE_RECORDER,
@@ -1076,7 +1080,7 @@ class TracePacketWriter : public ValueObject {
         for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
           perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
               *track_event->add_debug_annotations();
-          SetDebugAnnotationName(debug_annotation, event.arguments()[0].name);
+          SetDebugAnnotationName(debug_annotation, event.arguments()[i].name);
           SetDebugAnnotationStringValue(debug_annotation,
                                         event.arguments()[i].value);
         }
@@ -1218,6 +1222,10 @@ bool TimelineEvent::HasIsolateId() const {
 
 bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
+}
+
+void TimelineEvent::ClearIsolateGroupId() {
+  isolate_group_id_ = ILLEGAL_ISOLATE_GROUP_ID;
 }
 
 TimelineTrackMetadata::TimelineTrackMetadata(intptr_t pid,
@@ -1938,11 +1946,6 @@ void TimelineEventBufferedRecorder::PrintTraceEvent(
 }
 #endif  // !defined(PRODUCT)
 
-TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
-  ASSERT(lock_.IsOwnedByCurrentThread());
-  return &blocks_[0];
-}
-
 void TimelineEventFixedBufferRecorder::ClearLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
   for (intptr_t i = 0; i < num_blocks_; i++) {
@@ -2151,14 +2154,7 @@ static void TimelineEventFileRecorderBaseStart(uword parameter) {
 }
 
 TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(const char* path)
-    : TimelineEventPlatformRecorder(),
-      monitor_(),
-      head_(nullptr),
-      tail_(nullptr),
-      file_(nullptr),
-      shutting_down_(false),
-      drained_(false),
-      thread_id_(OSThread::kInvalidThreadJoinId) {
+    : TimelineEventRecorder() {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
@@ -2189,8 +2185,20 @@ TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
   OSThread::Join(thread_id_);
   thread_id_ = OSThread::kInvalidThreadJoinId;
 
-  ASSERT(head_ == nullptr);
-  ASSERT(tail_ == nullptr);
+  // At this point all blocks created by this recorder should be drained
+  // and placed into |empty_blocks_|. Delete all of them.
+  ASSERT(drained_);
+  ASSERT(completed_blocks_head_ == nullptr);
+  ASSERT(completed_blocks_tail_ == nullptr);
+  while (empty_blocks_ != nullptr) {
+    auto block = empty_blocks_;
+    empty_blocks_ = empty_blocks_->next();
+    delete block;
+    block_count_--;
+  }
+  ASSERT(block_count_ == 0);
+
+  FlushBuffer();
 
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   (*file_close)(file_);
@@ -2202,34 +2210,81 @@ void TimelineEventFileRecorderBase::Drain() {
   thread_id_ = OSThread::GetCurrentThreadJoinId(OSThread::Current());
   ml.Notify();
   for (;;) {
-    if (head_ == nullptr) {
+    if (completed_blocks_head_ == nullptr) {
+      ASSERT(completed_blocks_tail_ == nullptr);
       if (shutting_down_) {
         break;
       }
       ml.Wait();
       continue;  // Recheck empty.
     }
-    TimelineEvent* event = head_;
-    TimelineEvent* next = event->next();
-    head_ = next;
-    if (next == nullptr) {
-      tail_ = nullptr;
-    }
-    ml.Exit();
+    // Take the whole list of pending blocks and drain all of them.
+    auto blocks = completed_blocks_head_;
+    completed_blocks_tail_ = completed_blocks_head_ = nullptr;
     {
-      DrainImpl(*event);
-      delete event;
+      MonitorLeaveScope leave_ml(&ml);
+      DrainBlockChain(blocks);
     }
-    ml.Enter();
   }
   drained_ = true;
   ml.Notify();
 }
 
-void TimelineEventFileRecorderBase::Write(const char* buffer,
-                                          intptr_t len) const {
+void TimelineEventFileRecorderBase::DrainBlockChain(TimelineEventBlock* block) {
+  while (block != nullptr) {
+    auto next_block = block->next();
+    block->set_next(nullptr);
+
+    for (intptr_t i = 0, length = block->length(); i < length; i++) {
+      DrainImpl(*block->At(i));
+    }
+    block->Reset();
+
+    // Place block for reuse.
+    {
+      MonitorLocker ml(&monitor_);
+      block->set_next(empty_blocks_);
+      empty_blocks_ = block;
+    }
+    block = next_block;
+  }
+}
+
+void TimelineEventFileRecorderBase::FlushBuffer() {
+  if (buffer_pos_ != 0) {
+    WriteToFile(buffer_.get(), buffer_pos_);
+    buffer_pos_ = 0;
+  }
+}
+
+void TimelineEventFileRecorderBase::Write(const char* bytes, intptr_t length) {
+  if (length >= kBufferSize / 2) {
+    FlushBuffer();
+    WriteToFile(bytes, length);
+    return;
+  }
+
+  do {
+    intptr_t space_left = kBufferSize - buffer_pos_;
+    intptr_t bytes_to_write = Utils::Minimum(length, space_left);
+    memcpy(buffer_.get() + buffer_pos_, bytes, bytes_to_write);  // NOLINT
+    buffer_pos_ += bytes_to_write;
+    length -= bytes_to_write;
+    bytes += bytes_to_write;
+    if (buffer_pos_ == kBufferSize) {
+      FlushBuffer();
+    }
+  } while (length > 0);
+}
+
+void TimelineEventFileRecorderBase::WriteToFile(const char* buffer,
+                                                intptr_t len) const {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   (*file_write)(buffer, len, file_);
+}
+
+TimelineEvent* TimelineEventFileRecorderBase::StartEvent() {
+  return ThreadBlockStartEvent();
 }
 
 void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
@@ -2240,17 +2295,26 @@ void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
     delete event;
     return;
   }
+  ThreadBlockCompleteEvent(event);
+}
 
-  MonitorLocker ml(&monitor_);
-  ASSERT(!shutting_down_);
-  event->set_next(nullptr);
-  if (tail_ == nullptr) {
-    head_ = tail_ = event;
-  } else {
-    tail_->set_next(event);
-    tail_ = event;
+void TimelineEventFileRecorderBase::FinishBlock(TimelineEventBlock* block) {
+  TimelineEventRecorder::FinishBlock(block);
+
+  if (block != nullptr) {
+    // Append completed block to the end of the list of completed blocks.
+    // We want to keep events from the same thread ordered in sequentially
+    // in the output.
+    MonitorLocker ml(&monitor_);
+    block->set_next(nullptr);
+    if (completed_blocks_tail_ != nullptr) {
+      completed_blocks_tail_->set_next(block);
+      completed_blocks_tail_ = block;
+    } else {
+      completed_blocks_head_ = completed_blocks_tail_ = block;
+    }
+    ml.Notify();
   }
-  ml.Notify();
 }
 
 void TimelineEventFileRecorderBase::StartUp(const char* name) {
@@ -2274,6 +2338,37 @@ void TimelineEventFileRecorderBase::ShutDown() {
   }
 }
 
+TimelineEventBlock* TimelineEventFileRecorderBase::GetNewBlockLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
+  // Start by reusing a block.
+  TimelineEventBlock* block = nullptr;
+  if (empty_blocks_ != nullptr) {
+    // TODO(vegorov) maybe we don't want to take a lock just to grab an empty
+    // block?
+    MonitorLocker ml(&monitor_);
+    if (empty_blocks_ != nullptr) {
+      block = empty_blocks_;
+      empty_blocks_ = empty_blocks_->next();
+      if (FLAG_trace_timeline) {
+        OS::PrintErr("Reused empty block %p\n", block);
+      }
+    }
+  }
+  if (block == nullptr) {
+    block = new TimelineEventBlock(block_count_++);
+    if (FLAG_trace_timeline) {
+      OS::PrintErr("Created new block %p\n", block);
+    }
+  }
+  block->Open();
+
+  return block;
+}
+
+void TimelineEventFileRecorderBase::ClearLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
+}
+
 TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
     : TimelineEventFileRecorderBase(path), first_(true) {
   // Chrome trace format has two forms:
@@ -2295,7 +2390,7 @@ void TimelineEventFileRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  TimelineEvent* event = new TimelineEvent();
+  TimelineEvent* event = StartEvent();
   event->Metadata("thread_name");
   event->SetNumArguments(1);
   event->CopyArgument(0, "name", thread_name);
@@ -2327,8 +2422,7 @@ class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
 
  private:
   void WritePacket(
-      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
-      const;
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet);
   void DrainImpl(const TimelineEvent& event) final;
 
   TracePacketWriter writer_;
@@ -2361,9 +2455,10 @@ TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
 }
 
 TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
+  ShutDown();
+
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
       this->packet();
-  ShutDown();
   // We do not need to lock the following section, because at this point
   // |RecorderSynchronizationLock| must have been put in a state that prevents
   // the metadata maps from being modified.
@@ -2388,15 +2483,14 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
 }
 
 void TimelineEventPerfettoFileRecorder::WritePacket(
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
-    const {
+    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet) {
   const std::tuple<std::unique_ptr<const uint8_t[]>, intptr_t>& response =
       perfetto_utils::GetProtoPreamble(packet);
   Write(reinterpret_cast<const char*>(std::get<0>(response).get()),
         std::get<1>(response));
   for (const protozero::ScatteredHeapBuffer::Slice& slice :
        packet->GetSlices()) {
-    Write(reinterpret_cast<char*>(slice.start()),
+    Write(reinterpret_cast<const char*>(slice.start()),
           slice.size() - slice.unused_bytes());
   }
 }
@@ -2434,11 +2528,6 @@ void TimelineEventEndlessRecorder::ForEachNonEmptyBlock(
   }
 }
 #endif  // !defined(PRODUCT)
-
-TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
-  ASSERT(lock_.IsOwnedByCurrentThread());
-  return head_;
-}
 
 TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
   return ThreadBlockStartEvent();

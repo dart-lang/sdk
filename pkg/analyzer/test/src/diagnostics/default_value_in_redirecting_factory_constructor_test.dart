@@ -17,7 +17,8 @@ main() {
 class DefaultValueInRedirectingFactoryConstructorTest
     extends PubPackageResolutionTest {
   test_default_value() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A([int x = 0]) = B;
 }
@@ -25,11 +26,14 @@ class A {
 class B implements A {
   B([int x = 1]) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
           27,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

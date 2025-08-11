@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -50,14 +50,14 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
     }
 
     var invokedElement = identifier.element;
-    if (invokedElement is! ExecutableElement2) {
+    if (invokedElement is! ExecutableElement) {
       return;
     }
 
-    var declaringElement = invokedElement.enclosingElement2;
+    var declaringElement = invokedElement.enclosingElement;
 
-    if (declaringElement is InterfaceElement2) {
-      var declaringElementName = declaringElement.name3;
+    if (declaringElement is InterfaceElement) {
+      var declaringElementName = declaringElement.name;
       if (declaringElementName != null) {
         _className = declaringElementName;
         await builder.addDartFileEdit(file, (builder) {
@@ -66,8 +66,8 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
           });
         });
       }
-    } else if (declaringElement is ExtensionElement2) {
-      var extensionName = declaringElement.name3;
+    } else if (declaringElement is ExtensionElement) {
+      var extensionName = declaringElement.name;
       if (extensionName != null) {
         _className = extensionName;
         await builder.addDartFileEdit(file, (builder) {

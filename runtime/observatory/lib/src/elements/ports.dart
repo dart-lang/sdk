@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -69,13 +72,13 @@ class PortsElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -85,40 +88,40 @@ class PortsElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = <Element>[
-          new HeadingElement.h1()..text = 'Ports ($portCount)',
-          new HRElement(),
-          new BRElement(),
-          new DivElement()..children = _createList(),
-        ],
-    ];
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()..textContent = 'Ports ($portCount)',
+          new HTMLHRElement(),
+          new HTMLBRElement(),
+          new HTMLDivElement()..appendChildren(_createList()),
+        ]),
+    ]);
   }
 
-  List<Element> _createList() {
+  List<HTMLElement> _createList() {
     if (_isolatePorts == null) {
       return const [];
     }
     int i = 0;
     return _isolatePorts!.elements
-        .map<Element>((port) => new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..children = <Element>[
-                new SpanElement()
-                  ..classes = ['port-number']
-                  ..text = '[ ${++i} ] ',
-                new SpanElement()..text = '${port.name}'
-              ],
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
+        .map<HTMLElement>((port) => new HTMLDivElement()
+          ..className = 'memberItem'
+          ..appendChildren(<HTMLElement>[
+            new HTMLDivElement()
+              ..className = 'memberName'
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()
+                  ..className = 'port-number'
+                  ..textContent = '[ ${++i} ] ',
+                new HTMLSpanElement()..textContent = '${port.name}'
+              ]),
+            new HTMLDivElement()
+              ..className = 'memberValue'
+              ..appendChildren(<HTMLElement>[
                 anyRef(_isolate, port.handler, _objects, queue: _r.queue)
-              ]
-          ])
+              ])
+          ]))
         .toList();
   }
 

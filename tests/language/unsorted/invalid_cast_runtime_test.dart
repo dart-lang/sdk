@@ -20,17 +20,6 @@ void topLevelFunction(int i) {}
 
 test() {
   void localFunction(int i) {}
-
-
-
-
-
-
-
-
-
-
-
 }
 
 main() {}

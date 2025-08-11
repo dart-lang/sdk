@@ -21,7 +21,10 @@ main() {
     checkStream(mkSingleStream, eq, "single");
     checkBroadcastStream(mkBroadcastStream, eq, "broadcast");
     checkBroadcastStream(
-        () => mkSingleStream().asBroadcastStream(), eq, "asBroadcast");
+      () => mkSingleStream().asBroadcastStream(),
+      eq,
+      "asBroadcast",
+    );
   }
 
   // Regression test. Multiple listens on the same broadcast distinct stream.
@@ -31,54 +34,67 @@ main() {
 
   // Doesn't ignore equality.
   expectStream(
-      new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => false),
-      [1, 2, 1, 3, 3],
-      "kFalse");
+    new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => false),
+    [1, 2, 1, 3, 3],
+    "kFalse",
+  );
   expectStream(
-      new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => true),
-      [1],
-      "kTrue");
+    new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => true),
+    [1],
+    "kTrue",
+  );
   expectStream(
-      new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => a != b),
-      [1, 1],
-      "neq");
+    new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => a != b),
+    [1, 1],
+    "neq",
+  );
   expectStream(
-      new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => 2 == b),
-      [1, 1, 3, 3],
-      "is2");
+    new Stream.fromIterable([1, 2, 1, 3, 3]).distinct((a, b) => 2 == b),
+    [1, 1, 3, 3],
+    "is2",
+  );
   // Forwards errors as errors.
   expectStream(
-      new Stream.fromIterable([1, "E1", 2, "E2", 2, 3])
-          .map((v) => (v is String) ? (throw v) : v) // Make strings errors.
-          .distinct()
-          .transform(reifyErrors),
-      [1, "[E1]", 2, "[E2]", 3],
-      "errors");
+    new Stream.fromIterable([1, "E1", 2, "E2", 2, 3])
+        .map((v) => (v is String) ? (throw v) : v) // Make strings errors.
+        .distinct()
+        .transform(reifyErrors),
+    [1, "[E1]", 2, "[E2]", 3],
+    "errors",
+  );
   // Equality throwing acts like error.
   expectStream(
-      new Stream.fromIterable([1, "E1", 1, 2, "E2", 3])
-          .distinct((a, b) => (b is String) ? (throw b) : (a == b))
-          .transform(reifyErrors),
-      [1, "[E1]", 2, "[E2]", 3],
-      "eq-throws");
+    new Stream.fromIterable([1, "E1", 1, 2, "E2", 3])
+        .distinct((a, b) => (b is String) ? (throw b) : (a == b))
+        .transform(reifyErrors),
+    [1, "[E1]", 2, "[E2]", 3],
+    "eq-throws",
+  );
   // Operator== throwing acts like error.
   expectStream(
-      new Stream.fromIterable([1, 1, 2, 2, 1, 3])
-          .map((v) => new T(v))
-          .distinct()
-          .transform(reifyErrors.cast<T, dynamic>())
-          .map((v) => v is T ? v.value : "$v"),
-      [1, "[2]", "[2]", 3],
-      "==-throws");
+    new Stream.fromIterable([1, 1, 2, 2, 1, 3])
+        .map((v) => new T(v))
+        .distinct()
+        .transform(reifyErrors.cast<T, dynamic>())
+        .map((v) => v is T ? v.value : "$v"),
+    [1, "[2]", "[2]", 3],
+    "==-throws",
+  );
   asyncEnd();
 }
 
 checkStream(mkStream, eq, name) {
   expectStream(mkStream().distinct(eq), [1, 2, 3, 2], "$name.distinct");
-  expectStream(mkStream().expand((e) => [e, e]).distinct(eq), [1, 2, 3, 2],
-      "$name.expand.distinct");
-  expectStream(mkStream().where((x) => x != 3).distinct(eq), [1, 2],
-      "$name.where.distinct");
+  expectStream(mkStream().expand((e) => [e, e]).distinct(eq), [
+    1,
+    2,
+    3,
+    2,
+  ], "$name.expand.distinct");
+  expectStream(mkStream().where((x) => x != 3).distinct(eq), [
+    1,
+    2,
+  ], "$name.where.distinct");
 }
 
 checkBroadcastStream(mkStream, eq, name) {
@@ -121,6 +137,8 @@ class T {
 }
 
 StreamTransformer<Object, dynamic> reifyErrors =
-    new StreamTransformer.fromHandlers(handleError: (e, s, sink) {
-  sink.add("[$e]");
-});
+    new StreamTransformer.fromHandlers(
+      handleError: (e, s, sink) {
+        sink.add("[$e]");
+      },
+    );

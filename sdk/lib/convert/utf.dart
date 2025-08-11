@@ -57,10 +57,9 @@ final class Utf8Codec extends Encoding {
   /// was used to instantiate `this`.
   String decode(List<int> codeUnits, {bool? allowMalformed}) {
     // Switch between const objects to avoid allocation.
-    Utf8Decoder decoder =
-        allowMalformed ?? _allowMalformed
-            ? const Utf8Decoder(allowMalformed: true)
-            : const Utf8Decoder(allowMalformed: false);
+    Utf8Decoder decoder = allowMalformed ?? _allowMalformed
+        ? const Utf8Decoder(allowMalformed: true)
+        : const Utf8Decoder(allowMalformed: false);
     return decoder.convert(codeUnits);
   }
 
@@ -588,10 +587,9 @@ class _Utf8Decoder {
       multibyte:
       while (true) {
         int type = typeTable.codeUnitAt(byte) & typeMask;
-        char =
-            (state <= afterBom)
-                ? byte & (shiftedByteMask >> type)
-                : (byte & 0x3F) | (char << 6);
+        char = (state <= afterBom)
+            ? byte & (shiftedByteMask >> type)
+            : (byte & 0x3F) | (char << 6);
         state = transitionTable.codeUnitAt(state + type);
         if (state == accept) {
           buffer.writeCharCode(char);

@@ -7,12 +7,13 @@ import 'dart:convert';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
 main() async {
@@ -35,24 +36,32 @@ class SnippetTester {
     var analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
     var docPath = provider.pathContext.join(analyzerPath, 'doc');
     var docFolder = provider.getFolder(docPath);
-    var snippetDirPath =
-        provider.pathContext.join(analyzerPath, 'test', 'snippets');
+    var snippetDirPath = provider.pathContext.join(
+      analyzerPath,
+      'test',
+      'snippets',
+    );
     var snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
     return SnippetTester._(provider, docFolder, snippetDirPath, snippetPath);
   }
 
   SnippetTester._(
-      this.provider, this.docFolder, this.snippetDirPath, this.snippetPath)
-      : collection = AnalysisContextCollection(
-            resourceProvider: provider, includedPaths: [snippetPath]);
+    this.provider,
+    this.docFolder,
+    this.snippetDirPath,
+    this.snippetPath,
+  ) : collection = AnalysisContextCollection(
+        resourceProvider: provider,
+        includedPaths: [snippetPath],
+      );
 
   /// Return `true` if the given error is a diagnostic produced by a lint that
   /// is allowed to occur in documentation.
-  bool isAllowedLint(AnalysisError error) {
-    var errorCode = error.errorCode;
+  bool isAllowedLint(Diagnostic diagnostic) {
+    var errorCode = diagnostic.diagnosticCode;
     return errorCode is LintCode &&
         errorCode.name == 'non_constant_identifier_names' &&
-        error.message.contains("'test_");
+        diagnostic.message.contains("'test_");
   }
 
   Future<void> verify() async {
@@ -60,10 +69,12 @@ class SnippetTester {
   }
 
   Future<void> verifyFile(File file) async {
-    if (file.path
-            .endsWith('/pkg/analyzer/doc/element_model_migration_guide.md') ||
-        file.path
-            .endsWith(r'\pkg\analyzer\doc\element_model_migration_guide.md')) {
+    if (file.path.endsWith(
+          '/pkg/analyzer/doc/element_model_migration_guide.md',
+        ) ||
+        file.path.endsWith(
+          r'\pkg\analyzer\doc\element_model_migration_guide.md',
+        )) {
       return;
     }
     String content = file.readAsStringSync();
@@ -122,7 +133,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -130,12 +140,14 @@ Future<void> assertNoErrorsInCode(String s) async {}
 void test(String s, void Function() f) {}
 void group(String s, void Function() f) {}
 ''';
-    provider.setOverlay(snippetPath,
-        content: '''
+    provider.setOverlay(
+      snippetPath,
+      content: '''
 $imports
 $snippet
 ''',
-        modificationStamp: 1);
+      modificationStamp: 1,
+    );
     try {
       List<AnalysisContext> contexts = collection.contexts;
       if (contexts.length != 1) {
@@ -148,16 +160,18 @@ $snippet
       await context.applyPendingFileChanges();
       var results = await context.currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
-        Iterable<AnalysisError> errors = results.errors.where((error) {
-          ErrorCode errorCode = error.errorCode;
+        Iterable<Diagnostic> diagnostics = results.diagnostics.where((error) {
+          DiagnosticCode diagnosticCode = error.diagnosticCode;
           // TODO(brianwilkerson): .
-          return errorCode != WarningCode.UNUSED_IMPORT &&
-              errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
+          return diagnosticCode != WarningCode.UNUSED_IMPORT &&
+              diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
               !isAllowedLint(error);
         });
-        if (errors.isNotEmpty) {
-          String filePath =
-              provider.pathContext.relative(file.path, from: docFolder.path);
+        if (diagnostics.isNotEmpty) {
+          String filePath = provider.pathContext.relative(
+            file.path,
+            from: docFolder.path,
+          );
           if (output.isNotEmpty) {
             output.writeln();
           }
@@ -166,7 +180,7 @@ $snippet
           output.writeln(snippet);
           output.writeln();
           int importsLength = imports.length + 1; // account for the '\n'.
-          for (var error in errors) {
+          for (var error in diagnostics) {
             writeError(error, importsLength);
           }
         }
@@ -184,13 +198,13 @@ $snippet
     }
   }
 
-  void writeError(AnalysisError error, int prefixLength) {
-    output.write(error.errorCode);
+  void writeError(Diagnostic diagnostic, int prefixLength) {
+    output.write(diagnostic.diagnosticCode);
     output.write(' (');
-    output.write(error.offset - prefixLength);
+    output.write(diagnostic.offset - prefixLength);
     output.write(', ');
-    output.write(error.length);
+    output.write(diagnostic.length);
     output.write(') ');
-    output.writeln(error.message);
+    output.writeln(diagnostic.message);
   }
 }

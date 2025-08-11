@@ -42,8 +42,10 @@ main() {
         var shader = context!.createShader(gl.WebGL.VERTEX_SHADER);
         context.shaderSource(shader, 'void main() { }');
         context.compileShader(shader);
-        var success =
-            context.getShaderParameter(shader, gl.WebGL.COMPILE_STATUS);
+        var success = context.getShaderParameter(
+          shader,
+          gl.WebGL.COMPILE_STATUS,
+        );
         expect(success, isTrue);
       });
 
@@ -69,7 +71,13 @@ main() {
         CanvasRenderingContext2D context2 =
             canvas.getContext('2d') as CanvasRenderingContext2D;
         context.texImage2D(
-            1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
+          1,
+          1,
+          1,
+          1,
+          10,
+          context2.getImageData(10, 10, 10, 10),
+        );
 
         context.texImage2D(1, 1, 1, 1, 10, new ImageElement());
         context.texImage2D(1, 1, 1, 1, 10, new CanvasElement());
@@ -87,7 +95,14 @@ main() {
         CanvasRenderingContext2D context2 =
             canvas.getContext('2d') as CanvasRenderingContext2D;
         context.texSubImage2D(
-            1, 1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
+          1,
+          1,
+          1,
+          1,
+          1,
+          10,
+          context2.getImageData(10, 10, 10, 10),
+        );
 
         context.texSubImage2D(1, 1, 1, 1, 1, 10, new ImageElement());
         context.texSubImage2D(1, 1, 1, 1, 1, 10, new CanvasElement());

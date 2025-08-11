@@ -227,36 +227,41 @@ const char* CodeBreakpoint::ToCString() const {
 ActivationFrame::ActivationFrame(uword pc,
                                  uword fp,
                                  uword sp,
-                                 const Code& code,
+                                 const Function& function,
+                                 const Object& code_or_bytecode,
                                  const Array& deopt_frame,
                                  intptr_t deopt_frame_offset)
     : pc_(pc),
       fp_(fp),
       sp_(sp),
-      code_(Code::ZoneHandle(code.ptr())),
-      function_(Function::ZoneHandle(code.function())),
+      code_or_bytecode_(Object::ZoneHandle(code_or_bytecode.ptr())),
+      function_(Function::ZoneHandle(function.ptr())),
       closure_(Closure::null_closure()),
       deopt_frame_(Array::ZoneHandle(deopt_frame.ptr())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kRegular),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
-  ASSERT(!function_.IsNull());
+  ASSERT(!function.IsNull());
+  ASSERT(code_or_bytecode.IsCode() || code_or_bytecode.IsBytecode());
 }
 
 ActivationFrame::ActivationFrame(uword pc,
-                                 const Code& code,
+                                 const Function& function,
+                                 const Object& code_or_bytecode,
                                  const Closure& closure)
     : pc_(pc),
-      code_(Code::ZoneHandle(code.ptr())),
-      function_(Function::ZoneHandle(code.function())),
+      code_or_bytecode_(Object::ZoneHandle(code_or_bytecode.ptr())),
+      function_(Function::ZoneHandle(function.ptr())),
       closure_(Closure::ZoneHandle(closure.ptr())),
       deopt_frame_(Array::empty_array()),
       deopt_frame_offset_(0),
-      kind_(kAsyncAwaiter) {}
+      kind_(kAsyncAwaiter) {
+  ASSERT(code_or_bytecode.IsCode() || code_or_bytecode.IsBytecode());
+}
 
 ActivationFrame::ActivationFrame(Kind kind)
-    : code_(Code::ZoneHandle()),
+    : code_or_bytecode_(Object::null_object()),
       function_(Function::null_function()),
       closure_(Closure::null_closure()),
       deopt_frame_(Array::empty_array()),
@@ -508,17 +513,23 @@ LibraryPtr ActivationFrame::Library() {
 }
 
 void ActivationFrame::GetPcDescriptors() {
+  ASSERT(!IsInterpreted());
   if (pc_desc_.IsNull()) {
     pc_desc_ = code().pc_descriptors();
     ASSERT(!pc_desc_.IsNull());
   }
 }
 
-// If not token_pos_initialized_, compute token_pos_, try_index_ and
-// deopt_id_.
+// If not token_pos_initialized_, compute token_pos_, try_index_ and,
+// if not IsInterpreted(), also compute deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
     token_pos_initialized_ = true;
+    if (IsInterpreted()) {
+      token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
+      try_index_ = bytecode().GetTryIndexAtPc(pc_);
+      return token_pos_;
+    }
     token_pos_ = TokenPosition::kNoSource;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
@@ -543,6 +554,7 @@ intptr_t ActivationFrame::TryIndex() {
 }
 
 intptr_t ActivationFrame::DeoptId() {
+  ASSERT(!IsInterpreted());
   if (!token_pos_initialized_) {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
@@ -571,6 +583,15 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
+    if (IsInterpreted()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+      UNREACHABLE();
+#else
+      var_descriptors_ = bytecode().GetLocalVarDescriptors();
+      ASSERT(!var_descriptors_.IsNull());
+#endif
+      return;
+    }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
       if (function().ForceOptimize()) {
@@ -625,7 +646,7 @@ intptr_t ActivationFrame::ContextLevel() {
   ASSERT(kind_ == kRegular);
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
-    ASSERT(!code_.is_optimized());
+    ASSERT(IsInterpreted() || !code().is_optimized());
     GetVarDescriptors();
     intptr_t deopt_id = DeoptId();
     if (deopt_id == DeoptId::kNone) {
@@ -659,7 +680,12 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     return false;
   }
   intptr_t try_index = TryIndex();
-  const auto& handlers = ExceptionHandlers::Handle(code().exception_handlers());
+  auto& handlers = ExceptionHandlers::Handle();
+  if (IsInterpreted()) {
+    handlers = bytecode().exception_handlers();
+  } else {
+    handlers = code().exception_handlers();
+  }
   ASSERT(!handlers.IsNull());
   if ((try_index < 0) && !handlers.has_async_handler()) {
     return false;
@@ -848,10 +874,16 @@ ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
     if (function().IsSuspendableFunction()) {
       ++index;  // Skip slot reserved for :suspend_state variable.
     }
+    if (IsInterpreted()) {
+      return GetStackVar(VariableIndex(-index));
+    }
     return GetVariableValue(LocalVarAddress(
         fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
+    if (IsInterpreted()) {
+      return GetStackVar(VariableIndex(reverse_index));
+    }
     return GetVariableValue(ParamAddress(fp(), reverse_index));
   }
 }
@@ -878,6 +910,13 @@ ObjectPtr ActivationFrame::GetSuspendableFunctionData() {
 }
 
 ObjectPtr ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  if (IsInterpreted()) {
+    intptr_t slot_index = -variable_index.value();
+    if (slot_index < 0) {
+      slot_index -= kKBCParamEndSlotFromFp;  // Accessing a parameter.
+    }
+    return GetVariableValue(fp() + slot_index * kWordSize);
+  }
   const intptr_t slot_index =
       runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
@@ -1241,7 +1280,11 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const TokenPosition& pos = TokenPos();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
-  jsobj->AddProperty("code", code());
+  if (IsInterpreted()) {
+    jsobj->AddProperty("code", bytecode());
+  } else {
+    jsobj->AddProperty("code", code());
+  }
   {
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
@@ -1277,7 +1320,11 @@ void ActivationFrame::PrintToJSONObjectAsyncAwaiter(JSONObject* jsobj) {
   const TokenPosition& pos = TokenPos();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
-  jsobj->AddProperty("code", code());
+  if (IsInterpreted()) {
+    jsobj->AddProperty("code", bytecode());
+  } else {
+    jsobj->AddProperty("code", code());
+  }
 }
 
 void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(
@@ -1309,9 +1356,10 @@ void DebuggerStackTrace::AddAsyncSuspension() {
 }
 
 void DebuggerStackTrace::AddAsyncAwaiterFrame(uword pc,
-                                              const Code& code,
+                                              const Function& function,
+                                              const Object& code_or_bytecode,
                                               const Closure& closure) {
-  trace_.Add(new ActivationFrame(pc, code, closure));
+  trace_.Add(new ActivationFrame(pc, function, code_or_bytecode, closure));
 }
 
 const uint8_t kSafepointKind = UntaggedPcDescriptors::kIcCall |
@@ -1527,7 +1575,7 @@ void Debugger::DeoptimizeWorld() {
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
-  isolate_->set_has_attempted_stepping(true);
+  isolate_->group()->set_has_attempted_stepping(true);
 
   DeoptimizeFunctionsOnStack();
 
@@ -1617,29 +1665,35 @@ void Debugger::RunWithStoppedDeoptimizedWorld(std::function<void()> fun) {
 }
 
 void Debugger::NotifySingleStepping(bool value) {
+  RELEASE_ASSERT(isolate_->mutator_thread() != nullptr);
   if (value) {
     // Setting breakpoint requires unoptimized code, make sure we stop all
     // isolates to prevent racing reoptimization.
     RunWithStoppedDeoptimizedWorld([&] {
-      isolate_->set_single_step(value);
+      isolate_->mutator_thread()->set_single_step(value);
       // Ensure other isolates in the isolate group keep
       // unoptimized code unoptimized, won't attempt to optimize it.
       group_debugger()->RegisterSingleSteppingDebugger(Thread::Current(), this);
     });
   } else {
-    isolate_->set_single_step(value);
+    isolate_->mutator_thread()->set_single_step(value);
     group_debugger()->UnregisterSingleSteppingDebugger(Thread::Current(), this);
   }
 }
 
 static ActivationFrame* CollectDartFrame(uword pc,
                                          StackFrame* frame,
-                                         const Code& code,
+                                         const Function& function,
+                                         const Object& code_or_bytecode,
                                          const Array& deopt_frame,
                                          intptr_t deopt_frame_offset) {
-  ASSERT(code.ContainsInstructionAt(pc));
-  ActivationFrame* activation = new ActivationFrame(
-      pc, frame->fp(), frame->sp(), code, deopt_frame, deopt_frame_offset);
+  ASSERT((code_or_bytecode.IsCode() &&
+          Code::Cast(code_or_bytecode).ContainsInstructionAt(pc)) ||
+         (code_or_bytecode.IsBytecode() &&
+          Bytecode::Cast(code_or_bytecode).ContainsInstructionAt(pc)));
+  ActivationFrame* activation =
+      new ActivationFrame(pc, frame->fp(), frame->sp(), function,
+                          code_or_bytecode, deopt_frame, deopt_frame_offset);
   if (FLAG_trace_debugger_stacktrace) {
     const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
@@ -1653,19 +1707,18 @@ static ArrayPtr DeoptimizeToArray(Thread* thread,
                                   StackFrame* frame,
                                   const Code& code) {
   ASSERT(code.is_optimized() && !code.is_force_optimized());
-  Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
   DeoptContext* deopt_context =
       new DeoptContext(frame, code, DeoptContext::kDestIsAllocated, nullptr,
                        nullptr, true, false /* deoptimizing_code */);
-  isolate->set_deopt_context(deopt_context);
+  thread->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
   deopt_context->MaterializeDeferredObjects();
   const Array& dest_frame =
       Array::Handle(thread->zone(), deopt_context->DestFrameAsArray());
 
-  isolate->set_deopt_context(nullptr);
+  thread->set_deopt_context(nullptr);
   delete deopt_context;
 
   return dest_frame.ptr();
@@ -1676,7 +1729,9 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  Code& code = Code::Handle(zone);
+  auto& function = Function::Handle(zone);
+  auto& code = Code::Handle(zone);
+  auto& bytecode = Bytecode::Handle(zone);
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
 
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
@@ -1688,9 +1743,15 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
       OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (frame->IsDartFrame() && !frame->is_interpreted()) {
-      code = frame->LookupDartCode();
-      stack_trace->AppendCodeFrames(frame, code);
+    if (frame->IsDartFrame()) {
+      if (frame->is_interpreted()) {
+        function = frame->LookupDartFunction();
+        bytecode = frame->LookupDartBytecode();
+        stack_trace->AppendBytecodeFrame(frame, function, bytecode);
+      } else {
+        code = frame->LookupDartCode();
+        stack_trace->AppendCodeFrames(frame, code);
+      }
     }
   }
   return stack_trace;
@@ -1699,11 +1760,11 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
 // Appends at least one stack frame. Multiple frames will be appended
 // if |code| at the frame's pc contains inlined functions.
 void DebuggerStackTrace::AppendCodeFrames(StackFrame* frame, const Code& code) {
+  auto& function = Function::Handle(zone_, code.function());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (code.is_optimized()) {
     if (code.is_force_optimized()) {
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function = Function::Handle(zone_, code.function());
         ASSERT(!function.IsNull());
         OS::PrintErr(
             "CollectStackTrace: skipping force-optimized function: %s\n",
@@ -1716,21 +1777,29 @@ void DebuggerStackTrace::AppendCodeFrames(StackFrame* frame, const Code& code) {
     for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
          it.Advance()) {
       inlined_code_ = it.code();
+      function = it.function();
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function = Function::Handle(zone_, it.function());
         ASSERT(!function.IsNull());
         OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                      function.ToFullyQualifiedCString());
       }
       intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-      AddActivation(CollectDartFrame(it.pc(), frame, inlined_code_,
+      AddActivation(CollectDartFrame(it.pc(), frame, function, inlined_code_,
                                      deopt_frame_, deopt_frame_offset));
     }
     return;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  AddActivation(
-      CollectDartFrame(frame->pc(), frame, code, Object::null_array(), 0));
+  AddActivation(CollectDartFrame(frame->pc(), frame, function, code,
+                                 Object::null_array(), 0));
+}
+
+// Appends one interpreted stack frame.
+void DebuggerStackTrace::AppendBytecodeFrame(StackFrame* frame,
+                                             const Function& function,
+                                             const Bytecode& bytecode) {
+  AddActivation(CollectDartFrame(frame->pc(), frame, function, bytecode,
+                                 Object::null_array(), 0));
 }
 
 DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
@@ -1747,11 +1816,18 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   StackTraceUtils::CollectFrames(
       thread, /*skip_frames=*/0,
       [&](const StackTraceUtils::Frame& frame) {
-        if (frame.code.IsNull()) {
+        if (frame.code.IsNull() && frame.bytecode.IsNull()) {
           return;
         }
+
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
-          stack_trace->AppendCodeFrames(frame.frame, frame.code);
+          if (!frame.bytecode.IsNull()) {
+            function = frame.frame->LookupDartFunction();
+            stack_trace->AppendBytecodeFrame(frame.frame, function,
+                                             frame.bytecode);
+          } else {
+            stack_trace->AppendCodeFrames(frame.frame, frame.code);
+          }
         } else {
           has_async = true;
 
@@ -1760,15 +1836,26 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
             return;
           }
 
-          // Skip invisible function frames.
-          function ^= frame.code.function();
-          if (!function.is_visible()) {
-            return;
+          if (!frame.bytecode.IsNull()) {
+            function = frame.bytecode.function();
+            ASSERT(!function.IsNull());
+            if (!function.is_visible()) {
+              return;
+            }
+            const uword absolute_pc =
+                frame.bytecode.PayloadStart() + frame.pc_offset;
+            stack_trace->AddAsyncAwaiterFrame(absolute_pc, function,
+                                              frame.bytecode, frame.closure);
+          } else {
+            function = frame.code.function();
+            if (!function.is_visible()) {
+              return;
+            }
+            const uword absolute_pc =
+                frame.code.PayloadStart() + frame.pc_offset;
+            stack_trace->AddAsyncAwaiterFrame(absolute_pc, function, frame.code,
+                                              frame.closure);
           }
-
-          const uword absolute_pc = frame.code.PayloadStart() + frame.pc_offset;
-          stack_trace->AddAsyncAwaiterFrame(absolute_pc, frame.code,
-                                            frame.closure);
         }
       },
       &has_async_catch_error);
@@ -1794,9 +1881,18 @@ static ActivationFrame* TopDartFrame() {
     if (!frame->IsDartFrame()) {
       continue;
     }
-    Code& code = Code::Handle(frame->LookupDartCode());
-    ActivationFrame* activation = new ActivationFrame(
-        frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
+    auto& function = Function::Handle();
+    auto& code_or_bytecode = Object::Handle();
+    if (frame->is_interpreted()) {
+      code_or_bytecode = frame->LookupDartBytecode();
+      function = frame->LookupDartFunction();
+    } else {
+      code_or_bytecode = frame->LookupDartCode();
+      function = Code::Cast(code_or_bytecode).function();
+    }
+    ActivationFrame* activation =
+        new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), function,
+                            code_or_bytecode, Object::null_array(), 0);
     return activation;
   }
 }
@@ -1850,12 +1946,12 @@ DebuggerStackTrace* DebuggerStackTrace::From(const class StackTrace& ex_trace) {
             ASSERT(pc < (code.PayloadStart() + code.Size()));
 
             ActivationFrame* activation = new ActivationFrame(
-                pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+                pc, fp, sp, function, code, deopt_frame, deopt_frame_offset);
             stack_trace->AddActivation(activation);
           }
         } else {
           ActivationFrame* activation = new ActivationFrame(
-              pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+              pc, fp, sp, function, code, deopt_frame, deopt_frame_offset);
           stack_trace->AddActivation(activation);
         }
       }
@@ -3591,7 +3687,7 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
 }
 
 ErrorPtr Debugger::PauseStepping() {
-  ASSERT(isolate_->single_step());
+  ASSERT(Thread::Current()->single_step());
   // Don't pause recursively.
   if (IsPaused()) {
     return Error::null();
@@ -3782,7 +3878,6 @@ void Debugger::PauseDeveloper(const String& msg) {
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
   CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
-  // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer
   // gets a better experience by not seeing this call. To accomplish

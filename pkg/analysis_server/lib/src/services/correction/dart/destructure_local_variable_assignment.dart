@@ -9,7 +9,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -27,13 +27,13 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   @override
   AssistKind get assistKind =>
-      DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+      DartAssistKind.destructureLocalVariableAssignment;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! VariableDeclaration) return;
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element == null) return;
     var type = element.type;
     switch (type) {
@@ -51,7 +51,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   ) async {
     // TODO(pq): share reference checking w/ record computation
 
-    var variableElement = node.declaredElement2;
+    var variableElement = node.declaredElement;
     if (variableElement == null) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
@@ -88,7 +88,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
-        builder.write('${type.element3.name3}(');
+        builder.write('${type.element.name}(');
         if (varMap.isEmpty) {
           builder.selectHere();
         } else {
@@ -253,7 +253,7 @@ abstract class RecordField {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   final objectReferences = <AstNode>[];
   final propertyReferences = <String, List<AstNode>>{};
 
@@ -288,7 +288,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-extension on LocalVariableElement2 {
+extension on LocalVariableElement {
   ({
     List<AstNode> objectReferences,
     Map<String, List<AstNode>> propertyReferences,

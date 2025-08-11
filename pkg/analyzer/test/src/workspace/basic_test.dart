@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -49,9 +49,11 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
 
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
-        package.contains(
-            TestSource(convertPath('/workspace2/project/lib/file.dart'))),
-        isFalse);
+      package.contains(
+        TestSource(convertPath('/workspace2/project/lib/file.dart')),
+      ),
+      isFalse,
+    );
   }
 
   void test_contains_sameWorkspace() {
@@ -59,25 +61,30 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
 
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
-        package.contains(
-            TestSource(convertPath('/workspace/project/lib/file2.dart'))),
-        isTrue);
+      package.contains(
+        TestSource(convertPath('/workspace/project/lib/file2.dart')),
+      ),
+      isTrue,
+    );
     expect(
-        package.contains(
-            TestSource(convertPath('/workspace/project/bin/bin.dart'))),
-        isTrue);
+      package.contains(
+        TestSource(convertPath('/workspace/project/bin/bin.dart')),
+      ),
+      isTrue,
+    );
     expect(
-        package.contains(
-            TestSource(convertPath('/workspace/project/test/test.dart'))),
-        isTrue);
+      package.contains(
+        TestSource(convertPath('/workspace/project/test/test.dart')),
+      ),
+      isTrue,
+    );
   }
 
   void test_findPackageFor_includedFile() {
     newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/file.dart')!;
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
+    expect(package.root.path, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
   }
 
@@ -128,21 +135,31 @@ class BasicWorkspaceTest with ResourceProviderMixin {
 
   void test_find_directory() {
     BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider, Packages.empty, convertPath('/workspace'));
+      resourceProvider,
+      Packages.empty,
+      convertPath('/workspace'),
+    );
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.isBlaze, isFalse);
   }
 
   void test_find_fail_notAbsolute() {
     expect(
-        () => BasicWorkspace.find(
-            resourceProvider, Packages.empty, convertPath('not_absolute')),
-        throwsA(TypeMatcher<ArgumentError>()));
+      () => BasicWorkspace.find(
+        resourceProvider,
+        Packages.empty,
+        convertPath('not_absolute'),
+      ),
+      throwsA(TypeMatcher<ArgumentError>()),
+    );
   }
 
   void test_find_file() {
-    BasicWorkspace workspace = BasicWorkspace.find(resourceProvider,
-        Packages.empty, convertPath('/workspace/project/lib/lib1.dart'));
+    BasicWorkspace workspace = BasicWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      convertPath('/workspace/project/lib/lib1.dart'),
+    );
     expect(workspace.root, convertPath('/workspace/project/lib'));
     expect(workspace.isBlaze, isFalse);
   }

@@ -9,9 +9,8 @@ class A<T> {}
 class B<T> implements A<T> {}
 
 class C<S, T> implements B<S>, A<T> {}
-// [error line 11, column 7, length 1]
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 //    ^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 // [cfe] 'C' can't implement both 'A<S>' and 'A<T>'
 
 main() {
@@ -21,6 +20,5 @@ main() {
   A<int> a1 = c2;
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //          ^
   // [cfe] A value of type 'C<String, int>' can't be assigned to a variable of type 'A<int>'.
 }

@@ -17,7 +17,8 @@ if_then(bool c) {
   if (c) {
     v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 if_thenElse_all(bool c) {
@@ -39,7 +40,8 @@ if_thenElse_else(bool c) {
   } else {
     v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 if_thenElse_then(bool c) {
@@ -49,7 +51,8 @@ if_thenElse_then(bool c) {
   } else {
     // not assigned
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 if_thenElse_then_exit_alwaysThrows(bool c) {

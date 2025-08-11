@@ -57,7 +57,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: bool
   element: <null>
   staticType: bool
@@ -65,13 +65,14 @@ PrefixExpression
   }
 
   test_bang_int_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   !x;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1)],
+    );
 
     var node = findNode.prefix('!x');
     assertResolvedNodeText(node, r'''
@@ -79,7 +80,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
   element: <null>
   staticType: bool
@@ -87,7 +88,8 @@ PrefixExpression
   }
 
   test_bang_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool get foo => true;
 }
@@ -95,10 +97,15 @@ class A {
 void f(A? a) {
   !a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          55, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55,
+          6,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('!a'), r'''
 PrefixExpression
@@ -106,12 +113,12 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: bool
     staticType: bool?
   element: <null>
@@ -120,16 +127,19 @@ PrefixExpression
   }
 
   test_bang_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     !super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
+        error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+      ],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -144,13 +154,14 @@ PrefixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   ++ ++ x;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1)],
+    );
 
     var node = findNode.prefix('++ ++ x');
     assertResolvedNodeText(node, r'''
@@ -160,13 +171,13 @@ PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -178,15 +189,16 @@ PrefixExpression
   }
 
   test_formalParameter_inc_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A a) {
   ++a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2)],
+    );
 
     var node = findNode.prefix('++a');
     assertResolvedNodeText(node, r'''
@@ -194,11 +206,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: A
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: A
   element: <null>
   staticType: InvalidType
@@ -224,21 +236,21 @@ PrefixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -268,16 +280,16 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -305,28 +317,29 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_inc_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1)],
+    );
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -423,7 +436,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -431,9 +445,9 @@ augment class A {
     -augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -460,7 +474,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -468,9 +483,9 @@ augment class A {
     -augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -535,7 +550,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   element: <null>
   staticType: dynamic
@@ -543,7 +558,8 @@ PrefixExpression
   }
 
   test_minus_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -551,10 +567,15 @@ class A {
 void f(A? a) {
   -a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('-a'), r'''
 PrefixExpression
@@ -562,15 +583,15 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: int
     staticType: int?
-  element: dart:core::<fragment>::@class::int::@method::unary-#element
+  element: dart:core::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -588,9 +609,9 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
-  element: dart:core::<fragment>::@class::int::@method::unary-#element
+  element: dart:core::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -613,19 +634,20 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: A
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
-  element: <testLibraryFragment>::@class::A::@method::+#element
+  element: <testLibrary>::@class::A::@method::+
   staticType: Object
 ''');
   }
 
   test_plusPlus_notLValue_extensionOverride() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 extension Ext on C {
@@ -637,9 +659,9 @@ extension Ext on C {
 void f(C c) {
   ++Ext(c);
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1)],
+    );
 
     var node = findNode.prefix('++Ext');
     assertResolvedNodeText(node, r'''
@@ -653,7 +675,7 @@ PrefixExpression
         SimpleIdentifier
           token: c
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::c#element
+          element: <testLibrary>::@function::f::@formalParameter::c
           staticType: C
       rightParenthesis: )
     element2: <testLibrary>::@extension::Ext
@@ -663,19 +685,20 @@ PrefixExpression
   readType: InvalidType
   writeElement2: <null>
   writeType: InvalidType
-  element: <testLibraryFragment>::@extension::Ext::@method::+#element
+  element: <testLibrary>::@extension::Ext::@method::+
   staticType: InvalidType
 ''');
   }
 
   test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   ++int;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3)],
+    );
 
     var node = findNode.prefix('++int');
     assertResolvedNodeText(node, r'''
@@ -711,7 +734,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -719,11 +742,11 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::foo#element
+  readElement2: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int?
 ''');
   }
@@ -747,7 +770,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -756,11 +779,11 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  readElement2: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -783,7 +806,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -792,11 +815,11 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -829,11 +852,11 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: package:test/a.dart::<fragment>::@getter::x#element
+  readElement2: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::<fragment>::@setter::x#element
+  writeElement2: package:test/a.dart::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -860,7 +883,7 @@ PrefixExpression
           name: A
           element2: <testLibrary>::@class::A
           type: A
-        element: <testLibraryFragment>::@class::A::@constructor::new#element
+        element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -871,11 +894,11 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -911,11 +934,11 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -946,11 +969,11 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -968,13 +991,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: double
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: double
-  element: dart:core::<fragment>::@class::double::@method::+#element
+  element: dart:core::@class::double::@method::+
   staticType: double
 ''');
   }
@@ -992,13 +1015,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1016,25 +1039,26 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: num
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: num
 ''');
   }
 
   test_plusPlus_simpleIdentifier_parameter_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T extends num>(T x) {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3)],
+    );
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -1042,13 +1066,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: T
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: T
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: num
 ''');
   }
@@ -1075,11 +1099,11 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::B::@getter::x#element
+  readElement2: <testLibrary>::@class::B::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1103,11 +1127,11 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1131,11 +1155,11 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1161,25 +1185,26 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_plusPlus_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     ++super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -1198,15 +1223,16 @@ PrefixExpression
   }
 
   test_plusPlus_switchExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   ++switch (x) {
     _ => 0,
   };
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1)],
+    );
 
     var node = findNode.prefix('++switch');
     assertResolvedNodeText(node, r'''
@@ -1217,7 +1243,7 @@ PrefixExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -1261,11 +1287,11 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1280,7 +1306,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -1288,9 +1315,9 @@ augment class A {
     return ~augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -1308,7 +1335,8 @@ PrefixExpression
   }
 
   test_tilde_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -1316,10 +1344,15 @@ class A {
 void f(A? a) {
   ~a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('~a'), r'''
 PrefixExpression
@@ -1327,15 +1360,15 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: int
     staticType: int?
-  element: dart:core::<fragment>::@class::int::@method::~#element
+  element: dart:core::@class::int::@method::~
   staticType: int
 ''');
   }
@@ -1353,9 +1386,9 @@ PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
-  element: dart:core::<fragment>::@class::int::@method::~#element
+  element: dart:core::@class::int::@method::~
   staticType: int
 ''');
   }

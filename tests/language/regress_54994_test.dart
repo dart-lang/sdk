@@ -27,18 +27,18 @@ void test1() {
 }
 
 void test2() {
-  final B1<num, num> a =
-      kTrue
-          ? (B1<int, double>() as B1<num, num>)
-          : (B2<double>() as B1<num, num>);
+  final B1<num, num> a = kTrue
+      ? (B1<int, double>() as B1<num, num>)
+      : (B2<double>() as B1<num, num>);
   Expect.isFalse(a is B2<int>);
   Expect.isFalse(a is B2<double>);
   Expect.isFalse(a is B2<num>); // Should be optimized to cid-range check.
 }
 
 void test3() {
-  final B1<int, num> a =
-      kTrue ? (B1<int, double>() as B1<int, num>) : (B2<int>() as B1<int, num>);
+  final B1<int, num> a = kTrue
+      ? (B1<int, double>() as B1<int, num>)
+      : (B2<int>() as B1<int, num>);
   Expect.isFalse(a is B2<int>);
   Expect.isFalse(a is B2<double>);
   Expect.isFalse(a is B2<num>);
@@ -66,8 +66,9 @@ void test6() {
 }
 
 void test7() {
-  final B1<List<int>, List<int>> a =
-      kTrue ? B2<List<int>>() : B1<List<int>, List<int>>();
+  final B1<List<int>, List<int>> a = kTrue
+      ? B2<List<int>>()
+      : B1<List<int>, List<int>>();
   Expect.isTrue(a is B2<List<num>>); // Should be optimized to cid-range check.
   Expect.isTrue(a is B2<List<int>>); // Should be optimized to cid-range check.
   Expect.isFalse(a is B2<List<double>>);
@@ -82,8 +83,9 @@ class X<T extends num> {
   }
 
   void test2() {
-    final B1<List<T>, List<T>> a =
-        kTrue ? B2<List<T>>() : B1<List<T>, List<T>>();
+    final B1<List<T>, List<T>> a = kTrue
+        ? B2<List<T>>()
+        : B1<List<T>, List<T>>();
     Expect.isTrue(a is B2<List<T>>); // Should be optimized to cid-range check.
     Expect.isTrue(
       a is B2<List<num>>,

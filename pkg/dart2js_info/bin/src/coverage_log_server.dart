@@ -157,10 +157,9 @@ class _Server {
     if (urlPath == prefix ||
         urlPath == '$prefix/' ||
         urlPath == _expectedPath(baseHtmlName)) {
-      var contents =
-          htmlPath == null
-              ? '<html><script src="$baseJsName"></script>'
-              : await File(htmlPath!).readAsString();
+      var contents = htmlPath == null
+          ? '<html><script src="$baseJsName"></script>'
+          : await File(htmlPath!).readAsString();
       return shelf.Response.ok(contents, headers: _htmlHeaders);
     }
 
@@ -222,7 +221,8 @@ String _normalize(String uriPath) {
 
 String _adjustRequestUrl(String code, String prefix) {
   var url = prefix == '' ? 'coverage' : '$prefix/coverage';
-  var hook = '''
+  var hook =
+      '''
       self.dartCallInstrumentation = function(id, name) {
         if (!this.traceBuffer) {
           this.traceBuffer = [];

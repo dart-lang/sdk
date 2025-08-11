@@ -6,13 +6,13 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  DocCommentVerifier(this._errorReporter);
+  DocCommentVerifier(this._diagnosticReporter);
 
   void docDirective(DocDirective docDirective) {
     switch (docDirective) {
@@ -35,27 +35,27 @@ class DocCommentVerifier {
   void docImport(DocImport docImport) {
     var deferredKeyword = docImport.import.deferredKeyword;
     if (deferredKeyword != null) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         deferredKeyword,
         WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
       );
     }
     var configurations = docImport.import.configurations;
     if (configurations.isNotEmpty) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: configurations.first.offset,
         length: configurations.last.end - configurations.first.offset,
-        errorCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
       );
     }
 
     // TODO(srawlins): Support combinators.
     var combinators = docImport.import.combinators;
     if (combinators.isNotEmpty) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: combinators.first.offset,
         length: combinators.last.end - combinators.first.offset,
-        errorCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
+        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
       );
     }
 
@@ -64,10 +64,10 @@ class DocCommentVerifier {
     // reverted as it increased memory usage.
     var prefix = docImport.import.prefix;
     if (prefix != null) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: prefix.offset,
         length: prefix.end - prefix.offset,
-        errorCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
+        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
       );
     }
   }
@@ -80,10 +80,10 @@ class DocCommentVerifier {
     if (positionalArgumentCount < requiredCount) {
       var gap = requiredCount - positionalArgumentCount;
       if (gap == 1) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
           arguments: [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
@@ -91,10 +91,10 @@ class DocCommentVerifier {
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
           arguments: [tag.type.name, ...missingArguments],
         );
       } else if (gap == 3) {
@@ -103,10 +103,10 @@ class DocCommentVerifier {
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
           arguments: [tag.type.name, ...missingArguments],
         );
       }
@@ -121,20 +121,21 @@ class DocCommentVerifier {
     if (positionalArgumentCount > requiredCount) {
       var errorOffset = tag.positionalArguments[requiredCount].offset;
       var errorLength = tag.positionalArguments.last.end - errorOffset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: errorOffset,
         length: errorLength,
-        errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+        diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
         arguments: [tag.type.name, positionalArgumentCount, requiredCount],
       );
     }
 
     for (var namedArgument in tag.namedArguments) {
       if (!tag.type.namedParameters.containsNamed(namedArgument.name)) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: namedArgument.offset,
           length: namedArgument.end - namedArgument.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
+          diagnosticCode:
+              WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
           arguments: [tag.type.name, namedArgument.name],
         );
       }
@@ -143,17 +144,19 @@ class DocCommentVerifier {
 
   void validateArgumentFormat(DocDirectiveTag tag) {
     var required = tag.type.positionalParameters;
-    var positionalArgumentCount =
-        math.min(tag.positionalArguments.length, required.length);
+    var positionalArgumentCount = math.min(
+      tag.positionalArguments.length,
+      required.length,
+    );
     for (var i = 0; i < positionalArgumentCount; i++) {
       var parameter = required[i];
       var argument = tag.positionalArguments[i];
 
       void reportWrongFormat() {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: argument.offset,
           length: argument.end - argument.offset,
-          errorCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
+          diagnosticCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
           arguments: [parameter.name, parameter.expectedFormat.displayString],
         );
       }
@@ -171,8 +174,9 @@ class DocCommentVerifier {
           }
         case DocDirectiveParameterFormat.youtubeUrl:
           if (Uri.tryParse(argument.value) == null ||
-              !argument.value
-                  .startsWith(DocDirectiveParameterFormat.youtubeUrlPrefix)) {
+              !argument.value.startsWith(
+                DocDirectiveParameterFormat.youtubeUrlPrefix,
+              )) {
             reportWrongFormat();
           }
       }

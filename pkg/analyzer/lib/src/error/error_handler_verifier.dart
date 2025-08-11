@@ -35,7 +35,7 @@ import 'package:collection/collection.dart';
 /// `Future<T>.catchError` must return `FutureOr<T>`, and any return statements
 /// in a function literal must return a value of type `FutureOr<T>`.
 class ErrorHandlerVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   final TypeProviderImpl _typeProvider;
 
@@ -46,15 +46,17 @@ class ErrorHandlerVerifier {
   final bool _strictCasts;
 
   ErrorHandlerVerifier(
-      this._errorReporter, this._typeProvider, this._typeSystem,
-      {required bool strictCasts})
-      : _strictCasts = strictCasts,
-        _returnTypeVerifier = ReturnTypeVerifier(
-          typeProvider: _typeProvider,
-          typeSystem: _typeSystem,
-          errorReporter: _errorReporter,
-          strictCasts: strictCasts,
-        );
+    this._diagnosticReporter,
+    this._typeProvider,
+    this._typeSystem, {
+    required bool strictCasts,
+  }) : _strictCasts = strictCasts,
+       _returnTypeVerifier = ReturnTypeVerifier(
+         typeProvider: _typeProvider,
+         typeSystem: _typeSystem,
+         diagnosticReporter: _diagnosticReporter,
+         strictCasts: strictCasts,
+       );
 
   void verifyMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
@@ -87,7 +89,8 @@ class ErrorHandlerVerifier {
       var callback = node.argumentList.arguments
           .whereType<NamedExpression>()
           .firstWhereOrNull(
-              (argument) => argument.name.label.name == 'onError');
+            (argument) => argument.name.label.name == 'onError',
+          );
       if (callback == null) {
         return;
       }
@@ -99,8 +102,11 @@ class ErrorHandlerVerifier {
         // TODO(srawlins): Also check return type of the 'onError' named
         // argument to [Future<T>.then].
         _checkErrorHandlerFunctionType(
-            callback, callbackType, _typeProvider.voidType,
-            checkFirstParameterType: callback.expression is FunctionExpression);
+          callback,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType: callback.expression is FunctionExpression,
+        );
         return;
       }
       // [callbackType] might be dart:core's Function, or something not
@@ -120,8 +126,11 @@ class ErrorHandlerVerifier {
       }
       if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
-            callback, callbackType, _typeProvider.voidType,
-            checkFirstParameterType: callback is FunctionExpression);
+          callback,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType: callback is FunctionExpression,
+        );
         return;
       }
       // [callbackType] might be dart:core's Function, or something not
@@ -132,7 +141,8 @@ class ErrorHandlerVerifier {
       var callback = node.argumentList.arguments
           .whereType<NamedExpression>()
           .firstWhereOrNull(
-              (argument) => argument.name.label.name == 'onError');
+            (argument) => argument.name.label.name == 'onError',
+          );
       if (callback == null) {
         return;
       }
@@ -142,8 +152,11 @@ class ErrorHandlerVerifier {
       }
       if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
-            callback, callbackType, _typeProvider.voidType,
-            checkFirstParameterType: callback.expression is FunctionExpression);
+          callback,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType: callback.expression is FunctionExpression,
+        );
         return;
       }
       // [callbackType] might be dart:core's Function, or something not
@@ -163,8 +176,11 @@ class ErrorHandlerVerifier {
       }
       if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
-            callback, callbackType, _typeProvider.voidType,
-            checkFirstParameterType: callback is FunctionExpression);
+          callback,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType: callback is FunctionExpression,
+        );
         return;
       }
       // [callbackType] might be dart:core's Function, or something not
@@ -178,11 +194,14 @@ class ErrorHandlerVerifier {
   /// Only checks the first parameter type if [checkFirstParameterType] is true.
   /// Certain error handlers are allowed to specify a different type for their
   /// first parameter.
-  void _checkErrorHandlerFunctionType(Expression expression,
-      FunctionTypeImpl expressionType, DartType expectedFunctionReturnType,
-      {bool checkFirstParameterType = true}) {
+  void _checkErrorHandlerFunctionType(
+    Expression expression,
+    FunctionTypeImpl expressionType,
+    DartType expectedFunctionReturnType, {
+    bool checkFirstParameterType = true,
+  }) {
     void report() {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
         arguments: [expressionType, expectedFunctionReturnType],
@@ -198,7 +217,9 @@ class ErrorHandlerVerifier {
       return report();
     } else if (checkFirstParameterType) {
       if (!_typeSystem.isSubtypeOf(
-          _typeProvider.objectType, firstParameter.type)) {
+        _typeProvider.objectType,
+        firstParameter.type,
+      )) {
         return report();
       }
     }
@@ -208,7 +229,9 @@ class ErrorHandlerVerifier {
         return report();
       } else {
         if (!_typeSystem.isSubtypeOf(
-            _typeProvider.stackTraceType, secondParameter.type)) {
+          _typeProvider.stackTraceType,
+          secondParameter.type,
+        )) {
           return report();
         }
       }
@@ -226,14 +249,19 @@ class ErrorHandlerVerifier {
       // TODO(migration): should be FunctionType, not nullable
       var callbackType = callback.staticType as FunctionTypeImpl;
       _checkErrorHandlerFunctionType(
-          callback, callbackType, expectedReturnType);
+        callback,
+        callbackType,
+        expectedReturnType,
+      );
       var catchErrorOnErrorExecutable = EnclosingExecutableContext(
-          callback.declaredFragment!.element,
-          isAsynchronous: true,
-          isGenerator: false,
-          catchErrorOnErrorReturnType: expectedReturnType);
-      var returnStatementVerifier =
-          _ReturnStatementVerifier(_returnTypeVerifier);
+        callback.declaredFragment!.element,
+        isAsynchronous: true,
+        isGenerator: false,
+        catchErrorOnErrorReturnType: expectedReturnType,
+      );
+      var returnStatementVerifier = _ReturnStatementVerifier(
+        _returnTypeVerifier,
+      );
       _returnTypeVerifier.enclosingExecutable = catchErrorOnErrorExecutable;
       callback.body.accept(returnStatementVerifier);
     } else {
@@ -241,7 +269,10 @@ class ErrorHandlerVerifier {
       if (callbackType is FunctionTypeImpl) {
         _checkReturnType(expectedReturnType, callbackType.returnType, callback);
         _checkErrorHandlerFunctionType(
-            callback, callbackType, expectedReturnType);
+          callback,
+          callbackType,
+          expectedReturnType,
+        );
       } else {
         // If [callback] is not even a Function, then ErrorVerifier will have
         // reported this.
@@ -250,10 +281,16 @@ class ErrorHandlerVerifier {
   }
 
   void _checkReturnType(
-      TypeImpl expectedType, TypeImpl functionReturnType, Expression callback) {
-    if (!_typeSystem.isAssignableTo(functionReturnType, expectedType,
-        strictCasts: _strictCasts)) {
-      _errorReporter.atNode(
+    TypeImpl expectedType,
+    TypeImpl functionReturnType,
+    Expression callback,
+  ) {
+    if (!_typeSystem.isAssignableTo(
+      functionReturnType,
+      expectedType,
+      strictCasts: _strictCasts,
+    )) {
+      _diagnosticReporter.atNode(
         callback,
         WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
         arguments: [functionReturnType, expectedType],
@@ -265,8 +302,8 @@ class ErrorHandlerVerifier {
   /// the 'dart:async' library.
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element3.name3 == typeName &&
-      type.element3.library2.isDartAsync;
+      type.element.name == typeName &&
+      type.element.library.isDartAsync;
 }
 
 /// Visits a function body, looking for return statements.

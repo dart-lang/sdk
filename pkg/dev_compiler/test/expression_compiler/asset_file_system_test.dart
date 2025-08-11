@@ -95,8 +95,11 @@ void main() async {
 
       server = await HttpMultiServer.bind(hostname, port);
       fileSystem = AssetFileSystem.forTesting(
-          StandardFileSystem.instance, hostname, '$port',
-          retries: 0);
+        StandardFileSystem.instance,
+        hostname,
+        '$port',
+        retries: 0,
+      );
 
       serveRequests(server, handler);
     });
@@ -134,7 +137,9 @@ void main() async {
     test('cannot read non-existing file', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_nonExistingFile));
       await expectLater(
-          entity.readAsBytes(), throwsA(isA<FileSystemException>()));
+        entity.readAsBytes(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
 
     test('can read a lot of files concurrently', () async {
@@ -154,8 +159,11 @@ void main() async {
 
       server = await HttpMultiServer.bind(hostname, port);
       fileSystem = AssetFileSystem.forTesting(
-          StandardFileSystem.instance, hostname, '$port',
-          retries: 1);
+        StandardFileSystem.instance,
+        hostname,
+        '$port',
+        retries: 1,
+      );
 
       serveRequests(server, noisyHandler);
     });
@@ -193,28 +201,34 @@ void main() async {
     test('cannot read non-existing file', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_nonExistingFile));
       await expectLater(
-          entity.readAsBytes(), throwsA(isA<FileSystemException>()));
+        entity.readAsBytes(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
 
-    test('readAsString is faster than decoding result of readAsBytes',
-        () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
+    test(
+      'readAsString is faster than decoding result of readAsBytes',
+      () async {
+        var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
 
-      Future<int> elapsedReadAsString() async {
-        var stopwatch = Stopwatch()..start();
-        await expectLater(entity.readAsString(), isNotNull);
-        return stopwatch.elapsedMilliseconds;
-      }
+        Future<int> elapsedReadAsString() async {
+          var stopwatch = Stopwatch()..start();
+          await expectLater(entity.readAsString(), isNotNull);
+          return stopwatch.elapsedMilliseconds;
+        }
 
-      Future<int> elapsedReadAsBytesAndDecode() async {
-        var stopwatch = Stopwatch()..start();
-        await expectLater(utf8.decode(await entity.readAsBytes()), isNotNull);
-        return stopwatch.elapsedMilliseconds;
-      }
+        Future<int> elapsedReadAsBytesAndDecode() async {
+          var stopwatch = Stopwatch()..start();
+          await expectLater(utf8.decode(await entity.readAsBytes()), isNotNull);
+          return stopwatch.elapsedMilliseconds;
+        }
 
-      await expectLater(await elapsedReadAsString(),
-          lessThan(await elapsedReadAsBytesAndDecode()));
-    });
+        await expectLater(
+          await elapsedReadAsString(),
+          lessThan(await elapsedReadAsBytesAndDecode()),
+        );
+      },
+    );
 
     test('can read a lot of files concurrently', () async {
       var fileContents = _largeFileContents();
@@ -233,8 +247,11 @@ void main() async {
 
       server = await HttpMultiServer.bind(hostname, port);
       fileSystem = AssetFileSystem.forTesting(
-          StandardFileSystem.instance, hostname, '$port',
-          retries: 1);
+        StandardFileSystem.instance,
+        hostname,
+        '$port',
+        retries: 1,
+      );
 
       serveRequests(server, unreliableHandler);
     });
@@ -272,15 +289,18 @@ void main() async {
     test('cannot read non-existing file', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_nonExistingFile));
       await expectLater(
-          entity.readAsBytes(), throwsA(isA<FileSystemException>()));
+        entity.readAsBytes(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
 
     test('can read a lot of files concurrently', () async {
       var futures = [
         for (var i = 0; i < 512; i++)
           _expectContents(
-              fileSystem.entityForUri(Uri.parse(_uniqueExistingFile())),
-              _smallFileContents),
+            fileSystem.entityForUri(Uri.parse(_uniqueExistingFile())),
+            _smallFileContents,
+          ),
       ];
       await Future.wait(futures);
     }, timeout: const Timeout.factor(2));
@@ -293,8 +313,11 @@ void main() async {
 
       server = await HttpMultiServer.bind(hostname, port);
       fileSystem = AssetFileSystem.forTesting(
-          StandardFileSystem.instance, hostname, '$port',
-          retries: 0);
+        StandardFileSystem.instance,
+        hostname,
+        '$port',
+        retries: 0,
+      );
 
       serveRequests(server, alwaysFailingHandler);
     });
@@ -317,19 +340,25 @@ void main() async {
     test('cannot read existing file using readAsBytes', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       await expectLater(
-          entity.readAsBytes(), throwsA(isA<FileSystemException>()));
+        entity.readAsBytes(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
 
     test('cannot read existing file using readAsString', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       await expectLater(
-          entity.readAsString(), throwsA(isA<FileSystemException>()));
+        entity.readAsString(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
 
     test('cannot read non-existing file', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_nonExistingFile));
       await expectLater(
-          entity.readAsBytes(), throwsA(isA<FileSystemException>()));
+        entity.readAsBytes(),
+        throwsA(isA<FileSystemException>()),
+      );
     });
   });
 }

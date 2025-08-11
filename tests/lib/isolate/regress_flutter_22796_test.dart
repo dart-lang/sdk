@@ -18,7 +18,10 @@ class A {
   final _int32Array = new Int32List(5 * 1024);
   A() {
     _int32Array.setRange(
-        0, _int32Array.length, Iterable.generate(_int32Array.length));
+      0,
+      _int32Array.length,
+      Iterable.generate(_int32Array.length),
+    );
     verify();
   }
 

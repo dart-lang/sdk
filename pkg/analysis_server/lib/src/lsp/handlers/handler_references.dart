@@ -10,10 +10,10 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
@@ -21,6 +21,7 @@ typedef StaticOptions = Either2<bool, ReferenceOptions>;
 class ReferencesHandler
     extends LspMessageHandler<ReferenceParams, List<Location>?> {
   ReferencesHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_references;
 
@@ -44,14 +45,14 @@ class ReferencesHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
       '_getReferences',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getReferences(unit, offset, params, performance),
       ),
     );
   }
 
-  List<Location> _getDeclarations(Element2 element) {
-    return element.nonSynthetic2.fragments
+  List<Location> _getDeclarations(Element element) {
+    return element.nonSynthetic.fragments
         .map((fragment) => fragmentToLocation(uriConverter, fragment))
         .nonNulls
         .toList();
@@ -63,13 +64,13 @@ class ReferencesHandler
     ReferenceParams params,
     OperationPerformanceImpl performance,
   ) async {
-    var node = NodeLocator(offset).searchWithin(result.unit);
+    var node = result.unit.nodeCovering(offset: offset);
     node = _getReferenceTargetNode(node);
 
-    var element = switch (server.getElementOfNode(node)) {
-      FieldFormalParameterElement2(:var field2?) => field2,
-      PropertyAccessorElement2(:var variable3?) => variable3,
-      (var element) => element,
+    var element = switch (node?.getElement()) {
+      FieldFormalParameterElement(:var field?) => field,
+      PropertyAccessorElement(:var variable?) => variable,
+      var element => element,
     };
 
     if (element == null) {

@@ -331,6 +331,7 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
 }
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
+                                     intptr_t script_index,
                                      const Function& function,
                                      const Code& code,
                                      bool report_branch_coverage) {
@@ -339,6 +340,17 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const TokenPosition& end_pos = function.end_token_pos();
 
   const Script& script = Script::Handle(zone(), function.script());
+
+  bool const_constructor_hit = false;
+  if (function.IsConstructor() && function.is_const()) {
+    for (TokenPosition hit :
+         script_table_entries_[script_index]->const_constructor_hits) {
+      if (hit == begin_pos) {
+        const_constructor_hit = true;
+        break;
+      }
+    }
+  }
 
   const int kCoverageNone = 0;
   const int kCoverageMiss = 1;
@@ -351,7 +363,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     coverage[i] = kCoverageNone;
   }
 
-  if (function.WasExecuted()) {
+  if (function.WasExecuted() || const_constructor_hit) {
     coverage[0] = kCoverageHit;
   } else {
     coverage[0] = kCoverageMiss;
@@ -382,7 +394,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       if (is_branch_coverage == report_branch_coverage) {
         const bool was_executed =
             Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
-        update_coverage(token_pos, was_executed);
+        update_coverage(token_pos, was_executed || const_constructor_hit);
       }
     }
   }
@@ -564,10 +576,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
     PrintCallSitesData(&range, func, code);
   }
   if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, func, code, /* report_branch_coverage */ false);
+    PrintCoverageData(&range, script_index, func, code,
+                      /* report_branch_coverage */ false);
   }
   if (IsReportRequested(kBranchCoverage)) {
-    PrintCoverageData(&range, func, code, /* report_branch_coverage */ true);
+    PrintCoverageData(&range, script_index, func, code,
+                      /* report_branch_coverage */ true);
   }
   if (IsReportRequested(kPossibleBreakpoints)) {
     PrintPossibleBreakpointsData(&range, func, code);
@@ -678,6 +692,18 @@ void SourceReport::PrintJSON(JSONStream* js,
   {
     JSONArray ranges(&report, "ranges");
 
+    // Output constant coverage if coverage is requested.
+    if (IsReportRequested(kCoverage) || IsReportRequested(kBranchCoverage)) {
+      // Find all scripts. We need to go though all scripts because a script
+      // (even one we don't want) can add coverage to another library (i.e.
+      // potentially one we want).
+      DirectChainedHashMap<ScriptTableTrait> local_script_table;
+      GrowableArray<ScriptTableEntry*> local_script_table_entries;
+      CollectAllScripts(&local_script_table, &local_script_table_entries);
+      CollectConstConstructorCoverageFromScripts(&local_script_table_entries);
+      CleanupCollectedScripts(&local_script_table, &local_script_table_entries);
+    }
+
     const GrowableObjectArray& libs = GrowableObjectArray::Handle(
         zone(), thread()->isolate_group()->object_store()->libraries());
 
@@ -692,19 +718,6 @@ void SourceReport::PrintJSON(JSONStream* js,
 
     // Visit all closures for this isolate.
     VisitClosures(&ranges);
-
-    // Output constant coverage if coverage is requested.
-    if (IsReportRequested(kCoverage)) {
-      // Find all scripts. We need to go though all scripts because a script
-      // (even one we don't want) can add coverage to another library (i.e.
-      // potentially one we want).
-      DirectChainedHashMap<ScriptTableTrait> local_script_table;
-      GrowableArray<ScriptTableEntry*> local_script_table_entries;
-      CollectAllScripts(&local_script_table, &local_script_table_entries);
-      CollectConstConstructorCoverageFromScripts(&local_script_table_entries,
-                                                 &ranges);
-      CleanupCollectedScripts(&local_script_table, &local_script_table_entries);
-    }
   }
 
   // Print the script table.
@@ -756,8 +769,7 @@ void SourceReport::CleanupCollectedScripts(
 }
 
 void SourceReport::CollectConstConstructorCoverageFromScripts(
-    GrowableArray<ScriptTableEntry*>* local_script_table_entries,
-    JSONArray* ranges) {
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
   // Now output the wanted constant coverage.
   for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
     const Script* script = local_script_table_entries->At(i)->script;
@@ -770,7 +782,6 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
           Array::Handle(script->CollectConstConstructorCoverageFrom());
       intptr_t constructors_count = constructors.Length();
       Function& constructor = Function::Handle(zone());
-      Code& code = Code::Handle(zone());
       for (intptr_t i = 0; i < constructors_count; i++) {
         constructor ^= constructors.At(i);
         // Check if we want coverage for this constructor.
@@ -782,25 +793,9 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
         if (script_index < 0) {
           continue;
         }
-        code ^= constructor.unoptimized_code();
-        const TokenPosition begin_pos = constructor.token_pos();
-        const TokenPosition end_pos = constructor.end_token_pos();
-        JSONObject range(ranges);
-        range.AddProperty("scriptIndex", script_index);
-        range.AddProperty("compiled",
-                          !code.IsNull());  // Does this make a difference?
-        range.AddProperty("startPos", begin_pos);
-        range.AddProperty("endPos", end_pos);
 
-        JSONObject cov(&range, "coverage");
-        {
-          JSONArray hits(&cov, "hits");
-          hits.AddValue(GetTokenPosOrLine(scriptRef, begin_pos));
-        }
-        {
-          JSONArray misses(&cov, "misses");
-          // No misses
-        }
+        script_table_entries_[script_index]->const_constructor_hits.Add(
+            constructor.token_pos());
       }
     }
   }

@@ -3,163 +3,167 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C<T> {
-  /*member: C.field:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+  /*member: C.field:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
   final T field;
 
-  /*member: C.fixedFunctionField:[subclass=Closure|powerset=0]*/
-  int Function() fixedFunctionField = /*[exact=JSUInt31|powerset=0]*/ () => 0;
+  /*member: C.fixedFunctionField:[subclass=Closure|powerset={N}{O}{N}]*/
+  int Function() fixedFunctionField = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
+      () => 0;
 
-  /*member: C.functionField:[null|subclass=Closure|powerset=1]*/
+  /*member: C.functionField:[null|subclass=Closure|powerset={null}{N}{O}{N}]*/
   T Function()? functionField;
 
-  /*member: C.genericFunctionField:[null|subclass=Closure|powerset=1]*/
+  /*member: C.genericFunctionField:[null|subclass=Closure|powerset={null}{N}{O}{N}]*/
   S Function<S>(S)? genericFunctionField;
 
-  /*member: C.:[exact=C|powerset=0]*/
+  /*member: C.:[exact=C|powerset={N}{O}{N}]*/
   C(
-    this. /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ field,
+    this. /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ field,
   ) {
-    /*update: [subclass=C|powerset=0]*/
+    /*update: [subclass=C|powerset={N}{O}{N}]*/
     functionField =
-        /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-        () => /*[subclass=C|powerset=0]*/ field;
-    /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+        /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+        () => /*[subclass=C|powerset={N}{O}{N}]*/ field;
+    /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
     S local<S>(
-      S /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+      S /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
       s,
     ) => s;
-    /*update: [subclass=C|powerset=0]*/
+    /*update: [subclass=C|powerset={N}{O}{N}]*/
     genericFunctionField = local;
   }
 
-  /*member: C.method:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-  T method() => /*[subclass=C|powerset=0]*/ field;
+  /*member: C.method:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+  T method() => /*[subclass=C|powerset={N}{O}{N}]*/ field;
 
-  /*member: C.+:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+  /*member: C.+:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
   T operator +(
-    T /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+    T /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
     t,
   ) =>
-      /*[subclass=C|powerset=0]*/ field;
+      /*[subclass=C|powerset={N}{O}{N}]*/ field;
 
-  /*member: C.getter:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-  T get getter => /*[subclass=C|powerset=0]*/ field;
+  /*member: C.getter:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+  T get getter => /*[subclass=C|powerset={N}{O}{N}]*/ field;
 
-  /*member: C.fixedFunctionGetter:[subclass=Closure|powerset=0]*/
-  int Function() get fixedFunctionGetter => /*[exact=JSUInt31|powerset=0]*/
+  /*member: C.fixedFunctionGetter:[subclass=Closure|powerset={N}{O}{N}]*/
+  int Function()
+  get fixedFunctionGetter => /*[exact=JSUInt31|powerset={I}{O}{N}]*/
       () => 0;
 
-  /*member: C.functionGetter:[null|subclass=Closure|powerset=1]*/
-  T Function()? get functionGetter => /*[subclass=C|powerset=0]*/ functionField;
+  /*member: C.functionGetter:[null|subclass=Closure|powerset={null}{N}{O}{N}]*/
+  T Function()? get functionGetter => /*[subclass=C|powerset={N}{O}{N}]*/
+      functionField;
 
-  /*member: C.genericFunctionGetter:[null|subclass=Closure|powerset=1]*/
+  /*member: C.genericFunctionGetter:[null|subclass=Closure|powerset={null}{N}{O}{N}]*/
   S Function<S>(S)? get genericFunctionGetter =>
-      /*[subclass=C|powerset=0]*/ genericFunctionField;
+      /*[subclass=C|powerset={N}{O}{N}]*/ genericFunctionField;
 
-  /*member: C.genericMethod:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+  /*member: C.genericMethod:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
   S genericMethod<S>(
-    S /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+    S /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
     s,
   ) => s;
 }
 
 class D1 extends C<int> {
-  /*member: D1.:[exact=D1|powerset=0]*/
-  D1(int /*[exact=JSUInt31|powerset=0]*/ field) : super(field);
+  /*member: D1.:[exact=D1|powerset={N}{O}{N}]*/
+  D1(int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ field) : super(field);
 
-  /*member: D1.superFieldAccess:[exact=JSUInt31|powerset=0]*/
+  /*member: D1.superFieldAccess:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superFieldAccess() => super.field;
 
-  /*member: D1.superFieldInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superFieldInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superFieldInvoke() => super.functionField!();
 
-  /*member: D1.superFixedFieldInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superFixedFieldInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superFixedFieldInvoke() => super.fixedFunctionField();
 
-  /*member: D1.superMethodInvoke:[exact=JSUInt31|powerset=0]*/
+  /*member: D1.superMethodInvoke:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superMethodInvoke() => super.method();
 
-  /*member: D1.superOperatorInvoke:[exact=JSUInt31|powerset=0]*/
+  /*member: D1.superOperatorInvoke:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superOperatorInvoke() => super + 0;
 
-  /*member: D1.superGetterAccess:[exact=JSUInt31|powerset=0]*/
+  /*member: D1.superGetterAccess:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superGetterAccess() => super.getter;
 
-  /*member: D1.superGetterInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superGetterInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superGetterInvoke() => super.functionGetter!();
 
-  /*member: D1.superFixedGetterInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superFixedGetterInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superFixedGetterInvoke() => super.fixedFunctionGetter();
 
-  /*member: D1.superGenericFieldInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D1.superGenericFieldInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericFieldInvoke1() => super.genericFunctionField!('');
 
-  /*member: D1.superGenericFieldInvoke2:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superGenericFieldInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
   superGenericFieldInvoke2() => super.genericFunctionField!(0);
 
-  /*member: D1.superGenericMethodInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D1.superGenericMethodInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericMethodInvoke1() => super.genericMethod('');
 
-  /*member: D1.superGenericMethodInvoke2:[exact=JSUInt31|powerset=0]*/
+  /*member: D1.superGenericMethodInvoke2:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superGenericMethodInvoke2() => super.genericMethod(0);
 
-  /*member: D1.superGenericGetterInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D1.superGenericGetterInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericGetterInvoke1() => super.genericFunctionGetter!('');
 
-  /*member: D1.superGenericGetterInvoke2:[subclass=JSInt|powerset=0]*/
+  /*member: D1.superGenericGetterInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
   superGenericGetterInvoke2() => super.genericFunctionGetter!(0);
 }
 
 class D2 extends C<String> {
-  /*member: D2.:[exact=D2|powerset=0]*/
+  /*member: D2.:[exact=D2|powerset={N}{O}{N}]*/
   D2(
-    String /*Value([exact=JSString|powerset=0], value: "", powerset: 0)*/ field,
+    String /*Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/
+    field,
   ) : super(field);
 
-  /*member: D2.superFieldAccess:[exact=JSString|powerset=0]*/
+  /*member: D2.superFieldAccess:[exact=JSString|powerset={I}{O}{I}]*/
   superFieldAccess() => super.field;
 
-  /*member: D2.superFieldInvoke:[exact=JSString|powerset=0]*/
+  /*member: D2.superFieldInvoke:[exact=JSString|powerset={I}{O}{I}]*/
   superFieldInvoke() => super.functionField!();
 
-  /*member: D2.superFixedFieldInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D2.superFixedFieldInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superFixedFieldInvoke() => super.fixedFunctionField();
 
-  /*member: D2.superMethodInvoke:[exact=JSString|powerset=0]*/
+  /*member: D2.superMethodInvoke:[exact=JSString|powerset={I}{O}{I}]*/
   superMethodInvoke() => super.method();
 
-  /*member: D2.superOperatorInvoke:[exact=JSString|powerset=0]*/
+  /*member: D2.superOperatorInvoke:[exact=JSString|powerset={I}{O}{I}]*/
   superOperatorInvoke() => super + '';
 
-  /*member: D2.superGetterAccess:[exact=JSString|powerset=0]*/
+  /*member: D2.superGetterAccess:[exact=JSString|powerset={I}{O}{I}]*/
   superGetterAccess() => super.getter;
 
-  /*member: D2.superGetterInvoke:[exact=JSString|powerset=0]*/
+  /*member: D2.superGetterInvoke:[exact=JSString|powerset={I}{O}{I}]*/
   superGetterInvoke() => super.functionGetter!();
 
-  /*member: D2.superFixedGetterInvoke:[subclass=JSInt|powerset=0]*/
+  /*member: D2.superFixedGetterInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
   superFixedGetterInvoke() => super.fixedFunctionGetter();
 
-  /*member: D2.superGenericFieldInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D2.superGenericFieldInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericFieldInvoke1() => super.genericFunctionField!('');
 
-  /*member: D2.superGenericFieldInvoke2:[subclass=JSInt|powerset=0]*/
+  /*member: D2.superGenericFieldInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
   superGenericFieldInvoke2() => super.genericFunctionField!(0);
 
-  /*member: D2.superGenericMethodInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D2.superGenericMethodInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericMethodInvoke1() => super.genericMethod('');
 
-  /*member: D2.superGenericMethodInvoke2:[exact=JSUInt31|powerset=0]*/
+  /*member: D2.superGenericMethodInvoke2:[exact=JSUInt31|powerset={I}{O}{N}]*/
   superGenericMethodInvoke2() => super.genericMethod(0);
 
-  /*member: D2.superGenericGetterInvoke1:[exact=JSString|powerset=0]*/
+  /*member: D2.superGenericGetterInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
   superGenericGetterInvoke1() => super.genericFunctionGetter!('');
 
-  /*member: D2.superGenericGetterInvoke2:[subclass=JSInt|powerset=0]*/
+  /*member: D2.superGenericGetterInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
   superGenericGetterInvoke2() => super.genericFunctionGetter!(0);
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   closureInvoke();
   localFunctionInvoke();
@@ -185,178 +189,178 @@ main() {
   genericGetterInvoke1();
   genericGetterInvoke2();
   D1(0)
-    .. /*invoke: [exact=D1|powerset=0]*/ superFieldAccess()
-    .. /*invoke: [exact=D1|powerset=0]*/ superFieldInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superFixedFieldInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superMethodInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superOperatorInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGetterAccess()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGetterInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superFixedGetterInvoke()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericFieldInvoke1()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericFieldInvoke2()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericMethodInvoke1()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericMethodInvoke2()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericGetterInvoke1()
-    .. /*invoke: [exact=D1|powerset=0]*/ superGenericGetterInvoke2();
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superFieldAccess()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superFieldInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superFixedFieldInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superMethodInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superOperatorInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGetterAccess()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGetterInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superFixedGetterInvoke()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericFieldInvoke1()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericFieldInvoke2()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericMethodInvoke1()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericMethodInvoke2()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericGetterInvoke1()
+    .. /*invoke: [exact=D1|powerset={N}{O}{N}]*/ superGenericGetterInvoke2();
   D2('')
-    .. /*invoke: [exact=D2|powerset=0]*/ superFieldAccess()
-    .. /*invoke: [exact=D2|powerset=0]*/ superFieldInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superFixedFieldInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superMethodInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superOperatorInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGetterAccess()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGetterInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superFixedGetterInvoke()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericFieldInvoke1()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericFieldInvoke2()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericMethodInvoke1()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericMethodInvoke2()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericGetterInvoke1()
-    .. /*invoke: [exact=D2|powerset=0]*/ superGenericGetterInvoke2();
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superFieldAccess()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superFieldInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superFixedFieldInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superMethodInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superOperatorInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGetterAccess()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGetterInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superFixedGetterInvoke()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericFieldInvoke1()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericFieldInvoke2()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericMethodInvoke1()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericMethodInvoke2()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericGetterInvoke1()
+    .. /*invoke: [exact=D2|powerset={N}{O}{N}]*/ superGenericGetterInvoke2();
 }
 
-/*member: closureInvoke:[subclass=JSInt|powerset=0]*/
+/*member: closureInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
 closureInvoke() {
-  int Function() f = /*[exact=JSUInt31|powerset=0]*/ () => 0;
+  int Function() f = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ () => 0;
   return f();
 }
 
-/*member: localFunctionInvoke:[exact=JSUInt31|powerset=0]*/
+/*member: localFunctionInvoke:[exact=JSUInt31|powerset={I}{O}{N}]*/
 localFunctionInvoke() {
-  /*[exact=JSUInt31|powerset=0]*/
+  /*[exact=JSUInt31|powerset={I}{O}{N}]*/
   int local() => 0;
   return local();
 }
 
-/*member: genericLocalFunctionInvoke:[null|powerset=1]*/
+/*member: genericLocalFunctionInvoke:[null|powerset={null}]*/
 genericLocalFunctionInvoke() {
-  /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+  /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
   S local<S>(
-    S /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+    S /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
     s,
   ) => s;
 
-  local(0). /*invoke: [exact=JSUInt31|powerset=0]*/ toString();
-  local(''). /*invoke: [exact=JSString|powerset=0]*/ toString();
+  local(0). /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ toString();
+  local(''). /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ toString();
 }
 
-/*member: fieldAccess1:[exact=JSUInt31|powerset=0]*/
+/*member: fieldAccess1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 fieldAccess1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ field;
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ field;
 }
 
-/*member: fieldAccess2:[exact=JSString|powerset=0]*/
+/*member: fieldAccess2:[exact=JSString|powerset={I}{O}{I}]*/
 fieldAccess2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ field;
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ field;
 }
 
-/*member: fixedFieldInvoke:[subclass=JSInt|powerset=0]*/
+/*member: fixedFieldInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
 fixedFieldInvoke() {
   C<int> c = C<int>(0);
-  return c.fixedFunctionField /*invoke: [exact=C|powerset=0]*/ ();
+  return c.fixedFunctionField /*invoke: [exact=C|powerset={N}{O}{N}]*/ ();
 }
 
-/*member: fieldInvoke1:[subclass=JSInt|powerset=0]*/
+/*member: fieldInvoke1:[subclass=JSInt|powerset={I}{O}{N}]*/
 fieldInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ functionField!();
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ functionField!();
 }
 
-/*member: fieldInvoke2:[exact=JSString|powerset=0]*/
+/*member: fieldInvoke2:[exact=JSString|powerset={I}{O}{I}]*/
 fieldInvoke2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ functionField!();
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ functionField!();
 }
 
-/*member: methodInvoke1:[exact=JSUInt31|powerset=0]*/
+/*member: methodInvoke1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 methodInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*invoke: [exact=C|powerset=0]*/ method();
+  return c. /*invoke: [exact=C|powerset={N}{O}{N}]*/ method();
 }
 
-/*member: methodInvoke2:[exact=JSString|powerset=0]*/
+/*member: methodInvoke2:[exact=JSString|powerset={I}{O}{I}]*/
 methodInvoke2() {
   C<String> c = C<String>('');
-  return c. /*invoke: [exact=C|powerset=0]*/ method();
+  return c. /*invoke: [exact=C|powerset={N}{O}{N}]*/ method();
 }
 
-/*member: operatorInvoke1:[exact=JSUInt31|powerset=0]*/
+/*member: operatorInvoke1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 operatorInvoke1() {
   C<int> c = C<int>(0);
-  return c /*invoke: [exact=C|powerset=0]*/ + 0;
+  return c /*invoke: [exact=C|powerset={N}{O}{N}]*/ + 0;
 }
 
-/*member: operatorInvoke2:[exact=JSString|powerset=0]*/
+/*member: operatorInvoke2:[exact=JSString|powerset={I}{O}{I}]*/
 operatorInvoke2() {
   C<String> c = C<String>('');
-  return c /*invoke: [exact=C|powerset=0]*/ + '';
+  return c /*invoke: [exact=C|powerset={N}{O}{N}]*/ + '';
 }
 
-/*member: fixedGetterInvoke:[subclass=JSInt|powerset=0]*/
+/*member: fixedGetterInvoke:[subclass=JSInt|powerset={I}{O}{N}]*/
 fixedGetterInvoke() {
   C<int> c = C<int>(0);
-  return c.fixedFunctionGetter /*invoke: [exact=C|powerset=0]*/ ();
+  return c.fixedFunctionGetter /*invoke: [exact=C|powerset={N}{O}{N}]*/ ();
 }
 
-/*member: getterAccess1:[exact=JSUInt31|powerset=0]*/
+/*member: getterAccess1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getterAccess1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ getter;
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ getter;
 }
 
-/*member: getterAccess2:[exact=JSString|powerset=0]*/
+/*member: getterAccess2:[exact=JSString|powerset={I}{O}{I}]*/
 getterAccess2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ getter;
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ getter;
 }
 
-/*member: getterInvoke1:[subclass=JSInt|powerset=0]*/
+/*member: getterInvoke1:[subclass=JSInt|powerset={I}{O}{N}]*/
 getterInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ functionGetter!();
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ functionGetter!();
 }
 
-/*member: getterInvoke2:[exact=JSString|powerset=0]*/
+/*member: getterInvoke2:[exact=JSString|powerset={I}{O}{I}]*/
 getterInvoke2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ functionGetter!();
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ functionGetter!();
 }
 
-/*member: genericFieldInvoke1:[exact=JSString|powerset=0]*/
+/*member: genericFieldInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
 genericFieldInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ genericFunctionField!('');
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ genericFunctionField!('');
 }
 
-/*member: genericFieldInvoke2:[subclass=JSInt|powerset=0]*/
+/*member: genericFieldInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
 genericFieldInvoke2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ genericFunctionField!(0);
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ genericFunctionField!(0);
 }
 
-/*member: genericMethodInvoke1:[exact=JSString|powerset=0]*/
+/*member: genericMethodInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
 genericMethodInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*invoke: [exact=C|powerset=0]*/ genericMethod('');
+  return c. /*invoke: [exact=C|powerset={N}{O}{N}]*/ genericMethod('');
 }
 
-/*member: genericMethodInvoke2:[exact=JSUInt31|powerset=0]*/
+/*member: genericMethodInvoke2:[exact=JSUInt31|powerset={I}{O}{N}]*/
 genericMethodInvoke2() {
   C<String> c = C<String>('');
-  return c. /*invoke: [exact=C|powerset=0]*/ genericMethod(0);
+  return c. /*invoke: [exact=C|powerset={N}{O}{N}]*/ genericMethod(0);
 }
 
-/*member: genericGetterInvoke1:[exact=JSString|powerset=0]*/
+/*member: genericGetterInvoke1:[exact=JSString|powerset={I}{O}{I}]*/
 genericGetterInvoke1() {
   C<int> c = C<int>(0);
-  return c. /*[exact=C|powerset=0]*/ genericFunctionGetter!('');
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ genericFunctionGetter!('');
 }
 
-/*member: genericGetterInvoke2:[subclass=JSInt|powerset=0]*/
+/*member: genericGetterInvoke2:[subclass=JSInt|powerset={I}{O}{N}]*/
 genericGetterInvoke2() {
   C<String> c = C<String>('');
-  return c. /*[exact=C|powerset=0]*/ genericFunctionGetter!(0);
+  return c. /*[exact=C|powerset={N}{O}{N}]*/ genericFunctionGetter!(0);
 }

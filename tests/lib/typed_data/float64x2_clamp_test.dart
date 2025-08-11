@@ -32,8 +32,10 @@ void testClamp() {
 void testNonZeroClamp() {
   Float64x2 l = new Float64x2(-pow(123456.789, 123.1) as double, -234567.89);
   Float64x2 u = new Float64x2(pow(123456.789, 123.1) as double, 234567.89);
-  Float64x2 v =
-      new Float64x2(-pow(123456789.123, 123.1) as double, 234567890.123);
+  Float64x2 v = new Float64x2(
+    -pow(123456789.123, 123.1) as double,
+    234567890.123,
+  );
   Float64x2 a = v.clamp(l, u);
   Expect.equals(a.x, -pow(123456.789, 123) as double);
   Expect.equals(a.y, 234567.89);

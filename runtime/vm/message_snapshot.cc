@@ -208,9 +208,9 @@ class MessageSerializer : public BaseSerializer {
     ASSERT(id != WeakTable::kNoValue);
     WeakTable* table;
     if (object->IsImmediateOrOldObject()) {
-      table = isolate()->forward_table_old();
+      table = thread()->forward_table_old();
     } else {
-      table = isolate()->forward_table_new();
+      table = thread()->forward_table_new();
     }
     return table->MarkValueExclusive(object, id);
   }
@@ -219,9 +219,9 @@ class MessageSerializer : public BaseSerializer {
     ASSERT(id != WeakTable::kNoValue);
     WeakTable* table;
     if (object->IsImmediateOrOldObject()) {
-      table = isolate()->forward_table_old();
+      table = thread()->forward_table_old();
     } else {
-      table = isolate()->forward_table_new();
+      table = thread()->forward_table_new();
     }
     table->SetValueExclusive(object, id);
   }
@@ -229,9 +229,9 @@ class MessageSerializer : public BaseSerializer {
   intptr_t GetObjectId(ObjectPtr object) const {
     const WeakTable* table;
     if (object->IsImmediateOrOldObject()) {
-      table = isolate()->forward_table_old();
+      table = thread()->forward_table_old();
     } else {
-      table = isolate()->forward_table_new();
+      table = thread()->forward_table_new();
     }
     return table->GetValueExclusive(object);
   }
@@ -264,7 +264,6 @@ class MessageSerializer : public BaseSerializer {
   Thread* thread() const {
     return static_cast<Thread*>(StackResource::thread());
   }
-  Isolate* isolate() const { return thread()->isolate(); }
   IsolateGroup* isolate_group() const { return thread()->isolate_group(); }
 
   bool HasRef(ObjectPtr object) const {
@@ -272,6 +271,7 @@ class MessageSerializer : public BaseSerializer {
   }
 
  private:
+  Thread* thread_;
   WeakTable* forward_table_new_;
   WeakTable* forward_table_old_;
   GrowableArray<Object*> stack_;
@@ -1274,7 +1274,7 @@ class TypedDataMessageDeserializationCluster
   const intptr_t cid_;
 };
 
-// This function's name can appear in Observatory.
+// This function's name can appear in VM service responses.
 static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
                                              void* buffer) {
   free(buffer);
@@ -2705,13 +2705,13 @@ MessageSerializer::MessageSerializer(Thread* thread)
       forward_table_new_(),
       forward_table_old_(),
       stack_(thread->zone(), 0) {
-  isolate()->set_forward_table_new(new WeakTable());
-  isolate()->set_forward_table_old(new WeakTable());
+  thread->set_forward_table_new(new WeakTable());
+  thread->set_forward_table_old(new WeakTable());
 }
 
 MessageSerializer::~MessageSerializer() {
-  isolate()->set_forward_table_new(nullptr);
-  isolate()->set_forward_table_old(nullptr);
+  thread()->set_forward_table_new(nullptr);
+  thread()->set_forward_table_old(nullptr);
 }
 
 ApiMessageSerializer::ApiMessageSerializer(Zone* zone)
@@ -2757,7 +2757,7 @@ void MessageSerializer::Trace(const Object& root, Object* object) {
       // as they are not going to be used again here.
       const char* message = OS::SCreate(
           zone_, "is a regular instance reachable via %s",
-          FindRetainingPath(zone_, isolate(), root, *object,
+          FindRetainingPath(zone_, thread(), root, *object,
                             TraversalRules::kExternalBetweenIsolateGroups));
       IllegalObject(*object, message);
     }
@@ -2802,7 +2802,7 @@ void MessageSerializer::Trace(const Object& root, Object* object) {
       // as they are not going to be used again here.
       const char* message = OS::SCreate(
           zone_, "is a %s reachable via %s", illegal_cid_string,
-          FindRetainingPath(zone_, isolate(), root, *object,
+          FindRetainingPath(zone_, thread(), root, *object,
                             TraversalRules::kExternalBetweenIsolateGroups));
       IllegalObject(*object, message);
     }

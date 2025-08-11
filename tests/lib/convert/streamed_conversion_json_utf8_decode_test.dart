@@ -40,10 +40,12 @@ void expectJsonEquals(o1, o2, [path = "result"]) {
 
 Stream<Object?> createStream(List<List<int>> chunks) {
   var controller;
-  controller = new StreamController<List<int>>(onListen: () {
-    chunks.forEach(controller.add);
-    controller.close();
-  });
+  controller = new StreamController<List<int>>(
+    onListen: () {
+      chunks.forEach(controller.add);
+      controller.close();
+    },
+  );
   return controller.stream.transform(jsonUtf8.decoder);
 }
 

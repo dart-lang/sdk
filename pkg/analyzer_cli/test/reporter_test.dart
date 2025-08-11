@@ -4,12 +4,14 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
@@ -45,7 +47,10 @@ void main() {
       });
 
       test('error', () async {
-        var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+        var error = mockResult(
+          DiagnosticType.SYNTACTIC_ERROR,
+          DiagnosticSeverity.ERROR,
+        );
         await reporter.formatErrors([error]);
         reporter.flush();
 
@@ -56,7 +61,7 @@ void main() {
       });
 
       test('hint', () async {
-        var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
         await reporter.formatErrors([error]);
         reporter.flush();
 
@@ -67,7 +72,7 @@ void main() {
       });
 
       test('stats', () async {
-        var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
         await reporter.formatErrors([error]);
         reporter.flush();
         stats.print(out);
@@ -85,7 +90,10 @@ void main() {
       });
 
       test('error', () async {
-        var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+        var error = mockResult(
+          DiagnosticType.SYNTACTIC_ERROR,
+          DiagnosticSeverity.ERROR,
+        );
         await reporter.formatErrors([error]);
         reporter.flush();
 
@@ -103,13 +111,13 @@ void main() {
   });
 }
 
-ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
+ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
   // ErrorInfo
   var location = CharacterLocation(3, 3);
   var lineInfo = MockLineInfo(defaultLocation: location);
 
   // File
-  var resourceProvider = MemoryResourceProvider();
+  ResourceProvider resourceProvider = MemoryResourceProvider();
   var path = '/foo/bar/baz.dart';
   var file = resourceProvider.getFile(resourceProvider.convertPath(path));
 
@@ -117,7 +125,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   var code = MockErrorCode(type, severity, 'mock_code');
   var uri = file.toUri();
   var source = MockSource(path, uri);
-  var error = MockAnalysisError(source, code, 20, 'MSG');
+  var error = MockDiagnostic(source, code, 20, 'MSG');
 
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
@@ -127,7 +135,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
     lineInfo: lineInfo,
     isLibrary: true,
     isPart: false,
-    errors: [error],
+    diagnostics: [error],
     analysisOptions: AnalysisOptionsImpl(),
   );
 }

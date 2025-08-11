@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,13 +17,11 @@ class AvoidUnnecessaryContainers extends LintRule {
     : super(name: LintNames.avoid_unnecessary_containers, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_unnecessary_containers;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_unnecessary_containers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             parent.thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
           if (isExactWidgetTypeContainer(parentCreation.staticType)) {
-            rule.reportLint(parentCreation.constructorName);
+            rule.reportAtNode(parentCreation.constructorName);
           }
         }
       }

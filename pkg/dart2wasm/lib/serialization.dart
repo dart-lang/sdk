@@ -24,14 +24,12 @@ class _EntityToIdMapper {
     return _ids[cls]!;
   }
 
-  int? idForMember(Member member) {
-    return _ids[member];
+  int idForMember(Member member) {
+    return _ids[member]!;
   }
 
-  (int, int)? idForReference(Reference reference) {
-    final memberId = idForMember(reference.asMember);
-    if (memberId == null) return null;
-    return (memberId, _flagForReference(reference));
+  (int, int) idForReference(Reference reference) {
+    return (idForMember(reference.asMember), _flagForReference(reference));
   }
 
   static int _flagForReference(Reference reference) {
@@ -147,19 +145,15 @@ class DataSerializer {
     writeInt(_mapper.idForClass(cls));
   }
 
-  bool writeMember(Member member) {
+  void writeMember(Member member) {
     final memberId = _mapper.idForMember(member);
-    if (memberId == null) return false;
     writeInt(memberId);
-    return true;
   }
 
-  bool writeReference(Reference reference) {
-    final referenceId = _mapper.idForReference(reference);
-    if (referenceId == null) return false;
-    writeInt(referenceId.$1);
-    writeInt(referenceId.$2);
-    return true;
+  void writeReference(Reference reference) {
+    final (memberId, referenceFlag) = _mapper.idForReference(reference);
+    writeInt(memberId);
+    writeInt(referenceFlag);
   }
 
   void writeMap<K, V>(Map<K, V> map, void Function(K key) writeKey,

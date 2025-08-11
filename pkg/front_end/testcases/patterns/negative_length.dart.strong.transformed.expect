@@ -253,7 +253,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(core::int start, core::int end) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_closeGap(core::int start, core::int end) → void {
     core::int length = this.{core::List::length}{core::int};
     assert(0.{core::num::<=}(start){(core::num) → core::bool});
     assert(start.{core::num::<}(end){(core::num) → core::bool});
@@ -270,7 +270,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test) → void {
     this.{col::ListBase::_filter}(test, true){((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool, core::bool) → void};
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_filter((self::_NegativeLengthList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
     core::List<self::_NegativeLengthList&Object&ListMixin::E%> retained = core::_GrowableList::•<self::_NegativeLengthList&Object&ListMixin::E%>(0);
     core::int length = this.{core::List::length}{core::int};
     for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
@@ -533,19 +533,19 @@ static method switchList(core::List<core::int> list) → core::int
     #L1:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
           #t10 = 2;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
           #t10 = 1;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
           #t10 = 0;
           break #L1;
         }

@@ -32,20 +32,17 @@ bool inIfCaseStatement(x) {
   }
 }
 
-bool inIfCaseElementInList(x) =>
-    [
-      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
-    ].isNotEmpty;
+bool inIfCaseElementInList(x) => [
+  if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
+].isNotEmpty;
 
-bool inIfCaseElementInMap(x) =>
-    {
-      if (x case int? y when y != null) '': y.expectStaticType<Exactly<int>>(),
-    }.isNotEmpty;
+bool inIfCaseElementInMap(x) => {
+  if (x case int? y when y != null) '': y.expectStaticType<Exactly<int>>(),
+}.isNotEmpty;
 
-bool inIfCaseElementInSet(x) =>
-    {
-      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
-    }.isNotEmpty;
+bool inIfCaseElementInSet(x) => {
+  if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
+}.isNotEmpty;
 
 main() {
   Expect.equals(true, inSwitchStatement(0));

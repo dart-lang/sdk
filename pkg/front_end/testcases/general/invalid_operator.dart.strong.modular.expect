@@ -603,7 +603,7 @@ class Operators1 extends core::Object {
   synthetic constructor •() → self::Operators1
     : super core::Object::•()
     ;
-  operator ==() → core::bool
+  erroneous operator ==() → core::bool
     return true;
   operator <() → dynamic
     return true;
@@ -644,7 +644,7 @@ class Operators2 extends core::Object {
   synthetic constructor •() → self::Operators2
     : super core::Object::•()
     ;
-  operator ==(core::Object a, dynamic b) → core::bool
+  erroneous operator ==(core::Object a, dynamic b) → core::bool
     return true;
   operator <(dynamic a, dynamic b) → dynamic
     return true;
@@ -730,7 +730,7 @@ class Operators4 extends core::Object {
   synthetic constructor •() → self::Operators4
     : super core::Object::•()
     ;
-  operator ==({dynamic a = #C2}) → core::bool
+  erroneous operator ==({dynamic a = #C2}) → core::bool
     return true;
   operator <({dynamic a = #C2}) → dynamic
     return true;
@@ -859,7 +859,7 @@ class Operators7 extends core::Object {
   synthetic constructor •() → self::Operators7
     : super core::Object::•()
     ;
-  operator ==<T extends core::Object? = dynamic>(invalid-type a) → invalid-type
+  erroneous operator ==<T extends core::Object? = dynamic>(invalid-type a) → invalid-type
     return true;
   operator ><T extends core::Object? = dynamic>(dynamic a) → dynamic
     return true;

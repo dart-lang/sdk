@@ -4,10 +4,8 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -44,11 +42,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     int offset, [
     bool Function(AstNode)? predicate,
   ]) {
-    var result = NodeLocator(offset).searchWithin(testUnit);
-    if (result != null && predicate != null) {
-      result = result.thisOrAncestorMatching(predicate);
+    var node = testUnit.nodeCovering(offset: offset);
+    if (node != null && predicate != null) {
+      node = node.thisOrAncestorMatching(predicate);
     }
-    return result;
+    return node;
   }
 
   AstNode? findNodeAtString(
@@ -59,7 +57,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element2? findNodeElementAtString(
+  Element? findNodeElementAtString(
     String search, [
     bool Function(AstNode)? predicate,
   ]) {
@@ -67,7 +65,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-    return ElementLocator.locate2(node);
+    return ElementLocator.locate(node);
   }
 
   int findOffset(String search) {
@@ -107,14 +105,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testCode = result.content;
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.errors.where((AnalysisError error) {
-        return error.errorCode != WarningCode.DEAD_CODE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-            error.errorCode != WarningCode.UNUSED_ELEMENT &&
-            error.errorCode != WarningCode.UNUSED_FIELD &&
-            error.errorCode != WarningCode.UNUSED_IMPORT &&
-            error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+      expect(result.diagnostics.where((d) {
+        return d.diagnosticCode != WarningCode.DEAD_CODE &&
+            d.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+            d.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
+            d.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
+            d.diagnosticCode != WarningCode.UNUSED_FIELD &&
+            d.diagnosticCode != WarningCode.UNUSED_IMPORT &&
+            d.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
     findNode = FindNode(testCode, testUnit);

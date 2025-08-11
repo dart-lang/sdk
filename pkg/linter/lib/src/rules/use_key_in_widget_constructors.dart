@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,13 +20,11 @@ class UseKeyInWidgetConstructors extends LintRule {
     : super(name: LintNames.use_key_in_widget_constructors, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_key_in_widget_constructors;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.use_key_in_widget_constructors;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
@@ -42,8 +42,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement != null &&
         classElement.isPublic &&
         classElement.extendsWidget &&
-        classElement.constructors2.where((e) => !e.isSynthetic).isEmpty) {
-      rule.reportLintForToken(node.name);
+        classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
+      rule.reportAtToken(node.name);
     }
     super.visitClassDeclaration(node);
   }
@@ -56,11 +56,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement == null) {
       return;
     }
-    var classElement = constructorElement.enclosingElement2;
+    var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&
-        classElement is ClassElement2 &&
+        classElement is ClassElement &&
         !classElement.isExactlyWidget &&
         classElement.extendsWidget &&
         !_hasKeySuperParameterInitializerArg(node) &&
@@ -79,22 +79,22 @@ class _Visitor extends SimpleAstVisitor<void> {
           return false;
         })) {
       var errorNode = node.name ?? node.returnType;
-      rule.reportLintForOffset(errorNode.offset, errorNode.length);
+      rule.reportAtOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);
   }
 
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
-      .any((a) => a.correspondingParameter?.name3 == 'key');
+      .any((a) => a.correspondingParameter?.name == 'key');
 
-  bool _defineKeyParameter(ConstructorElement2 element) => element
+  bool _defineKeyParameter(ConstructorElement element) => element
       .formalParameters
-      .any((e) => e.name3 == 'key' && _isKeyType(e.type));
+      .any((e) => e.name == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameterFragments) {
       var element = parameter?.element;
-      if (element is SuperFormalParameterElement2 && element.name3 == 'key') {
+      if (element is SuperFormalParameterElement && element.name == 'key') {
         return true;
       }
     }

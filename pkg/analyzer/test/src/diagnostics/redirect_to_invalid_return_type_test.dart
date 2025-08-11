@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class RedirectToInvalidReturnTypeTest extends PubPackageResolutionTest {
   test_redirectToInvalidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() {}
 }
 class B {
   factory B() = A;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1)],
+    );
   }
 }

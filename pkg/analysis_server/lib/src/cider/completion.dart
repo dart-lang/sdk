@@ -7,7 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -173,7 +173,7 @@ class CiderCompletionComputer {
     var importedLibraries =
         target.withEnclosing2
             .expand((fragment) => fragment.libraryImports2)
-            .map((import) => import.importedLibrary2)
+            .map((import) => import.importedLibrary)
             .nonNulls
             .toSet();
     for (var importedLibrary in importedLibraries) {
@@ -190,7 +190,7 @@ class CiderCompletionComputer {
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
   List<CompletionSuggestionBuilder> _importedLibrarySuggestions({
-    required LibraryElement2 element,
+    required LibraryElement element,
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').increment();
@@ -212,7 +212,7 @@ class CiderCompletionComputer {
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
   List<CompletionSuggestionBuilder> _librarySuggestions(
-    LibraryElement2 element,
+    LibraryElement element,
   ) {
     var suggestionBuilder = SuggestionBuilder(
       _dartCompletionRequest,
@@ -225,7 +225,7 @@ class CiderCompletionComputer {
     );
     var exportMap = element.exportNamespace.definedNames2;
     for (var definedElement in exportMap.values) {
-      definedElement.accept2(visitor);
+      definedElement.accept(visitor);
     }
     return suggestionBuilder.suggestions.toList();
   }

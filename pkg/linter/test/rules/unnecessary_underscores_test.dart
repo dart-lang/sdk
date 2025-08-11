@@ -18,31 +18,19 @@ class UnnecessaryUnderscoresTest extends LintRuleTest {
   String get lintRule => 'unnecessary_underscores';
 
   test_enum_field_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 enum E {
   __,
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 11, 2),
-      ],
-    );
+''');
   }
 
   test_field_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class C {
   int __ = 0;
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 16, 2),
-      ],
-    );
+''');
   }
 
   test_forPart_unused() async {
@@ -116,75 +104,45 @@ void f() {
   g(int __) {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 13, 1), lint(19, 2)],
+      [lint(19, 2)],
     );
   }
 
   test_localFunction_parameter_used() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 void f() {
   g(int __) {
     print(__);
   }
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 13, 1),
-      ],
-    );
+''');
   }
 
   test_localFunction_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 f() {
   __() {}
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 8, 2),
-      ],
-    );
+''');
   }
 
   test_method_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class A {
   __() {}
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 12, 2),
-      ],
-    );
+''');
   }
 
   test_topLevelFunction_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 __() {}
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 0, 2),
-      ],
-    );
+''');
   }
 
   test_topLevelVariable_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 int __ = 0;
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_ELEMENT, 4, 2),
-      ],
-    );
+''');
   }
 }

@@ -2,14 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/stacktrace.h"
+#include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_entry.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
 
 namespace dart {
+
+// This flag is defined in "runtime/vm/microtask_mirror_queues.cc".
+DECLARE_FLAG(bool, profile_microtasks);
 
 DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 0, 1) {
 #if !defined(PRODUCT)
@@ -54,6 +61,56 @@ DEFINE_NATIVE_ENTRY(SuspendState_instantiateClosureWithFutureTypeArgument,
          Object::empty_type_arguments().ptr());
   closure.set_delayed_type_arguments(type_args);
   return closure.ptr();
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0, 0) {
+  // There is logic in `sdk/lib/async/schedule_microtask.dart` that ensures that
+  // this function can only ever be called when the `--profile-microtasks` CLI
+  // flag is set in non-PRODUCT modes.
+#if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
+  const StackTrace& stack_trace = GetCurrentStackTrace(
+      // We pass a `skip_frames` argument of 1 to skip the
+      // `_MicrotaskMirrorQueue._onScheduleAsyncCallback` frame.
+      1);
+  MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+      ->OnScheduleAsyncCallback(stack_trace);
+  return Object::null();
+#else
+  UNREACHABLE();
+#endif  // !defined(PRODUCT)
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback,
+                    0,
+                    0) {
+  // There is logic in `sdk/lib/async/schedule_microtask.dart` that ensures that
+  // this function can only ever be called when the `--profile-microtasks` CLI
+  // flag is set in non-PRODUCT modes.
+#if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
+  MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+      ->OnSchedulePriorityAsyncCallback();
+  return Object::null();
+#else
+  UNREACHABLE();
+#endif  // !defined(PRODUCT)
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onAsyncCallbackComplete, 0, 2) {
+  // There is logic in `sdk/lib/async/schedule_microtask.dart` that ensures that
+  // this function can only ever be called when the `--profile-microtasks` CLI
+  // flag is set in non-PRODUCT modes.
+#if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start_time, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, end_time, arguments->NativeArgAt(1));
+  MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+      ->OnAsyncCallbackComplete(start_time.Value(), end_time.Value());
+  return Object::null();
+#else
+  UNREACHABLE();
+#endif  // !defined(PRODUCT)
 }
 
 }  // namespace dart

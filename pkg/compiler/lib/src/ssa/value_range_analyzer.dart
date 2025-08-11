@@ -885,10 +885,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       constantNum = IntConstantValue(BigInt.zero);
     }
 
-    BigInt intValue =
-        constantNum is IntConstantValue
-            ? constantNum.intValue
-            : BigInt.from(constantNum.doubleValue.toInt());
+    BigInt intValue = constantNum is IntConstantValue
+        ? constantNum.intValue
+        : BigInt.from(constantNum.doubleValue.toInt());
     Value value = info.newIntValue(intValue);
     return info.newNormalizedRange(value, value);
   }
@@ -1309,8 +1308,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       if (node.falseBranch.predecessors.length == 1) {
         assert(node.falseBranch.predecessors[0] == node.block);
         constant_system.BinaryOperation reverse = negateOperation(operation);
-        constant_system.BinaryOperation reversedMirror =
-            flipOperation(reverse)!;
+        constant_system.BinaryOperation reversedMirror = flipOperation(
+          reverse,
+        )!;
         // Update the false branch to use narrower ranges for [left] and
         // [right].
         Range range = computeConstrainedRange(reverse, leftRange, rightRange);
@@ -1359,10 +1359,9 @@ class LoopUpdateRecognizer extends HBaseVisitor<Range?> {
   Range? run(HPhi loopPhi) {
     // Create a marker range for the loop phi. This is the symbolic initial
     // value of the loop variable for one iteration.
-    bool isPositive =
-        loopPhi
-            .isPositiveInteger(closedWorld.abstractValueDomain)
-            .isDefinitelyTrue;
+    bool isPositive = loopPhi
+        .isPositiveInteger(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue;
     final lowerMarker = info.newMarkerValue(
       isLower: true,
       isPositive: isPositive,
@@ -1390,10 +1389,12 @@ class LoopUpdateRecognizer extends HBaseVisitor<Range?> {
 
     Value lowerLimit = isPositive ? info.intZero : info.minIntValue;
     Value upperLimit = info.maxIntValue;
-    Value lowerBound =
-        deltaRange.lower == lowerMarker ? startRange.lower : lowerLimit;
-    Value upperBound =
-        deltaRange.upper == upperMarker ? startRange.upper : upperLimit;
+    Value lowerBound = deltaRange.lower == lowerMarker
+        ? startRange.lower
+        : lowerLimit;
+    Value upperBound = deltaRange.upper == upperMarker
+        ? startRange.upper
+        : upperLimit;
 
     // Widen the update range and union with the start range.
     final widened = updateRange.replaceMarkers(lowerBound, upperBound);

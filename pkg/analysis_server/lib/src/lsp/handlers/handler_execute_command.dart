@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
@@ -15,6 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.da
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
@@ -22,25 +27,34 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 /// Handles workspace/executeCommand messages by delegating to a specific
 /// handler based on the command.
 class ExecuteCommandHandler
-    extends LspMessageHandler<ExecuteCommandParams, Object?> {
-  final Map<String, CommandHandler<ExecuteCommandParams, Object>>
+    extends SharedMessageHandler<ExecuteCommandParams, Object?> {
+  final Map<
+    String,
+    CommandHandler<ExecuteCommandParams, Object, AnalysisServer>
+  >
   commandHandlers;
 
   ExecuteCommandHandler(super.server)
     : commandHandlers = {
+        // Commands that can run for any underlying server type.
         Commands.sortMembers: SortMembersCommandHandler(server),
         Commands.organizeImports: OrganizeImportsCommandHandler(server),
-        Commands.fixAll: FixAllCommandHandler(server),
-        Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
-        Commands.previewFixAllInWorkspace:
-            PreviewFixAllInWorkspaceCommandHandler(server),
-        Commands.performRefactor: PerformRefactorCommandHandler(server),
-        Commands.validateRefactor: ValidateRefactorCommandHandler(server),
         Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         Commands.logAction: LogActionCommandHandler(server),
+        Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
+        Commands.performRefactor: PerformRefactorCommandHandler(server),
+        Commands.validateRefactor: ValidateRefactorCommandHandler(server),
         // Add commands for each of the refactorings.
         for (var entry in RefactoringProcessor.generators.entries)
           entry.key: RefactorCommandHandler(server, entry.key, entry.value),
+
+        // Commands that currently require an underlying LSP server.
+        if (server is LspAnalysisServer) ...{
+          Commands.fixAll: FixAllCommandHandler(server),
+          Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
+          Commands.previewFixAllInWorkspace:
+              PreviewFixAllInWorkspaceCommandHandler(server),
+        },
       } {
     server.executeCommandHandler = this;
   }
@@ -51,6 +65,11 @@ class ExecuteCommandHandler
   @override
   LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
       ExecuteCommandParams.jsonHandler;
+
+  @override
+  /// This handler does not require a trusted caller, however some of the
+  /// commands might (which are checked on the handler during execution).
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<Object?>> handle(
@@ -66,18 +85,28 @@ class ExecuteCommandHandler
       );
     }
 
+    if (handler.requiresTrustedCaller && !message.isTrustedCaller) {
+      return error(
+        ServerErrorCodes.UnknownCommand,
+        '${params.command} can only be called by the owning process',
+      );
+    }
+
     if (!handler.recordsOwnAnalytics) {
       server.analyticsManager.executedCommand(params.command);
     }
     var workDoneToken = params.workDoneToken;
-    var progress =
-        workDoneToken != null
-            ? ProgressReporter.clientProvided(server, workDoneToken)
-            // Use editor client capabilities, as that's who gets progress
-            // notifications, not the caller.
-            : server.editorClientCapabilities?.workDoneProgress ?? false
-            ? ProgressReporter.serverCreated(server)
-            : ProgressReporter.noop;
+    ProgressReporter progress = ProgressReporter.noop;
+    if (server case LspAnalysisServer server) {
+      progress =
+          workDoneToken != null
+              ? ProgressReporter.clientProvided(server, workDoneToken)
+              // Use editor client capabilities, as that's who gets progress
+              // notifications, not the caller.
+              : server.editorClientCapabilities?.workDoneProgress ?? false
+              ? ProgressReporter.serverCreated(server)
+              : ProgressReporter.noop;
+    }
 
     // To make passing arguments easier in commands, instead of a
     // `List<Object?>` we now use `Map<String, Object?>`.

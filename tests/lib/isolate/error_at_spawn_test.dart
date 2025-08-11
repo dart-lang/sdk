@@ -26,8 +26,11 @@ main() {
     asyncEnd();
   };
 
-  Isolate.spawn(isomain, null,
-      // Setup handler as part of spawn.
-      errorsAreFatal: false,
-      onError: errorPort.sendPort);
+  Isolate.spawn(
+    isomain,
+    null,
+    // Setup handler as part of spawn.
+    errorsAreFatal: false,
+    onError: errorPort.sendPort,
+  );
 }

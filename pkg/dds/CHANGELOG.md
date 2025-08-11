@@ -1,7 +1,23 @@
-# 5.0.1-wip
+# 5.0.5
+- [DAP] The change in DDS 5.0.4 to individually add/remove breakpoints has been reverted and may be restored in a future version.
 
+# 5.0.4
+- [DAP] Breakpoints are now added/removed individually instead of all being cleared and re-added during a `setBreakpoints` request. This improves performance and can avoid breakpoints flickering between unresolved/resolved when adding new breakpoints in the same file.
+
+# 5.0.3
+- [DAP] Handle some additional errors if the VM Service is shutting down during an attempt to resume an isolate.
+- [DAP] Stack frames with dots in paths will now be parsed and have locations attached to `OutputEvents`s.
+- [DAP] Responses to `evaluateRequest` that are lists now include `indexedVariables` to allow for client-side paging.
+
+# 5.0.2
+- [DAP] Handle possible race condition when interacting with web applications
+  that can cause an `RPCError` to be thrown if the application's isolate is
+  disposed mid-RPC.
+
+# 5.0.1
 - Widen the dependency on `package:shelf_web_socket`.
 - Require Dart SDK v. 3.5.0 or higher.
+- Started caching events sent on the 'Timer' stream. The cached events can be retrieved using the `getStreamHistory` RPC.
 
 # 5.0.0
 - [DAP] The debug adapter no longer spawns its own in-process copy of DDS, instead relying on one started by the Dart VM (or `Flutter`). This means the `enableDds` and `enableAuthCodes` arguments to the `DartDebugAdapter` base class have been deprecated and have any effect. Suppressing DDS (or auth codes) should be done in launch configuration (for example using `vmAdditionalArgs` or `toolArgs` depending on the target tool).

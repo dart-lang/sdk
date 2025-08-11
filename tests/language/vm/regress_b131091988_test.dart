@@ -11,7 +11,8 @@ abstract class A<T> {
 }
 
 class B extends A<int> {
-  int Function(List<int> raw) get decode => (List<int> raw) => raw.first;
+  int Function(List<int> raw) get decode =>
+      (List<int> raw) => raw.first;
 }
 
 class C<T> {

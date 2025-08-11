@@ -76,7 +76,7 @@ abstract class C2 extends core::Object implements self::C1 {
   abstract get property3() → core::int?;
   abstract get property4() → core::int;
   abstract get property5() → core::int;
-  abstract get property6() → core::int?;
+  abstract erroneous get property6() → core::int?;
 }
 abstract class D1 extends core::Object {
   synthetic constructor •() → self::D1
@@ -102,24 +102,24 @@ abstract class D4 extends core::Object implements self::D3 {
 }
 extension Extension<T extends core::num> on core::int {
   get property1 = self::Extension|get#property1;
-  get property2 = self::Extension|get#property2;
-  get property3 = self::Extension|get#property3;
-  get property4a = self::Extension|get#property4a;
-  get property4b = self::Extension|get#property4b;
-  get property5 = self::Extension|get#property5;
-  get property6 = self::Extension|get#property6;
-  static get property7 = get self::Extension|property7;
-  static get property8 = get self::Extension|property8;
-  static get property9 = get self::Extension|property9;
   set property1 = self::Extension|set#property1;
+  get property2 = self::Extension|get#property2;
   set property2 = self::Extension|set#property2;
+  get property3 = self::Extension|get#property3;
   set property3 = self::Extension|set#property3;
+  get property4a = self::Extension|get#property4a;
   set property4a = self::Extension|set#property4a;
+  get property4b = self::Extension|get#property4b;
   set property4b = self::Extension|set#property4b;
+  get property5 = self::Extension|get#property5;
   set property5 = self::Extension|set#property5;
+  get property6 = self::Extension|get#property6;
   set property6 = self::Extension|set#property6;
+  static get property7 = get self::Extension|property7;
   static set property7 = set self::Extension|property7;
+  static get property8 = get self::Extension|property8;
   static set property8 = set self::Extension|property8;
+  static get property9 = get self::Extension|property9;
   static set property9 = set self::Extension|property9;
 }
 static get property1() → core::int

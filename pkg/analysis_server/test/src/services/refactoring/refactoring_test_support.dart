@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
-import '../../../lsp/code_actions_abstract.dart';
+import '../../../lsp/code_actions_mixin.dart';
+import '../../../lsp/server_abstract.dart';
 import '../../../utils/test_code_extensions.dart';
 
-abstract class RefactoringTest extends AbstractCodeActionsTest {
+abstract class RefactoringTest extends AbstractLspAnalysisServerTest
+    with LspSharedTestMixin, CodeActionsTestMixin {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 
@@ -43,46 +46,37 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     expect(actual, expected);
   }
 
-  /// Executes the refactor in [action].
-  Future<void> executeRefactor(CodeAction action) async {
-    await executeCommandForEdits(action.command!);
-  }
-
-  /// Expects to find a refactor [CodeAction] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
-  Future<CodeAction> expectCodeAction(String title) async {
-    var action = await getCodeAction(title);
+  /// Expects to find a refactor [CodeAction] with the title [title] in
+  /// [mainFileUri] at the offset of the marker .
+  Future<CodeAction> expectCodeActionWithTitle(String title) async {
+    var action = await getCodeActionWithTitle(title);
     expect(action, isNotNull, reason: "Action '$title' should be included");
     return action!;
   }
 
-  /// Expects to not find a refactor [CodeAction] in [mainFileUri] at the offset
-  /// of the marker with the title [title].
-  Future<void> expectNoCodeAction(String? title) async {
-    expect(await getCodeAction(title), isNull);
+  /// Expects to not find a refactor [CodeActionLiteral] with the title [title]
+  /// in [mainFileUri] at the offset of the marker .
+  Future<void> expectNoCodeActionWithTitle(String? title) async {
+    expect(await getCodeActionWithTitle(title), isNull);
   }
 
-  /// Attempts to find a refactor [CodeAction] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
-  Future<CodeAction?> getCodeAction(String? title) async {
+  /// Attempts to find a refactor Code Action with the title [title] in
+  /// [mainFileUri] at the offset of the marker .
+  Future<CodeAction?> getCodeActionWithTitle(String? title) async {
     var codeActions = await getCodeActions(
       mainFileUri,
       position: _position,
       range: _range,
       kinds: const [CodeActionKind.Refactor],
     );
-    var commandOrCodeAction = findCommand(codeActions, refactoringName, title);
-    var codeAction = commandOrCodeAction?.map(
-      (command) => throw 'Expected CodeAction, got Command',
-      (codeAction) => codeAction,
-    );
-    return codeAction;
+    return findCommand(codeActions, refactoringName, title);
   }
 
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
   List<Object?> getRefactorCommandArguments(CodeAction action) {
-    var commandArguments = action.command!.arguments as List<Object?>;
+    var command = action.command!;
+    var commandArguments = command.arguments as List<Object?>;
 
     // Our refactor command uses a single object in its arguments so we can have
     // named fields instead of having the client have to know which index
@@ -100,9 +94,21 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   ///
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
+  @override
   Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
     var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
-    await provideConfig(super.initialize, config);
+    await provideConfig(super.initializeServer, config);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Many refactor tests test with code that produces errors.
+    failTestOnErrorDiagnostic = false;
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
   }
 }

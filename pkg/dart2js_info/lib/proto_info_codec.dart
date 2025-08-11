@@ -129,10 +129,9 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   FunctionInfoPB _convertToFunctionInfoPB(FunctionInfo info) {
-    final proto =
-        FunctionInfoPB()
-          ..functionModifiers = _convertToFunctionModifiers(info.modifiers)
-          ..inlinedCount = info.inlinedCount ?? 0;
+    final proto = FunctionInfoPB()
+      ..functionModifiers = _convertToFunctionModifiers(info.modifiers)
+      ..inlinedCount = info.inlinedCount ?? 0;
 
     proto.returnType = info.returnType;
 
@@ -151,11 +150,10 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   FieldInfoPB _convertToFieldInfoPB(FieldInfo info) {
-    final proto =
-        FieldInfoPB()
-          ..type = info.type
-          ..inferredType = info.inferredType
-          ..isConst = info.isConst;
+    final proto = FieldInfoPB()
+      ..type = info.type
+      ..inferredType = info.inferredType
+      ..isConst = info.isConst;
 
     proto.code = info.code.map((c) => c.text).join('\n');
 
@@ -189,11 +187,10 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   InfoPB _convertToInfoPB(Info info) {
-    final proto =
-        InfoPB()
-          ..id = idFor(info).id
-          ..serializedId = idFor(info).serializedId
-          ..size = info.size;
+    final proto = InfoPB()
+      ..id = idFor(info).id
+      ..serializedId = idFor(info).serializedId
+      ..size = info.size;
 
     proto.name = info.name;
 
@@ -240,22 +237,19 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   ProgramInfoPB _convertToProgramInfoPB(ProgramInfo info) {
-    var result =
-        ProgramInfoPB()
-          ..entrypointId = idFor(info.entrypoint).serializedId
-          ..size = info.size
-          ..compilationMoment = Int64(
-            info.compilationMoment.microsecondsSinceEpoch,
-          )
-          ..compilationDuration = Int64(info.compilationDuration.inMicroseconds)
-          ..toProtoDuration = Int64(info.toJsonDuration.inMicroseconds)
-          ..dumpInfoDuration = Int64(info.dumpInfoDuration.inMicroseconds)
-          ..noSuchMethodEnabled = info.noSuchMethodEnabled
-          ..isRuntimeTypeUsed = info.isRuntimeTypeUsed
-          ..isIsolateUsed = info.isIsolateInUse
-          ..isFunctionApplyUsed = info.isFunctionApplyUsed
-          ..isMirrorsUsed = info.isMirrorsUsed
-          ..minified = info.minified;
+    var result = ProgramInfoPB()
+      ..entrypointId = idFor(info.entrypoint).serializedId
+      ..size = info.size
+      ..compilationMoment = Int64(info.compilationMoment.microsecondsSinceEpoch)
+      ..compilationDuration = Int64(info.compilationDuration.inMicroseconds)
+      ..toProtoDuration = Int64(info.toJsonDuration.inMicroseconds)
+      ..dumpInfoDuration = Int64(info.dumpInfoDuration.inMicroseconds)
+      ..noSuchMethodEnabled = info.noSuchMethodEnabled
+      ..isRuntimeTypeUsed = info.isRuntimeTypeUsed
+      ..isIsolateUsed = info.isIsolateInUse
+      ..isFunctionApplyUsed = info.isFunctionApplyUsed
+      ..isMirrorsUsed = info.isMirrorsUsed
+      ..minified = info.minified;
 
     if (info.dart2jsVersion != null) {
       result.dart2jsVersion = info.dart2jsVersion!;
@@ -277,10 +271,9 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     String libraryUri,
     Map<String, dynamic> fields,
   ) {
-    final proto =
-        LibraryDeferredImportsPB()
-          ..libraryUri = libraryUri
-          ..libraryName = fields['name'] ?? '<unnamed>';
+    final proto = LibraryDeferredImportsPB()
+      ..libraryUri = libraryUri
+      ..libraryName = fields['name'] ?? '<unnamed>';
 
     Map<String, List<String>> imports = fields['imports'];
     imports.forEach((prefix, files) {

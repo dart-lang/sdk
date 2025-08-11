@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 
 /// A completion generator that can produce completion suggestions for analysis
@@ -75,8 +74,8 @@ class _ErrorProducer extends KeyValueProducer {
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     return [
-      for (var error in errorCodeValues)
-        identifier('${error.name.toLowerCase()}: '),
+      for (var diagnostic in diagnosticCodeValues)
+        identifier('${diagnostic.name.toLowerCase()}: '),
       for (var rule in Registry.ruleRegistry.rules)
         identifier('${rule.name}: '),
     ];

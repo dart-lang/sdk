@@ -44,8 +44,6 @@ class A extends core::Object {
     ;
   method n() → void
     ;
-  set n(wildcard dynamic _#wc3#formal) → void
-    ;
 }
 class B extends self::A {
   final field dynamic d;

@@ -16,13 +16,10 @@ main() {
   group('Duplicate variable', () {
     test('In logical-and', () {
       h.runPattern(
-        _And(
-          _VarPattern('x', 1),
-          _VarPattern('x', 2),
-        ),
+        _And(_VarPattern('x', 1), _VarPattern('x', 2)),
         expectedVariables: {'x: 1'},
         expectErrors: [
-          'duplicateVariablePattern(name: x, original: 1, duplicate: 2)'
+          'duplicateVariablePattern(name: x, original: 1, duplicate: 2)',
         ],
       );
     });
@@ -32,38 +29,27 @@ main() {
     group('Variable should be present in both branches:', () {
       test('Both have', () {
         h.runPattern(
-          _Or(
-            _VarPattern('x', 1),
-            _VarPattern('x', 2),
-          ),
+          _Or(_VarPattern('x', 1), _VarPattern('x', 2)),
           expectedVariables: {'x: [1, 2]'},
         );
       });
       test('Left has', () {
         h.runPattern(
-          _Or(
-            _VarPattern('x', 1),
-            _Empty(),
-            id: 2,
-          ),
+          _Or(_VarPattern('x', 1), _Empty(), id: 2),
           expectedVariables: {'x: notConsistent:logicalOr [1]'},
           expectErrors: [
             'logicalOrPatternBranchMissingVariable(node: 2, '
-                'hasInLeft: true, name: x, variable: 1)'
+                'hasInLeft: true, name: x, variable: 1)',
           ],
         );
       });
       test('Right has', () {
         h.runPattern(
-          _Or(
-            _Empty(),
-            _VarPattern('x', 1),
-            id: 2,
-          ),
+          _Or(_Empty(), _VarPattern('x', 1), id: 2),
           expectedVariables: {'x: notConsistent:logicalOr [1]'},
           expectErrors: [
             'logicalOrPatternBranchMissingVariable(node: 2, '
-                'hasInLeft: false, name: x, variable: 1)'
+                'hasInLeft: false, name: x, variable: 1)',
           ],
         );
       });
@@ -74,30 +60,21 @@ main() {
     test('Both have', () {
       h.runSwitchStatementSharedBody(
         sharedCaseScopeKey: 0,
-        casePatterns: [
-          _VarPattern('x', 1),
-          _VarPattern('x', 2),
-        ],
+        casePatterns: [_VarPattern('x', 1), _VarPattern('x', 2)],
         expectedVariables: {'x: [1, 2]'},
       );
     });
     test('First has', () {
       h.runSwitchStatementSharedBody(
         sharedCaseScopeKey: 0,
-        casePatterns: [
-          _VarPattern('x', 1),
-          _Empty(),
-        ],
+        casePatterns: [_VarPattern('x', 1), _Empty()],
         expectedVariables: {'x: notConsistent:sharedCaseAbsent [1]'},
       );
     });
     test('Second has', () {
       h.runSwitchStatementSharedBody(
         sharedCaseScopeKey: 0,
-        casePatterns: [
-          _Empty(),
-          _VarPattern('x', 1),
-        ],
+        casePatterns: [_Empty(), _VarPattern('x', 1)],
         expectedVariables: {'x: notConsistent:sharedCaseAbsent [1]'},
       );
     });
@@ -105,10 +82,7 @@ main() {
       h.runSwitchStatementSharedBody(
         sharedCaseScopeKey: 0,
         casePatterns: [
-          _And(
-            _VarPattern('x', 1),
-            _VarPattern('y', 2),
-          ),
+          _And(_VarPattern('x', 1), _VarPattern('y', 2)),
           _VarPattern('x', 3),
         ],
         expectedVariables: {
@@ -121,9 +95,7 @@ main() {
       test('First', () {
         h.runSwitchStatementSharedBody(
           sharedCaseScopeKey: 0,
-          casePatterns: [
-            _VarPattern('x', 1),
-          ],
+          casePatterns: [_VarPattern('x', 1)],
           hasDefaultFirst: true, // does not happen normally
           expectedVariables: {'x: notConsistent:sharedCaseHasLabel [1]'},
         );
@@ -131,9 +103,7 @@ main() {
       test('Last', () {
         h.runSwitchStatementSharedBody(
           sharedCaseScopeKey: 0,
-          casePatterns: [
-            _VarPattern('x', 1),
-          ],
+          casePatterns: [_VarPattern('x', 1)],
           hasDefaultLast: true,
           expectedVariables: {'x: notConsistent:sharedCaseHasLabel [1]'},
         );
@@ -144,10 +114,7 @@ main() {
         h.runSwitchStatementSharedBody(
           sharedCaseScopeKey: 0,
           casePatterns: [
-            _Or(
-              _VarPattern('x', 1),
-              _VarPattern('x', 2),
-            ),
+            _Or(_VarPattern('x', 1), _VarPattern('x', 2)),
             _VarPattern('x', 3),
           ],
           expectedVariables: {'x: [[1, 2], 3]'},
@@ -157,10 +124,7 @@ main() {
         h.runSwitchStatementSharedBody(
           sharedCaseScopeKey: 0,
           casePatterns: [
-            _Or(
-              _VarPattern('x', 1),
-              _Empty(),
-            ),
+            _Or(_VarPattern('x', 1), _Empty()),
             _VarPattern('x', 2),
           ],
           expectedVariables: {
@@ -176,10 +140,7 @@ main() {
         h.runSwitchStatementSharedBody(
           sharedCaseScopeKey: 0,
           casePatterns: [
-            _Or(
-              _VarPattern('x', 1),
-              _VarPattern('x', 2),
-            ),
+            _Or(_VarPattern('x', 1), _VarPattern('x', 2)),
             _Empty(),
           ],
           expectedVariables: {'x: notConsistent:sharedCaseAbsent [[1, 2]]'},
@@ -190,10 +151,7 @@ main() {
           sharedCaseScopeKey: 0,
           casePatterns: [
             _Empty(),
-            _Or(
-              _VarPattern('x', 1),
-              _VarPattern('x', 2),
-            ),
+            _Or(_VarPattern('x', 1), _VarPattern('x', 2)),
           ],
           expectedVariables: {'x: notConsistent:sharedCaseAbsent [[1, 2]]'},
         );
@@ -231,8 +189,10 @@ class _Errors implements VariableBinderErrors<_Node, _VariableElement> {
     required _VariableElement original,
     required _VariableElement duplicate,
   }) {
-    _errors.add('duplicateVariablePattern(name: $name, '
-        'original: $original, duplicate: $duplicate)');
+    _errors.add(
+      'duplicateVariablePattern(name: $name, '
+      'original: $original, duplicate: $duplicate)',
+    );
   }
 
   @override
@@ -242,8 +202,10 @@ class _Errors implements VariableBinderErrors<_Node, _VariableElement> {
     required String name,
     required _VariableElement variable,
   }) {
-    _errors.add('logicalOrPatternBranchMissingVariable(node: $node, '
-        'hasInLeft: $hasInLeft, name: $name, variable: $variable)');
+    _errors.add(
+      'logicalOrPatternBranchMissingVariable(node: $node, '
+      'hasInLeft: $hasInLeft, name: $name, variable: $variable)',
+    );
   }
 
   @override
@@ -285,15 +247,14 @@ class _Harness {
     for (var casePattern in casePatterns) {
       _binder.casePatternStart();
       casePattern._visit(this);
-      _binder.casePatternFinish(
-        sharedCaseScopeKey: sharedCaseScopeKey,
-      );
+      _binder.casePatternFinish(sharedCaseScopeKey: sharedCaseScopeKey);
     }
     if (hasDefaultLast) {
       _binder.switchStatementSharedCaseScopeEmpty(sharedCaseScopeKey);
     }
-    var variables =
-        _binder.switchStatementSharedCaseScopeFinish(sharedCaseScopeKey);
+    var variables = _binder.switchStatementSharedCaseScopeFinish(
+      sharedCaseScopeKey,
+    );
     _binder.finish();
     _assertVariables(variables, expectedVariables);
     expect(errors._errors, expectErrors);
@@ -347,9 +308,7 @@ class _VariableBindElement extends _VariableElement {
 }
 
 class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
-  _VariableBinder({
-    required super.errors,
-  });
+  _VariableBinder({required super.errors});
 
   @override
   _VariableElement joinPatternVariables({
@@ -363,7 +322,7 @@ class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
           if (key is _Or && variable is _VariableJoinElement)
             ...variable.components
           else
-            variable
+            variable,
       ],
       inconsistency: inconsistency.maxWithAll(
         components.map((e) => e.inconsistency),
@@ -384,10 +343,7 @@ class _VariableJoinElement extends _VariableElement {
   @override
   final JoinedPatternVariableInconsistency inconsistency;
 
-  _VariableJoinElement({
-    required this.components,
-    required this.inconsistency,
-  });
+  _VariableJoinElement({required this.components, required this.inconsistency});
 
   @override
   String toString() {
@@ -404,8 +360,8 @@ class _VarPattern extends _Node {
   final _VariableBindElement element;
 
   _VarPattern(this.name, int id)
-      : element = _VariableBindElement('$id'),
-        super(id: id);
+    : element = _VariableBindElement('$id'),
+      super(id: id);
 
   @override
   void _visit(_Harness h) {

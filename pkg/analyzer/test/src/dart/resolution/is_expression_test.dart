@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   void f() {
     super is T;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5)],
+    );
 
     var node = findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
@@ -35,7 +36,7 @@ IsExpression
   isOperator: is
   type: NamedType
     name: T
-    element2: T@8
+    element2: #E0 T
     type: T
   staticType: bool
 ''');
@@ -58,7 +59,7 @@ IsExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -95,7 +96,7 @@ void f(Object? a) {
 IsExpression
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?
   isOperator: is
   type: NamedType
@@ -118,7 +119,7 @@ void f(Object? a) {
 IsExpression
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?
   isOperator: is
   notOperator: !

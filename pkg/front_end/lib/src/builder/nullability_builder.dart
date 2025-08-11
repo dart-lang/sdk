@@ -39,7 +39,6 @@ class NullabilityBuilder {
     switch (nullability) {
       case Nullability.nullable:
         return const NullabilityBuilder.nullable();
-      case Nullability.legacy:
       case Nullability.nonNullable:
       case Nullability.undetermined:
         return const NullabilityBuilder.omitted();

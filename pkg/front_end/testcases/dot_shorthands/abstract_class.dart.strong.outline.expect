@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method instantiation() → core::Function
+  ;
+static method tearOff() → core::Function
+  ;
+static method main() → void async 
+  ;

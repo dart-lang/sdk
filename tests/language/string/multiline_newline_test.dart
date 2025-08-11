@@ -37,18 +37,27 @@ main() {
   Expect.equals(lf.nonConstantMultilineString, cr.nonConstantMultilineString);
 
   Expect.equals(
-      cr.nonConstantRawMultilineString, crlf.nonConstantRawMultilineString);
+    cr.nonConstantRawMultilineString,
+    crlf.nonConstantRawMultilineString,
+  );
   Expect.equals(
-      crlf.nonConstantRawMultilineString, lf.nonConstantRawMultilineString);
+    crlf.nonConstantRawMultilineString,
+    lf.nonConstantRawMultilineString,
+  );
   Expect.equals(
-      lf.nonConstantRawMultilineString, cr.nonConstantRawMultilineString);
+    lf.nonConstantRawMultilineString,
+    cr.nonConstantRawMultilineString,
+  );
 
-  const c1 =
-  cr.constantMultilineString == crlf.constantMultilineString ? true : null;
-  const c2 =
-  crlf.constantMultilineString == lf.constantMultilineString ? true : null;
-  const c3 =
-  lf.constantMultilineString == cr.constantMultilineString ? true : null;
+  const c1 = cr.constantMultilineString == crlf.constantMultilineString
+      ? true
+      : null;
+  const c2 = crlf.constantMultilineString == lf.constantMultilineString
+      ? true
+      : null;
+  const c3 = lf.constantMultilineString == cr.constantMultilineString
+      ? true
+      : null;
   Expect.isTrue(c1);
   Expect.isTrue(c2);
   Expect.isTrue(c3);
@@ -69,45 +78,48 @@ main() {
   const c4 = c1 ? 1 : 2;
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(1, c4);
 
   const c5 = c2 ? 2 : 3;
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(2, c5);
 
   const c6 = c3 ? 3 : 4;
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(3, c6);
 
   const c4r = c1r ? 1 : 2;
   //          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(1, c4r);
 
   const c5r = c2r ? 2 : 3;
   //          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(2, c5r);
 
   const c6r = c3r ? 3 : 4;
   //          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   Expect.equals(3, c6r);
 
-  const c7 =
-  cr.constantMultilineString != crlf.constantMultilineString ? true : null;
-  const c8 =
-  crlf.constantMultilineString != lf.constantMultilineString ? true : null;
-  const c9 =
-  lf.constantMultilineString != cr.constantMultilineString ? true : null;
+  const c7 = cr.constantMultilineString != crlf.constantMultilineString
+      ? true
+      : null;
+  const c8 = crlf.constantMultilineString != lf.constantMultilineString
+      ? true
+      : null;
+  const c9 = lf.constantMultilineString != cr.constantMultilineString
+      ? true
+      : null;
   Expect.isNull(c7);
   Expect.isNull(c8);
   Expect.isNull(c9);
@@ -136,38 +148,32 @@ main() {
   const c10 = c7 ? 1 : 2;
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //          ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   const c11 = c8 ? 2 : 3;
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //          ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   const c12 = c9 ? 3 : 4;
   //          ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //          ^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   const c10r = c7r ? 1 : 2;
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   const c11r = c8r ? 2 : 3;
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
   const c12r = c9r ? 3 : 4;
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
-  //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 }

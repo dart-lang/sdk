@@ -67,6 +67,7 @@ import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
+import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
     as convert_null_check_to_null_aware_element_or_entry;
@@ -83,6 +84,7 @@ import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_flutter_style_todo_test.dart'
     as convert_to_flutter_style_todo;
+import 'convert_to_for_each_test.dart' as convert_to_for_each;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_function_declaration_test.dart'
     as convert_to_function_declaration;
@@ -130,9 +132,12 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_operator_test.dart' as create_operator;
 import 'create_parameter_test.dart' as create_parameter;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
+import 'deduplicating_still_offers_several_all_in_file_options_test.dart'
+    as deduplicating_still_offers_several_all_in_file_options;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'extract_local_variable_test.dart' as extract_local_variable;
@@ -177,6 +182,7 @@ import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
+import 'remove_async_test.dart' as remove_async;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_break_test.dart' as remove_break;
 import 'remove_character_test.dart' as remove_character;
@@ -224,6 +230,7 @@ import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
+import 'remove_unawaited_test.dart' as remove_unawaited;
 import 'remove_unexpected_underscores_test.dart'
     as remove_unexpected_underscores;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
@@ -373,6 +380,7 @@ void main() {
     convert_for_each_to_for_loop.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
+    convert_into_getter.main();
     convert_into_is_not.main();
     convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
@@ -385,6 +393,7 @@ void main() {
     convert_to_double_quoted_string.main();
     convert_to_flutter_style_todo.main();
     convert_to_for_element.main();
+    convert_to_for_each.main();
     convert_to_function_declaration.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
@@ -424,8 +433,10 @@ void main() {
     create_missing_overrides.main();
     create_mixin.main();
     create_no_such_method.main();
+    create_operator.main();
     create_setter.main();
     data_driven.main();
+    deduplicating_still_offers_several_all_in_file_options.main();
     directives_ordering.main();
     extend_class_for_mixin.main();
     extract_local_variable.main();
@@ -467,6 +478,7 @@ void main() {
     remove_argument.main();
     remove_assertion.main();
     remove_assignment.main();
+    remove_async.main();
     remove_await.main();
     remove_break.main();
     remove_character.main();
@@ -509,6 +521,7 @@ void main() {
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
+    remove_unawaited.main();
     remove_unexpected_underscores.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();

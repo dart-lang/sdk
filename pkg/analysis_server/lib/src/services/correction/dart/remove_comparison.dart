@@ -6,9 +6,9 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -37,17 +37,18 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
-    var errorCode = (diagnostic as AnalysisError).errorCode;
-    return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
-        errorCode ==
+    var diagnosticCode = (diagnostic as Diagnostic).diagnosticCode;
+    return diagnosticCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
+        diagnosticCode ==
             WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
-        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
+        diagnosticCode ==
+            WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
+        diagnosticCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
   /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
-    var errorCode = (diagnostic as AnalysisError).errorCode;
+    var errorCode = (diagnostic as Diagnostic).diagnosticCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||
@@ -84,6 +85,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
       await _ifElement(parent, builder);
     } else if (parent is IfStatement) {
       await _ifStatement(parent, builder);
+    } else if (parent is ConditionalExpression) {
+      await _conditionalExpression(parent, builder);
     }
   }
 
@@ -108,6 +111,24 @@ class RemoveComparison extends ResolvedCorrectionProducer {
       buffer.write(updatedLine);
     }
     return buffer.toString();
+  }
+
+  Future<void> _conditionalExpression(
+    ConditionalExpression node,
+    ChangeBuilder builder,
+  ) async {
+    Future<void> replaceWithExpression(Expression expression) async {
+      var text = utils.getNodeText(expression);
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.node(node), text);
+      });
+    }
+
+    if (_conditionIsTrue) {
+      await replaceWithExpression(node.thenExpression);
+    } else if (_conditionIsFalse) {
+      await replaceWithExpression(node.elseExpression);
+    }
   }
 
   Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {

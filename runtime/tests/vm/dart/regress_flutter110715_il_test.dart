@@ -49,22 +49,15 @@ void matchIL$bug1(FlowGraph graph) {
     match.block('Try'),
     match.block('Join'),
     match.block('CatchBlock', [
-      match.Branch(match.StrictCompare(match.any, 'cnull', kind: '==='),
-          ifTrue: 'B7', ifFalse: 'B8'),
+      match.Branch(
+        match.StrictCompare(match.any, 'cnull', kind: '==='),
+        ifTrue: 'B7',
+        ifFalse: 'B8',
+      ),
     ]),
-    'B7' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B8' <<
-        match.block('Target', [
-          match.ClosureCall(),
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(),
-        ]),
+    'B7' << match.block('Target', [match.Goto('B5')]),
+    'B8' << match.block('Target', [match.ClosureCall(), match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn()]),
   ]);
 }
 
@@ -76,21 +69,14 @@ void matchIL$bug2(FlowGraph graph) {
     match.tryBlock(),
     match.block('Join'),
     match.block('CatchBlock', [
-      match.Branch(match.StrictCompare(match.any, 'cnull', kind: '==='),
-          ifTrue: 'B7', ifFalse: 'B8'),
+      match.Branch(
+        match.StrictCompare(match.any, 'cnull', kind: '==='),
+        ifTrue: 'B7',
+        ifFalse: 'B8',
+      ),
     ]),
-    'B7' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B8' <<
-        match.block('Target', [
-          match.ClosureCall(),
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(),
-        ]),
+    'B7' << match.block('Target', [match.Goto('B5')]),
+    'B8' << match.block('Target', [match.ClosureCall(), match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn()]),
   ]);
 }

@@ -15,7 +15,8 @@ import 'package:expect/expect.dart';
 import '../timeline_utils.dart';
 
 final int wordSize = sizeOf<IntPtr>();
-final bool useCompressedPointers = wordSize == 8 &&
+final bool useCompressedPointers =
+    wordSize == 8 &&
     (Platform.isAndroid ||
         Platform.isIOS ||
         Platform.executable.contains('64C'));
@@ -47,9 +48,11 @@ Future main(List<String> args) async {
     final sendPort = rp.sendPort;
 
     sendPort.send(Object());
-    sendPort.send(List<dynamic>.filled(2, null)
-      ..[0] = Object()
-      ..[1] = Object());
+    sendPort.send(
+      List<dynamic>.filled(2, null)
+        ..[0] = Object()
+        ..[1] = Object(),
+    );
     sendPort.send(Uint8List(11));
 
     rp.close();
@@ -70,12 +73,16 @@ Future main(List<String> args) async {
 
   Expect.equals(objectSize(0), copyOperations[0].bytesCopied);
   Expect.equals(
-      arraySize(2) + 2 * objectSize(0), copyOperations[1].bytesCopied);
+    arraySize(2) + 2 * objectSize(0),
+    copyOperations[1].bytesCopied,
+  );
   Expect.equals(typedDataSize(11), copyOperations[2].bytesCopied);
 }
 
 List<ObjectCopyOperation> getCopyOperations(
-    List<TimelineEvent> events, String isolateId) {
+  List<TimelineEvent> events,
+  String isolateId,
+) {
   final copyOperations = <ObjectCopyOperation>[];
 
   TimelineEvent? start = null;
@@ -89,11 +96,14 @@ List<ObjectCopyOperation> getCopyOperations(
 
       final us = e.ts - start.ts;
       final threadUs = e.tts != null ? (e.tts! - start.tts!) : 0;
-      copyOperations.add(ObjectCopyOperation(
+      copyOperations.add(
+        ObjectCopyOperation(
           us,
           threadUs,
           int.parse(e.args['AllocatedBytes']!),
-          int.parse(e.args['CopiedObjects']!)));
+          int.parse(e.args['CopiedObjects']!),
+        ),
+      );
 
       start = null;
       continue;
@@ -112,7 +122,11 @@ class ObjectCopyOperation {
   final int objectsCopied;
 
   ObjectCopyOperation(
-      this.us, this.threadUs, this.bytesCopied, this.objectsCopied);
+    this.us,
+    this.threadUs,
+    this.bytesCopied,
+    this.objectsCopied,
+  );
 
   String toString() =>
       'ObjectCopyOperation($us, $threadUs, $bytesCopied, $objectsCopied)';

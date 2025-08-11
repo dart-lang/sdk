@@ -28,7 +28,7 @@ typedef JSArrayRepType = interceptors.JSArray<Object?>;
 
 typedef JSBoxedDartObjectRepType = interceptors.JSObject;
 
-typedef JSArrayBufferRepType = typed_data.NativeByteBuffer;
+typedef JSArrayBufferRepType = typed_data.NativeArrayBuffer;
 
 typedef JSDataViewRepType = typed_data.NativeByteData;
 

@@ -11,6 +11,12 @@ import("../create_timestamp.gni")
 
 _dart_root = get_path_info("../..", "abspath")
 
+if (dart_dynamic_modules) {
+  _kernel_service_script = "pkg/dart2bytecode/bin/kernel_service.dart"
+} else {
+  _kernel_service_script = "pkg/vm/bin/kernel_service.dart"
+}
+
 group("kernel-service") {
   if (dart_snapshot_kind == "app-jit") {
     deps = [ ":copy_kernel-service_snapshot" ]
@@ -20,14 +26,14 @@ group("kernel-service") {
 }
 
 application_snapshot("kernel-service_snapshot") {
-  main_dart = "../../pkg/vm/bin/kernel_service.dart"
+  main_dart = "../../$_kernel_service_script"
   training_args = [
     "--train",
 
     # Force triple-slashes both on Windows and otherwise.
     # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
     # Without the ', "/"' part, on Linux it would get four slashes.
-    "file:///" + rebase_path("../../pkg/vm/bin/kernel_service.dart", "/"),
+    "file:///" + rebase_path("../../$_kernel_service_script", "/"),
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
@@ -59,7 +65,7 @@ application_snapshot("frontend_server") {
   training_args = [
     "--train",
     "--sdk-root=$sdk_root/",
-    "--platform=$sdk_root/vm_platform_strong.dill",
+    "--platform=$sdk_root/vm_platform.dill",
     rebase_path(main_dart),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
@@ -93,7 +99,7 @@ template("kernel_service_dill") {
       }
 
       gen_kernel_tool = "//utils:gen_kernel.exe($host_toolchain)"
-      kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+      kernel_service_script = "../../$_kernel_service_script"
 
       deps = [
         "../../runtime/vm:vm_platform",
@@ -101,7 +107,7 @@ template("kernel_service_dill") {
       ]
       inputs = [
         kernel_service_script,
-        "$root_out_dir/vm_platform_strong.dill",
+        "$root_out_dir/vm_platform.dill",
       ]
       output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
       outputs = [ output ]
@@ -124,14 +130,14 @@ template("kernel_service_dill") {
         # consuming/producing kernel.
         "-Dsdk_hash=$sdk_hash",
         "--packages=" + scheme + ":///.dart_tool/package_config.json",
-        "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill",
-                                    root_build_dir),
+        "--platform=" +
+            rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
         "--filesystem-root=" + rebase_path("../../"),
         "--filesystem-scheme=" + scheme,
         "--no-aot",
         "--no-embed-sources",
         "--output=" + rebase_path(output, root_build_dir),
-        scheme + ":///pkg/vm/bin/kernel_service.dart",
+        scheme + ":///$_kernel_service_script",
       ]
     }
   } else {
@@ -140,13 +146,13 @@ template("kernel_service_dill") {
         "../../runtime/vm:kernel_platform_files($host_toolchain)",
         "../../runtime/vm:vm_platform",
       ]
-      kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+      kernel_service_script = "../../$_kernel_service_script"
       gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
 
       inputs = [
         gen_kernel_script,
         kernel_service_script,
-        "$root_out_dir/vm_platform_strong.dill",
+        "$root_out_dir/vm_platform.dill",
       ]
       output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
       outputs = [ output ]
@@ -165,22 +171,21 @@ template("kernel_service_dill") {
       script = gen_kernel_script
       scheme = "org-dartlang-kernel-service"
 
-      args =
-          invoker.extra_args + [
-            # Ensure the compiled kernel-service will use this SDK hash when
-            # consuming/producing kernel.
-            "-Dsdk_hash=$sdk_hash",
+      args = invoker.extra_args + [
+               # Ensure the compiled kernel-service will use this SDK hash when
+               # consuming/producing kernel.
+               "-Dsdk_hash=$sdk_hash",
 
-            "--packages=" + scheme + ":///.dart_tool/package_config.json",
-            "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill",
-                                        root_build_dir),
-            "--filesystem-root=" + rebase_path("../../"),
-            "--filesystem-scheme=" + scheme,
-            "--no-aot",
-            "--no-embed-sources",
-            "--output=" + rebase_path(output, root_build_dir),
-          ]
-      args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
+               "--packages=" + scheme + ":///.dart_tool/package_config.json",
+               "--platform=" + rebase_path("$root_out_dir/vm_platform.dill",
+                                           root_build_dir),
+               "--filesystem-root=" + rebase_path("../../"),
+               "--filesystem-scheme=" + scheme,
+               "--no-aot",
+               "--no-embed-sources",
+               "--output=" + rebase_path(output, root_build_dir),
+             ]
+      args += [ scheme + ":///$_kernel_service_script" ]
     }
   }
 }

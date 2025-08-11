@@ -34,12 +34,16 @@ void testDecodeSlice() {
 
     if (ascii is Uint8List) {
       Expect.equals("ABCDE", decoder.convert(Uint8List.sublistView(ascii, 0)));
-      Expect.equals("ABCDE",
-          decoder.convert(Uint8List.sublistView(ascii, 0, ascii.length)));
+      Expect.equals(
+        "ABCDE",
+        decoder.convert(Uint8List.sublistView(ascii, 0, ascii.length)),
+      );
       Expect.equals("CDE", decoder.convert(Uint8List.sublistView(ascii, 2)));
       Expect.equals("BCD", decoder.convert(Uint8List.sublistView(ascii, 1, 4)));
       Expect.equals(
-          "ABCD", decoder.convert(Uint8List.sublistView(ascii, 0, 4)));
+        "ABCD",
+        decoder.convert(Uint8List.sublistView(ascii, 0, 4)),
+      );
     }
 
     Expect.throws(() => decoder.convert(ascii, -1)); //    start < 0.
@@ -60,14 +64,22 @@ void testDecodeSlice() {
     Expect.equals("\u0082", decoder.convert(utf8, 2, 4));
 
     if (utf8 is Uint8List) {
-      Expect.equals("\u0081\u0082\u1041",
-          decoder.convert(Uint8List.sublistView(utf8, 0)));
       Expect.equals(
-          "\u0082\u1041", decoder.convert(Uint8List.sublistView(utf8, 2)));
+        "\u0081\u0082\u1041",
+        decoder.convert(Uint8List.sublistView(utf8, 0)),
+      );
       Expect.equals(
-          "\u0081\u0082", decoder.convert(Uint8List.sublistView(utf8, 0, 4)));
+        "\u0082\u1041",
+        decoder.convert(Uint8List.sublistView(utf8, 2)),
+      );
       Expect.equals(
-          "\u0082", decoder.convert(Uint8List.sublistView(utf8, 2, 4)));
+        "\u0081\u0082",
+        decoder.convert(Uint8List.sublistView(utf8, 0, 4)),
+      );
+      Expect.equals(
+        "\u0082",
+        decoder.convert(Uint8List.sublistView(utf8, 2, 4)),
+      );
     }
 
     Expect.throws(() => decoder.convert(utf8, 1));

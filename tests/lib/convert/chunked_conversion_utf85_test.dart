@@ -8,8 +8,9 @@ import 'unicode_tests.dart';
 
 List<int> encode(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.add(str);
   stringConversionSink.close();
@@ -18,8 +19,9 @@ List<int> encode(String str) {
 
 List<int> encode2(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
   stringSink.write(str);
@@ -29,8 +31,9 @@ List<int> encode2(String str) {
 
 List<int> encode3(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
   str.codeUnits.forEach(stringSink.writeCharCode);
@@ -40,8 +43,9 @@ List<int> encode3(String str) {
 
 List<int> encode4(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ClosableStringSink stringSink = stringConversionSink.asStringSink();
   str.runes.forEach(stringSink.writeCharCode);
@@ -51,8 +55,9 @@ List<int> encode4(String str) {
 
 List<int> encode5(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   List<int> tmpBytes = utf8.encode(str);
@@ -63,8 +68,9 @@ List<int> encode5(String str) {
 
 List<int> encode6(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   List<int> tmpBytes = utf8.encode(str);
@@ -75,8 +81,9 @@ List<int> encode6(String str) {
 
 List<int> encode7(String str) {
   late List<int> bytes;
-  var byteSink =
-      new ByteConversionSink.withCallback((result) => bytes = result);
+  var byteSink = new ByteConversionSink.withCallback(
+    (result) => bytes = result,
+  );
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   stringConversionSink.addSlice("1" + str + "2", 1, str.length + 1, false);
   stringConversionSink.close();

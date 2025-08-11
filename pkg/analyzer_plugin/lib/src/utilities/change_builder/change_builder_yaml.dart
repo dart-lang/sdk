@@ -60,6 +60,8 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
       super.addReplacement(
           range, (builder) => buildEdit(builder as YamlEditBuilder));
 
+  @Deprecated('Copying change builders is expensive. Internal users of this '
+      'method now use `commit` and `revert` instead.')
   @override
   YamlFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
       {Map<YamlFileEditBuilderImpl, YamlFileEditBuilderImpl> editBuilderMap =

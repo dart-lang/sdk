@@ -250,6 +250,162 @@ class Bar {
     );
   }
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+class Foo {
+  Foo.nam^ed();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  Foo foo = .named();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'named')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  Foo foo = .new();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'new')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+class Foo {
+  static Foo meth^od() => Foo();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  Foo foo = .method();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'method')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_extensionType() async {
+    var code = TestCode.parse('''
+extension type Foo(int x) {
+  static Foo meth^od() => Foo(1);
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  Foo foo = .method();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'method')],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_function() async {
     var code = TestCode.parse('''
 void fo^o() {}
@@ -555,6 +711,156 @@ class Bar {
           ),
           // Ranges of the outbound call.
           fromRanges: [rangeOfString(code, 'Bar')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  Fo^o() {
+    Bar b = .named();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar {
+  Bar.named();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar.named',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar.named();'),
+            selectionRange: rangeOfString(otherCode, 'named'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'named')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  Fo^o() {
+    Bar b = .new();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar {}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'class Bar {}'),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'new')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  void f^oo() {
+    Bar bar = .method();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar {
+  static Bar method() => Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'method',
+            detail: 'Bar',
+            kind: SymbolKind.Method,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'static Bar method() => Bar();'),
+            selectionRange: rangeOfString(otherCode, 'method'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'method')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_extensionType() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  void f^oo() {
+    Bar bar = Bar.method();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+extension type Bar(int x) {
+  static Bar method() => Bar(1);
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'method',
+            detail: 'Bar',
+            kind: SymbolKind.Method,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'static Bar method() => Bar(1);'),
+            selectionRange: rangeOfString(otherCode, 'method'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'method')],
         ),
       ],
     );
@@ -1031,6 +1337,120 @@ class Foo {
         uri: otherFileUri,
         range: rangeOfString(otherCode, 'Foo();'),
         selectionRange: otherCode.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  Foo foo = .nam^ed();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.named();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo.named',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'Foo.named();'),
+        selectionRange: rangeOfString(otherCode, 'named'),
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  Foo foo = .ne^w();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'class Foo {}'),
+        selectionRange: rangeOfString(otherCode, 'Foo'),
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  Foo foo = .meth^od();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  static Foo method() => Foo();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'method',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Method,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'static Foo method() => Foo();'),
+        selectionRange: rangeOfString(otherCode, 'method'),
+      ),
+    );
+  }
+
+  Future<void> test_dotShorthand_method_extensionType() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  Foo foo = .meth^od();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+extension type Foo(int x) {
+  static Foo method() => Foo(1);
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+        name: 'method',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Method,
+        uri: otherFileUri,
+        range: rangeOfString(otherCode, 'static Foo method() => Foo(1);'),
+        selectionRange: rangeOfString(otherCode, 'method'),
       ),
     );
   }

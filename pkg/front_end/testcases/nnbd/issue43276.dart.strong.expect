@@ -16,13 +16,13 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor gen({core::int i = #C1}) → self::C
+  constructor gen({erroneously-initialized core::int i = #C1}) → self::C
     : super core::Object::•()
     ;
-  static factory fact({core::int i = #C1}) → self::C {
+  static factory fact({erroneously-initialized core::int i = #C1}) → self::C {
     return new self::C::gen();
   }
-  static factory redirect({core::int i = #C1}) → self::C /* redirection-target: self::C::gen */
+  static factory redirect({erroneously-initialized core::int i = #C1}) → self::C /* redirection-target: self::C::gen */
     return new self::C::gen(i: i);
 }
 class D extends core::Object {

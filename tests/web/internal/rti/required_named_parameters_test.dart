@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd
+// dart2jsOptions=--no-minify
 
 import 'dart:_rti' as rti;
 import 'dart:_foreign_helper' show JS;
@@ -52,18 +52,26 @@ main() {
   // Subtype may not redeclare optional parameters as required
   rti2 = rti.testingUniverseEval(universe, "@(A,{a!A,b!A,c!A})");
   Expect.equals(
-      hasUnsoundNullSafety, rti.testingIsSubtype(universe, rti2, rti1));
+    hasUnsoundNullSafety,
+    rti.testingIsSubtype(universe, rti2, rti1),
+  );
 
   // Subtype may not declare new required named parameters
   rti2 = rti.testingUniverseEval(universe, "@(A,{a!A,b:A,c!A,d!A})");
   Expect.equals(
-      hasUnsoundNullSafety, rti.testingIsSubtype(universe, rti2, rti1));
+    hasUnsoundNullSafety,
+    rti.testingIsSubtype(universe, rti2, rti1),
+  );
 
   // Rti.toString() appears as expected
-  Expect.equals('(B, {required B a, B b, required B c}) => dynamic',
-      rti.testingRtiToString(rti1));
+  Expect.equals(
+    '(B, {required B a, B b, required B c}) => dynamic',
+    rti.testingRtiToString(rti1),
+  );
 
   // Rti debug string properly annotates all required parameters
   Expect.equals(
-      2, 'required'.allMatches(rti.testingRtiToDebugString(rti1)).length);
+    2,
+    'required'.allMatches(rti.testingRtiToDebugString(rti1)).length,
+  );
 }

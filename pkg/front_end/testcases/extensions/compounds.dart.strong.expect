@@ -32,15 +32,15 @@ extension NumberExtension on self::Number {
 }
 extension ClassExtension on self::Class {
   get property = self::ClassExtension|get#property;
+  set property = self::ClassExtension|set#property;
   method testImplicitProperties = self::ClassExtension|testImplicitProperties;
   method tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
-  set property = self::ClassExtension|set#property;
 }
 extension IntClassExtension on self::IntClass {
   get property = self::IntClassExtension|get#property;
+  set property = self::IntClassExtension|set#property;
   method testImplicitProperties = self::IntClassExtension|testImplicitProperties;
   method tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
-  set property = self::IntClassExtension|set#property;
 }
 static extension-member method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number {
   if(other is core::int) {

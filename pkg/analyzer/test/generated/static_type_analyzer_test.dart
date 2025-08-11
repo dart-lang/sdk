@@ -45,15 +45,18 @@ late Derived<Derived<int>> derivedDerivedInt;
   }
 
   test_flatten_inhibit_recursion() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A extends B {}
 class B extends A {}
 late A a;
 late B b;
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      ],
+    );
     var aType = findElement2.topVar('a').type;
     var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
@@ -64,7 +67,8 @@ late B b;
   }
 
   test_flatten_related_derived_types() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class Derived<T> extends Future<T> {
   factory Derived() => throw 'foo';
 }
@@ -76,13 +80,15 @@ abstract class B extends Future<num> implements Future<int> {
 }
 late A a;
 late B b;
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 133, 12),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 195, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 228, 11),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 133, 12),
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 195, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 228, 11),
+      ],
+    );
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
     var aType = findElement2.topVar('a').type;
@@ -94,7 +100,8 @@ late B b;
   }
 
   test_flatten_related_types() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A extends Future<int> implements Future<num> {
   factory A() => throw 'foo';
 }
@@ -103,12 +110,14 @@ abstract class B extends Future<num> implements Future<int> {
 }
 late A a;
 late B b;
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 11),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 109, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 142, 11),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 11),
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 109, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 142, 11),
+      ],
+    );
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
     var aType = findElement2.topVar('a').type;
@@ -142,7 +151,8 @@ late B b;
   }
 
   test_flatten_unrelated_types() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A extends Future<int> implements Future<String> {
   factory A() => throw 'foo';
 }
@@ -151,18 +161,20 @@ abstract class B extends Future<String> implements Future<int> {
 }
 late A a;
 late B b;
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 14),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 112, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 148, 11),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 14),
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 112, 1),
+        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
+        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 148, 11),
+      ],
+    );
     var aType = findElement2.topVar('a').type;
     var bType = findElement2.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
@@ -175,8 +187,10 @@ late B b;
     await assertNoErrorsInCode('''
 test() => 'a' 'b';
 ''');
-    expect(findNode.adjacentStrings("'a' 'b'").staticType,
-        same(typeProvider.stringType));
+    expect(
+      findNode.adjacentStrings("'a' 'b'").staticType,
+      same(typeProvider.stringType),
+    );
   }
 
   test_visitAsExpression() async {
@@ -212,16 +226,20 @@ test(Future<int> e) async => await e;
     await assertNoErrorsInCode('''
 test() => false;
 ''');
-    expect(findNode.booleanLiteral('false').staticType,
-        same(typeProvider.boolType));
+    expect(
+      findNode.booleanLiteral('false').staticType,
+      same(typeProvider.boolType),
+    );
   }
 
   test_visitBooleanLiteral_true() async {
     await assertNoErrorsInCode('''
 test() => true;
 ''');
-    expect(findNode.booleanLiteral('true').staticType,
-        same(typeProvider.boolType));
+    expect(
+      findNode.booleanLiteral('true').staticType,
+      same(typeProvider.boolType),
+    );
   }
 
   test_visitCascadeExpression() async {
@@ -235,24 +253,30 @@ test(String a) => a..length;
     await assertNoErrorsInCode('''
 test(bool b) => b ? 1.0 : 0;
 ''');
-    expect(findNode.conditionalExpression('b ? 1.0 : 0').staticType,
-        typeProvider.numType);
+    expect(
+      findNode.conditionalExpression('b ? 1.0 : 0').staticType,
+      typeProvider.numType,
+    );
   }
 
   test_visitConditionalExpression_sameTypes() async {
     await assertNoErrorsInCode('''
 test(bool b) => b ? 1 : 0;
 ''');
-    expect(findNode.conditionalExpression('b ? 1 : 0').staticType,
-        same(typeProvider.intType));
+    expect(
+      findNode.conditionalExpression('b ? 1 : 0').staticType,
+      same(typeProvider.intType),
+    );
   }
 
   test_visitDoubleLiteral() async {
     await assertNoErrorsInCode('''
 test() => 4.33;
 ''');
-    expect(findNode.doubleLiteral('4.33').staticType,
-        same(typeProvider.doubleType));
+    expect(
+      findNode.doubleLiteral('4.33').staticType,
+      same(typeProvider.doubleType),
+    );
   }
 
   test_visitInstanceCreationExpression_named() async {
@@ -304,16 +328,20 @@ test() => 42;
     await assertNoErrorsInCode('''
 test(Object a) => a is! String;
 ''');
-    expect(findNode.isExpression('a is! String').staticType,
-        same(typeProvider.boolType));
+    expect(
+      findNode.isExpression('a is! String').staticType,
+      same(typeProvider.boolType),
+    );
   }
 
   test_visitIsExpression_notNegated() async {
     await assertNoErrorsInCode('''
 test(Object a) => a is String;
 ''');
-    expect(findNode.isExpression('a is String').staticType,
-        same(typeProvider.boolType));
+    expect(
+      findNode.isExpression('a is String').staticType,
+      same(typeProvider.boolType),
+    );
   }
 
   test_visitMethodInvocation() async {
@@ -328,7 +356,9 @@ test() => m();
 test(dynamic d, String a) => d(n: a);
 ''');
     expect(
-        findNode.namedExpression('n: a').staticType, typeProvider.stringType);
+      findNode.namedExpression('n: a').staticType,
+      typeProvider.stringType,
+    );
   }
 
   test_visitNullLiteral() async {
@@ -336,7 +366,9 @@ test(dynamic d, String a) => d(n: a);
 test() => null;
 ''');
     expect(
-        findNode.nullLiteral('null').staticType, same(typeProvider.nullType));
+      findNode.nullLiteral('null').staticType,
+      same(typeProvider.nullType),
+    );
   }
 
   test_visitParenthesizedExpression() async {
@@ -344,23 +376,29 @@ test() => null;
 test() => (0);
 ''');
     expect(
-        findNode.parenthesized('(0)').staticType, same(typeProvider.intType));
+      findNode.parenthesized('(0)').staticType,
+      same(typeProvider.intType),
+    );
   }
 
   test_visitSimpleStringLiteral() async {
     await assertNoErrorsInCode('''
 test() => 'a';
 ''');
-    expect(findNode.stringLiteral("'a'").staticType,
-        same(typeProvider.stringType));
+    expect(
+      findNode.stringLiteral("'a'").staticType,
+      same(typeProvider.stringType),
+    );
   }
 
   test_visitStringInterpolation() async {
     await assertNoErrorsInCode(r'''
 test() => "a${'b'}c";
 ''');
-    expect(findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
-        same(typeProvider.stringType));
+    expect(
+      findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
+      same(typeProvider.stringType),
+    );
   }
 
   test_visitSuperExpression() async {
@@ -382,7 +420,9 @@ late B b;
 test() => #a;
 ''');
     expect(
-        findNode.symbolLiteral('#a').staticType, same(typeProvider.symbolType));
+      findNode.symbolLiteral('#a').staticType,
+      same(typeProvider.symbolType),
+    );
   }
 
   test_visitThisExpression() async {

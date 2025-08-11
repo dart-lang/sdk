@@ -252,6 +252,102 @@ void s(Subclassed e) {
 
 @reflectiveTest
 class ExhaustiveCasesTest extends BaseExhaustiveCasesTest {
+  Future<void> test_dotShorthands_enumLike() async {
+    await assertDiagnostics(
+      r'''
+class E {
+  final int i;
+  const E._(this.i);
+
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
+}
+
+void fn(E e) {
+  switch (e) {
+    case .e:
+      break;
+    case .f:
+  }
+}
+''',
+      [lint(148, 10)],
+    );
+  }
+
+  Future<void> test_dotShorthands_enumLike_default_ok() async {
+    await assertNoDiagnostics(r'''
+class E {
+  final int i;
+  const E._(this.i);
+
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
+}
+
+void fn(E e) {
+  switch (e) {
+    case .e:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_dotShorthands_notEnumLike_ok() async {
+    await assertNoDiagnostics(r'''
+class TooFew {
+  const TooFew._();
+
+  static const e = TooFew._();
+}
+
+void t(TooFew e) {
+  switch (e) {
+    case TooFew.e:
+  }
+}
+
+class PublicCons {
+  const PublicCons();
+  static const e = PublicCons();
+  static const f = PublicCons();
+}
+
+void p(PublicCons e) {
+  switch (e) {
+    case .e:
+  }
+}
+''');
+  }
+
+  Future<void> test_dotShorthands_notEnumLike_subclassed_ok() async {
+    await assertNoDiagnostics(r'''
+class Subclassed {
+  const Subclassed._();
+
+  static const e = Subclassed._();
+  static const f = Subclassed._();
+  static const g = Subclassed._();
+}
+
+class Subclass extends Subclassed {
+  Subclass() : super._();
+}
+
+void s(Subclassed e) {
+  switch (e) {
+    case .e:
+  }
+}
+''');
+  }
+
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 52, 6),

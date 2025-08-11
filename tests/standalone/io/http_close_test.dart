@@ -23,7 +23,9 @@ testClientAndServerCloseNoListen(int connections) {
         if (closed == connections) {
           Expect.equals(0, server.connectionsInfo().active);
           Expect.equals(
-              server.connectionsInfo().total, server.connectionsInfo().idle);
+            server.connectionsInfo().total,
+            server.connectionsInfo().idle,
+          );
           server.close();
         }
       });
@@ -46,16 +48,21 @@ testClientCloseServerListen(int connections) {
       if (closed == connections * 2) {
         Expect.equals(0, server.connectionsInfo().active);
         Expect.equals(
-            server.connectionsInfo().total, server.connectionsInfo().idle);
+          server.connectionsInfo().total,
+          server.connectionsInfo().idle,
+        );
         server.close();
       }
     }
 
     server.listen((request) {
-      request.listen((_) {}, onDone: () {
-        request.response.close();
-        request.response.done.then((_) => check());
-      });
+      request.listen(
+        (_) {},
+        onDone: () {
+          request.response.close();
+          request.response.done.then((_) => check());
+        },
+      );
     });
     var client = HttpClient();
     for (int i = 0; i < connections; i++) {
@@ -81,7 +88,9 @@ testClientCloseSendingResponse(int connections) {
       if (closed == connections * 2) {
         Expect.equals(0, server.connectionsInfo().active);
         Expect.equals(
-            server.connectionsInfo().total, server.connectionsInfo().idle);
+          server.connectionsInfo().total,
+          server.connectionsInfo().idle,
+        );
         server.close();
       }
     }
@@ -101,14 +110,14 @@ testClientCloseSendingResponse(int connections) {
           .get("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
-        // Ensure we don't accept the response until we have send the entire
-        // request.
-        var subscription = response.listen((_) {});
-        Timer(const Duration(milliseconds: 20), () {
-          subscription.cancel();
-          check();
-        });
-      });
+            // Ensure we don't accept the response until we have send the entire
+            // request.
+            var subscription = response.listen((_) {});
+            Timer(const Duration(milliseconds: 20), () {
+              subscription.cancel();
+              check();
+            });
+          });
     }
   });
 }
@@ -119,25 +128,32 @@ testClientCloseWhileSendingRequest(int connections) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     int serverErrors = 0;
     int clientErrors = 0;
-    server.listen((request) {
-      request.listen((_) {}, onError: (_) {
-        serverErrors++;
-        if (serverErrors == connections) {
-          server.close();
-        }
-      });
-    }, onDone: () {
-      Expect.equals(connections, clientErrors);
-      Expect.equals(connections, serverErrors);
-    });
+    server.listen(
+      (request) {
+        request.listen(
+          (_) {},
+          onError: (_) {
+            serverErrors++;
+            if (serverErrors == connections) {
+              server.close();
+            }
+          },
+        );
+      },
+      onDone: () {
+        Expect.equals(connections, clientErrors);
+        Expect.equals(connections, serverErrors);
+      },
+    );
     var client = HttpClient();
     for (int i = 0; i < connections; i++) {
       Future<HttpClientResponse?>.value(
-          client.post("127.0.0.1", server.port, "/").then((request) {
-        request.contentLength = 110;
-        request.write("0123456789");
-        return request.close();
-      })).catchError((_) {
+        client.post("127.0.0.1", server.port, "/").then((request) {
+          request.contentLength = 110;
+          request.write("0123456789");
+          return request.close();
+        }),
+      ).catchError((_) {
         clientErrors++;
       });
     }

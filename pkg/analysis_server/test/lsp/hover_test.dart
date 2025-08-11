@@ -6,7 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -151,18 +151,229 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_full() =>
       assertDocumentation('full', includesSummary: true, includesFull: true);
 
-  Future<void> test_dartDocPreference_none() =>
-      assertDocumentation('none', includesSummary: false, includesFull: false);
-
   Future<void> test_dartDocPreference_summary() => assertDocumentation(
     'summary',
     includesSummary: true,
-    includesFull: false,
+    // Doc preferences don't apply to single-result requests so always expect
+    // full docs.
+    includesFull: true,
   );
 
   /// No preference should result in full docs.
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
+
+  Future<void> test_declaredIn_classAndLibrary() async {
+    var content = '''
+class A {
+  String? [!a^!];
+}
+''';
+    var expected = '''
+```dart
+String? a
+```
+Type: `String?`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_declaredIn_emptyClassName() async {
+    failTestOnErrorDiagnostic = false;
+
+    var content = '''
+class {
+  String? [!a^!];
+}
+''';
+    var expected = '''
+```dart
+String? a
+```
+Type: `String?`
+
+Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_declaredIn_onlyLibrary() async {
+    var content = '''
+class A {}
+
+[!A^!]? a;
+''';
+    var expected = '''
+```dart
+class A
+```
+Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    var content = '''
+class A {
+  A.named();
+}
+void f() {
+  A a = [!.nam^ed()!];
+}
+''';
+    var expected = '''
+```dart
+(new) A A.named()
+```
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_named_const() async {
+    var content = '''
+class A {
+  const A.named();
+}
+void f() {
+  const A a = [!.nam^ed()!];
+}
+''';
+    var expected = '''
+```dart
+(const) A A.named()
+```
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    var content = '''
+class A {}
+void f() {
+  A a = [!.ne^w()!];
+}
+''';
+    var expected = '''
+```dart
+(new) A A()
+```
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed_const() async {
+    var content = '''
+class A {
+  const A();
+}
+void f() {
+  const A a = [!.ne^w()!];
+}
+''';
+    var expected = '''
+```dart
+(const) A A()
+```
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    var content = '''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .[!meth^od!]();
+}
+''';
+    var expected = '''
+```dart
+A method()
+```
+Type: `A Function()`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_method_subclass() async {
+    var content = '''
+class A {
+  static B method() => B();
+}
+
+class B extends A {}
+
+void g(A a) {}
+
+void f() {
+  g(.[!met^hod!]());
+}
+''';
+    var expected = '''
+```dart
+B method()
+```
+Type: `B Function()`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    var content = '''
+class A {
+  static A field = A();
+}
+void f() {
+  A a = .[!fie^ld!];
+}
+''';
+    var expected = '''
+```dart
+A get field
+```
+Type: `A`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess_enum() async {
+    var content = '''
+enum A { one }
+void f() {
+  A a = .[!on^e!];
+}
+''';
+    var expected = '''
+```dart
+A get one
+```
+Type: `A`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_dotShorthand_propertyAccess_extensionType() async {
+    var content = '''
+extension type A(int x) {
+  static A get getter => A(1);
+}
+void f() {
+  A a = .[!gette^r!];
+}
+''';
+    var expected = '''
+```dart
+A get getter
+```
+Type: `A`
+
+Declared in `A` in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
 
   Future<void> test_enum_member() async {
     var content = '''
@@ -178,7 +389,7 @@ MyEnum get one
 ```
 Type: `MyEnum`
 
-*package:test/main.dart*''';
+Declared in `MyEnum` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -196,7 +407,7 @@ List<MyEnum> get values
 ```
 Type: `List<MyEnum>`
 
-*package:test/main.dart*''';
+Declared in `MyEnum` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -213,7 +424,7 @@ int get _
 ```
 Type: `int`
 
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -275,7 +486,7 @@ import 'dart:core' as [!l^ib!];
 ```dart
 import 'dart:core' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -289,7 +500,7 @@ const bug = 'bug';
 ```dart
 import '<unknown>' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -307,7 +518,7 @@ import 'lib.dart' as [!l^ib!];
 import 'dart:math' as lib;
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -323,7 +534,7 @@ import 'package:test/lib.dart' as [!l^ib!];
 ```dart
 import 'package:test/lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -337,7 +548,7 @@ import 'lib.dart' as [!l^ib!];
 ```dart
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -355,7 +566,7 @@ import 'lib.dart' as lib;
 ```dart
 import 'lib.dart' as lib;
 ```
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -395,7 +606,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.
@@ -461,7 +672,7 @@ int _()
 ```
 Type: `int Function()`
 
-*package:test/main.dart*''';
+Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -499,7 +710,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
     '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -750,7 +961,7 @@ String? get myField
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -772,7 +983,7 @@ String get myGetter
 ```
 Type: `String`
 
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -795,7 +1006,7 @@ String? get myGetter
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -819,7 +1030,7 @@ set mySetter(String value)
 ```
 Type: `String`
 
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -843,7 +1054,7 @@ set mySetter(String value)
 ```
 Type: `String`
 
-*package:test/main.dart*
+Declared in `A` in _package:test/main.dart_.
 '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -861,7 +1072,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
     '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
@@ -902,10 +1113,57 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_superFormalParameter_fromField() async {
+    var content = '''
+class A {
+  /// The field a.
+  int a;
+
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a);
+}
+
+class C extends B {
+  C(super.[!^a!]);
+}
+''';
+    var expected = '''
+```dart
+int a
+```
+Type: `int`
+
+---
+The field a.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_superFormalParameter_notFromChainedConstructor() async {
+    var content = '''
+class A {
+  /// The constructor a.
+  A(int a);
+}
+
+class B extends A {
+  B(super.[!^a!]);
+}
+''';
+    var expected = '''
+```dart
+int a
+```
+Type: `int`''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -920,7 +1178,7 @@ int _()
 ```
 Type: `int Function()`
 
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -935,7 +1193,7 @@ int get _
 ```
 Type: `int`
 
-*package:test/main.dart*''';
+Declared in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -962,7 +1220,7 @@ class C<[!^_!]> {}
 ```dart
 library package:test/main.dart
 ```
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';
@@ -980,7 +1238,7 @@ String? abc
 ```
 Type: `String?`
 
-*package:test/main.dart*
+Declared in _package:test/main.dart_.
 
 ---
 This is a string.''';

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -17,20 +20,18 @@ class SpecifyNonObviousPropertyTypes extends LintRule {
     : super(
         name: LintNames.specify_nonobvious_property_types,
         description: _desc,
-        state: const State.experimental(),
+        state: const RuleState.experimental(),
       );
+
+  @override
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.specify_nonobvious_property_types;
 
   @override
   List<String> get incompatibleRules => const [];
 
   @override
-  LintCode get lintCode => LinterLintCode.specify_nonobvious_property_types;
-
-  @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         bool ignoreThisVariable = false;
         AstNode? owningDeclaration = node;
         while (owningDeclaration != null) {
-          InterfaceElement2? owningElement = switch (owningDeclaration) {
+          InterfaceElement? owningElement = switch (owningDeclaration) {
             ClassDeclaration(:var declaredFragment?) =>
               declaredFragment.element,
             MixinDeclaration(:var declaredFragment?) =>
@@ -83,10 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (owningElement != null) {
             var variableName = child.name.lexeme;
             for (var superInterface in owningElement.allSupertypes) {
-              if (superInterface.getGetter2(variableName) != null) {
+              if (superInterface.getGetter(variableName) != null) {
                 ignoreThisVariable = true;
               }
-              if (superInterface.getSetter2(variableName) != null) {
+              if (superInterface.getSetter(variableName) != null) {
                 ignoreThisVariable = true;
               }
             }
@@ -107,10 +108,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (aDeclaredTypeIsNeeded) {
       if (node.variables.length == 1) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       } else {
         // Multiple variables, report each of them separately. No fix.
-        variablesThatNeedAType.forEach(rule.reportLint);
+        variablesThatNeedAType.forEach(rule.reportAtNode);
       }
     }
   }

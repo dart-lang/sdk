@@ -48,9 +48,9 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  method m<T extends core::Object? = dynamic>(self::D::m::T% x) → self::D::m::T%
+  erroneous method m<T extends core::Object? = dynamic>(self::D::m::T% x) → self::D::m::T%
     return x;
-  method g<T extends core::Object? = dynamic>(self::D::g::T% x) → self::D::g::T%
+  erroneous method g<T extends core::Object? = dynamic>(self::D::g::T% x) → self::D::g::T%
     return x;
 }
 static method main() → dynamic {

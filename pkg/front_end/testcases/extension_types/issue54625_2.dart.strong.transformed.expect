@@ -10,7 +10,7 @@ library;
 // class A<Supertype, Subtype extends Supertype> {}
 //                    ^
 //
-// pkg/front_end/testcases/extension_types/issue54625_2.dart:21:7: Error: A value of type 'Null Function<Y extends E>()' can't be assigned to a variable of type 'X Function<X extends E>()' because 'Null' is nullable and 'X' isn't.
+// pkg/front_end/testcases/extension_types/issue54625_2.dart:21:7: Error: A value of type 'Null Function<Y extends E>()' can't be assigned to a variable of type 'X Function<X extends E>()'.
 //   f = returnsNull; // Error.
 //       ^
 //
@@ -37,13 +37,13 @@ static extension-type-member method E|constructor#(core::num it) → self::E /* 
   lowered final self::E /* erasure=core::num */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
   return self::E|constructor#(it);
 static method returnsNull<Y extends self::E /* erasure=core::num */>() → Null
   return null;
 static method test3() → dynamic {
   <X extends self::E /* erasure=core::num */ = dynamic>() → X f = self::foo();
-  f = invalid-expression "pkg/front_end/testcases/extension_types/issue54625_2.dart:21:7: Error: A value of type 'Null Function<Y extends E>()' can't be assigned to a variable of type 'X Function<X extends E>()' because 'Null' is nullable and 'X' isn't.
+  f = invalid-expression "pkg/front_end/testcases/extension_types/issue54625_2.dart:21:7: Error: A value of type 'Null Function<Y extends E>()' can't be assigned to a variable of type 'X Function<X extends E>()'.
   f = returnsNull; // Error.
       ^" in #C1 as{TypeError} Never;
 }

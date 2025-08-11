@@ -35,8 +35,10 @@ void main() {
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
     String mainOutput = collector.getOutput("", api.OutputType.js)!;
-    String lib1Output =
-        collector.getOutput("out_${ou_lib1.name}", api.OutputType.jsPart)!;
+    String lib1Output = collector.getOutput(
+      "out_${ou_lib1.name}",
+      api.OutputType.jsPart,
+    )!;
     String? lib3Output = collector.getOutput(
       "out_${ou_lib3.name}",
       api.OutputType.jsPart,

@@ -409,7 +409,10 @@ class JsBuilder {
       CommentExpression(text, expression);
 
   Call propertyCall(
-      Expression receiver, String fieldName, List<Expression> arguments) {
+    Expression receiver,
+    String fieldName,
+    List<Expression> arguments,
+  ) {
     return Call(PropertyAccess.field(receiver, fieldName), arguments);
   }
 }
@@ -419,7 +422,10 @@ LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(
-    Expression receiver, String fieldName, List<Expression> arguments) {
+  Expression receiver,
+  String fieldName,
+  List<Expression> arguments,
+) {
   return js.propertyCall(receiver, fieldName, arguments);
 }
 
@@ -589,7 +595,7 @@ class MiniJsParser {
     ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, // abcdefgh
     ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, // ijklmnop
     ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, // qrstuvwx
-    ALPHA, ALPHA, LBRACE, SYMBOL, RBRACE, SYMBOL
+    ALPHA, ALPHA, LBRACE, SYMBOL, RBRACE, SYMBOL,
   ]; // yz{|}~
 
   // This must be a >= the highest precedence number handled by parseBinary.
@@ -646,7 +652,7 @@ class MiniJsParser {
     'typeof',
     'void',
     'delete',
-    'await'
+    'await',
   };
 
   static final ARROW_TOKEN = '=>';
@@ -659,7 +665,7 @@ class MiniJsParser {
     'in',
     'instanceof',
     'await',
-    'extends'
+    'extends',
   };
 
   static int category(int code) {
@@ -1113,8 +1119,9 @@ class MiniJsParser {
             expectCategory(COMMA);
           }
         }
-        receiver =
-            constructor ? New(receiver, arguments) : Call(receiver, arguments);
+        receiver = constructor
+            ? New(receiver, arguments)
+            : Call(receiver, arguments);
         constructor = false;
       } else if (!constructor && acceptCategory(LSQUARE)) {
         Expression inBraces = parseExpression();
@@ -1240,8 +1247,10 @@ class MiniJsParser {
         return Assignment(lhs, rhs);
       } else {
         // Handle +=, -=, etc.
-        String operator =
-            assignmentOperator.substring(0, assignmentOperator.length - 1);
+        String operator = assignmentOperator.substring(
+          0,
+          assignmentOperator.length - 1,
+        );
         return Assignment.compound(lhs, operator, rhs);
       }
     }
@@ -1258,8 +1267,10 @@ class MiniJsParser {
   }
 
   /// Parse a variable declaration list, with `var` or `let` [keyword].
-  VariableDeclarationList parseVariableDeclarationList(String keyword,
-      [String? firstIdentifier]) {
+  VariableDeclarationList parseVariableDeclarationList(
+    String keyword, [
+    String? firstIdentifier,
+  ]) {
     var initialization = <VariableInitialization>[];
 
     do {
@@ -1325,8 +1336,13 @@ class MiniJsParser {
       if (acceptString('=')) {
         defaultValue = parseExpression();
       }
-      variables.add(DestructuredVariable(
-          name: name, structure: structure, defaultValue: defaultValue));
+      variables.add(
+        DestructuredVariable(
+          name: name,
+          structure: structure,
+          defaultValue: defaultValue,
+        ),
+      );
     } while (acceptCategory(COMMA));
 
     expectCategory(RSQUARE);
@@ -1345,8 +1361,13 @@ class MiniJsParser {
       } else if (acceptString('=')) {
         defaultValue = parseExpression();
       }
-      variables.add(DestructuredVariable(
-          name: name, structure: structure, defaultValue: defaultValue));
+      variables.add(
+        DestructuredVariable(
+          name: name,
+          structure: structure,
+          defaultValue: defaultValue,
+        ),
+      );
     } while (acceptCategory(COMMA));
 
     expectCategory(RBRACE);
@@ -1469,8 +1490,9 @@ class MiniJsParser {
       // statement.
       if (expression is InterpolatedExpression) {
         assert(identical(interpolatedValues.last, expression));
-        InterpolatedStatement statement =
-            InterpolatedStatement(expression.nameOrPosition);
+        InterpolatedStatement statement = InterpolatedStatement(
+          expression.nameOrPosition,
+        );
         interpolatedValues[interpolatedValues.length - 1] = statement;
         return statement;
       }
@@ -1564,14 +1586,20 @@ class MiniJsParser {
         Expression objectExpression = parseExpression();
         expectCategory(RPAREN);
         Statement body = parseStatement();
-        return ForIn(_createVariableDeclarationList(keyword, identifier),
-            objectExpression, body);
+        return ForIn(
+          _createVariableDeclarationList(keyword, identifier),
+          objectExpression,
+          body,
+        );
       } else if (acceptString('of')) {
         Expression iterableExpression = parseAssignment();
         expectCategory(RPAREN);
         Statement body = parseStatement();
-        return ForOf(_createVariableDeclarationList(keyword, identifier),
-            iterableExpression, body);
+        return ForOf(
+          _createVariableDeclarationList(keyword, identifier),
+          iterableExpression,
+          body,
+        );
       }
       var declarations = parseVariableDeclarationList(keyword, identifier);
       expectCategory(SEMICOLON);
@@ -1584,9 +1612,12 @@ class MiniJsParser {
   }
 
   static VariableDeclarationList _createVariableDeclarationList(
-      String keyword, String identifier) {
-    return VariableDeclarationList(
-        keyword, [VariableInitialization(Identifier(identifier), null)]);
+    String keyword,
+    String identifier,
+  ) {
+    return VariableDeclarationList(keyword, [
+      VariableInitialization(Identifier(identifier), null),
+    ]);
   }
 
   Statement parseFunctionDeclaration() {
@@ -1731,8 +1762,13 @@ class MiniJsParser {
       return Property(name, value);
     } else {
       var fun = parseFun();
-      return Method(name, fun,
-          isGetter: isGetter, isSetter: isSetter, isStatic: isStatic);
+      return Method(
+        name,
+        fun,
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isStatic: isStatic,
+      );
     }
   }
 

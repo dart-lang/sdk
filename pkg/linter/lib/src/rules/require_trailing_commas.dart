@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
@@ -20,15 +23,12 @@ class RequireTrailingCommas extends LintRule {
     : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.require_trailing_commas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.require_trailing_commas;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     // Don't report if tall-style is enforced by the formatter.
-    var languageVersion = context.libraryElement2?.languageVersion.effective;
+    var languageVersion = context.libraryElement?.languageVersion.effective;
     if (languageVersion != null && languageVersion >= language37) return;
 
     var visitor = _Visitor(this);
@@ -141,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Check the last parameter to determine if there are any exceptions.
     if (_shouldAllowTrailingCommaException(lastNode)) return;
 
-    rule.reportLintForToken(errorToken);
+    rule.reportAtToken(errorToken);
   }
 
   bool _isSameLine(Token token1, Token token2) =>

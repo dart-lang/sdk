@@ -22,10 +22,13 @@ Future<void> main() async {
     serviceInfo = await Service.getInfo();
   }
   final isolateId = Service.getIsolateID(I.Isolate.current)!;
-  final uri = serviceInfo.serverUri!.replace(scheme: 'ws', pathSegments: [
-    ...serviceInfo.serverUri!.pathSegments.where((e) => e != ''),
-    'ws'
-  ]);
+  final uri = serviceInfo.serverUri!.replace(
+    scheme: 'ws',
+    pathSegments: [
+      ...serviceInfo.serverUri!.pathSegments.where((e) => e != ''),
+      'ws',
+    ],
+  );
   final service = await vmServiceConnectUri(uri.toString());
   final timeExtent = Duration(minutes: 5).inMicroseconds;
   final samples = await service.getCpuSamples(isolateId, 0, timeExtent);

@@ -321,13 +321,17 @@ class _ParameterShape10 extends Opcode {
   const _ParameterShape10._(super.index) : super._();
 
   CallDescriptorRef decodeCallDescriptor(
-      RawIRContainerInterface ir, int address) {
+    RawIRContainerInterface ir,
+    int address,
+  ) {
     assert(ir.opcodeAt(address).index == index);
     return CallDescriptorRef(ir._params0[address]);
   }
 
   ArgumentNamesRef decodeArgumentNames(
-      RawIRContainerInterface ir, int address) {
+    RawIRContainerInterface ir,
+    int address,
+  ) {
     assert(ir.opcodeAt(address).index == index);
     return ArgumentNamesRef(ir._params1[address]);
   }

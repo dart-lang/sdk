@@ -17,32 +17,32 @@ void main() {
 @reflectiveTest
 class InvertIfStatementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.INVERT_IF_STATEMENT;
+  AssistKind get kind => DartAssistKind.invertIfStatement;
 
   Future<void> test_ifCase() async {
     await resolveTestCode('''
 void f(Object? x) {
-  if (x case int()) {
+  ^if (x case int()) {
     0;
   } else {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if (');
+    await assertNoAssist();
   }
 
   Future<void> test_thenBlock_elseBlock() async {
     await resolveTestCode('''
 void f() {
-  if (true) {
+  ^if (true) {
     0;
   } else {
     1;
   }
 }
 ''');
-    await assertHasAssistAt('if (', '''
+    await assertHasAssist('''
 void f() {
   if (false) {
     1;
@@ -56,38 +56,38 @@ void f() {
   Future<void> test_thenBlock_elseIf() async {
     await resolveTestCode('''
 void f(bool c1, bool c2) {
-  if (c1) {
+  ^if (c1) {
     0;
   } else if (c2) {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if (');
+    await assertNoAssist();
   }
 
   Future<void> test_thenBlock_elseStatement() async {
     await resolveTestCode('''
 void f() {
-  if (true) {
+  i^f (true) {
     0;
   } else
     1;
 }
 ''');
-    await assertNoAssistAt('if (');
+    await assertNoAssist();
   }
 
   Future<void> test_thenStatement_elseBlock() async {
     await resolveTestCode('''
 void f() {
-  if (true)
+  i^f (true)
     0;
   else {
     1;
   }
 }
 ''');
-    await assertNoAssistAt('if (');
+    await assertNoAssist();
   }
 }

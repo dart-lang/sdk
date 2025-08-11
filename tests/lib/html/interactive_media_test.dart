@@ -21,7 +21,8 @@ testUserMediaAudio(Future userMediaFuture) async {
     var enumDevices = await devices.enumerateDevices();
     expect(enumDevices.length > 1, true);
     for (var device in enumDevices) {
-      var goodDevLabel = device.label.endsWith('Built-in Output') ||
+      var goodDevLabel =
+          device.label.endsWith('Built-in Output') ||
           device.label.endsWith('Built-in Microphone');
       expect(goodDevLabel, true);
     }
@@ -62,17 +63,21 @@ testUserMediaVideo(Future userMediaFuture) async {
 main() {
   if (MediaStream.supported) {
     test('getUserMedia audio', () async {
-      await testUserMediaAudio(window.navigator
-          .getUserMedia(audio: true)); // Deprecated way to get a media stream.
       await testUserMediaAudio(
-          window.navigator.mediaDevices!.getUserMedia({'audio': true}));
+        window.navigator.getUserMedia(audio: true),
+      ); // Deprecated way to get a media stream.
+      await testUserMediaAudio(
+        window.navigator.mediaDevices!.getUserMedia({'audio': true}),
+      );
     });
 
     test('getUserMedia', () async {
-      await testUserMediaVideo(window.navigator
-          .getUserMedia(video: true)); // Deprecated way to get a media stream.
       await testUserMediaVideo(
-          window.navigator.mediaDevices!.getUserMedia({'video': true}));
+        window.navigator.getUserMedia(video: true),
+      ); // Deprecated way to get a media stream.
+      await testUserMediaVideo(
+        window.navigator.mediaDevices!.getUserMedia({'video': true}),
+      );
     });
 
     test('getUserMediaComplexConstructor', () async {
@@ -80,13 +85,15 @@ main() {
         'mandatory': {'minAspectRatio': 1.333, 'maxAspectRatio': 1.334},
         'optional': [
           {'minFrameRate': 60},
-          {'maxWidth': 640}
-        ]
+          {'maxWidth': 640},
+        ],
       };
-      await testUserMediaVideo(window.navigator.getUserMedia(
-          video: videoOptions)); // Deprecated way to get a media stream.
       await testUserMediaVideo(
-          window.navigator.mediaDevices!.getUserMedia({'video': videoOptions}));
+        window.navigator.getUserMedia(video: videoOptions),
+      ); // Deprecated way to get a media stream.
+      await testUserMediaVideo(
+        window.navigator.mediaDevices!.getUserMedia({'video': videoOptions}),
+      );
     });
   }
 }

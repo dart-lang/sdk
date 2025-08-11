@@ -11,9 +11,12 @@ test1<T>(T t) {
      type=bool?
     */
     switch (t) {
-      /*space=true*/ case true:
-      /*space=false*/ case false:
-      /*space=Null*/ case null:
+      /*space=true*/
+      case true:
+      /*space=false*/
+      case false:
+      /*space=Null*/
+      case null:
     }
   }
 }
@@ -27,8 +30,10 @@ test2<T>(T t) {
      type=bool?
     */
     switch (t) {
-      /*space=bool*/ case bool():
-      /*space=Null*/ case Null():
+      /*space=bool*/
+      case bool():
+      /*space=Null*/
+      case Null():
     }
   }
 }
@@ -41,9 +46,12 @@ test3<T extends bool?>(T t) {
    type=bool?
   */
   switch (t) {
-    /*space=true*/ case true:
-    /*space=false*/ case false:
-    /*space=Null*/ case null:
+    /*space=true*/
+    case true:
+    /*space=false*/
+    case false:
+    /*space=Null*/
+    case null:
   }
 }
 

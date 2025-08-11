@@ -59,14 +59,20 @@ main() {
 
     var isElement = predicate((x) => x is Element, 'is an Element');
     var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
-    var isSvgSvgElement =
-        predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
-    var isNotSvgSvgElement =
-        predicate((x) => x is! svg.SvgSvgElement, 'is not a SvgSvgElement');
+    var isSvgSvgElement = predicate(
+      (x) => x is svg.SvgSvgElement,
+      'is a SvgSvgElement',
+    );
+    var isNotSvgSvgElement = predicate(
+      (x) => x is! svg.SvgSvgElement,
+      'is not a SvgSvgElement',
+    );
     var isNode = predicate((x) => x is Node, 'is a Node');
     var isSvgNumber = predicate((x) => x is svg.Number, 'is a svg.Number');
-    var isNotSvgNumber =
-        predicate((x) => x is! svg.Number, 'is not a svg.Number');
+    var isNotSvgNumber = predicate(
+      (x) => x is! svg.Number,
+      'is not a svg.Number',
+    );
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
     var isNotSvgRect = predicate((x) => x is! svg.Rect, 'is not a svg.Rect');
 
@@ -107,16 +113,23 @@ main() {
     var isString = predicate((x) => x is String, 'is a String');
     var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
     var isSvgMatrix = predicate((x) => x is svg.Matrix, 'is a svg.Matrix');
-    var isSvgAnimatedBoolean =
-        predicate((x) => x is svg.AnimatedBoolean, 'is an svg.AnimatedBoolean');
-    var isSvgAnimatedString =
-        predicate((x) => x is svg.AnimatedString, 'is an svg.AnimatedString');
+    var isSvgAnimatedBoolean = predicate(
+      (x) => x is svg.AnimatedBoolean,
+      'is an svg.AnimatedBoolean',
+    );
+    var isSvgAnimatedString = predicate(
+      (x) => x is svg.AnimatedString,
+      'is an svg.AnimatedString',
+    );
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
     var isSvgAnimatedTransformList = predicate(
-        (x) => x is svg.AnimatedTransformList,
-        'is an svg.AnimatedTransformList');
-    var isCssStyleDeclaration =
-        predicate((x) => x is CssStyleDeclaration, 'is a CssStyleDeclaration');
+      (x) => x is svg.AnimatedTransformList,
+      'is an svg.AnimatedTransformList',
+    );
+    var isCssStyleDeclaration = predicate(
+      (x) => x is CssStyleDeclaration,
+      'is a CssStyleDeclaration',
+    );
 
     testRect(name, checker) {
       test(name, () {

@@ -8,10 +8,12 @@ bool doIt1(Object arg1, [Object? arg2]) {
    type=(Object, Object?)
   */
   switch ((arg1, arg2)) {
-    /*space=(Object, Null)*/ case (_, null):
+    /*space=(Object, Null)*/
+    case (_, null):
       return true;
 
-    /*space=(Object, Object)*/ case (_, _?):
+    /*space=(Object, Object)*/
+    case (_, _?):
       return true;
     /*
      error=unreachable,
@@ -22,13 +24,10 @@ bool doIt1(Object arg1, [Object? arg2]) {
   }
 }
 
-bool doIt2(Object arg1,
-        [Object?
-            arg2]) => /*
+bool doIt2(Object arg1, [Object? arg2]) => /*
  fields={$1:Object,$2:Object?},
  type=(Object, Object?)
-*/
-    switch ((arg1, arg2)) {
-      (_, null) /*space=(Object, Null)*/ => true,
-      (_, _?) /*space=(Object, Object)*/ => true,
-    };
+*/ switch ((arg1, arg2)) {
+  (_, null) /*space=(Object, Null)*/ => true,
+  (_, _?) /*space=(Object, Object)*/ => true,
+};

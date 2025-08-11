@@ -310,8 +310,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               Symbols::Value(),
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
               LocalVariable::kNoKernelOffset, /*is_late=*/false,
-              /*inferred_type=*/nullptr,
-              /*inferred_arg_type=*/field.is_covariant()
+              /*inferred_type_md=*/nullptr,
+              /*inferred_arg_type_md=*/field.is_covariant()
                   ? nullptr
                   : &inferred_field_type);
         } else {

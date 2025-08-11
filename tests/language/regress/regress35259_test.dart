@@ -7,18 +7,15 @@ class Supertype {
   //                    ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CLASS
   // [cfe] Couldn't find constructor 'Unresolved'.
-  //                    ^
   // [cfe] Redirection constructor target not found: 'Unresolved'
   factory Supertype() = Unresolved;
-//        ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
-//        ^
-// [cfe] 'Supertype' is already declared in this scope.
-//                      ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CLASS
-// [cfe] Couldn't find constructor 'Unresolved'.
-//                      ^
-// [cfe] Redirection constructor target not found: 'Unresolved'
+  //      ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
+  // [cfe] 'Supertype' is already declared in this scope.
+  //                    ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CLASS
+  // [cfe] Couldn't find constructor 'Unresolved'.
+  // [cfe] Redirection constructor target not found: 'Unresolved'
 }
 
 main() {

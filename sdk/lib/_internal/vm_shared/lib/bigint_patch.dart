@@ -1910,10 +1910,9 @@ class _BigIntImpl implements BigInt {
     if (exponentBitlen <= 0) return one;
     final bool cannotUseMontgomery = modulus.isEven || abs() >= modulus;
     if (cannotUseMontgomery || exponentBitlen < 64) {
-      _BigIntReduction z =
-          (cannotUseMontgomery || exponentBitlen < 8)
-              ? _BigIntClassicReduction(modulus)
-              : _BigIntMontgomeryReduction(modulus);
+      _BigIntReduction z = (cannotUseMontgomery || exponentBitlen < 8)
+          ? _BigIntClassicReduction(modulus)
+          : _BigIntMontgomeryReduction(modulus);
       var resultDigits = _newDigits(2 * z._normModulusUsed + 2);
       var result2Digits = _newDigits(2 * z._normModulusUsed + 2);
       var gDigits = _newDigits(z._normModulusUsed);

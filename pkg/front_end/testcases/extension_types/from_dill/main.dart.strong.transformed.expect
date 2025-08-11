@@ -55,9 +55,9 @@ extension type ExtensionType(core::int it) {
   method tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;
   operator + = mai2::ExtensionType|+;
   get instanceGetter = mai2::ExtensionType|get#instanceGetter;
+  set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static method staticMethod = mai2::ExtensionType|staticMethod;
   static get staticGetter = get mai2::ExtensionType|staticGetter;
-  set instanceSetter = mai2::ExtensionType|set#instanceSetter;
   static set staticSetter = set mai2::ExtensionType|staticSetter;
   constructor • = mai2::ExtensionType|constructor#;
   constructor tearoff • = mai2::ExtensionType|constructor#_#new#tearOff;
@@ -75,28 +75,28 @@ static extension-type-member method ExtensionType|constructor#(core::int it) →
   lowered final mai2::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#(it);
 static extension-type-member method ExtensionType|constructor#named(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */ {
   lowered final mai2::ExtensionType% /* erasure=core::int, declared=! */ #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#named#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#named#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#named(it);
 static extension-type-member method ExtensionType|constructor#redirectingGenerative(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */ {
   lowered final mai2::ExtensionType% /* erasure=core::int, declared=! */ #this;
   #this = mai2::ExtensionType|constructor#(it.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#redirectingGenerative(it);
 static extension-type-member method ExtensionType|constructor#fact(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#(it.{core::num::+}(3){(core::num) → core::int});
-static extension-type-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#fact#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#fact(it);
 static extension-type-member method ExtensionType|constructor#redirectingFactory(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */ /* redirection-target: mai2::ExtensionType|constructor# */
   return mai2::ExtensionType|constructor#(it);
-static extension-type-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType% /* erasure=core::int, declared=! */
   return mai2::ExtensionType|constructor#(it);
 static extension-type-member method ExtensionType|instanceMethod(lowered final mai2::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
   return #this as{Unchecked} core::int;

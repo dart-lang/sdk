@@ -6,7 +6,7 @@ description: >-
   --dump-info.
 
 environment:
-  sdk: '^3.7.0'
+  sdk: '^3.8.0'
 
 resolution: workspace
 

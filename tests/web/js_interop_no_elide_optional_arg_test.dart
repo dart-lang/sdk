@@ -14,8 +14,14 @@ import "package:expect/expect.dart";
 @JS()
 @anonymous
 class Margins {
-  external factory Margins(
-      {int top, int start, int end, int right, int bottom, int left});
+  external factory Margins({
+    int top,
+    int start,
+    int end,
+    int right,
+    int bottom,
+    int left,
+  });
   external int get top;
   external int get right;
   external int get left;

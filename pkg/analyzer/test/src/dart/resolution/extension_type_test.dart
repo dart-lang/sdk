@@ -36,11 +36,11 @@ ExtensionTypeDeclaration
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
+    fieldFragment: <testLibraryFragment> it@27
+    constructorFragment: <testLibraryFragment> named@17
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -65,8 +65,8 @@ ExtensionTypeDeclaration
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment> it@21
+    constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   members
     ConstructorDeclaration
@@ -82,15 +82,15 @@ ExtensionTypeDeclaration
           thisKeyword: this
           period: .
           name: it
-          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@formalParameter::it
+          declaredElement: <testLibraryFragment> it@42
             type: int
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+      declaredElement: <testLibraryFragment> named@31
         type: A Function(int)
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -115,8 +115,8 @@ ExtensionTypeDeclaration
       type: num
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment> it@21
+    constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   members
     ConstructorDeclaration
@@ -135,7 +135,7 @@ ExtensionTypeDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@47
             type: int
         rightParenthesis: )
       separator: :
@@ -143,19 +143,19 @@ ExtensionTypeDeclaration
         ConstructorFieldInitializer
           fieldName: SimpleIdentifier
             token: it
-            element: <testLibraryFragment>::@extensionType::A::@field::it#element
+            element: <testLibrary>::@extensionType::A::@field::it
             staticType: null
           equals: =
           expression: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
+            element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
             staticType: int
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+      declaredElement: <testLibraryFragment> named@37
         type: A Function(int)
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -178,11 +178,11 @@ ExtensionTypeDeclaration
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment> it@21
+    constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -205,8 +205,8 @@ ExtensionTypeDeclaration
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment> it@21
+    constructorFragment: <testLibraryFragment> new@null
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
@@ -216,7 +216,7 @@ ExtensionTypeDeclaration
         type: num
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -243,25 +243,26 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: U
-        declaredElement: U@41
+        declaredElement: <testLibraryFragment> U@41
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: T@17
+        element2: #E0 T
         type: T
       name: t
-      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@formalParameter::t
+      declaredElement: <testLibraryFragment> t@46
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: U@41
+        element2: #E1 U
         type: U
       name: u
-      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@formalParameter::u
+      declaredElement: <testLibraryFragment> u@51
         type: U
     rightParenthesis: )
   body: BlockFunctionBody
@@ -271,17 +272,17 @@ MethodDeclaration
         ExpressionStatement
           expression: SimpleIdentifier
             token: T
-            element: T@17
+            element: #E0 T
             staticType: Type
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: U
-            element: U@41
+            element: #E1 U
             staticType: Type
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo
+  declaredElement: <testLibraryFragment> foo@37
     type: void Function<U>(T, U)
 ''');
   }
@@ -302,10 +303,12 @@ ExtensionTypeDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@17
+        declaredElement: <testLibraryFragment> T@17
+          defaultType: dynamic
       TypeParameter
         name: U
-        declaredElement: U@20
+        declaredElement: <testLibraryFragment> U@20
+          defaultType: dynamic
     rightBracket: >
   representation: RepresentationDeclaration
     leftParenthesis: (
@@ -316,22 +319,22 @@ ExtensionTypeDeclaration
         arguments
           NamedType
             name: T
-            element2: T@17
+            element2: #E0 T
             type: T
           NamedType
             name: U
-            element2: U@20
+            element2: #E1 U
             type: U
         rightBracket: >
       element2: dart:core::@class::Map
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment> it@33
+    constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::A
+  declaredElement: <testLibraryFragment> A@15
 ''');
   }
 
@@ -351,10 +354,12 @@ ExtensionTypeDeclaration
     typeParameters
       TypeParameter
         name: _
-        declaredElement: _@18
+        declaredElement: <testLibraryFragment> _@18
+          defaultType: dynamic
       TypeParameter
         name: _
-        declaredElement: _@21
+        declaredElement: <testLibraryFragment> _@21
+          defaultType: dynamic
       TypeParameter
         name: _
         extendsKeyword: extends
@@ -362,7 +367,8 @@ ExtensionTypeDeclaration
           name: num
           element2: dart:core::@class::num
           type: num
-        declaredElement: _@24
+        declaredElement: <testLibraryFragment> _@24
+          defaultType: num
     rightBracket: >
   representation: RepresentationDeclaration
     leftParenthesis: (
@@ -372,11 +378,11 @@ ExtensionTypeDeclaration
       type: int
     fieldName: _
     rightParenthesis: )
-    fieldFragment: <testLibraryFragment>::@extensionType::ET::@field::_
-    constructorFragment: <testLibraryFragment>::@extensionType::ET::@constructor::new
+    fieldFragment: <testLibraryFragment> _@43
+    constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@extensionType::ET
+  declaredElement: <testLibraryFragment> ET@15
 ''');
   }
 }

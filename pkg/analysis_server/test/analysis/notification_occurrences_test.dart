@@ -177,7 +177,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_getter() async {
-    await assertOccurrences(kind: ElementKind.FIELD, '''
+    await assertOccurrences(kind: ElementKind.GETTER, '''
 enum E {
   v;
   int get /*[0*/foo/*0]*/ => 0;
@@ -203,7 +203,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_setter() async {
-    await assertOccurrences(kind: ElementKind.FIELD, '''
+    await assertOccurrences(kind: ElementKind.SETTER, '''
 enum E {
   v;
   set /*[0*/foo/*0]*/(int _) {}
@@ -223,6 +223,35 @@ void foo(int i) {
 
 extension /*[1*/E/*1]*/<ThisType> on ThisType {
   ThisType get self => this;
+}
+''');
+  }
+
+  Future<void> test_extensionMember() async {
+    await assertOccurrences(kind: ElementKind.GETTER, '''
+extension on int {
+  int get /*[0*/foo/*0]*/ => 0;
+}
+
+void f(int v) {
+  v./*[1*/foo/*1]*/;
+}
+''');
+  }
+
+  Future<void> test_extensionMember_diferenciation() async {
+    await assertOccurrences(kind: ElementKind.GETTER, '''
+extension on String {
+  int get foo => 0;
+}
+
+extension on int {
+  int get /*[0*/foo/*0]*/ => 0;
+}
+
+void f(int v, String s) {
+  v./*[1*/foo/*1]*/;
+  s.foo;
 }
 ''');
   }
@@ -266,7 +295,7 @@ void f() {
   }
 
   Future<void> test_extensionType_getter() async {
-    await assertOccurrences(kind: ElementKind.FIELD, '''
+    await assertOccurrences(kind: ElementKind.GETTER, '''
 extension type E(int it) {
   int get /*[0*/foo/*0]*/ => 0;
 }
@@ -290,7 +319,7 @@ void f(E e) {
   }
 
   Future<void> test_extensionType_setter() async {
-    await assertOccurrences(kind: ElementKind.FIELD, '''
+    await assertOccurrences(kind: ElementKind.SETTER, '''
 extension type E(int it) {
   set /*[0*/foo/*0]*/(int _) {}
 }
@@ -524,7 +553,7 @@ void f() {
   }
 
   Future<void> test_pattern_object_fieldName() async {
-    await assertOccurrences(kind: ElementKind.FIELD, '''
+    await assertOccurrences(kind: ElementKind.GETTER, '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     Square(/*[0*/length/*0]*/: var l) => l * l,

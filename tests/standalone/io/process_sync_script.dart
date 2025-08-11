@@ -12,10 +12,12 @@ main(List<String> arguments) {
   var blockCount = int.parse(arguments[0]);
   var stdoutBlockSize = int.parse(arguments[1]);
   var stderrBlockSize = int.parse(arguments[2]);
-  var stdoutBlock =
-      new String.fromCharCodes(new List.filled(stdoutBlockSize, 65));
-  var stderrBlock =
-      new String.fromCharCodes(new List.filled(stderrBlockSize, 66));
+  var stdoutBlock = new String.fromCharCodes(
+    new List.filled(stdoutBlockSize, 65),
+  );
+  var stderrBlock = new String.fromCharCodes(
+    new List.filled(stderrBlockSize, 66),
+  );
   for (int i = 0; i < blockCount; i++) {
     stdout.write(stdoutBlock);
     stderr.write(stderrBlock);

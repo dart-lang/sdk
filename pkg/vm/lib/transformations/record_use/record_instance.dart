@@ -10,15 +10,15 @@ import 'package:vm/transformations/record_use/record_use.dart';
 import 'constant_collector.dart';
 
 /// Record a const instance by calling [recordConstantExpression]. After all the
-/// const instances have been recorded, retrieve them using [foundInstances].
+/// const instances have been recorded, retrieve them using [instancesForClass].
 class InstanceRecorder {
-  /// The collection of recorded instances found so far.
-  Iterable<Usage<InstanceReference>> get foundInstances =>
-      _instancesForClass.values;
-
   /// Keep track of the classes which are recorded, to easily add found
   /// instances.
-  final Map<ast.Class, Usage<InstanceReference>> _instancesForClass = {};
+  final Map<Identifier, List<InstanceReference>> instancesForClass = {};
+
+  /// Keep track of the calls which are recorded, to easily add newly found
+  /// ones.
+  final Map<Identifier, String> loadingUnitForDefinition = {};
 
   /// The ordered list of loading units to retrieve the loading unit index from.
   final List<LoadingUnit> _loadingUnits;
@@ -28,6 +28,10 @@ class InstanceRecorder {
 
   /// A visitor traversing and collecting constants.
   late final ConstantCollector collector;
+
+  /// Whether to save line and column info as well as the URI.
+  //TODO(mosum): add verbose mode to enable this
+  bool exactLocation = false;
 
   InstanceRecorder(this._source, this._loadingUnits) {
     collector = ConstantCollector.collectWith(_collectInstance);
@@ -40,33 +44,33 @@ class InstanceRecorder {
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) {
-    // Collect the name and definition location of the invocation. This is
-    // shared across multiple calls to the same method.
-    final existingInstance = _getCall(constant.classNode);
-
-    // Collect the (int, bool, double, or String) arguments passed in the call.
-    existingInstance.references.add(
-      _createInstanceReference(expression, constant),
-    );
+    final instance = _createInstanceReference(expression, constant);
+    _addToUsage(constant.classNode, instance);
   }
 
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
-  Usage<InstanceReference> _getCall(ast.Class cls) {
-    final definition = _definitionFromClass(cls);
-    return _instancesForClass[cls] ??= Usage(
-      definition: definition,
-      references: [],
+  void _addToUsage(ast.Class cls, InstanceReference instance) {
+    var (:identifier, :loadingUnit) = _definitionFromClass(cls);
+    instancesForClass.update(
+      identifier,
+      (usage) => usage..add(instance),
+      ifAbsent: () => [instance],
     );
+    loadingUnitForDefinition.update(identifier, (value) {
+      assert(value == loadingUnit);
+      return value;
+    }, ifAbsent: () => loadingUnit);
   }
 
-  Definition _definitionFromClass(ast.Class cls) {
+  ({Identifier identifier, String loadingUnit}) _definitionFromClass(
+    ast.Class cls,
+  ) {
     final enclosingLibrary = cls.enclosingLibrary;
     final file = getImportUri(enclosingLibrary, _source);
 
-    return Definition(
+    return (
       identifier: Identifier(importUri: file, name: cls.name),
-      location: cls.location!.recordLocation(_source),
       loadingUnit:
           loadingUnitForNode(cls.enclosingLibrary, _loadingUnits).toString(),
     );
@@ -76,16 +80,8 @@ class InstanceRecorder {
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) => InstanceReference(
-    location: expression.location!.recordLocation(_source),
-    instanceConstant: _fieldsFromConstant(constant),
+    location: expression.location!.recordLocation(_source, exactLocation),
+    instanceConstant: evaluateInstanceConstant(constant),
     loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
   );
-
-  InstanceConstant _fieldsFromConstant(ast.InstanceConstant constant) =>
-      InstanceConstant(
-        fields: constant.fieldValues.map(
-          (key, value) =>
-              MapEntry(key.asField.name.text, evaluateConstant(value)),
-        ),
-      );
 }

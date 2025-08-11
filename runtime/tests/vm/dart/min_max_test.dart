@@ -94,11 +94,17 @@ testSmiMax() {
 }
 
 testMintMin() {
-  Expect.equals(0x8000000000000000, mint_min(0x8000000000000000, 0x8000000000000000));
+  Expect.equals(
+    0x8000000000000000,
+    mint_min(0x8000000000000000, 0x8000000000000000),
+  );
   Expect.equals(0x8000000000000000, mint_min(-1, 0x8000000000000000));
   Expect.equals(0x8000000000000000, mint_min(0, 0x8000000000000000));
   Expect.equals(0x8000000000000000, mint_min(1, 0x8000000000000000));
-  Expect.equals(0x8000000000000000, mint_min(0x7FFFFFFFFFFFFFFF, 0x8000000000000000));
+  Expect.equals(
+    0x8000000000000000,
+    mint_min(0x7FFFFFFFFFFFFFFF, 0x8000000000000000),
+  );
 
   Expect.equals(0x8000000000000000, mint_min(0x8000000000000000, -1));
   Expect.equals(-1, mint_min(-1, -1));
@@ -118,19 +124,31 @@ testMintMin() {
   Expect.equals(1, mint_min(1, 1));
   Expect.equals(1, mint_min(0x7FFFFFFFFFFFFFFF, 1));
 
-  Expect.equals(0x8000000000000000, mint_min(0x8000000000000000, 0x7FFFFFFFFFFFFFFF));
+  Expect.equals(
+    0x8000000000000000,
+    mint_min(0x8000000000000000, 0x7FFFFFFFFFFFFFFF),
+  );
   Expect.equals(-1, mint_min(-1, 0x7FFFFFFFFFFFFFFF));
   Expect.equals(0, mint_min(0, 0x7FFFFFFFFFFFFFFF));
   Expect.equals(1, mint_min(1, 0x7FFFFFFFFFFFFFFF));
-  Expect.equals(0x7FFFFFFFFFFFFFFF, mint_min(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF));
+  Expect.equals(
+    0x7FFFFFFFFFFFFFFF,
+    mint_min(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF),
+  );
 }
 
 testMintMax() {
-  Expect.equals(0x8000000000000000, mint_max(0x8000000000000000, 0x8000000000000000));
+  Expect.equals(
+    0x8000000000000000,
+    mint_max(0x8000000000000000, 0x8000000000000000),
+  );
   Expect.equals(-1, mint_max(-1, 0x8000000000000000));
   Expect.equals(0, mint_max(0, 0x8000000000000000));
   Expect.equals(1, mint_max(1, 0x8000000000000000));
-  Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(0x7FFFFFFFFFFFFFFF, 0x8000000000000000));
+  Expect.equals(
+    0x7FFFFFFFFFFFFFFF,
+    mint_max(0x7FFFFFFFFFFFFFFF, 0x8000000000000000),
+  );
 
   Expect.equals(-1, mint_max(0x8000000000000000, -1));
   Expect.equals(-1, mint_max(-1, -1));
@@ -150,11 +168,17 @@ testMintMax() {
   Expect.equals(1, mint_max(1, 1));
   Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(0x7FFFFFFFFFFFFFFF, 1));
 
-  Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(0x8000000000000000, 0x7FFFFFFFFFFFFFFF));
+  Expect.equals(
+    0x7FFFFFFFFFFFFFFF,
+    mint_max(0x8000000000000000, 0x7FFFFFFFFFFFFFFF),
+  );
   Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(-1, 0x7FFFFFFFFFFFFFFF));
   Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(0, 0x7FFFFFFFFFFFFFFF));
   Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(1, 0x7FFFFFFFFFFFFFFF));
-  Expect.equals(0x7FFFFFFFFFFFFFFF, mint_max(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF));
+  Expect.equals(
+    0x7FFFFFFFFFFFFFFF,
+    mint_max(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF),
+  );
 }
 
 testDoubleMin() {

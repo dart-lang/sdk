@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-strong
-
 /// Test that `Never` has all members, and that as a result no extensions
 /// apply to it.  Also test that `Never` is inferred as the type of a
 /// throw expression, and as the return type of function literals that

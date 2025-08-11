@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
@@ -357,8 +358,8 @@ class OptionsTest extends BaseTest {
 
   List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
 
-  ErrorProcessor processorFor(AnalysisError error) =>
-      processors.firstWhere((p) => p.appliesTo(error));
+  ErrorProcessor processorFor(Diagnostic diagnostic) =>
+      processors.firstWhere((p) => p.appliesTo(diagnostic));
 
   /// If a file is specified explicitly, it should be analyzed, even if
   /// it is excluded. Excludes work when an including directory is specified.
@@ -427,11 +428,11 @@ class OptionsTest extends BaseTest {
     expect(processors, hasLength(3));
 
     // unused_local_variable: ignore
-    var unused_local_variable = AnalysisError.tmp(
+    var unused_local_variable = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
@@ -439,18 +440,18 @@ class OptionsTest extends BaseTest {
     expect(processorFor(unused_local_variable).severity, isNull);
 
     // assignment_of_do_not_store: error
-    var assignment_of_do_not_store = AnalysisError.tmp(
+    var assignment_of_do_not_store = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+      diagnosticCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
       arguments: [
         ['x'],
       ],
     );
     expect(
       processorFor(assignment_of_do_not_store).severity,
-      ErrorSeverity.ERROR,
+      DiagnosticSeverity.ERROR,
     );
     expect(
       bulletToDash(outSink),

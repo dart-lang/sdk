@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -76,18 +78,12 @@ extension type E(int i) {
   }
 
   test_method_private() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 /// Doc.
 extension type E(int i) {
   void _m() { }
 }
-''',
-      [
-        // No lint
-        error(WarningCode.UNUSED_ELEMENT, 42, 2),
-      ],
-    );
+''');
   }
 }
 
@@ -205,18 +201,12 @@ enum A {
   }
 
   test_enum_privateConstant() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 /// Documented.
 enum A {
   _a;
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 27, 2),
-      ],
-    );
+''');
   }
 
   test_enumConstructor() async {
@@ -345,6 +335,16 @@ mixin M {
     );
   }
 
+  /// https://github.com/dart-lang/linter/issues/5030
+  test_internalTopLevelVariable() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@internal
+var f = 1;
+''');
+  }
+
   test_mixin_method() async {
     await assertDiagnostics(
       r'''
@@ -392,7 +392,7 @@ final class A extends S {}
 ''',
       [
         lint(13, 1),
-        // No lint on `S()` declaration
+        // No lint on `S()` constructor declaration.
         lint(39, 1),
       ],
     );
@@ -410,19 +410,11 @@ int get z => 0;
   }
 
   test_topLevelMembers_private() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 int _h = 1;
 typedef _T = void Function();
 int get _z => 0;
-''',
-      [
-        // No lint
-        error(WarningCode.UNUSED_ELEMENT, 4, 2),
-        error(WarningCode.UNUSED_ELEMENT, 20, 2),
-        error(WarningCode.UNUSED_ELEMENT, 50, 2),
-      ],
-    );
+''');
   }
 }
 

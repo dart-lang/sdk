@@ -3,18 +3,117 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class CreateMixin extends ResolvedCorrectionProducer {
-  String _mixinName = '';
-
+class CreateMixin extends MultiCorrectionProducer {
   CreateMixin({required super.context});
+
+  @override
+  Future<List<ResolvedCorrectionProducer>> get producers async {
+    String mixinName = '';
+    Element? prefixElement;
+    var withKeyword = false;
+    var node = this.node;
+    Expression? expression;
+    if (node is NamedType) {
+      var importPrefix = node.importPrefix;
+      if (importPrefix != null) {
+        prefixElement = importPrefix.element;
+        if (prefixElement == null) {
+          return const [];
+        }
+      }
+      withKeyword = node.parent is WithClause;
+      mixinName = node.name.lexeme;
+    } else if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      switch (parent) {
+        // Not the first identifier or the body of a function
+        case PrefixedIdentifier(identifier: Expression invalid) ||
+            PropertyAccess(propertyName: Expression invalid) ||
+            ExpressionFunctionBody(expression: var invalid):
+          if (invalid == node) {
+            return const [];
+          }
+      }
+      expression = stepUpNamedExpression(node);
+      mixinName = node.name;
+    } else if (node is PrefixedIdentifier) {
+      if (node.parent is InstanceCreationExpression) {
+        return const [];
+      }
+      prefixElement = node.prefix.element;
+      if (prefixElement == null) {
+        return const [];
+      }
+      expression = stepUpNamedExpression(node);
+      mixinName = node.identifier.name;
+    } else {
+      return const [];
+    }
+    if (mixinName.isEmpty) {
+      return const [];
+    }
+    return [
+      // Lowercase mixin names are valid but not idiomatic so lower the
+      // priority.
+      if (mixinName.firstLetterIsLowercase)
+        _CreateMixin.lowercase(
+          mixinName,
+          expression,
+          prefixElement,
+          withKeyword: withKeyword,
+          context: context,
+        )
+      else
+        _CreateMixin.uppercase(
+          mixinName,
+          expression,
+          prefixElement,
+          withKeyword: withKeyword,
+          context: context,
+        ),
+    ];
+  }
+}
+
+class _CreateMixin extends ResolvedCorrectionProducer {
+  final String _mixinName;
+  final Element? prefixElement;
+  final Expression? _expression;
+
+  @override
+  final FixKind fixKind;
+
+  _CreateMixin.lowercase(
+    this._mixinName,
+    this._expression,
+    this.prefixElement, {
+    required bool withKeyword,
+    required super.context,
+  }) : fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_MIXIN_LOWERCASE_WITH
+               : DartFixKind.CREATE_MIXIN_LOWERCASE;
+
+  _CreateMixin.uppercase(
+    this._mixinName,
+    this._expression,
+    this.prefixElement, {
+    required bool withKeyword,
+    required super.context,
+  }) : fixKind =
+           withKeyword
+               ? DartFixKind.CREATE_MIXIN_UPPERCASE_WITH
+               : DartFixKind.CREATE_MIXIN_UPPERCASE;
 
   @override
   CorrectionApplicability get applicability =>
@@ -25,45 +124,15 @@ class CreateMixin extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_mixinName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_MIXIN;
-
-  @override
   Future<void> compute(ChangeBuilder builder) async {
-    Element2? prefixElement;
-    var node = this.node;
-    if (node is NamedType) {
-      var importPrefix = node.importPrefix;
-      if (importPrefix != null) {
-        prefixElement = importPrefix.element2;
-        if (prefixElement == null) {
-          return;
-        }
-      }
-      _mixinName = node.name2.lexeme;
-    } else if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      switch (parent) {
-        case PrefixedIdentifier():
-          if (parent.identifier == node) {
-            return;
-          }
-        case PropertyAccess():
-          if (parent.propertyName == node) {
-            return;
-          }
-      }
-      _mixinName = node.name;
-    } else if (node is PrefixedIdentifier) {
-      if (node.parent is InstanceCreationExpression) {
+    // either not expecting anything specific or expecting a type || object
+    if (_expression != null) {
+      var fieldType = inferUndefinedExpressionType(_expression);
+      if (fieldType != null &&
+          (!typeSystem.isAssignableTo(fieldType, typeProvider.typeType) ||
+              !typeSystem.isSubtypeOf(fieldType, typeProvider.objectType))) {
         return;
       }
-      prefixElement = node.prefix.element;
-      if (prefixElement == null) {
-        return;
-      }
-      _mixinName = node.identifier.name;
-    } else {
-      return;
     }
     // prepare environment
     LibraryFragment targetUnit;
@@ -85,9 +154,9 @@ class CreateMixin extends ResolvedCorrectionProducer {
       prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
-        if (prefixElement is PrefixElement2 &&
+        if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
-          var library = import.importedLibrary2;
+          var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.firstFragment;
             var targetSource = targetUnit.source;

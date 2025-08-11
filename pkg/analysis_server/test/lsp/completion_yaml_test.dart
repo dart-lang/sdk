@@ -516,7 +516,7 @@ version: 1.0.0
 dependencies:
   one: ^2.3.4''';
 
-    newFile(pubspecFilePath, content);
+    var pubspecFile = newFile(pubspecFilePath, content);
     await initialize();
     await openFile(pubspecFileUri, code.code);
     await pumpEventQueue(times: 500);
@@ -525,7 +525,7 @@ dependencies:
     // cached data.
     processRunner.startHandler =
         (executable, args, {dir, env}) => MockProcess(1, 0, updatedJson, '');
-    modifyFile(pubspecFilePath, '$content# trailing comment');
+    modifyFile2(pubspecFile, '$content# trailing comment');
     await pumpEventQueue(times: 500);
 
     await verifyCompletions(

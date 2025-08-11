@@ -8,11 +8,17 @@ import "dart:io";
 import "package:expect/expect.dart";
 import 'package:path/path.dart';
 
-test(int blockCount, int stdoutBlockSize, int stderrBlockSize, int exitCode,
-    [int? nonWindowsExitCode]) {
+test(
+  int blockCount,
+  int stdoutBlockSize,
+  int stderrBlockSize,
+  int exitCode, [
+  int? nonWindowsExitCode,
+]) {
   // Get the Dart script file that generates output.
   var scriptFile = new File(
-      Platform.script.resolve("process_sync_script.dart").toFilePath());
+    Platform.script.resolve("process_sync_script.dart").toFilePath(),
+  );
   var args = <String>[]
     ..addAll(Platform.executableArguments)
     ..add('--verbosity=warning')
@@ -21,7 +27,7 @@ test(int blockCount, int stdoutBlockSize, int stderrBlockSize, int exitCode,
       blockCount.toString(),
       stdoutBlockSize.toString(),
       stderrBlockSize.toString(),
-      exitCode.toString()
+      exitCode.toString(),
     ]);
   ProcessResult syncResult = Process.runSync(Platform.executable, args);
   Expect.equals(blockCount * stdoutBlockSize, syncResult.stdout.length);

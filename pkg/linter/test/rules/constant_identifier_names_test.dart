@@ -73,6 +73,7 @@ augment enum E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

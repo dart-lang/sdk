@@ -20,7 +20,7 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:30:6: Error: Can't inject public 'existingOriginMethod' into 'dart:test'.
 // Make 'existingOriginMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // void existingOriginMethod() {} /* Error: conflict with origin method */
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:32:7: Error: 'existingOriginDeclaration' is already declared in this scope.
 // class existingOriginDeclaration {} /* Error: conflict with origin declaration */
@@ -32,7 +32,7 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:32:7: Error: Can't inject public 'existingOriginDeclaration' into 'dart:test'.
 // Make 'existingOriginDeclaration' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // class existingOriginDeclaration {} /* Error: conflict with origin declaration */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:34:7: Error: 'ExistingOriginClass' is already declared in this scope.
 // class ExistingOriginClass {} /* Error: conflict with origin class */
@@ -44,37 +44,37 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:34:7: Error: Can't inject public 'ExistingOriginClass' into 'dart:test'.
 // Make 'ExistingOriginClass' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // class ExistingOriginClass {} /* Error: conflict with origin class */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:22:6: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin library.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 // void missingOriginMethod() {} /* Error: missing origin method */
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:22:6: Error: Can't inject public 'missingOriginMethod' into 'dart:test'.
 // Make 'missingOriginMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // void missingOriginMethod() {} /* Error: missing origin method */
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:25:7: Error: Patch class 'MissingOriginClass' doesn't match a class in the origin library.
 // Try changing the name to an existing class or removing the '@patch' annotation.
 // class MissingOriginClass {} /* Error: missing origin class */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:25:7: Error: Can't inject public 'MissingOriginClass' into 'dart:test'.
 // Make 'MissingOriginClass' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // class MissingOriginClass {} /* Error: missing origin class */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:28:11: Error: Patch 'MissingOriginExtension' doesn't match a declaration in the origin library.
 // Try changing the name to an existing declaration or removing the '@patch' annotation.
 // extension MissingOriginExtension on int {} /* Error: missing origin extension */
-//           ^
+//           ^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:28:11: Error: Can't inject public 'MissingOriginExtension' into 'dart:test'.
 // Make 'MissingOriginExtension' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
 // extension MissingOriginExtension on int {} /* Error: missing origin extension */
-//           ^
+//           ^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:13:3: Error: 'Class.existingOriginConstructor' is already declared in this scope.
 //   Class.existingOriginConstructor(); /* Error: conflict with origin class */
@@ -90,15 +90,15 @@ library;
 //   void existingOriginMethod() {}
 //        ^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:11:3: Error: Patch member 'missingOriginConstructor' doesn't match a member in the origin class.
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:11:3: Error: Patch member 'Class.missingOriginConstructor' doesn't match a member in the origin class.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 //   Class.missingOriginConstructor(); /* Error: missing origin class */
-//   ^
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:16:8: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin class.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 //   void missingOriginMethod() {} /* Error: missing origin method */
-//        ^
+//        ^^^^^^^^^^^^^^^^^^^
 //
 import self as self2;
 import "dart:_internal" as _in;
@@ -125,12 +125,12 @@ class existingOriginDeclaration#1 extends core::Object { // from org-dartlang-te
   synthetic constructor •() → self2::existingOriginDeclaration#1
     ;
 }
-class ExistingOriginClass#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
-  synthetic constructor •() → self2::ExistingOriginClass#1
-    ;
-}
 class ExistingOriginClass extends core::Object {
   synthetic constructor •() → self2::ExistingOriginClass
+    ;
+}
+class ExistingOriginClass#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::ExistingOriginClass#1
     ;
 }
 @_in::patch

@@ -4,10 +4,10 @@
 
 import 'package:expect/expect.dart' deferred as expect;
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   callLoadLibrary();
 }
 
-/*member: callLoadLibrary:[exact=_Future|powerset=0]*/
+/*member: callLoadLibrary:[exact=_Future|powerset={N}{O}{N}]*/
 callLoadLibrary() => expect.loadLibrary();

@@ -16,34 +16,60 @@ main() {
 @reflectiveTest
 class NotATypeTest extends PubPackageResolutionTest {
   test_class_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.foo();
 }
 
 A.foo bar() {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 24, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          24,
+          5,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static void foo() {}
 }
 
 A.foo bar() {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 36, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          36,
+          5,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
+    );
   }
 
   test_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {}
 E a;
-''', [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          22,
+          1,
+          contextMessages: [message(testFile, 10, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.namedType('E a;');
     assertResolvedNodeText(node, r'''
@@ -55,13 +81,21 @@ NamedType
   }
 
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {}
 main() {
   f v = null;
-}''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          18,
+          1,
+          contextMessages: [message(testFile, 0, 1)],
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+      ],
+    );
   }
 }

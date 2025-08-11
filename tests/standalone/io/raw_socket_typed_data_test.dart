@@ -146,7 +146,10 @@ void testSimpleReadWrite() {
             Expect.isTrue(bytesRead == messageSize);
             Expect.isFalse(client.writeEventsEnabled);
             bytesWritten += client.write(
-                data[index], bytesWritten, data[index].length - bytesWritten);
+              data[index],
+              bytesWritten,
+              data[index].length - bytesWritten,
+            );
             if (bytesWritten < data[index].length) {
               client.writeEventsEnabled = true;
             } else {
@@ -189,7 +192,10 @@ void testSimpleReadWrite() {
             Expect.isTrue(bytesRead == 0);
             Expect.isFalse(socket.writeEventsEnabled);
             bytesWritten += socket.write(
-                data[index], bytesWritten, data[index].length - bytesWritten);
+              data[index],
+              bytesWritten,
+              data[index].length - bytesWritten,
+            );
             if (bytesWritten < data[index].length) {
               socket.writeEventsEnabled = true;
             } else {

@@ -1,4 +1,11 @@
-# 3.8.0-wip
+# 3.10.0-wip
+
+# 3.9.0
+
+- new lint: `switch_on_type`
+- new lint: `unnecessary_unawaited`
+
+# 3.8.0
 
 - new lint: `use_null_aware_elements`
 - new _(experimental)_ lint: `unnecessary_ignore`

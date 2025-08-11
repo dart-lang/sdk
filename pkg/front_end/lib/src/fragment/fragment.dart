@@ -17,18 +17,19 @@ import '../base/constant_context.dart';
 import '../base/local_scope.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
-import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/variable_builder.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
@@ -38,11 +39,12 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
-import '../kernel/macro/metadata.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
-import '../source/builder_factory.dart';
+import '../source/fragment_factory.dart';
 import '../source/name_scheme.dart';
+import '../source/name_space_builder.dart';
+import '../source/nominal_parameter_name_space.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
@@ -55,13 +57,15 @@ import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/source_type_parameter_builder.dart';
-import '../source/type_parameter_scope_builder.dart';
+import '../source/type_parameter_factory.dart';
+import '../type_inference/inference_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import 'constructor/declaration.dart';
 import 'factory/declaration.dart';
+import 'field/declaration.dart';
 import 'getter/declaration.dart';
 import 'getter/encoding.dart';
 import 'method/declaration.dart';
@@ -71,6 +75,7 @@ import 'setter/encoding.dart';
 part 'class.dart';
 part 'class/declaration.dart';
 part 'constructor.dart';
+part 'declaration.dart';
 part 'enum.dart';
 part 'enum_element.dart';
 part 'extension.dart';
@@ -86,6 +91,7 @@ part 'method.dart';
 part 'mixin.dart';
 part 'named_mixin_application.dart';
 part 'primary_constructor.dart';
+part 'primary_constructor_field.dart';
 part 'setter.dart';
 part 'type_parameter.dart';
 part 'typedef.dart';
@@ -102,6 +108,10 @@ sealed class Fragment {
   /// The name is used to group introductory fragments with augmenting fragments
   /// and to group getters, setters, and fields as properties.
   String get name;
+
+  /// Returns a [UriOffsetLength] object that can be used to point to the
+  /// declaration of this fragment.
+  UriOffsetLength get uriOffset;
 
   /// The [Builder] created for this fragment.
   ///

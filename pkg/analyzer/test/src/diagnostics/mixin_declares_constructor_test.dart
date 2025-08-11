@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class MixinDeclaresConstructorTest extends PubPackageResolutionTest {
   test_factory_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   factory M.named() => throw 0;
 }
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
-    ]);
+''',
+      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7)],
+    );
 
     var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
@@ -31,18 +32,19 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
   test_factory_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   factory M() => throw 0;
 }
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
-    ]);
+''',
+      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7)],
+    );
 
     var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
@@ -51,18 +53,19 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
   test_generative_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   M.named();
 }
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1)],
+    );
 
     var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
@@ -71,18 +74,19 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
   test_generative_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   M();
 }
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1)],
+    );
 
     var node = findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
@@ -91,7 +95,7 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 }

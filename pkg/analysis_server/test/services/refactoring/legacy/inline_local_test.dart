@@ -125,7 +125,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 class A {
   foo() {}
   bar() {}
@@ -149,7 +149,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 class A {
   foo() {}
   bar() {}
@@ -174,7 +174,7 @@ void f(int p) {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 // @dart=2.19
 void f(int p) {
   switch (p) {
@@ -198,7 +198,7 @@ void f(Object? x) {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f(Object? x) {
   switch (x) {
     case _?:
@@ -225,7 +225,7 @@ void f() {
 ''');
     _createRefactoring('v =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 class C {
   static final i = 5;
 }
@@ -250,7 +250,7 @@ process(x) {}
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   print('test = ${1 + 2}');
   print('test = ${1 + 2}');
@@ -273,7 +273,7 @@ process(x) {}
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   int foo = 1 + 2;
   print('test = $foo');
@@ -293,7 +293,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = '${"aaa"} bbb';
 }
@@ -309,7 +309,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = "aaa bbb";
 }
@@ -330,7 +330,7 @@ bbb''';
 """);
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r"""
+    await assertSuccessfulRefactoring(r"""
 void f() {
   String b = '''
 a
@@ -355,7 +355,7 @@ bbb''';
 """);
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r"""
+    await assertSuccessfulRefactoring(r"""
 void f() {
   String b = '''
 a
@@ -383,7 +383,7 @@ bbb''';
     );
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(
+    await assertSuccessfulRefactoring(
       r"""
 void f() {
   String b = '''
@@ -406,7 +406,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = "${"""aaa"""} bbb";
 }
@@ -422,7 +422,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // we don't unwrap raw strings
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = '${r'an $ignored interpolation'} bbb';
 }
@@ -439,7 +439,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = """aaa bbb""";
 }
@@ -456,7 +456,7 @@ void f() {
 """);
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r"""
+    await assertSuccessfulRefactoring(r"""
 void f() {
   String b = '''aaa bbb''';
 }
@@ -472,7 +472,7 @@ void f() {
 ''');
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String b = 'aaa bbb';
 }
@@ -489,7 +489,7 @@ void f() {
 ''');
     _createRefactoring('b =');
     // validate change
-    return assertSuccessfulRefactoring(r'''
+    await assertSuccessfulRefactoring(r'''
 void f() {
   String a = 'aaa';
   String c = '$a bbb ccc';
@@ -509,11 +509,59 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   // foo
   print(1 + 2);
   // bar
+}
+''');
+  }
+
+  Future<void> test_OK_listLiteral() async {
+    await indexTestUnit('''
+void f() {
+  var test = 42.isEven;
+  [0, test, 1];
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+void f() {
+  [0, 42.isEven, 1];
+}
+''');
+  }
+
+  Future<void> test_OK_mapLiteral1() async {
+    await indexTestUnit('''
+void f() {
+  var test = 42.isEven;
+  <dynamic, dynamic>{0: test};
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+void f() {
+  <dynamic, dynamic>{0: 42.isEven};
+}
+''');
+  }
+
+  Future<void> test_OK_mapLiteral2() async {
+    await indexTestUnit('''
+void f() {
+  var test = 42.isEven;
+  <dynamic, dynamic>{test: 1};
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+void f() {
+  <dynamic, dynamic>{42.isEven: 1};
 }
 ''');
   }
@@ -527,7 +575,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   print(0);
 }
@@ -542,7 +590,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
 }
 ''');
@@ -557,7 +605,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   print(1 + 2);
 }
@@ -574,7 +622,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   var a = 1;
   var b = -(--a);
@@ -592,7 +640,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 class A {}
 void f() {
   var list = [new A()];
@@ -610,7 +658,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   var items = [];
   items[1 + 2] * 5;
@@ -628,7 +676,7 @@ f(m, x, y) {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 f(m, x, y) {
   m[x as int] = y;
   return m[x as int];
@@ -646,7 +694,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   var a = 1;
   var b = -(-a);
@@ -663,9 +711,41 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   print((1 + 2) * 3);
+}
+''');
+  }
+
+  Future<void> test_OK_recordLiteral() async {
+    await indexTestUnit('''
+void f() {
+  var test = 42.isEven;
+  (0, test, 1);
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+void f() {
+  (0, 42.isEven, 1);
+}
+''');
+  }
+
+  Future<void> test_OK_setLiteral() async {
+    await indexTestUnit('''
+void f() {
+  var test = 42.isEven;
+  <dynamic>{0, test, 1};
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+void f() {
+  <dynamic>{0, 42.isEven, 1};
 }
 ''');
   }
@@ -680,7 +760,7 @@ void f() {
 ''');
     _createRefactoring('test =');
     // validate change
-    return assertSuccessfulRefactoring('''
+    await assertSuccessfulRefactoring('''
 void f() {
   print(1 + 2);
   print(1 + 2);

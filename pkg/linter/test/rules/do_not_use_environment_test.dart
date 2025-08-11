@@ -27,6 +27,28 @@ void f() {
     );
   }
 
+  test_dotShorthand_fromEnvironment() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  bool x = .fromEnvironment('key');
+}
+''',
+      [lint(23, 15)],
+    );
+  }
+
+  test_dotShorthand_hasEnvironment() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  bool x = .hasEnvironment('key');
+}
+''',
+      [lint(23, 14)],
+    );
+  }
+
   test_hasEnvironment() async {
     await assertDiagnostics(
       r'''

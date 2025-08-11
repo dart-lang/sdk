@@ -6,10 +6,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
-import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -51,8 +50,12 @@ class ColorComputer {
 
     // Try to evaluate the constant target.
     var colorConstResult = target.computeConstantValue();
-    var colorConst = colorConstResult.value;
-    if (colorConstResult.errors.isNotEmpty || colorConst == null) return false;
+    var colorConst = colorConstResult?.value;
+    if (colorConstResult == null ||
+        colorConstResult.diagnostics.isNotEmpty ||
+        colorConst == null) {
+      return false;
+    }
 
     // If we want a specific member or swatch index, read that.
     if (memberName != null) {
@@ -74,8 +77,8 @@ class ColorComputer {
 
     var constructor = expression.constructorName;
     var staticElement = constructor.element;
-    var classElement = staticElement?.enclosingElement2;
-    var className = classElement?.name3;
+    var classElement = staticElement?.enclosingElement;
+    var className = classElement?.name;
     var constructorName = constructor.name?.name;
     var constructorArgs = expression.argumentList.arguments.toList();
 
@@ -225,16 +228,16 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element2? element) => element?.library2?.name3 == 'dart.ui';
+  bool _isDartUi(Element? element) => element?.library?.name == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
-  bool _isFlutterMaterial(Element2? element) =>
-      element?.library2?.identifier ==
+  bool _isFlutterMaterial(Element? element) =>
+      element?.library?.identifier ==
       'package:flutter/src/material/colors.dart';
 
   /// Checks whether this elements library is Flutter Painting colors.
-  bool _isFlutterPainting(Element2? element) =>
-      element?.library2?.identifier ==
+  bool _isFlutterPainting(Element? element) =>
+      element?.library?.identifier ==
       'package:flutter/src/painting/colors.dart';
 
   /// Tries to record a color from [colorConst] for [expression].

@@ -16,14 +16,20 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/inference/'
-          'type_constraint_generation/data'));
-  return runTests<List<GeneratedTypeConstraint>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const _TypeConstraintGenerationDataComputer(),
-          [analyzerDefaultConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/inference/'
+      'type_constraint_generation/data',
+    ),
+  );
+  return runTests<List<GeneratedTypeConstraint>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _TypeConstraintGenerationDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _TypeConstraintGenerationDataComputer
@@ -38,14 +44,19 @@ class _TypeConstraintGenerationDataComputer
   bool get supportsErrors => true;
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
+  ) {
     _TypeConstraintGenerationDataExtractor(
-            testingData.uriToTypeConstraintGenerationData[
-                unit.declaredFragment?.source.uri]!,
-            unit.declaredFragment!.source.uri,
-            actualMap)
-        .run(unit);
+      testingData.uriToTypeConstraintGenerationData[unit
+          .declaredFragment
+          ?.source
+          .uri]!,
+      unit.declaredFragment!.source.uri,
+      actualMap,
+    ).run(unit);
   }
 }
 
@@ -54,7 +65,10 @@ class _TypeConstraintGenerationDataExtractor
   final TypeConstraintGenerationDataForTesting dataForTesting;
 
   _TypeConstraintGenerationDataExtractor(
-      this.dataForTesting, super.uri, super.actualMap);
+    this.dataForTesting,
+    super.uri,
+    super.actualMap,
+  );
 
   @override
   List<GeneratedTypeConstraint>? computeNodeValue(Id id, AstNode node) {
@@ -67,19 +81,22 @@ class _TypeConstraintGenerationDataInterpreter
   const _TypeConstraintGenerationDataInterpreter();
 
   @override
-  String getText(List<GeneratedTypeConstraint> actualData,
-      [String? indentation]) {
+  String getText(
+    List<GeneratedTypeConstraint> actualData, [
+    String? indentation,
+  ]) {
     StringBuffer sb = StringBuffer();
     if (actualData.isNotEmpty) {
       for (int i = 0; i < actualData.length; i++) {
         if (i > 0) {
           sb.write(',');
         }
-        var name = actualData[i]
-            .typeParameter
-            .unwrapTypeParameterViewAsTypeParameterStructure<
-                TypeParameterElementImpl2>()
-            .name3;
+        var name =
+            actualData[i].typeParameter
+                .unwrapTypeParameterViewAsTypeParameterStructure<
+                  TypeParameterElementImpl
+                >()
+                .name;
         if (actualData[i].isUpper) {
           sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());
@@ -94,7 +111,9 @@ class _TypeConstraintGenerationDataInterpreter
 
   @override
   String? isAsExpected(
-      List<GeneratedTypeConstraint> actualData, String? expectedData) {
+    List<GeneratedTypeConstraint> actualData,
+    String? expectedData,
+  ) {
     var actualDataText = getText(actualData);
     if (actualDataText == expectedData) {
       return null;

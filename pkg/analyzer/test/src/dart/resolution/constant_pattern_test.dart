@@ -36,9 +36,9 @@ ConstantPattern
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: int
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -58,14 +58,14 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
         element2: <testLibrary>::@class::A
         type: A
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -118,7 +118,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     leftBracket: [
     elements
@@ -140,7 +140,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements
@@ -193,7 +193,7 @@ ConstantPattern
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
+      element: package:test/a.dart::@class::A::@getter::foo
       staticType: int
     staticType: int
   matchedValueType: dynamic
@@ -224,9 +224,9 @@ ConstantPattern
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/a.dart::<fragment>::@getter::foo#element
+      element: package:test/a.dart::@getter::foo
       staticType: int
-    element: package:test/a.dart::<fragment>::@getter::foo#element
+    element: package:test/a.dart::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -241,7 +241,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements
@@ -271,7 +271,7 @@ void f(x) {
 ConstantPattern
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');

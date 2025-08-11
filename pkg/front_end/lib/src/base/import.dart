@@ -5,8 +5,8 @@
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/library_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
 import '../source/source_library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
@@ -69,11 +69,11 @@ class Import {
   void finalizeImports(SourceCompilationUnit importer) {
     if (nativeImportPath != null) return;
 
-    void Function(String, Builder) add;
+    void Function(String, NamedBuilder) add;
 
     PrefixFragment? prefixFragment = this.prefixFragment;
     if (prefixFragment == null) {
-      add = (String name, Builder builder) {
+      add = (String name, NamedBuilder builder) {
         importer.addImportedBuilderToScope(
             name: name, builder: builder, charOffset: importOffset);
       };
@@ -86,16 +86,16 @@ class Import {
             charOffset: prefixOffset);
       }
 
-      add = (String name, Builder member) {
+      add = (String name, NamedBuilder member) {
         prefixFragment.builder.addToPrefixScope(name, member,
             importOffset: importOffset, prefixOffset: prefixOffset);
       };
     }
-    NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace
-        .filteredNameIterator(includeDuplicates: false);
+    Iterator<NamedBuilder> iterator =
+        importedLibraryBuilder!.exportNameSpace.filteredIterator();
     while (iterator.moveNext()) {
-      String name = iterator.name;
-      Builder member = iterator.current;
+      NamedBuilder member = iterator.current;
+      String name = member.name;
       bool include = true;
       if (combinators != null) {
         for (CombinatorBuilder combinator in combinators!) {

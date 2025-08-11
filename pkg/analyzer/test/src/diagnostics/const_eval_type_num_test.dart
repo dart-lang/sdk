@@ -29,12 +29,15 @@ class ConstEvalTypeNumTest extends PubPackageResolutionTest {
   }
 
   Future<void> _check_constEvalTypeNum_binary(String expr) async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const num a = 0;
 const b = $expr;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 27, 6),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 27, 6),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      ],
+    );
   }
 }

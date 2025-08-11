@@ -35,72 +35,75 @@ void main() {
     test('top-level must be a map', () async {
       var jsonString = '[]';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageTopLevelIsNotAMap(specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageTopLevelIsNotAMap(specUri))),
+      );
       jsonString = '""';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageTopLevelIsNotAMap(specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageTopLevelIsNotAMap(specUri))),
+      );
     });
 
     test('target entry must be a map', () async {
       var jsonString = '{"vm" : []}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageTargetIsNotAMap('vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageTargetIsNotAMap('vm', specUri))),
+      );
       jsonString = '{"vm" : ""}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageTargetIsNotAMap('vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageTargetIsNotAMap('vm', specUri))),
+      );
     });
 
     test('library entry must exist', () async {
       var jsonString = '{"vm" : {}}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageTargetLibrariesMissing('vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageTargetLibrariesMissing('vm', specUri))),
+      );
     });
 
     test('library entry must be a map', () async {
       var jsonString = '{"vm" : {"libraries": []}}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageLibrariesEntryIsNotAMap('vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageLibrariesEntryIsNotAMap('vm', specUri))),
+      );
     });
 
     test('library data must be a map', () async {
       var jsonString = '{"vm" : {"libraries": { "foo": [] }}}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageLibraryDataIsNotAMap('foo', 'vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageLibraryDataIsNotAMap('foo', 'vm', specUri)),
+        ),
+      );
     });
 
     test('library uri must be supplied', () async {
       var jsonString = '{"vm" : {"libraries": {"core": {}}}}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageLibraryUriMissing('core', 'vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageLibraryUriMissing('core', 'vm', specUri)),
+        ),
+      );
     });
 
     test('uri must be a string', () async {
       var jsonString = '{"vm" : {"libraries": {"core": {"uri": 3}}}}';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageLibraryUriIsNotAString(3, 'core', 'vm', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(
+            messageLibraryUriIsNotAString(3, 'core', 'vm', specUri),
+          ),
+        ),
+      );
     });
 
     test('patches must be a string or list of string', () async {
@@ -117,9 +120,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messagePatchesMustBeListOrString('c'))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messagePatchesMustBeListOrString('c'))),
+      );
 
       jsonString = '''
       { 
@@ -134,9 +137,13 @@ void main() {
       }
       ''';
       var spec = await LibrariesSpecification.load(
-          specUri, read({specUri: jsonString}));
-      expect(spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
-          Uri.parse('org-dartlang-test:///a.dart'));
+        specUri,
+        read({specUri: jsonString}),
+      );
+      expect(
+        spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
+        Uri.parse('org-dartlang-test:///a.dart'),
+      );
 
       jsonString = '''
       { 
@@ -151,9 +158,13 @@ void main() {
       }
       ''';
       spec = await LibrariesSpecification.load(
-          specUri, read({specUri: jsonString}));
-      expect(spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
-          Uri.parse('org-dartlang-test:///a.dart'));
+        specUri,
+        read({specUri: jsonString}),
+      );
+      expect(
+        spec.specificationFor("none").libraryInfoFor("c")!.patches.first,
+        Uri.parse('org-dartlang-test:///a.dart'),
+      );
     });
 
     test('patches are optional in the format', () async {
@@ -161,11 +172,15 @@ void main() {
       { "none": { "libraries": {"c" : { "uri": "c/main.dart" }}}}
       ''';
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
       expect(spec, isNotNull);
       expect(
-          spec.specificationFor('none').libraryInfoFor('c')!.patches, isEmpty);
+        spec.specificationFor('none').libraryInfoFor('c')!.patches,
+        isEmpty,
+      );
     });
 
     test('library paths are resolved from spec uri', () async {
@@ -173,10 +188,14 @@ void main() {
       { "none": { "libraries": {"c" : { "uri": "c/main.dart" }}}}
       ''';
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
-      expect(spec.specificationFor('none').libraryInfoFor('c')!.uri,
-          Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
+      expect(
+        spec.specificationFor('none').libraryInfoFor('c')!.uri,
+        Uri.parse('org-dartlang-test:///one/two/c/main.dart'),
+      );
     });
 
     test('patches paths are resolved from spec uri', () async {
@@ -196,12 +215,18 @@ void main() {
       }
       ''';
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
-      expect(spec.specificationFor('none').libraryInfoFor('c')!.patches[0],
-          Uri.parse('org-dartlang-test:///one/a/p1.dart'));
-      expect(spec.specificationFor('none').libraryInfoFor('c')!.patches[1],
-          Uri.parse('org-dartlang-test:///one/a/p2.dart'));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
+      expect(
+        spec.specificationFor('none').libraryInfoFor('c')!.patches[0],
+        Uri.parse('org-dartlang-test:///one/a/p1.dart'),
+      );
+      expect(
+        spec.specificationFor('none').libraryInfoFor('c')!.patches[1],
+        Uri.parse('org-dartlang-test:///one/a/p2.dart'),
+      );
     });
 
     test('multiple targets are supported', () async {
@@ -234,15 +259,23 @@ void main() {
       }
       ''';
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
 
-      expect(spec.specificationFor('vm').libraryInfoFor('foo')!.uri,
-          Uri.parse('org-dartlang-test:///one/two/a/main.dart'));
-      expect(spec.specificationFor('vm').libraryInfoFor('bar')!.uri,
-          Uri.parse('org-dartlang-test:///one/two/b/main.dart'));
-      expect(spec.specificationFor('none').libraryInfoFor('c')!.uri,
-          Uri.parse('org-dartlang-test:///one/two/c/main.dart'));
+      expect(
+        spec.specificationFor('vm').libraryInfoFor('foo')!.uri,
+        Uri.parse('org-dartlang-test:///one/two/a/main.dart'),
+      );
+      expect(
+        spec.specificationFor('vm').libraryInfoFor('bar')!.uri,
+        Uri.parse('org-dartlang-test:///one/two/b/main.dart'),
+      );
+      expect(
+        spec.specificationFor('none').libraryInfoFor('c')!.uri,
+        Uri.parse('org-dartlang-test:///one/two/c/main.dart'),
+      );
     });
 
     test('supported entry must be bool', () async {
@@ -260,9 +293,9 @@ void main() {
         }
       }''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageSupportedIsNotABool(3))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageSupportedIsNotABool(3))),
+      );
     });
 
     test('supported entry is copied correctly when parsing', () async {
@@ -297,14 +330,22 @@ void main() {
       }
       ''';
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
-      expect(spec.specificationFor('vm').libraryInfoFor('foo')!.isSupported,
-          false);
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
       expect(
-          spec.specificationFor('vm').libraryInfoFor('bar')!.isSupported, true);
+        spec.specificationFor('vm').libraryInfoFor('foo')!.isSupported,
+        false,
+      );
       expect(
-          spec.specificationFor('vm').libraryInfoFor('baz')!.isSupported, true);
+        spec.specificationFor('vm').libraryInfoFor('bar')!.isSupported,
+        true,
+      );
+      expect(
+        spec.specificationFor('vm').libraryInfoFor('baz')!.isSupported,
+        true,
+      );
     });
   });
 
@@ -319,9 +360,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageIncludeIsNotAList('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageIncludeIsNotAList('target', specUri))),
+      );
     });
 
     test('include entry must be a map', () async {
@@ -334,10 +375,11 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageIncludeEntryIsNotAMap('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageIncludeEntryIsNotAMap('target', specUri)),
+        ),
+      );
     });
 
     test('include entry must have a target string', () async {
@@ -350,10 +392,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageIncludeTargetMissing('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageIncludeTargetMissing('target', specUri))),
+      );
 
       jsonString = '''
       {
@@ -364,10 +405,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageIncludeTargetMissing('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageIncludeTargetMissing('target', specUri))),
+      );
 
       jsonString = '''
       {
@@ -378,10 +418,11 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageIncludeTargetIsNotAString('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageIncludeTargetIsNotAString('target', specUri)),
+        ),
+      );
     });
 
     test('include entry path must be a string', () async {
@@ -394,10 +435,11 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageIncludePathIsNotAString('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageIncludePathIsNotAString('target', specUri)),
+        ),
+      );
 
       jsonString = '''
       {
@@ -408,10 +450,11 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageIncludeTargetIsNotAString('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageIncludeTargetIsNotAString('target', specUri)),
+        ),
+      );
     });
 
     test('include entry path scheme can only be file', () async {
@@ -424,10 +467,13 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageUnsupportedUriScheme("http://foo.dart", specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(
+            messageUnsupportedUriScheme("http://foo.dart", specUri),
+          ),
+        ),
+      );
     });
 
     test('include entry must be a existing path and target', () async {
@@ -442,10 +488,13 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageIncludePathCouldNotBeRead(otherUri, notFoundMessage))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(
+            messageIncludePathCouldNotBeRead(otherUri, notFoundMessage),
+          ),
+        ),
+      );
 
       var otherJsonString = '''
       {
@@ -454,9 +503,12 @@ void main() {
         }
       }''';
       expect(
-          () => LibrariesSpecification.load(
-              specUri, read({specUri: jsonString, otherUri: otherJsonString})),
-          throwsA(checkException(messageMissingTarget('none', otherUri))));
+        () => LibrariesSpecification.load(
+          specUri,
+          read({specUri: jsonString, otherUri: otherJsonString}),
+        ),
+        throwsA(checkException(messageMissingTarget('none', otherUri))),
+      );
     });
 
     test('internal include target must exist', () async {
@@ -469,9 +521,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageMissingTarget('none', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageMissingTarget('none', specUri))),
+      );
     });
 
     test('include entry cannot be cyclic', () async {
@@ -488,9 +540,12 @@ void main() {
       }
       ''';
       expect(
-          () => LibrariesSpecification.load(
-              thisUri, read({thisUri: thisJsonString})),
-          throwsA(checkException(messageCyclicSpec(thisUri))));
+        () => LibrariesSpecification.load(
+          thisUri,
+          read({thisUri: thisJsonString}),
+        ),
+        throwsA(checkException(messageCyclicSpec(thisUri))),
+      );
 
       thisJsonString = '''
       {
@@ -508,9 +563,12 @@ void main() {
         }
       }''';
       expect(
-          () => LibrariesSpecification.load(thisUri,
-              read({thisUri: thisJsonString, otherUri: otherJsonString})),
-          throwsA(checkException(messageCyclicSpec(thisUri))));
+        () => LibrariesSpecification.load(
+          thisUri,
+          read({thisUri: thisJsonString, otherUri: otherJsonString}),
+        ),
+        throwsA(checkException(messageCyclicSpec(thisUri))),
+      );
     });
 
     test('include entry cannot be cyclic internally', () async {
@@ -523,10 +581,11 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(
-              checkException(messageCyclicInternalInclude('target', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(
+          checkException(messageCyclicInternalInclude('target', specUri)),
+        ),
+      );
 
       jsonString = '''
       {
@@ -541,9 +600,9 @@ void main() {
       }
       ''';
       expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(messageCyclicInternalInclude('a', specUri))));
+        () => LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+        throwsA(checkException(messageCyclicInternalInclude('a', specUri))),
+      );
     });
 
     test('include works transitively', () async {
@@ -615,22 +674,31 @@ void main() {
         }
       }''';
       var spec = await LibrariesSpecification.load(
-          thisUri,
-          read({
-            thisUri: thisJsonString,
-            otherUri1: otherJsonString1,
-            otherUri2: otherJsonString2,
-            otherUri3: otherJsonString3,
-          }));
+        thisUri,
+        read({
+          thisUri: thisJsonString,
+          otherUri1: otherJsonString1,
+          otherUri2: otherJsonString2,
+          otherUri3: otherJsonString3,
+        }),
+      );
 
-      expect(spec.specificationFor('foo').libraryInfoFor('foo')!.uri,
-          otherUri1.resolve('foo.dart'));
-      expect(spec.specificationFor('foo').libraryInfoFor('foo_extra')!.uri,
-          otherUri2.resolve('foo_extra.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('bar')!.uri,
-          otherUri2.resolve('bar/baz.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('baz')!.uri,
-          otherUri3.resolve('bar/baz.dart'));
+      expect(
+        spec.specificationFor('foo').libraryInfoFor('foo')!.uri,
+        otherUri1.resolve('foo.dart'),
+      );
+      expect(
+        spec.specificationFor('foo').libraryInfoFor('foo_extra')!.uri,
+        otherUri2.resolve('foo_extra.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('bar')!.uri,
+        otherUri2.resolve('bar/baz.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('baz')!.uri,
+        otherUri3.resolve('bar/baz.dart'),
+      );
     });
 
     test('internal include works transitively', () async {
@@ -684,20 +752,34 @@ void main() {
       }
       ''';
       var spec = await LibrariesSpecification.load(
-          specUri, read({specUri: jsonString}));
+        specUri,
+        read({specUri: jsonString}),
+      );
 
-      expect(spec.specificationFor('foo').libraryInfoFor('foo')!.uri,
-          specUri.resolve('foo.dart'));
-      expect(spec.specificationFor('foo').libraryInfoFor('common')!.uri,
-          specUri.resolve('common.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('bar')!.uri,
-          specUri.resolve('bar.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('common')!.uri,
-          specUri.resolve('common.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('baz')!.uri,
-          specUri.resolve('bar/baz.dart'));
-      expect(spec.specificationFor('bar').libraryInfoFor('boz')!.uri,
-          specUri.resolve('bar/boz.dart'));
+      expect(
+        spec.specificationFor('foo').libraryInfoFor('foo')!.uri,
+        specUri.resolve('foo.dart'),
+      );
+      expect(
+        spec.specificationFor('foo').libraryInfoFor('common')!.uri,
+        specUri.resolve('common.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('bar')!.uri,
+        specUri.resolve('bar.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('common')!.uri,
+        specUri.resolve('common.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('baz')!.uri,
+        specUri.resolve('bar/baz.dart'),
+      );
+      expect(
+        spec.specificationFor('bar').libraryInfoFor('boz')!.uri,
+        specUri.resolve('bar/boz.dart'),
+      );
     });
   });
 
@@ -735,10 +817,13 @@ void main() {
       ''';
 
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
-      var newJson =
-          spec.toJsonString(Uri.parse('org-dartlang-test:///one/two/g.json'));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
+      var newJson = spec.toJsonString(
+        Uri.parse('org-dartlang-test:///one/two/g.json'),
+      );
       expect(newJson, jsonString.replaceAll(new RegExp('\\s'), ''));
     });
 
@@ -773,10 +858,13 @@ void main() {
       ''';
 
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
-      var spec =
-          await LibrariesSpecification.load(uri, read({uri: jsonString}));
-      var newJson =
-          spec.toJsonString(Uri.parse('org-dartlang-test:///one/g.json'));
+      var spec = await LibrariesSpecification.load(
+        uri,
+        read({uri: jsonString}),
+      );
+      var newJson = spec.toJsonString(
+        Uri.parse('org-dartlang-test:///one/g.json'),
+      );
 
       var expected = '''
       {
@@ -851,12 +939,15 @@ void main() {
       var uri = Uri.parse('org-dartlang-test:///one/two/f.json');
       var otherUri = Uri.parse('org-dartlang-test:///one/two/g.json');
       var spec = await LibrariesSpecification.load(
-          uri, read({uri: jsonString, otherUri: otherJsonString}));
-      var newJson =
-          spec.toJsonString(Uri.parse('org-dartlang-test:///one/two/h.json'));
+        uri,
+        read({uri: jsonString, otherUri: otherJsonString}),
+      );
+      var newJson = spec.toJsonString(
+        Uri.parse('org-dartlang-test:///one/two/h.json'),
+      );
       expect(
-          newJson,
-          '''
+        newJson,
+        '''
       {
         "vm": {
           "libraries": {
@@ -871,8 +962,8 @@ void main() {
           }
         }
       }      
-      '''
-              .replaceAll(new RegExp('\\s'), ''));
+      '''.replaceAll(new RegExp('\\s'), ''),
+      );
     });
   });
 }

@@ -53,7 +53,7 @@ library;
 // dynamic keywordElement = (0, in);
 //                              ^^
 //
-// pkg/front_end/testcases/records/record_literal_errors.dart:9:33: Error: The getter 'in' isn't defined for the class 'int'.
+// pkg/front_end/testcases/records/record_literal_errors.dart:9:33: Error: The getter 'in' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
 // dynamic keywordProperty = (0, 1.in);
 //                                 ^^
@@ -109,7 +109,7 @@ library;
 //   dynamic keywordProperty = (0, 1.in);
 //                                   ^^
 //
-// pkg/front_end/testcases/records/record_literal_errors.dart:17:35: Error: The getter 'in' isn't defined for the class 'int'.
+// pkg/front_end/testcases/records/record_literal_errors.dart:17:35: Error: The getter 'in' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
 //   dynamic keywordProperty = (0, 1.in);
 //                                   ^^
@@ -124,7 +124,7 @@ library;
 //     (0, 1.in);
 //           ^^
 //
-// pkg/front_end/testcases/records/record_literal_errors.dart:23:11: Error: The getter 'in' isn't defined for the class 'int'.
+// pkg/front_end/testcases/records/record_literal_errors.dart:23:11: Error: The getter 'in' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
 //     (0, 1.in);
 //           ^^
@@ -141,7 +141,7 @@ class Class extends core::Object {
 To delegate a constructor to a super constructor, put the super call as an initializer.
     (0, super);
         ^^^^^");
-    (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:23:11: Error: The getter 'in' isn't defined for the class 'int'.
+    (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:23:11: Error: The getter 'in' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
     (0, 1.in);
           ^^" in 1{<unresolved>}.in);
@@ -164,7 +164,7 @@ dynamic missingNamedElement = (0, a:);
 static field dynamic keywordElement = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:8:30: Error: Undefined name 'in'.
 dynamic keywordElement = (0, in);
                              ^^");
-static field dynamic keywordProperty = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:9:33: Error: The getter 'in' isn't defined for the class 'int'.
+static field dynamic keywordProperty = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:9:33: Error: The getter 'in' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
 dynamic keywordProperty = (0, 1.in);
                                 ^^" in 1{<unresolved>}.in);
@@ -186,7 +186,7 @@ Try renaming or removing one of the named record literal fields.
   dynamic keywordElement = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:16:32: Error: Undefined name 'in'.
   dynamic keywordElement = (0, in);
                                ^^");
-  dynamic keywordProperty = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:17:35: Error: The getter 'in' isn't defined for the class 'int'.
+  dynamic keywordProperty = (0, invalid-expression "pkg/front_end/testcases/records/record_literal_errors.dart:17:35: Error: The getter 'in' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'in'.
   dynamic keywordProperty = (0, 1.in);
                                   ^^" in 1{<unresolved>}.in);

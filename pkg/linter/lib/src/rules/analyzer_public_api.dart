@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
 
-class AnalyzerPublicApi extends LintRule {
+class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
 
   /// Lint issued if a file in the analyzer public API contains a `part`
@@ -86,10 +89,14 @@ class AnalyzerPublicApi extends LintRule {
   );
 
   AnalyzerPublicApi()
-    : super(name: ruleName, description: _desc, state: const State.internal());
+    : super(
+        name: ruleName,
+        description: _desc,
+        state: const RuleState.internal(),
+      );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     badPartDirective,
     badType,
     exportsNonPublicName,
@@ -97,10 +104,7 @@ class AnalyzerPublicApi extends LintRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addExportDirective(this, visitor);
@@ -109,7 +113,7 @@ class AnalyzerPublicApi extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   /// Elements that are imported into the current compilation unit's import
   /// namespace via `import` directives that do *not* access a package's `src`
@@ -118,19 +122,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Elements in this set are part of the public APIs of their respective
   /// packages, so it is safe for a part of the analyzer public API to refer to
   /// them.
-  late Set<Element2> importedPublicElements;
+  late Set<Element> importedPublicElements;
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = {
-      for (var directive in node.directives)
-        if (directive is ImportDirective &&
-            directive.libraryImport!.importedLibrary2!.uri.isPublic)
-          ...directive.libraryImport!.namespace.definedNames2.values,
-    };
-    node.declaredFragment!.children3.forEach(_checkTopLevelFragment);
+    importedPublicElements = _computeImportedPublicElements(node);
+    node.declaredFragment!.children.forEach(_checkTopLevelFragment);
   }
 
   @override
@@ -148,9 +147,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(paulberry): consider adding something to the analyzer API that
     // computes which names are filtered by a sequence of combinators.
     Set<String>? badNames;
-    var exportedLibrary = exportElement.exportedLibrary2!;
-    for (var member in exportedLibrary.children2) {
-      var name = member.name3;
+    var exportedLibrary = exportElement.exportedLibrary!;
+    for (var member in exportedLibrary.children) {
+      var name = member.name;
       if (name == null) continue;
       if (exportElement.combinators.any(
         (combinator) => combinator.blocksName(name),
@@ -166,9 +165,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (badNames != null) {
-      rule.reportLint(
+      rule.reportAtNode(
         node,
-        errorCode: AnalyzerPublicApi.exportsNonPublicName,
+        diagnosticCode: AnalyzerPublicApi.exportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -183,18 +182,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
-      rule.reportLint(node, errorCode: AnalyzerPublicApi.badPartDirective);
+      rule.reportAtNode(
+        node,
+        diagnosticCode: AnalyzerPublicApi.badPartDirective,
+      );
     }
   }
 
   void _checkMember(Fragment fragment) {
     if (fragment is ConstructorFragment &&
-        fragment.element.enclosingElement2 is EnumElement2) {
+        fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
       // aren't public API.
       return;
     }
-    var name = fragment.name2;
+    var name = fragment.name;
     if (name != null && !name.isPublic) {
       // Private member; no need to check.
       return;
@@ -206,20 +208,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkTopLevelFragment(Fragment fragment) {
     if (!fragment.element.isInAnalyzerPublicApi) return;
-    var name = fragment.name2;
+    var name = fragment.name;
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         fragment.nameOffset2!,
         name.length,
-        errorCode: AnalyzerPublicApi.implInPublicApi,
+        diagnosticCode: AnalyzerPublicApi.implInPublicApi,
       );
     }
     switch (fragment) {
-      case ExtensionFragment(name2: null):
+      case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
-      case InstanceFragment(:var typeParameters2, :var children3):
+      case InstanceFragment(:var typeParameters2, :var children):
         for (var typeParameter in typeParameters2) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
@@ -244,7 +246,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             _checkType(t, fragment: fragment);
           }
         }
-        children3.forEach(_checkMember);
+        children.forEach(_checkMember);
       case ExecutableFragment():
         _checkType(fragment.element.type, fragment: fragment);
       case TypeAliasFragment(:var element, :var typeParameters2):
@@ -272,18 +274,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     while (true) {
       if (fragment.nameOffset2 != null) {
         offset = fragment.nameOffset2!;
-        length = fragment.name2!.length;
+        length = fragment.name!.length;
         break;
-      } else if (fragment case PropertyAccessorFragment(
-        :var variable3?,
-      ) when variable3.nameOffset2 != null) {
-        offset = variable3.nameOffset2!;
-        length = variable3.name2!.length;
+      } else if (fragment case PropertyAccessorFragment()
+          when fragment.element.variable!.firstFragment.nameOffset2 != null) {
+        offset = fragment.element.variable!.firstFragment.nameOffset2!;
+        length = fragment.element.variable!.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
         offset = fragment.typeNameOffset!;
-        length = fragment.enclosingFragment!.name2!.length;
+        length = fragment.enclosingFragment!.name!.length;
         break;
       } else if (fragment.enclosingFragment case var enclosingFragment?) {
         fragment = enclosingFragment;
@@ -295,10 +296,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         break;
       }
     }
-    rule.reportLintForOffset(
+    rule.reportAtOffset(
       offset,
       length,
-      errorCode: AnalyzerPublicApi.badType,
+      diagnosticCode: AnalyzerPublicApi.badType,
       arguments: [problems.join(', ')],
     );
   }
@@ -318,11 +319,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             ..._problemsForAnalyzerPublicApi(f.type),
           for (var f in namedFields) ..._problemsForAnalyzerPublicApi(f.type),
         };
-      case InterfaceType(:var element3, :var typeArguments):
+      case InterfaceType(:var element, :var typeArguments):
         return {
-          if (!importedPublicElements.contains(element3) &&
-              !element3.isOkForAnalyzerPublicApi)
-            element3.name3!,
+          if (!importedPublicElements.contains(element) &&
+              !element.isOkForAnalyzerPublicApi)
+            element.name!,
           for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
         };
       case NeverType():
@@ -347,27 +348,60 @@ class _Visitor extends SimpleAstVisitor<void> {
         throw StateError('Unexpected type $runtimeType');
     }
   }
+
+  /// Called during [visitCompilationUnit] to compute the value of
+  /// [importedPublicElements].
+  static Set<Element> _computeImportedPublicElements(
+    CompilationUnit compilationUnit,
+  ) {
+    var elements = <Element>{};
+    for (var directive in compilationUnit.directives) {
+      if (directive is! ImportDirective) continue;
+      var libraryImport = directive.libraryImport!;
+      var importedLibrary = libraryImport.importedLibrary;
+      if (importedLibrary == null) {
+        // Import was unresolved. Ignore.
+        continue;
+      }
+      if (importedLibrary.uri.isPublic) {
+        elements.addAll(libraryImport.namespace.definedNames2.values);
+      }
+    }
+    return elements;
+  }
 }
 
 extension on String {
   bool get isPublic => !startsWith('_');
 }
 
-extension on Element2 {
+extension on Element {
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement2(
+    if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable3?,
-    ) when variable3.isInAnalyzerPublicApi) {
+      :var variable?,
+    ) when variable.isInAnalyzerPublicApi) {
+      return true;
+    }
+    if (this case PropertyInducingElement(
+      isSynthetic: true,
+      :var getter?,
+    ) when getter.isInAnalyzerPublicApi) {
+      return true;
+    }
+    if (this case PropertyInducingElement(
+      isSynthetic: true,
+      :var setter?,
+    ) when setter.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case Annotatable(
-      metadata2: Metadata(:var annotations),
+      metadata: Metadata(:var annotations),
     ) when annotations.any(_isPublicApiAnnotation)) {
       return true;
     }
-    if (name3 case var name? when !name.isPublic) return false;
-    if (library2!.uri.isInAnalyzerPublicLib) return true;
+    if (name case var name? when !name.isPublic) return false;
+    if (library!.uri.isInAnalyzerPublicLib) return true;
     return false;
   }
 
@@ -377,7 +411,7 @@ extension on Element2 {
         kind == ElementKind.NEVER) {
       return true;
     }
-    if (library2!.uri.isDartUri) return true;
+    if (library!.uri.isDartUri) return true;
     return isInAnalyzerPublicApi;
   }
 
@@ -388,7 +422,7 @@ extension on Element2 {
         // in practice it doesn't matter (we don't expect to have multiple
         // declarations of this annotation that we need to distinguish), and the
         // advantage of not checking the URI is that unit testing is easier.
-        element3: InterfaceElement2(name3: 'AnalyzerPublicApi'),
+        element: InterfaceElement(name: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

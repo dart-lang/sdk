@@ -172,8 +172,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         }
         previous->set_next(current->next());
         if (target_is_protected) {
-          VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                 kWordSize, VirtualMemory::kReadExecute);
+          VirtualMemory::WriteProtectCode(
+              reinterpret_cast<void*>(target_address), kWordSize);
         }
       }
       SplitElementAfterAndEnqueue(current, size, is_protected);
@@ -241,83 +241,6 @@ intptr_t FreeList::LengthLocked(int index) const {
   return result;
 }
 
-void FreeList::PrintSmall() const {
-  intptr_t small_bytes = 0;
-  for (int i = 0; i < kNumLists; ++i) {
-    if (free_lists_[i] == nullptr) {
-      continue;
-    }
-    intptr_t list_length = LengthLocked(i);
-    intptr_t list_bytes = list_length * i * kObjectAlignment;
-    small_bytes += list_bytes;
-    OS::PrintErr(
-        "small %3d [%8d bytes] : "
-        "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
-        i, static_cast<int>(i * kObjectAlignment), list_length,
-        list_bytes / static_cast<double>(KB),
-        small_bytes / static_cast<double>(KB));
-  }
-}
-
-class IntptrPair {
- public:
-  IntptrPair() : first_(-1), second_(-1) {}
-  IntptrPair(intptr_t first, intptr_t second)
-      : first_(first), second_(second) {}
-
-  intptr_t first() const { return first_; }
-  intptr_t second() const { return second_; }
-  void set_second(intptr_t s) { second_ = s; }
-
-  bool operator==(const IntptrPair& other) {
-    return (first_ == other.first_) && (second_ == other.second_);
-  }
-
-  bool operator!=(const IntptrPair& other) {
-    return (first_ != other.first_) || (second_ != other.second_);
-  }
-
- private:
-  intptr_t first_;
-  intptr_t second_;
-};
-
-void FreeList::PrintLarge() const {
-  intptr_t large_bytes = 0;
-  MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
-  FreeListElement* node;
-  for (node = free_lists_[kNumLists]; node != nullptr; node = node->next()) {
-    IntptrPair* pair = map.Lookup(node->HeapSize());
-    if (pair == nullptr) {
-      map.Insert(IntptrPair(node->HeapSize(), 1));
-    } else {
-      pair->set_second(pair->second() + 1);
-    }
-  }
-
-  MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =
-      map.GetIterator();
-  IntptrPair* pair;
-  while ((pair = it.Next()) != nullptr) {
-    intptr_t size = pair->first();
-    intptr_t list_length = pair->second();
-    intptr_t list_bytes = list_length * size;
-    large_bytes += list_bytes;
-    OS::PrintErr("large %3" Pd " [%8" Pd
-                 " bytes] : "
-                 "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
-                 size / kObjectAlignment, size, list_length,
-                 list_bytes / static_cast<double>(KB),
-                 large_bytes / static_cast<double>(KB));
-  }
-}
-
-void FreeList::Print() const {
-  MutexLocker ml(&mutex_);
-  PrintSmall();
-  PrintLarge();
-}
-
 void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
                                            intptr_t size,
                                            bool is_protected) {
@@ -343,12 +266,11 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
     if (!VirtualMemory::InSamePage(
             remainder_address - 1,
             remainder_address + remainder_header_size - 1)) {
-      VirtualMemory::Protect(
+      VirtualMemory::WriteProtectCode(
           reinterpret_cast<void*>(
               Utils::RoundUp(remainder_address, VirtualMemory::PageSize())),
           remainder_address + remainder_header_size -
-              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()),
-          VirtualMemory::kReadExecute);
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()));
     }
   }
 }

@@ -18,12 +18,14 @@ main() {
     int expected = 0;
     var subscription;
     subscription = stream.listen(
-        expectAsync((data) {
-          expect(data, expected++);
-          if (expected == 5) subscription.cancel();
-        }, count: 4), onError: expectAsync((e, s) {
-      expect(e, 42);
-      expected++;
-    }));
+      expectAsync((data) {
+        expect(data, expected++);
+        if (expected == 5) subscription.cancel();
+      }, count: 4),
+      onError: expectAsync((e, s) {
+        expect(e, 42);
+        expected++;
+      }),
+    );
   });
 }

@@ -14,9 +14,13 @@ It is possible to build and run the standalone Dart VM for Android devices.
 
 Download and install the Dart source tree using the standard instructions for building Dart.
 
-Use a text editor to add the following line to the very bottom of your Dart .gclient file (which is located in the directory that contains the main 'dart' directory):
+Use a text editor to update your Dart .gclient file (which is located in the directory that contains the main 'dart' directory):
 
-`download_android_deps = True`
+```
+    "custom_vars": {
+      "download_android_deps": True,
+    },
+```
 
 Run gclient sync to install the Android NDK and SDK. This may take 10 minutes or more depending upon the speed of your Internet connection
 

@@ -42,7 +42,8 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........dart2bytecode.snapshot (if dart_dynamic_modules)
+# ........analysis_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
 # ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2js.dart.snapshot (JIT snapshot only on ia32)
 # ........dart2wasm_product.snapshot (if not on ia32)
@@ -77,7 +78,7 @@ declare_args() {
 # ........dart2wasm_js_compatibility_platform.dill (if not on ia32)
 # ........ddc_outline.dill
 # ........ddc_platform.dill
-# ........vm_platform_strong.dill
+# ........vm_platform.dill
 # ........js_dev_runtime/
 # ........js_runtime/
 # ........js_shared/
@@ -131,6 +132,11 @@ _platform_sdk_snapshots = [
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _platform_sdk_snapshots += [
     [
+      "analysis_server_aot_product",
+      "../utils/analysis_server:analysis_server_aot_product",
+      "analysis_server_aot",
+    ],
+    [
       "frontend_server_aot_product",
       "../utils/kernel-service:frontend_server_aot_product",
       "frontend_server_aot",
@@ -144,6 +150,11 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "dart_tooling_daemon_aot_product",
       "../utils/dtd:dtd_aot",
       "dart_tooling_daemon_aot",
+    ],
+    [
+      "dart_mcp_server_aot_product",
+      "../utils/dart_mcp_server:dart_mcp_server_aot",
+      "dart_mcp_server_aot",
     ],
   ]
 } else {
@@ -167,7 +178,11 @@ if (dart_snapshot_kind == "app-jit") {
         "kernel-service",
       ] ]
 }
-if (dart_dynamic_modules) {
+
+# dart2bytecode is an AOT snapshot, which is not supported on the ia32
+# architecture. It is only included as needed on a subset of OS targets.
+if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
+    (dart_dynamic_modules || target_os == "linux" || target_os == "mac")) {
   _platform_sdk_snapshots += [ [
         "dart2bytecode",
         "../utils/dart2bytecode:dart2bytecode",
@@ -402,11 +417,11 @@ if (_has_dot_sym) {
   }
 }
 
-copy("copy_vm_platform_strong_product") {
+copy("copy_vm_platform_product") {
   visibility = [ ":group_dart2native" ]
   deps = [ "../runtime/vm:vm_platform_product" ]
   src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
-  sources = [ "$src_dir/vm_platform_strong_product.dill" ]
+  sources = [ "$src_dir/vm_platform_product.dill" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
 }
@@ -424,7 +439,7 @@ group("group_dart2native") {
     ":copy_dart_aotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
-    ":copy_vm_platform_strong_product",
+    ":copy_vm_platform_product",
   ]
 }
 
@@ -537,9 +552,21 @@ copy("copy_vm_dill_files") {
     ":copy_libraries",
     "../runtime/vm:kernel_platform_files",
   ]
-  sources = [ "$root_out_dir/vm_platform_strong.dill" ]
+  sources = [ "$root_out_dir/vm_platform.dill" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
+}
+
+# Delete this after external packages are migrated to vm_platform.dill.
+copy("copy_vm_strong_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../runtime/vm:kernel_platform_files",
+  ]
+  sources = [ "$root_out_dir/vm_platform.dill" ]
+  outputs =
+      [ "$root_out_dir/$dart_sdk_output/lib/_internal/vm_platform_strong.dill" ]
 }
 
 copy("copy_dart2js_dill_files") {
@@ -781,15 +808,6 @@ copy("copy_sdk_packages_yaml") {
   outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
 }
 
-# This rule copies pkg/_macros to pkg/_macros in the built SDK. This is a
-# vendored SDK package.
-copy_tree("copy_pkg_macros") {
-  visibility = [ ":create_common_sdk" ]
-  source = "../pkg/_macros"
-  dest = "$root_out_dir/$dart_sdk_output/pkg/_macros"
-  exclude = "{}"
-}
-
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
@@ -803,11 +821,11 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
-    ":copy_pkg_macros",
     ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_sdk_packages_yaml",
     ":copy_vm_dill_files",
+    ":copy_vm_strong_dill_files",
     ":write_dartdoc_options",
     ":write_revision_file",
     ":write_version_file",
@@ -861,7 +879,9 @@ group("create_full_sdk") {
     # Do not include gen_snapshot binaries for cross-compilation into
     # SDK, but add them as a dependency, so that they are built.
     public_deps += [
+      "../runtime/bin:gen_snapshot_product_linux_arm",
       "../runtime/bin:gen_snapshot_product_linux_arm64",
+      "../runtime/bin:gen_snapshot_product_linux_riscv64",
       "../runtime/bin:gen_snapshot_product_linux_x64",
     ]
   }

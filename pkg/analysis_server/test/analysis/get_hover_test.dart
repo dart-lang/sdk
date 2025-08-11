@@ -897,6 +897,7 @@ void f(A a) {
     expect(hover.propagatedType, isNull);
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void>
   test_constructorInvocation_referenceFromAugmentation_default() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
@@ -926,6 +927,7 @@ class C {
     expect(hover.staticType, isNull);
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void>
   test_constructorInvocation_referenceFromAugmentation_named() async {
     var file = newFile('$testPackageLibPath/a.dart', '''

@@ -528,13 +528,13 @@ class IdentityMap {
 #else   // defined(HASH_IN_OBJECT_HEADER)
 class IdentityMap {
  public:
-  explicit IdentityMap(Thread* thread) : isolate_(thread->isolate()) {
-    isolate_->set_forward_table_new(new WeakTable());
-    isolate_->set_forward_table_old(new WeakTable());
+  explicit IdentityMap(Thread* thread) : thread_(thread) {
+    thread_->set_forward_table_new(new WeakTable());
+    thread_->set_forward_table_old(new WeakTable());
   }
   ~IdentityMap() {
-    isolate_->set_forward_table_new(nullptr);
-    isolate_->set_forward_table_old(nullptr);
+    thread_->set_forward_table_new(nullptr);
+    thread_->set_forward_table_old(nullptr);
   }
 
   template <typename S, typename T>
@@ -560,22 +560,22 @@ class IdentityMap {
   DART_FORCE_INLINE
   intptr_t GetObjectId(ObjectPtr object) {
     if (object->IsNewObject()) {
-      return isolate_->forward_table_new()->GetValueExclusive(object);
+      return thread_->forward_table_new()->GetValueExclusive(object);
     } else {
-      return isolate_->forward_table_old()->GetValueExclusive(object);
+      return thread_->forward_table_old()->GetValueExclusive(object);
     }
   }
 
   DART_FORCE_INLINE
   void SetObjectId(ObjectPtr object, intptr_t id) {
     if (object->IsNewObject()) {
-      isolate_->forward_table_new()->SetValueExclusive(object, id);
+      thread_->forward_table_new()->SetValueExclusive(object, id);
     } else {
-      isolate_->forward_table_old()->SetValueExclusive(object, id);
+      thread_->forward_table_old()->SetValueExclusive(object, id);
     }
   }
 
-  Isolate* isolate_;
+  Thread* thread_;
 };
 #endif  // defined(HASH_IN_OBJECT_HEADER)
 
@@ -948,52 +948,53 @@ class RetainingPath {
 
  public:
   RetainingPath(Zone* zone,
-                Isolate* isolate,
+                Thread* thread,
                 const Object& from,
                 const Object& to,
                 TraversalRules traversal_rules)
       : zone_(zone),
-        isolate_(isolate),
+        thread_(thread),
         from_(from),
         to_(to),
         traversal_rules_(traversal_rules) {
-    isolate_->set_forward_table_new(new WeakTable());
-    isolate_->set_forward_table_old(new WeakTable());
+    thread_->set_forward_table_new(new WeakTable());
+    thread_->set_forward_table_old(new WeakTable());
   }
 
   ~RetainingPath() {
-    isolate_->set_forward_table_new(nullptr);
-    isolate_->set_forward_table_old(nullptr);
+    thread_->set_forward_table_new(nullptr);
+    thread_->set_forward_table_old(nullptr);
   }
 
   bool WasVisited(ObjectPtr object) {
     if (object->IsNewObject()) {
-      return isolate_->forward_table_new()->GetValueExclusive(object) != 0;
+      return thread_->forward_table_new()->GetValueExclusive(object) != 0;
     } else {
-      return isolate_->forward_table_old()->GetValueExclusive(object) != 0;
+      return thread_->forward_table_old()->GetValueExclusive(object) != 0;
     }
   }
 
   void MarkVisited(ObjectPtr object) {
     if (object->IsNewObject()) {
-      isolate_->forward_table_new()->SetValueExclusive(object, 1);
+      thread_->forward_table_new()->SetValueExclusive(object, 1);
     } else {
-      isolate_->forward_table_old()->SetValueExclusive(object, 1);
+      thread_->forward_table_old()->SetValueExclusive(object, 1);
     }
   }
 
   const char* FindPath() {
     MallocGrowableArray<ObjectPtr>* const working_list =
-        isolate_->pointers_to_verify_at_exit();
+        thread_->pointers_to_verify_at_exit();
     ASSERT(working_list->length() == 0);
 
-    Visitor visitor(isolate_->group(), this, working_list, traversal_rules_);
+    Visitor visitor(thread_->isolate_group(), this, working_list,
+                    traversal_rules_);
 
     MarkVisited(from_.ptr());
     working_list->Add(from_.ptr());
 
     Thread* thread = Thread::Current();
-    ClassTable* class_table = isolate_->group()->class_table();
+    ClassTable* class_table = thread->isolate_group()->class_table();
     Closure& closure = Closure::Handle(zone_);
     Array& array = Array::Handle(zone_);
     Class& klass = Class::Handle(zone_);
@@ -1108,7 +1109,7 @@ class RetainingPath {
 
  private:
   Zone* zone_;
-  Isolate* isolate_;
+  Thread* thread_;
   const Object& from_;
   const Object& to_;
   TraversalRules traversal_rules_;
@@ -1236,7 +1237,7 @@ class RetainingPath {
             } else {
               // Attempt to find field name for the field that holds the
               // [previous_object] instance.
-              FindObjectVisitor visitor(isolate_->group(),
+              FindObjectVisitor visitor(thread_->isolate_group(),
                                         previous_object.ptr());
               raw->untag()->VisitPointers(&visitor);
               field ^= klass.FieldFromIndex(visitor.index());
@@ -1287,11 +1288,11 @@ class RetainingPath {
 };
 
 const char* FindRetainingPath(Zone* zone_,
-                              Isolate* isolate,
+                              Thread* thread,
                               const Object& from,
                               const Object& to,
                               TraversalRules traversal_rules) {
-  RetainingPath rr(zone_, isolate, from, to, traversal_rules);
+  RetainingPath rr(zone_, thread, from, to, traversal_rules);
   return rr.FindPath();
 }
 
@@ -2440,7 +2441,7 @@ class ObjectGraphCopier : public StackResource {
     auto& result = Object::Handle(zone_);
 
     {
-      LongJumpScope jump;  // e.g. for OOMs.
+      LongJumpScope jump(thread_);  // e.g. for OOMs.
       if (DART_SETJMP(*jump.Set()) == 0) {
         result = CopyObjectGraphInternal(root, &exception_msg);
         // Any allocated external typed data must have finalizers attached so
@@ -2468,11 +2469,10 @@ class ObjectGraphCopier : public StackResource {
       ASSERT(exception_msg != nullptr);
       auto& unexpected_object_ = Object::Handle(zone_, result_array.At(1));
       if (!unexpected_object_.IsNull()) {
-        exception_msg =
-            OS::SCreate(zone_, "%s\n%s", exception_msg,
-                        FindRetainingPath(
-                            zone_, thread_->isolate(), root, unexpected_object_,
-                            TraversalRules::kInternalToIsolateGroup));
+        exception_msg = OS::SCreate(
+            zone_, "%s\n%s", exception_msg,
+            FindRetainingPath(zone_, thread_, root, unexpected_object_,
+                              TraversalRules::kInternalToIsolateGroup));
       }
       ThrowException(exception_msg);
       UNREACHABLE();

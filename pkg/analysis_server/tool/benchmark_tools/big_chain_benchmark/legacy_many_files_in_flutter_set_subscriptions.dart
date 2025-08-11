@@ -4,7 +4,8 @@
 
 import '../language_server_benchmark.dart';
 import '../legacy_messages.dart';
-import 'utils.dart';
+import '../run_utils.dart';
+import 'benchmark_utils.dart';
 
 /// At least until "https://github.com/flutter/flutter-intellij/issues/7980" is
 /// fixed, when a user in IntelliJ in a Flutter project opens a file it's added
@@ -26,6 +27,8 @@ Future<void> main(List<String> args) async {
   await runHelper(
     args,
     LegacyManyFilesInFlutterSetSubscriptionsBenchmark.new,
+    copyData,
+    extraIterations: getExtraIterations,
     runAsLsp: false,
   );
 }

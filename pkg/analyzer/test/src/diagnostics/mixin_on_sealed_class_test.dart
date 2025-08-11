@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,12 +34,13 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
-''', [
-      error(WarningCode.MIXIN_ON_SEALED_CLASS, 31, 19),
-    ]);
+''',
+      [error(WarningCode.MIXIN_ON_SEALED_CLASS, 31, 19)],
+    );
   }
 
   test_withinLibrary_OK() async {

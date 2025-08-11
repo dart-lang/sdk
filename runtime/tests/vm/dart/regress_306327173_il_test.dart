@@ -19,9 +19,7 @@ int deref(Pointer<Pointer<Void>> a) {
 void matchIL$deref(FlowGraph graph) {
   final retvalName = is32BitConfiguration ? 'address' : 'unboxed';
   graph.match([
-    match.block('Graph', [
-      'c0' << match.UnboxedConstant(value: 0),
-    ]),
+    match.block('Graph', ['c0' << match.UnboxedConstant(value: 0)]),
     match.block('Function', [
       'ptr' << match.Parameter(index: 0),
       'array' << match.LoadField('ptr', slot: 'PointerBase.data'),

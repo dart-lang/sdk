@@ -123,27 +123,27 @@ static field def::A a;
 static field core::int b;
 static extension-type-member method ET1|constructor#(def::A id) → self::ET1 /* erasure=def::A */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(def::A id) → self::ET1 /* erasure=def::A */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(def::A id) → self::ET1 /* erasure=def::A */
   return self::ET1|constructor#(id);
 static extension-type-member method ET2|constructor#<T extends def::A>(self::ET2|constructor#::T id) → self::ET2<self::ET2|constructor#::T> /* erasure=self::ET2|constructor#::T */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff<T extends def::A>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T> /* erasure=self::ET2|constructor#_#new#tearOff::T */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff<T extends def::A>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T> /* erasure=self::ET2|constructor#_#new#tearOff::T */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T>(id);
 static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
 static extension-type-member method ET4|constructor#(def::A id) → self::ET4% /* erasure=def::A, declared=! */
   ;
-static extension-type-member method ET4|constructor#_#new#tearOff(def::A id) → self::ET4% /* erasure=def::A, declared=! */
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff(def::A id) → self::ET4% /* erasure=def::A, declared=! */
   return self::ET4|constructor#(id);
 static extension-type-member method ET5|constructor#(def::A id) → self::ET5% /* erasure=def::A, declared=! */
   ;
-static extension-type-member method ET5|constructor#_#new#tearOff(def::A id) → self::ET5% /* erasure=def::A, declared=! */
+static extension-type-member synthetic method ET5|constructor#_#new#tearOff(def::A id) → self::ET5% /* erasure=def::A, declared=! */
   return self::ET5|constructor#(id);
 static extension-type-member method ET6|constructor#(core::int id) → self::ET6 /* erasure=core::int */
   ;
-static extension-type-member method ET6|constructor#_#new#tearOff(core::int id) → self::ET6 /* erasure=core::int */
+static extension-type-member synthetic method ET6|constructor#_#new#tearOff(core::int id) → self::ET6 /* erasure=core::int */
   return self::ET6|constructor#(id);
 static method main() → dynamic
   ;
@@ -171,9 +171,9 @@ extension type ET2(def::A i) {
 }
 static extension-type-member method ET1|constructor#(core::int i) → def::ET1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → def::ET1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → def::ET1% /* erasure=core::int, declared=! */
   return def::ET1|constructor#(i);
 static extension-type-member method ET2|constructor#(def::A i) → def::ET2% /* erasure=def::A, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff(def::A i) → def::ET2% /* erasure=def::A, declared=! */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(def::A i) → def::ET2% /* erasure=def::A, declared=! */
   return def::ET2|constructor#(i);

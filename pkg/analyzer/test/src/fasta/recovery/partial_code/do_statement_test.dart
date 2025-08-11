@@ -15,82 +15,83 @@ class DoStatementTest extends PartialCodeTest {
       PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
   buildAll() {
     buildTests(
-        'do_statement',
-        [
-          TestDescriptor(
-              'keyword',
-              'do',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "do {} while (_s_);",
-              allFailing: true),
-          TestDescriptor(
-              'leftBrace',
-              'do {',
-              [
-                ScannerErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "do {} while (_s_);",
-              failing: allExceptEof),
-          TestDescriptor(
-              'rightBrace',
-              'do {}',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "do {} while (_s_);",
-              failing: ['while']),
-          TestDescriptor(
-              'while',
-              'do {} while',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "do {} while (_s_);"),
-          TestDescriptor(
-              'leftParen',
-              'do {} while (',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ScannerErrorCode.EXPECTED_TOKEN
-              ],
-              "do {} while (_s_);",
-              failing: [
-                'assert',
-                'block',
-                'labeled',
-                'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
-                'switch',
-              ]),
-          TestDescriptor(
-              'condition',
-              'do {} while (a',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
-              "do {} while (a);"),
-          TestDescriptor('rightParen', 'do {} while (a)',
-              [ParserErrorCode.EXPECTED_TOKEN], "do {} while (a);"),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'do_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'do',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          "do {} while (_s_);",
+          allFailing: true,
+        ),
+        TestDescriptor(
+          'leftBrace',
+          'do {',
+          [
+            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          "do {} while (_s_);",
+          failing: allExceptEof,
+        ),
+        TestDescriptor(
+          'rightBrace',
+          'do {}',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+          ],
+          "do {} while (_s_);",
+          failing: ['while'],
+        ),
+        TestDescriptor('while', 'do {} while', [
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "do {} while (_s_);"),
+        TestDescriptor(
+          'leftParen',
+          'do {} while (',
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ],
+          "do {} while (_s_);",
+          failing: [
+            'assert',
+            'block',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return',
+            'switch',
+          ],
+        ),
+        TestDescriptor('condition', 'do {} while (a', [
+          ParserErrorCode.EXPECTED_TOKEN,
+          ScannerErrorCode.EXPECTED_TOKEN,
+        ], "do {} while (a);"),
+        TestDescriptor('rightParen', 'do {} while (a)', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "do {} while (a);"),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

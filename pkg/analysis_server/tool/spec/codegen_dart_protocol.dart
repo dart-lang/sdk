@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -30,14 +29,14 @@ GeneratedFile clientTarget(
   CodegenUriConverterKind clientUriConverterKind,
 ) {
   return GeneratedFile(
-    '../analysis_server_client/lib/src/protocol/protocol_generated.dart',
-    (String pkgPath) async {
+    'analysis_server_client/lib/src/protocol/protocol_generated.dart',
+    (pkgRoot) async {
       var visitor = CodegenProtocolVisitor(
         'analysis_server_client',
         responseRequiresRequestTime,
         clientUriConverterKind,
         false,
-        readApi(pkgPath),
+        readApi(pkgRoot),
       );
       return visitor.collectCode(visitor.visitApi);
     },
@@ -48,15 +47,15 @@ GeneratedFile serverTarget(
   bool responseRequiresRequestTime,
   CodegenUriConverterKind clientUriConverterKind,
 ) {
-  return GeneratedFile('lib/protocol/protocol_generated.dart', (
-    String pkgPath,
+  return GeneratedFile('analysis_server/lib/protocol/protocol_generated.dart', (
+    pkgRoot,
   ) async {
     var visitor = CodegenProtocolVisitor(
-      path.basename(pkgPath),
+      'analysis_server',
       responseRequiresRequestTime,
       clientUriConverterKind,
       true,
-      readApi(pkgPath),
+      readApi(pkgRoot),
     );
     return visitor.collectCode(visitor.visitApi);
   });
@@ -560,7 +559,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the operator== code for an object class.
   void emitObjectEqualsMember(TypeObject? type, String className) {
     writeln('@override');
-    write('bool operator ==(other) ');
+    write('bool operator ==(Object other) ');
     if (type == null) {
       writeln('=> other is $className;');
       return;
@@ -903,7 +902,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           ),
         ]);
         writeln(
-          'static String applySequence(String code, Iterable<SourceEdit> edits) =>',
+          'static String applySequence(String code, List<SourceEdit> edits) =>',
         );
         writeln('    applySequenceOfEdits(code, edits);');
         return true;

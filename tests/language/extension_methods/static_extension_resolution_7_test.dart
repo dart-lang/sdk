@@ -7,7 +7,8 @@ import "package:expect/expect.dart";
 // Tests the resolution of a bare type variable with bounded or promoted type.
 
 extension E<T> on T {
-  T Function(T) get f => (_) => this;
+  T Function(T) get f =>
+      (_) => this;
 }
 
 class A<S extends num> {

@@ -142,8 +142,10 @@ void main() {
   expect(() => (nullableFoo as Foo?), returnsNormally);
   expect(nullableFoo is Foo, isFalse);
   expect(confuse(nullableFoo) is Foo, isFalse);
-  expect(() => (nullableFoo as Foo),
-      hasUnsoundNullSafety ? returnsNormally : throws);
+  expect(
+    () => (nullableFoo as Foo),
+    hasUnsoundNullSafety ? returnsNormally : throws,
+  );
 
   expect(a is LiteralA?, isTrue);
   expect(confuse(a) is LiteralA?, isTrue);
@@ -154,6 +156,8 @@ void main() {
   expect(() => (nullableA as LiteralA?), returnsNormally);
   expect(nullableA is LiteralA, isFalse);
   expect(confuse(nullableA) is LiteralA, isFalse);
-  expect(() => (nullableA as LiteralA),
-      hasUnsoundNullSafety ? returnsNormally : throws);
+  expect(
+    () => (nullableA as LiteralA),
+    hasUnsoundNullSafety ? returnsNormally : throws,
+  );
 }

@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [
     HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE,
     HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
     WarningCode.UNUSED_LOCAL_VARIABLE,

@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class ListLiteralTest extends PubPackageResolutionTest {
   test_context_noTypeArgs_expression_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 List<int> a = ['a'];
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 15, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 15, 3)],
+    );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
@@ -48,24 +49,26 @@ List<String> a = [];
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends List<int>> {
   E a = [];
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 2)],
+    );
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<E extends List<dynamic>> {
   E a = [];
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2)],
+    );
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
@@ -91,7 +94,7 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::t#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
           substitution: {T: Iterable<int>?}
         staticType: Null
     rightParenthesis: )
@@ -103,20 +106,22 @@ MethodInvocation
   }
 
   test_context_typeArgs_expression_conflictingContext() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 List<String> a = <int>[0];
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 8)],
+    );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 List<String> a = <String>[0];
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 26, 1)],
+    );
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
@@ -138,11 +143,12 @@ List<String> a = <String>['a'];
   }
 
   test_context_typeArgs_noElements_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 List<String> a = <int>[];
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 7)],
+    );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
@@ -196,20 +202,22 @@ var a = [1, '2', 3];
   }
 
   test_noContext_noTypeArgs_expressions_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = [x];
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 9, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 9, 1)],
+    );
     assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
 
   test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = [0, x, 2];
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 1)],
+    );
     assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
 
@@ -351,14 +359,15 @@ void f(Never a) async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Never a) async {
   // ignore:unused_local_variable
   var v = [...?a];
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 69, 4),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 69, 4)],
+    );
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
@@ -383,14 +392,15 @@ void f(Null a) {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Never>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 82, 4),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 82, 4)],
+    );
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
@@ -425,45 +435,54 @@ void f<T extends Never>(T a) async {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a];
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1)],
+    );
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a, 0];
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1)],
+    );
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <String>[1];
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1)],
+    );
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_noContext_typeArgs_expression_conflict_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = <String>[(null as String?)];
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
-          17, 17),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          17,
+          17,
+        ),
+      ],
+    );
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 

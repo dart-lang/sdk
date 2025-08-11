@@ -11,29 +11,123 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/type_algorithms.dart';
+import 'source_class_builder.dart';
+import 'source_declaration_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
 
-abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
-  void buildScopes(LibraryBuilder coreLibrary);
+mixin SourceDeclarationBuilderBaseMixin
+    implements DeclarationBuilderMixin, SourceDeclarationBuilder {
+  @override
+  List<SourceNominalParameterBuilder>? get typeParameters;
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
+  @override
+  int get typeParametersCount => typeParameters?.length ?? 0;
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+
+    Iterator<SourceMemberBuilder> constructorIterator =
+        filteredConstructorsIterator<SourceMemberBuilder>(
+            includeDuplicates: false);
+    while (constructorIterator.moveNext()) {
+      count += constructorIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+
+    Iterator<SourceMemberBuilder> memberIterator =
+        filteredMembersIterator(includeDuplicates: false);
+    while (memberIterator.moveNext()) {
+      count += memberIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+    return count;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    Iterator<SourceMemberBuilder> memberIterator =
+        filteredMembersIterator(includeDuplicates: false);
+
+    SourceDeclarationBuilder enclosingDeclarationBuilder = this;
+    SourceClassBuilder? enclosingClassBuilder =
+        enclosingDeclarationBuilder is SourceClassBuilder
+            ? enclosingDeclarationBuilder
+            : null;
+    while (memberIterator.moveNext()) {
+      SourceMemberBuilder builder = memberIterator.current;
+      if (enclosingClassBuilder != null) {
+        builder.checkVariance(enclosingClassBuilder, typeEnvironment);
+      }
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+    }
+
+    Iterator<SourceMemberBuilder> constructorIterator =
+        filteredConstructorsIterator(includeDuplicates: false);
+    while (constructorIterator.moveNext()) {
+      constructorIterator.current
+          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+    }
+  }
+
+  @override
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+    if (arguments == null && typeParameters == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeParameters != null) {
+      List<DartType> result =
+          new List<DartType>.generate(typeParameters!.length, (int i) {
+        if (typeParameters![i].defaultType == null) {
+          throw 'here';
+        }
+        return typeParameters![i].defaultType!.buildAliased(
+            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
+      }, growable: true);
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeParametersCount) {
+      // Coverage-ignore-block(suite): Not run.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "$runtimeType.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeParametersCount)
+              .problemMessage,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments!.length == typeParametersCount);
+    List<DartType> result =
+        new List<DartType>.generate(arguments!.length, (int i) {
+      return arguments[i]
+          .buildAliased(library, TypeUse.typeArgument, hierarchy);
+    }, growable: true);
+    return result;
+  }
 }
 
 mixin SourceDeclarationBuilderMixin
     implements DeclarationBuilderMixin, SourceDeclarationBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
-
-  @override
-  List<SourceNominalParameterBuilder>? get typeParameters;
 
   @override
   Uri get fileUri;
@@ -51,20 +145,26 @@ mixin SourceDeclarationBuilderMixin
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
-    void buildBuilders(String name, Builder declaration) {
-      Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
-      Builder? objectSetter =
-          objectClassBuilder.lookupLocalMember(name, setter: true);
-      if (objectGetter != null && !objectGetter.isStatic ||
-          // Coverage-ignore(suite): Not run.
-          objectSetter != null && !objectSetter.isStatic) {
-        addProblem(
-            // TODO(johnniwinther): Use a different error message for extension
-            //  type declarations.
-            templateExtensionMemberConflictsWithObjectMember
-                .withArguments(name),
-            declaration.fileOffset,
-            name.length);
+    void buildBuilders(NamedBuilder declaration) {
+      String name = declaration.name;
+      if (!name.startsWith('_') &&
+          !(declaration is ConstructorBuilder ||
+              declaration is FactoryBuilder)) {
+        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
+        Builder? objectSetter =
+            objectClassBuilder.lookupLocalMember(name, setter: true);
+        if (objectGetter != null && !objectGetter.isStatic ||
+            // Coverage-ignore(suite): Not run.
+            objectSetter != null && !objectSetter.isStatic) {
+          libraryBuilder.addProblem(
+              // TODO(johnniwinther): Use a different error message for
+              //  extension type declarations.
+              templateExtensionMemberConflictsWithObjectMember
+                  .withArguments(name),
+              declaration.fileOffset,
+              name.length,
+              declaration.fileUri);
+        }
       }
       if (declaration.parent != this) {
         // Coverage-ignore-block(suite): Not run.
@@ -90,16 +190,16 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    nameSpace.unfilteredNameIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorNameIterator.forEach(buildBuilders);
+    unfilteredMembersIterator.forEach(buildBuilders);
+    unfilteredConstructorsIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator = nameSpace
-        .filteredIterator<SourceMemberBuilder>(includeDuplicates: false)
-        .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false));
+    Iterator<SourceMemberBuilder> iterator =
+        filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+            .join(filteredConstructorsIterator<SourceMemberBuilder>(
+                includeDuplicates: false));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count += declaration.buildBodyNodes(
@@ -115,51 +215,10 @@ mixin SourceDeclarationBuilderMixin
     return count;
   }
 
-  @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        inErrorRecovery: hasErrors);
-
-    Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            includeDuplicates: false);
-    while (iterator.moveNext()) {
-      count += iterator.current
-          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
-    }
-
-    forEach((String name, Builder member) {
-      if (member is SourceMemberBuilder) {
-        count +=
-            member.computeDefaultTypes(context, inErrorRecovery: hasErrors);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        assert(
-            false,
-            "Unexpected extension type member "
-            "$member (${member.runtimeType}).");
-      }
-    });
-    return count;
-  }
-
-  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    forEach((String name, Builder builder) {
-      (builder as SourceMemberBuilder)
-          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
-
-    nameSpace.forEachConstructor((String name, MemberBuilder builder) {
-      (builder as SourceMemberBuilder)
-          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
-  }
-
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate) {
       if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
         addMemberInternal(memberBuilder, memberKind, member, tearOff);
       } else {
@@ -202,50 +261,4 @@ mixin SourceDeclarationBuilderMixin
       BuiltMemberKind memberKind,
       Reference memberReference,
       Reference? tearOffReference);
-
-  @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeParameters == null) {
-      return <DartType>[];
-    }
-
-    if (arguments == null && typeParameters != null) {
-      List<DartType> result =
-          new List<DartType>.generate(typeParameters!.length, (int i) {
-        if (typeParameters![i].defaultType == null) {
-          throw 'here';
-        }
-        return typeParameters![i].defaultType!.buildAliased(
-            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
-      }, growable: true);
-      return result;
-    }
-
-    if (arguments != null && arguments.length != typeParametersCount) {
-      // Coverage-ignore-block(suite): Not run.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "SourceDeclarationBuilderMixin.buildAliasedTypeArguments: "
-          "the numbers of type parameters and type arguments don't match.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
-      return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeParametersCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
-    }
-
-    assert(arguments!.length == typeParametersCount);
-    List<DartType> result =
-        new List<DartType>.generate(arguments!.length, (int i) {
-      return arguments[i]
-          .buildAliased(library, TypeUse.typeArgument, hierarchy);
-    }, growable: true);
-    return result;
-  }
-
-  @override
-  int get typeParametersCount => typeParameters?.length ?? 0;
 }

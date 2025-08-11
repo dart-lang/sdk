@@ -18,16 +18,19 @@ main() {
 class VariableDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_initializer_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     final a = super;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
+      ],
+    );
 
     var node = findNode.singleVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -41,22 +44,25 @@ VariableDeclarationStatement
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: hasImplicitType isFinal a@33
-          type: A
+        declaredFragment: isFinal isPublic a@33
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: A
   semicolon: ;
 ''');
   }
 
   test_initializer_this() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     final a = this;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+    );
 
     var node = findNode.singleVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -70,8 +76,10 @@ VariableDeclarationStatement
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: hasImplicitType isFinal a@33
-          type: A
+        declaredFragment: isFinal isPublic a@33
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: A
   semicolon: ;
 ''');
   }

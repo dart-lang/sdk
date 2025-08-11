@@ -348,8 +348,8 @@ class JFieldAnalysis {
               }
               ParameterStructure? invokedParameters =
                   closedWorld.annotationsData.hasNoElision(constructor)
-                      ? constructor.parameterStructure
-                      : constructorUsage.invokedParameters;
+                  ? constructor.parameterStructure
+                  : constructorUsage.invokedParameters;
 
               Initializer? initializer = data.initializers[constructor];
               if (initializer == null) {
@@ -561,15 +561,14 @@ class JFieldAnalysis {
           }
         }
 
-        data =
-            fieldData[jField] = FieldAnalysisData(
-              initialValue: value,
-              isEffectivelyFinal: isEffectivelyFinal,
-              isElided: isElided,
-              isEager: isEager,
-              eagerCreationIndex: creationIndex,
-              eagerFieldDependenciesForTesting: eagerFieldDependencies,
-            );
+        data = fieldData[jField] = FieldAnalysisData(
+          initialValue: value,
+          isEffectivelyFinal: isEffectivelyFinal,
+          isElided: isElided,
+          isEager: isEager,
+          eagerCreationIndex: creationIndex,
+          eagerFieldDependenciesForTesting: eagerFieldDependencies,
+        );
       }
 
       currentFields.remove(kField);
@@ -665,8 +664,8 @@ class FieldAnalysisData {
     bool isLateBackingField = source.readBool();
     bool isEager = source.readBool();
     int? eagerCreationIndex = source.readIntOrNull();
-    List<FieldEntity>? eagerFieldDependencies =
-        source.readMembersOrNull<FieldEntity>();
+    List<FieldEntity>? eagerFieldDependencies = source
+        .readMembersOrNull<FieldEntity>();
     source.end(tag);
     return FieldAnalysisData(
       initialValue: initialValue,

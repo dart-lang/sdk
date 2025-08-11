@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -340,7 +341,7 @@ void f() {
   Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
-    var codeAction = await expectCodeAction(
+    var codeAction = await expectCodeActionWithTitle(
       MoveSelectedFormalParametersLeft.constTitle,
     );
 
@@ -350,6 +351,8 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(MoveSelectedFormalParametersLeft.constTitle);
+    await expectNoCodeActionWithTitle(
+      MoveSelectedFormalParametersLeft.constTitle,
+    );
   }
 }

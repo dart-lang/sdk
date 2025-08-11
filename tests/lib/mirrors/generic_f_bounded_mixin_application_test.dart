@@ -36,17 +36,21 @@ main() {
   ClassMirror collectionDecl = reflectClass(Collection);
   ClassMirror serializableDecl = reflectClass(Serializable);
   ClassMirror orderedCollectionDecl = reflectClass(OrderedCollection);
-  ClassMirror abstractOrderedCollectionDecl =
-      reflectClass(AbstractOrderedCollection);
-  ClassMirror customOrderedCollectionDecl =
-      reflectClass(CustomOrderedCollection);
+  ClassMirror abstractOrderedCollectionDecl = reflectClass(
+    AbstractOrderedCollection,
+  );
+  ClassMirror customOrderedCollectionDecl = reflectClass(
+    CustomOrderedCollection,
+  );
   ClassMirror orderedIntegerCollection = reflectClass(OrderedIntegerCollection);
-  ClassMirror customOrderedIntegerCollection =
-      reflectClass(CustomOrderedIntegerCollection);
+  ClassMirror customOrderedIntegerCollection = reflectClass(
+    CustomOrderedIntegerCollection,
+  );
   ClassMirror serializerDecl = reflectClass(Serializer);
   ClassMirror collectionSerializerDecl = reflectClass(CollectionSerializer);
-  ClassMirror orderedCollectionSerializerDecl =
-      reflectClass(OrderedCollectionSerializer);
+  ClassMirror orderedCollectionSerializerDecl = reflectClass(
+    OrderedCollectionSerializer,
+  );
 
   ClassMirror orderedCollectionOfInt = orderedIntegerCollection.superclass!;
   ClassMirror customOrderedCollectionOfInt =
@@ -55,8 +59,9 @@ main() {
   ClassMirror serializerOfOrderedCollection =
       orderedCollectionSerializerDecl.superclass!;
   ClassMirror collectionOfDynamic = reflect(new Collection()).type;
-  ClassMirror orderedCollectionOfDynamic =
-      reflect(new OrderedCollection()).type;
+  ClassMirror orderedCollectionOfDynamic = reflect(
+    new OrderedCollection(),
+  ).type;
   ClassMirror collectionWithSerializableOfOrderedCollection =
       orderedCollectionDecl.superclass!;
 
@@ -77,7 +82,8 @@ main() {
   Expect.isFalse(serializerOfOrderedCollection.isOriginalDeclaration);
   Expect.isFalse(collectionOfDynamic.isOriginalDeclaration);
   Expect.isFalse(
-      collectionWithSerializableOfOrderedCollection.isOriginalDeclaration);
+    collectionWithSerializableOfOrderedCollection.isOriginalDeclaration,
+  );
 
   TypeVariableMirror rFromSerializer = serializerDecl.typeVariables.single;
   ClassMirror serializableOfR = rFromSerializer.upperBound as ClassMirror;

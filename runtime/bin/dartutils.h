@@ -161,8 +161,6 @@ class DartUtils {
   static bool IsDartCLILibURL(const char* url_name);
   static bool IsDartHttpLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
-  static bool IsHttpSchemeURL(const char* url_name);
-  static const char* RemoveScheme(const char* url);
 
   // Returns directory name including the last path separator.
   //
@@ -178,7 +176,8 @@ class DartUtils {
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle MakeUint8Array(const void* buffer, intptr_t length);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
-                                             bool trace_loading);
+                                             bool trace_loading,
+                                             bool flag_profile_microtasks);
   static Dart_Handle SetupPackageConfig(const char* packages_file);
 
   static Dart_Handle SetupIOLibrary(const char* namespc_path,
@@ -257,11 +256,14 @@ class DartUtils {
     kAppJITMagicNumber,
     kKernelMagicNumber,
     kKernelListMagicNumber,
+    kBytecodeMagicNumber,
     kGzipMagicNumber,
     kAotELFMagicNumber,
+    // Only the host-endian magic numbers are recognized, not the reverse-endian
+    // ("cigam") ones, as we can't load a reverse-endian snapshot anyway.
     kAotMachO32MagicNumber,
     kAotMachO64MagicNumber,
-    kAotMachO64Arm64MagicNumber,
+    kAotPEMagicNumber,
     kAotCoffARM32MagicNumber,
     kAotCoffARM64MagicNumber,
     kAotCoffRISCV32MagicNumber,
@@ -277,7 +279,24 @@ class DartUtils {
            (number <= DartUtils::kAotCoffRISCV64MagicNumber);
   }
 
-  // Checks if the buffer is a script snapshot, kernel file, or gzip file.
+  // Returns the bitsize corresponding to the magic number if the bitsize
+  // is specified by the magic number, otherwise returns -1.
+  static intptr_t MagicNumberBitSize(MagicNumber number) {
+    if (number == DartUtils::kAotMachO32MagicNumber ||
+        number == DartUtils::kAotCoffARM32MagicNumber ||
+        number == DartUtils::kAotCoffRISCV32MagicNumber) {
+      return 32;
+    }
+    if (number == DartUtils::kAotMachO64MagicNumber ||
+        number == DartUtils::kAotCoffARM64MagicNumber ||
+        number == DartUtils::kAotCoffRISCV64MagicNumber) {
+      return 64;
+    }
+    return -1;
+  }
+
+  // Checks if the file is a script snapshot, kernel file, or gzip file
+  // by reading the first kMaxMagicNumberSize bytes of the file.
   static MagicNumber SniffForMagicNumber(const char* filename);
 
   // Checks if the buffer is a script snapshot, kernel file, or gzip file.
@@ -316,7 +335,8 @@ class DartUtils {
                                         Dart_Handle io_lib,
                                         bool is_service_isolate);
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
-                                         Dart_Handle isolate_lib);
+                                         Dart_Handle isolate_lib,
+                                         bool flag_profile_microtasks);
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareCLILibrary(Dart_Handle cli_lib);

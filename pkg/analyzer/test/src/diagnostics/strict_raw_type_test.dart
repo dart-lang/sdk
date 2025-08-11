@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -83,15 +84,16 @@ void g(C a) {}
   }
 
   test_genericTypeArgument_extensionType_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E<T>(int i) {}
 
 void f() {
   <List<E>>[];
 }
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 50, 1)],
+    );
   }
 
   test_genericTypeArgument_extensionType_withTypeArg() async {
@@ -105,51 +107,58 @@ void f() {
   }
 
   test_genericTypeArgument_extensionTypeImplements_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E(List<int> i) implements Iterable {}
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 41, 8),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 41, 8)],
+    );
   }
 
   test_genericTypeArgument_extensionTypeImplementsExtensionType_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 
 extension type E<T>(Iterable<T> i) {}
 
 extension type F(List<int> j) implements E {}
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 81, 1),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 81, 1)],
+    );
   }
 
   test_genericTypeArgument_extensionTypeRepresentationType_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E(List i) {}
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 17, 4),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 17, 4)],
+    );
   }
 
   test_genericTypeArgument_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var a = <List>[];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(WarningCode.STRICT_RAW_TYPE, 22, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+        error(WarningCode.STRICT_RAW_TYPE, 22, 4),
+      ],
+    );
   }
 
   test_genericTypeArgument_withTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var a = <List<int>>[];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
   }
 
   test_instanceCreation() async {
@@ -171,39 +180,46 @@ void f(dynamic x) {
   }
 
   test_localVariable_extensionType_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E<T>(int i) {}
     
 void f() {
   E e = E(1);
 }
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 48, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [
+        error(WarningCode.STRICT_RAW_TYPE, 48, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      ],
+    );
   }
 
   test_localVariable_extensionType_withTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type E<T>(int i) {}
     
 void f() {
   E<int> e = E<int>(1);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1)],
+    );
   }
 
   test_localVariable_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   List a = [1, 2, 3];
 }
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 13, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [
+        error(WarningCode.STRICT_RAW_TYPE, 13, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      ],
+    );
   }
 
   test_localVariable_withTypeArg() async {
@@ -216,12 +232,13 @@ void f() {
   }
 
   test_mixinApplication_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin class C<T> {}
 class D = Object with C;
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 42, 1),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 42, 1)],
+    );
   }
 
   test_mixinApplication_withTypeArg() async {
@@ -241,12 +258,13 @@ void f(List2<int> a) {}
 
   test_nonFunctionTypeAlias_missingTypeArg() async {
     writeTestPackageConfigWithMeta();
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef List2<T> = List<T>;
 void f(List2 a) {}
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 35, 5),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 35, 5)],
+    );
   }
 
   test_nonFunctionTypeAlias_optionalTypeArgs() async {
@@ -272,24 +290,31 @@ void f(Object o) {
   }
 
   test_parameter_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(List a) {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 7, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 7, 4)],
+    );
   }
 
   test_returnType_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 List f(int a) => [1, 2, 3];
-''', [error(WarningCode.STRICT_RAW_TYPE, 0, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+    );
   }
 
   test_superclassWith_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin class C<T> {}
 class D extends Object with C {}
-''', [
-      error(WarningCode.STRICT_RAW_TYPE, 48, 1),
-    ]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 48, 1)],
+    );
   }
 
   test_superclassWith_withTypeArg() async {
@@ -300,9 +325,12 @@ class D extends Object with C<int> {}
   }
 
   test_topLevelField_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 List a = [];
-''', [error(WarningCode.STRICT_RAW_TYPE, 0, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+    );
   }
 
   test_topLevelField_optionalTypeArg() async {
@@ -326,29 +354,41 @@ void set s(List<double> a) {}
   }
 
   test_topLevelGetter_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 List get g => [];
-''', [error(WarningCode.STRICT_RAW_TYPE, 0, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+    );
   }
 
   test_topLevelSetter_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void set s(List a) {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 11, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 11, 4)],
+    );
   }
 
   test_typeAlias_classic_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef T F1<T>(T _);
 F1 func = (a) => a;
-''', [error(WarningCode.STRICT_RAW_TYPE, 22, 2)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 22, 2)],
+    );
   }
 
   test_typeAlias_modern_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F1<T> = T Function(T);
 F1 func = (a) => a;
-''', [error(WarningCode.STRICT_RAW_TYPE, 31, 2)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 31, 2)],
+    );
   }
 
   test_typeAlias_modern_optionalTypeArgs() async {
@@ -401,15 +441,21 @@ var d = C.named();
   }
 
   test_typeInExtendedType_anonymous_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension on List {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 13, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 13, 4)],
+    );
   }
 
   test_typeInExtendedType_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on List {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 15, 4)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 15, 4)],
+    );
   }
 
   test_typeInExtendedType_optionalTypeArgs() async {
@@ -431,10 +477,13 @@ extension F on List<int> {}
   }
 
   test_typeInInterface_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {}
 class D implements C {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 33, 1)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 33, 1)],
+    );
   }
 
   test_typeInInterface_withTypeArg() async {
@@ -445,10 +494,13 @@ class D implements C<int> {}
   }
 
   test_typeInSuperclass_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {}
 class D extends C {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 30, 1)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 30, 1)],
+    );
   }
 
   test_typeInSuperclass_withTypeArg() async {
@@ -459,10 +511,13 @@ class D extends C<int> {}
   }
 
   test_typeParameterBound_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {}
 class D<T extends C> {}
-''', [error(WarningCode.STRICT_RAW_TYPE, 32, 1)]);
+''',
+      [error(WarningCode.STRICT_RAW_TYPE, 32, 1)],
+    );
   }
 
   test_typeParameterBound_withTypeArg() async {

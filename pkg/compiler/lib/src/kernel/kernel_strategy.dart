@@ -53,8 +53,8 @@ class KernelFrontendStrategy {
   late final KernelToElementMap _elementMap;
   late final RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder =
       _options.disableRtiOptimization
-          ? const TrivialRuntimeTypesNeedBuilder()
-          : RuntimeTypesNeedBuilderImpl(elementEnvironment);
+      ? const TrivialRuntimeTypesNeedBuilder()
+      : RuntimeTypesNeedBuilderImpl(elementEnvironment);
 
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
@@ -125,11 +125,8 @@ class KernelFrontendStrategy {
       MemberEntity member,
     ) {
       if (!member.isInstanceMember) return;
-      MemberEntity interceptorMember =
-          elementEnvironment.lookupLocalClassMember(
-            interceptorClass,
-            member.memberName,
-          )!;
+      MemberEntity interceptorMember = elementEnvironment
+          .lookupLocalClassMember(interceptorClass, member.memberName)!;
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(

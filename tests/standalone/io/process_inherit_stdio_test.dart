@@ -20,21 +20,28 @@ main() {
   // process_inherit_stdio_script.dart spawns a process in inheritStdio mode
   // that prints to its stdout. Since that child process inherits the stdout
   // of the process spawned here, we should see it.
-  var script =
-      Platform.script.resolve('process_inherit_stdio_script.dart').toFilePath();
+  var script = Platform.script
+      .resolve('process_inherit_stdio_script.dart')
+      .toFilePath();
   var future = Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..addAll([script, "foo"]));
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..addAll([script, "foo"]),
+  );
   Completer<String> s = new Completer();
   future.then((process) {
     StringBuffer buf = new StringBuffer();
-    process.stdout.transform(utf8.decoder).listen((data) {
-      buf.write(data);
-    }, onDone: () {
-      s.complete(buf.toString());
-    });
+    process.stdout
+        .transform(utf8.decoder)
+        .listen(
+          (data) {
+            buf.write(data);
+          },
+          onDone: () {
+            s.complete(buf.toString());
+          },
+        );
   });
   s.future.then((String result) {
     Expect.isTrue(result.contains("foo"));

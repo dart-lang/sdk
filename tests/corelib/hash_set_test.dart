@@ -66,10 +66,9 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
   {
     // Check concurrent modification
-    Set set =
-        newSet()
-          ..add(0)
-          ..add(1);
+    Set set = newSet()
+      ..add(0)
+      ..add(1);
 
     {
       // Test adding before a moveNext.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -13,18 +13,25 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
   final LinkedElementFactory elementFactory;
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  EncodeContext({
-    required this.elementFactory,
-  });
+  EncodeContext({required this.elementFactory});
 
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element) {
+  ManifestItemId? getElementId(Element element) {
     return elementFactory.getElementId(element);
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var bottomIndex?) {
       return _typeParameters.length - 1 - bottomIndex;
     }
@@ -32,8 +39,24 @@ class EncodeContext {
     return throw StateError('No type parameter $element');
   }
 
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
+  }
+
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {
@@ -42,7 +65,7 @@ class EncodeContext {
 
     var encoded = <ManifestTypeParameter>[
       for (var typeParameter in typeParameters)
-        ManifestTypeParameter.encode(this, typeParameter)
+        ManifestTypeParameter.encode(this, typeParameter),
     ];
 
     try {
@@ -69,6 +92,9 @@ final class ManifestElement {
   /// The URI of the library that declares the element.
   final Uri libraryUri;
 
+  /// The kind, mostly to distinguish fields and getters.
+  final ManifestElementKind kind;
+
   /// The top-level element name.
   final String topLevelName;
 
@@ -80,6 +106,7 @@ final class ManifestElement {
 
   ManifestElement({
     required this.libraryUri,
+    required this.kind,
     required this.topLevelName,
     required this.memberName,
     required this.id,
@@ -88,6 +115,7 @@ final class ManifestElement {
   factory ManifestElement.read(SummaryDataReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
+      kind: reader.readEnum(ManifestElementKind.values),
       topLevelName: reader.readStringUtf8(),
       memberName: reader.readOptionalStringUtf8(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
@@ -95,32 +123,36 @@ final class ManifestElement {
   }
 
   @override
-  int get hashCode => Object.hash(libraryUri, topLevelName, memberName);
+  int get hashCode => Object.hash(libraryUri, kind, topLevelName, memberName);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestElement &&
         other.libraryUri == libraryUri &&
+        other.kind == kind &&
         other.topLevelName == topLevelName &&
         other.memberName == memberName;
   }
 
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
-  bool match(MatchContext context, Element2 element) {
-    var enclosingElement = element.enclosingElement2!;
-    Element2 givenTopLevelElement;
-    Element2? givenMemberElement;
-    if (enclosingElement is LibraryElement2) {
+  bool match(MatchContext context, Element element) {
+    var enclosingElement = element.enclosingElement!;
+    Element givenTopLevelElement;
+    Element? givenMemberElement;
+    if (enclosingElement is LibraryElement) {
       givenTopLevelElement = element;
     } else {
       givenTopLevelElement = enclosingElement;
       givenMemberElement = element;
     }
-    var givenLibraryUri = enclosingElement.library2!.uri;
+    var givenLibraryUri = enclosingElement.library!.uri;
 
     if (givenLibraryUri != libraryUri) {
+      return false;
+    }
+    if (ManifestElementKind.of(element) != kind) {
       return false;
     }
     if (givenTopLevelElement.lookupName != topLevelName) {
@@ -139,27 +171,27 @@ final class ManifestElement {
 
   void write(BufferedSink sink) {
     sink.writeUri(libraryUri);
+    sink.writeEnum(kind);
     sink.writeStringUtf8(topLevelName);
     sink.writeOptionalStringUtf8(memberName);
-    sink.writeOptionalObject(id, (it) => it.write(sink));
+    id.writeOptional(sink);
   }
 
-  static ManifestElement encode(
-    EncodeContext context,
-    Element2 element,
-  ) {
-    Element2 topLevelElement;
-    Element2? memberElement;
-    var enclosingElement = element.enclosingElement2!;
-    if (enclosingElement is LibraryElement2) {
+  static ManifestElement encode(EncodeContext context, Element element) {
+    Element topLevelElement;
+    Element? memberElement;
+    var enclosingElement = element.enclosingElement!;
+    if (enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
+      assert(topLevelElement.enclosingElement is LibraryElement);
       memberElement = element;
     }
 
     return ManifestElement(
-      libraryUri: topLevelElement.library2!.uri,
+      libraryUri: topLevelElement.library!.uri,
+      kind: ManifestElementKind.of(element),
       topLevelName: topLevelElement.lookupName!,
       memberName: memberElement?.lookupName,
       id: context.getElementId(element),
@@ -171,32 +203,94 @@ final class ManifestElement {
   }
 }
 
+/// Note, "instance" means inside [InstanceElement], not as "not static".
+enum ManifestElementKind {
+  class_,
+  enum_,
+  extensionType,
+  mixin_,
+  typeAlias,
+  topLevelVariable,
+  topLevelGetter,
+  topLevelSetter,
+  topLevelFunction,
+  instanceField,
+  instanceGetter,
+  instanceSetter,
+  instanceMethod,
+  interfaceConstructor;
+
+  static ManifestElementKind of(Element element) {
+    switch (element) {
+      case ClassElement():
+        return ManifestElementKind.class_;
+      case EnumElement():
+        return ManifestElementKind.enum_;
+      case ExtensionTypeElement():
+        return ManifestElementKind.extensionType;
+      case MixinElement():
+        return ManifestElementKind.mixin_;
+      case TopLevelVariableElement():
+        return ManifestElementKind.topLevelVariable;
+      case GetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelGetter;
+        }
+        return ManifestElementKind.instanceGetter;
+      case SetterElement():
+        if (element.enclosingElement is LibraryElement) {
+          return ManifestElementKind.topLevelSetter;
+        }
+        return ManifestElementKind.instanceSetter;
+      case TopLevelFunctionElement():
+        return ManifestElementKind.topLevelFunction;
+      case FieldElement():
+        return ManifestElementKind.instanceField;
+      case MethodElement():
+        return ManifestElementKind.instanceMethod;
+      case ConstructorElement():
+        return ManifestElementKind.interfaceConstructor;
+      case TypeAliasElement():
+        return ManifestElementKind.typeAlias;
+      default:
+        throw StateError('Unexpected (${element.runtimeType}) $element');
+    }
+  }
+}
+
 class MatchContext {
   final MatchContext? parent;
 
   /// Any referenced elements, from this bundle or not.
-  final Set<Element2> elements = {};
+  final Set<Element> elements = {};
 
   /// The required identifiers of referenced elements that are not from this
   /// bundle.
-  final Map<Element2, ManifestItemId> externalIds = {};
+  final Map<Element, ManifestItemId> externalIds = {};
 
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  MatchContext({
-    required this.parent,
-  });
+  MatchContext({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
-  List<Element2> get elementList => elements.toList(growable: false);
+  List<Element> get elementList => elements.toList(growable: false);
 
-  void addTypeParameters(List<TypeParameterElement2> typeParameters) {
+  void addTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var typeParameter in typeParameters) {
       _typeParameters[typeParameter] = _typeParameters.length;
     }
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var result?) {
       return _typeParameters.length - 1 - result;
     }
@@ -209,8 +303,24 @@ class MatchContext {
     throw StateError('No type parameter $element');
   }
 
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
+  }
+
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function() operation,
   ) {
     addTypeParameters(typeParameters);
@@ -226,18 +336,18 @@ class MatchContext {
 
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element2) {
-    Element2 topLevelElement;
-    Element2? memberElement;
-    if (element2.enclosingElement2 is LibraryElement2) {
-      topLevelElement = element2;
+  ManifestItemId? getElementId(Element element) {
+    Element topLevelElement;
+    Element? memberElement;
+    if (element.enclosingElement is LibraryElement) {
+      topLevelElement = element;
     } else {
-      topLevelElement = element2.enclosingElement2!;
-      memberElement = element2;
+      topLevelElement = element.enclosingElement!;
+      memberElement = element;
     }
 
     // SAFETY: if we can reference the element, it is in a library.
-    var libraryUri = topLevelElement.library2!.uri;
+    var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
     var manifest = libraryManifests[libraryUri];
@@ -247,7 +357,19 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    var topLevelItem = manifest.items[topLevelName];
+    TopLevelItem? topLevelItem;
+    switch (topLevelElement) {
+      case ClassElement():
+        topLevelItem = manifest.declaredClasses[topLevelName];
+      case MixinElement():
+        topLevelItem = manifest.declaredMixins[topLevelName];
+      case GetterElement():
+        return manifest.declaredGetters[topLevelName]?.id;
+      case SetterElement():
+        return manifest.declaredSetters[topLevelName]?.id;
+      case TopLevelFunctionElement():
+        return manifest.declaredFunctions[topLevelName]?.id;
+    }
 
     // TODO(scheglov): remove it after supporting all elements
     if (topLevelItem == null) {
@@ -259,11 +381,14 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     }
 
     // TODO(scheglov): When implementation is complete, cast unconditionally.
-    if (topLevelItem is InstanceItem) {
+    if (topLevelItem is InterfaceItem) {
       var memberName = memberElement.lookupName!.asLookupName;
-      var memberItem = topLevelItem.members[memberName];
+      if (element is ConstructorElement) {
+        return topLevelItem.getConstructorId(memberName);
+      }
+      var methodId = topLevelItem.getInterfaceMethodId(memberName);
       // TODO(scheglov): When implementation is complete, null assert.
-      return memberItem?.id;
+      return methodId;
     }
 
     return null;

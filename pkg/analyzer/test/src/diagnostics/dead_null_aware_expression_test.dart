@@ -29,13 +29,17 @@ f(MyMap<int, int> map) {
   }
 
   test_assignCompound_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int x) {
   x ??= 0;
 }
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 19, 2),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
+      ],
+    );
   }
 
   test_assignCompound_nullable() async {
@@ -47,13 +51,17 @@ f(int? x) {
   }
 
   test_binary_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int x) {
   x ?? 0;
 }
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 15, 4),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
+      ],
+    );
   }
 
   test_binary_nullable() async {

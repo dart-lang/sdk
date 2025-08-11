@@ -26,7 +26,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -66,7 +66,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   factory ConvertMethodToGetterRefactoring(
     RefactoringWorkspace workspace,
     AnalysisSession session,
-    ExecutableElement2 element,
+    ExecutableElement element,
   ) {
     return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
   }
@@ -397,7 +397,7 @@ class RefactoringWorkspace {
   RefactoringWorkspace(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
-  bool containsElement(Element2 element) {
+  bool containsElement(Element element) {
     if (element is MockLibraryImportElement) {
       return containsFile(element.libraryFragment.source.fullName);
     }
@@ -447,15 +447,15 @@ abstract class RenameRefactoring implements Refactoring {
   static RenameRefactoring? create(
     RefactoringWorkspace workspace,
     ResolvedUnitResult resolvedUnit,
-    Element2? element,
+    Element? element,
   ) {
     if (element == null) {
       return null;
     }
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
-    if (element is PropertyAccessorElement2) {
-      element = element.variable3;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
       if (element == null) {
         return null;
       }
@@ -467,11 +467,11 @@ abstract class RenameRefactoring implements Refactoring {
         element.import,
       );
     }
-    var enclosingElement = element.enclosingElement2;
-    if (element is PrefixElement2) {
-      enclosingElement = element.library2;
+    var enclosingElement = element.enclosingElement;
+    if (element is PrefixElement) {
+      enclosingElement = element.library;
     }
-    if (enclosingElement is LibraryElement2) {
+    if (enclosingElement is LibraryElement) {
       return RenameUnitMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -479,44 +479,44 @@ abstract class RenameRefactoring implements Refactoring {
         element,
       );
     }
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(
         workspace,
         sessionHelper,
         element,
       );
     }
-    if (element is LabelElement2) {
+    if (element is LabelElement) {
       return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is LibraryElement2) {
+    if (element is LibraryElement) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement2>()
+    if (enclosingElement?.thisOrAncestorOfType<InterfaceElement>()
         case var enclosingElement?) {
-      if (element case FieldFormalParameterElement2(:var field2?)) {
+      if (element case FieldFormalParameterElement(:var field?)) {
         return RenameClassMemberRefactoringImpl(
           workspace,
           sessionHelper,
           enclosingElement,
-          field2,
+          field,
         );
       }
     }
     if (element is FormalParameterElement) {
       return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is LocalElement2) {
+    if (element is LocalElement) {
       return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is TypeParameterElement2) {
+    if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
         element,
       );
     }
-    if (enclosingElement is InterfaceElement2) {
+    if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -524,7 +524,7 @@ abstract class RenameRefactoring implements Refactoring {
         element,
       );
     }
-    if (enclosingElement is ExtensionElement2) {
+    if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -539,7 +539,7 @@ abstract class RenameRefactoring implements Refactoring {
   /// example, the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
     AstNode node,
-    Element2? element,
+    Element? element,
   ) {
     // TODO(scheglov): This is bad code.
     SyntacticEntity? nameNode;
@@ -574,7 +574,7 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is NamedCompilationUnitMember) {
       nameNode = node.name;
     } else if (node is NamedType) {
-      nameNode = node.name2;
+      nameNode = node.name;
     } else if (node is RepresentationConstructorName) {
       nameNode = node.name;
     } else if (node is RepresentationDeclaration) {
@@ -616,9 +616,9 @@ abstract class RenameRefactoring implements Refactoring {
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
       var namedType = node.constructorName.type;
-      element = namedType.element2;
-      offset = namedType.name2.offset;
-      length = namedType.name2.length;
+      element = namedType.element;
+      offset = namedType.name.offset;
+      length = namedType.name.length;
     }
 
     if (element == null) {
@@ -630,7 +630,7 @@ abstract class RenameRefactoring implements Refactoring {
 }
 
 class RenameRefactoringElement {
-  final Element2 element;
+  final Element element;
   final int offset;
   final int length;
 

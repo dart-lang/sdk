@@ -43,8 +43,8 @@ void main() {
   noContextLHSContextColor(Color.red);
 
   // Class
-  Expect.equals(integerTest(null), Integer.one);
-  Expect.equals(integerTest(Integer.two), Integer.two);
+  Expect.equals(integerTest(null).integer, 1);
+  Expect.equals(integerTest(Integer.two).integer, 2);
 
   noContextLHSContextInteger(null);
   noContextLHSContextInteger(Integer.one);
@@ -52,8 +52,8 @@ void main() {
   Integer possiblyNullableInteger = .nullable ?? Integer.one;
 
   // Extension type
-  Expect.equals(integerExtTest(null), IntegerExt.one);
-  Expect.equals(integerExtTest(IntegerExt.two), IntegerExt.two);
+  Expect.equals(integerExtTest(null).integer, 1);
+  Expect.equals(integerExtTest(IntegerExt.two).integer, 2);
 
   noContextLHSContextIntegerExt(null);
   noContextLHSContextIntegerExt(IntegerExt.one);
@@ -62,8 +62,8 @@ void main() {
   IntegerExt possiblyNullableIntegerExt2 = .one ?? IntegerExt.one;
 
   // Mixin
-  Expect.equals(integerMixinTest(null), IntegerMixin.mixinOne);
-  Expect.equals(integerMixinTest(IntegerMixin.mixinTwo), IntegerMixin.mixinTwo);
+  Expect.equals(integerMixinTest(null).integer, 1);
+  Expect.equals(integerMixinTest(IntegerMixin.mixinTwo).integer, 2);
 
   noContextLHSContextIntegerMixin(null);
   noContextLHSContextIntegerMixin(IntegerMixin.mixinOne);

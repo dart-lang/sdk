@@ -300,7 +300,8 @@ class Types {
             : ConstructorInvocation(
                 namedParameterConstructor,
                 Arguments([
-                  ConstantExpression(SymbolConstant(n.name, null)),
+                  ConstantExpression(
+                      translator.symbols.symbolForNamedParameter(n.name)),
                   TypeLiteral(n.type),
                   BoolLiteral(n.isRequired)
                 ])));
@@ -400,7 +401,7 @@ class Types {
     b.comment("type check against $testedAgainstType");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
-      operandTemp = b.addLocal(translator.topInfo.nullableType);
+      operandTemp = b.addLocal(translator.topType);
       b.local_tee(operandTemp);
     }
     final checkOnlyNullAssignability =
@@ -535,10 +536,8 @@ class Types {
     // We may only need to check that either of these hold:
     //   * value is non-null
     //   * value is null and the type is nullable.
-    return translator.typeEnvironment.isSubtypeOf(
-        operandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        type_env.SubtypeCheckMode.withNullabilities);
+    return translator.typeEnvironment.isSubtypeOf(operandType,
+        testedAgainstType.withDeclaredNullability(Nullability.nullable));
   }
 }
 
@@ -557,7 +556,7 @@ abstract class _TypeCheckers {
       return (null, checkArguments: false);
     }
     if (testedAgainstType.classNode
-        .isDynamicModuleExtendable(rtt.translator.coreTypes)) {
+        .isDynamicSubmoduleExtendable(rtt.translator.coreTypes)) {
       return (null, checkArguments: false);
     }
 
@@ -591,8 +590,7 @@ abstract class _TypeCheckers {
     final sufficiency = typeEnvironment.computeTypeShapeCheckSufficiency(
         expressionStaticType: operandType,
         checkTargetType:
-            testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
+            testedAgainstType.withDeclaredNullability(Nullability.nullable));
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.
@@ -658,8 +656,8 @@ class IsCheckers extends _TypeCheckers {
     return cache.putIfAbsent(testedAgainstType, () {
       final typeType = translator.translateType(translator.typeType);
       final argumentType = operandIsNullable
-          ? translator.topInfo.nullableType
-          : translator.topInfo.nonNullableType;
+          ? translator.topType
+          : translator.topTypeNonNullable;
       final signature = w.FunctionType(
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
           [w.NumType.i32]);
@@ -701,8 +699,8 @@ class AsCheckers extends _TypeCheckers {
     return cache.putIfAbsent(testedAgainstType, () {
       final returnType = translator.translateType(testedAgainstType);
       final argumentType = operandIsNullable
-          ? translator.topInfo.nullableType
-          : translator.topInfo.nonNullableType;
+          ? translator.topType
+          : translator.topTypeNonNullable;
       final typeType = translator.translateType(translator.typeType);
       final signature = w.FunctionType(
           [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
@@ -737,7 +735,7 @@ class IsCheckerCallTarget extends CallTarget {
       this.checkArguments,
       this.argumentCount)
       : assert(!testedAgainstType.classNode
-            .isDynamicModuleExtendable(translator.coreTypes));
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   String get name {
@@ -767,7 +765,7 @@ class IsCheckerCallTarget extends CallTarget {
     // Always inline single class-id range checks (no branching, simply loads,
     // arithmetic and unsigned compare).
     final ranges = translator.classIdNumbering
-        .getConcreteClassIdRangeForCurrentModule(interfaceClass);
+        .getConcreteClassIdRangeForClass(interfaceClass);
     return ranges.length <= 1;
   }
 
@@ -812,7 +810,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       w.Label nullLabel = b.block(const [], const []);
       b.local_get(operand);
       b.br_on_null(nullLabel);
-      final nonNullableOperand = b.addLocal(translator.topInfo.nonNullableType);
+      final nonNullableOperand = b.addLocal(translator.topTypeNonNullable);
       b.local_get(operand);
       b.ref_cast(nonNullableOperand.type as w.RefType);
       b.local_set(nonNullableOperand);
@@ -883,10 +881,37 @@ class IsCheckerCodeGenerator implements CodeGenerator {
         b.ref_test(translator.closureInfo.nonNullableType);
       } else {
         final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForCurrentModule(interfaceClass);
+            .getConcreteClassIdRangeForClass(interfaceClass);
         b.local_get(operand);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.emitClassIdRangeCheck(ranges);
+        b.loadClassId(translator, operand.type);
+        if (translator.isDynamicSubmodule) {
+          // Only types that are not dynamic module extendable can get here.
+          final classIdLocal = b.addLocal(w.NumType.i32);
+          b.local_tee(classIdLocal);
+          translator.callReference(translator.classIdToModuleId.reference, b);
+          b.i32_wrap_i64();
+          // Check if the class ID belongs to this module or the main module.
+          b.global_get(translator.dynamicModuleInfo!.moduleIdGlobal);
+          b.i32_wrap_i64();
+          b.i32_eq();
+          b.local_get(classIdLocal);
+          b.i32_const(translator.classIdNumbering.firstDynamicSubmoduleClassId);
+          b.i32_lt_u();
+          b.i32_or();
+          b.if_(const [], const [w.NumType.i32]);
+          // If it is in a known range, then localize the class ID to this
+          // module. If the class is from the main module this will do nothing.
+          b.local_get(classIdLocal);
+          translator.callReference(translator.localizeClassId.reference, b);
+          b.emitClassIdRangeCheck(ranges);
+          b.else_();
+          // If it's not in the main module or this submodule then the type is
+          // unknown to this module so the test fails.
+          b.i32_const(0);
+          b.end();
+        } else {
+          b.emitClassIdRangeCheck(ranges);
+        }
       }
       b.br(resultLabel);
     }
@@ -922,7 +947,9 @@ class AsCheckerCallTarget extends CallTarget {
       this.testedAgainstType,
       this.operandIsNullable,
       this.checkArguments,
-      this.argumentCount);
+      this.argumentCount)
+      : assert(!testedAgainstType.classNode
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   String get name {
@@ -968,7 +995,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
       this.checkArguments,
       this.argumentCount)
       : assert(!testedAgainstType.classNode
-            .isDynamicModuleExtendable(translator.coreTypes));
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -1025,7 +1052,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     }
     b.unreachable();
 
-    b.end();
+    b.end(); // asCheckBlock
 
     b.local_get(b.locals[0]);
     translator.convertType(b, signature.inputs.first, signature.outputs.single);
@@ -1273,20 +1300,20 @@ class RuntimeTypeInformation {
 
     final emptyString = StringConstant('');
     List<StringConstant> nameConstants = [];
-    List<StringConstant> dynamicModuleNameConstants = [];
+    List<StringConstant> dynamicSubmoduleNameConstants = [];
     for (ClassInfo classInfo in translator.classes) {
       Class? cls = classInfo.cls;
       if (cls == null || cls.isAnonymousMixin) {
         nameConstants.add(emptyString);
       } else {
         final constantList = classInfo.classId is RelativeClassId
-            ? dynamicModuleNameConstants
+            ? dynamicSubmoduleNameConstants
             : nameConstants;
         constantList.add(StringConstant(cls.name));
       }
     }
-    return translator.constants.makeArrayOf(
-        stringType, isMainModule ? nameConstants : dynamicModuleNameConstants);
+    return translator.constants.makeArrayOf(stringType,
+        isMainModule ? nameConstants : dynamicSubmoduleNameConstants);
   }
 
   Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {

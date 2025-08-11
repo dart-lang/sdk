@@ -25,19 +25,25 @@ main() {
         throw "delayed error";
       });
       throw "catch error";
-    }).listen((x) {
-      events.add("i $x");
-      if (x == "delayed error") done.complete(true);
-    }, onDone: () {
-      Expect.fail("Unexpected callback");
-    });
+    }).listen(
+      (x) {
+        events.add("i $x");
+        if (x == "delayed error") done.complete(true);
+      },
+      onDone: () {
+        Expect.fail("Unexpected callback");
+      },
+    );
     events.add("after inner");
     throw "inner throw";
-  }).listen((x) {
-    events.add("o $x");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("o $x");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
   done.future.whenComplete(() {
     // Give some time to run the handlers.
     Timer.run(() {

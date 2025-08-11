@@ -17,8 +17,8 @@ import "dart:typed_data";
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-typedef _WebSocketProtocolTransformer
-    = TestingClass$_WebSocketProtocolTransformer;
+typedef _WebSocketProtocolTransformer =
+    TestingClass$_WebSocketProtocolTransformer;
 
 class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);
@@ -36,8 +36,10 @@ class WebSocketMessageCollector {
 
   void Function()? onClosed;
 
-  WebSocketMessageCollector(Stream stream,
-      [List<int>? this.expectedMessage = null]) {
+  WebSocketMessageCollector(
+    Stream stream, [
+    List<int>? this.expectedMessage = null,
+  ]) {
     stream.listen(onMessageData, onDone: onClosed, onError: onError);
   }
 
@@ -62,8 +64,14 @@ const int FRAME_OPCODE_TEXT = 1;
 const int FRAME_OPCODE_BINARY = 2;
 
 // Function for building a web socket frame.
-List<int> createFrame(bool fin, int opcode, int? maskingKey, List<int> data,
-    int offset, int count) {
+List<int> createFrame(
+  bool fin,
+  int opcode,
+  int? maskingKey,
+  List<int> data,
+  int offset,
+  int count,
+) {
   int frameSize = 2;
   if (count > 125) frameSize += 2;
   if (count > 65535) frameSize += 6;
@@ -97,10 +105,18 @@ void testFullMessages() {
     var transformer = new _WebSocketProtocolTransformer();
     var controller = new StreamController<List<int>>(sync: true);
     WebSocketMessageCollector mc = new WebSocketMessageCollector(
-        controller.stream.transform(transformer), message);
+      controller.stream.transform(transformer),
+      message,
+    );
 
-    List<int> frame =
-        createFrame(true, opcode, null, message, 0, message.length);
+    List<int> frame = createFrame(
+      true,
+      opcode,
+      null,
+      message,
+      0,
+      message.length,
+    );
 
     // Update the transformer with one big chunk.
     messageCount++;
@@ -157,8 +173,9 @@ void testFragmentedMessages() {
   // Use the same web socket protocol transformer for all frames.
   var transformer = new _WebSocketProtocolTransformer();
   var controller = new StreamController<List<int>>(sync: true);
-  WebSocketMessageCollector mc =
-      new WebSocketMessageCollector(controller.stream.transform(transformer));
+  WebSocketMessageCollector mc = new WebSocketMessageCollector(
+    controller.stream.transform(transformer),
+  );
 
   int messageCount = 0;
   int frameCount = 0;
@@ -172,8 +189,14 @@ void testFragmentedMessages() {
     while (!lastFrame) {
       int payloadSize = min(fragmentSize, remaining);
       lastFrame = payloadSize == remaining;
-      List<int> frame = createFrame(lastFrame, firstFrame ? opcode : 0x00, null,
-          message, messageIndex, payloadSize);
+      List<int> frame = createFrame(
+        lastFrame,
+        firstFrame ? opcode : 0x00,
+        null,
+        message,
+        messageIndex,
+        payloadSize,
+      );
       frameCount++;
       messageIndex += payloadSize;
       controller.add(frame);
@@ -218,12 +241,23 @@ void testUnmaskedMessage() {
   var transformer = new _WebSocketProtocolTransformer(true);
   var controller = new StreamController<List<int>>(sync: true);
   asyncStart();
-  controller.stream.transform(transformer).listen((_) {}, onError: (e) {
-    asyncEnd();
-  });
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {},
+        onError: (e) {
+          asyncEnd();
+        },
+      );
   var message = new Uint8List(10);
-  List<int> frame =
-      createFrame(true, FRAME_OPCODE_BINARY, null, message, 0, message.length);
+  List<int> frame = createFrame(
+    true,
+    FRAME_OPCODE_BINARY,
+    null,
+    message,
+    0,
+    message.length,
+  );
   controller.add(frame);
 }
 

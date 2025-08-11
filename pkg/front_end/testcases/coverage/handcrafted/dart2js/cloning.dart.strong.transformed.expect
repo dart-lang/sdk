@@ -11,7 +11,7 @@ class VariableDeclaration extends core::Object {
       this.{self::VariableDeclaration::flags} = flags;
     }
   }
-  static method _#new#tearOff(core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
+  static synthetic method _#new#tearOff(core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
     return new self::VariableDeclaration::•(_name, flags: flags);
   get name() → core::String?
     return this.{self::VariableDeclaration::_name}{core::String?};

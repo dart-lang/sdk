@@ -693,10 +693,9 @@ int? indexTypeVariable(
   // index, even though in the general case it is not at a specific index.
 
   ClassHierarchy classHierarchy = world.classHierarchy;
-  var test =
-      mustCheckAllSubtypes(world, cls)
-          ? classHierarchy.anyStrictSubtypeOf
-          : classHierarchy.anyStrictSubclassOf;
+  var test = mustCheckAllSubtypes(world, cls)
+      ? classHierarchy.anyStrictSubtypeOf
+      : classHierarchy.anyStrictSubclassOf;
   if (test(cls, (ClassEntity subclass) {
     return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
   })) {

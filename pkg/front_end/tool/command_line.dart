@@ -348,7 +348,7 @@ Message computeUsage(String programName, bool verbose) {
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
       basicUsage = "Usage: $programName [options]"
-          " dart-library-uri libraries.json vm_outline_strong.dill"
+          " dart-library-uri libraries.json vm_outline.dill"
           " platform.dill outline.dill\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);

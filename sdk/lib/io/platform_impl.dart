@@ -82,10 +82,9 @@ class _Platform {
     if (_environmentCache == null) {
       var env = _environment();
       if (env is Iterable<Object?>) {
-        var result =
-            Platform.isWindows
-                ? _CaseInsensitiveStringMap<String>()
-                : Map<String, String>();
+        var result = Platform.isWindows
+            ? _CaseInsensitiveStringMap<String>()
+            : Map<String, String>();
         for (var environmentEntry in env) {
           if (environmentEntry == null) {
             continue;

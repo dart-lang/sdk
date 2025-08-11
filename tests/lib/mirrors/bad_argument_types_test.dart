@@ -72,11 +72,15 @@ void badClassStaticInvoke() {
   Map<String, String> map = Map<String, String>();
   map['bar'] = 'Hello world!';
   final cm = reflectClass(Foo);
-  Expect.throwsTypeError(() => cm.invoke(#baz, [
-        map
-      ], {
-        #bar: {'boo': 'bah'}
-      }));
+  Expect.throwsTypeError(
+    () => cm.invoke(
+      #baz,
+      [map],
+      {
+        #bar: {'boo': 'bah'},
+      },
+    ),
+  );
 }
 
 void badStaticInvoke() {

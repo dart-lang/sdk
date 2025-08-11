@@ -50,7 +50,8 @@ enum E {
   }
 
   test_enum_method_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   a, b;
 
@@ -61,49 +62,55 @@ enum E {
     }
   }
 }
-''', [
-      if (!_arePatternsEnabled) ...[
-        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
-      ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6)
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled) ...[
+          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
+        ] else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6),
+      ],
+    );
   }
 
   test_factoryConstructor_named_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A.named() {}
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 7)],
+    );
   }
 
   test_factoryConstructor_unnamed_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() {}
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 1)],
+    );
   }
 
   test_function_future_int_blockBody_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Future<int> foo() async {}
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 12, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 12, 3)],
+    );
   }
 
   test_function_future_void_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Future<void> foo() {}
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 13, 3)],
+    );
   }
 
   test_function_future_void_blockBody_async() async {
@@ -113,11 +120,12 @@ Future<void> foo() async {}
   }
 
   test_function_nonNullable_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int foo() {}
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 4, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 4, 3)],
+    );
   }
 
   test_function_nonNullable_blockBody_generator_async() async {
@@ -183,7 +191,8 @@ int f(Foo foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum Foo { a, b }
 
 int f(Foo foo) {
@@ -192,17 +201,20 @@ int f(Foo foo) {
       return 0;
   }
 }
-''', [
-      if (!_arePatternsEnabled) ...[
-        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
-      ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled) ...[
+          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
+        ] else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
+      ],
+    );
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive_enhanced() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   a, b;
 
@@ -215,13 +227,15 @@ int f(E e) {
       return 0;
   }
 }
-''', [
-      if (!_arePatternsEnabled) ...[
-        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
-      ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 58, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled) ...[
+          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
+        ] else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 58, 6),
+      ],
+    );
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_default() async {
@@ -259,7 +273,8 @@ int f(Foo? foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_notExhaustive_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum Foo { a, b }
 
 int f(Foo? foo) {
@@ -270,13 +285,15 @@ int f(Foo? foo) {
       return 1;
   }
 }
-''', [
-      if (!_arePatternsEnabled) ...[
-        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
-        error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
-      ] else
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 39, 6),
-    ]);
+''',
+      [
+        if (!_arePatternsEnabled) ...[
+          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
+        ] else
+          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 39, 6),
+      ],
+    );
   }
 
   test_function_nullable_blockBody() async {
@@ -288,25 +305,27 @@ int foo() {
   }
 
   test_functionExpression_future_int_blockBody_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   Future<int> Function() foo = () async {};
   foo;
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 51, 1)],
+    );
   }
 
   test_functionExpression_future_void_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   Future<void> Function() foo = () {};
   foo;
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 46, 1)],
+    );
   }
 
   test_functionExpression_future_void_blockBody_async() async {
@@ -319,15 +338,16 @@ main() {
   }
 
   test_functionExpression_notNullable_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int Function() foo = () {
   };
   foo;
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 37, 1)],
+    );
   }
 
   test_functionExpression_notNullable_blockBody_return() async {
@@ -358,23 +378,25 @@ class A {
   }
 
   test_method_future_int_blockBody_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   Future<int> foo() async {}
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 24, 3)],
+    );
   }
 
   test_method_future_void_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   Future<void> foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 25, 3)],
+    );
   }
 
   test_method_future_void_blockBody_async() async {
@@ -386,13 +408,14 @@ class A {
   }
 
   test_method_nonNullable_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 16, 3)],
+    );
   }
 
   test_method_nonNullable_blockBody_generator_async() async {
@@ -473,10 +496,11 @@ class A {
     // Even though this code has an illegal return type for a setter, do not
     // use the invalid return type to report BODY_MIGHT_COMPLETE_NORMALLY for
     // setters.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool set s(int value) {}
-''', [
-      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 4)],
+    );
   }
 }

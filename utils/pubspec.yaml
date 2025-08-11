@@ -1,0 +1,8 @@
+name: utils
+description: Internal utils for building Dart SDK.
+
+environment:
+  sdk: ^3.8.0
+
+resolution: workspace
+publish_to: none

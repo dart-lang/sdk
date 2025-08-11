@@ -32,7 +32,8 @@ main() {
     Expect.equals("/C:", Uri.parse("file:///C:").toFilePath());
     Expect.equals("/C:/", Uri.parse("file:///C:/").toFilePath());
     Expect.throwsUnsupportedError(
-        () => Uri.parse("file://host/a/b").toFilePath());
+      () => Uri.parse("file://host/a/b").toFilePath(),
+    );
 
     Expect.equals("a/b", new Uri.file("a/b").toFilePath());
     Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());
@@ -40,9 +41,10 @@ main() {
   // If the current path is only the root prefix (/ (or c:\), then don't add a
   // separator at the end.
   Expect.equals(
-      Uri.base,
-      (Directory.current.path.toString() !=
-              path.rootPrefix(Directory.current.path.toString()))
-          ? new Uri.file(Directory.current.path + Platform.pathSeparator)
-          : new Uri.file(Directory.current.path));
+    Uri.base,
+    (Directory.current.path.toString() !=
+            path.rootPrefix(Directory.current.path.toString()))
+        ? new Uri.file(Directory.current.path + Platform.pathSeparator)
+        : new Uri.file(Directory.current.path),
+  );
 }

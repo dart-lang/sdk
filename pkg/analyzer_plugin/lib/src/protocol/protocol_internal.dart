@@ -78,7 +78,12 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit,
           newEdit: sourceEdit, existingEdit: nextEdit);
     }
   }
-  edits.insert(index, sourceEdit);
+  if (index == 0 && edits is Queue) {
+    var q = edits as Queue;
+    q.addFirst(sourceEdit);
+  } else {
+    edits.insert(index, sourceEdit);
+  }
 }
 
 /// Adds [edit] to the [FileEdit] for the given [file].
@@ -109,11 +114,41 @@ String applyEdit(String code, SourceEdit edit) {
 /// Get the result of applying a set of [edits] to the given [code]. Edits
 /// are applied in the order they appear in [edits]. Access via
 /// SourceEdit.applySequence().
-String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
-  for (var edit in edits) {
-    code = edit.apply(code);
+String applySequenceOfEdits(String code, List<SourceEdit> edits) {
+  var buffer = StringBuffer();
+  var start = 0;
+  for (var i = edits.length - 1; i >= 0; i--) {
+    var edit = edits[i];
+    var offset = edit.offset;
+    var length = edit.length;
+    if (length < 0) {
+      throw RangeError('The edit length is negative.');
+    }
+    if (offset + length > code.length) {
+      throw RangeError('The edit extends past the end of the code.');
+    }
+    if (start > offset) {
+      // One of the edits overlaps with another, requiring that they be applied
+      // from largest offset to smallest. This should only be possible in code
+      // that creates source edits without using the `ChangeBuilder` to do so.
+      //
+      // We should consider fixing the places where overlapping edits are
+      // produced so that this branch can be removed. One such place is
+      // exhibited by `_DoCompletionTest.test_noBody`.
+      for (var edit in edits) {
+        code = edit.apply(code);
+      }
+      return code;
+    } else if (start < offset) {
+      buffer.write(code.substring(start, offset));
+    }
+    buffer.write(edit.replacement);
+    start = offset + length;
   }
-  return code;
+  if (start < code.length) {
+    buffer.write(code.substring(start));
+  }
+  return buffer.toString();
 }
 
 /// Returns the [FileEdit] for the given [file], maybe `null`.

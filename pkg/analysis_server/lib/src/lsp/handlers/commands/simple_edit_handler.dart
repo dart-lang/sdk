@@ -3,28 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-abstract class SimpleEditCommandHandler
-    extends CommandHandler<ExecuteCommandParams, Object> {
+abstract class SimpleEditCommandHandler<S extends AnalysisServer>
+    extends CommandHandler<ExecuteCommandParams, Object, S> {
   SimpleEditCommandHandler(super.server);
 
   String get commandName;
 
-  bool hasScanParseErrors(List<engine.AnalysisError> errors) {
-    return errors.any(
-      (error) =>
-          error.errorCode is engine.ScannerErrorCode ||
-          error.errorCode is engine.ParserErrorCode,
+  bool hasScanParseErrors(List<engine.Diagnostic> diagnostics) {
+    return diagnostics.any(
+      (d) =>
+          d.diagnosticCode is engine.ScannerErrorCode ||
+          d.diagnosticCode is engine.ParserErrorCode,
     );
   }
 

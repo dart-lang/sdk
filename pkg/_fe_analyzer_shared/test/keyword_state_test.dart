@@ -104,11 +104,17 @@ abstract class KeywordState {
   }
 
   static KeywordState computeKeywordStateTable(
-      int start, List<String> strings, int offset, int length) {
+    int start,
+    List<String> strings,
+    int offset,
+    int length,
+  ) {
     bool isLowercase = true;
 
-    List<KeywordState?> table =
-        new List<KeywordState?>.filled($z - $A + 1, /* fill = */ null);
+    List<KeywordState?> table = new List<KeywordState?>.filled(
+      $z - $A + 1,
+      /* fill = */ null,
+    );
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;
@@ -126,7 +132,11 @@ abstract class KeywordState {
           if (chunkStart != -1) {
             assert(table[chunk - $A] == null);
             table[chunk - $A] = computeKeywordStateTable(
-                start + 1, strings, chunkStart, i - chunkStart);
+              start + 1,
+              strings,
+              chunkStart,
+              i - chunkStart,
+            );
           }
           chunkStart = i;
           chunk = c;
@@ -136,7 +146,11 @@ abstract class KeywordState {
     if (chunkStart != -1) {
       assert(table[chunk - $A] == null);
       table[chunk - $A] = computeKeywordStateTable(
-          start + 1, strings, chunkStart, offset + length - chunkStart);
+        start + 1,
+        strings,
+        chunkStart,
+        offset + length - chunkStart,
+      );
     } else {
       assert(length == 1);
       return new LeafKeywordState(strings[offset]);
@@ -161,7 +175,7 @@ abstract class ArrayKeywordState implements KeywordState {
   final Keyword? keyword;
 
   ArrayKeywordState(this.table, String? syntax)
-      : keyword = ((syntax == null) ? null : Keyword.keywords[syntax]);
+    : keyword = ((syntax == null) ? null : Keyword.keywords[syntax]);
 
   @override
   KeywordState? next(int c);
@@ -181,8 +195,10 @@ abstract class ArrayKeywordState implements KeywordState {
     List<KeywordState?> foo = table;
     for (int i = 0; i < foo.length; i++) {
       if (foo[i] != null) {
-        sb.write("${new String.fromCharCodes([i + $a])}: "
-            "${foo[i]}; ");
+        sb.write(
+          "${new String.fromCharCodes([i + $a])}: "
+          "${foo[i]}; ",
+        );
       }
     }
     sb.write("]");
@@ -192,7 +208,7 @@ abstract class ArrayKeywordState implements KeywordState {
 
 class LowerCaseArrayKeywordState extends ArrayKeywordState {
   LowerCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
-      : super(table, syntax) {
+    : super(table, syntax) {
     assert(table.length == $z - $a + 1);
   }
 
@@ -205,7 +221,7 @@ class LowerCaseArrayKeywordState extends ArrayKeywordState {
 
 class UpperCaseArrayKeywordState extends ArrayKeywordState {
   UpperCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
-      : super(table, syntax) {
+    : super(table, syntax) {
     assert(table.length == $z - $A + 1);
   }
 

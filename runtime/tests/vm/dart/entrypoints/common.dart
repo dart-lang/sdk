@@ -65,7 +65,9 @@ void _validateFn(String _, int ep) => _validateHelper(ep, null);
 // actual target.
 _validateTearoffFn(String name, int ep) {
   _validateHelper(
-      ep, name.endsWith("#tearoff") ? tearoffEntryPoint : entryPoint);
+    ep,
+    name.endsWith("#tearoff") ? tearoffEntryPoint : entryPoint,
+  );
 }
 
 @pragma("vm:entry-point", "get")

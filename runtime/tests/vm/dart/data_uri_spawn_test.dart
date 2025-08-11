@@ -8,8 +8,10 @@ import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 Uri toDartDataUri(String source) {
-  return Uri.parse("data:application/dart;charset=utf-8,"
-      "${Uri.encodeComponent(source)}");
+  return Uri.parse(
+    "data:application/dart;charset=utf-8,"
+    "${Uri.encodeComponent(source)}",
+  );
 }
 
 main() {

@@ -11,6 +11,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
@@ -84,7 +85,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {Variance variance = Variance.covariant}) {
     return null;
   }

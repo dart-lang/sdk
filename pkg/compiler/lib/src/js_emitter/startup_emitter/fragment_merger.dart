@@ -281,10 +281,9 @@ class PreFragment {
     Map<OutputUnit, CodeFragment> outputUnitMap,
     Map<CodeFragment, FinalizedFragment> codeFragmentMap,
   ) {
-    List<CodeFragment> codeFragments =
-        shouldInterleave
-            ? [interleaveEmittedOutputUnits(program)]
-            : bundleEmittedOutputUnits(program);
+    List<CodeFragment> codeFragments = shouldInterleave
+        ? [interleaveEmittedOutputUnits(program)]
+        : bundleEmittedOutputUnits(program);
     finalizedFragment = FinalizedFragment(outputFileName, codeFragments);
     for (var codeFragment in codeFragments) {
       codeFragmentMap[codeFragment] = finalizedFragment;
@@ -698,19 +697,18 @@ class FragmentMerger {
         },
       );
 
-      List<String> partFileNames =
-          fragments
-              .map(
-                (fragment) => deferredPartFileName(
-                  _options,
-                  fragment.canonicalOutputUnit.name,
-                ),
-              )
-              .toList();
+      List<String> partFileNames = fragments
+          .map(
+            (fragment) => deferredPartFileName(
+              _options,
+              fragment.canonicalOutputUnit.name,
+            ),
+          )
+          .toList();
       (libraryMap['imports'] as Map<String, List<String>>)[importDeferName] =
           partFileNames;
-      (libraryMap['importPrefixToLoadId'] as Map<String, String>)[import
-              .name!] =
+      (libraryMap['importPrefixToLoadId']
+              as Map<String, String>)[import.name!] =
           importDeferName;
     }
     return mapping;

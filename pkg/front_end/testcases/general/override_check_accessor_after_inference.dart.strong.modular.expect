@@ -2,16 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:26:9: Error: The return type of the method 'F.y' is 'A', which does not match the return type, 'B', of the overridden method, 'D.y'.
-//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
-// Change to a subtype of 'B'.
-//   A get y => throw '';
-//         ^
-// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:16:7: Context: This is the overridden method ('y').
-//   get y => throw ''; // Inferred type: B
-//       ^
-//
 // pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:25:16: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'D.x'.
 //  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
@@ -21,6 +11,16 @@ library;
 // pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:15:12: Context: This is the overridden method ('x').
 //   void set x(value) {} // Inferred type: A
 //            ^
+//
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:26:9: Error: The return type of the method 'F.y' is 'A', which does not match the return type, 'B', of the overridden method, 'D.y'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+// Change to a subtype of 'B'.
+//   A get y => throw '';
+//         ^
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:16:7: Context: This is the overridden method ('y').
+//   get y => throw ''; // Inferred type: B
+//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -63,8 +63,8 @@ class F extends self::D {
   synthetic constructor •() → self::F
     : super self::D::•()
     ;
-  set x(self::B value) → void {}
-  get y() → self::A
+  erroneous set x(self::B value) → void {}
+  erroneous get y() → self::A
     return throw "";
 }
 static method main() → dynamic {}

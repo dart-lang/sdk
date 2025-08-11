@@ -41,12 +41,12 @@
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
 },
   {
-  "id": "constant/B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n",
+  "id": "constant/B.List_A = makeConstList([B.C_A], A.findType(\"JSArray<A>\"));\n",
   "kind": "constant",
   "name": "",
-  "size": 78,
+  "size": 61,
   "outputUnit": "outputUnit/main",
-  "code": "B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n"
+  "code": "B.List_A = makeConstList([B.C_A], A.findType(\"JSArray<A>\"));\n"
 }],
  deferredFiles=[{}],
  dependencies=[{}],
@@ -103,7 +103,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=Error|powerset=0]",
+  "inferredType": "[exact=Error|powerset={N}{O}{N}]",
   "code": "",
   "type": "dynamic"
 }],
@@ -118,7 +118,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[subclass=JSPositiveInt|powerset=0]",
+  "inferredType": "[subclass=JSPositiveInt|powerset={I}{O}{N}]",
   "code": "$.C_counter = 0;\n",
   "type": "int"
 }]*/
@@ -132,7 +132,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=JSBool|powerset=0]",
+  "inferredType": "[exact=JSBool|powerset={I}{O}{N}]",
   "code": "_lazy($, \"C_y\", \"$get$C_y\", () => {\n      var t1 = $.C_counter + 1;\n      $.C_counter = t1;\n      return t1 === 4;\n    });\n",
   "type": "bool"
 }],
@@ -159,7 +159,7 @@ class C {
     "external": false
   },
   "returnType": "bool",
-  "inferredReturnType": "[exact=JSBool|powerset=0]",
+  "inferredReturnType": "[exact=JSBool|powerset={I}{O}{N}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads static; writes static)",
   "inlinedCount": 1,
@@ -187,11 +187,11 @@ class C {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=C|powerset=0]",
+  "inferredReturnType": "[exact=C|powerset={N}{O}{N}]",
   "parameters": [
     {
       "name": "message",
-      "type": "[exact=Error|powerset=0]",
+      "type": "[exact=Error|powerset={N}{O}{N}]",
       "declaredType": "Object"
     }
   ],
@@ -219,11 +219,11 @@ class C {
     "external": false
   },
   "returnType": "C",
-  "inferredReturnType": "[exact=C|powerset=0]",
+  "inferredReturnType": "[exact=C|powerset={N}{O}{N}]",
   "parameters": [
     {
       "name": "object",
-      "type": "[exact=JSUInt31|powerset=0]",
+      "type": "[exact=JSUInt31|powerset={I}{O}{N}]",
       "declaredType": "dynamic"
     }
   ],
@@ -257,7 +257,7 @@ class C {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
@@ -302,7 +302,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::A",
   "children": [],
-  "inferredType": "Value([exact=JSString|powerset=0], value: \"hello\", powerset: 0)",
+  "inferredType": "Value([exact=JSString|powerset={I}{O}{I}], value: \"hello\", powerset: {I}{O}{I})",
   "code": "",
   "type": "dynamic"
 }]*/
@@ -323,7 +323,7 @@ class A {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=A|powerset=0]",
+  "inferredReturnType": "[exact=A|powerset={N}{O}{N}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -342,7 +342,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [],
-  "inferredType": "Container([exact=JSUnmodifiableArray|powerset=0], element: [exact=A|powerset=0], length: 1, powerset: 0)",
+  "inferredType": "Container([exact=JSUnmodifiableArray|powerset={I}{U}{I}], element: [exact=A|powerset={N}{O}{N}], length: 1, powerset: {I}{U}{I})",
   "code": "",
   "type": "List<A>"
 }]*/
@@ -364,7 +364,7 @@ final constList = const [const A()];
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,

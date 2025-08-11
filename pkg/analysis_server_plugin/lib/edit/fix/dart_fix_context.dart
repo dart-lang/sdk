@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
@@ -37,6 +38,9 @@ class DartFixContext implements FixContext {
   /// The unit result in which the fix operates.
   final ResolvedUnitResult unitResult;
 
+  // The [CorrectionUtils] for the unit result.
+  final CorrectionUtils correctionUtils;
+
   /// The workspace in which the fix contributor operates.
   final ChangeWorkspace workspace;
 
@@ -45,27 +49,33 @@ class DartFixContext implements FixContext {
   /// It's been observed that the same request is fired multiple times for at
   /// least some getFixes requsts. Caching the response can speed up such
   /// requests.
-  final Map<String, Future<Map<LibraryElement2, Element2>>>
+  final Map<String, Future<Map<LibraryElement, Element>>>
       _cachedTopLevelDeclarations = {};
 
   @override
-  final AnalysisError error;
+  final Diagnostic diagnostic;
 
   DartFixContext({
     required this.instrumentationService,
     required this.workspace,
     required this.libraryResult,
     required this.unitResult,
-    required this.error,
+    // TODO(srawlins): Rename to `diagnostic`.
+    required Diagnostic error,
     this.autoTriggered = false,
-  });
+    CorrectionUtils? correctionUtils,
+  })  : diagnostic = error,
+        correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
+
+  @override
+  Diagnostic get error => diagnostic;
 
   /// Returns the mapping from each library (that is available to this context)
   /// to a top-level declaration that is exported (not necessary declared) by
   /// this library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(String name) {
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(String name) {
     var cachedResult = _cachedTopLevelDeclarations[name];
     if (cachedResult != null) return cachedResult;
     var result = TopLevelDeclarations(unitResult).withName(name);
@@ -75,7 +85,7 @@ class DartFixContext implements FixContext {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) async* {
     var analysisContext = unitResult.session.analysisContext;
     if (analysisContext is! DriverBasedAnalysisContext) {
       return;

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +17,11 @@ class AvoidDoubleAndIntChecks extends LintRule {
     : super(name: LintNames.avoid_double_and_int_checks, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_double_and_int_checks;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.avoid_double_and_int_checks;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addIfStatement(this, visitor);
   }
@@ -30,7 +30,7 @@ class AvoidDoubleAndIntChecks extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -50,8 +50,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             ifCondition.type.type == typeProvider.doubleType &&
             elseCondition.type.type == typeProvider.intType &&
             (ifExpression.element is FormalParameterElement ||
-                ifExpression.element is LocalVariableElement2)) {
-          rule.reportLint(elseCondition);
+                ifExpression.element is LocalVariableElement)) {
+          rule.reportAtNode(elseCondition);
         }
       }
     }

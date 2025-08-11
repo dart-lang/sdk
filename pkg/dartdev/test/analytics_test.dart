@@ -16,11 +16,13 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'experiment_util.dart';
 import 'utils.dart';
 
-List<Map> extractAnalytics(io.ProcessResult result) {
+List<Map<String, Object?>> extractAnalytics(io.ProcessResult result) {
   return LineSplitter.split(result.stderr)
       .where((line) => line.startsWith('[analytics]: '))
-      .map((line) => json.decode(line.substring('[analytics]: '.length)) as Map)
-      .toList();
+      .map((line) {
+    return (json.decode(line.substring('[analytics]: '.length)) as Map)
+        .cast<String, Object?>();
+  }).toList();
 }
 
 void main() {

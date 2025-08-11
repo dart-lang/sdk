@@ -47,9 +47,10 @@ class RecordTypeBuilder extends TypeBuilder {
       typeSystem: typeSystem,
       node: node,
       fieldTypes: node.fields.map((field) => field.type.typeOrThrow).toList(),
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
+      nullabilitySuffix:
+          node.question != null
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
     );
   }
 
@@ -71,9 +72,7 @@ class RecordTypeBuilder extends TypeBuilder {
     }
 
     if (_isBuilding) {
-      return _type = _buildRecordType(
-        recursionFound: true,
-      );
+      return _type = _buildRecordType(recursionFound: true);
     }
 
     _isBuilding = true;
@@ -89,9 +88,7 @@ class RecordTypeBuilder extends TypeBuilder {
     return node.toSource();
   }
 
-  RecordTypeImpl _buildRecordType({
-    bool recursionFound = false,
-  }) {
+  RecordTypeImpl _buildRecordType({bool recursionFound = false}) {
     var fieldTypeIndex = 0;
 
     DartType nextFieldType() {
@@ -103,18 +100,18 @@ class RecordTypeBuilder extends TypeBuilder {
       }
     }
 
-    var positionalFields = node.positionalFields.map((field) {
-      return RecordTypePositionalFieldImpl(
-        type: nextFieldType(),
-      );
-    }).toList();
+    var positionalFields =
+        node.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(type: nextFieldType());
+        }).toList();
 
-    var namedFields = node.namedFields?.fields.map((field) {
-      return RecordTypeNamedFieldImpl(
-        name: field.name.lexeme,
-        type: nextFieldType(),
-      );
-    }).toList();
+    var namedFields =
+        node.namedFields?.fields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name.lexeme,
+            type: nextFieldType(),
+          );
+        }).toList();
 
     return node.type = RecordTypeImpl(
       positionalFields: positionalFields,

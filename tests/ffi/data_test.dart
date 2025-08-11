@@ -66,7 +66,7 @@ void testPointerFromPointer() {
 
 void testPointerPointerArithmetic() {
   Pointer<Int64> p = calloc(2);
-  Pointer<Int64> p2 = p.elementAt(1);
+  Pointer<Int64> p2 = p + 1;
   p2.value = 100;
   Pointer<Int64> p3 = p.offsetBy(8);
   Expect.equals(100, p3.value);
@@ -82,13 +82,13 @@ void testPointerPointerArithmetic() {
 
 void testPointerPointerArithmeticSizes() {
   Pointer<Int64> p = calloc(2);
-  Pointer<Int64> p2 = p.elementAt(1);
+  Pointer<Int64> p2 = p + 1;
   int addr = p.address;
   Expect.equals(addr + 8, p2.address);
   calloc.free(p);
 
   Pointer<Int32> p3 = calloc(2);
-  Pointer<Int32> p4 = p3.elementAt(1);
+  Pointer<Int32> p4 = p3 + 1;
   addr = p3.address;
   Expect.equals(addr + 4, p4.address);
   calloc.free(p3);
@@ -136,8 +136,7 @@ void testCastGeneric() {
   }
 
   Pointer<Int16> p = calloc();
-  // ignore: unused_local_variable
-  Pointer<Int64> p2 = generic<Int64>(p);
+  generic(p);
   calloc.free(p);
 }
 
@@ -434,17 +433,18 @@ void testDynamicInvocation() {
     p.value;
   });
   Expect.throws(() => p.value = 1);
-  Expect.throws(() => p.elementAt(5));
+  Expect.throws(() => p + 5);
   Expect.throws(() => p += 5);
   p.address;
   p.cast<Int16>();
   calloc.free(p);
 }
 
-final nullableInt64ElementAt1 = ffiTestFunctions.lookupFunction<
-  Pointer<Int64> Function(Pointer<Int64>),
-  Pointer<Int64> Function(Pointer<Int64>)
->("NullableInt64ElemAt1");
+final nullableInt64ElementAt1 = ffiTestFunctions
+    .lookupFunction<
+      Pointer<Int64> Function(Pointer<Int64>),
+      Pointer<Int64> Function(Pointer<Int64>)
+    >("NullableInt64ElemAt1");
 
 void testNullptrCast() {
   Pointer<Int64> ptr = nullptr;

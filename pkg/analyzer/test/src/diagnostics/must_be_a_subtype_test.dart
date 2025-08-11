@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class MustBeASubtypeTest extends PubPackageResolutionTest {
   test_fromFunction_firstArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef T = Int8 Function(Int8);
 String f(int i) => i.toString();
 void g() {
   Pointer.fromFunction<T>(f, 5);
 }
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 122, 1),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 122, 1)],
+    );
   }
 
   test_fromFunction_secondArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef T = Int8 Function(Int8);
 int f(int i) => i * 2;
 void g() {
   Pointer.fromFunction<T>(f, '');
 }
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 115, 2),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 115, 2)],
+    );
   }
 
   test_fromFunction_valid_oneArgument() async {
@@ -75,7 +77,8 @@ void g() {
   }
 
   test_lookupFunction_F() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef T = Int8 Function(Int8);
 class C<F extends int Function(int)> {
@@ -83,8 +86,8 @@ class C<F extends int Function(int)> {
     lib.lookupFunction<T, F>('g');
   }
 }
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1)],
+    );
   }
 }

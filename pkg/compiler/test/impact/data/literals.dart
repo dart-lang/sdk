@@ -130,8 +130,9 @@ const complexSymbolField3 = const {
   override: const GenericClass<int, String>.generative(),
 };
 
-const complexSymbolField =
-    complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
+const complexSymbolField = complexSymbolField1
+    ? complexSymbolField2
+    : complexSymbolField3;
 
 /*member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField as String);

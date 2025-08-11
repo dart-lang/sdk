@@ -4,15 +4,18 @@
 
 library class_tree_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -68,29 +71,29 @@ class ClassTreeElement extends CustomElement implements Renderable {
   VirtualTreeElement? _tree;
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('class hierarchy'),
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered']
-        ..children = <Element>[
-          new HeadingElement.h1()
-            ..text = 'Class Hierarchy (${_subclasses.length})',
-          new BRElement(),
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h1()
+            ..textContent = 'Class Hierarchy (${_subclasses.length})',
+          new HTMLBRElement(),
+          new HTMLHRElement(),
           _object == null
-              ? (new HeadingElement.h2()..text = 'Loading...')
+              ? (new HTMLHeadingElement.h2()..textContent = 'Loading...')
               : _createTree()
-        ]
+        ])
     ];
   }
 
-  Element _createTree() {
+  HTMLElement _createTree() {
     _tree = new VirtualTreeElement(_create, _update, _children,
         items: [_object], search: _search, queue: _r.queue);
     _tree!.expand(_object, autoExpandSingleChildNodes: true);
@@ -129,31 +132,34 @@ class ClassTreeElement extends CustomElement implements Renderable {
       });
   }
 
-  static HtmlElement _create(toggle) {
-    return new DivElement()
-      ..classes = ['class-tree-item']
-      ..children = <Element>[
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
+  static HTMLElement _create(toggle) {
+    return new HTMLDivElement()
+      ..className = 'class-tree-item'
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..className = 'lines',
+        new HTMLButtonElement()
+          ..className = 'expander'
           ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()..classes = ['name']
-      ];
+        new HTMLSpanElement()..className = 'name'
+      ]);
   }
 
-  void _update(HtmlElement el, classDynamic, int index) {
+  void _update(HTMLElement el, classDynamic, int index) {
     M.Class cls = classDynamic;
-    virtualTreeUpdateLines(el.children[0] as SpanElement, index);
+    virtualTreeUpdateLines(el.childNodes.item(0) as HTMLSpanElement, index);
     if (cls.subclasses!.isEmpty) {
-      el.children[1].text = '';
+      (el.children.item(1) as HTMLElement).textContent = '';
     } else {
-      el.children[1].text = _tree!.isExpanded(cls) ? '▼' : '►';
+      (el.children.item(1) as HTMLElement).textContent =
+          _tree!.isExpanded(cls) ? '▼' : '►';
     }
-    el.children[2].children = <Element>[
-      new ClassRefElement(_isolate, cls, queue: _r.queue).element
-    ];
+    (el.children.item(2) as HTMLElement)
+      ..removeChildren()
+      ..appendChild(
+          new ClassRefElement(_isolate, cls, queue: _r.queue).element);
     if (_mixins[cls.id] != null) {
-      el.children[2].children.addAll(_createMixins(_mixins[cls.id]!));
+      (el.children.item(2) as HTMLElement)
+          .appendChildren(_createMixins(_mixins[cls.id]!));
     }
   }
 
@@ -162,18 +168,19 @@ class ClassTreeElement extends CustomElement implements Renderable {
     return cls.name!.contains(pattern);
   }
 
-  List<Element> _createMixins(List<M.Instance> types) {
+  List<HTMLElement> _createMixins(List<M.Instance> types) {
     final children = types
-        .expand((type) => <Element>[
-              new SpanElement()..text = ', ',
+        .expand((type) => <HTMLElement>[
+              new HTMLSpanElement()..textContent = ', ',
               type.typeClass == null
-                  ? (new SpanElement()..text = type.name!.split('<').first)
+                  ? (new HTMLSpanElement()
+                    ..textContent = type.name!.split('<').first)
                   : new ClassRefElement(_isolate, type.typeClass!,
                           queue: _r.queue)
                       .element
             ])
         .toList();
-    children.first.text = ' with ';
+    children.first.textContent = ' with ';
     return children;
   }
 

@@ -4,8 +4,8 @@
 
 import 'package:compiler/src/util/testing.dart';
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
-/*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
+/*prod.class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],needsArgs,test*/
 
 @pragma('dart2js:noInline')
 /*member: method:implicit=[method.T],needsArgs,test*/

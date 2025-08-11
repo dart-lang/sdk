@@ -25,13 +25,14 @@ E e() {
   }
 
   test_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { ONE }
 E e() {
   return E.TWO;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT, 34, 3)],
+    );
   }
 }

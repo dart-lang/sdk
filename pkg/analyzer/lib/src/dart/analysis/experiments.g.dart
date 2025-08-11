@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.8.0';
+const _currentVersion = '3.9.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -326,7 +326,7 @@ class ExperimentalFeatures {
     documentation:
         'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -428,8 +428,8 @@ class ExperimentalFeatures {
     isExpired: IsExpired.native_assets,
     documentation: 'Compile and bundle native assets.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
-    channels: ["main", "dev"],
+    releaseVersion: Version.parse('3.9.0'),
+    channels: ["main", "dev", "beta"],
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -528,7 +528,7 @@ class ExperimentalFeatures {
     documentation:
         'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -663,7 +663,7 @@ class IsEnabledByDefault {
   static const bool generic_metadata = true;
 
   /// Default state of the experiment "getter-setter-error"
-  static const bool getter_setter_error = false;
+  static const bool getter_setter_error = true;
 
   /// Default state of the experiment "inference-update-1"
   static const bool inference_update_1 = true;
@@ -690,7 +690,7 @@ class IsEnabledByDefault {
   static const bool named_arguments_anywhere = true;
 
   /// Default state of the experiment "native-assets"
-  static const bool native_assets = false;
+  static const bool native_assets = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -717,7 +717,7 @@ class IsEnabledByDefault {
   static const bool set_literals = true;
 
   /// Default state of the experiment "sound-flow-analysis"
-  static const bool sound_flow_analysis = false;
+  static const bool sound_flow_analysis = true;
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;

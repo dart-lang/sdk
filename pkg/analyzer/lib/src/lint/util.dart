@@ -9,71 +9,20 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:path/path.dart' as path;
 
-final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
+final class Spelunker {
+  final StringSink _sink;
+  final FeatureSet _featureSet;
+  final String _source;
 
-/// Create a library name prefix based on [libraryPath], [projectRoot] and
-/// current [packageName].
-String createLibraryNamePrefix(
-    {required String libraryPath, String? projectRoot, String? packageName}) {
-  // Use the posix context to canonicalize separators (`\`).
-  var libraryDirectory = path.posix.dirname(libraryPath);
-  var relativePath = path.posix.relative(libraryDirectory, from: projectRoot);
-  // Drop 'lib/'.
-  var segments = path.split(relativePath);
-  if (segments[0] == 'lib') {
-    relativePath = path.posix.joinAll(segments.sublist(1));
-  }
-  // Replace separators.
-  relativePath = relativePath.replaceAll('/', '.');
-  // Add separator if needed.
-  if (relativePath.isNotEmpty) {
-    relativePath = '.$relativePath';
-  }
-
-  return '$packageName$relativePath';
-}
-
-/// Returns `true` if this [fileName] is a Dart file.
-bool isDartFileName(String fileName) => fileName.endsWith('.dart');
-
-/// Returns `true` if this [fileName] is a Pubspec file.
-bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
-
-class FileSpelunker extends _AbstractSpelunker {
-  final String path;
-  FileSpelunker(this.path, {super.sink, super.featureSet});
-  @override
-  String getSource() => File(path).readAsStringSync();
-}
-
-class StringSpelunker extends _AbstractSpelunker {
-  final String source;
-  StringSpelunker(this.source, {super.sink, super.featureSet});
-  @override
-  String getSource() => source;
-}
-
-abstract class _AbstractSpelunker {
-  final StringSink sink;
-  FeatureSet featureSet;
-
-  _AbstractSpelunker({StringSink? sink, FeatureSet? featureSet})
-      : sink = sink ?? stdout,
-        featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
-
-  String getSource();
+  Spelunker(this._source, {StringSink? sink, FeatureSet? featureSet})
+    : _sink = sink ?? stdout,
+      _featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
   void spelunk() {
-    var contents = getSource();
+    var parseResult = parseString(content: _source, featureSet: _featureSet);
 
-    var parseResult = parseString(
-      content: contents,
-      featureSet: featureSet,
-    );
-
-    var visitor = _SourceVisitor(sink);
+    var visitor = _SourceVisitor(_sink);
     parseResult.unit.accept(visitor);
   }
 }
@@ -85,8 +34,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
 
   _SourceVisitor(this.sink);
 
-  String asString(AstNode node) =>
-      '${typeInfo(node.runtimeType)} [${node.toString()}]';
+  String asString(AstNode node) => '${typeInfo(node.runtimeType)} [$node]';
 
   List<CommentToken> getPrecedingComments(Token token) {
     var comments = <CommentToken>[];
@@ -128,6 +76,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
     }
 
     sink.writeln(
-        '${"  " * indent}${asString(node)} ${getTrailingComment(node)}');
+      '${"  " * indent}${asString(node)} ${getTrailingComment(node)}',
+    );
   }
 }

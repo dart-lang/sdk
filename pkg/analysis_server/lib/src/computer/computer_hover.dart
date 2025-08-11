@@ -7,10 +7,9 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:path/path.dart' as path;
 
@@ -35,7 +34,7 @@ class DartUnitHoverComputer {
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
-    var node = NodeLocator(_offset).searchWithin(_unit);
+    var node = _unit.nodeCovering(offset: _offset);
     if (node == null) {
       return null;
     }
@@ -57,22 +56,22 @@ class DartUnitHoverComputer {
         node is VariablePattern ||
         node is PatternFieldName ||
         node is DartPattern ||
-        (node is LibraryDirective && node.name2 == null) ||
+        (node is LibraryDirective && node.name == null) ||
         (node is SimpleIdentifier && node.parent is ImportDirective) ||
         node is ImportPrefixReference) {
       var range = _hoverRange(node, locationEntity);
       var hover = HoverInformation(range.offset, range.length);
       // element
-      var element = ElementLocator.locate2(node);
+      var element = ElementLocator.locate(node);
       if (element != null) {
         // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
         if (element case Annotatable a) {
-          hover.isDeprecated = a.metadata2.hasDeprecated;
+          hover.isDeprecated = a.metadata.hasDeprecated;
         }
         // not local element
-        if (element.enclosingElement2 is! ExecutableElement2) {
+        if (element.enclosingElement is! ExecutableElement) {
           // containing class
           hover.containingClassDescription = _containingClass(element);
           // containing library
@@ -98,8 +97,8 @@ class DartUnitHoverComputer {
   }
 
   /// Gets the name of the containing class of [element].
-  String? _containingClass(Element2 element) {
-    var containingClass = element.thisOrAncestorOfType2<InterfaceElement2>();
+  String? _containingClass(Element element) {
+    var containingClass = element.thisOrAncestorOfType<InterfaceElement>();
     return containingClass != null && containingClass != element
         ? containingClass.displayName
         : null;
@@ -110,14 +109,17 @@ class DartUnitHoverComputer {
   /// This is usually `element.getDisplayString()` but may contain additional
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
-  String? _elementDisplayString(AstNode node, Element2? element) {
-    var displayString = element?.displayString2(multiline: true);
+  String? _elementDisplayString(AstNode node, Element? element) {
+    var displayString = element?.displayString(multiline: true);
 
-    if (displayString != null &&
-        node is InstanceCreationExpression &&
-        node.keyword == null) {
-      var prefix = node.isConst ? '(const) ' : '(new) ';
-      displayString = prefix + displayString;
+    if (displayString != null) {
+      if (node is InstanceCreationExpression && node.keyword == null) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      } else if (node is DotShorthandConstructorInvocation) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      }
     }
 
     return displayString;
@@ -135,6 +137,8 @@ class DartUnitHoverComputer {
         offset: node.constructorName.offset,
         length: node.constructorName.length,
       );
+    } else if (node is DotShorthandConstructorInvocation) {
+      return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
       var offset = node.returnType.offset;
       var end = node.name?.end ?? node.returnType.end;
@@ -146,8 +150,8 @@ class DartUnitHoverComputer {
   }
 
   /// Returns information about the library that contains [element].
-  _LibraryInfo _libraryInfo(Element2 element) {
-    var library = element.library2;
+  _LibraryInfo _libraryInfo(Element element) {
+    var library = element.library;
     if (library == null) {
       return null;
     }
@@ -191,7 +195,7 @@ class DartUnitHoverComputer {
       ExtensionDeclaration() => node.name,
       FormalParameter() => node.name,
       MethodDeclaration() => node.name,
-      NamedType() => node.name2,
+      NamedType() => node.name,
       ConstructorDeclaration() => node.name ?? node.returnType,
       DeclaredIdentifier() => node.name,
       VariableDeclaration() => node.name,
@@ -212,13 +216,13 @@ class DartUnitHoverComputer {
       return null;
     }
     var parameter = node.correspondingParameter;
-    return switch (parameter?.enclosingElement2) {
+    return switch (parameter?.enclosingElement) {
       // Expressions passed as arguments to setters and binary expressions
       // will have parameters here but we don't want them to show as such in
       // hovers because information about those functions are already available
       // by hovering over the function name or the operator.
       SetterElement() => null,
-      MethodElement2 method when method.isOperator => null,
+      MethodElement method when method.isOperator => null,
       _ => _elementDisplayString(node, parameter),
     };
   }
@@ -238,23 +242,31 @@ class DartUnitHoverComputer {
         parent is ConstructorDeclaration &&
         parent.name != null) {
       return parent;
+    } else if (node is SimpleIdentifier &&
+        parent is DotShorthandConstructorInvocation) {
+      return parent;
     }
     return node;
   }
 
   /// Returns information about the static type of [node].
-  String? _typeDisplayString(AstNode node, Element2? element) {
+  String? _typeDisplayString(AstNode node, Element? element) {
     var parent = node.parent;
     DartType? staticType;
     if (node is Expression &&
         (element == null ||
-            element is VariableElement2 ||
+            element is VariableElement ||
             element is GetterElement ||
             element is SetterElement)) {
       staticType = _getTypeOfDeclarationOrReference(node);
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       staticType = element.type;
     } else if (parent is MethodInvocation && parent.methodName == node) {
+      staticType = parent.staticInvokeType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (parent is DotShorthandInvocation && parent.memberName == node) {
       staticType = parent.staticInvokeType;
       if (staticType != null && staticType is DynamicType) {
         staticType = null;
@@ -270,7 +282,7 @@ class DartUnitHoverComputer {
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.element;
-      if (element is VariableElement2) {
+      if (element is VariableElement) {
         if (node.inDeclarationContext()) {
           return element.type;
         }

@@ -1,7 +1,5 @@
 // @dart = 2.19
 
-var result;
-
 int topLevelMethod() => 1;
 
 int topLevelMethod() => 2;
@@ -66,9 +64,3 @@ var field = topLevelMethod;
 
 @topLevelMethod
 test() {}
-
-main() {}
-
-expect(expected, actual) {}
-
-throws(dynamic Function() f) {}

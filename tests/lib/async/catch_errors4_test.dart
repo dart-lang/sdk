@@ -18,12 +18,15 @@ main() {
   catchErrors(() {
     events.add("catch error entry");
     throw "catch error";
-  }).listen((x) {
-    events.add(x);
-    done.complete(true);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add(x);
+      done.complete(true);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     Expect.listEquals([

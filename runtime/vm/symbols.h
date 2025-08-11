@@ -82,6 +82,8 @@ class ObjectPointerVisitor;
   V(DotFieldADI, ".fieldADI")                                                  \
   V(DotFieldAI, ".fieldAI")                                                    \
   V(DotFieldNI, ".fieldNI")                                                    \
+  V(DotStaticFieldAccessedWithoutIsolate,                                      \
+    ".staticFieldAccessedWithoutIsolate")                                      \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -100,7 +102,6 @@ class ObjectPointerVisitor;
   V(EqualOperator, "==")                                                       \
   V(Error, "Error")                                                            \
   V(EvalSourceUri, "evaluate:source")                                          \
-  V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
@@ -122,6 +123,7 @@ class ObjectPointerVisitor;
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
+  V(FfiIsolateGroupSharedCallback, "_FfiIsolateGroupSharedCallback")           \
   V(FfiNative, "Native")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
@@ -137,6 +139,7 @@ class ObjectPointerVisitor;
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
   V(Field, "Field")                                                            \
+  V(FieldAccessError, "FieldAccessError")                                      \
   V(Finalizable, "Finalizable")                                                \
   V(FinalizerBase, "FinalizerBase")                                            \
   V(FinalizerEntry, "FinalizerEntry")                                          \
@@ -619,6 +622,10 @@ class Symbols : public AllStatic {
     ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
     return *(symbol_handles_[index]);
   }
+  static void InitSymbol(intptr_t index, String* symbol) {
+    ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
+    symbol_handles_[index] = symbol;
+  }
 
   // Access methods for one byte character symbols stored in the vm isolate.
   static const String& Dot() { return *(symbol_handles_[kNullCharId + '.']); }
@@ -774,9 +781,6 @@ class Symbols : public AllStatic {
   static StringPtr FromGet(Thread* thread, const String& str);
   static StringPtr FromSet(Thread* thread, const String& str);
   static StringPtr FromDot(Thread* thread, const String& str);
-
-  // Returns char* of predefined symbol.
-  static const char* Name(SymbolId symbol);
 
   static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 

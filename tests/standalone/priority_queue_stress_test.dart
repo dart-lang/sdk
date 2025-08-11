@@ -284,14 +284,16 @@ void stress(queue) {
     new StringTypedElement('ff', 'foobar'),
     new StringTypedElement('dartium', 'barfoo'),
     new StringTypedElement('chrome', 'hest'),
-    new StringTypedElement('drt', 'fisk')
+    new StringTypedElement('drt', 'fisk'),
   ];
 
   var restricted = [values[0], values[4]];
 
   void addRandom() {
-    queue.add(values[random.nextInt(values.length)],
-        new IntPriority(priorities[random.nextInt(priorities.length)]));
+    queue.add(
+      values[random.nextInt(values.length)],
+      new IntPriority(priorities[random.nextInt(priorities.length)]),
+    );
   }
 
   var stopwatch = new Stopwatch()..start();

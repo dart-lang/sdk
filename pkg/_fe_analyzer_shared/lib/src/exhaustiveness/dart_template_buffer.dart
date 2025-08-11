@@ -13,8 +13,11 @@
 ///
 /// Clients who do not need the additional semantic information may obtain the
 /// final string immediately using [SimpleDartBuffer].
-abstract class DartTemplateBuffer<ConstantValue extends Object,
-    EnumValue extends Object, Type extends Object> {
+abstract class DartTemplateBuffer<
+  ConstantValue extends Object,
+  EnumValue extends Object,
+  Type extends Object
+> {
   /// Adds a text string to the buffer.
   void write(String text);
 

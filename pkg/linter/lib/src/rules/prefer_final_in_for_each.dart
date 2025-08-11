@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -11,24 +13,21 @@ import '../extensions.dart';
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
 
-class PreferFinalInForEach extends LintRule {
+class PreferFinalInForEach extends MultiAnalysisRule {
   PreferFinalInForEach()
     : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
   @override
-  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
-
-  @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_final_in_for_each_pattern,
     LinterLintCode.prefer_final_in_for_each_variable,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
+
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForEachPartsWithDeclaration(this, visitor);
     registry.addForEachPartsWithPattern(this, visitor);
@@ -36,7 +35,7 @@ class PreferFinalInForEach extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -46,14 +45,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopVariable.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var loopVariableElement = loopVariable.declaredElement2;
+    var loopVariableElement = loopVariable.declaredElement;
     if (function != null &&
         loopVariableElement != null &&
-        !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
+        !function.isPotentiallyMutatedInScope(loopVariableElement)) {
       var name = loopVariable.name;
-      rule.reportLintForToken(
+      rule.reportAtToken(
         name,
-        errorCode: LinterLintCode.prefer_final_in_for_each_variable,
+        diagnosticCode: LinterLintCode.prefer_final_in_for_each_variable,
         arguments: [name.lexeme],
       );
     }
@@ -69,32 +68,32 @@ class _Visitor extends SimpleAstVisitor<void> {
     var pattern = node.pattern;
     if (pattern is RecordPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is MapPattern) {
       if (!pattern.elements.any(
         (e) => e is! MapPatternEntry || function.potentiallyMutates(e.value),
       )) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
-          errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
+          diagnosticCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     }
@@ -104,9 +103,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on FunctionBody {
   bool potentiallyMutates(Object pattern) {
     if (pattern is! DeclaredVariablePattern) return true;
-    var element = pattern.declaredElement2;
+    var element = pattern.declaredElement;
     if (element == null) return true;
-    return isPotentiallyMutatedInScope2(element.baseElement);
+    return isPotentiallyMutatedInScope(element.baseElement);
   }
 
   bool potentiallyMutatesAnyField(List<PatternField> fields) =>

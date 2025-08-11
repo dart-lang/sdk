@@ -12,16 +12,12 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
-import '../target.dart' as wasm_target;
 import 'interop_transformer.dart';
 import 'method_collector.dart';
 import 'runtime_blob.dart';
 
-JSMethods _performJSInteropTransformations(
-    Component component,
-    CoreTypes coreTypes,
-    ClassHierarchy classHierarchy,
-    Set<Library> interopDependentLibraries) {
+JSMethods _performJSInteropTransformations(CoreTypes coreTypes,
+    ClassHierarchy classHierarchy, Set<Library> interopDependentLibraries) {
   // Transform kernel and generate JS methods.
   final transformer = InteropTransformer(coreTypes, classHierarchy);
   for (final library in interopDependentLibraries) {
@@ -50,18 +46,13 @@ JSMethods _performJSInteropTransformations(
 }
 
 class RuntimeFinalizer {
+  static String escape(String s) => json.encode(s);
+
   final Map<Procedure, ({String importName, String jsCode})> allJSMethods;
 
   RuntimeFinalizer(this.allJSMethods);
 
-  String generate(
-      Iterable<Procedure> translatedProcedures,
-      List<String> constantStrings,
-      bool requireJsBuiltin,
-      bool supportsAdditionalModuleLoading,
-      wasm_target.Mode mode) {
-    String escape(String s) => json.encode(s);
-
+  String generateJsMethods(Iterable<Procedure> translatedProcedures) {
     Set<Procedure> usedProcedures = {};
     final usedJSMethods = <({String importName, String jsCode})>[];
     for (Procedure p in translatedProcedures) {
@@ -91,19 +82,42 @@ class RuntimeFinalizer {
       }
     }
 
+    return jsMethods.toString();
+  }
+
+  String _generateInternalizedStrings(
+      bool requireJsBuiltin, List<String> constantStrings) {
+    final sb = StringBuffer();
+    String indent = '';
+    if (constantStrings.isNotEmpty) {
+      sb.writeln('s: [');
+      indent = '      ';
+      for (final c in constantStrings) {
+        sb.writeln('$indent  ${escape(c)},');
+      }
+      sb.writeln('$indent],');
+    }
+    if (!requireJsBuiltin) {
+      sb.writeln(
+          '${indent}S: new Proxy({}, { get(_, prop) { return prop; } }),');
+    }
+    return '$sb';
+  }
+
+  String generate(
+      Iterable<Procedure> translatedProcedures,
+      List<String> constantStrings,
+      bool requireJsBuiltin,
+      bool supportsAdditionalModuleLoading) {
+    final jsMethods = generateJsMethods(translatedProcedures);
+
     final builtins = [
       'builtins: [\'js-string\']',
       if (requireJsBuiltin) 'importedStringConstants: \'S\'',
     ];
 
-    String internalizedStrings = '';
-    if (constantStrings.isNotEmpty) {
-      internalizedStrings = '''
-      s: [
-        ${constantStrings.map(escape).join(',\n')}
-      ],
-''';
-    }
+    String internalizedStrings =
+        _generateInternalizedStrings(requireJsBuiltin, constantStrings);
 
     final jsStringBuiltinPolyfillImportVars = {
       'JS_POLYFILL_IMPORT':
@@ -125,29 +139,40 @@ class RuntimeFinalizer {
       ...jsStringBuiltinPolyfillImportVars,
       ...moduleLoadingImportVars,
       'BUILTINS_MAP_BODY': builtins.join(', '),
-      'JS_METHODS': jsMethods.toString(),
+      'JS_METHODS': jsMethods,
       'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
       'JS_STRING_POLYFILL_METHODS': requireJsBuiltin ? '' : jsPolyFillMethods,
       'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
     });
   }
+
+  String generateDynamicSubmodule(Iterable<Procedure> translatedProcedures,
+      bool requireJsStringBuiltin, List<String> constantStrings) {
+    final jsMethods = generateJsMethods(translatedProcedures);
+
+    return dynamicSubmoduleJsImportTemplate.instantiate({
+      'JS_METHODS': jsMethods,
+      'IMPORTED_JS_STRINGS_IN_MJS':
+          _generateInternalizedStrings(requireJsStringBuiltin, constantStrings),
+    });
+  }
 }
 
-RuntimeFinalizer createRuntimeFinalizer(
-    Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
+JSMethods performJSInteropTransformations(List<Library> libraries,
+    CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("package:js/js.dart")),
+        libraries, Uri.parse("package:js/js.dart")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("dart:_js_annotations")),
+        libraries, Uri.parse("dart:_js_annotations")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("dart:_js_helper")),
+        libraries, Uri.parse("dart:_js_helper")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
-        component, Uri.parse("dart:js_interop")),
+        libraries, Uri.parse("dart:js_interop")),
   };
-  final jsInteropMethods = _performJSInteropTransformations(
-      component, coreTypes, classHierarchy, transitiveImportingJSInterop);
-  return RuntimeFinalizer(jsInteropMethods);
+
+  return _performJSInteropTransformations(
+      coreTypes, classHierarchy, transitiveImportingJSInterop);
 }
 
 // Removes indentation common among all lines of [block] (except for first one)

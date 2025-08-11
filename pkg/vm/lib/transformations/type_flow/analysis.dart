@@ -892,7 +892,12 @@ final class _DispatchableInvocation extends _Invocation {
         "isDynamicallyOverridden = $isDynamicallyOverridden, isPrivate = ${selector.name.isPrivate}",
       );
     }
-    return !isDynamicallyOverridden || selector.name.isPrivate;
+    // Edge case: when desugaring enums, front-end generates classes which
+    // override private _enumToString method from a different library.
+    // So analysis should treat _enumToString as public for correctness.
+    return !isDynamicallyOverridden ||
+        (selector.name.isPrivate &&
+            selector.name != typeFlowAnalysis.enumToStringName);
   }
 
   void _recordMismatchedDynamicInvocation(
@@ -2028,6 +2033,11 @@ class TypeFlowAnalysis
   final Set<Member> _gettersCalledDynamically = new Set<Member>();
   final Set<Member> _calledViaInterfaceSelector = new Set<Member>();
   final Set<Member> _calledViaThis = new Set<Member>();
+
+  late final Name enumToStringName = Name(
+    "_enumToString",
+    coreTypes.coreLibrary,
+  );
 
   TypeFlowAnalysis(
     this.config,

@@ -45,7 +45,6 @@ testFuncAtoDyn() {
   a = funcAtoDyn(new A());
   b = funcAtoDyn(new B());
 
-
   if (funcAtoDyn is FuncDynToDyn) {
     // Promotion: FuncDynToDyn <: FuncAtoDyn.
     a = funcAtoDyn(new A());
@@ -73,35 +72,31 @@ testFuncDynToDyn() {
     funcDynToDyn(new B());
     funcDynToDyn(new C());
     // Returned value has type `void`, usage is restricted.
-
   }
 
   if (funcDynToDyn is FuncDynToA) {
     // Promotion: FuncDynToA <: FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B()) as B;
-
   }
 }
 
 testFuncDynToVoid() {
   FuncDynToVoid funcDynToVoid = func;
 
-
-
-
   if (funcDynToVoid is FuncDynToDyn) {
     // Promotion: FuncDynToDyn <:> FuncDynToVoid.
-    a = funcDynToVoid(new A());
-    b = funcDynToVoid(new B());
-    c = funcDynToVoid(new C());
+    // With sound-flow-analysis, this no longer promotes (since FuncDynToDyn
+    // and FuncDynToVoid are mutual subtypes).
+    funcDynToVoid(new A());
+    funcDynToVoid(new B());
+    funcDynToVoid(new C());
   }
 
   if (funcDynToVoid is FuncDynToA) {
     // Promotion: FuncDynToA <: FuncDynToVoid.
     a = funcDynToVoid(new A());
     b = funcDynToVoid(new B()) as B;
-
   }
 }
 
@@ -110,18 +105,15 @@ testFuncDynToA() {
   a = funcDynToA(new A());
   b = funcDynToA(new B()) as B;
 
-
   if (funcDynToA is FuncDynToDyn) {
     // No promotion: FuncDynToDyn <\: FuncDynToA.
     a = funcDynToA(new A());
     b = funcDynToA(new B()) as B;
-
   }
 
   if (funcDynToA is FuncDynToVoid) {
     // No promotion: FuncDynToVoid <\: FuncDynToA.
     a = funcDynToA(new A());
     b = funcDynToA(new B()) as B;
-
   }
 }

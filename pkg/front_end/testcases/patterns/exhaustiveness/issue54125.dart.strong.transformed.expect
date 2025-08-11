@@ -59,7 +59,7 @@ static method test2() → void {
         }
       }
       {
-        if(let final core::String #t3 = #0#0 as core::String in true) {
+        if(let final dynamic #t3 = #0#0 as core::String in true) {
           #t2 = new self::MyModelExpectingAString::•("");
           break #L2;
         }

@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: foo:Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/
-foo(/*Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/ x) {
+/*member: foo:Value([exact=JSBool|powerset={I}{O}{N}], value: false, powerset: {I}{O}{N})*/
+foo(
+  /*Value([exact=JSBool|powerset={I}{O}{N}], value: false, powerset: {I}{O}{N})*/ x,
+) {
   return x;
 }
 
-/*member: bar:[null|powerset=1]*/
-bar(/*Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/ x) {
+/*member: bar:[null|powerset={null}]*/
+bar(
+  /*Value([exact=JSBool|powerset={I}{O}{N}], value: false, powerset: {I}{O}{N})*/ x,
+) {
   if (x) {
     print("aaa");
   } else {
@@ -16,7 +20,7 @@ bar(/*Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/ x) {
   }
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   bar(foo(false));
   bar(foo(foo(false)));

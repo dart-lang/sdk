@@ -8,22 +8,31 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/code_tem
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
+import '../../../../../abstract_single_unit.dart';
 import '../fix_processor.dart';
 
 /// A base class defining support for writing fix processor tests for
 /// data-driven fixes.
-abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
-  /// Return the URI used to import the library created by [setPackageContent].
+abstract class DataDrivenBulkFixProcessorTest extends BulkFixProcessorTest
+    with DataDrivenFixProcessorTestMixin {}
+
+/// A base class defining support for writing fix processor tests for
+/// data-driven fixes.
+abstract class DataDrivenFixProcessorTest extends FixProcessorTest
+    with DataDrivenFixProcessorTestMixin {}
+
+mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
+  /// Returns the URI used to import the library created by [setPackageContent].
   String get importUri => 'package:p/lib.dart';
 
-  @override
   FixKind get kind => DartFixKind.DATA_DRIVEN;
 
-  /// Add the file containing the data used by the data-driven fix with the
+  /// Adds the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
     newFile(
@@ -32,7 +41,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
     );
   }
 
-  /// Add the file in the SDK containing the data used by the data-driven fix
+  /// Adds the file in the SDK containing the data used by the data-driven fix
   /// with the given [content].
   void addSdkDataFile(String content) {
     newFile(
@@ -41,7 +50,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
     );
   }
 
-  /// Return a code template that will produce the given [text].
+  /// Returns a code template that will produce the given [text].
   CodeTemplate codeTemplate(String text) {
     return CodeTemplate(CodeTemplateKind.expression, [
       TemplateText(text),
@@ -50,10 +59,10 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
 
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
-  bool ignoreUnusedImport(AnalysisError error) =>
-      error.errorCode != WarningCode.UNUSED_IMPORT;
+  bool ignoreUnusedImport(Diagnostic diagnostic) =>
+      diagnostic.diagnosticCode != WarningCode.UNUSED_IMPORT;
 
-  /// Set the content of the library that defines the element referenced by the
+  /// Sets the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
@@ -64,7 +73,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
     );
   }
 
-  /// Set the data on which this test is based.
+  /// Sets the data on which this test is based.
   void setPackageData(Transform transform) {
     DataDriven.transformSetsForTests = [
       TransformSet()..addTransform(transform),

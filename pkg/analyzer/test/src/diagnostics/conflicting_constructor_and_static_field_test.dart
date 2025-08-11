@@ -26,27 +26,58 @@ class C {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.foo();
   static int foo = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.foo();
   static int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 14,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          14,
+          3,
+        ),
+      ],
+    );
+  }
+
+  test_class_static_getter_setter_pair() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.foo();
+  static int get foo => 0;
+  static set foo(_) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_static_notSameClass() async {
@@ -61,27 +92,39 @@ class B extends A {
   }
 
   test_class_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.foo();
   static void set foo(_) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 14,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_constant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   foo.foo();
   const E.foo();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 32, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+          32,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_instance_field() async {
@@ -95,42 +138,60 @@ enum E {
   }
 
   test_enum_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   static int foo = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 30, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+          30,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   static int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 30,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          30,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   static void set foo(_) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 30,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          30,
+          3,
+        ),
+      ],
+    );
   }
 
   test_extensionType_instance_getter() async {
@@ -142,47 +203,71 @@ extension type A.foo(int it) {
   }
 
   test_extensionType_static_field_primary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.foo(int it) {
   static int foo = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 17, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+          17,
+          3,
+        ),
+      ],
+    );
   }
 
   test_extensionType_static_field_secondary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   A.foo(this.it);
   static int foo = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 31, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+          31,
+          3,
+        ),
+      ],
+    );
   }
 
   test_extensionType_static_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.foo(int it) {
   static int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 17,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          17,
+          3,
+        ),
+      ],
+    );
   }
 
   test_extensionType_static_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.foo(int it) {
   static void set foo(_) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 17,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          17,
+          3,
+        ),
+      ],
+    );
   }
 }

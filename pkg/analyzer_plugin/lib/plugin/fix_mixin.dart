@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -25,13 +25,13 @@ mixin DartFixesMixin implements FixesMixin {
     var offset = parameters.offset;
     var result = await getResolvedUnitResult(path);
     return DartFixesRequestImpl(
-        resourceProvider, offset, _getErrors(offset, result), result);
+        resourceProvider, offset, _getDiagnostics(offset, result), result);
   }
 
-  List<AnalysisError> _getErrors(int offset, ResolvedUnitResult result) {
+  List<Diagnostic> _getDiagnostics(int offset, ResolvedUnitResult result) {
     var lineInfo = result.lineInfo;
     var offsetLine = lineInfo.getLocation(offset).lineNumber;
-    return result.errors.where((AnalysisError error) {
+    return result.diagnostics.where((error) {
       var errorLine = lineInfo.getLocation(error.offset).lineNumber;
       return errorLine == offsetLine;
     }).toList();

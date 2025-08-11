@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -36,7 +37,7 @@ const _pubspecValidators = <PubspecValidator>[
 ///
 /// The [source] argument must be the source of the file being validated.
 /// The [provider] argument must provide access to the file-system.
-List<AnalysisError> validatePubspec({
+List<Diagnostic> validatePubspec({
   // TODO(brianwilkerson): This method needs to take a `YamlDocument` rather
   //  than the contents of the document so that it can validate an empty file.
   required YamlNode contents,
@@ -44,8 +45,8 @@ List<AnalysisError> validatePubspec({
   required ResourceProvider provider,
   AnalysisOptions? analysisOptions,
 }) {
-  var recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(recorder, source);
+  var recorder = RecordingDiagnosticListener();
+  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   var ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
@@ -57,9 +58,9 @@ List<AnalysisError> validatePubspec({
     validator(ctx);
   }
   if (analysisOptions != null && analysisOptions.lint) {
-    var visitors = <LintRule, PubspecVisitor>{};
+    var visitors = <AbstractAnalysisRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
-      var visitor = linter.getPubspecVisitor();
+      var visitor = linter.pubspecVisitor;
       if (visitor != null) {
         visitors[linter] = visitor;
       }
@@ -75,7 +76,9 @@ List<AnalysisError> validatePubspec({
   var lineInfo = LineInfo.fromContent(source.contents.data);
   var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
-  return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
+  return recorder.diagnostics
+      .where((error) => !ignoreInfo.ignored(error))
+      .toList();
 }
 
 /// A function that can validate a `pubspec.yaml`.
@@ -134,7 +137,7 @@ final class PubspecValidationContext {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  final ErrorReporter reporter;
+  final DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
@@ -159,7 +162,7 @@ final class PubspecValidationContext {
   /// Report an error for the given node.
   void reportErrorForNode(
     YamlNode node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
     Object? data,
@@ -168,7 +171,7 @@ final class PubspecValidationContext {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

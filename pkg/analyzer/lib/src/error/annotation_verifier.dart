@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -16,21 +16,23 @@ import 'package:meta/meta_meta.dart';
 
 /// Helper for verifying the validity of annotations.
 class AnnotationVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The current library.
-  final LibraryElement2 _currentLibrary;
+  final LibraryElement _currentLibrary;
 
-  /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  final WorkspacePackage? _workspacePackage;
+  /// The [WorkspacePackageImpl] in which [_currentLibrary] is declared.
+  final WorkspacePackageImpl? _workspacePackage;
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
-  late final bool _inPackagePublicApi = _workspacePackage != null &&
-      _workspacePackage
-          .sourceIsInPublicApi(_currentLibrary.firstFragment.source);
+  late final bool _inPackagePublicApi =
+      _workspacePackage != null &&
+      _workspacePackage.sourceIsInPublicApi(
+        _currentLibrary.firstFragment.source,
+      );
 
   AnnotationVerifier(
-    this._errorReporter,
+    this._diagnosticReporter,
     this._currentLibrary,
     this._workspacePackage,
   );
@@ -41,7 +43,9 @@ class AnnotationVerifier {
       return;
     }
     var parent = node.parent;
-    if (element.isFactory) {
+    if (element.isAwaitNotRequired) {
+      _checkAwaitNotRequired(node);
+    } else if (element.isFactory) {
       _checkFactory(node);
     } else if (element.isInternal) {
       _checkInternal(node);
@@ -67,6 +71,48 @@ class AnnotationVerifier {
     _checkKinds(node, parent, element);
   }
 
+  void _checkAwaitNotRequired(Annotation node) {
+    void checkType(DartType? type, {AstNode? errorNode}) {
+      if (type == null || type.isDartAsyncFuture || type.isDartAsyncFutureOr) {
+        return;
+      }
+
+      var element = type.element;
+      if (element is InterfaceElement &&
+          element.allSupertypes.any((t) => t.isDartAsyncFuture)) {
+        return;
+      }
+
+      _diagnosticReporter.atNode(
+        errorNode ?? node.name,
+        WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION,
+      );
+    }
+
+    var parent = node.parent;
+    if (parent
+        case MethodDeclaration(:var declaredFragment) ||
+            FunctionDeclaration(:var declaredFragment)) {
+      var type = declaredFragment?.element.type;
+      if (type is FunctionType) {
+        checkType(type.returnType);
+      }
+    } else if (parent case FieldDeclaration(:var fields)) {
+      for (var field in fields.variables) {
+        checkType(field.declaredFieldElement.type, errorNode: field);
+      }
+    } else if (parent case TopLevelVariableDeclaration(:var variables)) {
+      for (var variable in variables.variables) {
+        checkType(
+          variable.declaredTopLevelVariableElement.type,
+          errorNode: variable,
+        );
+      }
+    } else {
+      // Warning reported by `_checkKinds`.
+    }
+  }
+
   /// Reports a warning at [node] if its parent is not a valid target for a
   /// `@factory` annotation.
   void _checkFactory(Annotation node) {
@@ -77,7 +123,7 @@ class AnnotationVerifier {
     }
     var returnType = parent.returnType?.type;
     if (returnType is VoidType) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         parent.name,
         WarningCode.INVALID_FACTORY_METHOD_DECL,
         arguments: [parent.name.lexeme],
@@ -107,7 +153,7 @@ class AnnotationVerifier {
       }
     }
 
-    _errorReporter.atToken(
+    _diagnosticReporter.atToken(
       parent.name,
       WarningCode.INVALID_FACTORY_METHOD_IMPL,
       arguments: [parent.name.lexeme],
@@ -125,7 +171,7 @@ class AnnotationVerifier {
       for (var variable in parent.variables.variables) {
         var element = variable.declaredTopLevelVariableElement;
         if (element.isPrivate) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
           );
@@ -135,7 +181,7 @@ class AnnotationVerifier {
       for (var variable in parent.fields.variables) {
         var element = variable.declaredFieldElement;
         if (element.isPrivate) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             variable,
             WarningCode.INVALID_INTERNAL_ANNOTATION,
           );
@@ -143,20 +189,20 @@ class AnnotationVerifier {
       }
     } else if (parent is ConstructorDeclaration) {
       var element = parent.declaredFragment!.element;
-      var class_ = element.enclosingElement2;
+      var class_ = element.enclosingElement;
       if (class_.isPrivate || parentElementIsPrivate) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_INTERNAL_ANNOTATION,
         );
       }
     } else if (parentElementIsPrivate) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_INTERNAL_ANNOTATION,
       );
     } else if (_inPackagePublicApi) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_INTERNAL_ANNOTATION,
       );
@@ -168,19 +214,19 @@ class AnnotationVerifier {
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element2!;
-        var name = invokedElement.name3;
-        if (invokedElement is ConstructorElement2) {
-          var className = invokedElement.enclosingElement2.name3;
+        var name = invokedElement.name;
+        if (invokedElement is ConstructorElement) {
+          var className = invokedElement.enclosingElement.name;
           if (name!.isEmpty) {
             name = className;
           } else {
             name = '$className.$name';
           }
         }
-        var kindNames = kinds.map((kind) => kind.displayString).toList()
-          ..sort();
+        var kindNames =
+            kinds.map((kind) => kind.displayString).toList()..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_ANNOTATION_TARGET,
           arguments: [name!, validKinds],
@@ -195,7 +241,7 @@ class AnnotationVerifier {
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_LITERAL_ANNOTATION,
       );
@@ -208,7 +254,7 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is FieldDeclaration) {
       if (parent.isStatic) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
         );
@@ -218,13 +264,13 @@ class AnnotationVerifier {
           parent.parent is ExtensionTypeDeclaration ||
           parent.isStatic ||
           parent.isAbstract) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
         );
       }
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_NON_VIRTUAL_ANNOTATION,
       );
@@ -237,7 +283,7 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent.parent is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_ANNOTATION_TARGET,
         arguments: [node.name.name, 'instance members of extension types'],
@@ -248,16 +294,16 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if its parent is not a valid target for a
   /// `@reopen` annotation.
   void _checkReopen(Annotation node) {
-    ClassElement2? classElement;
-    InterfaceElement2? superElement;
+    ClassElement? classElement;
+    InterfaceElement? superElement;
 
     var parent = node.parent;
     if (parent is ClassDeclaration) {
       classElement = parent.declaredFragment?.element;
-      superElement = classElement?.supertype?.element3;
+      superElement = classElement?.supertype?.element;
     } else if (parent is ClassTypeAlias) {
       classElement = parent.declaredFragment?.element;
-      superElement = classElement?.supertype?.element3;
+      superElement = classElement?.supertype?.element;
     } else {
       // If `parent` is neither of the above types, then `_checkKinds` will
       // report a warning.
@@ -267,20 +313,20 @@ class AnnotationVerifier {
     if (classElement == null) {
       return;
     }
-    if (superElement is! ClassElement2) {
+    if (superElement is! ClassElement) {
       return;
     }
     if (classElement.isFinal ||
         classElement.isMixinClass ||
         classElement.isSealed) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_REOPEN_ANNOTATION,
       );
       return;
     }
-    if (classElement.library2 != superElement.library2) {
-      _errorReporter.atNode(
+    if (classElement.library != superElement.library) {
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_REOPEN_ANNOTATION,
       );
@@ -288,7 +334,7 @@ class AnnotationVerifier {
     }
     if (classElement.isBase) {
       if (!superElement.isFinal && !superElement.isInterface) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_REOPEN_ANNOTATION,
         );
@@ -299,7 +345,7 @@ class AnnotationVerifier {
         !classElement.isInterface &&
         !classElement.isSealed) {
       if (!superElement.isInterface) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_REOPEN_ANNOTATION,
         );
@@ -312,8 +358,11 @@ class AnnotationVerifier {
   /// unknown parameter as an argument to 'unless'.
   void _checkUseResult(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
-    var undefinedParameter =
-        _findUndefinedUseResultParameter(element, node, parent);
+    var undefinedParameter = _findUndefinedUseResultParameter(
+      element,
+      node,
+      parent,
+    );
     if (undefinedParameter != null) {
       String? name;
       if (parent is FunctionDeclaration) {
@@ -322,10 +371,11 @@ class AnnotationVerifier {
         name = parent.name.lexeme;
       }
       if (name != null) {
-        var parameterName = undefinedParameter is SimpleStringLiteral
-            ? undefinedParameter.value
-            : undefinedParameter.correspondingParameter?.name3;
-        _errorReporter.atNode(
+        var parameterName =
+            undefinedParameter is SimpleStringLiteral
+                ? undefinedParameter.value
+                : undefinedParameter.correspondingParameter?.name;
+        _diagnosticReporter.atNode(
           undefinedParameter,
           WarningCode.UNDEFINED_REFERENCED_PARAMETER,
           arguments: [parameterName ?? undefinedParameter, name],
@@ -343,7 +393,7 @@ class AnnotationVerifier {
       void reportInvalidAnnotation(String name) {
         // This method is only called on named elements, so it is safe to
         // assume that `declaredElement.name` is non-`null`.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_VISIBILITY_ANNOTATION,
           arguments: [name, node.name.name],
@@ -351,7 +401,7 @@ class AnnotationVerifier {
       }
 
       void reportInvalidVisibleForOverriding() {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.name,
           WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
         );
@@ -361,7 +411,7 @@ class AnnotationVerifier {
         for (VariableDeclaration variable in parent.variables.variables) {
           var variableElement = variable.declaredTopLevelVariableElement;
 
-          var variableName = variableElement.name3;
+          var variableName = variableElement.name;
           if (variableName != null && Identifier.isPrivateName(variableName)) {
             reportInvalidAnnotation(variableName);
           }
@@ -378,7 +428,7 @@ class AnnotationVerifier {
             reportInvalidVisibleForOverriding();
           }
 
-          var fieldName = fieldElement.name3;
+          var fieldName = fieldElement.name;
           if (fieldName != null && Identifier.isPrivateName(fieldName)) {
             reportInvalidAnnotation(fieldName);
           }
@@ -386,11 +436,11 @@ class AnnotationVerifier {
       } else if (parent.declaredFragment?.element case var declaredElement?) {
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement2 is ExtensionTypeElement2)) {
+                declaredElement.enclosingElement is ExtensionTypeElement)) {
           reportInvalidVisibleForOverriding();
         }
 
-        var name = declaredElement.name3;
+        var name = declaredElement.name;
         if (name != null && Identifier.isPrivateName(name)) {
           reportInvalidAnnotation(name);
         }
@@ -407,7 +457,7 @@ class AnnotationVerifier {
   /// `@visibleOutsideTemplate` annotation.
   void _checkVisibleOutsideTemplate(Annotation node) {
     void reportError() {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
       );
@@ -428,7 +478,7 @@ class AnnotationVerifier {
         return;
     }
 
-    InterfaceElement2? declaredElement;
+    InterfaceElement? declaredElement;
     switch (containedDeclaration.parent) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;
@@ -446,7 +496,7 @@ class AnnotationVerifier {
       return;
     }
 
-    for (var annotation in declaredElement.metadata2.annotations) {
+    for (var annotation in declaredElement.metadata.annotations) {
       if (annotation.isVisibleForTemplate) {
         return;
       }
@@ -458,17 +508,21 @@ class AnnotationVerifier {
   /// Returns an expression (for error-reporting purposes) associated with a
   /// `@useResult` `unless` argument, if the associated parameter is undefined.
   Expression? _findUndefinedUseResultParameter(
-      ElementAnnotation element, Annotation node, AstNode parent) {
+    ElementAnnotation element,
+    Annotation node,
+    AstNode parent,
+  ) {
     var constructorName = node.name;
     if (constructorName is! PrefixedIdentifier ||
         constructorName.identifier.name != 'unless') {
       return null;
     }
 
-    var unlessParam = element
-        .computeConstantValue()
-        ?.getField('parameterDefined')
-        ?.toStringValue();
+    var unlessParam =
+        element
+            .computeConstantValue()
+            ?.getField('parameterDefined')
+            ?.toStringValue();
     if (unlessParam == null) {
       return null;
     }
@@ -535,9 +589,10 @@ class AnnotationVerifier {
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
-      Directive() => kinds.contains(TargetKind.directive) ||
-          (target.parent as CompilationUnit).directives.first == target &&
-              kinds.contains(TargetKind.library),
+      Directive() =>
+        kinds.contains(TargetKind.directive) ||
+            (target.parent as CompilationUnit).directives.first == target &&
+                kinds.contains(TargetKind.library),
       EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
       EnumDeclaration() =>
         kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
@@ -552,14 +607,15 @@ class AnnotationVerifier {
       MethodDeclaration() => kinds.contains(TargetKind.method),
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
-      FormalParameter() => kinds.contains(TargetKind.parameter) ||
-          (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
-      FunctionTypeAlias() ||
-      GenericTypeAlias() =>
+      FormalParameter() =>
+        kinds.contains(TargetKind.parameter) ||
+            (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
+      FunctionTypeAlias() || GenericTypeAlias() =>
         kinds.contains(TargetKind.typedefType) ||
             kinds.contains(TargetKind.type),
-      TopLevelVariableDeclaration() =>
-        kinds.contains(TargetKind.topLevelVariable),
+      TopLevelVariableDeclaration() => kinds.contains(
+        TargetKind.topLevelVariable,
+      ),
       TypeParameter() => kinds.contains(TargetKind.typeParameter),
       // extension type Foo (int bar) {}
       //                     ^^^^^^^

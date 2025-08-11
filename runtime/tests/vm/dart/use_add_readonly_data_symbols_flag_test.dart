@@ -37,8 +37,10 @@ main(List<String> args) async {
 
   await withTempDir('readonly-symbols-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -71,8 +73,10 @@ main(List<String> args) async {
     if ((Platform.isLinux || Platform.isMacOS) && !isSimulator) {
       final scriptAssembly = path.join(tempDir, 'snapshot.S');
       final scriptAssemblySnapshot = path.join(tempDir, 'assembly.so');
-      final scriptAssemblyDebuggingInfo =
-          path.join(tempDir, 'assembly_debug.so');
+      final scriptAssemblyDebuggingInfo = path.join(
+        tempDir,
+        'assembly_debug.so',
+      );
 
       await run(genSnapshot, <String>[
         '--add-readonly-data-symbols',
@@ -83,8 +87,11 @@ main(List<String> args) async {
         scriptDill,
       ]);
 
-      await assembleSnapshot(scriptAssembly, scriptAssemblySnapshot,
-          debug: true);
+      await assembleSnapshot(
+        scriptAssembly,
+        scriptAssemblySnapshot,
+        debug: true,
+      );
 
       // This one may be null if on MacOS.
       final assembledElf = Elf.fromFile(scriptAssemblySnapshot);
@@ -101,8 +108,11 @@ main(List<String> args) async {
 
 final _uniqueSuffixRegexp = RegExp(r' \(#\d+\)');
 
-void checkVMSymbolsAreValid(Iterable<Symbol> symbols,
-    {required String source, required bool isAssembled}) {
+void checkVMSymbolsAreValid(
+  Iterable<Symbol> symbols, {
+  required String source,
+  required bool isAssembled,
+}) {
   print("Checking VM symbols from $source:");
   for (final symbol in symbols) {
     print(symbol);
@@ -115,10 +125,14 @@ void checkVMSymbolsAreValid(Iterable<Symbol> symbols,
     if (symbol.bind == SymbolBinding.STB_GLOBAL) {
       // All global symbols created by the VM are currently object symbols.
       Expect.equals(SymbolType.STT_OBJECT, symbol.type);
-      Expect.isTrue(symbol.name.startsWith('_kDart'),
-          'Unexpected symbol name ${symbol.name}');
-      Expect.isFalse(_uniqueSuffixRegexp.hasMatch(symbol.name),
-          'Global VM symbols should have no numeric suffix');
+      Expect.isTrue(
+        symbol.name.startsWith('_kDart'),
+        'Unexpected symbol name ${symbol.name}',
+      );
+      Expect.isFalse(
+        _uniqueSuffixRegexp.hasMatch(symbol.name),
+        'Global VM symbols should have no numeric suffix',
+      );
       continue;
     }
     if (symbol.type == SymbolType.STT_FUNC ||
@@ -161,12 +175,18 @@ void checkVMSymbolsAreValid(Iterable<Symbol> symbols,
   }
 }
 
-void checkSymbols(List<Symbol>? snapshotSymbols, List<Symbol> debugInfoSymbols,
-    {required bool isAssembled}) {
+void checkSymbols(
+  List<Symbol>? snapshotSymbols,
+  List<Symbol> debugInfoSymbols, {
+  required bool isAssembled,
+}) {
   // All symbols in the separate debugging info are created by the VM.
   Expect.isNotEmpty(debugInfoSymbols);
-  checkVMSymbolsAreValid(debugInfoSymbols,
-      source: 'debug info', isAssembled: isAssembled);
+  checkVMSymbolsAreValid(
+    debugInfoSymbols,
+    source: 'debug info',
+    isAssembled: isAssembled,
+  );
   if (snapshotSymbols == null) return;
   List<Symbol> checkedSnapshotSymbols = snapshotSymbols;
   if (isAssembled) {
@@ -184,8 +204,11 @@ void checkSymbols(List<Symbol>? snapshotSymbols, List<Symbol> debugInfoSymbols,
       }
     }
   }
-  checkVMSymbolsAreValid(checkedSnapshotSymbols,
-      source: 'snapshot', isAssembled: isAssembled);
+  checkVMSymbolsAreValid(
+    checkedSnapshotSymbols,
+    source: 'snapshot',
+    isAssembled: isAssembled,
+  );
 }
 
 void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
@@ -196,10 +219,16 @@ void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   final debugStaticSymbols = debugInfo.staticSymbols.skip(1).toList();
 
   // First, do our general round of checks against each group of tables.
-  checkSymbols(snapshotDynamicSymbols, debugDynamicSymbols,
-      isAssembled: isAssembled);
-  checkSymbols(snapshotStaticSymbols, debugStaticSymbols,
-      isAssembled: isAssembled);
+  checkSymbols(
+    snapshotDynamicSymbols,
+    debugDynamicSymbols,
+    isAssembled: isAssembled,
+  );
+  checkSymbols(
+    snapshotStaticSymbols,
+    debugStaticSymbols,
+    isAssembled: isAssembled,
+  );
 
   // Now do some additional spot checks to make sure we actually haven't missed
   // generating some expected VM symbols by examining the debug info tables,
@@ -208,16 +237,24 @@ void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   // For the dynamic symbol tables, we expect that all VM symbols are global
   // object symbols.
   for (final symbol in debugDynamicSymbols) {
-    Expect.equals(symbol.bind, SymbolBinding.STB_GLOBAL,
-        'Expected all global symbols in the dynamic table, got $symbol');
-    Expect.equals(symbol.type, SymbolType.STT_OBJECT,
-        'Expected all object symbols in the dynamic table, got $symbol');
+    Expect.equals(
+      symbol.bind,
+      SymbolBinding.STB_GLOBAL,
+      'Expected all global symbols in the dynamic table, got $symbol',
+    );
+    Expect.equals(
+      symbol.type,
+      SymbolType.STT_OBJECT,
+      'Expected all object symbols in the dynamic table, got $symbol',
+    );
   }
 
-  final debugLocalSymbols =
-      debugStaticSymbols.where((s) => s.bind == SymbolBinding.STB_LOCAL);
-  final debugLocalObjectSymbols =
-      debugLocalSymbols.where((s) => s.type == SymbolType.STT_OBJECT);
+  final debugLocalSymbols = debugStaticSymbols.where(
+    (s) => s.bind == SymbolBinding.STB_LOCAL,
+  );
+  final debugLocalObjectSymbols = debugLocalSymbols.where(
+    (s) => s.type == SymbolType.STT_OBJECT,
+  );
   // We should be generating at least _some_ local object symbols, since we're
   // using the --add-readonly-data-symbols flag.
   Expect.isNotEmpty(debugLocalObjectSymbols);
@@ -225,9 +262,14 @@ void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   // We expect exactly two local object symbols with names starting with
   // 'RawBytes'.
   int rawBytesSeen = debugLocalObjectSymbols.fold<int>(
-      0, (i, s) => i + (s.name.startsWith('RawBytes') ? 1 : 0));
-  Expect.equals(2, rawBytesSeen,
-      'saw $rawBytesSeen (!= 2) RawBytes local object symbols');
+    0,
+    (i, s) => i + (s.name.startsWith('RawBytes') ? 1 : 0),
+  );
+  Expect.equals(
+    2,
+    rawBytesSeen,
+    'saw $rawBytesSeen (!= 2) RawBytes local object symbols',
+  );
 
   // All snapshots include at least one (and likely many) duplicate local
   // symbols. For assembly snapshots and their separate debugging information,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -799,6 +800,8 @@ void f() {
   }
 
   Future<void> test_createChange_FunctionElement_imported() async {
+    useLineEndingsForPlatform = false;
+
     await indexUnit('$testPackageLibPath/foo.dart', r'''
 test() {}
 foo() {}

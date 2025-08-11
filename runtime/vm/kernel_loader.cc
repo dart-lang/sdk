@@ -24,9 +24,9 @@
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
-#include "vm/version.h"
 
 namespace dart {
+
 namespace kernel {
 
 #define Z (zone_)
@@ -36,24 +36,6 @@ namespace kernel {
 #define H (translation_helper_)
 
 static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
-
-static bool IsMainOrDevChannel() {
-  return strstr("|main|dev|", Version::Channel()) != nullptr;
-}
-
-static bool is_experimental_shared_data_enabled = false;
-static void EnableExperimentSharedData(bool value) {
-  if (value && !IsMainOrDevChannel()) {
-    FATAL(
-        "Shared memory multithreading in only available for "
-        "experimentation in dev or main");
-  }
-  is_experimental_shared_data_enabled = value;
-}
-
-DEFINE_FLAG_HANDLER(EnableExperimentSharedData,
-                    experimental_shared_data,
-                    "Enable experiment to share data between isolates.");
 
 class SimpleExpressionConverter {
  public:
@@ -525,7 +507,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
         "not allowed");
   }
 
-  LongJumpScope jump;
+  LongJumpScope jump(thread_);
   if (DART_SETJMP(*jump.Set()) == 0) {
     // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
@@ -565,7 +547,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  return Thread::Current()->StealStickyError();
+  return thread_->StealStickyError();
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
@@ -650,14 +632,15 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          bool* is_empty_program,
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures) {
-  LongJumpScope jump;
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
+    Zone* zone = thread->zone();
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.
       const auto& libs = GrowableObjectArray::Handle(
-          isolate_group->object_store()->libraries());
+          zone, isolate_group->object_store()->libraries());
       intptr_t num_libs = libs.Length();
       Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
@@ -697,7 +680,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       intptr_t subprogram_start = subprogram_file_starts.At(i);
       intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
       const auto& component = TypedDataBase::Handle(
-          program->binary().ViewFromTo(subprogram_start, subprogram_end));
+          zone, program->binary().ViewFromTo(subprogram_start, subprogram_end));
       Reader reader(component);
       const char* error = nullptr;
       std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
@@ -790,6 +773,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
 }
 
 LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
+  HANDLESCOPE(thread_);
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -1032,7 +1016,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
     uint32_t pragma_bits = 0;
-    ReadVMAnnotations(annotation_count, &pragma_bits);
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
     field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1204,7 +1188,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
           "import of dart:ffi is not supported in the current Dart runtime");
     }
     if (target_library.url() == Symbols::DartConcurrent().ptr() &&
-        !is_experimental_shared_data_enabled) {
+        !FLAG_experimental_shared_data) {
       FATAL(
           "Encountered dart:concurrent when functionality is disabled. "
           "Pass --experimental-shared-data");
@@ -1358,7 +1342,7 @@ void KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
   uint32_t pragma_bits = 0;
-  ReadVMAnnotations(annotation_count, &pragma_bits);
+  ReadVMAnnotations(library, annotation_count, &pragma_bits);
   if (IsolateUnsendablePragma::decode(pragma_bits)) {
     out_class->set_is_isolate_unsendable_due_to_pragma(true);
   }
@@ -1452,7 +1436,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
       const intptr_t annotation_count = helper_.ReadListLength();
       uint32_t pragma_bits = 0;
-      ReadVMAnnotations(annotation_count, &pragma_bits);
+      ReadVMAnnotations(library, annotation_count, &pragma_bits);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
       field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1582,7 +1566,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
     const intptr_t annotation_count = helper_.ReadListLength();
     uint32_t pragma_bits = 0;
-    ReadVMAnnotations(annotation_count, &pragma_bits);
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1736,7 +1720,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 //   `pragma_bits`: any recognized pragma that was found
 //
-void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
+void KernelLoader::ReadVMAnnotations(const Library& library,
+                                     intptr_t annotation_count,
                                      uint32_t* pragma_bits,
                                      String* native_name) {
   *pragma_bits = 0;
@@ -1783,10 +1768,12 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
-          if (!is_experimental_shared_data_enabled) {
-            FATAL(
-                "Encountered vm:shared when functionality is disabled. "
-                "Pass --experimental-shared-data");
+          if (!FLAG_experimental_shared_data) {
+            if (!library.IsAnyCoreLibrary()) {
+              FATAL(
+                  "Encountered vm:shared when functionality is disabled. "
+                  "Pass --experimental-shared-data");
+            }
           }
           *pragma_bits = SharedPragma::update(true, *pragma_bits);
         }
@@ -1847,7 +1834,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   String& native_name = String::Handle(Z);
   uint32_t pragma_bits = 0;
   const intptr_t annotation_count = helper_.ReadListLength();
-  ReadVMAnnotations(annotation_count, &pragma_bits, &native_name);
+  ReadVMAnnotations(library, annotation_count, &pragma_bits, &native_name);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
@@ -2261,7 +2248,9 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
 
     variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
     const intptr_t annotation_count = helper_.ReadListLength();
-    ReadVMAnnotations(annotation_count, &pragma_bits);
+    const auto& library =
+        Library::Handle(Z, Class::Handle(Z, parent_function.Owner()).library());
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     variable_helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
 
     variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);

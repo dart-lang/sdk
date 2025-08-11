@@ -147,10 +147,9 @@ Future<Measurement> runTest(
     }
     List<SourceMapInfo> infoList = result.userInfoList;
     if (missingOnly) {
-      infoList =
-          infoList
-              .where((info) => result.missingCodePointsMap.containsKey(info))
-              .toList();
+      infoList = infoList
+          .where((info) => result.missingCodePointsMap.containsKey(info))
+          .toList();
     }
     createTraceSourceMapHtml(outputUri, result.processor, infoList);
   }

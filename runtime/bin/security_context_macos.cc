@@ -226,7 +226,7 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
                             &dart_cobject_root_cert, &reply_send_port};
   array.value.as_array.values = values;
 
-  Dart_PostCObject(filter->trust_evaluate_reply_port(), &array);
+  Dart_PostCObject(SSLFilter::TrustEvaluateReplyPort(), &array);
   return ssl_verify_retry;
 }
 
@@ -306,7 +306,7 @@ void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   SSL_set_custom_verify(ssl, SSL_VERIFY_PEER, CertificateVerificationCallback);
 }
 
-TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
+TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() {
   return &TrustEvaluateHandler;
 }
 

@@ -115,7 +115,7 @@ Future<bool> verifyFile(
 
   // Throw if there are syntactic errors.
   var syntacticErrors = parseResult.errors.where((error) {
-    return error.errorCode.type == ErrorType.SYNTACTIC_ERROR;
+    return error.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR;
   }).toList();
   if (syntacticErrors.isNotEmpty) {
     throw Exception(syntacticErrors);
@@ -331,7 +331,8 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
-      var errors = SplayTreeSet<AnalysisError>.from(result.errors, (a, b) {
+      var diagnostics =
+          SplayTreeSet<Diagnostic>.from(result.diagnostics, (a, b) {
         var value = a.offset.compareTo(b.offset);
         if (value == 0) {
           value = a.message.compareTo(b.message);
@@ -341,35 +342,37 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      errors.removeWhere((e) => e.errorCode == WarningCode.UNUSED_IMPORT);
+      diagnostics
+          .removeWhere((e) => e.diagnosticCode == WarningCode.UNUSED_IMPORT);
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
-      errors.removeWhere(
+      diagnostics.removeWhere(
         (e) =>
-            e.errorCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
-            e.errorCode == WarningCode.UNUSED_ELEMENT,
+            e.diagnosticCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
+            e.diagnosticCode == WarningCode.UNUSED_ELEMENT,
       );
 
       // Handle edge case around dart:_http
-      errors.removeWhere((e) {
+      diagnostics.removeWhere((e) {
         if (e.message.contains("'dart:_http'")) {
-          return e.errorCode == HintCode.UNNECESSARY_IMPORT ||
-              e.errorCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
+          return e.diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
+              e.diagnosticCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
         }
         return false;
       });
 
-      if (errors.isNotEmpty) {
-        print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
+      if (diagnostics.isNotEmpty) {
+        print(
+            '$filePath:${sample.lineStartOffset}: ${diagnostics.length} errors');
 
         hadErrors = true;
 
-        for (final error in errors) {
-          final location = result.lineInfo.getLocation(error.offset);
+        for (final diagnostic in diagnostics) {
+          final location = result.lineInfo.getLocation(diagnostic.offset);
           print(
-            '  ${_severity(error.severity)}: ${error.message} '
-            '[$location] (${error.errorCode.name.toLowerCase()})',
+            '  ${_severity(diagnostic.severity)}: ${diagnostic.message} '
+            '[$location] (${diagnostic.diagnosticCode.name.toLowerCase()})',
           );
         }
         print('');

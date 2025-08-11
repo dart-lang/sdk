@@ -53,7 +53,7 @@ extension E1 on A1 {
     // [error column 5, length 14]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //            ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
 
@@ -145,7 +145,7 @@ extension E3 on A3 {
     // [error column 5, length 14]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //               ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
 
@@ -227,7 +227,7 @@ extension E6 on A6 {
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //             ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
 
@@ -243,15 +243,15 @@ class A7 extends A6 {
     extensionSetter = extensionSetter + 1;
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [cfe] The setter 'extensionSetter' isn't defined for the type 'A7'.
     extensionSetter++;
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [cfe] The setter 'extensionSetter' isn't defined for the type 'A7'.
     extensionSetter = 0;
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
+    // [cfe] The setter 'extensionSetter' isn't defined for the type 'A7'.
 
     // The instance getter shadows the other extensions method
     extensionMethod(4);
@@ -308,21 +308,21 @@ class A9 extends A8 {
     extensionGetter = extensionGetter + 1;
     //                ^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    // [cfe] The getter 'extensionGetter' isn't defined for the type 'A9'.
     extensionGetter++;
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    // [cfe] The getter 'extensionGetter' isn't defined for the type 'A9'.
     extensionGetter;
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
+    // [cfe] The getter 'extensionGetter' isn't defined for the type 'A9'.
 
     // The instance setter shadows the other extension's method.
     extensionMethod(4);
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'extensionMethod' isn't defined for the class 'A9'.
+    // [cfe] The method 'extensionMethod' isn't defined for the type 'A9'.
   }
 }
 
@@ -373,7 +373,7 @@ extension E10 on A10 {
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //                 ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
 
@@ -419,7 +419,7 @@ class A11 extends A10 {
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
     //             ^
-    // [cfe] The method 'call' isn't defined for the class 'int'.
+    // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
 

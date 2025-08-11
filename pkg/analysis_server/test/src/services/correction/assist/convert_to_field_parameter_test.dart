@@ -17,17 +17,17 @@ void main() {
 @reflectiveTest
 class ConvertToFieldParameterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
+  AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
   Future<void> test_additionalUse() async {
     await resolveTestCode('''
 class A {
   int aaa2;
   int bbb2;
-  A(int aaa) : aaa2 = aaa, bbb2 = aaa;
+  A(int ^aaa) : aaa2 = aaa, bbb2 = aaa;
 }
 ''');
-    await assertNoAssistAt('aaa)');
+    await assertNoAssist();
   }
 
   Future<void> test_firstInitializer() async {
@@ -35,10 +35,10 @@ class A {
 class A {
   int aaa2;
   int bbb2;
-  A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
+  A(int ^aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
 }
 ''');
-    await assertHasAssistAt('aaa, ', '''
+    await assertHasAssist('''
 class A {
   int aaa2;
   int bbb2;
@@ -51,21 +51,21 @@ class A {
     await resolveTestCode('''
 class A {
   int aaa2;
-  A(int aaa) : aaa2 = aaa * 2;
+  A(int ^aaa) : aaa2 = aaa * 2;
 }
 ''');
-    await assertNoAssistAt('aaa)');
+    await assertNoAssist();
   }
 
   Future<void> test_onParameterName_inInitializer() async {
     await resolveTestCode('''
 class A {
   int test2;
-  A(int test) : test2 = test {
+  A(int test) : test2 = ^test {
   }
 }
 ''');
-    await assertHasAssistAt('test {', '''
+    await assertHasAssist('''
 class A {
   int test2;
   A(this.test2) {
@@ -78,11 +78,11 @@ class A {
     await resolveTestCode('''
 class A {
   int test;
-  A(int test) : test = test {
+  A(int ^test) : test = test {
   }
 }
 ''');
-    await assertHasAssistAt('test)', '''
+    await assertHasAssist('''
 class A {
   int test;
   A(this.test) {
@@ -96,10 +96,10 @@ class A {
 class A {
   int aaa2;
   int bbb2;
-  A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
+  A(int aaa, int ^bbb) : aaa2 = aaa, bbb2 = bbb;
 }
 ''');
-    await assertHasAssistAt('bbb)', '''
+    await assertHasAssist('''
 class A {
   int aaa2;
   int bbb2;

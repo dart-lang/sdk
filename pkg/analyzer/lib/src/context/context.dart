@@ -31,12 +31,6 @@ class AnalysisContextImpl implements AnalysisContext {
     required this.sourceFactory,
   }) : _analysisOptionsMap = analysisOptionsMap;
 
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  @override
-  AnalysisOptionsImpl get analysisOptions {
-    return _analysisOptionsMap.firstOrDefault;
-  }
-
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     _analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(analysisOptions);
@@ -63,17 +57,13 @@ class AnalysisContextImpl implements AnalysisContext {
   AnalysisOptions getAnalysisOptionsForFile(File file) =>
       _analysisOptionsMap.getOptions(file);
 
-  void setTypeProviders({
-    required TypeProviderImpl typeProvider,
-  }) {
+  void setTypeProviders({required TypeProviderImpl typeProvider}) {
     if (_typeProvider != null) {
       throw StateError('TypeProvider can be set only once.');
     }
 
     _typeProvider = typeProvider;
 
-    _typeSystem = TypeSystemImpl(
-      typeProvider: typeProvider,
-    );
+    _typeSystem = TypeSystemImpl(typeProvider: typeProvider);
   }
 }

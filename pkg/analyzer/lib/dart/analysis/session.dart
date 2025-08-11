@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:meta/meta.dart';
@@ -53,13 +52,8 @@ abstract class AnalysisSession {
 
   /// Return information about the results of parsing units of the library file
   /// with the given library [element].
-  @Deprecated('Use getParsedLibraryByElement2() instead')
-  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
-
-  /// Return information about the results of parsing units of the library file
-  /// with the given library [element].
   @experimental
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element);
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element);
 
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
@@ -74,17 +68,18 @@ abstract class AnalysisSession {
   /// resolving all of the files in the library with the library [element].
   ///
   /// Throw [ArgumentError] if the [element] was not produced by this session.
-  @Deprecated('Use getResolvedLibraryByElement2() instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
-      LibraryElement element);
-
-  /// Return a future that will complete with information about the results of
-  /// resolving all of the files in the library with the library [element].
-  ///
-  /// Throw [ArgumentError] if the [element] was not produced by this session.
   @experimental
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-      LibraryElement2 element);
+    LibraryElement element,
+  );
+
+  /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library containing the given absolute,
+  /// normalized [path].
+  ///
+  /// Similar to [getResolvedLibrary] but [path] can also be a part file of a
+  /// library.
+  Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
@@ -100,6 +95,8 @@ abstract class AnalysisSession {
 /// might be inconsistent with any previously returned results.
 class InconsistentAnalysisException extends AnalysisException {
   InconsistentAnalysisException()
-      : super('Requested result might be inconsistent with previously '
-            'returned results');
+    : super(
+        'Requested result might be inconsistent with previously '
+        'returned results',
+      );
 }

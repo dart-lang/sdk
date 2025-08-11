@@ -59,20 +59,25 @@ import '../base/identifiers.dart'
         SimpleIdentifier;
 import '../base/label_scope.dart';
 import '../base/local_scope.dart';
+import '../base/lookup_result.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
 import '../base/scope.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
@@ -95,12 +100,14 @@ import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../source/source_type_parameter_builder.dart';
 import '../source/source_property_builder.dart';
+import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
+import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -272,9 +279,9 @@ class BodyBuilder extends StackListenerImpl
 
   Statement? problemInLoopOrSwitch;
 
-  LocalStack<LabelScope> _labelScopes;
+  final LocalStack<LabelScope> _labelScopes;
 
-  LocalStack<LabelScope?> _switchScopes = new LocalStack([]);
+  final LocalStack<LabelScope?> _switchScopes = new LocalStack([]);
 
   late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
 
@@ -307,7 +314,7 @@ class BodyBuilder extends StackListenerImpl
 
   final List<TypeParameter>? thisTypeParameters;
 
-  LocalStack<LocalScope> _localScopes;
+  final LocalStack<LocalScope> _localScopes;
 
   Set<VariableDeclaration>? declaredInCurrentGuard;
 
@@ -339,10 +346,8 @@ class BodyBuilder extends StackListenerImpl
         _localScopes = new LocalStack([enclosingScope]),
         _labelScopes = new LocalStack([new LabelScopeImpl()]) {
     if (formalParameterScope != null) {
-      for (Builder builder in formalParameterScope!.localVariables) {
-        if (builder is VariableBuilder) {
-          typeInferrer.assignedVariables.declare(builder.variable!);
-        }
+      for (VariableBuilder builder in formalParameterScope!.localVariables) {
+        typeInferrer.assignedVariables.declare(builder.variable!);
       }
     }
     if (thisVariable != null && context.isConstructor) {
@@ -439,10 +444,8 @@ class BodyBuilder extends StackListenerImpl
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${_localScope.kind}'.");
     if (isGuardScope(_localScope) && declaredInCurrentGuard != null) {
-      for (Builder builder in _localScope.localVariables) {
-        if (builder is VariableBuilder) {
-          declaredInCurrentGuard!.remove(builder.variable);
-        }
+      for (VariableBuilder builder in _localScope.localVariables) {
+        declaredInCurrentGuard!.remove(builder.variable);
       }
       if (declaredInCurrentGuard!.isEmpty) {
         declaredInCurrentGuard = null;
@@ -640,7 +643,7 @@ class BodyBuilder extends StackListenerImpl
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblem(node.message, node.fileOffset, noLength);
+      return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -661,8 +664,7 @@ class BodyBuilder extends StackListenerImpl
     }
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
-      Expression expression =
-          buildProblem(node.message, node.fileOffset, noLength);
+      Expression expression = node.toExpression(libraryBuilder);
       return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
@@ -804,8 +806,8 @@ class BodyBuilder extends StackListenerImpl
       (declaredInCurrentGuard ??= {}).add(variable);
     }
     String variableName = variable.name!;
-    List<int>? previousOffsets =
-        scope.declare(variableName, new VariableBuilderImpl(variable, uri));
+    List<int>? previousOffsets = scope.declare(
+        variableName, new VariableBuilderImpl(variableName, variable, uri));
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
@@ -981,16 +983,8 @@ class BodyBuilder extends StackListenerImpl
       Expression? initializer = pop() as Expression?;
       Identifier identifier = pop() as Identifier;
       FieldFragment fieldFragment = offsetMap.lookupField(identifier);
-      if (initializer != null) {
-        if (!fieldFragment.hasBodyBeenBuilt) {
-          initializer = typeInferrer
-              .inferFieldInitializer(this, fieldFragment.fieldType, initializer)
-              .expression;
-          fieldFragment.buildBody(coreTypes, initializer);
-        }
-      } else if (!fieldFragment.hasBodyBeenBuilt) {
-        fieldFragment.buildBody(coreTypes, null);
-      }
+      fieldFragment.declaration
+          .buildFieldInitializer(this, typeInferrer, coreTypes, initializer);
     }
     assert(checkState(
         null, [ValueKinds.TypeOrNull, ValueKinds.AnnotationListOrNull]));
@@ -1207,20 +1201,9 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables.finish();
 
     FunctionNode function = _context.function;
-    if (thisVariable != null) {
-      typeInferrer.flowAnalysis.declare(
-          thisVariable!, new SharedTypeView(thisVariable!.type),
-          initialized: true);
-    }
+    _declareFormals();
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
-        VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true);
-      }
-      for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
         bool inferInitializer;
@@ -1248,6 +1231,9 @@ class BodyBuilder extends StackListenerImpl
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
+            if (initializer is InvalidExpression) {
+              originParameter.isErroneouslyInitialized = true;
+            }
             parameter.initializerWasInferred = true;
           }
           VariableDeclaration? tearOffParameter =
@@ -1257,6 +1243,8 @@ class BodyBuilder extends StackListenerImpl
                 _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
+            tearOffParameter.isErroneouslyInitialized =
+                parameter.variable!.isErroneouslyInitialized;
           }
         }
       }
@@ -1362,8 +1350,7 @@ class BodyBuilder extends StackListenerImpl
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(
-            futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncReturnType;
         }
         break;
@@ -1372,8 +1359,7 @@ class BodyBuilder extends StackListenerImpl
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(
-            streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -1382,8 +1368,8 @@ class BodyBuilder extends StackListenerImpl
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalSyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
-            SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(
+            iterableBottomType, returnType)) {
           problem = cfe.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -1708,10 +1694,11 @@ class BodyBuilder extends StackListenerImpl
     }
     if (doFinishConstructor) {
       List<FormalParameterBuilder>? formals = _context.formals;
+      List<Object>? superParametersAsArguments =
+          formals != null ? createSuperParametersAsArguments(formals) : null;
+      _declareFormals();
       finishConstructor(AsyncMarker.Sync, null,
-          superParametersAsArguments: formals != null
-              ? createSuperParametersAsArguments(formals)
-              : null);
+          superParametersAsArguments: superParametersAsArguments);
     }
     return _initializers;
   }
@@ -1756,6 +1743,26 @@ class BodyBuilder extends StackListenerImpl
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
     return arguments;
+  }
+
+  void _declareFormals() {
+    if (thisVariable != null && _context.isConstructor) {
+      // `thisVariable` usually appears in `_context.formals`, but for a
+      // constructor, it doesn't. So declare it separately.
+      typeInferrer.flowAnalysis.declare(
+          thisVariable!, new SharedTypeView(thisVariable!.type),
+          initialized: true);
+    }
+    List<FormalParameterBuilder>? formals = _context.formals;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder parameter = formals[i];
+        VariableDeclaration variable = parameter.variable!;
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
+      }
+    }
   }
 
   void finishConstructor(AsyncMarker asyncModifier, Statement? body,
@@ -1803,24 +1810,11 @@ class BodyBuilder extends StackListenerImpl
         "to be sorted by occurrence in file.");
 
     FunctionNode function = _context.function;
-    List<FormalParameterBuilder>? formals = _context.formals;
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable!;
-        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-        // around a failure in
-        // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
-        // fix this.
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true, skipDuplicateCheck: true);
-      }
-    }
 
     Set<String>? namedSuperParameterNames;
     List<Expression>? positionalSuperParametersAsArguments;
     List<NamedExpression>? namedSuperParametersAsArguments;
+    List<FormalParameterBuilder>? formals = _context.formals;
     if (superParametersAsArguments != null) {
       for (Object superParameterAsArgument in superParametersAsArguments) {
         if (superParameterAsArgument is Expression) {
@@ -2777,8 +2771,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
@@ -2798,8 +2791,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildBinaryOperation(token, name, right));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
@@ -3194,230 +3186,269 @@ class BodyBuilder extends StackListenerImpl
           this, nameToken, cfe.messageSyntheticToken);
     }
     bool isQualified = prefixToken != null;
-    Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
-    if (declaration != null &&
-        declaration.isDeclarationInstanceMember &&
-        (inFieldInitializer &&
-            (!inLateFieldInitializer ||
-                _context.isExtensionDeclaration ||
-                _context.isExtensionTypeDeclaration)) &&
-        !inInitializerLeftHandSide) {
-      // We cannot access a class instance member in an initializer of a
-      // field.
+    bool mustBeConst =
+        constantContext != ConstantContext.none && !inInitializerLeftHandSide;
+    bool hasThisAccess;
+    if (inInitializerLeftHandSide) {
+      // The left hand side of an initializer, like 'x' in:
       //
-      // For instance
+      //    class C {
+      //      C() : x = 0;
+      //    }
       //
-      //     class M {
-      //       int foo = bar;
-      //       int bar;
-      //     }
-      //
-      // We can if it's late, but not if we're in an extension (type), even if
-      // it's late.
-      return new IncompleteErrorGenerator(this, nameToken,
-          cfe.templateThisAccessInFieldInitializer.withArguments(name));
+      // must always refer to field in the encoding class. By assuming we
+      // have `this` access, the error reported in when creating the
+      // initializer will mention this.
+      // TODO(johnniwinther): Could we just report that error here instead?
+      hasThisAccess = true;
+    } else {
+      // TODO(johnniwinther): This should exclude identifies occurring in
+      //  metadata.
+      hasThisAccess = isDeclarationInstanceContext && !inFormals;
+      if (hasThisAccess) {
+        if (isQualified) {
+          hasThisAccess = false;
+        } else if (inFieldInitializer) {
+          if (!inLateFieldInitializer ||
+              _context.isExtensionDeclaration ||
+              _context.isExtensionTypeDeclaration) {
+            hasThisAccess = false;
+          }
+        }
+      }
     }
-    if (declaration == null ||
-        (!isDeclarationInstanceContext &&
-            declaration.isDeclarationInstanceMember)) {
-      // We either didn't find a declaration or found an instance member from
-      // a non-instance context.
-      Name n = new Name(name, libraryBuilder.nameOrigin);
-      if (!isQualified && isDeclarationInstanceContext) {
-        assert(declaration == null);
-        if (constantContext != ConstantContext.none ||
-            (inFieldInitializer && !inLateFieldInitializer) &&
-                !inInitializerLeftHandSide) {
-          return new UnresolvedNameGenerator(this, nameToken, n,
-              unresolvedReadKind: UnresolvedKind.Unknown);
-        }
-        if (!inFormals && thisVariable != null) {
-          // If we are in an extension instance member we interpret this as an
-          // implicit access on the 'this' parameter.
-          return PropertyAccessGenerator.make(this, nameToken,
-              createVariableGet(thisVariable!, nameOffset), n, false);
-        } else if (_context.isExtensionDeclaration ||
-            _context.isExtensionTypeDeclaration) {
-          // In an extension (type) without a this variable.
-          return new UnresolvedNameGenerator(this, nameToken, n,
-              unresolvedReadKind: UnresolvedKind.Unknown);
-        } else {
-          // This is an implicit access on 'this'.
-          return new ThisPropertyAccessGenerator(this, nameToken, n,
-              thisVariable: thisVariable);
-        }
-      } else {
-        return new UnresolvedNameGenerator(this, nameToken, n,
-            unresolvedReadKind: UnresolvedKind.Unknown);
-      }
-    } else if (declaration.isTypeDeclaration) {
-      if (declaration is AccessErrorBuilder) {
-        AccessErrorBuilder accessError = declaration;
-        declaration = accessError.builder;
-      }
-      return new TypeUseGenerator(
-          this,
-          nameToken,
-          declaration as TypeDeclarationBuilder,
-          prefixToken != null
-              ? new QualifiedTypeName(
-                  prefixToken.lexeme, prefixToken.charOffset, name, nameOffset)
-              : new IdentifierTypeName(name, nameOffset));
-    } else if (declaration.isLocal) {
-      VariableBuilder variableBuilder = declaration as VariableBuilder;
-      if (constantContext != ConstantContext.none &&
-          !variableBuilder.isConst &&
-          !(_context.isConstructor && inFieldInitializer) &&
-          !libraryFeatures.constFunctions.isEnabled) {
-        return new IncompleteErrorGenerator(
-            this, nameToken, cfe.messageNotAConstantExpression);
-      }
-      VariableDeclaration variable = variableBuilder.variable!;
-      if (scope.kind == ScopeKind.forStatement &&
-          variable.isAssignable &&
-          variable.isLate &&
-          variable.isFinal) {
-        return new ForInLateFinalVariableUseGenerator(
-            this, nameToken, variable);
-      } else if (!variableBuilder.isAssignable ||
-          (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
-        return _createReadOnlyVariableAccess(
-            variable,
-            nameToken,
-            nameOffset,
-            name,
-            variableBuilder.isConst
-                ? ReadOnlyAccessKind.ConstVariable
-                : ReadOnlyAccessKind.FinalVariable);
-      } else {
-        return new VariableUseGenerator(this, nameToken, variable);
-      }
-    } else if (declaration.isClassInstanceMember ||
-        declaration.isExtensionTypeInstanceMember) {
-      if (constantContext != ConstantContext.none &&
-          !inInitializerLeftHandSide &&
-          // TODO(ahe): This is a hack because Fasta sets up the scope
-          // "this.field" parameters according to old semantics. Under the new
-          // semantics, such parameters introduces a new parameter with that
-          // name that should be resolved here.
-          (!_context.isConstructor ||
-              declaration.isExtensionTypeInstanceMember)) {
-        if (declaration.isExtensionTypeInstanceMember) {
+
+    LookupResult? lookupResult = scope.lookup(name, nameOffset, uri);
+    if (lookupResult == null) {
+      Name memberName = new Name(name, libraryBuilder.nameOrigin);
+      if (hasThisAccess) {
+        if (mustBeConst) {
           return new IncompleteErrorGenerator(
               this, nameToken, cfe.messageNotAConstantExpression);
         }
-        addProblem(
-            cfe.messageNotAConstantExpression, nameOffset, nameToken.length);
-      }
-      Name n = new Name(name, libraryBuilder.nameOrigin);
-      return new ThisPropertyAccessGenerator(this, nameToken, n,
-          thisVariable: inConstructorInitializer ? null : thisVariable);
-    } else if (declaration.isExtensionInstanceMember) {
-      // TODO(johnniwinther): Better check for constantContext like below/above?
-      // Possibly if the is a non-none constant context it's just a no without
-      // additional checks?
-      if (constantContext != ConstantContext.none && thisVariable == null) {
-        return new IncompleteErrorGenerator(
-            this, nameToken, cfe.messageNotAConstantExpression);
-      } else if (constantContext != ConstantContext.none &&
-          !inInitializerLeftHandSide &&
-          !_context.isConstructor) {
-        return new IncompleteErrorGenerator(
-            this, nameToken, cfe.messageNotAConstantExpression);
-      }
-      ExtensionBuilder extensionBuilder =
-          declaration.parent as ExtensionBuilder;
-      MemberBuilder? setterBuilder =
-          _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      if (declaration.isField && !declaration.isExternal) {
-        declaration = null;
-      }
-      if (setterBuilder != null &&
-          ((setterBuilder.isField && !setterBuilder.isExternal) ||
-              setterBuilder.isStatic)) {
-        setterBuilder = null;
-      }
-      if ((declaration == null && setterBuilder == null) ||
-          thisVariable == null) {
-        return new UnresolvedNameGenerator(
-            this, nameToken, new Name(name, libraryBuilder.nameOrigin),
-            unresolvedReadKind: UnresolvedKind.Unknown);
-      }
-      MemberBuilder? getterBuilder =
-          declaration is MemberBuilder ? declaration : null;
-      return new ExtensionInstanceAccessGenerator.fromBuilder(
-          this,
-          nameToken,
-          extensionBuilder.extension,
-          name,
-          thisVariable!,
-          thisTypeParameters,
-          getterBuilder,
-          setterBuilder);
-    } else if (declaration.isRegularMethod) {
-      assert(declaration.isStatic || declaration.isTopLevel);
-      MemberBuilder memberBuilder = declaration as MemberBuilder;
-      return new StaticAccessGenerator(
-          this,
-          nameToken,
-          name,
-          memberBuilder.readTarget,
-          memberBuilder.invokeTarget,
-          memberBuilder.writeTarget);
-    } else if (declaration is PrefixBuilder) {
-      assert(prefix == null);
-      // Wildcard import prefixes are non-binding and cannot be used.
-      if (libraryFeatures.wildcardVariables.isEnabled &&
-          declaration.isWildcard) {
-        // TODO(kallentu): Provide a helpful error related to wildcard prefixes.
-        return new UnresolvedNameGenerator(this, nameToken,
-            new Name(declaration.name, libraryBuilder.nameOrigin),
-            unresolvedReadKind: UnresolvedKind.Unknown);
-      }
-      return new PrefixUseGenerator(this, nameToken, declaration);
-    } else if (declaration is LoadLibraryBuilder) {
-      return new LoadLibraryGenerator(this, nameToken, declaration);
-    } else if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
-      return declaration;
-    } else {
-      MemberBuilder? setterBuilder =
-          _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      MemberBuilder? getterBuilder =
-          declaration is MemberBuilder ? declaration : null;
-      assert(getterBuilder != null || setterBuilder != null);
-      StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
-          this, name, nameToken, getterBuilder, setterBuilder);
-      if (constantContext != ConstantContext.none) {
-        Member? readTarget = generator.readTarget;
-        if (!(readTarget is Field && readTarget.isConst ||
-            // Static tear-offs are also compile time constants.
-            readTarget is Procedure)) {
-          addProblem(
-              cfe.messageNotAConstantExpression, nameOffset, nameToken.length);
-        }
-      }
-      return generator;
-    }
-  }
-
-  /// Returns the setter builder corresponding to [declaration] using the
-  /// [name] and [charOffset] for the lookup into [scope] if necessary.
-  MemberBuilder? _getCorrespondingSetterBuilder(
-      LookupScope scope, Builder declaration, String name, int charOffset) {
-    Builder? setter;
-    if (declaration.isSetter) {
-      setter = declaration;
-    } else if (declaration.isGetter) {
-      setter = scope.lookupSetable(name, charOffset, uri);
-    } else if (declaration.isField) {
-      MemberBuilder fieldBuilder = declaration as MemberBuilder;
-      if (!fieldBuilder.isAssignable) {
-        setter = scope.lookupSetable(name, charOffset, uri);
+        // This is an implicit access on 'this'.
+        return new ThisPropertyAccessGenerator(this, nameToken, memberName,
+            thisVariable: thisVariable);
       } else {
-        setter = declaration;
+        // [name] is unresolved.
+        return new UnresolvedNameGenerator(this, nameToken, memberName,
+            unresolvedReadKind: UnresolvedKind.Unknown);
       }
     }
-    return setter is MemberBuilder ? setter : null;
+    Builder? getable = lookupResult.getable;
+    Builder? setable = lookupResult.setable;
+    if (getable != null) {
+      if (getable is ProblemBuilder) {
+        return getable;
+      } else if (getable is InvalidTypeDeclarationBuilder) {
+        return new TypeUseGenerator(
+            this,
+            nameToken,
+            getable,
+            prefixToken != null
+                ? new QualifiedTypeName(prefixToken.lexeme,
+                    prefixToken.charOffset, name, nameOffset)
+                : new IdentifierTypeName(name, nameOffset));
+      } else if (getable is VariableBuilder) {
+        if (mustBeConst &&
+            !getable.isConst &&
+            !(_context.isConstructor && inFieldInitializer) &&
+            !libraryFeatures.constFunctions.isEnabled) {
+          return new IncompleteErrorGenerator(
+              this, nameToken, cfe.messageNotAConstantExpression);
+        }
+        VariableDeclaration variable = getable.variable!;
+        // TODO(johnniwinther): The handling of for-in variables should be
+        //  done through the builder.
+        if (scope.kind == ScopeKind.forStatement &&
+            variable.isAssignable &&
+            variable.isLate &&
+            variable.isFinal) {
+          return new ForInLateFinalVariableUseGenerator(
+              this, nameToken, variable);
+        } else if (!getable.isAssignable ||
+            (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
+          return _createReadOnlyVariableAccess(
+              variable,
+              nameToken,
+              nameOffset,
+              name,
+              variable.isConst
+                  ? ReadOnlyAccessKind.ConstVariable
+                  : ReadOnlyAccessKind.FinalVariable);
+        } else {
+          return new VariableUseGenerator(this, nameToken, variable);
+        }
+      } else if (getable.isDeclarationInstanceMember) {
+        if (!inInitializerLeftHandSide && inFieldInitializer) {
+          // We cannot access a class instance member in an initializer of a
+          // field.
+          //
+          // For instance
+          //
+          //     class M {
+          //       int foo = bar; // Implicit this access on `bar`.
+          //       int bar;
+          //       int baz = 4;
+          //       M() : bar = baz; // Implicit this access on `baz`.
+          //     }
+          //
+          // We can if it's late, but not if we're in an extension (type), even
+          // if it's late.
+          if (!inLateFieldInitializer ||
+              _context.isExtensionDeclaration ||
+              _context.isExtensionTypeDeclaration) {
+            return new IncompleteErrorGenerator(this, nameToken,
+                cfe.templateThisAccessInFieldInitializer.withArguments(name));
+          }
+        }
+
+        if (mustBeConst && !libraryFeatures.constFunctions.isEnabled) {
+          return new IncompleteErrorGenerator(
+              this, nameToken, cfe.messageNotAConstantExpression);
+        }
+
+        Name memberName = new Name(name, libraryBuilder.nameOrigin);
+        if (hasThisAccess) {
+          // This is an implicit access on 'this'.
+          if (getable.isExtensionInstanceMember && thisVariable != null) {
+            ExtensionBuilder extensionBuilder =
+                getable.parent as ExtensionBuilder;
+            if (getable is PropertyBuilder && getable.hasConcreteField) {
+              getable = null;
+            }
+            if (setable != null &&
+                ((setable is PropertyBuilder && setable.hasConcreteField) ||
+                    setable.isStatic)) {
+              setable = null;
+            }
+            if (getable == null && setable == null) {
+              return new UnresolvedNameGenerator(this, nameToken, memberName,
+                  unresolvedReadKind: UnresolvedKind.Unknown);
+            }
+            return new ExtensionInstanceAccessGenerator.fromBuilder(
+                this,
+                nameToken,
+                extensionBuilder.extension,
+                name,
+                thisVariable!,
+                thisTypeParameters,
+                getable as MemberBuilder?,
+                setable as MemberBuilder?);
+          }
+          return new ThisPropertyAccessGenerator(this, nameToken, memberName,
+              thisVariable: thisVariable);
+        } else {
+          // [name] is an instance member but this is not an instance context.
+          return new UnresolvedNameGenerator(this, nameToken, memberName,
+              unresolvedReadKind: UnresolvedKind.Unknown);
+        }
+      } else if (getable is TypeDeclarationBuilder) {
+        return new TypeUseGenerator(
+            this,
+            nameToken,
+            getable,
+            prefixToken != null
+                ? new QualifiedTypeName(prefixToken.lexeme,
+                    prefixToken.charOffset, name, nameOffset)
+                : new IdentifierTypeName(name, nameOffset));
+      } else if (getable is MemberBuilder) {
+        if (setable is AmbiguousBuilder) {
+          // TODO(johnniwinther): Handle this. Currently we report unresolved
+          // setter instead of ambiguous setter here.
+          setable = null;
+        }
+        assert(getable.isStatic || getable.isTopLevel,
+            "Unexpected getable: $getable");
+        assert(
+            setable == null ||
+                setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
+            "Unexpected setable: $setable");
+
+        if (mustBeConst &&
+            !(getable is PropertyBuilder && getable.hasConstField) &&
+            !(getable is MethodBuilder && getable.isRegularMethod) &&
+            !libraryFeatures.constFunctions.isEnabled) {
+          return new IncompleteErrorGenerator(
+              this, nameToken, cfe.messageNotAConstantExpression);
+        }
+        return new StaticAccessGenerator.fromBuilder(
+            this, name, nameToken, getable, setable as MemberBuilder?);
+      } else if (getable is PrefixBuilder) {
+        // Wildcard import prefixes are non-binding and cannot be used.
+        if (libraryFeatures.wildcardVariables.isEnabled && getable.isWildcard) {
+          // TODO(kallentu): Provide a helpful error related to wildcard
+          //  prefixes.
+          return new UnresolvedNameGenerator(this, nameToken,
+              new Name(getable.name, libraryBuilder.nameOrigin),
+              unresolvedReadKind: UnresolvedKind.Unknown);
+        }
+        return new PrefixUseGenerator(this, nameToken, getable);
+      } else if (getable is LoadLibraryBuilder) {
+        return new LoadLibraryGenerator(this, nameToken, getable);
+      }
+    } else {
+      if (setable is ProblemBuilder) {
+        return setable;
+      } else if (setable is InvalidTypeDeclarationBuilder) {
+        // Coverage-ignore-block(suite): Not run.
+        return new TypeUseGenerator(
+            this,
+            nameToken,
+            setable,
+            prefixToken != null
+                ? new QualifiedTypeName(prefixToken.lexeme,
+                    prefixToken.charOffset, name, nameOffset)
+                : new IdentifierTypeName(name, nameOffset));
+      } else if (setable!.isDeclarationInstanceMember) {
+        Name memberName = new Name(name, libraryBuilder.nameOrigin);
+        if (hasThisAccess) {
+          if (setable.isExtensionInstanceMember && thisVariable != null) {
+            ExtensionBuilder extensionBuilder =
+                setable.parent as ExtensionBuilder;
+            if (setable is PropertyBuilder && setable.hasConcreteField) {
+              setable = null;
+            }
+            if (setable == null) {
+              // Coverage-ignore-block(suite): Not run.
+              return new UnresolvedNameGenerator(this, nameToken, memberName,
+                  unresolvedReadKind: UnresolvedKind.Unknown);
+            }
+            return new ExtensionInstanceAccessGenerator.fromBuilder(
+                this,
+                nameToken,
+                extensionBuilder.extension,
+                name,
+                thisVariable!,
+                thisTypeParameters,
+                getable as MemberBuilder?,
+                setable as MemberBuilder?);
+          }
+          // This is an implicit access on 'this'.
+          return new ThisPropertyAccessGenerator(this, nameToken, memberName,
+              thisVariable: thisVariable);
+        } else {
+          // [name] is an instance member but this is not an instance context.
+          return new UnresolvedNameGenerator(this, nameToken, memberName,
+              unresolvedReadKind: UnresolvedKind.Unknown);
+        }
+      } else if (setable is MemberBuilder) {
+        assert(
+            setable.isStatic ||
+                // Coverage-ignore(suite): Not run.
+                setable.isTopLevel,
+            "Unexpected setable: $setable");
+        return new StaticAccessGenerator.fromBuilder(
+            this, name, nameToken, null, setable);
+      }
+    }
+
+    // Coverage-ignore(suite): Not run.
+    return new UnresolvedNameGenerator(
+        this, nameToken, new Name(name, libraryBuilder.nameOrigin),
+        unresolvedReadKind: UnresolvedKind.Unknown);
   }
 
   @override
@@ -5059,9 +5090,6 @@ class BodyBuilder extends StackListenerImpl
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
     } else if (name is ProblemBuilder) {
-      // TODO(ahe): Arguments could be passed here.
-      libraryBuilder.addProblem(
-          name.message, name.fileOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
@@ -5481,6 +5509,7 @@ class BodyBuilder extends StackListenerImpl
                 .withArguments(_context.redirectingFactoryTargetName),
             initializer.fileOffset,
             noLength);
+        variable.isErroneouslyInitialized = true;
       } else {
         if (!parameter.initializerWasInferred) {
           variable.initializer = initializer..parent = variable;
@@ -6222,7 +6251,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String?> parameterNames =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!parameterNames.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6232,7 +6262,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (VariableDeclaration parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name!)
@@ -6292,7 +6323,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String> names =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!names.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6302,7 +6334,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (NamedType parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name)
@@ -6566,7 +6599,7 @@ class BodyBuilder extends StackListenerImpl
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
                 target = null;
-              } else if (constructorBuilder.isConstructor) {
+              } else if (constructorBuilder is ConstructorBuilder) {
                 if (typeDeclarationBuilder.isAbstract) {
                   return evaluateArgumentsBefore(
                       arguments,
@@ -6607,9 +6640,9 @@ class BodyBuilder extends StackListenerImpl
                 // Coverage-ignore-block(suite): Not run.
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
-              } else if (constructorBuilder.isConstructor ||
+              } else if (constructorBuilder is ConstructorBuilder ||
                   // Coverage-ignore(suite): Not run.
-                  constructorBuilder.isFactory) {
+                  constructorBuilder is FactoryBuilder) {
                 Member target = constructorBuilder.invokeTarget!;
                 return buildStaticInvocation(target, arguments,
                     constness: constness,
@@ -6802,7 +6835,7 @@ class BodyBuilder extends StackListenerImpl
         } else if (constructorBuilder is AmbiguousMemberBuilder) {
           message = constructorBuilder.message
               .withLocation(uri, charOffset, noLength);
-        } else if (constructorBuilder.isConstructor) {
+        } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
             return evaluateArgumentsBefore(
                 arguments,
@@ -8958,14 +8991,14 @@ class BodyBuilder extends StackListenerImpl
     // Peek to leave type parameters on top of stack.
     List<TypeParameterBuilder> typeParameters =
         peek() as List<TypeParameterBuilder>;
-    libraryBuilder.checkTypeParameterDependencies(typeParameters);
+    checkTypeParameterDependencies(libraryBuilder, typeParameters);
 
-    List<StructuralParameterBuilder> unboundTypeParameters = [];
+    TypeParameterFactory typeParameterFactory = new TypeParameterFactory();
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeParameters,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypeParameters: unboundTypeParameters);
+        typeParameterFactory: typeParameterFactory);
     for (int i = 0; i < typeParameters.length; ++i) {
       typeParameters[i].defaultType = calculatedBounds[i];
       typeParameters[i].finish(
@@ -8973,12 +9006,10 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    for (int i = 0;
-        i < unboundTypeParameters.length;
-        // Coverage-ignore(suite): Not run.
-        ++i) {
+    for (TypeParameterBuilder builder
+        in typeParameterFactory.collectTypeParameters()) {
       // Coverage-ignore-block(suite): Not run.
-      unboundTypeParameters[i].finish(
+      builder.finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
@@ -9112,13 +9143,13 @@ class BodyBuilder extends StackListenerImpl
     if (isWildcardLoweredFormalParameter(name)) {
       name = '_';
     }
-    Builder? builder = _context.lookupLocalMember(name);
+    NamedBuilder? builder = _context.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
       while (builder != null) {
         if (builder.next == null &&
             builder is SourcePropertyBuilder &&
-            builder.isField) {
+            builder.hasField) {
           // Assume the first field has been initialized.
           _context.registerInitializedField(builder);
         }
@@ -9136,7 +9167,7 @@ class BodyBuilder extends StackListenerImpl
             fieldNameOffset)
       ];
     } else if (builder is SourcePropertyBuilder &&
-        builder.isField &&
+        builder.hasField &&
         builder.isDeclarationInstanceMember) {
       if (builder.isExtensionTypeDeclaredInstanceField) {
         // Operating on an invalid field. Don't report anything though
@@ -9154,14 +9185,14 @@ class BodyBuilder extends StackListenerImpl
         ];
       }
       initializedFields![name] = assignmentOffset;
-      if (builder.isAbstract) {
+      if (builder.hasAbstractField) {
         return <Initializer>[
           buildInvalidInitializer(
               buildProblem(cfe.messageAbstractFieldConstructorInitializer,
                   fieldNameOffset, name.length),
               fieldNameOffset)
         ];
-      } else if (builder.isExternal) {
+      } else if (builder.hasExternalField) {
         return <Initializer>[
           buildInvalidInitializer(
               buildProblem(cfe.messageExternalFieldConstructorInitializer,
@@ -9198,8 +9229,7 @@ class BodyBuilder extends StackListenerImpl
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
-          if (!typeEnvironment.isSubtypeOf(
-              formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
+          if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             libraryBuilder.addProblem(
                 cfe.templateInitializingFormalTypeMismatch
                     .withArguments(name, formalType, builder.fieldType),
@@ -9277,6 +9307,9 @@ class BodyBuilder extends StackListenerImpl
                 cfe.messageUnexpectedSuperParametersInGenerativeConstructors,
                 formal.fileOffset,
                 noLength);
+            if (constructorBuilder is SourceConstructorBuilder) {
+              constructorBuilder.markAsErroneous();
+            }
           }
         }
       }
@@ -10008,7 +10041,6 @@ class BodyBuilder extends StackListenerImpl
               .withArguments(ExperimentalFlag.dotShorthands.name),
           token.offset,
           token.length);
-      return;
     }
 
     assert(checkState(token, [
@@ -10030,30 +10062,23 @@ class BodyBuilder extends StackListenerImpl
               .withArguments(ExperimentalFlag.dotShorthands.name),
           token.offset,
           token.length);
-
-      // Recovery, avoid crashing with an extra selector.
-      pop();
-      push(new ParserErrorGenerator(this, token, cfe.messageSyntheticToken));
-      return;
     }
 
     assert(checkState(token, [ValueKinds.Selector]));
     Selector selector = pop() as Selector;
-    if (libraryFeatures.dotShorthands.isEnabled) {
-      if (selector is InvocationSelector) {
-        // e.g. `.parse(2)`
-        push(forest.createDotShorthandInvocation(
-            offsetForToken(token), selector.name, selector.arguments,
-            nameOffset: offsetForToken(token.next),
-            isConst: constantContext == ConstantContext.inferred));
-      } else if (selector is PropertySelector) {
-        // e.g. `.zero`
-        push(forest.createDotShorthandPropertyGet(
-          offsetForToken(token),
-          selector.name,
+    if (selector is InvocationSelector) {
+      // e.g. `.parse(2)`
+      push(forest.createDotShorthandInvocation(
+          offsetForToken(token), selector.name, selector.arguments,
           nameOffset: offsetForToken(token.next),
-        ));
-      }
+          isConst: constantContext == ConstantContext.inferred));
+    } else if (selector is PropertySelector) {
+      // e.g. `.zero`
+      push(forest.createDotShorthandPropertyGet(
+        offsetForToken(token),
+        selector.name,
+        nameOffset: offsetForToken(token.next),
+      ));
     }
   }
 
@@ -10331,7 +10356,7 @@ class FormalParameters {
       {bool wildcardVariablesEnabled = false}) {
     if (parameters == null) return parent;
     assert(parameters!.isNotEmpty);
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
 
     for (FormalParameterBuilder parameter in parameters!) {
       // Avoid having wildcard parameters in scope.
@@ -10569,5 +10594,15 @@ extension on MemberKind {
       case MemberKind.PrimaryConstructor:
         return false;
     }
+  }
+}
+
+extension on ProblemBuilder {
+  Expression toExpression(SourceLibraryBuilder libraryBuilder) {
+    String text = libraryBuilder.loader.target.context
+        .format(
+            message.withLocation(fileUri, fileOffset, noLength), Severity.error)
+        .plain;
+    return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 }

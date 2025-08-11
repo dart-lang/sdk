@@ -28,9 +28,9 @@ void main() {
       // reference to it.
       'ConstructedConstant(C(p=IntConstant(2)))': {'lib12'},
       'DeferredGlobalConstant(ConstructedConstant(C(p=IntConstant(2))))':
-      // With CFE constants, the references are inlined, so the constant
-      // occurs in lib12.
-      {'lib12'},
+          // With CFE constants, the references are inlined, so the constant
+          // occurs in lib12.
+          {'lib12'},
       // Test that the non-deferred constant is inlined.
       'ConstructedConstant(C(p=IntConstant(5)))': {'main'},
     };

@@ -7,7 +7,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
       ;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
-    final field wid::_Location? _location;
+    final field wid::_Location? wid::_location;
     const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
       : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;
@@ -30,7 +30,7 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
-    static method _#new#tearOff({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
+    static synthetic method _#new#tearOff({required dart.core::String file, required dart.core::int line, required dart.core::int column, required dart.core::String name, required dart.core::List<wid::_Location> parameterLocations}) → wid::_Location
       return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
@@ -45,9 +45,9 @@ library from "org-dartlang-test:///foo.dart" as foo {
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
       return #C7;
-    static method _#new#tearOff() → foo::Foo
+    static synthetic method _#new#tearOff() → foo::Foo
       return foo::Foo::•($creationLocationd_0dea112b090073317d4: #C9);
-    static method _#_#tearOff() → foo::Foo
+    static synthetic method _#_#tearOff() → foo::Foo
       return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C12);
   }
   class Bar extends fra::Widget /*hasConstConstructor*/  {
@@ -56,9 +56,9 @@ library from "org-dartlang-test:///foo.dart" as foo {
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar /* redirection-target: foo::Bar::_ */
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-    static method _#new#tearOff() → foo::Bar
+    static synthetic method _#new#tearOff() → foo::Bar
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C16);
-    static method _#_#tearOff() → foo::Bar
+    static synthetic method _#_#tearOff() → foo::Bar
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C18);
   }
   class Baz extends fra::Widget /*hasConstConstructor*/  {
@@ -67,13 +67,13 @@ library from "org-dartlang-test:///foo.dart" as foo {
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       return #C22;
-    static method _#new#tearOff() → foo::Baz
+    static synthetic method _#new#tearOff() → foo::Baz
       return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C23);
     static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz /* redirection-target: foo::Baz::__ */
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
-    static method _#_#tearOff() → foo::Baz
+    static synthetic method _#_#tearOff() → foo::Baz
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C25);
-    static method _#__#tearOff() → foo::Baz
+    static synthetic method _#__#tearOff() → foo::Baz
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C27);
   }
   class Boz extends fra::Widget /*hasConstConstructor*/  {
@@ -88,9 +88,9 @@ library from "org-dartlang-test:///foo.dart" as foo {
         return #C32;
       }
     }
-    static method _#new#tearOff({required dart.core::bool createNew}) → foo::Boz
+    static synthetic method _#new#tearOff({required dart.core::bool createNew}) → foo::Boz
       return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C33);
-    static method _#_#tearOff() → foo::Boz
+    static synthetic method _#_#tearOff() → foo::Boz
       return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C35);
   }
 }

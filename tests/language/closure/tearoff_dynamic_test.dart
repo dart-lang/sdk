@@ -1,7 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 class C {
   dynamic f(int x) => x + 1;
@@ -133,7 +135,9 @@ testNoSuchMethod() {
     } on NoSuchMethodError catch (error) {
       var nsm = '$error';
       Expect.isTrue(nsm.startsWith("NoSuchMethodError: "));
-      Expect.isTrue(nsm.contains("'foo'"));
+      if (!minifiedSymbols) {
+        Expect.isTrue(nsm.contains("'foo'"));
+      }
       expected = (e) => e is NoSuchMethodError && '$e' == nsm;
     }
     dynamic f = d.noSuchMethod;

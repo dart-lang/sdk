@@ -47,7 +47,7 @@ static extension-type-member method ET|constructor#<T extends core::Object? = dy
   lowered final self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */ #this = v;
   return #this;
 }
-static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(v);
 static method test() → void {
   self::C newConstructor = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:23: Error: A dot shorthand constructor invocation can't have type arguments.

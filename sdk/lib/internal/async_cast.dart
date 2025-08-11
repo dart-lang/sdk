@@ -46,10 +46,9 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
   Future cancel() => _source.cancel();
 
   void onData(void Function(T data)? handleData) {
-    _handleData =
-        handleData == null
-            ? null
-            : _zone.registerUnaryCallback<dynamic, T>(handleData);
+    _handleData = handleData == null
+        ? null
+        : _zone.registerUnaryCallback<dynamic, T>(handleData);
   }
 
   void onError(Function? handleError) {

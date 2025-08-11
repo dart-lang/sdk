@@ -13,6 +13,7 @@ import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -29,10 +30,10 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
-  static const List<ErrorCode> codesWithFixes = [
-    AnalysisOptionsHintCode.DEPRECATED_LINT,
+  static const List<DiagnosticCode> codesWithFixes = [
+    AnalysisOptionsWarningCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-    AnalysisOptionsHintCode.DUPLICATE_RULE,
+    AnalysisOptionsWarningCode.DUPLICATE_RULE,
     AnalysisOptionsWarningCode.REMOVED_LINT,
     AnalysisOptionsWarningCode.UNDEFINED_LINT,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
@@ -41,11 +42,11 @@ class AnalysisOptionsFixGenerator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  final AnalysisError error;
+  final Diagnostic diagnostic;
 
-  final int errorOffset;
+  final int diagnosticOffset;
 
-  final int errorLength;
+  final int diagnosticLength;
 
   final String content;
 
@@ -57,39 +58,39 @@ class AnalysisOptionsFixGenerator {
 
   AnalysisOptionsFixGenerator(
     this.resourceProvider,
-    this.error,
+    this.diagnostic,
     this.content,
     this.options,
-  ) : errorOffset = error.offset,
-      errorLength = error.length,
+  ) : diagnosticOffset = diagnostic.offset,
+      diagnosticLength = diagnostic.length,
       lineInfo = LineInfo.fromContent(content);
 
-  /// Return the absolute, normalized path to the file in which the error was
+  /// The absolute, normalized path to the file in which the diagnostic was
   /// reported.
-  String get file => error.source.fullName;
+  String get file => diagnostic.source.fullName;
 
-  /// Return the list of fixes that apply to the error being fixed.
+  /// Returns the list of fixes that apply to the diagnostic being fixed.
   Future<List<Fix>> computeFixes() async {
     var locator = YamlNodeLocator(
-      start: errorOffset,
-      end: errorOffset + errorLength - 1,
+      start: diagnosticOffset,
+      end: diagnosticOffset + diagnosticLength - 1,
     );
     var coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
     }
 
-    var errorCode = error.errorCode;
-    // Check whether [errorCode] is within [codeWithFixes], which is (currently)
-    // the canonical list of analysis option error codes with fixes.
-    // If we move analysis option fixes to the style of correction producers,
-    // and a map from error codes to the correction producers that can fix
-    // violations, we won't need this check.
-    if (!codesWithFixes.contains(errorCode)) {
+    var diagnosticCode = diagnostic.diagnosticCode;
+    // Check whether [diagnosticCode] is within [codeWithFixes], which is
+    // (currently) the canonical list of analysis option diagnostic codes with
+    // fixes. If we move analysis option fixes to the style of correction
+    // producers, and a map from diagnostic codes to the correction producers
+    // that can fix violations, we won't need this check.
+    if (!codesWithFixes.contains(diagnosticCode)) {
       return fixes;
     }
 
-    if (errorCode ==
+    if (diagnosticCode ==
         AnalysisOptionsWarningCode
             .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT) {
       var analyzerMap = options['analyzer'];
@@ -115,12 +116,12 @@ class AnalysisOptionsFixGenerator {
           strongModeMap,
         );
       }
-    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
-        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE ||
-        errorCode == AnalysisOptionsWarningCode.REMOVED_LINT ||
-        errorCode == AnalysisOptionsWarningCode.UNDEFINED_LINT) {
+    } else if (diagnosticCode == AnalysisOptionsWarningCode.DEPRECATED_LINT ||
+        diagnosticCode == AnalysisOptionsWarningCode.DUPLICATE_RULE ||
+        diagnosticCode == AnalysisOptionsWarningCode.REMOVED_LINT ||
+        diagnosticCode == AnalysisOptionsWarningCode.UNDEFINED_LINT) {
       await _addFix_removeLint(coveringNodePath);
-    } else if (errorCode ==
+    } else if (diagnosticCode ==
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {
       await _addFix_removeSetting(coveringNodePath);
     }
@@ -310,7 +311,7 @@ class AnalysisOptionsFixGenerator {
     }
     var keyOffset = keyNode.span.start.offset;
     var keyLength = keyNode.span.end.offset - keyOffset;
-    return keyOffset == errorOffset && keyLength == errorLength;
+    return keyOffset == diagnosticOffset && keyLength == diagnosticLength;
   }
 
   SourceRange _lines(int start, int end) {

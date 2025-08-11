@@ -24,7 +24,8 @@ const b = a == Object();
   }
 
   test_equal_userClass_int_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 class A {
   const A();
@@ -32,9 +33,9 @@ class A {
 
 const a = A();
 const b = a == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6)],
+    );
   }
 
   test_notEqual_double_object_language219() async {
@@ -46,7 +47,8 @@ const b = a != Object();
   }
 
   test_notEqual_userClass_int_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 class A {
   const A();
@@ -54,16 +56,17 @@ class A {
 
 const a = A();
 const b = a != 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6)],
+    );
   }
 
   test_stringInterpolation_list() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = '${const [2]}';
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12)],
+    );
   }
 }

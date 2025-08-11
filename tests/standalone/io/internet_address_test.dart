@@ -21,8 +21,24 @@ void testDefaultAddresses() {
   Expect.equals(InternetAddressType.IPv6, loopback6.type);
   Expect.equals("::1", loopback6.host);
   Expect.equals("::1", loopback6.address);
-  Expect.listEquals(
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], loopback6.rawAddress);
+  Expect.listEquals([
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+  ], loopback6.rawAddress);
 
   var any4 = InternetAddress.anyIPv4;
   Expect.isNotNull(any4);
@@ -125,16 +141,24 @@ void testTryParse() {
 
 void testEquality() {
   Expect.equals(
-      new InternetAddress("127.0.0.1"), new InternetAddress("127.0.0.1"));
+    new InternetAddress("127.0.0.1"),
+    new InternetAddress("127.0.0.1"),
+  );
   Expect.equals(new InternetAddress("127.0.0.1"), InternetAddress.loopbackIPv4);
   Expect.equals(new InternetAddress("::1"), new InternetAddress("::1"));
   Expect.equals(new InternetAddress("::1"), InternetAddress.loopbackIPv6);
-  Expect.equals(new InternetAddress("1:2:3:4:5:6:7:8"),
-      new InternetAddress("1:2:3:4:5:6:7:8"));
   Expect.equals(
-      new InternetAddress("1::2"), new InternetAddress("1:0:0:0:0:0:0:2"));
-  Expect.equals(new InternetAddress("::FFFF:0:0:16.32.48.64"),
-      new InternetAddress("::FFFF:0:0:1020:3040"));
+    new InternetAddress("1:2:3:4:5:6:7:8"),
+    new InternetAddress("1:2:3:4:5:6:7:8"),
+  );
+  Expect.equals(
+    new InternetAddress("1::2"),
+    new InternetAddress("1:0:0:0:0:0:0:2"),
+  );
+  Expect.equals(
+    new InternetAddress("::FFFF:0:0:16.32.48.64"),
+    new InternetAddress("::FFFF:0:0:1020:3040"),
+  );
 
   var set = new Set();
   set.add(new InternetAddress("127.0.0.1"));
@@ -191,8 +215,24 @@ void testRawAddress() {
 }
 
 void testRawAddressIPv6() {
-  Uint8List addr =
-      Uint8List.fromList([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+  Uint8List addr = Uint8List.fromList([
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+  ]);
   var address = InternetAddress.fromRawAddress(addr);
   Expect.equals('::1', address.address);
   Expect.equals(address.address, address.host);
@@ -202,8 +242,10 @@ void testRawAddressIPv6() {
 void testRawPath() {
   var name = 'test_raw_path';
   Uint8List path = Uint8List.fromList(utf8.encode(name));
-  var address =
-      InternetAddress.fromRawAddress(path, type: InternetAddressType.unix);
+  var address = InternetAddress.fromRawAddress(
+    path,
+    type: InternetAddressType.unix,
+  );
   Expect.equals(name, address.address);
   Expect.equals(address.address, address.host);
   Expect.equals(InternetAddressType.unix, address.type);

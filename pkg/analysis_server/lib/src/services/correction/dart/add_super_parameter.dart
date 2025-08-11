@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -44,8 +44,8 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
     var classElement = classDeclaration.declaredFragment!.element;
     var superType = classElement.supertype;
-    var superElement = superType?.element3;
-    var superUnnamedConstructor = superElement?.unnamedConstructor2;
+    var superElement = superType?.element;
+    var superUnnamedConstructor = superElement?.unnamedConstructor;
     if (superUnnamedConstructor == null) return;
 
     var superParameters = superUnnamedConstructor.formalParameters;
@@ -54,7 +54,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
       if (superParameter.isRequired) {
-        var name = superParameter.name3;
+        var name = superParameter.name;
         if (superParameter.isNamed) {
           if (!parameters.any((parameter) => parameter.name?.lexeme == name)) {
             missingNamedParameters.add(superParameter);
@@ -72,11 +72,12 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       if (parameter.isRequiredPositional) {
         if (parameter is! SuperFormalParameter ||
             i >= superPositionalParameters.length ||
-            parameter.name.lexeme != superPositionalParameters[i].name3) {
+            parameter.name.lexeme != superPositionalParameters[i].name) {
           arePositionalOrdered = false;
-          break;
         }
         lastPositionalParameter = parameter;
+      } else {
+        break;
       }
     }
 
@@ -102,13 +103,11 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
             needsInitialComma: false,
           );
 
-          if (missingNamedParameters.isNotEmpty) {
-            _writeNamed(
-              builder,
-              missingNamedParameters,
-              needsInitialComma: missingPositionalParameters.isNotEmpty,
-            );
-          }
+          _writeNamed(
+            builder,
+            missingNamedParameters,
+            needsInitialComma: missingPositionalParameters.isNotEmpty,
+          );
         });
       });
     } else {
@@ -171,6 +170,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     FormalParameter? lastNamedParameter,
     required bool needsInitialComma,
   }) {
+    if (parameters.isEmpty) return;
     var firstParameter = true;
     void writeComma() {
       if (firstParameter) {
@@ -214,6 +214,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     List<FormalParameterElement> parameters, {
     required bool needsInitialComma,
   }) {
+    if (parameters.isEmpty) return;
     var firstParameter = true;
     void writeComma() {
       if (firstParameter && !needsInitialComma) {

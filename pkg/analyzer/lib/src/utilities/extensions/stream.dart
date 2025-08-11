@@ -26,7 +26,9 @@ class _WhereTypeStreamSink<S, T> implements EventSink<S> {
 class _WhereTypeStreamTransformer<S, T> extends StreamTransformerBase<S, T> {
   @override
   Stream<T> bind(Stream<S> stream) => Stream.eventTransformed(
-      stream, (sink) => _WhereTypeStreamSink<S, T>(sink));
+    stream,
+    (sink) => _WhereTypeStreamSink<S, T>(sink),
+  );
 }
 
 extension StreamExtension<T> on Stream<T> {

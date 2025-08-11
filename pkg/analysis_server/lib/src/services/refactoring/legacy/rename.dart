@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -32,7 +32,7 @@ class RenameProcessor {
   );
 
   /// Add the edit that updates the [element] declaration.
-  void addDeclarationEdit(Element2? element) {
+  void addDeclarationEdit(Element? element) {
     if (element == null) {
       return;
     } else if (element is LibraryElementImpl) {
@@ -66,7 +66,7 @@ class RenameProcessor {
   }
 
   /// Update the [element] declaration and references to it.
-  Future<void> renameElement(Element2 element) async {
+  Future<void> renameElement(Element element) async {
     addDeclarationEdit(element);
     var matches = await workspace.searchEngine.searchReferences(element);
     addReferenceEdits(matches);
@@ -75,7 +75,7 @@ class RenameProcessor {
   /// Add an edit that replaces the specified region with [code].
   /// Uses [referenceElement] to identify the file to update.
   void replace({
-    required Element2 referenceElement,
+    required Element referenceElement,
     required int offset,
     required int length,
     required String code,
@@ -95,7 +95,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   final RefactoringWorkspace workspace;
   final AnalysisSessionHelper sessionHelper;
   final SearchEngine searchEngine;
-  final Element2 _element;
+  final Element _element;
   @override
   final String elementKindName;
   @override
@@ -104,18 +104,18 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   late String newName;
 
-  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element2 element)
+  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element element)
     : searchEngine = workspace.searchEngine,
       _element = element,
       elementKindName = element.kind.displayName,
       oldName = _getOldName(element);
 
-  Element2 get element => _element;
+  Element get element => _element;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element.library2?.isInSdk == true) {
+    if (element.library?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
         getElementKindName(element),
@@ -161,15 +161,15 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           .getAnalysisOptionsForFile(file)
           .codeStyleOptions;
 
-  static String _getOldName(Element2 element) {
-    if (element is ConstructorElement2) {
-      var name = element.name3;
+  static String _getOldName(Element element) {
+    if (element is ConstructorElement) {
+      var name = element.name;
       if (name == null || name == 'new') {
         return '';
       }
       return name;
     } else if (element is MockLibraryImportElement) {
-      var prefix = element.import.prefix?.element;
+      var prefix = element.import.prefix2?.element;
       if (prefix != null) {
         return prefix.displayName;
       }

@@ -53,15 +53,18 @@ Future<void> testFinalizerZone() async {
 Future<void> testFinalizerException() async {
   Object? caughtError;
 
-  final finalizer = runZonedGuarded(() {
-    void callback(Object token) {
-      throw 'uncaught!';
-    }
+  final finalizer = runZonedGuarded(
+    () {
+      void callback(Object token) {
+        throw 'uncaught!';
+      }
 
-    return Finalizer<Nonce>(callback);
-  }, (Object error, StackTrace stack) {
-    caughtError = error;
-  })!;
+      return Finalizer<Nonce>(callback);
+    },
+    (Object error, StackTrace stack) {
+      caughtError = error;
+    },
+  )!;
 
   final detach = Nonce(2022);
   final token = Nonce(42);

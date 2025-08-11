@@ -48,7 +48,7 @@ Below is the result of running the file both without and with
 ```bash
 $ python3 tools/build.py -a x64 -m release runtime runtime_precompiled
 
-$ pkg/vm/tool/gen_kernel --platform out/ReleaseX64/vm_platform_strong.dill -o throws.dill throws.dart
+$ pkg/vm/tool/gen_kernel --platform out/ReleaseX64/vm_platform.dill -o throws.dill throws.dart
 
 $ out/ReleaseX64/gen_snapshot --snapshot_kind=app-aot-elf --elf=snapshot.so throws.dill
 

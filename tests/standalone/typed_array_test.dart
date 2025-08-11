@@ -252,8 +252,10 @@ Float32List float32 = initFloat32();
 
 float32_receiver() {
   var response = new ReceivePort();
-  var remote =
-      Isolate.spawn(float32_sender, [float32.length, response.sendPort]);
+  var remote = Isolate.spawn(float32_sender, [
+    float32.length,
+    response.sendPort,
+  ]);
   asyncStart();
   return response.first.then((a) {
     Expect.equals(float32.length, a.length);
@@ -288,8 +290,10 @@ Float64List float64 = initFloat64();
 
 float64_receiver() {
   var response = new ReceivePort();
-  var remote =
-      Isolate.spawn(float64_sender, [float64.length, response.sendPort]);
+  var remote = Isolate.spawn(float64_sender, [
+    float64.length,
+    response.sendPort,
+  ]);
   asyncStart();
   return response.first.then((a) {
     Expect.equals(float64.length, a.length);

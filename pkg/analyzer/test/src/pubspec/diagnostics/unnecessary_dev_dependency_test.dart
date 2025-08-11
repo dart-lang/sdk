@@ -16,13 +16,16 @@ main() {
 @reflectiveTest
 class UnnecessaryDevDependencyTest extends PubspecDiagnosticTest {
   test_unnecessaryDevDependency_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   a: any
 dev_dependencies:
   a: any
-''', [PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY]);
+''',
+      [PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY],
+    );
   }
 
   test_unnecessaryDevDependency_noError() {

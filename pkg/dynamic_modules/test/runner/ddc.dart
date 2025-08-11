@@ -59,7 +59,11 @@ class DdcExecutor implements TargetExecutor {
 
   // TODO(sigmund): add support to run also in the ddc-canary mode.
   Future _compile(
-      String testName, String source, Uri sourceDir, bool isMain) async {
+    String testName,
+    String source,
+    Uri sourceDir,
+    bool isMain,
+  ) async {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
@@ -85,12 +89,20 @@ class DdcExecutor implements TargetExecutor {
       '-o',
       '$source.js',
     ];
-    await runProcess(dartAotBin.toFilePath(), args, testDir, _logger,
-        'compile $testName/$source');
+    await runProcess(
+      dartAotBin.toFilePath(),
+      args,
+      testDir,
+      _logger,
+      'compile $testName/$source',
+    );
   }
 
   Future _buildKernelOutline(
-      String testName, String source, Uri sourceDir) async {
+    String testName,
+    String source,
+    Uri sourceDir,
+  ) async {
     assert(source == 'main.dart');
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
@@ -112,8 +124,13 @@ class DdcExecutor implements TargetExecutor {
       '$source.dill',
     ];
 
-    await runProcess(dartAotBin.toFilePath(), args, testDir, _logger,
-        'sumarize $testName/$source');
+    await runProcess(
+      dartAotBin.toFilePath(),
+      args,
+      testDir,
+      _logger,
+      'sumarize $testName/$source',
+    );
   }
 
   @override
@@ -172,16 +189,19 @@ class DdcExecutor implements TargetExecutor {
       });
     ''');
     var result = await runProcess(
-        d8Uri.toFilePath(),
-        [bootstrapUri.toFilePath()],
-        testDir.toFilePath(),
-        _logger,
-        'd8 ${test.name}/bootstrap.js');
+      d8Uri.toFilePath(),
+      [bootstrapUri.toFilePath()],
+      testDir.toFilePath(),
+      _logger,
+      'd8 ${test.name}/bootstrap.js',
+    );
     var stdout = result.stdout as String;
     if (!stdout.contains(helper.successToken)) {
-      _logger.error('Error: test didn\'t complete as expected.\n'
-          'Make sure the test finishes and calls `helper.done()`.\n'
-          'Test output:\n$stdout');
+      _logger.error(
+        'Error: test didn\'t complete as expected.\n'
+        'Make sure the test finishes and calls `helper.done()`.\n'
+        'Test output:\n$stdout',
+      );
       throw Exception('missing helper.done');
     }
   }

@@ -4,11 +4,13 @@
 
 library script_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, ScriptRef;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ScriptRefElement extends CustomElement implements Renderable {
@@ -42,7 +44,7 @@ class ScriptRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -52,8 +54,9 @@ class ScriptRefElement extends CustomElement implements Renderable {
       displayUri = 'N/A';
     }
 
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(isolate, object: script))
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(isolate, object: script)
         ..title = script.uri!
         ..text = displayUri
     ];

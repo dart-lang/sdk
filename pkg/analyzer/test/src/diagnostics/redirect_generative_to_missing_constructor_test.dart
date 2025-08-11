@@ -17,25 +17,37 @@ main() {
 class RedirectGenerativeToNonGenerativeConstructorTest
     extends PubPackageResolutionTest {
   test_class_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : this.noSuchConstructor();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 18,
-          24),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          18,
+          24,
+        ),
+      ],
+    );
   }
 
   test_enum_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E() : this.noSuchConstructor();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 28,
-          24),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          28,
+          24,
+        ),
+      ],
+    );
   }
 }

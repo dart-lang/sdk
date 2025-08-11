@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class EventDeleteEvent {
@@ -45,13 +48,13 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[];
-    List<Element> content;
+    removeChildren();
+    List<HTMLElement> content;
     if (event is M.PauseStartEvent) {
       content = _managePauseStartEvent(event as M.PauseStartEvent);
     } else if (event is M.PauseExitEvent) {
@@ -73,139 +76,162 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
     } else {
       return;
     }
-    children = <Element>[
-      new DivElement()
-        ..children = <Element>[]
-        ..children.addAll(content)
-        ..children.add(new ButtonElement()
-          ..text = '×'
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..appendChildren(content)
+        ..appendChild(new HTMLButtonElement()
+          ..textContent = '×'
           ..onClick.map(_toEvent).listen(_delete))
     ];
   }
 
-  static List<Element> _managePauseStartEvent(M.PauseStartEvent event) {
+  static List<HTMLElement> _managePauseStartEvent(M.PauseStartEvent event) {
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = ' is paused at isolate start',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = ' is paused at isolate start',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _managePauseExitEvent(M.PauseExitEvent event) {
+  static List<HTMLElement> _managePauseExitEvent(M.PauseExitEvent event) {
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = ' is paused at isolate exit',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = ' is paused at isolate exit',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _managePauseBreakpointEvent(
+  static List<HTMLElement> _managePauseBreakpointEvent(
       M.PauseBreakpointEvent event) {
     String message = ' is paused';
     if (event.breakpoint != null) {
       message += ' at breakpoint ${event.breakpoint!.number}';
     }
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = message,
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = message,
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _managePauseInterruptedEvent(
+  static List<HTMLElement> _managePauseInterruptedEvent(
       M.PauseInterruptedEvent event) {
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = ' is paused',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = ' is paused',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _managePauseExceptionEvent(M.PauseExceptionEvent event) {
+  static List<HTMLElement> _managePauseExceptionEvent(
+      M.PauseExceptionEvent event) {
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = ' is paused due to exception',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = ' is paused due to exception',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _manageNoneEvent(M.NoneEvent event) {
+  static List<HTMLElement> _manageNoneEvent(M.NoneEvent event) {
     return [
-      new SpanElement()..text = 'Isolate ',
-      new AnchorElement(href: Uris.inspect(event.isolate))
-        ..text = event.isolate.name,
-      new SpanElement()..text = ' is paused',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.debugger(event.isolate))..text = 'debug',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = 'Isolate ',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate)
+        ..text = event.isolate.name ?? '',
+      new HTMLSpanElement()..textContent = ' is paused',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.debugger(event.isolate)
+        ..text = 'debug',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _manageConnectionClosedEvent(
+  static List<HTMLElement> _manageConnectionClosedEvent(
       M.ConnectionClosedEvent event) {
     return [
-      new SpanElement()..text = 'Disconnected from VM: ${event.reason}',
-      new BRElement(),
-      new BRElement(),
-      new SpanElement()..text = '[',
-      new AnchorElement(href: Uris.vmConnect())..text = 'Connect to a VM',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()
+        ..textContent = 'Disconnected from VM: ${event.reason}',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.vmConnect()
+        ..text = 'Connect to a VM',
+      new HTMLSpanElement()..textContent = ']'
     ];
   }
 
-  static List<Element> _manageInspectEvent(M.InspectEvent event) {
+  static List<HTMLElement> _manageInspectEvent(M.InspectEvent event) {
     return [
-      new SpanElement()..text = 'Inspect ${event.inspectee.id}',
-      new BRElement(), new BRElement(), new SpanElement()..text = '[',
-      new AnchorElement(
-          href: Uris.inspect(event.isolate, object: event.inspectee))
+      new HTMLSpanElement()..textContent = 'Inspect ${event.inspectee.id}',
+      new HTMLBRElement(), new HTMLBRElement(),
+      new HTMLSpanElement()..textContent = '[',
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(event.isolate, object: event.inspectee)
         ..text = 'Inspect',
-      new SpanElement()..text = ']'
+      new HTMLSpanElement()..textContent = ']'
       // TODO(cbernaschina) add InstanceRefElement back.
       //new InstanceRefElement()..instance = event.inspectee
     ];
   }
 
-  static List<Element> _manageIsolateReloadEvent(M.IsolateReloadEvent event) {
+  static List<HTMLElement> _manageIsolateReloadEvent(
+      M.IsolateReloadEvent event) {
     return [
-      new SpanElement()..text = 'Isolate reload failed:',
-      new BRElement(),
-      new BRElement(),
-      new DivElement()
-        ..classes = ["indent", "error"]
-        ..text = event.error.message.toString()
+      new HTMLSpanElement()..textContent = 'Isolate reload failed:',
+      new HTMLBRElement(),
+      new HTMLBRElement(),
+      new HTMLDivElement()
+        ..className = "indent error"
+        ..textContent = event.error.message.toString()
     ];
   }
 

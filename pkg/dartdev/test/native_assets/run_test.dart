@@ -9,13 +9,12 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     test('dart run', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
         final result = await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'run',
           ],
           workingDirectory: dartAppUri,
@@ -38,12 +37,11 @@ void main(List<String> args) async {
   // stdout.
 
   for (final verbose in [true, false]) {
-    final testModifier = ['', if (verbose) 'verbose'].join(' ');
+    final testModifier = verbose ? ' verbose' : '';
     test('dart run$testModifier', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
         final result = await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'run',
             if (verbose) '-v',
           ],
@@ -64,7 +62,6 @@ void main(List<String> args) async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           'test/native_add_test.dart',
         ],
@@ -83,27 +80,10 @@ void main(List<String> args) async {
     });
   });
 
-  test('dart build native assets disabled', timeout: longTimeout, () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final result = await runDart(
-        arguments: [
-          'run',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: false,
-      );
-      expect(result.exitCode, isNot(0));
-      expect(result.stderr, contains('Enable native assets'));
-      expect(result.stderr, contains('native_add'));
-    });
-  });
-
   test('dart run some_dev_dep', timeout: longTimeout, () async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           '-v',
           'some_dev_dep',
@@ -119,12 +99,7 @@ void main(List<String> args) async {
   test('dart link assets succeeds', timeout: longTimeout, () async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       await runDart(
-        arguments: [
-          '--enable-experiment=native-assets',
-          'run',
-          'bin/drop_dylib_link.dart',
-          'add'
-        ],
+        arguments: ['run', 'bin/drop_dylib_link.dart', 'add'],
         workingDirectory: dartAppUri,
         logger: logger,
         expectExitCodeZero: true,
@@ -137,12 +112,7 @@ void main(List<String> args) async {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       try {
         await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'run',
-            'bin/drop_dylib_link.dart',
-            'multiply'
-          ],
+          arguments: ['run', 'bin/drop_dylib_link.dart', 'multiply'],
           workingDirectory: dartAppUri,
           logger: logger,
           expectExitCodeZero: false,
@@ -163,7 +133,6 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
     await nativeAssetsTest('add_asset_link', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           'bin/add_asset_link.dart',
         ],
@@ -182,7 +151,6 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
     await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'run',
           'bin/native_dynamic_linking.dart',
         ],
@@ -193,22 +161,24 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
     });
   });
 
-  test(
-    'dart run with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'run',
-            'bin/user_defines.dart',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(result.stdout, contains('Hello world!'));
-      });
-    },
-  );
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart run with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              'run',
+              'bin/user_defines.dart',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Hello world!'));
+        });
+      },
+    );
+  }
 }

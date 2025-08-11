@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,9 +15,9 @@ main() {
 
 @reflectiveTest
 class NonTypeAsTypeArgumentTest extends PubPackageResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/54388')
   test_issue54388() async {
-    addTestFile(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class Option<A> {}
 
 final class None implements Option<A> {
@@ -34,30 +33,29 @@ A doOption<A>(
     },
   );
 }
-''');
-    // When the analyzer stops throwing when resolving this code, there needs to
-    // be at least one error, as the definition of `class None` refers to a
-    // non-existent type, `A`.
-    await expectLater(resolveTestFile(), completes);
-    expect(result.errors, isNotEmpty);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 62, 1)],
+    );
   }
 
   test_notAType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int A = 0;
 class B<E> {}
 f(B<A> b) {}
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1)],
+    );
   }
 
   test_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class B<E> {}
 f(B<A> b) {}
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1)],
+    );
   }
 }

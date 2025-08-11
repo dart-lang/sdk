@@ -66,6 +66,12 @@ DART_EXPORT Coord GetGlobalStruct() {
   return globalStruct;
 }
 
+DART_EXPORT void SleepFor(int32_t ms) {
+  std::cout << "Sleeping for " << ms << " milliseconds...\n";
+  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+  std::cout << "done\n";
+}
+
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
 // Also used for testing argument exception on passing null instead of a Dart
@@ -1326,11 +1332,49 @@ DART_EXPORT void CallFunctionOnNewThreadBlocking(int64_t response_id,
   thread.join();
 }
 
+#if defined(__linux__)
+struct Data {
+  void (*fn)(int64_t, int32_t);
+  int64_t a;
+  int32_t b;
+};
+static void* Start(void* data_in) {
+  Data* data = reinterpret_cast<Data*>(data_in);
+  void (*fn)(int64_t, int32_t) = data->fn;
+  int64_t a = data->a;
+  int32_t b = data->b;
+  delete data;
+  fn(a, b);
+  return nullptr;
+}
+#endif
+
 DART_EXPORT void CallFunctionOnNewThreadNonBlocking(int64_t response_id,
                                                     void (*fn)(int64_t,
                                                                int32_t)) {
+#if defined(__linux__)
+  // std::thread::detach is implemented via pthread_detach, which contains a
+  // race. https://sourceware.org/bugzilla/show_bug.cgi?id=19951
+
+  Data* data = new Data;
+  data->fn = fn;
+  data->a = response_id;
+  data->b = 123;
+
+  pthread_attr_t attr;
+  int result = pthread_attr_init(&attr);
+  if (result != 0) perror("pthread_attr_init");
+  result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  if (result != 0) perror("pthread_attr_setdetachstate");
+  pthread_t tid;
+  result = pthread_create(&tid, &attr, Start, data);
+  if (result != 0) perror("pthread_create");
+  result = pthread_attr_destroy(&attr);
+  if (result != 0) perror("pthread_attr_destroy");
+#else
   std::thread thread(fn, response_id, 123);
-  thread.detach();
+  thread.detach();  // NOLINT(not glibc)
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////

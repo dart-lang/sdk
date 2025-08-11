@@ -754,10 +754,10 @@ class InferrerEngine {
       globalLocalsMap.getLocalsMap(member),
       node != null
           ? ir.StaticTypeContext(
-            node,
-            closedWorld.elementMap.typeEnvironment,
-            cache: ir.StaticTypeCacheImpl(),
-          )
+              node,
+              closedWorld.elementMap.typeEnvironment,
+              cache: ir.StaticTypeCacheImpl(),
+            )
           : null,
       memberHierarchyBuilder,
     );

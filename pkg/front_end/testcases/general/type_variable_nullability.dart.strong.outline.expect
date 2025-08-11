@@ -226,7 +226,7 @@ static method method8h<X extends FutureOr<self::method8h::Y?> = FutureOr<dynamic
   ;
 static extension-type-member method ExtensionType1|constructor#<Z extends core::Object? = dynamic>(self::ExtensionType1|constructor#::Z% o) → self::ExtensionType1<self::ExtensionType1|constructor#::Z%>% /* erasure=self::ExtensionType1|constructor#::Z%, declared=! */
   ;
-static extension-type-member method ExtensionType1|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType1|constructor#_#new#tearOff::Z% o) → self::ExtensionType1<self::ExtensionType1|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType1|constructor#_#new#tearOff::Z%, declared=! */
+static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType1|constructor#_#new#tearOff::Z% o) → self::ExtensionType1<self::ExtensionType1|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType1|constructor#_#new#tearOff::Z%, declared=! */
   return self::ExtensionType1|constructor#<self::ExtensionType1|constructor#_#new#tearOff::Z%>(o);
 static method method9a<X extends self::method9a::Y% = dynamic, Y extends self::ExtensionType1<core::List<self::method9a::X%>>% /* erasure=core::List<self::method9a::X%>, declared=! */ = self::ExtensionType1<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic
   ;
@@ -246,7 +246,7 @@ static method method9h<X extends self::ExtensionType1<core::List<self::method9h:
   ;
 static extension-type-member method ExtensionType2|constructor#<Z extends core::Object? = dynamic>(self::ExtensionType2|constructor#::Z% o) → self::ExtensionType2<self::ExtensionType2|constructor#::Z%>% /* erasure=self::ExtensionType2|constructor#::Z%, declared=! */
   ;
-static extension-type-member method ExtensionType2|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType2|constructor#_#new#tearOff::Z% o) → self::ExtensionType2<self::ExtensionType2|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType2|constructor#_#new#tearOff::Z%, declared=! */
+static extension-type-member synthetic method ExtensionType2|constructor#_#new#tearOff<Z extends core::Object? = dynamic>(self::ExtensionType2|constructor#_#new#tearOff::Z% o) → self::ExtensionType2<self::ExtensionType2|constructor#_#new#tearOff::Z%>% /* erasure=self::ExtensionType2|constructor#_#new#tearOff::Z%, declared=! */
   return self::ExtensionType2|constructor#<self::ExtensionType2|constructor#_#new#tearOff::Z%>(o);
 static method method10a<X extends self::method10a::Y% = dynamic, Y extends self::ExtensionType2<core::List<self::method10a::X%>>% /* erasure=core::List<self::method10a::X%>, declared=! */ = self::ExtensionType2<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic
   ;
@@ -266,7 +266,7 @@ static method method10h<X extends self::ExtensionType2<core::List<self::method10
   ;
 static extension-type-member method ExtensionType3|constructor#<Z extends core::Object>(self::ExtensionType3|constructor#::Z o) → self::ExtensionType3<self::ExtensionType3|constructor#::Z>% /* erasure=self::ExtensionType3|constructor#::Z, declared=! */
   ;
-static extension-type-member method ExtensionType3|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType3|constructor#_#new#tearOff::Z o) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType3|constructor#_#new#tearOff::Z, declared=! */
+static extension-type-member synthetic method ExtensionType3|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType3|constructor#_#new#tearOff::Z o) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType3|constructor#_#new#tearOff::Z, declared=! */
   return self::ExtensionType3|constructor#<self::ExtensionType3|constructor#_#new#tearOff::Z>(o);
 static method method11a<X extends self::method11a::Y% = dynamic, Y extends self::ExtensionType3<core::List<self::method11a::X%>>% /* erasure=core::List<self::method11a::X%>, declared=! */ = self::ExtensionType3<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic
   ;
@@ -282,7 +282,7 @@ static method method11f<X extends self::ExtensionType3<core::List<self::method11
   ;
 static extension-type-member method ExtensionType4|constructor#<Z extends core::Object>(self::ExtensionType4|constructor#::Z o) → self::ExtensionType4<self::ExtensionType4|constructor#::Z>% /* erasure=self::ExtensionType4|constructor#::Z, declared=! */
   ;
-static extension-type-member method ExtensionType4|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType4|constructor#_#new#tearOff::Z o) → self::ExtensionType4<self::ExtensionType4|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType4|constructor#_#new#tearOff::Z, declared=! */
+static extension-type-member synthetic method ExtensionType4|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType4|constructor#_#new#tearOff::Z o) → self::ExtensionType4<self::ExtensionType4|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType4|constructor#_#new#tearOff::Z, declared=! */
   return self::ExtensionType4|constructor#<self::ExtensionType4|constructor#_#new#tearOff::Z>(o);
 static method method12a<X extends self::method12a::Y% = dynamic, Y extends self::ExtensionType4<core::List<self::method12a::X%>>% /* erasure=core::List<self::method12a::X%>, declared=! */ = self::ExtensionType4<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic
   ;
@@ -298,7 +298,7 @@ static method method12f<X extends self::ExtensionType4<core::List<self::method12
   ;
 static extension-type-member method ExtensionType5|constructor#<Z extends core::Object>(self::ExtensionType5|constructor#::Z o) → self::ExtensionType5<self::ExtensionType5|constructor#::Z> /* erasure=self::ExtensionType5|constructor#::Z */
   ;
-static extension-type-member method ExtensionType5|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType5|constructor#_#new#tearOff::Z o) → self::ExtensionType5<self::ExtensionType5|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType5|constructor#_#new#tearOff::Z */
+static extension-type-member synthetic method ExtensionType5|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType5|constructor#_#new#tearOff::Z o) → self::ExtensionType5<self::ExtensionType5|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType5|constructor#_#new#tearOff::Z */
   return self::ExtensionType5|constructor#<self::ExtensionType5|constructor#_#new#tearOff::Z>(o);
 static method method13a<X extends self::method13a::Y = dynamic, Y extends self::ExtensionType5<core::List<self::method13a::X>> /* erasure=core::List<self::method13a::X> */ = self::ExtensionType5<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic
   ;
@@ -314,7 +314,7 @@ static method method13f<X extends self::ExtensionType5<core::List<self::method13
   ;
 static extension-type-member method ExtensionType6|constructor#<Z extends core::Object>(self::ExtensionType6|constructor#::Z o) → self::ExtensionType6<self::ExtensionType6|constructor#::Z> /* erasure=self::ExtensionType6|constructor#::Z */
   ;
-static extension-type-member method ExtensionType6|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType6|constructor#_#new#tearOff::Z o) → self::ExtensionType6<self::ExtensionType6|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType6|constructor#_#new#tearOff::Z */
+static extension-type-member synthetic method ExtensionType6|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType6|constructor#_#new#tearOff::Z o) → self::ExtensionType6<self::ExtensionType6|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType6|constructor#_#new#tearOff::Z */
   return self::ExtensionType6|constructor#<self::ExtensionType6|constructor#_#new#tearOff::Z>(o);
 static method method14a<X extends self::method14a::Y = dynamic, Y extends self::ExtensionType6<core::List<self::method14a::X>> /* erasure=core::List<self::method14a::X> */ = self::ExtensionType6<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic
   ;
@@ -330,7 +330,7 @@ static method method14f<X extends self::ExtensionType6<core::List<self::method14
   ;
 static extension-type-member method ExtensionType7|constructor#<Z extends core::Object>(self::ExtensionType7|constructor#::Z o) → self::ExtensionType7<self::ExtensionType7|constructor#::Z>% /* erasure=self::ExtensionType7|constructor#::Z, declared=! */
   ;
-static extension-type-member method ExtensionType7|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType7|constructor#_#new#tearOff::Z o) → self::ExtensionType7<self::ExtensionType7|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType7|constructor#_#new#tearOff::Z, declared=! */
+static extension-type-member synthetic method ExtensionType7|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType7|constructor#_#new#tearOff::Z o) → self::ExtensionType7<self::ExtensionType7|constructor#_#new#tearOff::Z>% /* erasure=self::ExtensionType7|constructor#_#new#tearOff::Z, declared=! */
   return self::ExtensionType7|constructor#<self::ExtensionType7|constructor#_#new#tearOff::Z>(o);
 static method method15a<X extends self::method15a::Y% = dynamic, Y extends self::ExtensionType7<core::List<self::method15a::X%>>% /* erasure=core::List<self::method15a::X%>, declared=! */ = self::ExtensionType7<core::List<dynamic>>% /* erasure=core::List<dynamic>, declared=! */>() → dynamic
   ;
@@ -346,7 +346,7 @@ static method method15f<X extends self::ExtensionType7<core::List<self::method15
   ;
 static extension-type-member method ExtensionType8|constructor#<Z extends core::Object>(self::ExtensionType8|constructor#::Z o) → self::ExtensionType8<self::ExtensionType8|constructor#::Z> /* erasure=self::ExtensionType8|constructor#::Z */
   ;
-static extension-type-member method ExtensionType8|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType8|constructor#_#new#tearOff::Z o) → self::ExtensionType8<self::ExtensionType8|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType8|constructor#_#new#tearOff::Z */
+static extension-type-member synthetic method ExtensionType8|constructor#_#new#tearOff<Z extends core::Object>(self::ExtensionType8|constructor#_#new#tearOff::Z o) → self::ExtensionType8<self::ExtensionType8|constructor#_#new#tearOff::Z> /* erasure=self::ExtensionType8|constructor#_#new#tearOff::Z */
   return self::ExtensionType8|constructor#<self::ExtensionType8|constructor#_#new#tearOff::Z>(o);
 static method method16a<X extends self::method16a::Y = dynamic, Y extends self::ExtensionType8<core::List<self::method16a::X>> /* erasure=core::List<self::method16a::X> */ = self::ExtensionType8<core::List<dynamic>> /* erasure=core::List<dynamic> */>() → dynamic
   ;

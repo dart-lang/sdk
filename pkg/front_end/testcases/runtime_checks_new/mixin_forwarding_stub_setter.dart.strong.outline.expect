@@ -51,13 +51,13 @@ class C = self::B with self::M implements self::I<core::int> {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  mixin-super-stub get x() → core::int
+  synthetic mixin-super-stub get x() → core::int
     return super.{self::M::x};
-  forwarding-stub set x(covariant-by-class core::int value) → void
+  forwarding-stub synthetic set x(covariant-by-class core::int value) → void
     return super.{self::M::x} = value;
-  mixin-super-stub get y() → core::int
+  synthetic mixin-super-stub get y() → core::int
     return super.{self::M::y};
-  forwarding-stub set y(covariant-by-declaration core::int value) → void
+  forwarding-stub synthetic erroneous set y(covariant-by-declaration core::int value) → void
     return super.{self::M::y} = value;
 }
 static method expectTypeError(() → void callback) → void

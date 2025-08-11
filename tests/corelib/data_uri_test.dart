@@ -71,8 +71,8 @@ void testMediaType() {
         );
         expectedMimeType =
             (mimeType.isEmpty || mimeType.toLowerCase() == "text/plain")
-                ? "text/plain"
-                : mimeType;
+            ? "text/plain"
+            : mimeType;
         expectedEncoding = encoding;
         expectedCharset = expectedEncoding?.name ?? "US-ASCII";
         var expectedText =

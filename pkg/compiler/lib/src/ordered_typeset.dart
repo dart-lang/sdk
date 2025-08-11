@@ -146,8 +146,9 @@ class OrderedTypeSet {
   void forEach(int level, void Function(InterfaceType type) f) {
     if (level < levels) {
       Link<InterfaceType> pointer = _levels[level];
-      Link<InterfaceType> end =
-          level > 0 ? _levels[level - 1] : const Link<InterfaceType>();
+      Link<InterfaceType> end = level > 0
+          ? _levels[level - 1]
+          : const Link<InterfaceType>();
       // TODO(het): checking `isNotEmpty` should be unnecessary, remove when
       // constants are properly canonicalized
       while (pointer.isNotEmpty && !identical(pointer, end)) {
@@ -161,8 +162,9 @@ class OrderedTypeSet {
     int level = hierarchyDepth;
     if (level < levels) {
       Link<InterfaceType> pointer = _levels[level];
-      Link<InterfaceType> end =
-          level > 0 ? _levels[level - 1] : const Link<InterfaceType>();
+      Link<InterfaceType> end = level > 0
+          ? _levels[level - 1]
+          : const Link<InterfaceType>();
       // TODO(het): checking `isNotEmpty` should be unnecessary, remove when
       // constants are properly canonicalized
       while (pointer.isNotEmpty && !identical(pointer, end)) {

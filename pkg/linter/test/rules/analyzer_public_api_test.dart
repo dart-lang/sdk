@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:linter/src/rules/analyzer_public_api.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2179,6 +2180,42 @@ import 'file.dart';
 
 @AnalyzerPublicApi()
 class B {}
+''');
+    newFile(libFile, '''
+export 'src/file2.dart';
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_exportsNonPublicName_ignoredIfAnnotatedPublic_getter() async {
+    newFile(libSrcFile, '''
+class AnalyzerPublicApi {
+  const AnalyzerPublicApi();
+}
+''');
+    newFile(libSrcFile2, '''
+import 'file.dart';
+
+@AnalyzerPublicApi()
+int get x => 7;
+''');
+    newFile(libFile, '''
+export 'src/file2.dart';
+''');
+    await assertNoDiagnosticsInFile(libFile);
+  }
+
+  test_exportsNonPublicName_ignoredIfAnnotatedPublic_setter() async {
+    newFile(libSrcFile, '''
+class AnalyzerPublicApi {
+  const AnalyzerPublicApi();
+}
+''');
+    newFile(libSrcFile2, '''
+import 'file.dart';
+
+@AnalyzerPublicApi()
+set x(int value) {}
 ''');
     newFile(libFile, '''
 export 'src/file2.dart';

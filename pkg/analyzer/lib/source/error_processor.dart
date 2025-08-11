@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -10,10 +11,10 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = {
-  'error': ErrorSeverity.ERROR,
-  'info': ErrorSeverity.INFO,
-  'warning': ErrorSeverity.WARNING
+const Map<String, DiagnosticSeverity> severityMap = {
+  'error': DiagnosticSeverity.ERROR,
+  'info': DiagnosticSeverity.INFO,
+  'warning': DiagnosticSeverity.WARNING,
 };
 
 /// Error processor configuration derived from analysis (or embedder) options.
@@ -53,7 +54,7 @@ class ErrorConfig {
   }
 }
 
-/// Process errors by filtering or changing associated [ErrorSeverity].
+/// Process errors by filtering or changing associated [DiagnosticSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
   final String code;
@@ -61,7 +62,7 @@ class ErrorProcessor {
   /// The desired severity of the processed error.
   ///
   /// If `null`, this processor will "filter" the associated error code.
-  final ErrorSeverity? severity;
+  final DiagnosticSeverity? severity;
 
   /// Create an error processor that assigns errors with this [code] the
   /// given [severity].
@@ -75,27 +76,28 @@ class ErrorProcessor {
   /// The string that unique describes the processor.
   String get description => '$code -> ${severity?.name}';
 
-  /// Check if this processor applies to the given [error].
+  /// Check if this processor applies to the given [diagnostic].
   ///
   /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
   /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
   @visibleForTesting
-  bool appliesTo(AnalysisError error) =>
-      code == error.errorCode.name ||
-      code == error.errorCode.name.toUpperCase();
+  bool appliesTo(Diagnostic diagnostic) =>
+      code == diagnostic.diagnosticCode.name ||
+      code == diagnostic.diagnosticCode.name.toUpperCase();
 
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";
 
   /// Returns an error processor associated in the [analysisOptions] for the
-  /// given [error], or `null` if none is found.
+  /// given [diagnostic], or `null` if none is found.
   static ErrorProcessor? getProcessor(
     // TODO(srawlins): Make `analysisOptions` non-nullable, in a breaking
     // change release.
     AnalysisOptions? analysisOptions,
-    AnalysisError error,
+    Diagnostic diagnostic,
   ) {
-    return analysisOptions?.errorProcessors
-        .firstWhereOrNull((processor) => processor.appliesTo(error));
+    return analysisOptions?.errorProcessors.firstWhereOrNull(
+      (processor) => processor.appliesTo(diagnostic),
+    );
   }
 }

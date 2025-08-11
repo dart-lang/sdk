@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,7 +32,7 @@ g(int a) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: +=
   rightHandSide: MethodInvocation
@@ -44,16 +43,16 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
-  readElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::a
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -72,13 +71,13 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::g::@parameter::a#element
+      element: <testLibrary>::@function::g::@formalParameter::a
       staticType: List<int>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       correspondingParameter: ParameterMember
-        baseElement: dart:core::<fragment>::@class::List::@method::[]=::@parameter::index#element
+        baseElement: dart:core::@class::List::@method::[]=::@formalParameter::index
         substitution: {E: int}
       staticType: int
     rightBracket: ]
@@ -93,20 +92,20 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
   readElement2: MethodMember
-    baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+    baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   readType: int
   writeElement2: MethodMember
-    baseElement: dart:core::<fragment>::@class::List::@method::[]=#element
+    baseElement: dart:core::@class::List::@method::[]=
     substitution: {E: int}
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -126,7 +125,7 @@ g(num a) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: +=
   rightHandSide: MethodInvocation
@@ -137,16 +136,16 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
-  readElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::a
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -167,13 +166,13 @@ g(num a, bool b) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: +=
   rightHandSide: ConditionalExpression
     condition: SimpleIdentifier
       token: b
-      element: <testLibraryFragment>::@function::g::@parameter::b#element
+      element: <testLibrary>::@function::g::@formalParameter::b
       staticType: bool
     question: ?
     thenExpression: MethodInvocation
@@ -192,20 +191,20 @@ AssignmentExpression
     elseExpression: DoubleLiteral
       literal: 1.0
       staticType: double
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: num
-  readElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::a
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: num
 ''');
 
     assertResolvedNodeText(findNode.simple('a;'), r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::g::@parameter::a#element
+  element: <testLibrary>::@function::g::@formalParameter::a
   staticType: num
 ''');
   }
@@ -222,16 +221,16 @@ void f(dynamic a) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: dynamic
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -251,7 +250,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: dynamic
     period: .
     identifier: SimpleIdentifier
@@ -288,7 +287,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: dynamic
       period: .
       identifier: SimpleIdentifier
@@ -331,17 +330,17 @@ f(Object? o1, Object? o2, List<num> listNum) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o1
-    element: <testLibraryFragment>::@function::f::@parameter::o1#element
+    element: <testLibrary>::@function::f::@formalParameter::o1
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: listNum
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::listNum#element
+    element: <testLibrary>::@function::f::@formalParameter::listNum
     staticType: List<num>
-  readElement2: <testLibraryFragment>::@function::f::@parameter::o1#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::o1
   readType: Iterable<int>?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::o1#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::o1
   writeType: Object?
   element: <null>
   staticType: Object
@@ -379,11 +378,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@setter::v::@parameter::_v#element
+    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::_v
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@setter::v#element
+  writeElement2: package:test/a.dart::@setter::v
   writeType: int
   element: <null>
   staticType: int
@@ -411,7 +410,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -419,13 +418,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -443,7 +442,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: dynamic
     leftBracket: [
     index: IntegerLiteral
@@ -486,12 +485,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -499,13 +498,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -529,12 +528,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -542,13 +541,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 2.0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: double
 ''');
   }
@@ -572,12 +571,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -587,9 +586,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num?
   element: <null>
   staticType: int
@@ -614,12 +613,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -627,11 +626,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: int
@@ -663,7 +662,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -671,13 +670,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -705,7 +704,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -713,26 +712,29 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
+  readElement2: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_indexExpression_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -756,7 +758,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
@@ -768,14 +770,17 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved2_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -784,7 +789,7 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int
     leftBracket: [
     index: SimpleIdentifier
@@ -799,7 +804,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
@@ -811,7 +816,8 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved3_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   operator[]=(int index, num _) {}
 }
@@ -819,9 +825,9 @@ class A {
 void f(A a, int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1)],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -830,12 +836,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: SimpleIdentifier
       token: b
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       element: <null>
       staticType: InvalidType
     rightBracket: ]
@@ -844,26 +850,44 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: c
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::_#element
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::_
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
+  writeElement2: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: int
 ''');
   }
 
+  test_indexExpression_unresolved_missing_type_parameter_name() async {
+    await assertErrorsInCode(
+      r'''
+abstract class A {
+   void b< extends int>();
+}
+void f(A a) {
+  a.b[0] = 0;
+}
+''',
+      [
+        error(ParserErrorCode.MISSING_IDENTIFIER, 30, 7),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 67, 3),
+      ],
+    );
+  }
+
   test_indexExpression_unresolvedTarget_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   a[0] += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -896,16 +920,19 @@ AssignmentExpression
   }
 
   test_left_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     super = 0;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+      ],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -928,14 +955,17 @@ AssignmentExpression
   }
 
   test_notLValue_binaryExpression_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int b, double c) {
   a + b += c;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
+      ],
+    );
 
     var assignment = findNode.assignment('= c');
 
@@ -944,22 +974,22 @@ AssignmentExpression
   leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int
     operator: +
     rightOperand: SimpleIdentifier
       token: b
-      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
-      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+      element: <testLibrary>::@function::f::@formalParameter::b
       staticType: int
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
   operator: +=
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
   readElement2: <null>
   readType: InvalidType
@@ -971,14 +1001,17 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int b, double c) {
   (a + b) += c;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+      ],
+    );
 
     var assignment = findNode.assignment('= c');
 
@@ -989,15 +1022,15 @@ AssignmentExpression
     expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
       operator: +
       rightOperand: SimpleIdentifier
         token: b
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
-      element: dart:core::<fragment>::@class::num::@method::+#element
+      element: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
@@ -1006,7 +1039,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
   readElement2: <null>
   readType: InvalidType
@@ -1018,15 +1051,21 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, double b) {
   (a + 0) = b;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
-          29, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          29,
+          1,
+        ),
+        error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
+      ],
+    );
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -1035,14 +1074,14 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibraryFragment>::@function::f::@parameter::a#element
+      element2: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: double
     rightParenthesis: )
     matchedValueType: double
   equals: =
   expression: SimpleIdentifier
     token: b
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: double
   patternTypeSchema: int
   staticType: double
@@ -1050,15 +1089,18 @@ PatternAssignment
   }
 
   test_notLValue_parenthesized_simple_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int a, double b) {
   (a + 0) = b;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
+      ],
+    );
 
     var node = findNode.assignment('= b');
     assertResolvedNodeText(node, r'''
@@ -1068,14 +1110,14 @@ AssignmentExpression
     expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
       operator: +
       rightOperand: IntegerLiteral
         literal: 0
-        correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
         staticType: int
-      element: dart:core::<fragment>::@class::num::@method::+#element
+      element: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
@@ -1084,7 +1126,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: b
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: double
   readElement2: <null>
   readType: null
@@ -1096,14 +1138,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ += y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1112,20 +1157,20 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -1137,14 +1182,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ ??= y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1153,20 +1201,20 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -1178,14 +1226,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ = y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1194,20 +1245,20 @@ AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: =
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: null
@@ -1219,14 +1270,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x += y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1236,19 +1290,19 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -1260,14 +1314,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x ??= y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1277,19 +1334,19 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -1301,14 +1358,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x = y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1318,19 +1378,19 @@ AssignmentExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    readElement2: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+    writeElement2: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
-    element: dart:core::<fragment>::@class::num::@method::+#element
+    element: dart:core::@class::num::@method::+
     staticType: num
   operator: =
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: null
@@ -1344,15 +1404,16 @@ AssignmentExpression
   test_notLValue_typeLiteral_class_ambiguous_simple() async {
     newFile('$testPackageLibPath/a.dart', 'class C {}');
     newFile('$testPackageLibPath/b.dart', 'class C {}');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 void f() {
   C = 0;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1)],
+    );
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1379,15 +1440,16 @@ AssignmentExpression
   }
 
   test_notLValue_typeLiteral_class_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 void f() {
   C = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1)],
+    );
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1424,7 +1486,7 @@ g(int? a) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::g::@parameter::a#element
+    element: <testLibrary>::@function::g::@formalParameter::a
     staticType: null
   operator: ??=
   rightHandSide: MethodInvocation
@@ -1440,9 +1502,9 @@ AssignmentExpression
     staticType: int?
     typeArgumentTypes
       int?
-  readElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  readElement2: <testLibrary>::@function::g::@formalParameter::a
   readType: int?
-  writeElement2: <testLibraryFragment>::@function::g::@parameter::a#element
+  writeElement2: <testLibrary>::@function::g::@formalParameter::a
   writeType: int?
   element: <null>
   staticType: int?
@@ -1468,7 +1530,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1480,13 +1542,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1510,7 +1572,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1524,9 +1586,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -1551,7 +1613,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1563,11 +1625,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -1575,7 +1637,8 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instanceGetter_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get x => 0;
 }
@@ -1583,9 +1646,9 @@ class A {
 void f(A a) {
   a.x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -1594,7 +1657,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -1610,7 +1673,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  writeElement2: <testLibrary>::@class::A::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -1627,7 +1690,8 @@ augment class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {}
@@ -1635,9 +1699,9 @@ class A {}
 void f(A a) {
   a.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -1795,7 +1859,8 @@ augment class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {}
@@ -1803,9 +1868,9 @@ class A {}
 void f() {
   A.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -2084,11 +2149,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -2096,7 +2161,8 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_staticGetter_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int get x => 0;
 }
@@ -2104,9 +2170,9 @@ class A {
 void f() {
   A.x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -2131,7 +2197,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  writeElement2: <testLibrary>::@class::A::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -2170,13 +2236,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/a.dart::<fragment>::@getter::x#element
+  readElement2: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::<fragment>::@setter::x#element
+  writeElement2: package:test/a.dart::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2214,25 +2280,26 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_prefixedIdentifier_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   a.b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('a.b = c');
 
@@ -2254,7 +2321,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
@@ -2266,14 +2333,17 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_unresolved2_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   a.b += c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a.b += c');
 
@@ -2282,7 +2352,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int
     period: .
     identifier: SimpleIdentifier
@@ -2295,7 +2365,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: InvalidType
@@ -2332,13 +2402,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2369,7 +2439,7 @@ AssignmentExpression
           name: B
           element2: <testLibrary>::@class::B
           type: B
-        element: <testLibraryFragment>::@class::B::@constructor::new#element
+        element: <testLibrary>::@class::B::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -2383,11 +2453,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -2415,7 +2485,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -2428,13 +2498,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2468,7 +2538,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -2481,13 +2551,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  readElement2: <testLibrary>::@mixin::M2::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@mixin::M2::@setter::x#element
+  writeElement2: <testLibrary>::@mixin::M2::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2513,7 +2583,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -2528,9 +2598,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -2557,7 +2627,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -2570,11 +2640,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -2701,14 +2771,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+      ],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2716,7 +2789,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2743,13 +2816,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -2757,7 +2831,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2784,7 +2858,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   set foo(int _) {}
 }
@@ -2792,9 +2867,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2802,7 +2877,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2815,9 +2890,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  readElement2: <testLibrary>::@extension::E::@setter::foo
   readType: InvalidType
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: InvalidType
@@ -2845,7 +2920,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2856,11 +2931,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2872,7 +2947,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
@@ -2880,9 +2956,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2890,7 +2966,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2901,13 +2977,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
+  readElement2: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@getter::foo
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -2917,7 +2993,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
@@ -2925,9 +3002,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -2935,7 +3012,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2950,7 +3027,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@getter::foo
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -2979,7 +3056,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -2990,13 +3067,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@getter::foo#element
+  readElement2: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3023,7 +3100,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({int bar})
     operator: .
     propertyName: SimpleIdentifier
@@ -3034,11 +3111,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
+  writeElement2: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -3050,13 +3127,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3064,7 +3142,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3075,13 +3153,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3091,13 +3169,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3105,7 +3184,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3132,7 +3211,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
@@ -3140,9 +3220,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3150,7 +3230,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3161,13 +3241,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3177,7 +3257,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
@@ -3185,9 +3266,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3195,7 +3276,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3222,7 +3303,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
@@ -3230,9 +3312,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3240,7 +3322,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3251,13 +3333,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3267,7 +3349,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
@@ -3275,9 +3358,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3285,7 +3368,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3312,7 +3395,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3321,9 +3405,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3331,7 +3415,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3342,13 +3426,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3358,7 +3442,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3367,9 +3452,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3377,7 +3462,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({String bar, int foo})
     operator: .
     propertyName: SimpleIdentifier
@@ -3404,14 +3489,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$4 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+      ],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3419,7 +3507,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3446,13 +3534,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$4 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3460,7 +3549,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3487,7 +3576,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
@@ -3495,9 +3585,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3505,7 +3595,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3516,13 +3606,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@getter::$3#element
+  readElement2: <testLibrary>::@extension::E::@getter::$3
   readType: int
-  writeElement2: <testLibraryFragment>::@extension::E::@getter::$3#element
+  writeElement2: <testLibrary>::@extension::E::@getter::$3
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3532,7 +3622,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
@@ -3540,9 +3631,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3550,7 +3641,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3565,7 +3656,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@getter::$3#element
+  writeElement2: <testLibrary>::@extension::E::@getter::$3
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3577,13 +3668,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$1 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3591,7 +3683,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3602,13 +3694,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3618,13 +3710,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$1 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3632,7 +3725,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3659,7 +3752,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
@@ -3667,9 +3761,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3677,7 +3771,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3688,13 +3782,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: <null>
   readType: int
   writeElement2: <null>
   writeType: InvalidType
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3704,7 +3798,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
@@ -3712,9 +3807,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3722,7 +3817,7 @@ AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
       token: r
-      element: <testLibraryFragment>::@function::f::@parameter::r#element
+      element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (int, String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3778,13 +3873,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -3818,25 +3913,26 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_propertyAccess_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   (a).b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1)],
+    );
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -3861,7 +3957,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
@@ -3873,13 +3969,14 @@ AssignmentExpression
   }
 
   test_propertyAccess_unresolved2_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   (a).b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1)],
+    );
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -3890,7 +3987,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
       rightParenthesis: )
       staticType: int
@@ -3904,7 +4001,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: c
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
   readElement2: <null>
   readType: null
@@ -3916,22 +4013,23 @@ AssignmentExpression
   }
 
   test_right_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f(Object a) {
     a = super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::A::@method::f::@parameter::a#element
+    element: <testLibrary>::@class::A::@method::f::@formalParameter::a
     staticType: null
   operator: =
   rightHandSide: SuperExpression
@@ -3939,7 +4037,7 @@ AssignmentExpression
     staticType: A
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@method::f::@parameter::a#element
+  writeElement2: <testLibrary>::@class::A::@method::f::@formalParameter::a
   writeType: Object
   element: <null>
   staticType: A
@@ -3968,11 +4066,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@setter::x#element
+  writeElement2: <testLibrary>::@class::C::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4001,11 +4099,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@setter::x#element
+  writeElement2: <testLibrary>::@class::C::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4013,7 +4111,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterInstance_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   num get x => 0;
 
@@ -4021,9 +4120,9 @@ class C {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4040,7 +4139,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@getter::x#element
+  writeElement2: <testLibrary>::@class::C::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4048,7 +4147,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterStatic_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static num get x => 0;
 
@@ -4056,9 +4156,9 @@ class C {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4075,7 +4175,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::C::@getter::x#element
+  writeElement2: <testLibrary>::@class::C::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4083,15 +4183,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterTopLevel_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get x => 0;
 
 void f() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4108,7 +4209,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@getter::x#element
+  writeElement2: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4116,7 +4217,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math' as x;
 
 class A {
@@ -4128,9 +4230,15 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 85, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          85,
+          1,
+        ),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4155,15 +4263,22 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math' as x;
 
 main() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 37, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          37,
+          1,
+        ),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4207,13 +4322,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 3
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
   readElement2: x@51
   readType: num
   writeElement2: x@51
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: num
 ''');
   }
@@ -4250,15 +4365,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableConst_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   // ignore:unused_local_variable
   const num x = 1;
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4283,15 +4399,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableFinal_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   // ignore:unused_local_variable
   final num x = 1;
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4328,16 +4445,16 @@ void f(num? x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ??=
   rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: num?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: num?
   element: <null>
   staticType: num
@@ -4345,7 +4462,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B extends A {}
 class C extends A {}
@@ -4353,9 +4471,9 @@ class C extends A {}
 void f(B? x) {
   x ??= C();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3)],
+    );
 
     var assignment = findNode.assignment('x ??=');
 
@@ -4363,7 +4481,7 @@ void f(B? x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ??=
   rightHandSide: InstanceCreationExpression
@@ -4372,15 +4490,15 @@ AssignmentExpression
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     correspondingParameter: <null>
     staticType: C
-  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::x
   readType: B?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: B?
   element: <null>
   staticType: A
@@ -4388,13 +4506,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(double? a, int b) {
   a ??= b;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1)],
+    );
 
     var assignment = findNode.assignment('a ??=');
 
@@ -4402,17 +4521,17 @@ void f(double? a, int b) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: b
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    element: <testLibrary>::@function::f::@formalParameter::b
     staticType: int
-  readElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::a
   readType: double?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::a#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::a
   writeType: double?
   element: <null>
   staticType: num
@@ -4420,19 +4539,22 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   x += 1.2;
   x -= 1.2;
   x *= 1.2;
   x %= 1.2;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
+      ],
+    );
     assertType(findNode.assignment('+='), 'double');
     assertType(findNode.assignment('-='), 'double');
     assertType(findNode.assignment('*='), 'double');
@@ -4469,7 +4591,7 @@ void f(num x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -4478,7 +4600,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4500,7 +4622,7 @@ void f(Object x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -4509,7 +4631,7 @@ AssignmentExpression
     staticType: double
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <null>
   staticType: double
@@ -4517,13 +4639,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_simple_notAssignableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   x = true;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4)],
+    );
 
     var assignment = findNode.assignment('x = true');
 
@@ -4531,7 +4654,7 @@ void f(int x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: BooleanLiteral
@@ -4540,7 +4663,7 @@ AssignmentExpression
     staticType: bool
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: <null>
   staticType: bool
@@ -4548,13 +4671,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameterFinal_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(final int x) {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4562,7 +4686,7 @@ void f(final int x) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -4571,7 +4695,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: <null>
   staticType: int
@@ -4579,7 +4703,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticGetter_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4591,10 +4716,12 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4611,7 +4738,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::B::@getter::x#element
+  writeElement2: <testLibrary>::@class::B::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4619,7 +4746,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticMethod_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4631,10 +4759,12 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4651,7 +4781,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::B::@method::x#element
+  writeElement2: <testLibrary>::@class::B::@method::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4682,11 +4812,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4694,13 +4824,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_synthetic_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int y) {
   = y;
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -4714,7 +4845,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: y
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::y#element
+    element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement2: <null>
   readType: null
@@ -4751,11 +4882,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -4785,13 +4916,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::C::@getter::x#element
+  readElement2: <testLibrary>::@class::C::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::C::@setter::x#element
+  writeElement2: <testLibrary>::@class::C::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -4826,13 +4957,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  readElement2: <testLibrary>::@mixin::M2::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@mixin::M2::@setter::x#element
+  writeElement2: <testLibrary>::@mixin::M2::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -4862,9 +4993,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibraryFragment>::@class::C::@getter::x#element
+  readElement2: <testLibrary>::@class::C::@getter::x
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::C::@setter::x#element
+  writeElement2: <testLibrary>::@class::C::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -4872,7 +5003,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4885,9 +5017,9 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4904,7 +5036,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@getter::x#element
+  writeElement2: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4932,19 +5064,20 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   x ??= C();
 }
@@ -4955,9 +5088,9 @@ class C extends A {}
 
 B? get x => B();
 set x(B? _) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3)],
+    );
 
     var assignment = findNode.assignment('x ??=');
 
@@ -4974,15 +5107,15 @@ AssignmentExpression
         name: C
         element2: <testLibrary>::@class::C
         type: C
-      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     correspondingParameter: <null>
     staticType: C
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: B?
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: B?
   element: <null>
   staticType: A
@@ -5012,13 +5145,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@getter::x#element
+  readElement2: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
-  element: dart:core::<fragment>::@class::num::@method::+#element
+  element: dart:core::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -5043,11 +5176,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -5055,15 +5188,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariable_simple_notAssignableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int x = 0;
 
 void f() {
   x = true;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4)],
+    );
 
     var assignment = findNode.assignment('x = true');
 
@@ -5076,11 +5210,11 @@ AssignmentExpression
   operator: =
   rightHandSide: BooleanLiteral
     literal: true
-    correspondingParameter: <testLibraryFragment>::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
     staticType: bool
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@setter::x#element
+  writeElement2: <testLibrary>::@setter::x
   writeType: int
   element: <null>
   staticType: bool
@@ -5088,15 +5222,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariableFinal_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final num x = 0;
 
 void f() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -5113,7 +5248,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@getter::x#element
+  writeElement2: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -5121,13 +5256,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int += 3;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+    );
 
     var assignment = findNode.assignment('int += 3');
 
@@ -5152,13 +5288,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+    );
 
     var assignment = findNode.assignment('int = 0');
 
@@ -5183,13 +5320,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   x += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var assignment = findNode.assignment('x += 1');
 
@@ -5214,13 +5352,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   x = a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('x = a');
 
@@ -5234,7 +5373,7 @@ AssignmentExpression
   rightHandSide: SimpleIdentifier
     token: a
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
   readElement2: <null>
   readType: null
@@ -5248,14 +5387,6 @@ AssignmentExpression
 
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
-  @override
-  List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_3.enableString,
-    ];
-  }
-
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -5272,27 +5403,29 @@ f(Object? o, C2<double> c2) {
 ''');
 
     assertResolvedNodeText(
-        findNode.assignment('o ??= c2'), r'''AssignmentExpression
+      findNode.assignment('o ??= c2'),
+      r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
-    element: <testLibraryFragment>::@function::f::@parameter::o#element
+    element: <testLibrary>::@function::f::@formalParameter::o
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c2#element
+    element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
   correspondingParameter: ParameterMember
-    baseElement: <testLibraryFragment>::@function::contextB1::@parameter::b1#element
+    baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
-  readElement2: <testLibraryFragment>::@function::f::@parameter::o#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::o
   readType: C1<int>?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::o#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::o
   writeType: Object?
   element: <null>
   staticType: B1<Object?>
-''');
+''',
+    );
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -5305,24 +5438,26 @@ f(Object? o1, Object? o2, int? i) {
 ''');
 
     assertResolvedNodeText(
-        findNode.assignment('o2 ??= i'), r'''AssignmentExpression
+      findNode.assignment('o2 ??= i'),
+      r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o2
-    element: <testLibraryFragment>::@function::f::@parameter::o2#element
+    element: <testLibrary>::@function::f::@formalParameter::o2
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: i
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::i#element
+    element: <testLibrary>::@function::f::@formalParameter::i
     staticType: int?
-  readElement2: <testLibraryFragment>::@function::f::@parameter::o2#element
+  readElement2: <testLibrary>::@function::f::@formalParameter::o2
   readType: double?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::o2#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::o2
   writeType: Object?
   element: <null>
   staticType: num?
-''');
+''',
+    );
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
@@ -5344,18 +5479,18 @@ f(Object? o, C2 c2) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
-    element: <testLibraryFragment>::@function::f::@parameter::o#element
+    element: <testLibrary>::@function::f::@formalParameter::o
     staticType: null
   operator: ??=
   rightHandSide: SimpleIdentifier
     token: c2
     correspondingParameter: <null>
-    element: <testLibraryFragment>::@function::f::@parameter::c2#element
+    element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
-  correspondingParameter: <testLibraryFragment>::@function::contextB1::@parameter::b1#element
-  readElement2: <testLibraryFragment>::@function::f::@parameter::o#element
+  correspondingParameter: <testLibrary>::@function::contextB1::@formalParameter::b1
+  readElement2: <testLibrary>::@function::f::@formalParameter::o
   readType: C1?
-  writeElement2: <testLibraryFragment>::@function::f::@parameter::o#element
+  writeElement2: <testLibrary>::@function::f::@formalParameter::o
   writeType: Object?
   element: <null>
   staticType: B1

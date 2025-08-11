@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   switchWithoutDefault();
   switchWithDefault();
@@ -15,8 +15,8 @@ main() {
 // Switch statement without default case.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithoutDefault:Union(null, [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/
-_switchWithoutDefault(/*[exact=JSUInt31|powerset=0]*/ o) {
+/*member: _switchWithoutDefault:Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/
+_switchWithoutDefault(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   var local;
   switch (o) {
     case 0:
@@ -29,7 +29,7 @@ _switchWithoutDefault(/*[exact=JSUInt31|powerset=0]*/ o) {
   return local;
 }
 
-/*member: switchWithoutDefault:[null|powerset=1]*/
+/*member: switchWithoutDefault:[null|powerset={null}]*/
 switchWithoutDefault() {
   _switchWithoutDefault(0);
   _switchWithoutDefault(1);
@@ -39,8 +39,8 @@ switchWithoutDefault() {
 // Switch statement with default case.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithDefault:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_switchWithDefault(/*[exact=JSUInt31|powerset=0]*/ o) {
+/*member: _switchWithDefault:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_switchWithDefault(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   var local;
   switch (o) {
     case 0:
@@ -54,7 +54,7 @@ _switchWithDefault(/*[exact=JSUInt31|powerset=0]*/ o) {
   return local;
 }
 
-/*member: switchWithDefault:[null|powerset=1]*/
+/*member: switchWithDefault:[null|powerset={null}]*/
 switchWithDefault() {
   _switchWithDefault(0);
   _switchWithDefault(1);
@@ -64,8 +64,8 @@ switchWithDefault() {
 // Switch statement with default case without break.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithDefaultWithoutBreak:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_switchWithDefaultWithoutBreak(/*[exact=JSUInt31|powerset=0]*/ o) {
+/*member: _switchWithDefaultWithoutBreak:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_switchWithDefaultWithoutBreak(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   var local;
   switch (o) {
     case 0:
@@ -78,7 +78,7 @@ _switchWithDefaultWithoutBreak(/*[exact=JSUInt31|powerset=0]*/ o) {
   return local;
 }
 
-/*member: switchWithDefaultWithoutBreak:[null|powerset=1]*/
+/*member: switchWithDefaultWithoutBreak:[null|powerset={null}]*/
 switchWithDefaultWithoutBreak() {
   _switchWithDefaultWithoutBreak(0);
   _switchWithDefaultWithoutBreak(1);
@@ -88,8 +88,8 @@ switchWithDefaultWithoutBreak() {
 // Switch statement with continue.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithContinue:Union([exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 0)*/
-_switchWithContinue(/*[exact=JSUInt31|powerset=0]*/ o) {
+/*member: _switchWithContinue:Union([exact=JSBool|powerset={I}{O}{N}], [exact=JSString|powerset={I}{O}{I}], powerset: {I}{O}{IN})*/
+_switchWithContinue(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   dynamic local;
   switch (o) {
     case 0:
@@ -97,9 +97,8 @@ _switchWithContinue(/*[exact=JSUInt31|powerset=0]*/ o) {
       continue label;
     label:
     case 1:
-      local =
-          local
-              . /*Union(null, [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/ isEven;
+      local = local
+          . /*Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/ isEven;
       break;
     case 2:
     default:
@@ -108,7 +107,7 @@ _switchWithContinue(/*[exact=JSUInt31|powerset=0]*/ o) {
   return local;
 }
 
-/*member: switchWithContinue:[null|powerset=1]*/
+/*member: switchWithContinue:[null|powerset={null}]*/
 switchWithContinue() {
   _switchWithContinue(0);
   _switchWithContinue(1);
@@ -119,15 +118,15 @@ switchWithContinue() {
 // the continue statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithoutContinue:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
-_switchWithoutContinue(/*[exact=JSUInt31|powerset=0]*/ o) {
+/*member: _switchWithoutContinue:Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/
+_switchWithoutContinue(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   dynamic local;
   switch (o) {
     case 0:
       local = 0;
       break;
     case 1:
-      local = local. /*[null|powerset=1]*/ isEven;
+      local = local. /*[null|powerset={null}]*/ isEven;
       break;
     case 2:
     default:
@@ -136,7 +135,7 @@ _switchWithoutContinue(/*[exact=JSUInt31|powerset=0]*/ o) {
   return local;
 }
 
-/*member: switchWithoutContinue:[null|powerset=1]*/
+/*member: switchWithoutContinue:[null|powerset={null}]*/
 switchWithoutContinue() {
   _switchWithoutContinue(0);
   _switchWithoutContinue(1);

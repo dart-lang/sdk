@@ -17,13 +17,6 @@ library;
 //     const Class(length: this.length);
 //                              ^
 //
-// pkg/front_end/testcases/general/issue43290.dart:15:11: Error: Constant evaluation error:
-//     const Class(length: length);
-//           ^
-// pkg/front_end/testcases/general/issue43290.dart:15:25: Context: Not a constant expression.
-//     const Class(length: length);
-//                         ^
-//
 // pkg/front_end/testcases/general/issue43290.dart:19:20: Error: Constant evaluation error:
 //     const a = this.length;
 //                    ^
@@ -32,16 +25,6 @@ library;
 //                    ^
 // pkg/front_end/testcases/general/issue43290.dart:19:11: Context: While analyzing:
 //     const a = this.length;
-//           ^
-//
-// pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Constant evaluation error:
-//     const a = length;
-//               ^
-// pkg/front_end/testcases/general/issue43290.dart:23:15: Context: Not a constant expression.
-//     const a = length;
-//               ^
-// pkg/front_end/testcases/general/issue43290.dart:23:11: Context: While analyzing:
-//     const a = length;
 //           ^
 //
 import self as self;
@@ -56,13 +39,17 @@ class Class extends core::Object /*hasConstConstructor*/  {
     invalid-expression "Not a constant expression.";
   }
   method method1b() → dynamic {
-    invalid-expression "Not a constant expression.";
+    invalid-expression "pkg/front_end/testcases/general/issue43290.dart:15:25: Error: Not a constant expression.
+    const Class(length: length);
+                        ^^^^^^";
   }
   method method2a() → dynamic {
     const core::int a = invalid-expression "Not a constant expression.";
   }
   method method2b() → dynamic {
-    const core::int a = invalid-expression "Not a constant expression.";
+    const invalid-type a = invalid-expression "pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Not a constant expression.
+    const a = length;
+              ^^^^^^";
   }
 }
 static method main() → dynamic {}

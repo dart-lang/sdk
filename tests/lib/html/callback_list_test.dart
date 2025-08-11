@@ -34,8 +34,10 @@ void main() async {
 }
 
 Future _quotaHandler(int byteCount) async {
-  FileSystem filesystem =
-      await window.requestFileSystem(1024 * 1024, persistent: true);
+  FileSystem filesystem = await window.requestFileSystem(
+    1024 * 1024,
+    persistent: true,
+  );
   DirectoryEntry dir = await filesystem.root!;
   DirectoryReader dirReader = dir.createReader();
   await dirReader.readEntries();

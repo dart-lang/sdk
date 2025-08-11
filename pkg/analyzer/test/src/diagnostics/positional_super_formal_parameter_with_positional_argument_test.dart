@@ -10,7 +10,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        PositionalSuperFormalParameterWithPositionalArgumentTest);
+      PositionalSuperFormalParameterWithPositionalArgumentTest,
+    );
   });
 }
 
@@ -30,7 +31,8 @@ class B extends A {
   }
 
   test_reported() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a, int b);
 }
@@ -38,12 +40,15 @@ class A {
 class B extends A {
   B(super.b) : super(0);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
           62,
-          1)
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

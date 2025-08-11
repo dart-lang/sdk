@@ -7,7 +7,6 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -114,16 +113,15 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Return `true` if the specified [expression] has the lint fixed by this
-  /// producer.
+  /// Whether the specified [expression] has the lint fixed by this producer.
   bool _hasLint(InstanceCreationExpression expression) {
     var constructorName = expression.constructorName;
-    return unitResult.errors.any((error) {
-      var errorCode = error.errorCode;
-      return errorCode.type == ErrorType.LINT &&
-          errorCode == LinterLintCode.use_decorated_box &&
-          error.offset == constructorName.offset &&
-          error.length == constructorName.length;
+    return unitResult.diagnostics.any((d) {
+      var diagnosticCode = d.diagnosticCode;
+      return diagnosticCode.type == DiagnosticType.LINT &&
+          diagnosticCode == LinterLintCode.use_decorated_box &&
+          d.offset == constructorName.offset &&
+          d.length == constructorName.length;
     });
   }
 }

@@ -13,16 +13,17 @@ import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -35,6 +36,8 @@ import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart' as watcher;
 import 'package:yaml/yaml.dart';
+
+const _builtAsAot = bool.fromEnvironment('built_as_aot');
 
 /// Information about a plugin that is built-in.
 class BuiltInPluginInfo extends PluginInfo {
@@ -685,6 +688,54 @@ class PluginManager {
     );
   }
 
+  /// Compiles [entrypoint] to an AOT snapshot and records timing to the
+  /// instrumentation log.
+  ProcessResult _compileAotSnapshot(String entrypoint) {
+    instrumentationService.logInfo(
+      'Running "dart compile aot-snapshot $entrypoint".',
+    );
+
+    var stopwatch = Stopwatch()..start();
+    var result = Process.runSync(
+      sdk.dart,
+      ['compile', 'aot-snapshot', entrypoint],
+      stderrEncoding: utf8,
+      stdoutEncoding: utf8,
+    );
+    stopwatch.stop();
+
+    instrumentationService.logInfo(
+      'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
+    );
+
+    return result;
+  }
+
+  /// Compiles [pluginFile], in [pluginFolder], to an AOT snapshot, and returns
+  /// the [File] for the snapshot.
+  File _compileAsAot({required File pluginFile, required Folder pluginFolder}) {
+    // When the Dart Analysis Server is built as AOT, then all spawned
+    // Isolates must also be built as AOT.
+    var aotResult = _compileAotSnapshot(pluginFile.path);
+    if (aotResult.exitCode != 0) {
+      var buffer = StringBuffer();
+      buffer.writeln(
+        'Failed to compile "${pluginFile.path}" to an AOT snapshot.',
+      );
+      buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+      buffer.writeln('  exitCode = ${aotResult.exitCode}');
+      buffer.writeln('  stdout = ${aotResult.stdout}');
+      buffer.writeln('  stderr = ${aotResult.stderr}');
+      var exceptionReason = buffer.toString();
+      instrumentationService.logError(exceptionReason);
+      throw PluginException(exceptionReason);
+    }
+
+    return pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.aot');
+  }
+
   /// Computes the plugin files, given that the plugin should exist in
   /// [pluginFolder].
   ///
@@ -705,17 +756,17 @@ class PluginManager {
         .getChildAssumingFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
-      var result = _runPubCommand(pubCommand, pluginFolder);
+      var pubResult = _runPubCommand(pubCommand, pluginFolder);
       String? exceptionReason;
-      if (result.exitCode != 0) {
+      if (pubResult.exitCode != 0) {
         var buffer = StringBuffer();
         buffer.writeln(
           'An error occurred while setting up the analyzer plugin package at '
           "'${pluginFolder.path}'. The `dart pub $pubCommand` command failed:",
         );
-        buffer.writeln('  exitCode = ${result.exitCode}');
-        buffer.writeln('  stdout = ${result.stdout}');
-        buffer.writeln('  stderr = ${result.stderr}');
+        buffer.writeln('  exitCode = ${pubResult.exitCode}');
+        buffer.writeln('  stdout = ${pubResult.stdout}');
+        buffer.writeln('  stderr = ${pubResult.stderr}');
         exceptionReason = buffer.toString();
         instrumentationService.logError(exceptionReason);
         notificationManager.handlePluginError(exceptionReason);
@@ -724,6 +775,15 @@ class PluginManager {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
         throw PluginException(exceptionReason);
       }
+
+      if (_builtAsAot) {
+        // Update the entrypoint path to be the AOT-compiled file.
+        pluginFile = _compileAsAot(
+          pluginFile: pluginFile,
+          pluginFolder: pluginFolder,
+        );
+      }
+
       return PluginFiles(pluginFile, packageConfigFile);
     }
 
@@ -742,6 +802,14 @@ class PluginManager {
           "the workspace at '$workspace'.",
         );
       }
+    }
+
+    if (_builtAsAot) {
+      // Update the entrypoint path to be the AOT-compiled file.
+      pluginFile = _compileAsAot(
+        pluginFile: pluginFile,
+        pluginFolder: pluginFolder,
+      );
     }
     return PluginFiles(pluginFile, packageConfigFile);
   }
@@ -819,9 +887,7 @@ class PluginManager {
         }
         packageConfigFile.writeAsStringSync(
           packageConfigBuilder.toContent(
-            toUriStr: (path) {
-              return resourceProvider.pathContext.toUri(path).toString();
-            },
+            pathContext: resourceProvider.pathContext,
           ),
         );
       } catch (exception) {
@@ -856,13 +922,13 @@ class PluginManager {
   /// [pubCommand] in [folder].
   ProcessResult _runPubCommand(String pubCommand, Folder folder) {
     instrumentationService.logInfo(
-      'Running "pub $pubCommand" in "${folder.path}"',
+      'Running "pub $pubCommand" in "${folder.path}".',
     );
 
     var stopwatch = Stopwatch()..start();
     var result = Process.runSync(
-      Platform.executable,
-      <String>['pub', pubCommand],
+      sdk.dart,
+      ['pub', pubCommand],
       stderrEncoding: utf8,
       stdoutEncoding: utf8,
       workingDirectory: folder.path,
@@ -871,7 +937,7 @@ class PluginManager {
     stopwatch.stop();
 
     instrumentationService.logInfo(
-      'Running "pub $pubCommand" took ${stopwatch.elapsed}',
+      'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );
 
     return result;
@@ -995,7 +1061,7 @@ class PluginSession {
   }
 
   /// Handle the fact that an unhandled error has occurred in the plugin.
-  void handleOnError(dynamic error) {
+  void handleOnError(Object? error) {
     if (error case [String message, String stackTraceString]) {
       var stackTrace = StackTrace.fromString(stackTraceString);
       var exception = PluginException(message);

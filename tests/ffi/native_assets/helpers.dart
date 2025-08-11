@@ -28,8 +28,8 @@ final ffiTestFunctionsFileName = dylibName('ffi_test_functions');
 
 final cwdUri = Directory.current.uri;
 
-final platformExecutableUriAbsolute = cwdUri.resolve(
-  Platform.executable.replaceAll('\\', '/'),
+final platformExecutableUriAbsolute = cwdUri.resolveUri(
+  Uri.file(Platform.resolvedExecutable),
 );
 
 /// The build folder on desktop platforms.
@@ -64,7 +64,7 @@ final dartPrecompiledRuntimeUri = buildUriAbsolute.resolve(
   'dartaotruntime$standaloneExtensionExe',
 );
 
-final platformDillUri = buildUriAbsolute.resolve('vm_platform_strong.dill');
+final platformDillUri = buildUriAbsolute.resolve('vm_platform.dill');
 
 final packageConfigUri = sdkUriAbsolute.resolve(
   '.dart_tool/package_config.json',
@@ -112,7 +112,8 @@ Future<void> runProcess({
     workingDirectory: workingDirectory?.toFilePath(),
   );
   if (printProcessOutput || result.exitCode != 0) {
-    final processOutputString = '''
+    final processOutputString =
+        '''
 invocation : $executable ${arguments.join(' ')}
 dir        : ${workingDirectory?.toFilePath() ?? Directory.current.path}
 exitCode   : ${result.exitCode}
@@ -189,10 +190,12 @@ Future<void> createDillFile({
           nativeAssetsUri: nativeAssetsUri,
         ),
       ]);
-      final programKernelBytes =
-          await File.fromUri(programDillUri).readAsBytes();
-      final nativeAssetKernelBytes =
-          await File.fromUri(nativeAssetsDillUri).readAsBytes();
+      final programKernelBytes = await File.fromUri(
+        programDillUri,
+      ).readAsBytes();
+      final nativeAssetKernelBytes = await File.fromUri(
+        nativeAssetsDillUri,
+      ).readAsBytes();
       await File.fromUri(
         protobufAwareTreeshaking ? preTreeshakenDill : outputUri,
       ).writeAsBytes([
@@ -253,10 +256,13 @@ Future<void> runGenSnapshot({
       // `computeAssembleCommand`.
       if (Platform.isMacOS) {
         await runProcess(
-          executable: 'clang',
+          executable: Abi.current() == Abi.macosArm64
+              ? 'buildtools/mac-arm64/clang/bin/clang'
+              : 'buildtools/mac-x64/clang/bin/clang',
           arguments: [
             '-Wl,-undefined,error',
             '-Wl,-no_compact_unwind',
+            '-nostdlib',
             '-dynamiclib',
             '-o',
             outputUri.toFilePath(),

@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,10 +60,14 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   static List<ElementKind> invocationKinds = [
     ElementKind.classKind,
     ElementKind.constructorKind,
+    ElementKind.enumKind,
     ElementKind.extensionKind,
+    ElementKind.extensionTypeKind,
     ElementKind.functionKind,
     ElementKind.getterKind,
     ElementKind.methodKind,
+    ElementKind.mixinKind,
+    ElementKind.typedefKind,
   ];
 
   /// The kinds that are expected where a method or constructor is allowed.
@@ -76,6 +80,7 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   static List<ElementKind> typeKinds = [
     ElementKind.classKind,
     ElementKind.enumKind,
+    ElementKind.extensionTypeKind,
     ElementKind.mixinKind,
     ElementKind.typedefKind,
   ];

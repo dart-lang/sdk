@@ -258,14 +258,14 @@ class OutputStructure extends OutputEntity {
   }
 
   static OutputStructure fromJson(Map json, JsonStrategy strategy) {
-    List<CodeLine> lines =
-        json['lines'].map((l) => CodeLine.fromJson(l, strategy)).toList();
+    List<CodeLine> lines = json['lines']
+        .map((l) => CodeLine.fromJson(l, strategy))
+        .toList();
     int headerEnd = json['headerEnd'];
     int footerStart = json['footerStart'];
-    List<LibraryBlock> children =
-        json['children']
-            .map((j) => AbstractEntity.fromJson(j, strategy))
-            .toList();
+    List<LibraryBlock> children = json['children']
+        .map((j) => AbstractEntity.fromJson(j, strategy))
+        .toList();
     return OutputStructure(lines, headerEnd, footerStart, children);
   }
 }
@@ -303,19 +303,17 @@ abstract class AbstractEntity extends OutputEntity {
       case EntityKind.STRUCTURE:
         throw StateError('Unexpected entity kind $kind');
       case EntityKind.LIBRARY:
-        LibraryBlock lib =
-            LibraryBlock(name, from)
-              ..to = to
-              ..codeSource = codeSource;
+        LibraryBlock lib = LibraryBlock(name, from)
+          ..to = to
+          ..codeSource = codeSource;
         json['children'].forEach(
           (child) => lib.children.add(fromJson(child, strategy) as BasicEntity),
         );
         return lib;
       case EntityKind.CLASS:
-        LibraryClass cls =
-            LibraryClass(name, from)
-              ..to = to
-              ..codeSource = codeSource;
+        LibraryClass cls = LibraryClass(name, from)
+          ..to = to
+          ..codeSource = codeSource;
         json['children'].forEach(
           (child) => cls.children.add(fromJson(child, strategy) as BasicEntity),
         );
@@ -341,10 +339,9 @@ abstract class AbstractEntity extends OutputEntity {
           ..to = to
           ..codeSource = codeSource;
       case EntityKind.STATICS:
-        Statics statics =
-            Statics(from)
-              ..to = to
-              ..codeSource = codeSource;
+        Statics statics = Statics(from)
+          ..to = to
+          ..codeSource = codeSource;
         json['children'].forEach(
           (child) =>
               statics.children.add(fromJson(child, strategy) as BasicEntity),

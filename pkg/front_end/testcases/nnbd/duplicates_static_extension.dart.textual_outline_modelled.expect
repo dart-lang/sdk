@@ -1,5 +1,3 @@
-expect(expected, actual) {}
-
 extension Extension on int {
   static final int staticDuplicateFieldAndDuplicateSetter = 1;
   static final int staticDuplicateFieldAndDuplicateSetter = 2;
@@ -33,10 +31,4 @@ extension Extension on int {
   static void set staticSetter(value) {}
 }
 
-main() {}
-
 test() {}
-
-throws(dynamic Function() f) {}
-
-var result;

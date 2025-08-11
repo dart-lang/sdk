@@ -6,8 +6,10 @@ part of '../types.dart';
 
 /// Interface implemented by analyzer/CFE to support [StaticType]s for sealed
 /// classes.
-abstract class SealedClassOperations<Type extends Object,
-    Class extends Object> {
+abstract class SealedClassOperations<
+  Type extends Object,
+  Class extends Object
+> {
   /// Returns the sealed class declaration for [type] or `null` if [type] is not
   /// a sealed class type.
   Class? getSealedClass(Type type);
@@ -56,9 +58,14 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   final SealedClassInfo<Type, Class> _sealedInfo;
   Iterable<StaticType>? _subtypes;
 
-  SealedClassStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this._cache, this._sealedClassOperations, this._sealedInfo)
-      : super(isImplicitlyNullable: false);
+  SealedClassStaticType(
+    super.typeOperations,
+    super.fieldLookup,
+    super.type,
+    this._cache,
+    this._sealedClassOperations,
+    this._sealedInfo,
+  ) : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
@@ -70,8 +77,10 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   List<StaticType> _createSubtypes() {
     List<StaticType> subtypes = [];
     for (Class subClass in _sealedInfo.subClasses) {
-      Type? subtype =
-          _sealedClassOperations.getSubclassAsInstanceOf(subClass, _type);
+      Type? subtype = _sealedClassOperations.getSubclassAsInstanceOf(
+        subClass,
+        _type,
+      );
       if (subtype != null) {
         if (!_typeOperations.isGeneric(subtype)) {
           // If the subtype is not generic, we can test whether it can be an
@@ -91,7 +100,9 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
           //       }
           //     }
           if (!_typeOperations.isSubtypeOf(
-              subtype, _typeOperations.overapproximate(_type))) {
+            subtype,
+            _typeOperations.overapproximate(_type),
+          )) {
             continue;
           }
         }

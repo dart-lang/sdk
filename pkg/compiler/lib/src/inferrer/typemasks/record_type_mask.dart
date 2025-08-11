@@ -36,6 +36,15 @@ class RecordTypeMask extends TypeMask {
         TypeMaskSpecialValue.lateSentinel,
       );
     }
+    powerset = _interceptorDomain.add(
+      powerset,
+      TypeMaskInterceptorProperty.notInterceptor,
+    );
+    powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.other);
+    powerset = _indexableDomain.add(
+      powerset,
+      TypeMaskIndexableProperty.notIndexable,
+    );
     return createRecordWithPowerset(domain, types, shape, powerset);
   }
 
@@ -49,7 +58,7 @@ class RecordTypeMask extends TypeMask {
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType.withPowerset(powerset, domain);
+      return domain.emptyType;
     }
     return RecordTypeMask._(types, shape, powerset);
   }
@@ -155,9 +164,10 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
+  TypeMask _nonEmptyIntersection(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    final powerset = this.powerset.intersection(other.powerset);
+    final powerset = _intersectPowersets(this.powerset, other.powerset);
+
     if (other is RecordTypeMask) {
       if (shape == other.shape) {
         // The two records must have the same shape to have any intersection.
@@ -266,14 +276,8 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
+  bool _isNonTriviallyDisjoint(TypeMask other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
-    // If both this record and `other` include `null` or the late sentinel then
-    // they are trivially not disjoint.
-    if ((isNullable && other.isNullable) ||
-        (hasLateSentinel && other.hasLateSentinel)) {
-      return false;
-    }
     if (other is RecordTypeMask) {
       // Shapes must be different or at least one corresponding field must be
       // disjoint.
@@ -286,7 +290,6 @@ class RecordTypeMask extends TypeMask {
       }
       return false;
     } else if (other is FlatTypeMask) {
-      if (other.isEmptyOrSpecial) return true;
       if (other.containsAll(closedWorld)) return false;
       final otherBase = other.base!;
       final recordClass = _classForRecord(closedWorld);
@@ -371,27 +374,27 @@ class RecordTypeMask extends TypeMask {
     if (domain.closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
       return isNullable
           ? FlatTypeMask.subclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullSubclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     } else {
       return isNullable
           ? FlatTypeMask.exact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullExact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     }
   }
 

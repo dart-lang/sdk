@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-strong
 import 'package:expect/expect.dart';
 
 class Foo {
@@ -35,13 +34,14 @@ main() {
   dynamic tearOff = baz;
   Expect.throwsNoSuchMethodError(() => tearOff(a: "aa", c: "cc", d: "dd"));
 
-  dynamic closure = ({
-    required String a,
-    required String b,
-    required String c,
-    required String d,
-  }) {
-    return a.length + b.length + c.length + d.length;
-  };
+  dynamic closure =
+      ({
+        required String a,
+        required String b,
+        required String c,
+        required String d,
+      }) {
+        return a.length + b.length + c.length + d.length;
+      };
   Expect.throwsNoSuchMethodError(() => closure(a: "aa", c: "cc", d: "dd"));
 }

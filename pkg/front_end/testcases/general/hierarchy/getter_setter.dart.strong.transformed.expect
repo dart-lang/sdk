@@ -1,0 +1,219 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:87:16: Error: Applying the mixin 'Mixin' to 'Super' introduces an erroneous override of 'extendedGetterMixedInField'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:28:7: Context: The return type of the method 'Mixin.extendedGetterMixedInField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterMixedInField'.
+// Change to a subtype of 'String'.
+//   int extendedGetterMixedInField = 0;
+//       ^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:7:14: Context: This is the overridden method ('extendedGetterMixedInField').
+//   String get extendedGetterMixedInField => '';
+//              ^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:90:7: Error: The return type of the method 'Class.extendedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int extendedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:6:14: Context: This is the overridden method ('extendedGetterDeclaredField').
+//   String get extendedGetterDeclaredField => '';
+//              ^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:96:7: Error: The return type of the method 'Class.mixedInGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super with Mixin.mixedInGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int mixedInGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:87:16: Context: This is the overridden method ('mixedInGetterDeclaredField').
+// abstract class Class extends Super
+//                ^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:102:7: Error: The return type of the method 'Class.implementedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Interface1.implementedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int implementedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:63:14: Context: This is the overridden method ('implementedGetterDeclaredField').
+//   String get implementedGetterDeclaredField => '';
+//              ^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'Mixin.mixedInGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'Mixin.mixedInGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:35:14: Context: This is one of the overridden members.
+//   String get mixedInGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:57:7: Context: This is one of the overridden members.
+//   int mixedInGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'extendedGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'extendedGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:8:14: Context: This is one of the overridden members.
+//   String get extendedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:51:7: Context: This is one of the overridden members.
+//   int extendedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'implementedGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'implementedGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:64:14: Context: This is one of the overridden members.
+//   String get implementedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/getter_setter.dart:80:7: Context: This is one of the overridden members.
+//   int implementedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  final field core::String extendedFieldDeclaredSetter = "";
+  final field core::String extendedFieldMixedInSetter = "";
+  final field core::String extendedFieldImplementedSetter = "";
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  get extendedGetterDeclaredField() → core::String
+    return "";
+  get extendedGetterMixedInField() → core::String
+    return "";
+  get extendedGetterImplementedField() → core::String
+    return "";
+  get extendedGetterDeclaredSetter() → core::String
+    return "";
+  get extendedGetterMixedInSetter() → core::String
+    return "";
+  get extendedGetterImplementedSetter() → core::String
+    return "";
+  set extendedSetterDeclaredField(core::int value) → void {}
+  set extendedSetterMixedInField(core::int value) → void {}
+  set extendedSetterImplementedField(core::int value) → void {}
+  set extendedSetterDeclaredGetter(core::int value) → void {}
+  set extendedSetterMixedInGetter(core::int value) → void {}
+  set extendedSetterImplementedGetter(core::int value) → void {}
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::int extendedGetterMixedInField = 0;
+  final field core::String extendedSetterMixedInField = "";
+  final field core::String mixedInFieldDeclaredSetter = "";
+  final field core::String mixedInFieldImplementedSetter = "";
+  set extendedGetterMixedInSetter(core::int value) → void {}
+  set extendedFieldMixedInSetter(core::int value) → void {}
+  get extendedSetterMixedInGetter() → core::String
+    return "";
+  get mixedInGetterDeclaredField() → core::String
+    return "";
+  get mixedInGetterImplementedField() → core::String
+    return "";
+  get mixedInGetterDeclaredSetter() → core::String
+    return "";
+  get mixedInGetterImplementedSetter() → core::String
+    return "";
+  set mixedInSetterDeclaredField(core::int value) → void {}
+  set mixedInSetterImplementedField(core::int value) → void {}
+  set mixedInSetterDeclaredGetter(core::int value) → void {}
+  set mixedInSetterImplementedGetter(core::int value) → void {}
+}
+abstract class Interface1 extends core::Object {
+  field core::int extendedGetterImplementedField = 0;
+  final field core::String extendedSetterImplementedField = "";
+  field core::int mixedInGetterImplementedField = 0;
+  final field core::String mixedInSetterImplementedField = "";
+  final field core::String implementedFieldDeclaredSetter = "";
+  final field core::String implementedFieldImplementedSetter = "";
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  set extendedGetterImplementedSetter(core::int value) → void {}
+  set extendedFieldImplementedSetter(core::int value) → void {}
+  get extendedSetterImplementedGetter() → core::String
+    return "";
+  set mixedInGetterImplementedSetter(core::int value) → void {}
+  set mixedInFieldImplementedSetter(core::int value) → void {}
+  get mixedInSetterImplementedGetter() → core::String
+    return "";
+  get implementedGetterDeclaredField() → core::String
+    return "";
+  get implementedGetterImplementedField() → core::String
+    return "";
+  get implementedGetterDeclaredSetter() → core::String
+    return "";
+  get implementedGetterImplementedSetter() → core::String
+    return "";
+  set implementedSetterDeclaredField(core::int value) → void {}
+  set implementedSetterImplementedField(core::int value) → void {}
+  set implementedSetterDeclaredGetter(core::int value) → void {}
+  set implementedSetterImplementedGetter(core::int value) → void {}
+}
+abstract class Interface2 extends core::Object {
+  field core::int implementedGetterImplementedField = 0;
+  final field core::String implementedSetterImplementedField = "";
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  set implementedGetterImplementedSetter(core::int value) → void {}
+  set implementedFieldImplementedSetter(core::int value) → void {}
+  get implementedSetterImplementedGetter() → core::String
+    return "";
+}
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
+  erroneous field core::int extendedGetterDeclaredField = 0;
+  final field core::String extendedSetterDeclaredField = "";
+  erroneous field core::int mixedInGetterDeclaredField = 0;
+  final field core::String mixedInSetterDeclaredField = "";
+  erroneous field core::int implementedGetterDeclaredField = 0;
+  final field core::String implementedSetterDeclaredField = "";
+  final field core::String declaredFieldDeclaredSetter = "";
+  synthetic constructor •() → self::Class
+    : super self::_Class&Super&Mixin::•()
+    ;
+  set extendedGetterDeclaredSetter(core::int value) → void {}
+  set extendedFieldDeclaredSetter(core::int value) → void {}
+  get extendedSetterDeclaredGetter() → core::String
+    return "";
+  set mixedInGetterDeclaredSetter(core::int value) → void {}
+  set mixedInFieldDeclaredSetter(core::int value) → void {}
+  get mixedInSetterDeclaredGetter() → core::String
+    return "";
+  set implementedGetterDeclaredSetter(core::int value) → void {}
+  set implementedFieldDeclaredSetter(core::int value) → void {}
+  get implementedSetterDeclaredGetter() → core::String
+    return "";
+  get declaredGetterDeclaredSetter() → core::String
+    return "";
+  set declaredGetterDeclaredSetter(core::int value) → void {}
+  set declaredFieldDeclaredSetter(core::int value) → void {}
+}
+abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  field core::int extendedGetterMixedInField = 0;
+  final field core::String extendedSetterMixedInField = "";
+  final field core::String mixedInFieldDeclaredSetter = "";
+  final field core::String mixedInFieldImplementedSetter = "";
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  get mixedInGetterDeclaredField() → core::String
+    return "";
+  get mixedInGetterDeclaredSetter() → core::String
+    return "";
+  get extendedSetterMixedInGetter() → core::String
+    return "";
+  get mixedInGetterImplementedField() → core::String
+    return "";
+  get mixedInGetterImplementedSetter() → core::String
+    return "";
+  set mixedInSetterDeclaredField(core::int value) → void {}
+  set mixedInSetterDeclaredGetter(core::int value) → void {}
+  set extendedGetterMixedInSetter(core::int value) → void {}
+  set extendedFieldMixedInSetter(core::int value) → void {}
+  set mixedInSetterImplementedField(core::int value) → void {}
+  set mixedInSetterImplementedGetter(core::int value) → void {}
+}
+static method main() → dynamic {}

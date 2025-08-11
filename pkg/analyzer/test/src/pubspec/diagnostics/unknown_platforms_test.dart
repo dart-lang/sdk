@@ -41,56 +41,74 @@ platforms:
   }
 
   test_unknown_platform_bool() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   True:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_browser() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   browser: # the correct platform is "web"
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_int() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   33:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   [1, 2]:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_null() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   null:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_win32() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   win32: # the correct platform is "windows"
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 }

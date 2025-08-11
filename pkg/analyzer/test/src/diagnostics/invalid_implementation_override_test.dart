@@ -25,44 +25,53 @@ class B extends A<int> {}
   }
 
   test_class_getter_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   num get g => 7;
 }
 class B	extends A {
   int get g;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1)],
+    );
   }
 
   test_class_method_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A	{
   int add(int a, int b) => a + b;
 }
 class B	extends A {
   int add();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3,
-          contextMessages: [message(testFile, 16, 3)]),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          72,
+          3,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_method_abstractOverridesConcrete_expandedParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int add(int a) => a;
 }
 class B	extends A {
   int add(num a);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 41, 1)],
+    );
   }
 
   test_class_method_abstractOverridesConcrete_expandedParameterType_covariant() async {
@@ -77,35 +86,44 @@ class B	extends A {
   }
 
   test_class_method_abstractOverridesConcrete_withOptional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int add() => 7;
 }
 class B	extends A {
   int add([int a = 0, int b = 0]);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1)],
+    );
   }
 
   test_class_method_abstractOverridesConcreteInMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   int add(int a, int b) => a + b;
 }
 class A with M {
   int add();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3,
-          contextMessages: [message(testFile, 16, 3)]),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          69,
+          3,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_method_abstractOverridesConcreteViaMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int add(int a, int b) => a + b;
 }
@@ -113,11 +131,17 @@ mixin M {
   int add();
 }
 class B	extends A with M {}
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
-          contextMessages: [message(testFile, 16, 3)]),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          94,
+          1,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
   }
 
   test_class_method_covariant_inheritance_merge() async {
@@ -141,7 +165,8 @@ class D extends C implements I {}
   }
 
   test_class_setter_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set c(int i) {}
 }
@@ -149,14 +174,21 @@ class A {
 class B extends A {
   set c(num i);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER, 37, 1,
-          messageContains: ["'A.c'", "'B.c'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER,
+          37,
+          1,
+          messageContains: ["'A.c'", "'B.c'"],
+        ),
+      ],
+    );
   }
 
   test_enum_getter_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   num get foo => 0;
 }
@@ -164,13 +196,14 @@ enum E with M {
   v;
   int get foo;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1)],
+    );
   }
 
   test_enum_method_abstractOverridesConcrete() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   num foo() => 0;
 }
@@ -178,13 +211,14 @@ enum E with M {
   v;
   int foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1)],
+    );
   }
 
   test_enum_method_mixin_toString() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class I {
   String toString([int? value]);
 }
@@ -197,8 +231,8 @@ enum E2 implements I {
   v;
   String toString([int? value]) => '';
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2)],
+    );
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -41,10 +41,7 @@ class A {} // 2
       var result = await getFragmentDeclaration(fragment);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
-      expect(
-        node.name.offset,
-        this.result.content.indexOf('A {} // 1'),
-      );
+      expect(node.name.offset, this.result.content.indexOf('A {} // 1'));
     }
 
     {
@@ -52,10 +49,7 @@ class A {} // 2
       var result = await getFragmentDeclaration(fragment);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
-      expect(
-        node.name.offset,
-        this.result.content.indexOf('A {} // 2'),
-      );
+      expect(node.name.offset, this.result.content.indexOf('A {} // 2'));
     }
   }
 
@@ -129,10 +123,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
-      expect(
-        node.name!.offset,
-        this.result.content.indexOf('named(); // 1'),
-      );
+      expect(node.name!.offset, this.result.content.indexOf('named(); // 1'));
     }
 
     {
@@ -140,10 +131,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
-      expect(
-        node.name!.offset,
-        this.result.content.indexOf('named(); // 2'),
-      );
+      expect(node.name!.offset, this.result.content.indexOf('named(); // 2'));
     }
   }
 
@@ -159,10 +147,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(
-        node.returnType.offset,
-        this.result.content.indexOf('A(); // 1'),
-      );
+      expect(node.returnType.offset, this.result.content.indexOf('A(); // 1'));
     }
 
     {
@@ -170,10 +155,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(
-        node.returnType.offset,
-        this.result.content.indexOf('A(); // 2'),
-      );
+      expect(node.returnType.offset, this.result.content.indexOf('A(); // 2'));
     }
   }
 
@@ -246,7 +228,7 @@ void f({@a}) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isNamed, isTrue);
 
     var result = await getFragmentDeclaration(fragment);
@@ -260,7 +242,7 @@ void f(@a) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isPositional, isTrue);
 
     var result = await getFragmentDeclaration(fragment);
@@ -295,7 +277,7 @@ void foo() {}
 typedef F = void Function();
 ''');
     var typeAlias = findElement2.typeAlias('F');
-    var fragment = typeAlias.aliasedElement2!.firstFragment;
+    var fragment = typeAlias.aliasedElement!.firstFragment;
     var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }
@@ -424,8 +406,9 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
-      Fragment fragment) async {
-    var library = fragment.element.library2!;
+    Fragment fragment,
+  ) async {
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var parsedLibrary = await _getParsedLibrary(file);
@@ -443,8 +426,9 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     with GetElementDeclarationMixin {
   @override
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
-      Fragment fragment) async {
-    var library = fragment.element.library2!;
+    Fragment fragment,
+  ) async {
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var resolvedLibrary = await _getResolvedLibrary(file);

@@ -554,6 +554,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitExternalCall(int rd) {
+    _emitInstructionD(Opcode.kExternalCall, rd);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadStatic(int rd) {
     _emitInstructionD(Opcode.kLoadStatic, rd);
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,27 +21,33 @@ class CommentReferenceResolver {
   final TypePropertyResolver _typePropertyResolver;
 
   CommentReferenceResolver(this._typeProvider, this._resolver)
-      : _typePropertyResolver = _resolver.typePropertyResolver;
+    : _typePropertyResolver = _resolver.typePropertyResolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   /// Resolves [commentReference].
   void resolve(CommentReference commentReference) {
-    _resolver.errorReporter.lockLevel++;
+    _resolver.diagnosticReporter.lockLevel++;
     try {
       var expression = commentReference.expression;
       if (expression is SimpleIdentifierImpl) {
-        _resolveSimpleIdentifierReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolveSimpleIdentifierReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       } else if (expression is PrefixedIdentifierImpl) {
-        _resolvePrefixedIdentifierReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolvePrefixedIdentifierReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       } else if (expression is PropertyAccessImpl) {
-        _resolvePropertyAccessReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolvePropertyAccessReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       }
     } finally {
-      _resolver.errorReporter.lockLevel--;
+      _resolver.diagnosticReporter.lockLevel--;
     }
   }
 
@@ -59,7 +65,12 @@ class CommentReferenceResolver {
 
     var name = expression.identifier;
 
-    if (prefixElement is PrefixElement2) {
+    if (prefixElement is TypeAliasElement) {
+      // When resolving `name`, use the aliased element.
+      prefixElement = prefixElement.aliasedType.element;
+    }
+
+    if (prefixElement is PrefixElement) {
       var prefixScope = prefixElement.scope;
       var lookupResult = prefixScope.lookup(name.name);
       var element = lookupResult.getter2 ?? lookupResult.setter2;
@@ -68,24 +79,26 @@ class CommentReferenceResolver {
     }
 
     if (!hasNewKeyword) {
-      if (prefixElement is InterfaceElement2) {
-        name.element = _resolver.inheritance.getMember4(
+      if (prefixElement is InterfaceElement) {
+        name.element =
+            _resolver.inheritance.getMember(
               prefixElement,
-              Name(prefixElement.library2.uri, name.name),
+              Name(prefixElement.library.uri, name.name),
             ) ??
-            prefixElement.getMethod2(name.name) ??
-            prefixElement.getGetter2(name.name) ??
-            prefixElement.getSetter2(name.name) ??
-            prefixElement.getNamedConstructor2(name.name);
-      } else if (prefixElement is ExtensionElement2) {
-        name.element = prefixElement.getMethod2(name.name) ??
-            prefixElement.getGetter2(name.name) ??
-            prefixElement.getSetter2(name.name);
+            prefixElement.getMethod(name.name) ??
+            prefixElement.getGetter(name.name) ??
+            prefixElement.getSetter(name.name) ??
+            prefixElement.getNamedConstructor(name.name);
+      } else if (prefixElement is ExtensionElement) {
+        name.element =
+            prefixElement.getMethod(name.name) ??
+            prefixElement.getGetter(name.name) ??
+            prefixElement.getSetter(name.name);
       } else {
         // TODO(brianwilkerson): Report this error.
       }
-    } else if (prefixElement is InterfaceElement2) {
-      var constructor = prefixElement.getNamedConstructor2(name.name);
+    } else if (prefixElement is InterfaceElement) {
+      var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson): Report this error.
       } else {
@@ -111,7 +124,7 @@ class CommentReferenceResolver {
     var prefixElement = _resolveSimpleIdentifier(prefix);
     prefix.element = prefixElement;
 
-    if (prefixElement is! PrefixElement2) {
+    if (prefixElement is! PrefixElement) {
       // The only valid prefixElement is a PrefixElement; otherwise, this is
       // not a comment reference.
       return;
@@ -124,15 +137,23 @@ class CommentReferenceResolver {
     name.element = element;
 
     var propertyName = expression.propertyName;
-    if (element is InterfaceElement2) {
-      propertyName.element = element.getMethod2(propertyName.name) ??
-          element.getGetter2(propertyName.name) ??
-          element.getSetter2(propertyName.name) ??
-          element.getNamedConstructor2(propertyName.name);
-    } else if (element is ExtensionElement2) {
-      propertyName.element = element.getMethod2(propertyName.name) ??
-          element.getGetter2(propertyName.name) ??
-          element.getSetter2(propertyName.name);
+
+    if (element is TypeAliasElement) {
+      // When resolving `propertyName`, use the aliased element.
+      element = element.aliasedType.element;
+    }
+
+    if (element is InterfaceElement) {
+      propertyName.element =
+          element.getMethod(propertyName.name) ??
+          element.getGetter(propertyName.name) ??
+          element.getSetter(propertyName.name) ??
+          element.getNamedConstructor(propertyName.name);
+    } else if (element is ExtensionElement) {
+      propertyName.element =
+          element.getMethod(propertyName.name) ??
+          element.getGetter(propertyName.name) ??
+          element.getSetter(propertyName.name);
     }
   }
 
@@ -140,13 +161,13 @@ class CommentReferenceResolver {
   ///
   /// Returns the resolved element, or `null` if the identifier could not be
   /// resolved. This does not record the results of the resolution.
-  Element2? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
+  Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
     var lookupResult = identifier.scopeLookupResult!;
     var element = lookupResult.getter2 ?? lookupResult.setter2;
 
     // Usually referencing just an import prefix is an error.
     // But we allow this in documentation comments.
-    if (element is PrefixElementImpl2) {
+    if (element is PrefixElementImpl) {
       element.scope.notifyPrefixUsedInCommentReference();
     }
 
@@ -175,6 +196,8 @@ class CommentReferenceResolver {
         receiver: null,
         receiverType: enclosingType,
         name: identifier.name,
+        hasRead: true,
+        hasWrite: true,
         propertyErrorEntity: identifier,
         nameErrorEntity: identifier,
       );
@@ -193,8 +216,8 @@ class CommentReferenceResolver {
     }
     expression.element = element;
     if (hasNewKeyword) {
-      if (element is InterfaceElement2) {
-        var constructor = element.unnamedConstructor2;
+      if (element is InterfaceElement) {
+        var constructor = element.unnamedConstructor;
         if (constructor == null) {
           // TODO(brianwilkerson): Report this error.
         } else {

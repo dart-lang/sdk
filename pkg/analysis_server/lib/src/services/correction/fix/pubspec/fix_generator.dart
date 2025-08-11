@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -22,7 +23,7 @@ import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
-  static const List<ErrorCode> codesWithFixes = [
+  static const List<DiagnosticCode> codesWithFixes = [
     PubspecWarningCode.MISSING_DEPENDENCY,
     PubspecWarningCode.MISSING_NAME,
   ];
@@ -30,14 +31,14 @@ class PubspecFixGenerator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /// The error for which fixes are being generated.
-  final AnalysisError error;
+  /// The diagnostic for which fixes are being generated.
+  final Diagnostic diagnostic;
 
-  /// The offset of the [error] for which fixes are being generated.
-  final int errorOffset;
+  /// The offset of the [diagnostic] for which fixes are being generated.
+  final int diagnosticOffset;
 
-  /// The length of the [error] for which fixes are being generated.
-  final int errorLength;
+  /// The length of the [diagnostic] for which fixes are being generated.
+  final int diagnosticLength;
 
   /// The textual content of the file for which fixes are being generated.
   final String content;
@@ -55,11 +56,11 @@ class PubspecFixGenerator {
 
   PubspecFixGenerator(
     this.resourceProvider,
-    this.error,
+    this.diagnostic,
     this.content,
     this.node,
-  ) : errorOffset = error.offset,
-      errorLength = error.length,
+  ) : diagnosticOffset = diagnostic.offset,
+      diagnosticLength = diagnostic.length,
       lineInfo = LineInfo.fromContent(content);
 
   /// Returns the end-of-line marker to use for the `pubspec.yaml` file.
@@ -82,13 +83,13 @@ class PubspecFixGenerator {
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
-  String get file => error.source.fullName;
+  String get file => diagnostic.source.fullName;
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
     var locator = YamlNodeLocator(
-      start: errorOffset,
-      end: errorOffset + errorLength - 1,
+      start: diagnosticOffset,
+      end: diagnosticOffset + diagnosticLength - 1,
     );
     var coveringNodePath = locator.searchWithin(node);
     if (coveringNodePath.isEmpty) {
@@ -97,47 +98,51 @@ class PubspecFixGenerator {
       // return fixes;
     }
 
-    var errorCode = error.errorCode;
-    // Check whether [errorCode] is within [codeWithFixes], which is (currently)
-    // the canonical list of pubspec error codes with fixes. If we move pubspec
-    // fixes to the style of correction producers, and a map from error codes to
-    // the correction producers that can fix violations, we won't need this
-    // check.
-    if (!codesWithFixes.contains(errorCode)) {
+    var diagnosticCode = diagnostic.diagnosticCode;
+    // Check whether [diagnosticCode] is within [codeWithFixes], which is
+    // (currently) the canonical list of pubspec diagnostic codes with fixes. If
+    // we move pubspec fixes to the style of correction producers, and a map
+    // from diagnostic codes to the correction producers that can fix
+    // violations, we won't need this check.
+    if (!codesWithFixes.contains(diagnosticCode)) {
       return fixes;
     }
 
-    if (errorCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
+    if (diagnosticCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
-    } else if (errorCode == PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {
+    } else if (diagnosticCode ==
+        PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
       // Consider creating the directory.
-    } else if (errorCode == PubspecWarningCode.ASSET_FIELD_NOT_LIST) {
+    } else if (diagnosticCode == PubspecWarningCode.ASSET_FIELD_NOT_LIST) {
       // Not sure how to fix a structural issue.
-    } else if (errorCode == PubspecWarningCode.ASSET_NOT_STRING) {
+    } else if (diagnosticCode == PubspecWarningCode.ASSET_NOT_STRING) {
       // Not sure how to fix a structural issue.
-    } else if (errorCode == PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP) {
+    } else if (diagnosticCode ==
+        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP) {
       // Not sure how to fix a structural issue.
-    } else if (errorCode == PubspecWarningCode.DEPRECATED_FIELD) {
+    } else if (diagnosticCode == PubspecWarningCode.DEPRECATED_FIELD) {
       // Consider removing the field.
-    } else if (errorCode == PubspecWarningCode.FLUTTER_FIELD_NOT_MAP) {
+    } else if (diagnosticCode == PubspecWarningCode.FLUTTER_FIELD_NOT_MAP) {
       // Not sure how to fix a structural issue.
-    } else if (errorCode == PubspecWarningCode.INVALID_DEPENDENCY) {
+    } else if (diagnosticCode == PubspecWarningCode.INVALID_DEPENDENCY) {
       // Consider adding `publish_to: none`.
-    } else if (errorCode == PubspecWarningCode.MISSING_NAME) {
+    } else if (diagnosticCode == PubspecWarningCode.MISSING_NAME) {
       await _addNameEntry();
-    } else if (errorCode == PubspecWarningCode.NAME_NOT_STRING) {
+    } else if (diagnosticCode == PubspecWarningCode.NAME_NOT_STRING) {
       // Not sure how to fix a structural issue.
-    } else if (errorCode == PubspecWarningCode.PATH_DOES_NOT_EXIST) {
+    } else if (diagnosticCode == PubspecWarningCode.PATH_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
-    } else if (errorCode == PubspecWarningCode.PATH_NOT_POSIX) {
+    } else if (diagnosticCode == PubspecWarningCode.PATH_NOT_POSIX) {
       // Consider converting to a POSIX-style path.
-    } else if (errorCode == PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST) {
+    } else if (diagnosticCode ==
+        PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
-    } else if (errorCode == PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY) {
+    } else if (diagnosticCode ==
+        PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY) {
       // Consider removing the dependency.
-    } else if (errorCode == PubspecWarningCode.MISSING_DEPENDENCY) {
-      await _addMissingDependency(errorCode);
+    } else if (diagnosticCode == PubspecWarningCode.MISSING_DEPENDENCY) {
+      await _addMissingDependency(diagnosticCode);
     }
     return fixes;
   }
@@ -154,7 +159,7 @@ class PubspecFixGenerator {
     fixes.add(Fix(kind: kind, change: change));
   }
 
-  Future<void> _addMissingDependency(ErrorCode errorCode) async {
+  Future<void> _addMissingDependency(DiagnosticCode diagnosticCode) async {
     var node = this.node;
     if (node is! YamlMap) {
       return;
@@ -164,7 +169,7 @@ class PubspecFixGenerator {
       eol: endOfLine,
     );
 
-    var data = error.data as MissingDependencyData;
+    var data = diagnostic.data as MissingDependencyData;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;

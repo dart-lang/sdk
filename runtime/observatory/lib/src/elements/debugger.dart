@@ -5,24 +5,25 @@
 library debugger_page_element;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:math';
-import 'dart:svg';
 
 import 'package:logging/logging.dart';
+import 'package:web/web.dart';
+
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/event.dart';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/service.dart' as S;
 import 'package:observatory/repositories.dart' as R;
+import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -1037,7 +1038,9 @@ class IsolateCommand extends DebuggerCommand {
         debugger.console.print(
             "Current isolate is already ${candidate.number} '${candidate.name}'");
       } else {
-        new AnchorElement(href: Uris.debugger(candidate)).click();
+        HTMLAnchorElement()
+          ..href = Uris.debugger(candidate)
+          ..click();
       }
     }
     return new Future.value(null);
@@ -1108,7 +1111,6 @@ class IsolateListCommand extends DebuggerCommand {
       String current = (isolate == debugger.isolate ? '*' : '');
       debugger.console
           .print("${isolate.number.toString().padLeft(maxIdLen, ' ')} "
-              "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
               "${isolate.name!.padRight(maxNameLen, ' ')} "
               "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
               "${current}");
@@ -1678,9 +1680,13 @@ class ObservatoryDebugger extends Debugger {
             var isolates = vm.isolates;
             if (isolates.length > 0) {
               var newIsolate = isolates.first;
-              new AnchorElement(href: Uris.debugger(newIsolate)).click();
+              HTMLAnchorElement()
+                ..href = Uris.debugger(newIsolate)
+                ..click();
             } else {
-              new AnchorElement(href: Uris.vm()).click();
+              HTMLAnchorElement()
+                ..href = Uris.vm()
+                ..click();
             }
           } else {
             console.print("Isolate ${iso.number} '${iso.name}' has exited");
@@ -1999,20 +2005,22 @@ class DebuggerPageElement extends CustomElement implements Renderable {
   void attached() {
     super.attached();
 
-    final stackDiv = new DivElement()..classes = ['stack'];
+    final stackDiv = new HTMLDivElement()..className = 'stack';
     final stackElement = new DebuggerStackElement(
         _isolate, _debugger, stackDiv, _objects, _scripts, _events);
-    stackDiv.children = <Element>[stackElement.element];
-    final consoleDiv = new DivElement()
-      ..classes = ['console']
-      ..children = <Element>[consoleElement.element];
-    final commandElement = new DebuggerInputElement(_isolate, _debugger);
-    final commandDiv = new DivElement()
-      ..classes = ['commandline']
-      ..children = <Element>[commandElement.element];
+    stackDiv.appendChildren(<HTMLElement>[stackElement.element]);
 
-    children = <Element>[
-      navBar(<Element>[
+    final consoleDiv = new HTMLDivElement()
+      ..className = 'console'
+      ..appendChildren(<HTMLElement>[consoleElement.element]);
+
+    final commandElement = new DebuggerInputElement(_isolate, _debugger);
+    final commandDiv = new HTMLDivElement()
+      ..className = 'commandline'
+      ..appendChildren(<HTMLElement>[commandElement.element]);
+
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: app.queue).element,
         new NavVMMenuElement(app.vm, app.events, queue: app.queue).element,
         new NavIsolateMenuElement(_isolate, app.events, queue: app.queue)
@@ -2022,18 +2030,17 @@ class DebuggerPageElement extends CustomElement implements Renderable {
                 notifyOnPause: false, queue: app.queue)
             .element
       ]),
-      new DivElement()
-        ..classes = ['variable']
-        ..children = <Element>[
+      new HTMLDivElement()
+        ..className = 'variable'
+        ..appendChildren(<HTMLElement>[
           stackDiv,
-          new DivElement()
-            ..children = <Element>[
-              new HRElement()..classes = ['splitter']
-            ],
+          new HTMLDivElement()
+            ..appendChildren(
+                <HTMLElement>[new HTMLHRElement()..className = 'splitter']),
           consoleDiv,
-        ],
+        ]),
       commandDiv
-    ];
+    ]);
 
     DebuggerConsoleElement._scrollToBottom(consoleDiv);
 
@@ -2094,7 +2101,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
   @override
   void detached() {
     _timer!.cancel();
-    children = const [];
+    removeChildren();
     S.cancelFutureSubscription(_vmSubscriptionFuture!);
     _vmSubscriptionFuture = null;
     S.cancelFutureSubscription(_isolateSubscriptionFuture!);
@@ -2116,40 +2123,40 @@ class DebuggerStackElement extends CustomElement implements Renderable {
   late M.ObjectRepository _objects;
   late M.ScriptRepository _scripts;
   late M.EventRepository _events;
-  late Element _scroller;
-  late DivElement _isSampled;
-  bool get isSampled => !_isSampled.classes.contains('hidden');
+  late HTMLElement _scroller;
+  late HTMLDivElement _isSampled;
+  bool get isSampled => !_isSampled.className.contains('hidden');
   set isSampled(bool value) {
     if (value != isSampled) {
-      _isSampled.classes.toggle('hidden');
+      toggleClass(_isSampled, ' hidden');
     }
   }
 
-  late DivElement _hasStack;
-  bool get hasStack => _hasStack.classes.contains('hidden');
+  late HTMLDivElement _hasStack;
+  bool get hasStack => _hasStack.className.contains('hidden');
   set hasStack(bool value) {
     if (value != hasStack) {
-      _hasStack.classes.toggle('hidden');
+      toggleClass(_hasStack, ' hidden');
     }
   }
 
-  late DivElement _hasMessages;
-  bool get hasMessages => _hasMessages.classes.contains('hidden');
+  late HTMLDivElement _hasMessages;
+  bool get hasMessages => _hasMessages.className.contains('hidden');
   set hasMessages(bool value) {
     if (value != hasMessages) {
-      _hasMessages.classes.toggle('hidden');
+      toggleClass(_hasMessages, ' hidden');
     }
   }
 
-  UListElement? _frameList;
-  UListElement? _messageList;
+  HTMLUListElement? _frameList;
+  HTMLUListElement? _messageList;
   int? currentFrame;
   late ObservatoryDebugger _debugger;
 
   factory DebuggerStackElement(
       S.Isolate isolate,
       ObservatoryDebugger debugger,
-      Element scroller,
+      HTMLElement scroller,
       M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events) {
@@ -2163,17 +2170,17 @@ class DebuggerStackElement extends CustomElement implements Renderable {
 
     var btnPause;
     var btnRefresh;
-    e.children = <Element>[
-      e._isSampled = new DivElement()
-        ..classes = ['sampledMessage', 'hidden']
-        ..children = <Element>[
-          new SpanElement()
-            ..text = 'The program is not paused. '
+    e.appendChildren(<HTMLElement>[
+      e._isSampled = new HTMLDivElement()
+        ..className = 'sampledMessage hidden'
+        ..appendChildren(<HTMLElement>[
+          new HTMLSpanElement()
+            ..textContent = 'The program is not paused. '
                 'The stack trace below may be out of date.',
-          new BRElement(),
-          new BRElement(),
-          btnPause = new ButtonElement()
-            ..text = '[Pause Isolate]'
+          new HTMLBRElement(),
+          new HTMLBRElement(),
+          btnPause = new HTMLButtonElement()
+            ..textContent = '[Pause Isolate]'
             ..onClick.listen((_) async {
               btnPause.disabled = true;
               try {
@@ -2182,8 +2189,8 @@ class DebuggerStackElement extends CustomElement implements Renderable {
                 btnPause.disabled = false;
               }
             }),
-          btnRefresh = new ButtonElement()
-            ..text = '[Refresh Stack]'
+          btnRefresh = new HTMLButtonElement()
+            ..textContent = '[Refresh Stack]'
             ..onClick.listen((_) async {
               btnRefresh.disabled = true;
               try {
@@ -2192,20 +2199,20 @@ class DebuggerStackElement extends CustomElement implements Renderable {
                 btnRefresh.disabled = false;
               }
             }),
-          new BRElement(),
-          new BRElement(),
-          new HRElement()..classes = ['splitter']
-        ],
-      e._hasStack = new DivElement()
-        ..classes = ['noStack', 'hidden']
-        ..text = 'No stack',
-      e._frameList = new UListElement()..classes = ['list-group'],
-      new HRElement(),
-      e._hasMessages = new DivElement()
-        ..classes = ['noMessages', 'hidden']
-        ..text = 'No pending messages',
-      e._messageList = new UListElement()..classes = ['messageList']
-    ];
+          new HTMLBRElement(),
+          new HTMLBRElement(),
+          new HTMLHRElement()..className = 'splitter'
+        ]),
+      e._hasStack = new HTMLDivElement()
+        ..className = 'noStack hidden'
+        ..textContent = 'No stack',
+      e._frameList = new HTMLUListElement()..className = 'list-group',
+      new HTMLHRElement(),
+      e._hasMessages = new HTMLDivElement()
+        ..className = 'noMessages hidden'
+        ..textContent = 'No pending messages',
+      e._messageList = new HTMLUListElement()..className = 'messageList'
+    ]);
     return e;
   }
 
@@ -2213,61 +2220,49 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     /* nothing to do */
   }
 
-  _addFrame(List frameList, S.Frame frameInfo) {
-    final frameElement = new DebuggerFrameElement(
-        _isolate, frameInfo, _scroller, _objects, _scripts, _events,
-        queue: app.queue);
-
-    if (frameInfo.index == currentFrame) {
-      frameElement.setCurrent(true);
-    } else {
-      frameElement.setCurrent(false);
-    }
-
-    var li = new LIElement();
-    li.classes.add('list-group-item');
-    li.children.insert(0, frameElement.element);
-
-    frameList.insert(0, li);
+  _addFrame(S.Frame frameInfo) {
+    final li = HTMLLIElement()
+      ..className = 'list-group-item'
+      ..appendChild((DebuggerFrameElement(
+              _isolate, frameInfo, _scroller, _objects, _scripts, _events,
+              queue: app.queue)
+            ..setCurrent(frameInfo.index == currentFrame))
+          .element);
+    _frameList!.appendChild(li);
   }
 
-  _addMessage(List messageList, S.ServiceMessage messageInfo) {
+  _addMessage(S.ServiceMessage messageInfo) {
     final messageElement = new DebuggerMessageElement(
         _isolate, messageInfo, _objects, _scripts, _events,
         queue: app.queue);
 
-    var li = new LIElement();
-    li.classes.add('list-group-item');
-    li.children.insert(0, messageElement.element);
-
-    messageList.add(li);
+    _messageList!.appendChild(new HTMLLIElement()
+      ..className = 'list-group-item'
+      ..appendChild(messageElement.element));
   }
 
   ObservatoryApplication get app => ObservatoryApplication.app;
 
   void updateStackFrames(S.ServiceMap newStack) {
-    List frameElements = _frameList!.children;
-    List newFrames;
-    if (_debugger.causalAsyncStacks &&
-        (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null)) {
-      newFrames = newStack[ObservatoryDebugger.kAsyncCausalStackFrames];
-    } else {
-      newFrames = newStack[ObservatoryDebugger.kStackFrames];
-    }
+    final HTMLCollection frameElements = _frameList!.children;
+    final List newFrames = (_debugger.causalAsyncStacks &&
+            (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null))
+        ? newStack[ObservatoryDebugger.kAsyncCausalStackFrames]
+        : newStack[ObservatoryDebugger.kStackFrames];
 
     // Remove any frames whose functions don't match, starting from
     // bottom of stack.
     int oldPos = frameElements.length - 1;
     int newPos = newFrames.length - 1;
     while (oldPos >= 0 && newPos >= 0) {
-      DebuggerFrameElement dbgFrameElement =
-          CustomElement.reverse(frameElements[oldPos].children[0])
-              as DebuggerFrameElement;
+      DebuggerFrameElement dbgFrameElement = CustomElement.reverse(
+          (frameElements.item(oldPos) as HTMLElement).firstElementChild
+              as HTMLElement) as DebuggerFrameElement;
       if (!dbgFrameElement.matchFrame(newFrames[newPos])) {
         // The rest of the frame elements no longer match.  Remove them.
         for (int i = 0; i <= oldPos; i++) {
           // NOTE(turnidge): removeRange is missing, sadly.
-          frameElements.removeAt(0);
+          _frameList!.removeChild(_frameList!.firstChild!);
         }
         break;
       }
@@ -2278,9 +2273,9 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     // Remove any extra frames.
     if (frameElements.length > newFrames.length) {
       // Remove old frames from the top of stack.
-      int removeCount = frameElements.length - newFrames.length;
+      final removeCount = frameElements.length - newFrames.length;
       for (int i = 0; i < removeCount; i++) {
-        frameElements.removeAt(0);
+        _frameList!.removeChild(_frameList!.firstChild!);
       }
     }
 
@@ -2288,58 +2283,57 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     int newCount = 0;
     if (frameElements.length < newFrames.length) {
       // Add new frames to the top of stack.
-      newCount = newFrames.length - frameElements.length;
-      for (int i = newCount - 1; i >= 0; i--) {
-        _addFrame(frameElements, newFrames[i]);
+      newCount = newFrames.length - _frameList!.children.length;
+      for (int i = 0; i < newCount; i++) {
+        _addFrame(newFrames[i]);
       }
     }
-    assert(frameElements.length == newFrames.length);
+    assert(_frameList!.children.length == newFrames.length);
 
-    if (frameElements.isNotEmpty) {
-      for (int i = newCount; i < frameElements.length; i++) {
-        DebuggerFrameElement dbgFrameElement =
-            CustomElement.reverse(frameElements[i].children[0])
-                as DebuggerFrameElement;
+    if (_frameList!.children.length > 0) {
+      for (int i = newCount; i < _frameList!.children.length; i++) {
+        DebuggerFrameElement dbgFrameElement = CustomElement.reverse(
+                _frameList!.children.item(i)!.firstChild as HTMLElement)
+            as DebuggerFrameElement;
         dbgFrameElement.updateFrame(newFrames[i]);
       }
     }
 
-    hasStack = frameElements.isNotEmpty;
+    hasStack = frameElements.length > 0;
   }
 
   void updateStackMessages(S.ServiceMap newStack) {
-    List messageElements = _messageList!.children;
     List newMessages = newStack['messages'];
 
     // Remove any extra message elements.
-    if (messageElements.length > newMessages.length) {
+    if (_messageList!.childNodes.length > newMessages.length) {
       // Remove old messages from the front of the queue.
-      int removeCount = messageElements.length - newMessages.length;
+      int removeCount = _messageList!.childNodes.length - newMessages.length;
       for (int i = 0; i < removeCount; i++) {
-        messageElements.removeAt(0);
+        _messageList!.removeChild(_messageList!.firstChild!);
       }
     }
 
     // Add any new messages to the tail of the queue.
-    int newStartingIndex = messageElements.length;
-    if (messageElements.length < newMessages.length) {
+    int newStartingIndex = _messageList!.childNodes.length;
+    if (_messageList!.childNodes.length < newMessages.length) {
       for (int i = newStartingIndex; i < newMessages.length; i++) {
-        _addMessage(messageElements, newMessages[i]);
+        _addMessage(newMessages[i]);
       }
     }
-    assert(messageElements.length == newMessages.length);
+    assert(_messageList!.childNodes.length == newMessages.length);
 
-    if (messageElements.isNotEmpty) {
+    if (_messageList!.childNodes.length > 0) {
       // Update old messages.
       for (int i = 0; i < newStartingIndex; i++) {
-        DebuggerMessageElement e =
-            CustomElement.reverse(messageElements[i].children[0])
-                as DebuggerMessageElement;
+        DebuggerMessageElement e = CustomElement.reverse(
+                _messageList!.childNodes.item(i)!.firstChild as HTMLElement)
+            as DebuggerMessageElement;
         e.updateMessage(newMessages[i]);
       }
     }
 
-    hasMessages = messageElements.isNotEmpty;
+    hasMessages = _messageList!.childNodes.length > 0;
   }
 
   void updateStack(S.ServiceMap newStack, M.DebugEvent? pauseEvent) {
@@ -2350,10 +2344,10 @@ class DebuggerStackElement extends CustomElement implements Renderable {
 
   void setCurrentFrame(int? value) {
     currentFrame = value;
-    List frameElements = _frameList!.children;
-    for (var frameElement in frameElements) {
+    for (int i = 0; i < _frameList!.childNodes.length; i++) {
+      final frameElement = _frameList!.childNodes.item(i)!;
       DebuggerFrameElement dbgFrameElement =
-          CustomElement.reverse(frameElement.children[0])
+          CustomElement.reverse(frameElement.firstChild! as HTMLElement)
               as DebuggerFrameElement;
       if (dbgFrameElement.frame.index == currentFrame) {
         dbgFrameElement.setCurrent(true);
@@ -2371,8 +2365,8 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
 
-  late Element _scroller;
-  late DivElement _varsDiv;
+  late HTMLElement _scroller;
+  late HTMLDivElement _varsDiv;
   late M.Isolate _isolate;
   late S.Frame _frame;
   S.Frame get frame => _frame;
@@ -2410,7 +2404,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
   factory DebuggerFrameElement(
       M.Isolate isolate,
       S.Frame frame,
-      Element scroller,
+      HTMLElement scroller,
       M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events,
@@ -2430,34 +2424,32 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   void render() {
     if (_pinned) {
-      classes.add('shadow');
+      className += ' shadow';
     } else {
-      classes.remove('shadow');
+      className.replaceAll(' shadow', '');
     }
     if (_current) {
-      classes.add('current');
+      className += ' current';
     } else {
-      classes.remove('current');
+      className.replaceAll(' current', '');
     }
     if ((_frame.kind == M.FrameKind.asyncSuspensionMarker) ||
         (_frame.kind == M.FrameKind.asyncCausal)) {
-      classes.add('causalFrame');
+      className += ' causalFrame';
     }
     if (_frame.kind == M.FrameKind.asyncSuspensionMarker) {
-      final content = <Element>[
-        new SpanElement()..children = _createMarkerHeader(_frame.marker!)
+      final content = <HTMLElement>[
+        new HTMLSpanElement()
+          ..appendChildren(_createMarkerHeader(_frame.marker!))
       ];
-      children = content;
+      setChildren(content);
       return;
     }
-    late ButtonElement expandButton;
-    final content = <Element>[
-      expandButton = new ButtonElement()
-        ..children = _createHeader()
+    late HTMLButtonElement expandButton;
+    final content = <HTMLElement>[
+      expandButton = new HTMLButtonElement()
+        ..appendChildren(_createHeader())
         ..onClick.listen((e) async {
-          if (e.target is AnchorElement) {
-            return;
-          }
           expandButton.disabled = true;
           await _toggleExpand();
           expandButton.disabled = false;
@@ -2471,17 +2463,17 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
       } else if (homeMethod.dartOwner is S.Library) {
         homeMethodName = '<library>';
       }
-      late ButtonElement collapseButton;
+      late HTMLButtonElement collapseButton;
       content.addAll([
-        new DivElement()
-          ..classes = ['frameDetails']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['flex-row-wrap']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['flex-item-script']
-                  ..children = _frame.function?.location == null
+        new HTMLDivElement()
+          ..className = 'frameDetails'
+          ..appendChildren(<HTMLElement>[
+            new HTMLDivElement()
+              ..className = 'flex-row-wrap'
+              ..appendChildren(<HTMLElement>[
+                new HTMLDivElement()
+                  ..className = 'flex-item-script'
+                  ..appendChildren(_frame.function?.location == null
                       ? const []
                       : [
                           (new SourceInsetElement(
@@ -2495,119 +2487,118 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
                                   inDebuggerContext: true,
                                   queue: _r.queue))
                               .element
-                        ],
-                new DivElement()
-                  ..classes = ['flex-item-vars']
-                  ..children = <Element>[
-                    _varsDiv = new DivElement()
-                      ..classes = ['memberList', 'frameVars']
-                      ..children = ([
-                        new DivElement()
-                          ..classes = ['memberItem']
-                          ..children = homeMethodName == null
+                        ]),
+                new HTMLDivElement()
+                  ..className = 'flex-item-vars'
+                  ..appendChildren(<HTMLElement>[
+                    _varsDiv = new HTMLDivElement()
+                      ..className = 'memberList frameVars'
+                      ..appendChildren(([
+                        new HTMLDivElement()
+                          ..className = 'memberItem'
+                          ..appendChildren(homeMethodName == null
                               ? const []
                               : [
-                                  new DivElement()
-                                    ..classes = ['memberName']
-                                    ..text = homeMethodName,
-                                  new DivElement()
-                                    ..classes = ['memberName']
-                                    ..children = <Element>[
+                                  new HTMLDivElement()
+                                    ..className = 'memberName'
+                                    ..textContent = homeMethodName,
+                                  new HTMLDivElement()
+                                    ..className = 'memberName'
+                                    ..appendChildren(<HTMLElement>[
                                       anyRef(_isolate, homeMethod.dartOwner,
                                           _objects,
                                           queue: _r.queue)
-                                    ]
-                                ]
+                                    ])
+                                ])
                       ]..addAll(_frame.variables
-                          .map<Element>((v) => new DivElement()
-                            ..classes = ['memberItem']
-                            ..children = <Element>[
-                              new DivElement()
-                                ..classes = ['memberName']
-                                ..text = v.name,
-                              new DivElement()
-                                ..classes = ['memberName']
-                                ..children = <Element>[
+                          .map<HTMLElement>((v) => new HTMLDivElement()
+                            ..className = 'memberItem'
+                            ..appendChildren(<HTMLElement>[
+                              new HTMLDivElement()
+                                ..className = 'memberName'
+                                ..textContent = v.name ?? '',
+                              new HTMLDivElement()
+                                ..className = 'memberName'
+                                ..appendChildren(<HTMLElement>[
                                   anyRef(_isolate, v['value'], _objects,
                                       queue: _r.queue)
-                                ]
-                            ])
-                          .toList()))
-                  ]
-              ],
-            new DivElement()
-              ..classes = ['frameContractor']
-              ..children = <Element>[
-                collapseButton = new ButtonElement()
+                                ])
+                            ])))))
+                  ])
+              ]),
+            new HTMLDivElement()
+              ..className = 'frameContractor'
+              ..appendChildren(<HTMLElement>[
+                collapseButton = new HTMLButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = <Element>[iconExpandLess.clone(true) as Element]
-              ]
-          ]
+                  ..appendChild(HTMLSpanElement()..textContent = '🔼')
+              ])
+          ])
       ]);
     }
-    children = content;
+    setChildren(content);
   }
 
-  List<Element> _createMarkerHeader(String marker) {
-    final content = <Element>[
-      new DivElement()
-        ..classes = ['frameSummaryText']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['frameId']
-            ..text = 'Frame ${_frame.index}',
-          new SpanElement()..text = '$marker',
-        ]
+  List<HTMLElement> _createMarkerHeader(String marker) {
+    final content = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'frameSummaryText'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'frameId'
+            ..textContent = 'Frame ${_frame.index}',
+          new HTMLSpanElement()..textContent = '$marker',
+        ])
     ];
     return [
-      new DivElement()
-        ..classes = ['frameSummary']
-        ..children = content
+      new HTMLDivElement()
+        ..className = 'frameSummary'
+        ..appendChildren(content)
     ];
   }
 
-  List<Element> _createHeader() {
-    final content = <Element>[
-      new DivElement()
-        ..classes = ['frameSummaryText']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['frameId']
-            ..text = 'Frame ${_frame.index}',
-          new SpanElement()
-            ..children = _frame.function == null
+  List<HTMLElement> _createHeader() {
+    final content = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'frameSummaryText'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'frameId'
+            ..textContent = 'Frame ${_frame.index}',
+          new HTMLSpanElement()
+            ..appendChildren(_frame.function == null
                 ? const []
                 : [
                     new FunctionRefElement(_isolate, _frame.function!,
                             queue: _r.queue)
                         .element
-                  ],
-          new SpanElement()..text = ' ( ',
-          new SpanElement()
-            ..children = _frame.function?.location == null
+                  ]),
+          new HTMLSpanElement()..textContent = ' ( ',
+          new HTMLSpanElement()
+            ..appendChildren(_frame.function?.location == null
                 ? const []
                 : [
                     new SourceLinkElement(
                             _isolate, _frame.function!.location!, _scripts,
                             queue: _r.queue)
                         .element
-                  ],
-          new SpanElement()..text = ' )'
-        ]
+                  ]),
+          new HTMLSpanElement()..textContent = ' )'
+        ])
     ];
     if (!_expanded) {
-      content.add(new DivElement()
-        ..classes = ['frameExpander']
-        ..children = <Element>[iconExpandMore.clone(true) as Element]);
+      content.add(new HTMLDivElement()
+        ..className = 'frameExpander'
+        ..appendChild(HTMLSpanElement()..textContent = '🔽'));
     }
     return [
-      new DivElement()
-        ..classes = ['frameSummary']
-        ..children = content
+      new HTMLDivElement()
+        ..className = 'frameSummary'
+        ..appendChildren(content)
     ];
   }
 
@@ -2633,10 +2624,10 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 
   S.Script get script => _frame.location!.script;
 
-  int _varsTop(DivElement varsDiv) {
+  int _varsTop(HTMLDivElement varsDiv) {
     const minTop = 0;
-    final num paddingTop = document.body!.contentEdge.top;
-    final Rectangle parent = varsDiv.parent!.getBoundingClientRect();
+    final num paddingTop = document.body!.offsetTop; //contentEdge.top;
+    final DOMRect parent = varsDiv.parentElement!.getBoundingClientRect();
     final int varsHeight = varsDiv.clientHeight;
     final int maxTop = (parent.height - varsHeight).toInt();
     final int adjustedTop = (paddingTop - parent.top).toInt();
@@ -2674,7 +2665,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
       _scrollSubscription = _scroller.onScroll.listen(_onScroll);
     }
     if (_resizeSubscription == null) {
-      _resizeSubscription = window.onResize.listen(_onScroll);
+      _resizeSubscription = _scroller.onResize.listen(_onScroll);
     }
   }
 
@@ -2756,21 +2747,21 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
 
   void render() {
     if (_pinned) {
-      classes.add('shadow');
+      className += ' shadow';
     } else {
-      classes.remove('shadow');
+      className.replaceAll(' shadow', '');
     }
     if (_current) {
-      classes.add('current');
+      className += ' current';
     } else {
-      classes.remove('current');
+      className.replaceAll(' current', '');
     }
-    late ButtonElement expandButton;
-    final content = <Element>[
-      expandButton = new ButtonElement()
-        ..children = _createHeader()
+    late HTMLButtonElement expandButton;
+    final content = <HTMLElement>[
+      expandButton = new HTMLButtonElement()
+        ..appendChildren(_createHeader())
         ..onClick.listen((e) async {
-          if (e.target is AnchorElement) {
+          if (e.target is HTMLAnchorElement) {
             return;
           }
           expandButton.disabled = true;
@@ -2779,18 +2770,18 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
         })
     ];
     if (_expanded) {
-      late ButtonElement collapseButton;
-      late ButtonElement previewButton;
+      late HTMLButtonElement collapseButton;
+      late HTMLButtonElement previewButton;
       content.addAll([
-        new DivElement()
-          ..classes = ['messageDetails']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['flex-row-wrap']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['flex-item-script']
-                  ..children = _message.handler == null
+        new HTMLDivElement()
+          ..className = 'messageDetails'
+          ..appendChildren(<HTMLElement>[
+            new HTMLDivElement()
+              ..className = 'flex-row-wrap'
+              ..appendChildren(<HTMLElement>[
+                new HTMLDivElement()
+                  ..className = 'flex-item-script'
+                  ..appendChildren(_message.handler == null
                       ? const []
                       : [
                           new SourceInsetElement(
@@ -2802,44 +2793,44 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
                                   inDebuggerContext: true,
                                   queue: _r.queue)
                               .element
-                        ],
-                new DivElement()
-                  ..classes = ['flex-item-vars']
-                  ..children = <Element>[
-                    new DivElement()
-                      ..classes = ['memberItem']
-                      ..children = <Element>[
-                        new DivElement()..classes = ['memberName'],
-                        new DivElement()
-                          ..classes = ['memberValue']
-                          ..children = ([
-                            previewButton = new ButtonElement()
-                              ..text = 'preview'
+                        ]),
+                new HTMLDivElement()
+                  ..className = 'flex-item-vars'
+                  ..appendChildren(<HTMLElement>[
+                    new HTMLDivElement()
+                      ..className = 'memberItem'
+                      ..appendChildren(<HTMLElement>[
+                        new HTMLDivElement()..className = 'memberName',
+                        new HTMLDivElement()
+                          ..className = 'memberValue'
+                          ..appendChildren(([
+                            previewButton = new HTMLButtonElement()
+                              ..textContent = 'preview'
                               ..onClick.listen((_) {
                                 previewButton.disabled = true;
                               })
                           ]..addAll([
                               anyRef(_isolate, _preview, _objects,
                                   queue: _r.queue)
-                            ]))
-                      ]
-                  ]
-              ],
-            new DivElement()
-              ..classes = ['messageContractor']
-              ..children = <Element>[
-                collapseButton = new ButtonElement()
+                            ])))
+                      ])
+                  ])
+              ]),
+            new HTMLDivElement()
+              ..className = 'messageContractor'
+              ..appendChildren(<HTMLElement>[
+                collapseButton = new HTMLButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = <Element>[iconExpandLess.clone(true) as Element]
-              ]
-          ]
+                  ..appendChild(HTMLSpanElement()..textContent = '🔼')
+              ])
+          ])
       ]);
     }
-    children = content;
+    setChildren(content);
   }
 
   void updateMessage(S.ServiceMessage message) {
@@ -2847,44 +2838,44 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  List<Element> _createHeader() {
-    final content = <Element>[
-      new DivElement()
-        ..classes = ['messageSummaryText']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['messageId']
-            ..text = 'message ${_message.index}',
-          new SpanElement()
-            ..children = _message.handler == null
+  List<HTMLElement> _createHeader() {
+    final content = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'messageSummaryText'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'messageId'
+            ..textContent = 'message ${_message.index}',
+          new HTMLSpanElement()
+            ..appendChildren(_message.handler == null
                 ? const []
                 : [
                     new FunctionRefElement(_isolate, _message.handler!,
                             queue: _r.queue)
                         .element
-                  ],
-          new SpanElement()..text = ' ( ',
-          new SpanElement()
-            ..children = _message.location == null
+                  ]),
+          new HTMLSpanElement()..textContent = ' ( ',
+          new HTMLSpanElement()
+            ..appendChildren(_message.location == null
                 ? const []
                 : [
                     new SourceLinkElement(
                             _isolate, _message.location!, _scripts,
                             queue: _r.queue)
                         .element
-                  ],
-          new SpanElement()..text = ' )'
-        ]
+                  ]),
+          new HTMLSpanElement()..textContent = ' )'
+        ])
     ];
     if (!_expanded) {
-      content.add(new DivElement()
-        ..classes = ['messageExpander']
-        ..children = <Element>[iconExpandMore.clone(true) as Element]);
+      content.add(new HTMLDivElement()
+        ..className = 'messageExpander'
+        ..appendChild(HTMLSpanElement()..textContent = '🔽'));
     }
     return [
-      new DivElement()
-        ..classes = ['messageSummary']
-        ..children = content
+      new HTMLDivElement()
+        ..className = 'messageSummary'
+        ..appendChildren(content)
     ];
   }
 
@@ -2909,7 +2900,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   Future _toggleExpand() async {
@@ -2935,7 +2926,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
 class DebuggerConsoleElement extends CustomElement implements Renderable {
   factory DebuggerConsoleElement() {
     final DebuggerConsoleElement e = new DebuggerConsoleElement.created();
-    e.children = <Element>[new BRElement()];
+    e.appendChildren(<HTMLElement>[new HTMLBRElement()]);
     return e;
   }
 
@@ -2943,7 +2934,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
 
   /// Is [container] scrolled to the within [threshold] pixels of the bottom?
   // ignore: unused_element_parameter
-  static bool _isScrolledToBottom(DivElement? container, [int threshold = 2]) {
+  static bool _isScrolledToBottom(HTMLDivElement? container) {
     if (container == null) {
       return false;
     }
@@ -2957,7 +2948,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   /// Scroll [container] so the bottom content is visible.
-  static _scrollToBottom(DivElement? container) {
+  static _scrollToBottom(HTMLDivElement? container) {
     if (container == null) {
       return;
     }
@@ -2965,55 +2956,41 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     container.scrollTop = container.scrollHeight - container.clientHeight;
   }
 
-  void _append(HtmlElement span) {
-    bool autoScroll = _isScrolledToBottom(parent as DivElement?);
-    children.add(span);
+  void _append(HTMLElement span) {
+    bool autoScroll = _isScrolledToBottom(parent as HTMLDivElement?);
+    appendChild(span);
     if (autoScroll) {
-      _scrollToBottom(parent as DivElement?);
+      _scrollToBottom(parent as HTMLDivElement?);
     }
   }
 
   void print(String line, {bool newline = true}) {
-    var span = new SpanElement();
-    span.classes.add('normal');
-    span.appendText(line);
-    if (newline) {
-      span.appendText('\n');
-    }
-    _append(span);
+    _append(new HTMLSpanElement()
+      ..className = 'normal'
+      ..textContent = line + (newline ? "\n" : ""));
   }
 
   void printBold(String line, {bool newline = true}) {
-    var span = new SpanElement();
-    span.classes.add('bold');
-    span.appendText(line);
-    if (newline) {
-      span.appendText('\n');
-    }
-    _append(span);
+    _append(new HTMLSpanElement()
+      ..className = 'bold'
+      ..textContent = line + (newline ? "\n" : ""));
   }
 
   void printRed(String line, {bool newline = true}) {
-    var span = new SpanElement();
-    span.classes.add('red');
-    span.appendText(line);
-    if (newline) {
-      span.appendText('\n');
-    }
-    _append(span);
+    _append(new HTMLSpanElement()
+      ..className = 'red'
+      ..textContent = line + (newline ? "\n" : ""));
   }
 
   void printStdio(List<String> lines) {
-    bool autoScroll = _isScrolledToBottom(parent as DivElement?);
+    bool autoScroll = _isScrolledToBottom(parent as HTMLDivElement?);
     for (var line in lines) {
-      var span = new SpanElement();
-      span.classes.add('green');
-      span.appendText(line);
-      span.appendText('\n');
-      children.add(span);
+      appendChild(new HTMLSpanElement()
+        ..className = 'green'
+        ..textContent = line + "\n");
     }
     if (autoScroll) {
-      _scrollToBottom(parent as DivElement?);
+      _scrollToBottom(parent as HTMLDivElement?);
     }
   }
 
@@ -3027,11 +3004,11 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   void newline() {
-    _append(new BRElement());
+    _append(new HTMLBRElement());
   }
 
   void clear() {
-    children.clear();
+    removeChildren();
   }
 
   void render() {
@@ -3044,32 +3021,33 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
 class DebuggerInputElement extends CustomElement implements Renderable {
   late ObservatoryDebugger _debugger;
   bool _busy = false;
-  final _modalPromptDiv = new DivElement()..classes = ['modalPrompt', 'hidden'];
-  final _textBox = new TextInputElement()
-    ..classes = ['textBox']
+  final _modalPromptDiv = new HTMLDivElement()
+    ..className = 'modalPrompt hidden';
+  final _textBox = new HTMLInputElement()
+    ..className = 'textBox'
     ..autofocus = true;
-  String? get modalPrompt => _modalPromptDiv.text;
+  String? get modalPrompt => _modalPromptDiv.textContent;
   set modalPrompt(String? value) {
-    if (_modalPromptDiv.text == '') {
-      _modalPromptDiv.classes.remove('hidden');
+    if (_modalPromptDiv.textContent == '') {
+      _modalPromptDiv.className.replaceAll('hidden', '');
     }
-    _modalPromptDiv.text = value;
-    if (_modalPromptDiv.text == '') {
-      _modalPromptDiv.classes.add('hidden');
+    _modalPromptDiv.textContent = value ?? '';
+    if (_modalPromptDiv.textContent == '') {
+      _modalPromptDiv.className = 'hidden';
     }
   }
 
   String? get text => _textBox.value;
-  set text(String? value) => _textBox.value = value;
+  set text(String? value) => _textBox.value = value ?? '';
   var modalCallback = null;
 
   factory DebuggerInputElement(
       S.Isolate isolate, ObservatoryDebugger debugger) {
-    final DebuggerInputElement e = new DebuggerInputElement.created();
-    e.children = <Element>[e._modalPromptDiv, e._textBox];
-    e._textBox.select();
-    e._textBox.onKeyDown.listen(e._onKeyDown);
-    return e;
+    final e = DebuggerInputElement.created();
+    return e
+      ..appendChildren(<HTMLElement>[e._modalPromptDiv, e._textBox])
+      .._textBox.select()
+      .._textBox.onKeyDown.listen(e._onKeyDown);
   }
 
   DebuggerInputElement.created() : super.created('debugger-input');
@@ -3145,48 +3123,51 @@ class DebuggerInputElement extends CustomElement implements Renderable {
         _busy = false;
         break;
 
-      case KeyCode.F7:
-        e.preventDefault();
-        _debugger.resume().whenComplete(() {
-          _busy = false;
-        });
-        break;
-
-      case KeyCode.F8:
-        e.preventDefault();
-        _debugger.toggleBreakpoint().whenComplete(() {
-          _busy = false;
-        });
-        break;
-
-      case KeyCode.F9:
-        e.preventDefault();
-        _debugger.smartNext().whenComplete(() {
-          _busy = false;
-        });
-        break;
-
-      case KeyCode.F10:
-        e.preventDefault();
-        _debugger.step().whenComplete(() {
-          _busy = false;
-        });
-        break;
-
-      case KeyCode.SEMICOLON:
-        if (e.ctrlKey) {
-          e.preventDefault();
-          _debugger.console.printRed('^;');
-          _debugger.pause().whenComplete(() {
-            _busy = false;
-          });
-        } else {
-          _busy = false;
-        }
-        break;
-
       default:
-        _busy = false;
+        switch (e.code) {
+          case 'F7':
+            e.preventDefault();
+            _debugger.resume().whenComplete(() {
+              _busy = false;
+            });
+            break;
+
+          case 'F8':
+            e.preventDefault();
+            _debugger.toggleBreakpoint().whenComplete(() {
+              _busy = false;
+            });
+            break;
+
+          case 'F9':
+            e.preventDefault();
+            _debugger.smartNext().whenComplete(() {
+              _busy = false;
+            });
+            break;
+
+          case 'F10':
+            e.preventDefault();
+            _debugger.step().whenComplete(() {
+              _busy = false;
+            });
+            break;
+
+          case 'Semicolon':
+            if (e.ctrlKey) {
+              e.preventDefault();
+              _debugger.console.printRed('^;');
+              _debugger.pause().whenComplete(() {
+                _busy = false;
+              });
+            } else {
+              _busy = false;
+            }
+            break;
+          default:
+            _busy = false;
+            break;
+        }
         break;
     }
   }
@@ -3211,85 +3192,3 @@ class DebuggerInputElement extends CustomElement implements Renderable {
     // Nothing to do.
   }
 }
-
-final SvgSvgElement iconExpandLess = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PolygonElement()
-      ..setAttribute('points', '12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 ')
-  ];
-
-final SvgSvgElement iconExpandMore = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PolygonElement()
-      ..setAttribute('points', '16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 ')
-  ];
-
-final SvgSvgElement iconChevronRight = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute('d', 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
-  ];
-
-final SvgSvgElement iconChevronLeft = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute('d', 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
-  ];
-
-final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-              '2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-              '2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-              '2-2-.9-2-2-2z')
-  ];
-
-final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 '
-              '2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-              '2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 '
-              '2-.9 2-2-.9-2-2-2z')
-  ];
-
-final SvgSvgElement iconInfo = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 '
-              '10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z')
-  ];
-
-final SvgSvgElement iconInfoOutline = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 '
-              '10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 '
-              '0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 '
-              '9h2V7h-2v2z')
-  ];

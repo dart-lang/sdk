@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class DuplicateConstructorNameTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.foo();
   C.foo();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -105,36 +106,41 @@ augment class A {
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   const E.foo();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
-      error(WarningCode.UNUSED_ELEMENT, 47, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
+        error(WarningCode.UNUSED_ELEMENT, 47, 3),
+      ],
+    );
   }
 
   test_extensionType_secondary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   A.foo(this.it);
   A.foo(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 47, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 47, 5)],
+    );
   }
 
   test_extensionType_withPrimary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.foo(int it) {
   A.foo(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 33, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 33, 5)],
+    );
   }
 }

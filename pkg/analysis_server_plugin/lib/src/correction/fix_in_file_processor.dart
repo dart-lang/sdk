@@ -6,6 +6,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -15,18 +16,42 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// Computer for Dart "fix all in file" fixes.
 final class FixInFileProcessor {
   final DartFixContext _fixContext;
+  final Set<String>? alreadyCalculated;
 
-  FixInFileProcessor(this._fixContext);
+  /// If passing [alreadyCalculated] a result will only be calculated if one
+  /// hasn't been calculated already (for a similar situation). If calculating
+  /// the Set will be ammended with this information.
+  /// If not passing [alreadyCalculated] the calculation will always be
+  /// performed.
+  FixInFileProcessor(this._fixContext, {this.alreadyCalculated});
 
   Future<List<Fix>> compute() async {
-    var error = _fixContext.error;
-    var errors = _fixContext.unitResult.errors
-        .where((e) => error.errorCode.name == e.errorCode.name);
-    if (errors.length < 2) {
+    var diagnostic = _fixContext.diagnostic;
+
+    var generators = _getGenerators(diagnostic.diagnosticCode);
+
+    String getAlreadyCalculatedValue(ProducerGenerator generator) {
+      return '${generator.hashCode}|${diagnostic.diagnosticCode.name}';
+    }
+
+    // Remove generators for which we've already calculated and we were asked to
+    // skip calculating again. Do this before filtering the errors as there's
+    // like many more errors than generators.
+    if (alreadyCalculated != null) {
+      generators = generators
+          .where((generator) => !alreadyCalculated!
+              .contains(getAlreadyCalculatedValue(generator)))
+          .toList(growable: false);
+    }
+    if (generators.isEmpty) {
       return const <Fix>[];
     }
 
-    var generators = _getGenerators(error.errorCode);
+    var diagnostics = _fixContext.unitResult.diagnostics
+        .where((e) => diagnostic.diagnosticCode.name == e.diagnosticCode.name);
+    if (diagnostics.length < 2) {
+      return const <Fix>[];
+    }
 
     var fixes = <Fix>[];
     for (var generator in generators) {
@@ -43,9 +68,11 @@ final class FixInFileProcessor {
           workspace: _fixContext.workspace,
           libraryResult: _fixContext.libraryResult,
           unitResult: _fixContext.unitResult,
-          error: error,
+          error: diagnostic,
+          correctionUtils: _fixContext.correctionUtils,
         );
-        fixState = await _fixError(fixContext, fixState, generator, error);
+        fixState =
+            await _fixDiagnostic(fixContext, fixState, generator, diagnostic);
 
         // The original error was not fixable; continue to next generator.
         if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
@@ -53,15 +80,16 @@ final class FixInFileProcessor {
         }
 
         // Compute fixes for the rest of the errors.
-        for (var error in errors.where((item) => item != error)) {
+        for (var d in diagnostics.where((item) => item != diagnostic)) {
           var fixContext = DartFixContext(
             instrumentationService: _fixContext.instrumentationService,
             workspace: _fixContext.workspace,
             libraryResult: _fixContext.libraryResult,
             unitResult: _fixContext.unitResult,
-            error: error,
+            error: d,
+            correctionUtils: _fixContext.correctionUtils,
           );
-          fixState = await _fixError(fixContext, fixState, generator, error);
+          fixState = await _fixDiagnostic(fixContext, fixState, generator, d);
         }
         if (fixState is _NotEmptyFixState) {
           var sourceChange = fixState.builder.sourceChange;
@@ -72,16 +100,19 @@ final class FixInFileProcessor {
             fixes.add(Fix(kind: fixKind, change: sourceChange));
           }
         }
+
+        // Remember that we calculated this.
+        alreadyCalculated?.add(getAlreadyCalculatedValue(generator));
       }
     }
     return fixes;
   }
 
-  Future<_FixState> _fixError(
+  Future<_FixState> _fixDiagnostic(
     DartFixContext fixContext,
     _FixState fixState,
     ProducerGenerator generator,
-    AnalysisError diagnostic,
+    Diagnostic diagnostic,
   ) async {
     var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
@@ -95,10 +126,10 @@ final class FixInFileProcessor {
 
     var producer = generator(context: context);
 
+    var builder = fixState.builder as ChangeBuilderImpl;
     try {
-      var localBuilder = fixState.builder.copy();
       var fixKind = producer.fixKind;
-      await producer.compute(localBuilder);
+      await producer.compute(builder);
       assert(
         !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
         'Producers used in bulk fixes must not modify the FixKind during '
@@ -107,29 +138,32 @@ final class FixInFileProcessor {
 
       var multiFixKind = producer.multiFixKind;
       if (multiFixKind == null) {
+        builder.revert();
         return fixState;
       }
 
       // TODO(pq): consider discarding the change if the producer's `fixKind`
       // doesn't match a previously cached one.
+      builder.commit();
       return _NotEmptyFixState(
-        builder: localBuilder,
+        builder: builder,
         fixKind: multiFixKind,
         fixCount: fixState.fixCount + 1,
       );
     } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
+      // If a conflicting edit was added in [compute], then the builder is
+      // reverted to its previous state.
+      builder.revert();
       return fixState;
     }
   }
 
-  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
-    if (errorCode is LintCode) {
-      return registeredFixGenerators.lintProducers[errorCode] ?? [];
+  List<ProducerGenerator> _getGenerators(DiagnosticCode diagnosticCode) {
+    if (diagnosticCode is LintCode) {
+      return registeredFixGenerators.lintProducers[diagnosticCode] ?? [];
     } else {
       // TODO(pq): consider support for multi-generators.
-      return registeredFixGenerators.nonLintProducers[errorCode] ?? [];
+      return registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
     }
   }
 }

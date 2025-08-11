@@ -7,7 +7,7 @@ library test;
 // var x = /*@returnType=() -> invalid-type*/ () => f() ? y : z;
 //     ^
 //
-// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: The value 'null' can't be returned from a function with return type 'bool' because 'bool' is not nullable.
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
 // bool f() => null;
 //             ^
 //
@@ -18,7 +18,7 @@ static field invalid-type x = () → () → invalid-type => self::f() ?{() → i
 static field () → invalid-type y = () → invalid-type => self::x;
 static field () → invalid-type z = () → invalid-type => self::x;
 static method f() → core::bool
-  return invalid-expression "pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: The value 'null' can't be returned from a function with return type 'bool' because 'bool' is not nullable.
+  return invalid-expression "pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
 bool f() => null;
             ^" in let Null #t1 = null in #t1 == null ?{core::bool} #t1 as{TypeError} core::bool : #t1{core::bool};
 static method main() → dynamic {}

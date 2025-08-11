@@ -96,7 +96,7 @@ void typeofTest() {
     'function',
     'object',
     'undefined',
-    'symbol'
+    'symbol',
   };
   void test(String property, String expectedType) {
     Expect.isTrue(globalContext[property].typeofEquals(expectedType));
@@ -154,38 +154,56 @@ void methodsAndConstructorsTest() {
   JSFunction constructor = gc['JSClass'] as JSFunction;
 
   // Var args one arg
-  JSObject jsObj1 =
-      constructor.callAsConstructorVarArgs<JSObject>(<JSAny?>['world!'.toJS]);
+  JSObject jsObj1 = constructor.callAsConstructorVarArgs<JSObject>(<JSAny?>[
+    'world!'.toJS,
+  ]);
   Expect.equals(
-      'hello world!',
-      jsObj1.callMethodVarArgs<JSString>(
-          'sum'.toJS, <JSAny?>['hello'.toJS, ' '.toJS]).toDart);
+    'hello world!',
+    jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[
+      'hello'.toJS,
+      ' '.toJS,
+    ]).toDart,
+  );
   Expect.equals(
-      'helloundefinedworld!',
-      jsObj1.callMethodVarArgs<JSString>(
-          'sum'.toJS, <JSAny?>['hello'.toJS]).toDart);
-  Expect.equals('undefinedundefinedworld!',
-      jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[]).toDart);
-  Expect.equals('undefinedundefinedworld!',
-      jsObj1.callMethodVarArgs<JSString>('sum'.toJS).toDart);
+    'helloundefinedworld!',
+    jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[
+      'hello'.toJS,
+    ]).toDart,
+  );
   Expect.equals(
-      'nullnullworld!',
-      jsObj1.callMethodVarArgs<JSString>(
-          'sum'.toJS, <JSAny?>[null, null]).toDart);
+    'undefinedundefinedworld!',
+    jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[]).toDart,
+  );
+  Expect.equals(
+    'undefinedundefinedworld!',
+    jsObj1.callMethodVarArgs<JSString>('sum'.toJS).toDart,
+  );
+  Expect.equals(
+    'nullnullworld!',
+    jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[null, null]).toDart,
+  );
   // Var args no args
   jsObj1 = constructor.callAsConstructorVarArgs<JSObject>();
   Expect.equals(jsObj1['c'], null);
 
   // Fixed args one arg
   jsObj1 = constructor.callAsConstructor<JSObject>('world!'.toJS);
-  Expect.equals('hello world!',
-      jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS, ' '.toJS).toDart);
-  Expect.equals('helloundefinedworld!',
-      jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS).toDart);
-  Expect.equals('undefinedundefinedworld!',
-      jsObj1.callMethod<JSString>('sum'.toJS, null).toDart);
-  Expect.equals('undefinedundefinedworld!',
-      jsObj1.callMethod<JSString>('sum'.toJS).toDart);
+  Expect.equals(
+    'hello world!',
+    jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS, ' '.toJS).toDart,
+  );
+  Expect.equals(
+    'helloundefinedworld!',
+    jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS).toDart,
+  );
+  Expect.equals(
+    'undefinedundefinedworld!',
+    jsObj1.callMethod<JSString>('sum'.toJS, null).toDart,
+  );
+  Expect.equals(
+    'undefinedundefinedworld!',
+    jsObj1.callMethod<JSString>('sum'.toJS).toDart,
+  );
   // Fixed args no args
   jsObj1 = constructor.callAsConstructor<JSObject>();
   Expect.equals(jsObj1['c'], null);
@@ -224,14 +242,19 @@ void symbolTest() {
       ''');
   JSObject gc = globalContext;
   Expect.equals(
-      _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart, 'symbol');
+    _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart,
+    'symbol',
+  );
   Expect.equals(
-      gc.getProperty<JSString>(gc.getProperty<JSAny>('symbol'.toJS)).toDart,
-      'boo');
+    gc.getProperty<JSString>(gc.getProperty<JSAny>('symbol'.toJS)).toDart,
+    'boo',
+  );
   Expect.equals(methodWithSymbol(symbol).toDart, 'symbol');
   Expect.equals(_JSSymbol.keyFor(symbol).toDart, 'symbol');
   Expect.equals(
-      _JSSymbol.keyFor(gc.getProperty<JSAny>('symbol'.toJS)).toDart, 'symbol');
+    _JSSymbol.keyFor(gc.getProperty<JSAny>('symbol'.toJS)).toDart,
+    'symbol',
+  );
   Expect.equals(gc.callMethod<JSString>(symbol2).toDart, 'hello world');
 }
 

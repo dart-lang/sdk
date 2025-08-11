@@ -24,22 +24,22 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart'
+import 'package:analyzer/dart/element/element.dart'
     show
-        Element2,
-        EnumElement2,
-        ExecutableElement2,
-        ExtensionElement2,
-        FieldElement2,
+        Element,
+        EnumElement,
+        ExecutableElement,
+        ExtensionElement,
+        FieldElement,
         FormalParameterElement,
-        InterfaceElement2,
-        LibraryElement2,
+        InterfaceElement,
+        LibraryElement,
         LocalFunctionElement,
-        LocalVariableElement2,
-        MixinElement2,
-        PrefixElement2,
-        TypeParameterElement2,
-        VariableElement2;
+        LocalVariableElement,
+        MixinElement,
+        PrefixElement,
+        TypeParameterElement,
+        VariableElement;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -1712,24 +1712,24 @@ class CompletionResult {
     var entity = expectedCompletion.syntacticEntity;
     var element = _getElement(entity);
     if (element != null) {
-      var parent = element.enclosingElement2;
-      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+      var parent = element.enclosingElement;
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (_isStatic(element)) {
           return CompletionGroup.staticMember;
         } else {
           return CompletionGroup.instanceMember;
         }
-      } else if (parent is LibraryElement2 &&
-          element is! InterfaceElement2 &&
-          element is! ExtensionElement2) {
+      } else if (parent is LibraryElement &&
+          element is! InterfaceElement &&
+          element is! ExtensionElement) {
         return CompletionGroup.topLevelMember;
       }
 
-      if (element is EnumElement2) {
+      if (element is EnumElement) {
         return CompletionGroup.enumElement;
-      } else if (element is MixinElement2) {
+      } else if (element is MixinElement) {
         return CompletionGroup.mixinElement;
-      } else if (element is InterfaceElement2) {
+      } else if (element is InterfaceElement) {
         if (entity is SimpleIdentifier &&
             entity.parent is NamedType &&
             entity.parent!.parent is ConstructorName &&
@@ -1737,17 +1737,17 @@ class CompletionResult {
           return CompletionGroup.constructorElement;
         }
         return CompletionGroup.classElement;
-      } else if (element is ExtensionElement2) {
+      } else if (element is ExtensionElement) {
         return CompletionGroup.extensionElement;
       } else if (element is LocalFunctionElement) {
         return CompletionGroup.localFunctionElement;
-      } else if (element is LocalVariableElement2) {
+      } else if (element is LocalVariableElement) {
         return CompletionGroup.localVariableElement;
       } else if (element is FormalParameterElement) {
         return CompletionGroup.parameterElement;
-      } else if (element is PrefixElement2) {
+      } else if (element is PrefixElement) {
         return CompletionGroup.prefixElement;
-      } else if (element is TypeParameterElement2) {
+      } else if (element is TypeParameterElement) {
         return CompletionGroup.typeParameterElement;
       }
     }
@@ -1782,7 +1782,7 @@ class CompletionResult {
 
   /// Return the element associated with the syntactic [entity], or `null` if
   /// there is no such element.
-  Element2? _getElement(SyntacticEntity entity) {
+  Element? _getElement(SyntacticEntity entity) {
     if (entity is SimpleIdentifier) {
       var element = entity.element;
       if (element != null) {
@@ -1793,16 +1793,16 @@ class CompletionResult {
         var parent = node.parent;
         if (parent is AssignmentExpression) {
           if (node == parent.leftHandSide) {
-            return parent.readElement2 ?? parent.writeElement2;
+            return parent.readElement ?? parent.writeElement;
           }
           return null;
         } else if (parent is PrefixExpression) {
           if (parent.operator.type == TokenType.PLUS_PLUS ||
               parent.operator.type == TokenType.MINUS_MINUS) {
-            return parent.readElement2 ?? parent.writeElement2;
+            return parent.readElement ?? parent.writeElement;
           }
         } else if (parent is PostfixExpression) {
-          return parent.readElement2 ?? parent.writeElement2;
+          return parent.readElement ?? parent.writeElement;
         }
         node = parent;
       }
@@ -1812,12 +1812,12 @@ class CompletionResult {
 
   /// Return `true` if the [element] is static (either top-level or a static
   /// member of a class or extension).
-  bool _isStatic(Element2 element) {
-    if (element is ExecutableElement2) {
+  bool _isStatic(Element element) {
+    if (element is ExecutableElement) {
       return element.isStatic;
-    } else if (element is FieldElement2) {
+    } else if (element is FieldElement) {
       return element.isStatic;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       return element.isStatic;
     }
     return true;

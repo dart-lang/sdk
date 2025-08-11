@@ -105,10 +105,9 @@ class Registry {
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
     if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
 
-    final result =
-        (targetUnit == _mainOutputUnit)
-            ? mainLibrariesMap
-            : _deferredLibrariesMap[targetUnit]!;
+    final result = (targetUnit == _mainOutputUnit)
+        ? mainLibrariesMap
+        : _deferredLibrariesMap[targetUnit]!;
 
     _lastOutputUnit = targetUnit;
     _lastLibrariesMap = result;

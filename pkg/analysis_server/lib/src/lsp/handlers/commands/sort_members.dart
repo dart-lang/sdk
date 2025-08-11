@@ -18,6 +18,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Sort Members';
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,
@@ -62,7 +65,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     var code = result.content;
     var unit = result.unit;
 
-    if (hasScanParseErrors(result.errors)) {
+    if (hasScanParseErrors(result.diagnostics)) {
       if (autoTriggered) {
         return success(null);
       }

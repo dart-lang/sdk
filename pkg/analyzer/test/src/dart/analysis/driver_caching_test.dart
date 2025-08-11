@@ -5,11 +5,13 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,9 +37,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
 
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder());
   }
 
   test_analysisOptions_strictCasts() async {
@@ -52,7 +52,7 @@ int b = a;
 ''');
 
     // `strict-cast: false`, so no errors.
-    assertErrorsInList(await _computeTestFileErrors(), []);
+    assertErrorsInList(await _computeTestFileDiagnostics(), []);
 
     // Configure `strict-casts: true`.
     await disposeAnalysisContextCollection();
@@ -61,7 +61,7 @@ int b = a;
     );
 
     // `strict-cast: true`, so has errors.
-    assertErrorsInList(await _computeTestFileErrors(), [
+    assertErrorsInList(await _computeTestFileDiagnostics(), [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
     ]);
   }
@@ -265,9 +265,7 @@ import 'a.dart';
 
     // Configure without dependencies, but with a (required) name.
     // So, the lint rule will be activated.
-    writeTestPackagePubspecYamlFile(
-      pubspecYamlContent(name: 'my_test'),
-    );
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'my_test'));
 
     addTestFile(r'''
 // ignore:unused_import
@@ -276,7 +274,7 @@ import 'package:aaa/a.dart';
 
     // We don't have a dependency on `package:aaa`, so there is a lint.
     _assertHasLintReported(
-      await _computeTestFileErrors(),
+      await _computeTestFileDiagnostics(),
       'depend_on_referenced_packages',
     );
 
@@ -289,16 +287,11 @@ import 'package:aaa/a.dart';
 
     // Add dependency on `package:aaa`.
     writeTestPackagePubspecYamlFile(
-      pubspecYamlContent(
-        name: 'my_test',
-        dependencies: [
-          PubspecYamlFileDependency(name: 'aaa'),
-        ],
-      ),
+      pubspecYamlContent(name: 'my_test', dependencies: ['aaa']),
     );
 
     // With dependency on `package:aaa` added, no lint is reported.
-    expect(await _computeTestFileErrors(), isEmpty);
+    expect(await _computeTestFileDiagnostics(), isEmpty);
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
@@ -328,20 +321,22 @@ void f() {
     await disposeAnalysisContextCollection();
 
     // Configure to run a lint.
-    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
-      rules: ['prefer_is_not_empty'],
-    ));
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: ['prefer_is_not_empty']),
+    );
 
     // Check that the lint was run, and reported.
     await resolveTestFile();
-    _assertHasLintReported(result.errors, 'prefer_is_not_empty');
+    _assertHasLintReported(result.diagnostics, 'prefer_is_not_empty');
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
   }
 
-  void _assertContainsLinkedCycle(Set<File> expectedFiles,
-      {bool andClear = false}) {
+  void _assertContainsLinkedCycle(
+    Set<File> expectedFiles, {
+    bool andClear = false,
+  }) {
     var expected = expectedFiles.map((file) => file.path).toSet();
     expect(_linkedCycles, contains(unorderedEquals(expected)));
     if (andClear) {
@@ -349,11 +344,12 @@ void f() {
     }
   }
 
-  void _assertHasLintReported(List<AnalysisError> errors, String name) {
-    var matching = errors.where((element) {
-      var errorCode = element.errorCode;
-      return errorCode is LintCode && errorCode.name == name;
-    }).toList();
+  void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
+    var matching =
+        diagnostics.where((element) {
+          var diagnosticCode = element.diagnosticCode;
+          return diagnosticCode is LintCode && diagnosticCode.name == name;
+        }).toList();
     expect(matching, hasLength(1));
   }
 
@@ -363,20 +359,20 @@ void f() {
 
   /// Note that we intentionally use this method, we don't want to use
   /// [resolveFile] instead. Resolving a file will force to produce its
-  /// resolved AST, and as a result to recompute the errors.
+  /// resolved AST, and as a result to recompute the diagnostics.
   ///
-  /// But this method is used to check returning errors from the cache, or
+  /// But this method is used to check returning diagnostics from the cache, or
   /// recomputing when the cache key is expected to be different.
-  Future<List<AnalysisError>> _computeTestFileErrors() async {
-    var errorsResult = await contextFor(testFile)
-        .currentSession
-        .getErrors(testFile.path) as ErrorsResult;
-    return errorsResult.errors;
+  Future<List<Diagnostic>> _computeTestFileDiagnostics() async {
+    var errorsResult =
+        await contextFor(testFile).currentSession.getErrors(testFile.path)
+            as ErrorsResult;
+    return errorsResult.diagnostics;
   }
 }
 
 extension on AnalysisDriver {
-  bool isValidLibraryElement(LibraryElement2 element) {
+  bool isValidLibraryElement(LibraryElement element) {
     return identical(element.session, currentSession);
   }
 }

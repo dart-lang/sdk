@@ -52,7 +52,7 @@ var samples = [
   1.5, // Non-integer, magnitude > 1
   2.0, // Even integer
   3.0, // Odd integer
-  Infinity
+  Infinity,
 ];
 
 test() {

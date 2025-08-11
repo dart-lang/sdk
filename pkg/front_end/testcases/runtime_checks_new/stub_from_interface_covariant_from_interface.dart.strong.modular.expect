@@ -18,7 +18,7 @@ abstract class C extends self::B implements self::I {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  forwarding-stub method f(covariant-by-declaration core::int x, core::Object y) → void
+  forwarding-stub synthetic method f(covariant-by-declaration core::int x, core::Object y) → void
     return super.{self::B::f}(x, y as core::int);
 }
 static method main() → void {}

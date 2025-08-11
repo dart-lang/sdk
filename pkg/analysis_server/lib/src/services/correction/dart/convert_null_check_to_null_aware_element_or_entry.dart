@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -105,7 +105,7 @@ class ConvertNullCheckToNullAwareElementOrEntry
               ((node.caseClause?.guardedPattern.pattern as NullCheckPattern)
                           .pattern
                       as DeclaredVariablePattern)
-                  .declaredElement2;
+                  .declaredElement;
           if (caseVariable == thenElement.key.canonicalElement) {
             // In case the key is promoted, replace everything before ':' with
             // the expression before 'case', prefixed by '?'.
@@ -143,7 +143,7 @@ class ConvertNullCheckToNullAwareElementOrEntry
 }
 
 extension AstNodeNullableExtension on AstNode? {
-  Element2? get canonicalElement {
+  Element? get canonicalElement {
     var self = this;
     if (self is Expression) {
       var node = self.unParenthesized;

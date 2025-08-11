@@ -30,26 +30,33 @@ class X4 extends A with B implements C {}
 class X5 extends A with B, C implements D, E {}
 ''');
 
-    assertElementTypes(
-      findElement2.class_('X1').allSupertypes,
-      ['Object', 'A'],
-    );
-    assertElementTypes(
-      findElement2.class_('X2').allSupertypes,
-      ['Object', 'B'],
-    );
-    assertElementTypes(
-      findElement2.class_('X3').allSupertypes,
-      ['Object', 'A', 'B'],
-    );
-    assertElementTypes(
-      findElement2.class_('X4').allSupertypes,
-      ['Object', 'A', 'B', 'C'],
-    );
-    assertElementTypes(
-      findElement2.class_('X5').allSupertypes,
-      ['Object', 'A', 'B', 'C', 'D', 'E'],
-    );
+    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+      'Object',
+      'A',
+    ]);
+    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+      'Object',
+      'B',
+    ]);
+    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+      'Object',
+      'A',
+      'B',
+    ]);
+    assertElementTypes(findElement2.class_('X4').allSupertypes, [
+      'Object',
+      'A',
+      'B',
+      'C',
+    ]);
+    assertElementTypes(findElement2.class_('X5').allSupertypes, [
+      'Object',
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+    ]);
   }
 
   test_element_allSupertypes_generic() async {
@@ -63,94 +70,99 @@ class X2 extends B<String, List<int>> {}
 class X3 extends C<double> {}
 ''');
 
-    assertElementTypes(
-      findElement2.class_('X1').allSupertypes,
-      ['Object', 'A<String>'],
-    );
-    assertElementTypes(
-      findElement2.class_('X2').allSupertypes,
-      ['Object', 'B<String, List<int>>'],
-    );
-    assertElementTypes(
-      findElement2.class_('X3').allSupertypes,
-      ['Object', 'B<int, double>', 'C<double>'],
-    );
+    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+      'Object',
+      'A<String>',
+    ]);
+    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+      'Object',
+      'B<String, List<int>>',
+    ]);
+    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+      'Object',
+      'B<int, double>',
+      'C<double>',
+    ]);
   }
 
   test_element_allSupertypes_recursive() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends B {}
 class B extends C {}
 class C extends A {}
 
 class X extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
-    ]);
-
-    assertElementTypes(
-      findElement2.class_('X').allSupertypes,
-      ['A', 'B', 'C'],
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
+      ],
     );
+
+    assertElementTypes(findElement2.class_('X').allSupertypes, ['A', 'B', 'C']);
   }
 
   test_element_typeFunction_extends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends Function {}
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 16, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          16,
+          8,
+        ),
+      ],
+    );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_extends_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 class A extends Function {}
-''', [
-      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8)],
+    );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_with() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 53, 8),
-    ]);
-
-    assertElementTypes(
-      findElement2.class_('C').mixins,
-      ['A', 'B'],
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 53, 8)],
     );
+
+    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
   }
 
   test_element_typeFunction_with_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
-''', [
-      error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 69, 8),
-    ]);
-
-    assertElementTypes(
-      findElement2.class_('C').mixins,
-      ['A', 'B'],
+''',
+      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 69, 8)],
     );
+
+    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
   }
 
   test_issue32815() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> extends B<T> {}
 class B<T> extends A<T> {}
 class C<T> extends B<T> implements I<T> {}
@@ -160,15 +172,18 @@ abstract class I<T> {}
 main() {
   Iterable<I<int>> x = [new C()];
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 1),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 1),
+        error(
           CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           60,
-          1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
-    ]);
+          1,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
+      ],
+    );
   }
 }

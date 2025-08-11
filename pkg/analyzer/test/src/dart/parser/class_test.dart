@@ -55,7 +55,10 @@ class A {
 ''');
     parseResult.assertErrors([
       error(
-          ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS, 39, 4),
+        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+        39,
+        4,
+      ),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -91,7 +94,10 @@ class A {
 ''');
     parseResult.assertErrors([
       error(
-          ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS, 38, 4),
+        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+        38,
+        4,
+      ),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;

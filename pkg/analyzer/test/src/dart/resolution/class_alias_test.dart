@@ -15,14 +15,14 @@ main() {
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
-//   solo_test_X() async {
-//     await assertNoErrorsInCode(r'''
-// ''');
-//
-//     final node = findNode.singleListLiteral;
-//     assertResolvedNodeText(node, r'''
-// ''');
-//   }
+  //   solo_test_X() async {
+  //     await assertNoErrorsInCode(r'''
+  // ''');
+  //
+  //     final node = findNode.singleListLiteral;
+  //     assertResolvedNodeText(node, r'''
+  // ''');
+  //   }
 
   test_element() async {
     await assertNoErrorsInCode(r'''
@@ -58,43 +58,56 @@ ClassTypeAlias
         element2: <testLibrary>::@class::C
         type: C
   semicolon: ;
-  declaredElement: <testLibraryFragment>::@class::X
+  declaredElement: <testLibraryFragment> X@46
 ''');
   }
 
   test_element_typeFunction_extends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin class A {}
 class X = Function with A;
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 27, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          27,
+          8,
+        ),
+      ],
+    );
     var x = findElement2.class_('X');
     assertType(x.supertype, 'Object');
   }
 
   test_element_typeFunction_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 66,
-          8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          66,
+          8,
+        ),
+      ],
+    );
     var x = findElement2.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
   test_element_typeFunction_with() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 59, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 59, 8)],
+    );
     var x = findElement2.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
   }
@@ -114,7 +127,8 @@ const x = const C();
   }
 
   test_implicitConstructors_const_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
@@ -126,11 +140,16 @@ mixin M {
 class C = A with M;
 
 const x = const C();
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 83,
-          5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          83,
+          5,
+        ),
+      ],
+    );
   }
 
   test_implicitConstructors_const_getter() async {

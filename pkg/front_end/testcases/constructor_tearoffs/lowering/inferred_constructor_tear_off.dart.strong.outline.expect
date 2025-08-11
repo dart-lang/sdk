@@ -6,7 +6,7 @@ class Class1 extends core::Object {
   field core::int field;
   constructor •(core::int field) → self::Class1
     ;
-  static method _#new#tearOff(core::int field) → self::Class1
+  static synthetic method _#new#tearOff(core::int field) → self::Class1
     return new self::Class1::•(field);
 }
 abstract class Interface2 extends core::Object {
@@ -18,7 +18,7 @@ class Class2 extends core::Object implements self::Interface2 {
   final field core::int field;
   constructor •(core::int field) → self::Class2
     ;
-  static method _#new#tearOff(core::int field) → self::Class2
+  static synthetic method _#new#tearOff(core::int field) → self::Class2
     return new self::Class2::•(field);
 }
 static final field core::bool inSoundMode;

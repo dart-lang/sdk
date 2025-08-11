@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: file_names
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,13 +19,10 @@ class NoRuntimeTypeToString extends LintRule {
     : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_runtimeType_toString;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_runtimeType_toString;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addInterpolationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.expression)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.expression);
+    rule.reportAtNode(node.expression);
   }
 
   @override
@@ -49,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.realTarget)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.methodName);
+    rule.reportAtNode(node.methodName);
   }
 
   bool _canSkip(AstNode node) =>
@@ -64,8 +63,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (declaredElement != null) {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {
-              var extendedElement = extendedType.element3;
-              return !(extendedElement is ClassElement2 &&
+              var extendedElement = extendedType.element;
+              return !(extendedElement is ClassElement &&
                   !extendedElement.isAbstract);
             }
           }

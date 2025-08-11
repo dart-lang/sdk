@@ -31,11 +31,12 @@ main() {
   var methods = methodsOf(reflectClass(B));
 
   expect(
-      '{f: Method(s(f) in s(B)), '
-      'g: Method(s(g) in s(B)), '
-      'h: Method(s(h) in s(B)), '
-      'i: Method(s(i) in s(B))}',
-      methods);
+    '{f: Method(s(f) in s(B)), '
+    'g: Method(s(g) in s(B)), '
+    'h: Method(s(h) in s(B)), '
+    'i: Method(s(i) in s(B))}',
+    methods,
+  );
 
   var f = methods[#f];
   var g = methods[#g];

@@ -41,7 +41,7 @@ class C<T> {
   //        ^^^
   // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   //           ^
-  // [cfe] The method 'call' isn't defined for the class 'Type'.
+  // [cfe] The method 'call' isn't defined for the type 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
   static corge() => (T)();
@@ -51,13 +51,13 @@ class C<T> {
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                   ^
-  // [cfe] The method 'call' isn't defined for the class 'Type'.
+  // [cfe] The method 'call' isn't defined for the type 'Type'.
 
   // Class '_Type' has no [] operator: NoSuchMethodError.
   grault() => T[0];
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the type 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
   static garply() => T[0];
@@ -66,13 +66,13 @@ class C<T> {
   // [cfe] Type variables can't be used in static members.
   //                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the type 'Type'.
 
   // Class '_Type' has no member m: NoSuchMethodError.
   waldo() => T.m;
   //           ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'm' isn't defined for the class 'Type'.
+  // [cfe] The getter 'm' isn't defined for the type 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
   static fred() => T.m;
@@ -81,7 +81,7 @@ class C<T> {
   // [cfe] Type variables can't be used in static members.
   //                 ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'm' isn't defined for the class 'Type'.
+  // [cfe] The getter 'm' isn't defined for the type 'Type'.
 }
 
 main() {

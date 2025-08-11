@@ -49,17 +49,25 @@ group("runtime") {
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
+    "samples/ffi/httpIG:fake_httpIG",
     "utils/dartdev:dartdev",
     "utils/kernel-service:kernel-service",
   ]
 
   # The following dependencies allow dartdev to start the resident frontend
-  # server.
+  # server and DDS.
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps += [ "utils/kernel-service:frontend_server_aot_product" ]
-    deps += [ "runtime/bin:dartaotruntime_product" ]
+    deps += [
+      "runtime/bin:dartaotruntime",
+      "runtime/bin:dartaotruntime_product",
+      "utils/dds:dds_aot",
+      "utils/kernel-service:frontend_server_aot_product",
+    ]
   } else {
-    deps += [ "utils/kernel-service:frontend_server" ]
+    deps += [
+      "utils/dds:dds",
+      "utils/kernel-service:frontend_server",
+    ]
   }
 
   # AOT samples use dlopen to load AOT snapshots and it works only on
@@ -208,18 +216,6 @@ group("dart2js_bot") {
     ":create_sdk",
     "utils/compiler:compile_dart2js_platform",
   ]
-}
-
-# This rule and the compressed_observatory_archive rule are for the Fuchsia
-# bots that pre-build the Observatory. They copy the observatory tar files to
-# the root build output directory for convenient access by the Fuchsia buildbot
-# scripts.
-group("observatory_archive") {
-  deps = [ "runtime/observatory:copy_observatory_archive" ]
-}
-
-group("compressed_observatory_archive") {
-  deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
 }
 
 if (is_fuchsia) {
@@ -481,5 +477,11 @@ if (is_fuchsia) {
     foreach(binary, test_binaries) {
       deps += [ ":${binary}_test_component" ]
     }
+  }
+}
+
+if (is_linux) {
+  group("debian_package") {
+    public_deps = [ "tools/debian_package" ]
   }
 }

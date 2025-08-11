@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-strong
-
 // Copied from constructor12_test.dart to break out a single expectation that
 // is different in weak and strong modes.
 

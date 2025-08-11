@@ -831,13 +831,12 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type E {}
 ''');
-    parseResult.assertErrors(
-        [error(ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR, 15, 1)]);
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR, 15, 1),
+    ]);
 
     var node = parseResult.findNode.extensionTypeDeclaration('E');
-    assertParsedNodeText(
-        node,
-        r'''
+    assertParsedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension @0
   typeKeyword: type @10
@@ -850,8 +849,7 @@ ExtensionTypeDeclaration
     rightParenthesis: ) @17 <synthetic>
   leftBracket: { @17
   rightBracket: } @18
-''',
-        withOffsets: true);
+''', withOffsets: true);
   }
 
   test_primaryConstructor_named() {

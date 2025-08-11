@@ -25,5 +25,5 @@ extension type ExtensionType(core::int i) {
 }
 static extension-type-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType% /* erasure=core::int, declared=! */
   return mai::ExtensionType|constructor#(i);

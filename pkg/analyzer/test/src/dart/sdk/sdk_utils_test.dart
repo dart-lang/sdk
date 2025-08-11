@@ -60,7 +60,10 @@ List<String> sdkPaths = [
 ];
 
 String? getImportUriIfMatchesRelativeSdkPathSlow(
-    List<SdkLibrary> libraries, String filePath, String separator) {
+  List<SdkLibrary> libraries,
+  String filePath,
+  String separator,
+) {
   int length = libraries.length;
   List<String> paths = <String>[];
   for (int i = 0; i < length; i++) {
@@ -78,8 +81,9 @@ String? getImportUriIfMatchesRelativeSdkPathSlow(
     if (index >= 0) {
       String prefix = libraryPath.substring(0, index + 1);
       if (filePath.startsWith(prefix)) {
-        String relPath =
-            filePath.substring(prefix.length).replaceAll(separator, '/');
+        String relPath = filePath
+            .substring(prefix.length)
+            .replaceAll(separator, '/');
         return '${library.shortName}/$relPath';
       }
     }
@@ -87,10 +91,12 @@ String? getImportUriIfMatchesRelativeSdkPathSlow(
   return null;
 }
 
-Iterable<String> getPaths(List<String> input,
-    {required bool addFilenames,
-    required String prefix,
-    required String separator}) sync* {
+Iterable<String> getPaths(
+  List<String> input, {
+  required bool addFilenames,
+  required String prefix,
+  required String separator,
+}) sync* {
   for (String s in input) {
     String base = "$prefix${s.replaceAll("/", separator)}";
     if (addFilenames) {
@@ -103,11 +109,18 @@ Iterable<String> getPaths(List<String> input,
 }
 
 String? getRelativePathIfInsideSemi(
-    String libraryPath, String filePath, String separator) {
-  String libDirPath =
-      libraryPath.substring(0, libraryPath.lastIndexOf(separator) + 1);
-  String fileDirPath =
-      filePath.substring(0, filePath.lastIndexOf(separator) + 1);
+  String libraryPath,
+  String filePath,
+  String separator,
+) {
+  String libDirPath = libraryPath.substring(
+    0,
+    libraryPath.lastIndexOf(separator) + 1,
+  );
+  String fileDirPath = filePath.substring(
+    0,
+    filePath.lastIndexOf(separator) + 1,
+  );
   if (fileDirPath.startsWith(libDirPath)) {
     return filePath.substring(libDirPath.length);
   }
@@ -115,7 +128,10 @@ String? getRelativePathIfInsideSemi(
 }
 
 String? getRelativePathIfInsideSlow(
-    File libraryFile, File file, pathos.Context pathContext) {
+  File libraryFile,
+  File file,
+  pathos.Context pathContext,
+) {
   var libraryFolder = libraryFile.parent;
   if (libraryFolder.contains(file.path)) {
     return pathContext.relative(file.path, from: libraryFolder.path);
@@ -138,34 +154,45 @@ void testGetImportUriIfMatchesRelativeSdkPathSlow() {
     "math/math.dart",
     "typed_data/typed_data.dart",
   ];
-  List<SdkLibrary> sdkLibs = knownSdkPaths
-      .map((path) => MockSdkLibrary(
-            path.substring(0, path.indexOf("/")),
-            [MockSdkLibraryUnit(path, "")],
-          ))
-      .toList();
+  List<SdkLibrary> sdkLibs =
+      knownSdkPaths
+          .map(
+            (path) => MockSdkLibrary(path.substring(0, path.indexOf("/")), [
+              MockSdkLibraryUnit(path, ""),
+            ]),
+          )
+          .toList();
 
   for (var separator in ["\\", "/"]) {
     for (var lib in sdkLibs) {
       for (var relativePathFromFile in [
-        ...getPaths(knownSdkPaths,
-            addFilenames: false, prefix: "", separator: separator),
         ...getPaths(
-            knownSdkPaths
-                .map((e) => e.substring(0, e.lastIndexOf("/")))
-                .toList(),
-            addFilenames: true,
-            prefix: "",
-            separator: separator)
+          knownSdkPaths,
+          addFilenames: false,
+          prefix: "",
+          separator: separator,
+        ),
+        ...getPaths(
+          knownSdkPaths.map((e) => e.substring(0, e.lastIndexOf("/"))).toList(),
+          addFilenames: true,
+          prefix: "",
+          separator: separator,
+        ),
       ]) {
-        test(
-            "getImportUriIfMatchesRelativeSdkPath test "
+        test("getImportUriIfMatchesRelativeSdkPath test "
             "lib ${lib.path} vs file $relativePathFromFile", () {
           expect(
-              getImportUriIfMatchesRelativeSdkPath(
-                  sdkLibs, relativePathFromFile, separator),
-              getImportUriIfMatchesRelativeSdkPathSlow(
-                  sdkLibs, relativePathFromFile, separator));
+            getImportUriIfMatchesRelativeSdkPath(
+              sdkLibs,
+              relativePathFromFile,
+              separator,
+            ),
+            getImportUriIfMatchesRelativeSdkPathSlow(
+              sdkLibs,
+              relativePathFromFile,
+              separator,
+            ),
+          );
         });
       }
     }
@@ -179,22 +206,25 @@ void testGetImportUriIfMatchesRelativeSdkPathSlowAdditionalTests() {
   // uri_does_not_exist_test.dart before fixing the mock sdk path in
   // mock_sdk.dart).
   var sdkLibs = [
-    MockSdkLibrary(
-      "isolate",
-      [MockSdkLibraryUnit("isolate.dart", "")],
-    )
+    MockSdkLibrary("isolate", [MockSdkLibraryUnit("isolate.dart", "")]),
   ];
   var relativePathFromFile = "math/bar.dart";
   for (var separator in ["\\", "/"]) {
     for (var lib in sdkLibs) {
-      test(
-          "getImportUriIfMatchesRelativeSdkPath test "
+      test("getImportUriIfMatchesRelativeSdkPath test "
           "lib ${lib.path} vs file $relativePathFromFile", () {
         expect(
-            getImportUriIfMatchesRelativeSdkPath(
-                sdkLibs, relativePathFromFile, separator),
-            getImportUriIfMatchesRelativeSdkPathSlow(
-                sdkLibs, relativePathFromFile, separator));
+          getImportUriIfMatchesRelativeSdkPath(
+            sdkLibs,
+            relativePathFromFile,
+            separator,
+          ),
+          getImportUriIfMatchesRelativeSdkPathSlow(
+            sdkLibs,
+            relativePathFromFile,
+            separator,
+          ),
+        );
       });
     }
   }
@@ -210,23 +240,41 @@ void testGetRelativePathIfInside() {
     var context = osData[2] as pathos.Context;
     var resourceProvider = MemoryResourceProvider(context: context);
 
-    for (var libraryPath in getPaths(sdkPaths,
-        addFilenames: false, prefix: prefix, separator: separator)) {
-      for (var filePath in getPaths(inputPaths,
-          addFilenames: true, prefix: prefix, separator: separator)) {
+    for (var libraryPath in getPaths(
+      sdkPaths,
+      addFilenames: false,
+      prefix: prefix,
+      separator: separator,
+    )) {
+      for (var filePath in getPaths(
+        inputPaths,
+        addFilenames: true,
+        prefix: prefix,
+        separator: separator,
+      )) {
         File library = resourceProvider.getFile(libraryPath);
         File file = resourceProvider.getFile(filePath);
         test("getRelativePathIfInside test $libraryPath vs $filePath", () {
-          String? relativePathIfInside =
-              getRelativePathIfInside(library.path, file.path);
+          String? relativePathIfInside = getRelativePathIfInside(
+            library.path,
+            file.path,
+          );
           expect(
-              relativePathIfInside,
-              getRelativePathIfInsideSlow(
-                  resourceProvider.getFile(library.path), file, context));
+            relativePathIfInside,
+            getRelativePathIfInsideSlow(
+              resourceProvider.getFile(library.path),
+              file,
+              context,
+            ),
+          );
           expect(
-              relativePathIfInside,
-              getRelativePathIfInsideSemi(
-                  library.path, file.path, context.separator));
+            relativePathIfInside,
+            getRelativePathIfInsideSemi(
+              library.path,
+              file.path,
+              context.separator,
+            ),
+          );
         });
       }
     }

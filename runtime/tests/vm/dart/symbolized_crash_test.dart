@@ -14,16 +14,18 @@ main() {
   // Run such that "cwd/argv[0].sym" does not exist to check .sym properly
   // resolves against the executable.
   var dir = path.dirname(Platform.resolvedExecutable);
-  var result = Process.runSync(
-    "/bin/sh",
-    ["-c", "PATH=$dir run_vm_tests Fatal"],
-  );
+  var result = Process.runSync("/bin/sh", [
+    "-c",
+    "PATH=$dir run_vm_tests Fatal",
+  ]);
   print(result.exitCode);
   print(result.stdout);
   print(result.stderr);
 
   Expect.contains(
-      "error: This test fails and produces a backtrace", result.stderr);
+    "error: This test fails and produces a backtrace",
+    result.stderr,
+  );
 
   // Check for the frames that are marked never inline or have their address
   // taken, and so should be stable to changes in the C compiler. There are of

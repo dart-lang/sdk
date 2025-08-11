@@ -125,10 +125,10 @@ a:focus, a:hover {
 }
 '''.trim();
 
-final GeneratedFile target = GeneratedFile('doc/api.html', (
-  String pkgPath,
+final GeneratedFile target = GeneratedFile('analysis_server/doc/api.html', (
+  pkgRoot,
 ) async {
-  var visitor = ToHtmlVisitor(readApi(pkgPath));
+  var visitor = ToHtmlVisitor(readApi(pkgRoot));
   var document = dom.Document();
   for (var node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);

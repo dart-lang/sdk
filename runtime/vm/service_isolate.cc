@@ -151,7 +151,7 @@ bool ServiceIsolate::IsRunning() {
 
 bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
   MonitorLocker ml(monitor_);
-  return isolate->origin_id() == origin_;
+  return isolate->group()->id() == origin_;
 }
 
 Dart_Port ServiceIsolate::Port() {
@@ -297,7 +297,7 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   isolate_ = isolate;
   if (isolate_ != nullptr) {
     ASSERT(isolate->is_service_isolate());
-    origin_ = isolate_->origin_id();
+    origin_ = isolate_->group()->id();
   }
 }
 
@@ -392,6 +392,9 @@ class RunServiceTask : public ThreadPool::Task {
     // e.g. it could have no port to communicate with it. Declare
     // initialization failure and shut it down.
     if (main_error != nullptr) {
+      if (FLAG_trace_service) {
+        OS::PrintErr("vm-service: encountered an error: %s\n", main_error);
+      }
       ShutdownIsolate(reinterpret_cast<Dart_Isolate>(isolate));
       ServiceIsolate::InitializingFailed(main_error);
       return;

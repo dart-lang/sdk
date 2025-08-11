@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-strong
-
 import 'package:expect/expect.dart';
 
 // Test that it is an error if a named parameter that is part of a required
@@ -14,7 +12,8 @@ class A {
   A() {}
   int m1({required int a}) => 1;
 
-  F m2() => ({required String x}) => 'm2: $x';
+  F m2() =>
+      ({required String x}) => 'm2: $x';
 
   // Check a mix of required and optional.
   int m3({
@@ -111,7 +110,8 @@ class A {
 
 int f({required int a}) => 2;
 
-String Function({required int a}) g() => ({required int a}) => 'g';
+String Function({required int a}) g() =>
+    ({required int a}) => 'g';
 
 // Check a mix of required and optional.
 int h({

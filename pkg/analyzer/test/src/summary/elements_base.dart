@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../util/diff.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
@@ -47,16 +48,12 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   void checkElementText(LibraryElementImpl library, String expected) {
-    var actual = getLibraryText(
-      library: library,
-      configuration: configuration,
-    );
+    var actual = getLibraryText(library: library, configuration: configuration);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<LibraryElementImpl> testContextLibrary(String uriStr) async {

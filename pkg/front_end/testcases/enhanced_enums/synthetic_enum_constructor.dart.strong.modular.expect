@@ -13,7 +13,7 @@ class E extends self::_E&_Enum&M /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 class F extends core::_Enum /*isEnum*/  {
@@ -24,7 +24,7 @@ class F extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::F
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "F.${this.{core::_Enum::_name}{core::String}}";
 }
 class G extends core::_Enum /*isEnum*/  {
@@ -35,14 +35,14 @@ class G extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::G
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "G.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub method mixinMethod() → void
+  synthetic mixin-super-stub method mixinMethod() → void
     return super.{self::M::mixinMethod}();
 }
 

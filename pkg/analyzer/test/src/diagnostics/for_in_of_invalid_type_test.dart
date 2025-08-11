@@ -27,41 +27,44 @@ f(dynamic e) async {
   }
 
   test_awaitForIn_interfaceType_notStream() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(bool e) async {
   await for (var id in e) {
     id;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 41, 1)],
+    );
   }
 
   test_awaitForIn_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Never e) async {
   await for (var id in e) {
     id;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 32, 26),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 32, 26)],
+    );
     // TODO(scheglov): extract for-in resolution and implement
-//    assertType(findNode.simple('id;'), 'Never');
+    //    assertType(findNode.simple('id;'), 'Never');
   }
 
   test_awaitForIn_object() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Object e) async {
   await for (var id in e) {
     id;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 43, 1)],
+    );
   }
 
   test_awaitForIn_streamOfDynamic() async {
@@ -108,15 +111,16 @@ f(Iterable e) {
   }
 
   test_forIn_interfaceType_notIterable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(bool e) {
   for (var id in e) {
     id;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 29, 1)],
+    );
   }
 
   test_forIn_interfaceTypeTypedef_iterable() async {
@@ -131,29 +135,31 @@ f(L e) {
   }
 
   test_forIn_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Never e) {
   for (var id in e) {
     id;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 20, 26),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 20, 26)],
+    );
     // TODO(scheglov): extract for-in resolution and implement
-//    assertType(findNode.simple('id;'), 'Never');
+    //    assertType(findNode.simple('id;'), 'Never');
   }
 
   test_forIn_object() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Object e) async {
   for (var id in e) {
     id;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1)],
+    );
   }
 }
 
@@ -161,14 +167,15 @@ f(Object e) async {
 class ForInOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_forIn() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 f(dynamic e) {
   for (var id in e) {
     id;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 32, 1)],
+    );
   }
 }

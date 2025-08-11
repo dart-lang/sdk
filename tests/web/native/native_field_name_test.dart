@@ -50,7 +50,8 @@ void setup() {
   applyTestExtensions(['A']);
 }
 
-/*A*/ makeA() native;
+/*A*/
+makeA() native;
 
 main() {
   nativeTesting();

@@ -42,10 +42,6 @@ class NnbdTopMergeVisitor extends MergeVisitor {
   Nullability? mergeNullability(Nullability a, Nullability b) {
     if (a == b) {
       return a;
-    } else if (a == Nullability.legacy) {
-      return b;
-    } else if (b == Nullability.legacy) {
-      return a;
     }
     return null;
   }
@@ -95,23 +91,5 @@ class NnbdTopMergeVisitor extends MergeVisitor {
       return coreTypes.objectNullableRawType;
     }
     return super.visitDynamicType(a, b);
-  }
-
-  @override
-  DartType? visitNeverType(NeverType a, DartType b) {
-    if (a.nullability == Nullability.legacy && b is NullType) {
-      // NNBD_TOP_MERGE(Never*, Null) = Null
-      return const NullType();
-    }
-    return super.visitNeverType(a, b);
-  }
-
-  @override
-  DartType? visitNullType(NullType a, DartType b) {
-    if (b is NeverType && b.nullability == Nullability.legacy) {
-      // NNBD_TOP_MERGE(Null, Never*) = Null
-      return const NullType();
-    }
-    return super.visitNullType(a, b);
   }
 }

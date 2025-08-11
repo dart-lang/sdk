@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class InboundReferencesElement extends CustomElement implements Renderable {
   late RenderingScheduler<InboundReferencesElement> _r;
@@ -49,7 +52,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -65,7 +68,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = <Element>[curlyBlock.element];
+    setChildren(<HTMLElement>[curlyBlock.element]);
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -74,32 +77,33 @@ class InboundReferencesElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  List<Element> _createContent() {
+  List<HTMLElement> _createContent() {
     if (_inbounds == null) {
       return const [];
     }
-    return _inbounds!.elements.map<Element>(_createItem).toList();
+    return _inbounds!.elements.map<HTMLElement>(_createItem).toList();
   }
 
-  Element _createItem(M.InboundReference reference) {
-    final content = <Element>[];
+  HTMLElement _createItem(M.InboundReference reference) {
+    final content = <HTMLElement>[];
 
     if (reference.parentField is M.Object) {
       content.addAll([
-        new SpanElement()..text = 'referenced by ',
+        new HTMLSpanElement()..textContent = 'referenced by ',
         anyRef(_isolate, reference.parentField, _objects, queue: _r.queue),
-        new SpanElement()..text = ' of '
+        new HTMLSpanElement()..textContent = ' of '
       ]);
     } else if (reference.parentField is String ||
         reference.parentField is int) {
-      content.add(new SpanElement()
-        ..text = 'referenced by [ ${reference.parentField} ] of ');
+      content.add(new HTMLSpanElement()
+        ..textContent = 'referenced by [ ${reference.parentField} ] of ');
     } else if (reference.parentListIndex != null) {
-      content.add(new SpanElement()
-        ..text = 'referenced by [ ${reference.parentListIndex} ] of ');
+      content.add(new HTMLSpanElement()
+        ..textContent = 'referenced by [ ${reference.parentListIndex} ] of ');
     } else if (reference.parentWordOffset != null) {
-      content.add(new SpanElement()
-        ..text = 'referenced by offset ${reference.parentWordOffset} of ');
+      content.add(new HTMLSpanElement()
+        ..textContent =
+            'referenced by offset ${reference.parentWordOffset} of ');
     }
 
     content.addAll([
@@ -110,8 +114,8 @@ class InboundReferencesElement extends CustomElement implements Renderable {
           .element
     ]);
 
-    return new DivElement()
-      ..classes = ['indent']
-      ..children = content;
+    return new HTMLDivElement()
+      ..className = 'indent'
+      ..appendChildren(content);
   }
 }

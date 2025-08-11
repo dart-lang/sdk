@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:path/path.dart' show relative;
@@ -13,25 +13,25 @@ import 'schema.dart' as schema;
 ///
 /// This is either '<class-name>' or '<class-name>.<constructor-name>',
 /// depending on whether the constructor is a named constructor.
-String _computeConstructorElementName(ConstructorElement2 constructor) {
-  var name = constructor.enclosingElement2.name3!;
-  var constructorName = constructor.name3;
+String _computeConstructorElementName(ConstructorElement constructor) {
+  var name = constructor.enclosingElement.name!;
+  var constructorName = constructor.name;
   if (constructorName != null && constructorName != 'new') {
     name = '$name.$constructorName';
   }
   return name;
 }
 
-String? _getNodeKind(Element2 e) {
-  if (e is FieldElement2 && e.isEnumConstant) {
+String? _getNodeKind(Element e) {
+  if (e is FieldElement && e.isEnumConstant) {
     // FieldElement is a kind of VariableElement, so this test case must be
     // before the e is VariableElement check.
     return schema.CONSTANT_KIND;
-  } else if (e is VariableElement2 || e is PrefixElement2) {
+  } else if (e is VariableElement || e is PrefixElement) {
     return schema.VARIABLE_KIND;
-  } else if (e is ExecutableElement2) {
+  } else if (e is ExecutableElement) {
     return schema.FUNCTION_KIND;
-  } else if (e is InterfaceElement2 || e is TypeParameterElement2) {
+  } else if (e is InterfaceElement || e is TypeParameterElement) {
     // TODO(jwren): this should be using absvar instead, see
     // https://kythe.io/docs/schema/#absvar
     return schema.RECORD_KIND;
@@ -41,7 +41,7 @@ String? _getNodeKind(Element2 e) {
 
 String _getPath(
   ResourceProvider provider,
-  Element2? e, {
+  Element? e, {
   String? sdkRootPath,
   String? corpus,
 }) {
@@ -86,7 +86,7 @@ String _getPath(
 /// returned.
 String _getSignature(
   ResourceProvider provider,
-  Element2? element,
+  Element? element,
   String nodeKind,
   String corpus, {
   String? sdkRootPath,
@@ -95,7 +95,7 @@ String _getSignature(
   if (element == null) {
     return schema.DYNAMIC_KIND;
   }
-  if (element is LibraryElement2) {
+  if (element is LibraryElement) {
     return _getPath(
       provider,
       element,
@@ -117,14 +117,14 @@ class CiderKytheHelper {
   CiderKytheHelper(this.resourceProvider, this.corpus, this.sdkRootPath);
 
   /// Returns a URI that can be used to query Kythe.
-  String toKytheUri(Element2 e) {
+  String toKytheUri(Element e) {
     var nodeKind = _getNodeKind(e) ?? schema.RECORD_KIND;
     var vname = _vNameFromElement(e, nodeKind);
     return 'kythe://$corpus?lang=dart?path=${vname.path}#${vname.signature}';
   }
 
   /// Returns the Kythe name for the [element].
-  _KytheVName _vNameFromElement(Element2? e, String nodeKind) {
+  _KytheVName _vNameFromElement(Element? e, String nodeKind) {
     assert(nodeKind != schema.FILE_KIND);
     // general case
     return _KytheVName(
@@ -158,39 +158,39 @@ class _KytheVName {
 class _SignatureBuilder {
   static _SignatureBuilder instance = _SignatureBuilder();
 
-  StringBuffer signatureFor(Element2 element) {
+  StringBuffer signatureFor(Element element) {
     var buffer = StringBuffer();
     _appendSignatureTo(buffer, element);
     return buffer;
   }
 
-  void _appendSignatureTo(StringBuffer buffer, Element2 element) {
-    if (element is LibraryElement2) {
+  void _appendSignatureTo(StringBuffer buffer, Element element) {
+    if (element is LibraryElement) {
       buffer.write('library:${element.displayName}');
-    } else if (element is TypeParameterElement2) {
+    } else if (element is TypeParameterElement) {
       // It is legal to have a named constructor with the same name as a type
       // parameter.  So we distinguish them by using '.' between the class (or
       // typedef) name and the type parameter name.
-      _appendSignatureTo(buffer, element.enclosingElement2!);
+      _appendSignatureTo(buffer, element.enclosingElement!);
       buffer
         ..write('.')
-        ..write(element.name3!);
+        ..write(element.name!);
     } else {
-      var enclosingElt = element.enclosingElement2!;
+      var enclosingElt = element.enclosingElement!;
       _appendSignatureTo(buffer, enclosingElt);
       if (buffer.isNotEmpty) {
         buffer.write('#');
       }
-      if (element is MethodElement2 &&
-          element.name3 == '-' &&
+      if (element is MethodElement &&
+          element.name == '-' &&
           element.formalParameters.length == 1) {
         buffer.write('unary-');
-      } else if (element is ConstructorElement2) {
+      } else if (element is ConstructorElement) {
         buffer.write(_computeConstructorElementName(element));
       } else {
-        buffer.write(element.name3);
+        buffer.write(element.name);
       }
-      if (enclosingElt is ExecutableElement2) {
+      if (enclosingElt is ExecutableElement) {
         buffer
           ..write('@')
           ..write(

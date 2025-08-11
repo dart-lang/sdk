@@ -20,9 +20,9 @@ import '../../type_inference/type_inferrer.dart';
 import 'declaration.dart';
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext {
-  final SourceConstructorBuilderImpl _builder;
+  final SourceConstructorBuilder _builder;
 
-  final ConstructorDeclaration _declaration;
+  final ConstructorFragmentDeclaration _declaration;
 
   final Member _member;
 
@@ -73,7 +73,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
-    return _builder.isNative;
+    return _declaration.isNative;
   }
 
   @override

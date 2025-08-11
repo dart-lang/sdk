@@ -334,13 +334,11 @@ class GridLayout extends ViewLayout {
     ContentSizeMode sizeMode,
     _BreadthAccumulator breadth,
   ) {
-    items =
-        items
-            .where(
-              (item) =>
-                  _hasContentSizedTracks(_getTracks(item), sizeMode, breadth),
-            )
-            .toList();
+    items = items
+        .where(
+          (item) => _hasContentSizedTracks(_getTracks(item), sizeMode, breadth),
+        )
+        .toList();
 
     var tracks = [];
 

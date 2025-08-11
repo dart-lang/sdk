@@ -17,44 +17,50 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
   NullableDereferenceVerifier({
     required TypeSystemImpl typeSystem,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required ResolverVisitor resolver,
-  })  : _typeSystem = typeSystem,
-        _errorReporter = errorReporter,
-        _resolver = resolver;
+  }) : _typeSystem = typeSystem,
+       _diagnosticReporter = diagnosticReporter,
+       _resolver = resolver;
 
-  bool expression(ErrorCode errorCode, Expression expression,
-      {DartType? type}) {
+  bool expression(
+    DiagnosticCode diagnosticCode,
+    Expression expression, {
+    DartType? type,
+  }) {
     type ??= expression.typeOrThrow;
-    return _check(errorCode, expression, type);
+    return _check(diagnosticCode, expression, type);
   }
 
   void report(
-      ErrorCode errorCode, SyntacticEntity errorEntity, DartType receiverType,
-      {List<String> arguments = const <String>[],
-      List<DiagnosticMessage>? messages}) {
+    DiagnosticCode diagnosticCode,
+    SyntacticEntity errorEntity,
+    DartType receiverType, {
+    List<String> arguments = const <String>[],
+    List<DiagnosticMessage>? messages,
+  }) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
-      errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
+      diagnosticCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
       arguments = [];
     }
     if (errorEntity is AstNode) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorEntity,
-        errorCode,
+        diagnosticCode,
         arguments: arguments,
         contextMessages: messages,
       );
     } else if (errorEntity is Token) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorEntity,
-        errorCode,
+        diagnosticCode,
         arguments: arguments,
         contextMessages: messages,
       );
@@ -70,7 +76,7 @@ class NullableDereferenceVerifier {
   ///
   /// Returns whether [receiverType] was reported.
   bool _check(
-    ErrorCode errorCode,
+    DiagnosticCode diagnosticCode,
     AstNode errorNode,
     DartType receiverType,
   ) {
@@ -83,9 +89,11 @@ class NullableDereferenceVerifier {
     List<DiagnosticMessage>? messages;
     if (errorNode is ExpressionImpl) {
       messages = _resolver.computeWhyNotPromotedMessages(
-          errorNode, _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)());
+        errorNode,
+        _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)(),
+      );
     }
-    report(errorCode, errorNode, receiverType, messages: messages);
+    report(diagnosticCode, errorNode, receiverType, messages: messages);
     return true;
   }
 }

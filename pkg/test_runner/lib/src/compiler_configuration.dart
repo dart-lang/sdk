@@ -34,19 +34,6 @@ List<String> _experimentsArgument(
   return ['--enable-experiment=${experiments.join(',')}'];
 }
 
-List<String> _nnbdModeArgument(TestConfiguration configuration) {
-  switch (configuration.nnbdMode) {
-    case NnbdMode.legacy:
-      return [];
-    case NnbdMode.strong:
-      return ['--sound-null-safety'];
-    case NnbdMode.weak:
-      return ['--no-sound-null-safety'];
-  }
-
-  throw 'unreachable';
-}
-
 /// Grouping of a command with its expected result.
 class CommandArtifact {
   final List<Command> commands;
@@ -193,7 +180,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -249,7 +235,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
@@ -275,7 +260,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -884,7 +868,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           tempDir, arguments, environmentOverrides));
     }
 
-    if (!_configuration.useElf) {
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
       if (!_configuration.keepGeneratedFiles) {
@@ -893,7 +877,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
-    if (_configuration.useElf && _isAndroid) {
+    if (_isAndroid &&
+        _configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
       // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
       // Flutter's workflow. Skip this step on tests for DWARF (which may get
       // stripped).
@@ -970,22 +955,22 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
+    var format = _configuration.genSnapshotFormat!;
+    var output = (format == GenSnapshotFormat.assembly)
+        ? tempAssemblyFile(tempDir)
+        : tempAOTFile(tempDir);
+    // Whether or not loading units are used. Mach-O doesn't currently support
+    // this, and this isn't done for assembly output to avoid having to handle
+    // the assembly of multiple assembly output files.
+    var split = format == GenSnapshotFormat.elf;
     var args = [
-      if (_configuration.useElf) ...[
-        "--snapshot-kind=app-aot-elf",
-        "--elf=$tempDir/out.aotsnapshot",
-        // Only splitting with a ELF to avoid having to setup compilation of
-        // multiple assembly files in the test harness.
-        "--loading-unit-manifest=$tempDir/ignored.json",
-      ] else ...[
-        "--snapshot-kind=app-aot-assembly",
-        "--assembly=$tempDir/out.S",
-      ],
+      "--snapshot-kind=${format.snapshotType}",
+      "--${format.fileOption}=$output",
+      if (split) "--loading-unit-manifest=$tempDir/ignored.json",
       if (_isAndroid && (_isArm || _isArmX64)) ...[
         '--no-sim-use-hardfp',
       ],
       if (_configuration.isMinified) '--obfuscate',
-      ..._nnbdModeArgument(_configuration),
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
       if (arguments.contains('--print-flow-graph-optimized') &&
@@ -1091,6 +1076,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.arm_x64:
           target = ['-arch', 'armv7'];
           break;
+        case Architecture.arm64:
+        case Architecture.arm64c:
         case Architecture.simarm64:
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
@@ -1104,6 +1091,25 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           target = ['-arch', 'riscv64'];
           break;
       }
+    } else if (Platform.isWindows) {
+      cc = 'buildtools\\win-x64\\clang\\bin\\clang.exe';
+      shared = '-shared';
+      switch (_configuration.architecture) {
+        case Architecture.x64:
+        case Architecture.x64c:
+        case Architecture.simx64:
+        case Architecture.simx64c:
+          target = ['--target=x86_64-windows'];
+          break;
+        case Architecture.arm64:
+        case Architecture.arm64c:
+        case Architecture.simarm64:
+        case Architecture.simarm64c:
+          target = ['--target=arm64-windows'];
+          break;
+      }
+      ldFlags.add('-nostdlib');
+      ldFlags.add('-Wl,/NOENTRY');
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
@@ -1113,8 +1119,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ...ldFlags,
       shared,
       '-o',
-      '$tempDir/out.aotsnapshot',
-      '$tempDir/out.S'
+      tempAOTFile(tempDir),
+      tempAssemblyFile(tempDir),
     ];
 
     return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
@@ -1126,7 +1132,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       String tempDir, Map<String, String> environmentOverrides) {
     var stripTool = "$ndkPath/toolchains/llvm/prebuilt/"
         "$host-x86_64/bin/llvm-strip";
-    var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
+    var args = ['--strip-unneeded', tempAOTFile(tempDir)];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
@@ -1141,8 +1147,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    return CompilationCommand('remove_assembly', tempDir,
-        bootstrapDependencies(), 'rm', ['$tempDir/out.S'], environmentOverrides,
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = "cmd.exe";
+      args = ["/c", "del", tempAssemblyFile(tempDir)];
+    } else {
+      exec = "rm";
+      args = [tempAssemblyFile(tempDir)];
+    }
+
+    return CompilationCommand("remove_assembly", tempDir,
+        bootstrapDependencies(), exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -1186,13 +1203,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       // directory on the device, use that one instead.
       dir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
     }
-    originalArguments =
-        _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
+    originalArguments = _replaceDartFiles(originalArguments, tempAOTFile(dir));
 
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1236,8 +1251,10 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     if (_configuration.useQemu) {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
-      arguments.insertAll(0, config.arguments);
       executable = config.executable;
+      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
+        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
+      }
     }
     var command = CompilationCommand('app_jit', tempDir,
         bootstrapDependencies(), executable, arguments, environmentOverrides,
@@ -1254,7 +1271,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1273,7 +1289,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
-      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -1393,6 +1408,23 @@ abstract mixin class VMKernelCompilerMixin {
 
   String tempKernelFile(String tempDir) =>
       Path('$tempDir/out.dill').toNativePath();
+  String tempAssemblyFile(String tempDir) =>
+      Path('$tempDir/out.S').toNativePath();
+  String tempAOTFile(String tempDir) {
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
+      switch (_configuration.system) {
+        case System.android:
+        case System.fuchsia:
+        case System.linux:
+          return Path('$tempDir/libout.so').toNativePath();
+        case System.mac:
+          return Path('$tempDir/libout.dylib').toNativePath();
+        case System.win:
+          return Path('$tempDir/out.dll').toNativePath();
+      }
+    }
+    return Path('$tempDir/out.aotsnapshot').toNativePath();
+  }
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -1404,7 +1436,7 @@ abstract mixin class VMKernelCompilerMixin {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
-    var vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
+    var vmPlatform = '$kernelBinariesFolder/vm_platform.dill';
 
     var dillFile = tempKernelFile(tempDir);
 
@@ -1427,7 +1459,6 @@ abstract mixin class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      ..._nnbdModeArgument(_configuration),
       ..._configuration.genKernelOptions,
     ];
 
@@ -1454,7 +1485,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var platformDill = dillDir.resolve("vm_platform_strong.dill");
+    var platformDill = dillDir.resolve("vm_platform.dill");
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
@@ -1544,8 +1575,13 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 class BytecodeCompilerConfiguration extends CompilerConfiguration {
   BytecodeCompilerConfiguration(super.configuration) : super._subclass();
 
+  bool get _isAot => _configuration.runtime == Runtime.dartPrecompiled;
+
   @override
   String computeCompilerPath() => dartAotRuntime();
+
+  @override
+  bool get hasCompiler => _isAot;
 
   @override
   bool get runRuntimeDespiteMissingCompileTimeError => true;
@@ -1559,8 +1595,8 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       : '${_configuration.buildDirectory}/gen/dart2bytecode.dart.snapshot';
 
   String platformKernelFile() => _useSdk
-      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform_strong.dill'
-      : '${_configuration.buildDirectory}/vm_platform_strong.dill';
+      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform.dill'
+      : '${_configuration.buildDirectory}/vm_platform.dill';
 
   String tempBytecodeFile(String tempDir) =>
       Path('$tempDir/out.bytecode').toNativePath();
@@ -1586,6 +1622,7 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      if (!isProductMode) '--bytecode-options=source-positions',
     ];
 
     return CompilationCommand(
@@ -1626,23 +1663,20 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
-    var filename = artifact!.filename;
-
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      ..._replaceDartFiles(
-          originalArguments,
-          (_configuration.runtime == Runtime.dartPrecompiled)
-              ? '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'
-              : Platform.script
-                  .resolve(
-                      '../../../pkg/dynamic_modules/bin/dynamic_module_runner.dart')
-                  .toFilePath()),
-      filename,
+      if (_isAot) ...[
+        ..._replaceDartFiles(originalArguments,
+            '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'),
+        artifact!.filename,
+      ] else ...[
+        '--interpreter',
+        ...originalArguments,
+      ],
       ...testFile.dartOptions
     ];
   }

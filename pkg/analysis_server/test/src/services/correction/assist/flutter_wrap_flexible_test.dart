@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapFlexibleTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_FLEXIBLE;
+  AssistKind get kind => DartAssistKind.flutterWrapFlexible;
 
   @override
   void setUp() {

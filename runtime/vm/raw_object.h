@@ -815,15 +815,13 @@ class UntaggedObject {
   friend class GCSweeper;
   friend class ExternalTypedData;
   friend class GrowableObjectArray;  // StorePointer
-  template <bool>
-  friend class MarkingVisitorBase;
+  friend class MarkingVisitor;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
   friend class UntaggedInstance;
   friend class Scavenger;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
   friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -1833,10 +1831,8 @@ class UntaggedWeakArray : public UntaggedObject {
   friend class CanonicalSetDeserializationCluster;
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
   friend class Scavenger;
 };
 
@@ -1954,8 +1950,7 @@ class UntaggedCode : public UntaggedObject {
   static bool ContainsPC(const ObjectPtr raw_obj, uword pc);
 
   friend class Function;
-  template <bool>
-  friend class MarkingVisitorBase;
+  friend class MarkingVisitor;
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
@@ -1976,6 +1971,9 @@ class UntaggedBytecode : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, closures);
   COMPRESSED_POINTER_FIELD(TypedDataBasePtr, binary);
   COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(LocalVarDescriptorsPtr, var_descriptors);
+#endif
   COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
   VISIT_TO(pc_descriptors);
 
@@ -1986,6 +1984,9 @@ class UntaggedBytecode : public UntaggedObject {
   int32_t instructions_binary_offset_;
   int32_t code_offset_;
   int32_t source_positions_binary_offset_;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  int32_t local_variables_binary_offset_;
+#endif
 
   static bool ContainsPC(ObjectPtr raw_obj, uword pc);
 
@@ -2042,8 +2043,7 @@ class UntaggedInstructions : public UntaggedObject {
   friend class UntaggedFunction;
   friend class Code;
   friend class StackFrame;
-  template <bool>
-  friend class MarkingVisitorBase;
+  friend class MarkingVisitor;
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
@@ -3225,8 +3225,7 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   friend class ObjectPoolSerializationCluster;
   friend class UntaggedObjectPool;
   friend class GCCompactor;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
 };
 
 class UntaggedBool : public UntaggedInstance {
@@ -3268,8 +3267,7 @@ class UntaggedArray : public UntaggedInstance {
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
   friend class Page;
-  template <bool>
-  friend class MarkingVisitorBase;
+  friend class MarkingVisitor;
   friend class FastObjectCopy;  // For initializing fields.
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
@@ -3599,10 +3597,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
 
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
   friend class Scavenger;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
@@ -3632,10 +3628,8 @@ class UntaggedWeakReference : public UntaggedInstance {
 
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
   friend class Scavenger;
   friend class ObjectGraph;
   friend class FastObjectCopy;  // For OFFSET_OF
@@ -3676,10 +3670,8 @@ class UntaggedFinalizerBase : public UntaggedInstance {
 
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
   friend class ObjectGraph;
 };
 
@@ -3699,10 +3691,8 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
 
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
 };
 
 class UntaggedNativeFinalizer : public UntaggedFinalizerBase {
@@ -3711,10 +3701,8 @@ class UntaggedNativeFinalizer : public UntaggedFinalizerBase {
   COMPRESSED_POINTER_FIELD(PointerPtr, callback)
   VISIT_TO(callback)
 
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
 };
 
 class UntaggedFinalizerEntry : public UntaggedInstance {
@@ -3746,10 +3734,8 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   friend class GCLinkedList;
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  template <bool>
-  friend class MarkingVisitorBase;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class MarkingVisitor;
+  friend class ScavengerVisitor;
   friend class Scavenger;
   friend class ObjectGraph;
 };

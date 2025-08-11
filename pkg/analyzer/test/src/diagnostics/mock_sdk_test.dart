@@ -44,11 +44,14 @@ class MockSdkTest extends PubPackageResolutionTest {
   }
 
   void _assertOnlyWarningsInUnit(ResolvedUnitResult resolvedUnit) {
-    var notHints = resolvedUnit.errors
-        .where((element) =>
-            element.errorCode.type != ErrorType.HINT &&
-            element.errorCode.type != ErrorType.STATIC_WARNING)
-        .toList();
+    var notHints =
+        resolvedUnit.diagnostics
+            .where(
+              (element) =>
+                  element.diagnosticCode.type != DiagnosticType.HINT &&
+                  element.diagnosticCode.type != DiagnosticType.STATIC_WARNING,
+            )
+            .toList();
     assertErrorsInList(notHints, []);
   }
 
@@ -57,6 +60,8 @@ class MockSdkTest extends PubPackageResolutionTest {
     var coreElementResult =
         await analysisSession.getLibraryByUri(uriStr) as LibraryElementResult;
     return await analysisSession.getResolvedLibraryByElement2(
-        coreElementResult.element2) as ResolvedLibraryResult;
+          coreElementResult.element2,
+        )
+        as ResolvedLibraryResult;
   }
 }

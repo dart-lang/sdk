@@ -19,27 +19,27 @@ void main() {
 @reflectiveTest
 class AssignToLocalVariableTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
+  AssistKind get kind => DartAssistKind.assignToLocalVariable;
 
   Future<void> test_alreadyAssignment() async {
     await resolveTestCode('''
 void f() {
   var vvv;
-  vvv = 42;
+  ^vvv = 42;
 }
 ''');
-    await assertNoAssistAt('vvv =');
+    await assertNoAssist();
   }
 
   Future<void> test_inClosure() async {
     await resolveTestCode(r'''
 void f() {
   print(() {
-    12345;
+    12^345;
   });
 }
 ''');
-    await assertHasAssistAt('345', '''
+    await assertHasAssist('''
 void f() {
   print(() {
     var i = 12345;
@@ -52,11 +52,11 @@ void f() {
     await resolveTestCode('''
 void f() {
   List<int> bytes;
-  readBytes();
+  ^readBytes();
 }
 List<int> readBytes() => <int>[];
 ''');
-    await assertHasAssistAt('readBytes();', '''
+    await assertHasAssist('''
 void f() {
   List<int> bytes;
   var readBytes = readBytes();
@@ -77,21 +77,21 @@ List<int> readBytes() => <int>[];
   Future<void> test_invocationArgument() async {
     await resolveTestCode(r'''
 void f() {
-  g(12345);
+  g(12^345);
 }
 void g(p) {}
 ''');
-    await assertNoAssistAt('345');
+    await assertNoAssist();
   }
 
   Future<void> test_lint_prefer_final_locals() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
     await resolveTestCode(r'''
 void f() {
-  12345;
+  12^345;
 }
 ''');
-    await assertHasAssistAt('345', '''
+    await assertHasAssist('''
 void f() {
   final i = 12345;
 }
@@ -103,28 +103,28 @@ void f() {
     await resolveTestCode('''
 Future<void> _extractDataForSite() async {
   final Map<String, Object> data = {};
-  final data['table'][] //marker
+  final data['table'][^]
 }
 ''');
-    await assertNoAssistAt('] //marker');
+    await assertNoAssist();
   }
 
   Future<void> test_throw() async {
     await resolveTestCode('''
 void f() {
-  throw 42;
+  ^throw 42;
 }
 ''');
-    await assertNoAssistAt('throw ');
+    await assertNoAssist();
   }
 
   Future<void> test_void() async {
     await resolveTestCode('''
 void f() {
-  f();
+  ^f();
 }
 void g() {}
 ''');
-    await assertNoAssistAt('f();');
+    await assertNoAssist();
   }
 }

@@ -19,7 +19,7 @@ class ConvertDocumentationIntoBlock extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
+  AssistKind get assistKind => DartAssistKind.convertDocumentationIntoBlock;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

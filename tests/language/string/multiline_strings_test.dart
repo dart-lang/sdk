@@ -2,69 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: This test relies on LF line endings in the source file.
-
 import "package:expect/expect.dart";
 
-main() {
-  Expect.equals(
-      'foo',
-      '''  
+void main() {
+  // Spaces after '''.
+  Expect.equals('foo', '''  
 foo''');
 
-  Expect.equals(
-      '\\\nfoo',
-      '''\\
+  // Tab characters after '''.
+  Expect.equals('foo', '''		
 foo''');
 
-  Expect.equals(
-      '\t\nfoo',
-      '''\t
+  Expect.equals('\\\nfoo', '''\\
 foo''');
 
-  Expect.equals(
-      'foo',
-      '''\
+  Expect.equals('\t\nfoo', '''\t
 foo''');
 
-  Expect.equals(
-      'foo',
-      '''\ \
+  // Backslash just before newline.
+  Expect.equals('foo', '''\
 foo''');
 
-  Expect.equals(
-      ' \nfoo',
-      '''\x20
+  // Backslash before space, tab and newline.
+  Expect.equals('foo', '''\ \	\
+foo''');
+
+  Expect.equals(' \nfoo', '''\x20
 foo''');
 
   String x = ' ';
-  Expect.equals(
-      ' \nfoo',
-      '''$x
+  Expect.equals(' \nfoo', '''$x
 foo''');
 
-  Expect.equals(
-      'foo',
-      r'''  
+  /// Spaces after '''.
+  Expect.equals('foo', r'''  
 foo''');
 
-  Expect.equals(
-      '\\\\\nfoo',
-      r'''\\
+  /// Tab characters after '''.
+  Expect.equals('foo', r'''		
 foo''');
 
-  Expect.equals(
-      '\\t\nfoo',
-      r'''\t
+  Expect.equals('\\\\\nfoo', r'''\\
 foo''');
 
-  Expect.equals(
-      'foo',
-      r'''\
+  Expect.equals('\\t\nfoo', r'''\t
 foo''');
 
-  Expect.equals(
-      'foo',
-      r'''\ \
+  // Backslash before newline.
+  Expect.equals('foo', r'''\
+foo''');
+
+  // Backslash before space, tab and newline.
+  Expect.equals('foo', r'''\ \	\
 foo''');
 }

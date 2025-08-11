@@ -17,12 +17,15 @@ main() {
 class PathPubspecDoesNotExistTest extends PubspecDiagnosticTest {
   test_dependencyPath_pubspecDoesNotExist() {
     newFolder('/foo');
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   foo:
     path: /foo
-''', [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST],
+    );
   }
 
   test_dependencyPath_pubspecExists() {

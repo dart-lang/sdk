@@ -20,7 +20,5 @@ void main() {
     Function2<Function2<A, B>, Function2<B, A>> t1;
     Function2<AToB, BToA> t2;
     Function2<Function2<int, double>, Function2<int, double>> left;
-
-
   }
 }

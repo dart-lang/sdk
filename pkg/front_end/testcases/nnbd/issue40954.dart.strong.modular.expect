@@ -50,13 +50,13 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  static method test1(dynamic v, [self::A a = #C1]) → void {}
-  static method test2(dynamic v, {self::A a = #C1}) → void {}
-  method test11(dynamic v, [self::A a = #C1]) → void {}
-  method test22(dynamic v, {self::A a = #C1}) → void {}
+  static method test1(dynamic v, [erroneously-initialized self::A a = #C1]) → void {}
+  static method test2(dynamic v, {erroneously-initialized self::A a = #C1}) → void {}
+  method test11(dynamic v, [erroneously-initialized self::A a = #C1]) → void {}
+  method test22(dynamic v, {erroneously-initialized self::A a = #C1}) → void {}
 }
-static method test1(dynamic v, [self::A a = #C1]) → void {}
-static method test2(dynamic v, {self::A a = #C1}) → void {}
+static method test1(dynamic v, [erroneously-initialized self::A a = #C1]) → void {}
+static method test2(dynamic v, {erroneously-initialized self::A a = #C1}) → void {}
 static method main() → dynamic {}
 
 constants  {

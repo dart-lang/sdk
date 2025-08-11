@@ -47,6 +47,6 @@ class F extends self::D {
   synthetic constructor •() → self::F
     : super self::D::•()
     ;
-  method f(self::B x) → void {}
+  erroneous method f(self::B x) → void {}
 }
 static method main() → dynamic {}

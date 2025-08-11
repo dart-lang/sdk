@@ -4,6 +4,8 @@ analyzer:
   errors:
     # Disable implementation_imports.
     implementation_imports: ignore
+  language:
+    strict-raw-types: true
 
 linter:
   rules:

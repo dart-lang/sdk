@@ -24,10 +24,10 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>
     ;
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%> /* redirection-target: self2::ClassImpl::•<self2::Class::redirect::T%>*/
     return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = null, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = true, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%> /* redirection-target: self2::ClassImpl::patched<self2::Class::redirect2::T%>*/
     return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
@@ -38,17 +38,17 @@ class ClassImpl<T extends core::Object? = dynamic> extends core::Object implemen
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ patched({core::bool defaultValue = true, required self2::ClassImpl::T% value}) → self2::ClassImpl<self2::ClassImpl::T%>
     ;
 }
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#new#tearOff::T value}) → self2::Class<self2::_#Alias#new#tearOff::T>
+static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#new#tearOff::T value}) → self2::Class<self2::_#Alias#new#tearOff::T>
   return new self2::Class::•<self2::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#fact#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#fact#tearOff::T value}) → self2::Class<self2::_#Alias#fact#tearOff::T>
+static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#fact#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#fact#tearOff::T value}) → self2::Class<self2::_#Alias#fact#tearOff::T>
   return self2::Class::fact<self2::_#Alias#fact#tearOff::T>(defaultValue: defaultValue, value: value);
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect#tearOff::T value}) → self2::Class<self2::_#Alias#redirect#tearOff::T>
+static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect#tearOff::T value}) → self2::Class<self2::_#Alias#redirect#tearOff::T>
   return self2::Class::redirect<self2::_#Alias#redirect#tearOff::T>(defaultValue: defaultValue, value: value);
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect2#tearOff::T value}) → self2::Class<self2::_#Alias#redirect2#tearOff::T>
+static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect2#tearOff::T value}) → self2::Class<self2::_#Alias#redirect2#tearOff::T>
   return self2::Class::redirect2<self2::_#Alias#redirect2#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#AliasImpl#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#new#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#new#tearOff::T>
+static synthetic method _#AliasImpl#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#new#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#new#tearOff::T>
   return new self2::ClassImpl::•<self2::_#AliasImpl#new#tearOff::T>(defaultValue: defaultValue, value: value);
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _#AliasImpl#patched#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#patched#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#patched#tearOff::T>
+static synthetic method /* from org-dartlang-testcase:///patch_lib.dart */ _#AliasImpl#patched#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#patched#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#patched#tearOff::T>
   return new self2::ClassImpl::patched<self2::_#AliasImpl#patched#tearOff::T>(defaultValue: defaultValue, value: value);
 
 

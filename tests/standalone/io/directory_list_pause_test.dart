@@ -20,25 +20,30 @@ void testPauseList() {
     bool first = true;
     var subscription;
     int count = 0;
-    subscription = d.list(recursive: true).listen((file) {
-      if (file is File) {
-        if (first) {
-          first = false;
-          subscription.pause();
-          Timer.run(() {
-            for (int i = 0; i < TOTAL; i++) {
-              new File("${d.path}/$i/file").deleteSync();
+    subscription = d
+        .list(recursive: true)
+        .listen(
+          (file) {
+            if (file is File) {
+              if (first) {
+                first = false;
+                subscription.pause();
+                Timer.run(() {
+                  for (int i = 0; i < TOTAL; i++) {
+                    new File("${d.path}/$i/file").deleteSync();
+                  }
+                  subscription.resume();
+                });
+              }
+              count++;
             }
-            subscription.resume();
-          });
-        }
-        count++;
-      }
-    }, onDone: () {
-      Expect.notEquals(TOTAL, count);
-      Expect.isTrue(count > 0);
-      d.delete(recursive: true).then((ignore) => asyncEnd());
-    });
+          },
+          onDone: () {
+            Expect.notEquals(TOTAL, count);
+            Expect.isTrue(count > 0);
+            d.delete(recursive: true).then((ignore) => asyncEnd());
+          },
+        );
   });
 }
 
@@ -52,23 +57,28 @@ void testPauseResumeCancelList() {
       new File("${d.path}/$i/file").createSync();
     }
     var subscription;
-    subscription = d.list(recursive: true).listen((entity) {
-      subscription.pause();
-      subscription.resume();
-      void close() {
-        d.deleteSync(recursive: true);
-        asyncEnd();
-      }
+    subscription = d
+        .list(recursive: true)
+        .listen(
+          (entity) {
+            subscription.pause();
+            subscription.resume();
+            void close() {
+              d.deleteSync(recursive: true);
+              asyncEnd();
+            }
 
-      var future = subscription.cancel();
-      if (future != null) {
-        future.whenComplete(close);
-      } else {
-        close();
-      }
-    }, onDone: () {
-      Expect.fail('the stream was canceled, onDone should not happen');
-    });
+            var future = subscription.cancel();
+            if (future != null) {
+              future.whenComplete(close);
+            } else {
+              close();
+            }
+          },
+          onDone: () {
+            Expect.fail('the stream was canceled, onDone should not happen');
+          },
+        );
   });
 }
 

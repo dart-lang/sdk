@@ -322,7 +322,7 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
-#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+#if defined(DART_INCLUDE_SIMULATOR) && !defined(DART_PRECOMPILER)
   // TODO(37299): FFI is not supported in SIMRISCV32/64.
   __ ebreak();
 #else
@@ -428,17 +428,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
   COMPILE_ASSERT(!IsCalleeSavedRegister(T3) && !IsArgumentRegister(T3));
 
+  Label something_other_than_sync_callback;
   Label async_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the
   // callback was invoked after it was deleted. In this case, do nothing.
-  __ beqz(THR, &done, Assembler::kNearJump);
+  __ beqz(THR, &done, Assembler::kFarJump);
 
   // Check the trampoline type to see how the callback should be invoked.
+
   COMPILE_ASSERT(
       static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) == 0);
-  __ bnez(T3, &async_callback, Assembler::kNearJump);
+  __ bnez(T3, &something_other_than_sync_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -451,6 +453,66 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint(/*scratch=*/T1);
 
   __ j(&done, Assembler::kNearJump);
+
+  __ Bind(&something_other_than_sync_callback);
+  COMPILE_ASSERT(
+      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync) == 2);
+  __ subi(T3, T3, 2);
+  __ beqz(T3, &async_callback, Assembler::kNearJump);
+
+  COMPILE_ASSERT(
+      static_cast<uword>(
+          FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared) == 3);
+  // isolate-group-shared callback
+  __ jalr(T2);
+
+  // Exit isolate group shared isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+    Label call;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupSharedIsolate,
+                           T1, T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+#endif
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ Bind(&call);
+    __ jalr(T1);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+  }
+
+  __ j(&done, Assembler::kNearJump);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and
@@ -2124,9 +2186,6 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     __ Breakpoint();
     return;
   }
-  if (FLAG_trace_optimized_ic_calls) {
-    __ Stop("Unimplemented");
-  }
   __ LoadFieldFromOffset(TMP, A6, target::Function::usage_counter_offset(),
                          kFourBytes);
   __ addi(TMP, TMP, 1);
@@ -2275,7 +2334,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement();
   } else {
-    GenerateUsageCounterIncrement(/*scratch=*/T0);
+    GenerateUsageCounterIncrement(/*temp_reg=*/T0);
   }
 
   ASSERT(num_args == 1 || num_args == 2);
@@ -2300,8 +2359,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(TMP);
-    __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+    __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                       kUnsignedByte);
     __ bnez(TMP, &stepping);
     __ Bind(&done_stepping);
@@ -2655,8 +2713,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
   // Check single stepping.
 #if !defined(PRODUCT)
   Label stepping, done_stepping;
-  __ LoadIsolate(TMP);
-  __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(TMP, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
@@ -2813,8 +2870,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(A1);
-  __ LoadFromOffset(A1, A1, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(A1, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(A1, &stepping, compiler::Assembler::kNearJump);
   __ Bind(&done_stepping);
@@ -3084,8 +3140,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(TMP);
-  __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(TMP, &stepping);
   __ Bind(&done_stepping);
@@ -3225,7 +3280,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ BranchIf(EQ, &miss);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ AddImmediate(T1, entry_length);  // Next entry.
   __ j(&loop);

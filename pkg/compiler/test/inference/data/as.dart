@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   asIntWithString();
   asIntWithNegative();
@@ -15,12 +15,12 @@ main() {
 // As int of int and non-int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntWithString:[exact=JSUInt31|powerset=0]*/
+/*member: _asIntWithString:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _asIntWithString(
-  /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ o,
+  /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ o,
 ) => o as int;
 
-/*member: asIntWithString:[null|powerset=1]*/
+/*member: asIntWithString:[null|powerset={null}]*/
 asIntWithString() {
   _asIntWithString(0);
   _asIntWithString('');
@@ -30,10 +30,10 @@ asIntWithString() {
 // As int of known int and an unknown int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntWithNegative:[subclass=JSInt|powerset=0]*/
-_asIntWithNegative(/*[subclass=JSInt|powerset=0]*/ o) => o as int;
+/*member: _asIntWithNegative:[subclass=JSInt|powerset={I}{O}{N}]*/
+_asIntWithNegative(/*[subclass=JSInt|powerset={I}{O}{N}]*/ o) => o as int;
 
-/*member: asIntWithNegative:[null|powerset=1]*/
+/*member: asIntWithNegative:[null|powerset={null}]*/
 asIntWithNegative() {
   _asIntWithNegative(0);
   _asIntWithNegative(-1);
@@ -43,10 +43,10 @@ asIntWithNegative() {
 // As int of 0.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntOfZero:[exact=JSUInt31|powerset=0]*/
-_asIntOfZero(/*[exact=JSUInt31|powerset=0]*/ o) => o as int;
+/*member: _asIntOfZero:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_asIntOfZero(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) => o as int;
 
-/*member: asIntOfZero:[null|powerset=1]*/
+/*member: asIntOfZero:[null|powerset={null}]*/
 asIntOfZero() {
   _asIntOfZero(0);
 }
@@ -55,10 +55,10 @@ asIntOfZero() {
 // As int of -1.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntOfMinusOne:[subclass=JSInt|powerset=0]*/
-_asIntOfMinusOne(/*[subclass=JSInt|powerset=0]*/ o) => o as int;
+/*member: _asIntOfMinusOne:[subclass=JSInt|powerset={I}{O}{N}]*/
+_asIntOfMinusOne(/*[subclass=JSInt|powerset={I}{O}{N}]*/ o) => o as int;
 
-/*member: asIntOfMinusOne:[null|powerset=1]*/
+/*member: asIntOfMinusOne:[null|powerset={null}]*/
 asIntOfMinusOne() {
   _asIntOfMinusOne(-1);
 }
@@ -67,12 +67,12 @@ asIntOfMinusOne() {
 // As int of string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntOfString:[empty|powerset=0]*/
+/*member: _asIntOfString:[empty|powerset=empty]*/
 _asIntOfString(
-  /*Value([exact=JSString|powerset=0], value: "", powerset: 0)*/ o,
+  /*Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/ o,
 ) => o as int;
 
-/*member: asIntOfString:[null|powerset=1]*/
+/*member: asIntOfString:[null|powerset={null}]*/
 asIntOfString() {
   _asIntOfString('');
 }

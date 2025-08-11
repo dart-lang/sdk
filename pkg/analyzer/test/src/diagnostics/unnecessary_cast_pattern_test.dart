@@ -16,47 +16,55 @@ main() {
 @reflectiveTest
 class UnnecessaryCastPatternTest extends PubPackageResolutionTest {
   test_matchedIsSameAsRequired() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case var z as int) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
+      ],
+    );
   }
 
   test_matchedIsSubtypeOfRequired() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case var z as num) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
+      ],
+    );
   }
 
   test_matchedIsSupertypeOfRequired() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case var z as int) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+    );
   }
 
   test_matchedIsUnrelatedToRequired() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B {}
 
 void f(A x) {
   if (x case var z as B) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
   }
 }

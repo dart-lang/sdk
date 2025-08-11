@@ -20,7 +20,6 @@ void main() async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'compile',
           'exe',
           'bin/dart_app.dart',
@@ -50,7 +49,6 @@ void main(List<String> args) {
 ''');
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'compile',
           'exe',
           'bin/dart_app.dart',

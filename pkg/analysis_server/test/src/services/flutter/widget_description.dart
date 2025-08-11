@@ -27,7 +27,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
       testAnalysisResult.content,
       fileEdit.edits,
     );
-    expect(actual, expected);
+    expect(actual, normalizeSource(expected));
   }
 
   void assertPropertyJsonText(

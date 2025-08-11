@@ -2,42 +2,42 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:3:7: Error: A class member can't have the same name as the enclosing class.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:7: Error: A class member can't have the same name as the enclosing class.
 // Try renaming the member.
 //   set Foo() {}
 //       ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:5:3: Error: Constructors can't be a setter.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:3: Error: Constructors can't be a setter.
 // Try removing 'set'.
 //   set Foo() : initializer = true {}
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:3: Error: Constructors can't be a setter.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:11:3: Error: Constructors can't be a setter.
 // Try removing 'set'.
 //   set Foo.x() {}
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:3: Error: Constructors can't be a setter.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:13:3: Error: Constructors can't be a setter.
 // Try removing 'set'.
 //   set Foo.x() : initializer = true {}
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:7: Error: 'Foo.x' is already declared in this scope.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:13:7: Error: 'Foo.x' is already declared in this scope.
 //   set Foo.x() : initializer = true {}
 //       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:7: Context: Previous declaration of 'Foo.x'.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:11:7: Context: Previous declaration of 'Foo.x'.
 //   set Foo.x() {}
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:3:10: Error: A setter should have exactly one formal parameter.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:10: Error: A setter should have exactly one formal parameter.
 //   set Foo() {}
 //          ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:5:15: Error: 'initializer' isn't an instance field of this class.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:15: Error: 'initializer' isn't an instance field of this class.
 //   set Foo() : initializer = true {}
 //               ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:17: Error: 'initializer' isn't an instance field of this class.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:13:17: Error: 'initializer' isn't an instance field of this class.
 //   set Foo.x() : initializer = true {}
 //                 ^^^^^^^^^^^
 //
@@ -46,13 +46,13 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   constructor •() → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:5:15: Error: 'initializer' isn't an instance field of this class.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:9:15: Error: 'initializer' isn't an instance field of this class.
   set Foo() : initializer = true {}
               ^^^^^^^^^^^" {}
   constructor x() → self::Foo
     : super core::Object::•() {}
   set Foo(dynamic #synthetic) → void {
-    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:3:10: Error: A setter should have exactly one formal parameter.
+    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:10: Error: A setter should have exactly one formal parameter.
   set Foo() {}
          ^";
     {}

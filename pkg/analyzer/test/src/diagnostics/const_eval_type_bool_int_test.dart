@@ -24,12 +24,15 @@ class ConstEvalTypeBoolIntTest extends PubPackageResolutionTest {
   }
 
   Future<void> _check_constEvalTypeBoolOrInt_binary(String expr) async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const int a = 0;
 const b = $expr;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      ],
+    );
   }
 }

@@ -33,8 +33,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
-    ScannerResult result = scanString(source,
-        configuration: configuration, includeComments: true);
+    ScannerResult result =
+        scanString(source, configuration: configuration, includeComments: true);
 
     Token tokens = result.tokens;
     assertValidTokenStream(tokens, errorsFirst: true);
@@ -57,8 +57,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   void _assertOpenOnly(String source, String expectedCloser) {
     ErrorListener listener = new ErrorListener();
-    BeginToken open =
-        scanWithListener(source, listener) as BeginToken;
+    BeginToken open = scanWithListener(source, listener) as BeginToken;
     Token close = open.next!;
     expect(close.next!.isEof, isTrue);
     expect(open.endGroup, close);
@@ -84,7 +83,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(token.next!.isEof, isTrue);
     expect(listener.errors, hasLength(1));
     TestError error = listener.errors[0];
-    expect(error.errorCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.diagnosticCode, ScannerErrorCode.MISSING_DIGIT);
     expect(error.offset, source.length - 1);
   }
 
@@ -137,10 +136,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // where both ')' are synthetic
     ErrorListener listener = new ErrorListener();
     var stringStart = scanWithListener(r'"${({(}}"', listener);
-    BeginToken interpolationStart =
-        stringStart.next as BeginToken;
-    BeginToken openParen1 =
-        interpolationStart.next as BeginToken;
+    BeginToken interpolationStart = stringStart.next as BeginToken;
+    BeginToken openParen1 = interpolationStart.next as BeginToken;
     BeginToken openBrace = openParen1.next as BeginToken;
     BeginToken openParen2 = openBrace.next as BeginToken;
     var closeParen2 = openParen2.next!;
@@ -169,8 +166,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
   void test_unmatched_openers() {
     ErrorListener listener = new ErrorListener();
     // The scanner inserts missing closers except for '<'
-    BeginToken openBrace =
-        scanWithListener('{[(<', listener) as BeginToken;
+    BeginToken openBrace = scanWithListener('{[(<', listener) as BeginToken;
     BeginToken openBracket = openBrace.next as BeginToken;
     BeginToken openParen = openBracket.next as BeginToken;
     BeginToken openLT = openParen.next as BeginToken;
@@ -216,8 +212,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
   }
 
   /// Assert that the tokens in the stream are correctly connected prev/next.
-  void assertValidTokenStream(Token firstToken,
-      {bool errorsFirst = false}) {
+  void assertValidTokenStream(Token firstToken, {bool errorsFirst = false}) {
     Token token = firstToken;
     Token previous = token.previous!;
     expect(previous.isEof, isTrue, reason: 'Missing leading EOF');

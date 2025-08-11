@@ -22,7 +22,7 @@ const int LINE_E = 57;
 bar() {
   // Keep the 'throw' and its argument on separate lines.
   throw // force linebreak with dart format // LINE_A
-      "Hello, Dwarf!";
+  "Hello, Dwarf!";
 }
 
 @pragma("vm:never-inline")
@@ -67,12 +67,22 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile(path.join(
+  if (Platform.script.toString().endsWith(".dll")) {
+    return; // DWARF not available in DLLs.
+  }
+
+  final dwarf = Dwarf.fromFile(
+    path.join(
       Platform.environment["TEST_COMPILATION_DIR"]!,
-      "dwarf_invisible_functions.so"))!;
+      "dwarf_invisible_functions.so",
+    ),
+  )!;
 
   await dwarf_stack_trace_test.checkStackTrace(
-      rawStack, dwarf, expectedCallsInfo);
+    rawStack,
+    dwarf,
+    expectedCallsInfo,
+  );
 }
 
 final expectedCallsInfo = <List<DartCallInfo>>[
@@ -80,44 +90,49 @@ final expectedCallsInfo = <List<DartCallInfo>>[
   // into foo (so we'll get information for two calls for that PC address).
   [
     DartCallInfo(
-        function: "bar",
-        filename: "dwarf_stack_trace_invisible_functions_test.dart",
-        line: LINE_A,
-        column: 3,
-        inlined: true),
+      function: "bar",
+      filename: "dwarf_stack_trace_invisible_functions_test.dart",
+      line: LINE_A,
+      column: 3,
+      inlined: true,
+    ),
     DartCallInfo(
-        function: "foo",
-        filename: "dwarf_stack_trace_invisible_functions_test.dart",
-        line: LINE_B,
-        column: 3,
-        inlined: false)
+      function: "foo",
+      filename: "dwarf_stack_trace_invisible_functions_test.dart",
+      line: LINE_B,
+      column: 3,
+      inlined: false,
+    ),
   ],
   // Frame 2: call to foo in bazz.
   [
     DartCallInfo(
-        function: "bazz",
-        filename: "dwarf_stack_trace_invisible_functions_test.dart",
-        line: LINE_C,
-        column: 3,
-        inlined: false)
+      function: "bazz",
+      filename: "dwarf_stack_trace_invisible_functions_test.dart",
+      line: LINE_C,
+      column: 3,
+      inlined: false,
+    ),
   ],
   // Frame 3: call to bazz in A.method.
   [
     DartCallInfo(
-        function: "A.add",
-        filename: "dwarf_stack_trace_invisible_functions_test.dart",
-        line: LINE_D,
-        column: 5,
-        inlined: false)
+      function: "A.add",
+      filename: "dwarf_stack_trace_invisible_functions_test.dart",
+      line: LINE_D,
+      column: 5,
+      inlined: false,
+    ),
   ],
   // Frame 4: the call to foo in main.
   [
     DartCallInfo(
-        function: "main",
-        filename: "dwarf_stack_trace_invisible_functions_test.dart",
-        line: LINE_E,
-        column: 8,
-        inlined: false)
+      function: "main",
+      filename: "dwarf_stack_trace_invisible_functions_test.dart",
+      line: LINE_E,
+      column: 8,
+      inlined: false,
+    ),
   ],
   // Don't assume anything about any of the frames below the main,
   // as this makes the test too brittle.

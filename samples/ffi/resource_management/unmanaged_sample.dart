@@ -13,12 +13,15 @@ import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
 main() {
-  final ffiTestDynamicLibrary =
-      dlopenPlatformSpecific("ffi_test_dynamic_library");
+  final ffiTestDynamicLibrary = dlopenPlatformSpecific(
+    "ffi_test_dynamic_library",
+  );
 
-  final memMove = ffiTestDynamicLibrary.lookupFunction<
-      Void Function(Pointer<Void>, Pointer<Void>, IntPtr),
-      void Function(Pointer<Void>, Pointer<Void>, int)>("MemMove");
+  final memMove = ffiTestDynamicLibrary
+      .lookupFunction<
+        Void Function(Pointer<Void>, Pointer<Void>, IntPtr),
+        void Function(Pointer<Void>, Pointer<Void>, int)
+      >("MemMove");
 
   // To ensure resources are freed, call free manually.
   //

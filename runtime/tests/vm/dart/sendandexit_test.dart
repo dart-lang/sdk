@@ -32,11 +32,12 @@ verifyCantSendNative() async {
   final receivePort = ReceivePort();
   final unsendable = NativeWrapperClass();
   Expect.throws(
-      () => Isolate.exit(receivePort.sendPort, unsendable),
-      (e) =>
-          e is ArgumentError &&
-          e.invalidValue == unsendable &&
-          e.toString().contains("NativeWrapper"));
+    () => Isolate.exit(receivePort.sendPort, unsendable),
+    (e) =>
+        e is ArgumentError &&
+        e.invalidValue == unsendable &&
+        e.toString().contains("NativeWrapper"),
+  );
   receivePort.close();
 }
 
@@ -44,11 +45,12 @@ verifyCantSendReceivePort() async {
   final receivePort = RawReceivePort();
   final unsendable = receivePort;
   Expect.throws(
-      () => Isolate.exit(receivePort.sendPort, receivePort),
-      (e) =>
-          e is ArgumentError &&
-          e.invalidValue == unsendable &&
-          e.toString().contains("ReceivePort"));
+    () => Isolate.exit(receivePort.sendPort, receivePort),
+    (e) =>
+        e is ArgumentError &&
+        e.invalidValue == unsendable &&
+        e.toString().contains("ReceivePort"),
+  );
   receivePort.close();
 }
 
@@ -106,15 +108,20 @@ worker(SendPort sendPort) async {
 verifyExitMessageIsPostedLast() async {
   final port = ReceivePort();
   final inbox = new StreamIterator<dynamic>(port);
-  final isolate =
-      await Isolate.spawn(worker, port.sendPort, onExit: port.sendPort);
+  final isolate = await Isolate.spawn(
+    worker,
+    port.sendPort,
+    onExit: port.sendPort,
+  );
 
   final receivedData = Completer<dynamic>();
   final isolateExited = Completer<bool>();
   port.listen((dynamic resultData) {
     if (receivedData.isCompleted) {
       Expect.equals(
-          null, resultData); // exit message comes after data is receivedData
+        null,
+        resultData,
+      ); // exit message comes after data is receivedData
       isolateExited.complete(true);
     } else {
       receivedData.complete(resultData);

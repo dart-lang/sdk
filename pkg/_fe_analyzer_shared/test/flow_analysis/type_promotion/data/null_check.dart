@@ -12,7 +12,8 @@ doesNotPromoteNonNullableType(int x) {
 
 promotesNullableType(int? x) {
   if (x != null) {
-    /*int*/ x;
+    /*int*/
+    x;
   } else {
     x;
   }

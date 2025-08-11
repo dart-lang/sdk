@@ -71,9 +71,13 @@ testSync() {
   result = cm.invoke(const Symbol('staticFunction'), [3, 4]);
   Expect.equals('(3,4)', result.reflectee);
   Expect.throwsNoSuchMethodError(
-      () => cm.invoke(const Symbol('doesntExist'), [3, 4]), 'Not defined');
+    () => cm.invoke(const Symbol('doesntExist'), [3, 4]),
+    'Not defined',
+  );
   Expect.throwsNoSuchMethodError(
-      () => cm.invoke(const Symbol('staticFunction'), [3]), 'Wrong arity');
+    () => cm.invoke(const Symbol('staticFunction'), [3]),
+    'Wrong arity',
+  );
 
   // ClassMirror invokeGetter
   result = cm.getField(const Symbol('staticGetter'));
@@ -81,20 +85,26 @@ testSync() {
   result = cm.getField(const Symbol('staticField'));
   Expect.equals('initial', result.reflectee);
   Expect.throwsNoSuchMethodError(
-      () => cm.getField(const Symbol('doesntExist')), 'Not defined');
+    () => cm.getField(const Symbol('doesntExist')),
+    'Not defined',
+  );
 
   // ClassMirror invokeSetter
   result = cm.setField(const Symbol('staticSetter'), 'sfoo');
   Expect.equals('sfoo', result.reflectee);
   Expect.equals('sset sfoo', C.staticField);
   Expect.equals(
-      'sset sfoo', cm.getField(const Symbol('staticField')).reflectee);
+    'sset sfoo',
+    cm.getField(const Symbol('staticField')).reflectee,
+  );
   result = cm.setField(const Symbol('staticField'), 'sbar');
   Expect.equals('sbar', result.reflectee);
   Expect.equals('sbar', C.staticField);
   Expect.equals('sbar', cm.getField(const Symbol('staticField')).reflectee);
   Expect.throwsNoSuchMethodError(
-      () => cm.setField(const Symbol('doesntExist'), 'sbar'), 'Not defined');
+    () => cm.setField(const Symbol('doesntExist'), 'sbar'),
+    'Not defined',
+  );
 
   // ClassMirror invokeConstructor
   result = cm.newInstance(Symbol.empty, []);
@@ -104,19 +114,26 @@ testSync() {
   Expect.isTrue(result.reflectee is C);
   Expect.equals('my value', result.reflectee.field);
   Expect.throwsNoSuchMethodError(
-      () => cm.newInstance(const Symbol('doesntExist'), ['my value']),
-      'Not defined');
+    () => cm.newInstance(const Symbol('doesntExist'), ['my value']),
+    'Not defined',
+  );
   Expect.throwsNoSuchMethodError(
-      () => cm.newInstance(const Symbol('named'), []), 'Wrong arity');
+    () => cm.newInstance(const Symbol('named'), []),
+    'Wrong arity',
+  );
 
   // LibraryMirror invoke
   LibraryMirror lm = cm.owner as LibraryMirror;
   result = lm.invoke(const Symbol('libraryFunction'), [':', ')']);
   Expect.equals(':)', result.reflectee);
   Expect.throwsNoSuchMethodError(
-      () => lm.invoke(const Symbol('doesntExist'), [':', ')']), 'Not defined');
+    () => lm.invoke(const Symbol('doesntExist'), [':', ')']),
+    'Not defined',
+  );
   Expect.throwsNoSuchMethodError(
-      () => lm.invoke(const Symbol('libraryFunction'), [':']), 'Wrong arity');
+    () => lm.invoke(const Symbol('libraryFunction'), [':']),
+    'Wrong arity',
+  );
 
   // LibraryMirror invokeGetter
   result = lm.getField(const Symbol('libraryGetter'));
@@ -124,20 +141,26 @@ testSync() {
   result = lm.getField(const Symbol('libraryField'));
   Expect.equals('a priori', result.reflectee);
   Expect.throwsNoSuchMethodError(
-      () => lm.getField(const Symbol('doesntExist')), 'Not defined');
+    () => lm.getField(const Symbol('doesntExist')),
+    'Not defined',
+  );
 
   // LibraryMirror invokeSetter
   result = lm.setField(const Symbol('librarySetter'), 'lfoo');
   Expect.equals('lfoo', result.reflectee);
   Expect.equals('lset lfoo', libraryField);
   Expect.equals(
-      'lset lfoo', lm.getField(const Symbol('libraryField')).reflectee);
+    'lset lfoo',
+    lm.getField(const Symbol('libraryField')).reflectee,
+  );
   result = lm.setField(const Symbol('libraryField'), 'lbar');
   Expect.equals('lbar', result.reflectee);
   Expect.equals('lbar', libraryField);
   Expect.equals('lbar', lm.getField(const Symbol('libraryField')).reflectee);
   Expect.throwsNoSuchMethodError(
-      () => lm.setField(const Symbol('doesntExist'), 'lbar'), 'Not defined');
+    () => lm.setField(const Symbol('doesntExist'), 'lbar'),
+    'Not defined',
+  );
 }
 
 main() {

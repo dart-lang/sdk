@@ -92,27 +92,26 @@ F tearoffInterop<F extends Function?>(F f, bool checkReturnType) {
   if (f is! LegacyJavaScriptObject || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
-    ret =
-        checkReturnType
-            ? JS(
-              '',
-              'function (...arguments) {'
-                  ' var args = arguments.map(#);'
-                  ' return #(#.apply(this, args));'
-                  '}',
-              assertInterop,
-              jsInteropNullCheck,
-              f,
-            )
-            : JS(
-              '',
-              'function (...arguments) {'
-                  ' var args = arguments.map(#);'
-                  ' return #.apply(this, args);'
-                  '}',
-              assertInterop,
-              f,
-            );
+    ret = checkReturnType
+        ? JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #(#.apply(this, args));'
+                '}',
+            assertInterop,
+            jsInteropNullCheck,
+            f,
+          )
+        : JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #.apply(this, args);'
+                '}',
+            assertInterop,
+            f,
+          );
     _assertInteropExpando[f] = ret;
   }
   // Suppress a cast back to F.

@@ -19,9 +19,9 @@ class B {
 
 main() {
   A.x = 2;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
-// [cfe] Setter not found: 'x'.
+  //^
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
+  // [cfe] Setter not found: 'x'.
   new B();
   print(B.b);
   print(B.a);

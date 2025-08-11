@@ -183,11 +183,11 @@ class DataSourceReader {
   }) {
     return useDeferredStrategy
         ? Deferrable<E>.deferred(
-          this,
-          f,
-          _sourceReader.readDeferred(),
-          cacheData: cacheData,
-        )
+            this,
+            f,
+            _sourceReader.readDeferred(),
+            cacheData: cacheData,
+          )
         : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(() => f(this)));
   }
 
@@ -198,15 +198,15 @@ class DataSourceReader {
   }) {
     return useDeferredStrategy
         ? Deferrable.deferredWithArg<E, A>(
-          this,
-          f,
-          arg,
-          _sourceReader.readDeferred(),
-          cacheData: cacheData,
-        )
+            this,
+            f,
+            arg,
+            _sourceReader.readDeferred(),
+            cacheData: cacheData,
+          )
         : Deferrable<E>.eager(
-          _sourceReader.readDeferredAsEager(() => f(this, arg)),
-        );
+            _sourceReader.readDeferredAsEager(() => f(this, arg)),
+          );
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for
@@ -852,10 +852,12 @@ class DataSourceReader {
         )..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {
           typeParameters[index].name = readString();
-          typeParameters[index].bound =
-              _readDartTypeNode(functionTypeVariables)!;
-          typeParameters[index].defaultType =
-              _readDartTypeNode(functionTypeVariables)!;
+          typeParameters[index].bound = _readDartTypeNode(
+            functionTypeVariables,
+          )!;
+          typeParameters[index].defaultType = _readDartTypeNode(
+            functionTypeVariables,
+          )!;
         }
         ir.DartType returnType = _readDartTypeNode(functionTypeVariables)!;
         ir.Nullability nullability = readEnum(ir.Nullability.values);
@@ -1293,10 +1295,9 @@ class DataSourceReader {
         final keyList = readConstant() as ListConstantValue;
         final valueList = readConstant() as ListConstantValue;
         bool onlyStringKeys = readBool();
-        final indexObject =
-            onlyStringKeys
-                ? readConstant() as JavaScriptObjectConstantValue
-                : null;
+        final indexObject = onlyStringKeys
+            ? readConstant() as JavaScriptObjectConstantValue
+            : null;
         return constant_system.JavaScriptMapConstant(
           type,
           keyList,
@@ -1334,8 +1335,8 @@ class DataSourceReader {
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();
         return DeferredGlobalConstantValue(constant, unit);
-      case ConstantValueKind.dummyInterceptor:
-        return DummyInterceptorConstantValue();
+      case ConstantValueKind.dummy:
+        return DummyConstantValue();
       case ConstantValueKind.lateSentinel:
         return LateSentinelConstantValue();
       case ConstantValueKind.unreachable:

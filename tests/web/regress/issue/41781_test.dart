@@ -6,7 +6,7 @@
 test(List a, List b) {
   return [
     throw 123,
-    {...a, ...b}
+    {...a, ...b},
   ];
 }
 

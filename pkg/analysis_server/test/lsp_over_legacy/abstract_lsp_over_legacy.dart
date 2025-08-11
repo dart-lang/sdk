@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -20,10 +21,10 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../analysis_server_base.dart';
-import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
 import '../services/completion/dart/text_expectations.dart';
+import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 
 class EventsCollector {
@@ -147,15 +148,43 @@ class EventsPrinterConfiguration {}
 abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
+        ClientCapabilitiesHelperMixin,
         LspVerifyEditHelpersMixin,
-        ClientCapabilitiesHelperMixin {
+        AnalyticsTestMixin {
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
 
   /// A controller for [notificationsFromServer].
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
+
+  LspOverLegacyTest() {
+    // Ensure the base fields for the tests are populated with the same default
+    // client caapbilities that the server uses. This ensures if a test does not
+    // explicitly set capabilities, they match on the client+server (so we can -
+    // for example - make assumptions about what kind of edits the server will
+    // return).
+    if (fixedBasicLspClientCapabilities.raw.textDocument
+        case var textDocument?) {
+      textDocumentCapabilities = textDocument;
+    }
+    if (fixedBasicLspClientCapabilities.raw.workspace case var workspace?) {
+      workspaceCapabilities = workspace;
+    }
+    if (fixedBasicLspClientCapabilities.raw.window case var window?) {
+      windowCapabilities = window;
+    }
+    if (fixedBasicLspClientCapabilities.raw.experimental
+        case Map<String, Object?>? experimental?) {
+      experimentalCapabilities = experimental;
+    }
+  }
+
+  @override
+  AnalyticsManager get analyticsManager => server.analyticsManager;
 
   @override
   LspClientCapabilities get editorClientCapabilities =>
@@ -172,10 +201,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   String get projectFolderPath => convertPath(testPackageRootPath);
 
-  /// A stream of [RequestMessage]s from the server.
-  ///
-  /// Only LSP message requests (`lsp.handle`) from the server are included
-  /// here.
+  Uri get pubspecFileUri => toUri(convertPath(pubspecFilePath));
+
   @override
   Stream<RequestMessage> get requestsFromServer => serverChannel
       .serverToClientRequests
@@ -199,10 +226,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   ClientUriConverter get uriConverter => server.uriConverter;
 
-  Future<void> addOverlay(String filePath, String content) {
+  Future<void> addOverlay(String filePath, String content, [int? version]) {
     return handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        convertPath(filePath): AddContentOverlay(content),
+        convertPath(filePath): AddContentOverlay(content, version: version),
       }).toRequest(
         '${nextRequestId++}',
         clientUriConverter: server.uriConverter,
@@ -248,19 +275,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     RequestMessage message,
     T Function(R) fromJson,
   ) async {
-    var messageJson = message.toJson();
-
-    var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
-    var legacyResponse = await handleSuccessfulRequest(legacyRequest);
-    var legacyResult = LspHandleResult.fromResponse(
-      legacyResponse,
-      clientUriConverter: server.uriConverter,
-    );
-
-    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
-
-    // Unwrap the LSP response.
-    var lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    var lspResponse = await sendRequestToServer(message);
     var error = lspResponse.error;
     if (error != null) {
       throw error;
@@ -274,7 +289,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   String? getCurrentFileContent(Uri uri) {
     try {
-      return resourceProvider.getFile(fromUri(uri)).readAsStringSync();
+      return server.resourceProvider.getFile(fromUri(uri)).readAsStringSync();
     } catch (_) {
       return null;
     }
@@ -348,6 +363,23 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   }
 
   @override
+  Future<ResponseMessage> sendRequestToServer(RequestMessage message) async {
+    var messageJson = message.toJson();
+
+    var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
+    var legacyResponse = await handleSuccessfulRequest(legacyRequest);
+    var legacyResult = LspHandleResult.fromResponse(
+      legacyResponse,
+      clientUriConverter: server.uriConverter,
+    );
+
+    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
+
+    // Unwrap the LSP response.
+    return ResponseMessage.fromJson(lspResponseJson);
+  }
+
+  @override
   void sendResponseToServer(ResponseMessage response) {
     serverChannel.simulateResponseFromClient(
       Response(
@@ -366,7 +398,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   Future<void> setUp() async {
     super.setUp();
-    await setRoots(included: [workspaceRootPath], excluded: []);
+    await setRoots(included: [testPackageRootPath], excluded: []);
   }
 
   Future<void> updateOverlay(String filePath, SourceEdit edit) {
@@ -379,15 +411,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       ),
     );
   }
-
-  void verifyEdit(WorkspaceEdit edit, String expected) {
-    var verifier = LspChangeVerifier(this, edit);
-    // For LSP-over-Legacy we set documentChanges in the standard client
-    // capabilities and assume all new users of this will support it.
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-    verifier.verifyFiles(expected);
-  }
 }
 
 /// A [LspOverLegacyTest] that provides an implementation of
@@ -397,12 +420,22 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   // TODO(dantup): Support this for LSP-over-Legacy shared tests.
   var failTestOnErrorDiagnostic = false;
 
+  /// The current set of priority files. This is the same as the set of
+  /// currently-open files (see [openFile]/[closeFile]).
+  final Set<String> _priorityFiles = {};
+
   @override
   Future<void> get currentAnalysis => waitForTasksFinished();
 
   @override
   Future<void> closeFile(Uri uri) async {
-    await removeOverlay(fromUri(uri));
+    // closeFile should both remove the overlay and remove from priority files,
+    // since that's equivalent of what the LSP document handlers do and shared
+    // tests need to have the same behaviour.
+    var filePath = fromUri(uri);
+    await removeOverlay(filePath);
+    _priorityFiles.remove(filePath);
+    _updatePriorityFiles();
   }
 
   @override
@@ -417,8 +450,13 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
-    // TODO(dantup): Add version here when legacy protocol supports.
-    await addOverlay(fromUri(uri), content);
+    // closeFile should both add an overlay and add to priority files,
+    // since that's equivalent of what the LSP document handlers do and shared
+    // tests need to have the same behaviour.
+    var filePath = fromUri(uri);
+    await addOverlay(filePath, content, version);
+    _priorityFiles.add(filePath);
+    _updatePriorityFiles();
   }
 
   /// Opens a file content without providing a version number.
@@ -432,9 +470,8 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> replaceFile(int newVersion, Uri uri, String content) async {
-    // TODO(dantup): Add version here when legacy protocol supports.
     // For legacy, we can use addOverlay to replace the whole file.
-    await addOverlay(fromUri(uri), content);
+    await addOverlay(fromUri(uri), content, newVersion);
   }
 
   /// Replaces a file content without providing a version number.
@@ -445,5 +482,9 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   Future<void> replaceFileUnversioned(Uri uri, String content) async {
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
+  }
+
+  void _updatePriorityFiles() {
+    setPriorityFiles(_priorityFiles.map(getFile).toList());
   }
 }

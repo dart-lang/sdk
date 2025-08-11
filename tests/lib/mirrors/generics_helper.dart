@@ -8,7 +8,9 @@ import 'package:expect/expect.dart';
 
 typeParameters(mirror, parameterNames) {
   Expect.listEquals(
-      parameterNames, mirror.typeVariables.map((v) => v.simpleName).toList());
+    parameterNames,
+    mirror.typeVariables.map((v) => v.simpleName).toList(),
+  );
 }
 
 typeArguments(mirror, argumentMirrors) {

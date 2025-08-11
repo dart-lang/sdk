@@ -29,8 +29,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   }
 
   Future<Outline> _computeOutline(String code) async {
-    testCode = code;
-    newFile(testPath, code);
+    testCode = normalizeSource(code);
+    newFile(testPath, testCode);
     var resolveResult = await getResolvedUnit(testFile);
     return DartUnitOutlineComputer(
       resolveResult,
@@ -161,6 +161,12 @@ class OutlineComputerTest extends AbstractOutlineComputerTest {
   String jsonOfPath(String path) {
     path = convertPath(path);
     return json.encode(path);
+  }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
   }
 
   Future<void> test_class() async {

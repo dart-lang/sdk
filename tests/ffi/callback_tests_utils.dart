@@ -31,18 +31,17 @@ class CallbackTest {
   }) {}
 
   void run() {
-    final NativeCallbackTestFn tester =
-        isLeaf
-            ? ffiTestFunctions
-                .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
-                  "Test$name",
-                  isLeaf: true,
-                )
-            : ffiTestFunctions
-                .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
-                  "Test$name",
-                  isLeaf: false,
-                );
+    final NativeCallbackTestFn tester = isLeaf
+        ? ffiTestFunctions
+              .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
+                "Test$name",
+                isLeaf: true,
+              )
+        : ffiTestFunctions
+              .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
+                "Test$name",
+                isLeaf: false,
+              );
 
     final cb = callback;
     final int testCode = tester(

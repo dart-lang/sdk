@@ -23,13 +23,13 @@ class DiagnosticMessageImpl implements DiagnosticMessage {
   /// Initialize a newly created message to represent a [message] reported in
   /// the file at the given [filePath] at the given [offset] and with the given
   /// [length].
-  DiagnosticMessageImpl(
-      {required this.filePath,
-      required this.length,
-      required String message,
-      required this.offset,
-      required this.url})
-      : _message = message;
+  DiagnosticMessageImpl({
+    required this.filePath,
+    required this.length,
+    required String message,
+    required this.offset,
+    required this.url,
+  }) : _message = message;
 
   @override
   String messageText({required bool includeUrl}) {

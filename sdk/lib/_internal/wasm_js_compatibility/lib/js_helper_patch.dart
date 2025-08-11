@@ -20,10 +20,9 @@ WasmExternRef jsUint8ArrayFromDartUint8List(Uint8List l) =>
 
 @patch
 @pragma('wasm:prefer-inline')
-WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l) =>
-    throw UnsupportedError(
-      'In JS compatibility mode we only support JS typed data implementations.',
-    );
+WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l) => throw UnsupportedError(
+  'In JS compatibility mode we only support JS typed data implementations.',
+);
 
 @patch
 @pragma('wasm:prefer-inline')

@@ -18,22 +18,26 @@ Future<void> testThrowSame() async {
   var object1 = Object();
   var stack1 = StackTrace.current;
   var outerZone = Zone.current;
-  var firstZone = Zone.current.fork(specification: onError((error, stack) {
-    // Uncaught error handlers run in the parent zone.
-    Expect.identical(outerZone, Zone.current);
-    Expect.identical(object1, error);
-    Expect.identical(stack1, stack); // Get same stack trace.
-    asyncEnd();
-  }));
+  var firstZone = Zone.current.fork(
+    specification: onError((error, stack) {
+      // Uncaught error handlers run in the parent zone.
+      Expect.identical(outerZone, Zone.current);
+      Expect.identical(object1, error);
+      Expect.identical(stack1, stack); // Get same stack trace.
+      asyncEnd();
+    }),
+  );
   firstZone.run(() async {
     Expect.identical(firstZone, Zone.current);
-    var secondZone = Zone.current.fork(specification: onError((error, stack) {
-      // Uncaught error handlers run in the parent zone.
-      Expect.identical(firstZone, Zone.current);
-      Expect.identical(object1, error);
-      Expect.identical(stack1, stack);
-      throw error; // Throw same object
-    }));
+    var secondZone = Zone.current.fork(
+      specification: onError((error, stack) {
+        // Uncaught error handlers run in the parent zone.
+        Expect.identical(firstZone, Zone.current);
+        Expect.identical(object1, error);
+        Expect.identical(stack1, stack);
+        throw error; // Throw same object
+      }),
+    );
     secondZone.run(() async {
       Expect.identical(secondZone, Zone.current);
       Future.error(object1, stack1); // Unhandled async error.
@@ -48,20 +52,24 @@ Future<void> testThrowOther() async {
   var object2 = Object();
   var stack1 = StackTrace.current;
   var outerZone = Zone.current;
-  var firstZone = Zone.current.fork(specification: onError((error, stack) {
-    Expect.identical(outerZone, Zone.current);
-    Expect.identical(object2, error);
-    Expect.notIdentical(stack1, stack); // Get different stack trace.
-    asyncEnd();
-  }));
+  var firstZone = Zone.current.fork(
+    specification: onError((error, stack) {
+      Expect.identical(outerZone, Zone.current);
+      Expect.identical(object2, error);
+      Expect.notIdentical(stack1, stack); // Get different stack trace.
+      asyncEnd();
+    }),
+  );
   firstZone.run(() async {
     Expect.identical(firstZone, Zone.current);
-    var secondZone = Zone.current.fork(specification: onError((error, stack) {
-      Expect.identical(firstZone, Zone.current);
-      Expect.identical(object1, error);
-      Expect.identical(stack1, stack);
-      throw object2; // Throw different object
-    }));
+    var secondZone = Zone.current.fork(
+      specification: onError((error, stack) {
+        Expect.identical(firstZone, Zone.current);
+        Expect.identical(object1, error);
+        Expect.identical(stack1, stack);
+        throw object2; // Throw different object
+      }),
+    );
     secondZone.run(() async {
       Expect.identical(secondZone, Zone.current);
       Future.error(object1, stack1); // Unhandled async error.
@@ -72,5 +80,6 @@ Future<void> testThrowOther() async {
 
 ZoneSpecification onError(void Function(Object, StackTrace) handler) {
   return ZoneSpecification(
-      handleUncaughtError: (s, p, z, e, st) => handler(e, st));
+    handleUncaughtError: (s, p, z, e, st) => handler(e, st),
+  );
 }

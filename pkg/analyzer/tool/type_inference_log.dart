@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
   var filePath = normalize(absolute(paths.single));
-  var contextCollection = AnalysisContextCollection(
-    includedPaths: [filePath],
-  );
+  var contextCollection = AnalysisContextCollection(includedPaths: [filePath]);
   inferenceLoggingPredicate = (source) => source.fullName == filePath;
   var result = await contextCollection
       .contextFor(filePath)
@@ -37,11 +35,11 @@ Future<void> main(List<String> args) async {
     print('File does not exist: `$filePath`');
     exit(1);
   }
-  var errors = result.errors;
-  if (errors.isNotEmpty) {
-    print('${errors.length} errors found:');
-    for (var error in errors) {
-      print('  $error');
+  var diagnostics = result.diagnostics;
+  if (diagnostics.isNotEmpty) {
+    print('${diagnostics.length} diagnostics found:');
+    for (var diagnostic in diagnostics) {
+      print('  $diagnostic');
     }
   }
 }

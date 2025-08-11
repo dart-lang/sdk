@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/context_ref.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -83,12 +86,12 @@ class ContextViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    var content = <Element>[
-      navBar(<Element>[
+    var content = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -104,77 +107,69 @@ class ContextViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Context',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Context',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element
-        ]
+        ])
     ];
     if (_context.parentContext != null) {
       content.addAll([
-        new BRElement(),
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberList']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberItem']
-                  ..children = <Element>[
-                    new DivElement()
-                      ..classes = ['memberName']
-                      ..text = 'parent context',
-                    new DivElement()
-                      ..classes = ['memberName']
-                      ..children = <Element>[
-                        new ContextRefElement(
-                                _isolate, _context.parentContext!, _objects,
-                                queue: _r.queue)
-                            .element
-                      ]
-                  ]
-              ]
-          ]
+        new HTMLBRElement(),
+        new HTMLDivElement()
+          ..className = 'content-centered-big'
+          ..appendChild(new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChild(new HTMLDivElement()
+              ..className = 'memberItem'
+              ..appendChildren(<HTMLElement>[
+                new HTMLDivElement()
+                  ..className = 'memberName'
+                  ..textContent = 'parent context',
+                new HTMLDivElement()
+                  ..className = 'memberName'
+                  ..appendChild(new ContextRefElement(
+                          _isolate, _context.parentContext!, _objects,
+                          queue: _r.queue)
+                      .element)
+              ])))
       ]);
     }
-    content.add(new HRElement());
+    content.add(new HTMLHRElement());
     if (_context.variables!.isNotEmpty) {
       int index = 0;
       content.addAll([
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = <Element>[
-            new SpanElement()..text = 'Variables ',
+        new HTMLDivElement()
+          ..className = 'content-centered-big'
+          ..appendChildren(<HTMLElement>[
+            new HTMLSpanElement()..textContent = 'Variables ',
             (new CurlyBlockElement(expanded: true, queue: _r.queue)
-                  ..content = <Element>[
-                    new DivElement()
-                      ..classes = ['memberList']
-                      ..children = _context.variables!
-                          .map<Element>((variable) => new DivElement()
-                            ..classes = ['memberItem']
-                            ..children = <Element>[
-                              new DivElement()
-                                ..classes = ['memberName']
-                                ..text = '[ ${++index} ]',
-                              new DivElement()
-                                ..classes = ['memberName']
-                                ..children = <Element>[
-                                  anyRef(_isolate, variable.value, _objects,
-                                      queue: _r.queue)
-                                ]
-                            ])
-                          .toList()
+                  ..content = <HTMLElement>[
+                    new HTMLDivElement()
+                      ..className = 'memberList'
+                      ..setChildren(_context.variables!
+                          .map<HTMLElement>((variable) => new HTMLDivElement()
+                            ..className = 'memberItem'
+                            ..appendChildren(<HTMLElement>[
+                              new HTMLDivElement()
+                                ..className = 'memberName'
+                                ..textContent = '[ ${++index} ]',
+                              new HTMLDivElement()
+                                ..className = 'memberName'
+                                ..appendChild(anyRef(
+                                    _isolate, variable.value, _objects,
+                                    queue: _r.queue))
+                            ])))
                   ])
                 .element
-          ]
+          ])
       ]);
     }
-    children = content;
+    setChildren(content);
   }
 }

@@ -20,28 +20,32 @@ const ENOENT = 2;
 
 testStartError() {
   Future<Process> processFuture = Process.start(
-      "__path_to_something_that_should_not_exist__", const [],
-      environment: {"PATH": ""});
+    "__path_to_something_that_should_not_exist__",
+    const [],
+    environment: {"PATH": ""},
+  );
   processFuture
       .then((p) => Expect.fail('got process despite start error'))
       .catchError((error, stackTrace) {
-    Expect.isTrue(error is ProcessException);
-    Expect.equals(ENOENT, error.errorCode, error.toString());
-    Expect.notEquals(stackTrace.toString(), '');
-  });
+        Expect.isTrue(error is ProcessException);
+        Expect.equals(ENOENT, error.errorCode, error.toString());
+        Expect.notEquals(stackTrace.toString(), '');
+      });
 }
 
 testRunError() {
   Future<ProcessResult> processFuture = Process.run(
-      "__path_to_something_that_should_not_exist__", const [],
-      environment: {"PATH": ""});
+    "__path_to_something_that_should_not_exist__",
+    const [],
+    environment: {"PATH": ""},
+  );
 
-  processFuture
-      .then((result) => Expect.fail("exit handler called"))
-      .catchError((error) {
-    Expect.isTrue(error is ProcessException);
-    Expect.equals(ENOENT, error.errorCode, error.toString());
-  });
+  processFuture.then((result) => Expect.fail("exit handler called")).catchError(
+    (error) {
+      Expect.isTrue(error is ProcessException);
+      Expect.equals(ENOENT, error.errorCode, error.toString());
+    },
+  );
 }
 
 main() {

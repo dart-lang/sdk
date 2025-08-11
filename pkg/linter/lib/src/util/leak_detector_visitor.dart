@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -44,7 +44,7 @@ _VisitVariableDeclaration _buildVariableReporter(
     return;
   }
 
-  rule.reportLint(variable);
+  rule.reportAtNode(variable);
 };
 
 /// Whether any of the [predicates] applies to [methodName] and holds true for
@@ -56,15 +56,15 @@ bool _hasMatch(
 ) => predicates.keys.any((p) => predicates[p] == methodName && p(type));
 
 bool _isElementEqualToVariable(
-  Element2? propertyElement,
-  VariableElement2? variableElement,
+  Element? propertyElement,
+  VariableElement? variableElement,
 ) =>
     propertyElement == variableElement ||
     propertyElement.matches(variableElement);
 
 bool _isInvocationThroughCascadeExpression(
   MethodInvocation invocation,
-  VariableElement2 variableElement,
+  VariableElement variableElement,
 ) {
   if (invocation.realTarget is! SimpleIdentifier) {
     return false;
@@ -79,7 +79,7 @@ bool _isInvocationThroughCascadeExpression(
 
 bool _isPostfixExpressionOperandEqualToVariable(
   AstNode? n,
-  VariableElement2 variableElement,
+  VariableElement variableElement,
 ) {
   if (n is PostfixExpression) {
     var operand = n.operand;
@@ -91,7 +91,7 @@ bool _isPostfixExpressionOperandEqualToVariable(
 
 bool _isPropertyAccessThroughThis(
   Expression? n,
-  VariableElement2 variableElement,
+  VariableElement variableElement,
 ) {
   if (n is! PropertyAccess) {
     return false;
@@ -108,7 +108,7 @@ bool _isPropertyAccessThroughThis(
 
 bool _isSimpleIdentifierElementEqualToVariable(
   AstNode? n,
-  VariableElement2 variableElement,
+  VariableElement variableElement,
 ) =>
     n is SimpleIdentifier &&
     _isElementEqualToVariable(n.element, variableElement);
@@ -174,7 +174,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   /// The element of the variable under consideration; stored here as a non-
   /// `null` value.
-  final VariableElement2 variableElement;
+  final VariableElement variableElement;
 
   /// The predicates that determine whether a method call or method tear-off is
   /// a valid use.
@@ -200,7 +200,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     // Being assigned another reference.
     if (node.rightHandSide is SimpleIdentifier) {
       if (_isElementEqualToVariable(
-        node.writeElement2,
+        node.writeElement,
         variable.declaredFragment?.element,
       )) {
         containsValidUse = true;
@@ -230,8 +230,8 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     if (variableType == _VariableType.field) {
       var staticElement = node.declaredFragment?.element;
-      if (staticElement is FieldFormalParameterElement2 &&
-          staticElement.field2 == variableElement) {
+      if (staticElement is FieldFormalParameterElement &&
+          staticElement.field == variableElement) {
         containsValidUse = true;
         return;
       }
@@ -309,9 +309,9 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 /// The type of variable being assessed.
 enum _VariableType { field, local }
 
-extension on Element2? {
-  bool matches(VariableElement2? variable) => switch (this) {
-    PropertyAccessorElement2(:var variable3) => variable3 == variable,
+extension on Element? {
+  bool matches(VariableElement? requested) => switch (this) {
+    PropertyAccessorElement(:var variable) => variable == requested,
     _ => false,
   };
 }

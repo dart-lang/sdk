@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  AssistKind get kind => DartAssistKind.addDiagnosticPropertyReference;
 
   @override
   void setUp() {

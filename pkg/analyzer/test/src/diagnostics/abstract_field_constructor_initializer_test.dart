@@ -16,36 +16,57 @@ main() {
 @reflectiveTest
 class AbstractFieldConstructorInitializerTest extends PubPackageResolutionTest {
   test_abstract_field_constructor_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x;
   A() : x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, 45, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+          45,
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_final_constructor_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract final int x;
   A() : x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, 51, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+          51,
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_final_initializing_formal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract final int x;
   A(this.x);
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, 52, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+          52,
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_final_no_initialization() async {
@@ -58,14 +79,21 @@ abstract class A {
   }
 
   test_abstract_field_initializing_formal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x;
   A(this.x);
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, 46, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+          46,
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_no_initialization() async {

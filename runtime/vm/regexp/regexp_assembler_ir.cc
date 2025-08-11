@@ -518,8 +518,11 @@ void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
 LoadStaticFieldInstr* IRRegExpMacroAssembler::LoadStaticField(
     const Field& field,
     bool calls_initializer) const {
-  return new (Z) LoadStaticFieldInstr(field, InstructionSource(),
-                                      calls_initializer, GetNextDeoptId());
+  return new (Z) LoadStaticFieldInstr(
+      field, InstructionSource(),
+      calls_initializer ? SlowPathOnSentinelValue::kCallInitializer
+                        : SlowPathOnSentinelValue::kDoNothing,
+      GetNextDeoptId());
 }
 
 void IRRegExpMacroAssembler::set_current_instruction(Instruction* instruction) {

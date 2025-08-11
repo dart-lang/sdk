@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class IllegalAsyncReturnTypeTest extends PubPackageResolutionTest {
   test_function_nonFuture() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() async {
   return 1;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+    );
   }
 
   test_function_nonFuture_void() async {
@@ -32,36 +33,39 @@ void f() async {}
   }
 
   test_function_nonFuture_withReturn() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() async {
   return 2;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+    );
   }
 
   test_function_subtypeOfFuture() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubFuture<T> implements Future<T> {}
 SubFuture<int> f() async {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 52, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 52, 14)],
+    );
   }
 
   test_method_nonFuture() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int m() async {
     return 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3)],
+    );
   }
 
   test_method_nonFuture_void() async {
@@ -73,15 +77,16 @@ class C {
   }
 
   test_method_subtypeOfFuture() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubFuture<T> implements Future<T> {}
 class C {
   SubFuture<int> m() async {
     return 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 64, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 64, 14)],
+    );
   }
 }

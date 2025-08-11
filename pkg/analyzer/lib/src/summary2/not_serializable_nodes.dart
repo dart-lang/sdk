@@ -22,7 +22,7 @@ ExpressionImpl replaceNotSerializableNode(ExpressionImpl node) {
     return node;
   }
   return SimpleIdentifierImpl(
-    StringToken(TokenType.STRING, _notSerializableName, -1),
+    token: StringToken(TokenType.STRING, _notSerializableName, -1),
   );
 }
 

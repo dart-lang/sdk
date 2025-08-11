@@ -22,8 +22,7 @@ import "package:kernel/core_types.dart" show CoreTypes;
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 import 'package:kernel/testing/type_parser_environment.dart'
     show TypeParserEnvironment, parseLibrary;
-import "package:kernel/type_environment.dart"
-    show SubtypeCheckMode, TypeEnvironment;
+import "package:kernel/type_environment.dart" show TypeEnvironment;
 
 class SubtypesBenchmark {
   final Library library;
@@ -52,6 +51,19 @@ class SubtypeCheck {
 SubtypesBenchmark parseBenchMark(String source) {
   Map<dynamic, dynamic> data = json.decode(source);
   List<dynamic> classes = data["classes"];
+
+  // Ensure the classes required by the subtyping algorithm implementation are
+  // in 'dart:core'.
+  List<String> coreClassesForSubtyping = [
+    "class Object;",
+    "class Function extends Object;",
+    "class Record extends Object;",
+  ];
+  for (dynamic classEntry in classes) {
+    coreClassesForSubtyping.remove(classEntry);
+  }
+  classes.addAll(coreClassesForSubtyping);
+
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Library library =
@@ -84,8 +96,7 @@ void performKernelChecks(
     List<SubtypeCheck> checks, TypeEnvironment environment) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = environment.isSubtypeOf(
-        check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
+    bool isSubtype = environment.isSubtypeOf(check.s, check.t);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
@@ -96,8 +107,7 @@ void performBuilderChecks(
     List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = hierarchy.types
-        .isSubtypeOf(check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
+    bool isSubtype = hierarchy.types.isSubtypeOf(check.s, check.t);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }

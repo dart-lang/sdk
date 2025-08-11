@@ -28,10 +28,7 @@ abstract class OperationPerformance {
   OperationPerformance? getChild(String name);
 
   /// Write this operation and its children into the [buffer].
-  void write({
-    required StringBuffer buffer,
-    String indent = '',
-  });
+  void write({required StringBuffer buffer, String indent = ''});
 }
 
 /// The data attachment for an [OperationPerformance].
@@ -122,9 +119,7 @@ class OperationPerformanceImpl implements OperationPerformance {
 
   @override
   OperationPerformanceImpl? getChild(String name) {
-    return _children.firstWhereOrNull(
-      (child) => child.name == name,
-    );
+    return _children.firstWhereOrNull((child) => child.name == name);
   }
 
   OperationPerformanceDataImpl_int getDataInt(String name) {

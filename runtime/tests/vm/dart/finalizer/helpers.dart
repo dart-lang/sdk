@@ -17,8 +17,11 @@ class Nonce {
 
 /// Never inline to ensure `object` becomes unreachable.
 @pragma('vm:never-inline')
-void makeObjectWithFinalizer<T>(Finalizer<T> finalizer, T token,
-    {Object? detach}) {
+void makeObjectWithFinalizer<T>(
+  Finalizer<T> finalizer,
+  T token, {
+  Object? detach,
+}) {
   final value = Nonce(1);
   finalizer.attach(value, token, detach: detach);
 }

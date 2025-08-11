@@ -140,7 +140,7 @@ class TypeConstraintGathererTest {
         '<T extends Object?>() -> dynamic', '() -> dynamic', null);
     // () -> dynamic <: <T>() -> dynamic, never
     checkConstraintsUpper(
-        '() -> dynamic', '<T extends Object?>() ->* dynamic', null);
+        '() -> dynamic', '<T extends Object?>() -> dynamic', null);
     // <T>(T) -> T <: <U>(U) -> U, always
     checkConstraintsUpper(
         '<T extends Object?>(T) -> T', '<U extends Object?>(U) -> U', []);

@@ -8,22 +8,24 @@ import 'package:kernel/class_hierarchy.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
-    with SourceDeclarationBuilderMixin {
+    with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -39,6 +41,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
   late final DeclarationNameSpace _nameSpace;
+  late final List<SourceMemberBuilder> _constructorBuilders;
+  late final List<SourceMemberBuilder> _memberBuilders;
 
   @override
   final List<SourceNominalParameterBuilder>? typeParameters;
@@ -98,6 +102,26 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
+      _memberBuilders.iterator;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_memberBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
+  Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
+      _constructorBuilders.iterator;
+
+  @override
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
+          {required bool includeDuplicates}) =>
+      new FilteredIterator<T>(_constructorBuilders.iterator,
+          includeDuplicates: includeDuplicates);
+
+  @override
   int get fileOffset => _nameOffset;
 
   @override
@@ -108,17 +132,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
 
   @override
-  bool get isAugment => _modifiers.isAugment;
-
-  @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    _constructorBuilders = [];
+    _memberBuilders = [];
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -130,7 +149,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         indexedContainer: null,
         containerType: ContainerType.Extension,
         containerName: extensionName,
-        includeConstructors: false);
+        constructorBuilders: _constructorBuilders,
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override
@@ -167,12 +188,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void _buildOutlineExpressionsForFragment(ExtensionFragment fragment,
       ClassHierarchy classHierarchy, BodyBuilderContext bodyBuilderContext) {
     MetadataBuilder.buildAnnotations(
-        extension,
-        fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        fragment.fileUri,
-        fragment.enclosingScope);
+        annotatable: extension,
+        annotatableFileUri: extension.fileUri,
+        metadata: fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: fragment.enclosingScope);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -193,7 +214,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredIterator(includeDuplicates: false);
+        filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
@@ -216,6 +237,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionMemberKind kind;
+    bool isInternalImplementation = false;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -237,7 +259,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             memberBuilder.fileOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
+        kind = ExtensionMemberKind.Field;
+        break;
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
+        isInternalImplementation = true;
         kind = ExtensionMemberKind.Field;
         break;
       case BuiltMemberKind.ExtensionMethod:
@@ -260,6 +286,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         memberReference: memberReference,
         tearOffReference: tearOffReference,
         isStatic: memberBuilder.isStatic,
+        isInternalImplementation: isInternalImplementation,
         kind: kind));
+  }
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    return 0;
   }
 }

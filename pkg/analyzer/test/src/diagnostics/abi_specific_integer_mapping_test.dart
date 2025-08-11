@@ -16,20 +16,22 @@ main() {
 @reflectiveTest
 class AbiSpecificIntegerMappingTest extends PubPackageResolutionTest {
   test_doubleMapping() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @AbiSpecificIntegerMapping({})
 @AbiSpecificIntegerMapping({})
 final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
-''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA, 51, 25),
-    ]);
+''',
+      [error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA, 51, 25)],
+    );
   }
 
   test_invalidMapping() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
@@ -39,16 +41,27 @@ import 'dart:ffi';
 final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
-''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 96, 8,
-          messageContains: ["Invalid mapping to 'IntPtr'"]),
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 125, 9,
-          messageContains: ["Invalid mapping to 'UintPtr'"]),
-    ]);
+''',
+      [
+        error(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          96,
+          8,
+          messageContains: ["Invalid mapping to 'IntPtr'"],
+        ),
+        error(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          125,
+          9,
+          messageContains: ["Invalid mapping to 'UintPtr'"],
+        ),
+      ],
+    );
   }
 
   test_invalidMapping_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 const c = {
   Abi.androidArm: Uint32(),
@@ -59,23 +72,34 @@ const c = {
 final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
-''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 149, 1,
-          messageContains: ["Invalid mapping to 'IntPtr'"]),
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 149, 1,
-          messageContains: ["Invalid mapping to 'UintPtr'"]),
-    ]);
+''',
+      [
+        error(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          149,
+          1,
+          messageContains: ["Invalid mapping to 'IntPtr'"],
+        ),
+        error(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          149,
+          1,
+          messageContains: ["Invalid mapping to 'UintPtr'"],
+        ),
+      ],
+    );
   }
 
   test_noMapping() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
-''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, 31, 7),
-    ]);
+''',
+      [error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, 31, 7)],
+    );
   }
 
   test_singleMapping() async {

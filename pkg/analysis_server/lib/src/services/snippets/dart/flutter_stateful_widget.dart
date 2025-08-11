@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Produces a [Snippet] that creates a Flutter StatefulWidget and related State
@@ -14,12 +14,12 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   static const prefix = 'stful';
   static const label = 'Flutter Stateful Widget';
 
-  late ClassElement2? classStatefulWidget;
-  late ClassElement2? classState;
+  late ClassElement? classStatefulWidget;
+  late ClassElement? classState;
   @override
-  late ClassElement2? classBuildContext;
+  late ClassElement? classBuildContext;
   @override
-  late ClassElement2? classKey;
+  late ClassElement? classKey;
 
   FlutterStatefulWidget(super.request, {required super.elementImportCache});
 
@@ -28,7 +28,10 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
 
   @override
   Future<Snippet> compute() async {
-    var builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(
+      session: request.analysisSession,
+      eol: utils.endOfLine,
+    );
 
     // Checked by isValid().
     var classStatefulWidget = this.classStatefulWidget!;

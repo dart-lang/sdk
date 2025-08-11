@@ -925,20 +925,19 @@ class SectionView extends CompositeView {
     // Lazy initialize the data source view.
     if (dataView == null) {
       // TODO(jacobr): use named arguments when available.
-      dataView =
-          dataSourceView = ListView<Feed>(
-            section.feeds,
-            _viewFactory,
-            true /* scrollable */,
-            false /* vertical */,
-            null /* selectedItem */,
-            true /* snapToItems */,
-            true /* paginate */,
-            true /* removeClippedViews */,
-            false,
-            /* showScrollbar */
-            pageState,
-          );
+      dataView = dataSourceView = ListView<Feed>(
+        section.feeds,
+        _viewFactory,
+        true /* scrollable */,
+        false /* vertical */,
+        null /* selectedItem */,
+        true /* snapToItems */,
+        true /* paginate */,
+        true /* removeClippedViews */,
+        false,
+        /* showScrollbar */
+        pageState,
+      );
       dataView.addClass("data-source-view");
       addChild(dataView);
 

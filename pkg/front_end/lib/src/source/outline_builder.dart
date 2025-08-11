@@ -35,12 +35,12 @@ import '../base/modifiers.dart' show Modifiers;
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
 import '../base/uris.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -49,7 +49,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
-import 'builder_factory.dart';
+import 'fragment_factory.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
 import 'stack_listener_impl.dart';
@@ -477,7 +477,7 @@ extension on DeclarationContext {
 
 class OutlineBuilder extends StackListenerImpl {
   final SourceCompilationUnit _compilationUnit;
-  final BuilderFactory _builderFactory;
+  final FragmentFactory _builderFactory;
 
   final bool enableNative;
   bool inAbstractOrSealedClass = false;
@@ -598,7 +598,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? sentinel = pop(); // prefix or constructor
     push(sentinel is ParserRecovery
         ? sentinel
-        : new MetadataBuilder(beginToken));
+        : new MetadataBuilder(beginToken, _compilationUnit.fileUri));
   }
 
   @override
@@ -1487,7 +1487,6 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeParameterFragment>? typeParameters =
         pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
-    int nameOrExtensionOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
@@ -1502,7 +1501,6 @@ class OutlineBuilder extends StackListenerImpl {
         typeParameters: typeParameters,
         onType: onType as TypeBuilder,
         startOffset: startOffset,
-        nameOrExtensionOffset: nameOrExtensionOffset,
         endOffset: endToken.charOffset);
     popDeclarationContext(DeclarationContext.Extension);
   }

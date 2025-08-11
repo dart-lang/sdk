@@ -154,8 +154,12 @@ resolved=ConstructorInvocation(
   GenericClass.named())*/
 void constructorInvocations12() {}
 
-@Helper(self
-    .GenericClass<GenericClass?, self.GenericClass<Class, self.Class?>>.named())
+@Helper(
+  self.GenericClass<
+    GenericClass?,
+    self.GenericClass<Class, self.Class?>
+  >.named(),
+)
 /*member: constructorInvocations13:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -332,8 +336,12 @@ resolved=ConstructorInvocation(
   GenericClass.named())*/
 void constructorInvocations26() {}
 
-@Helper(const self
-    .GenericClass<GenericClass?, self.GenericClass<Class, self.Class?>>.named())
+@Helper(
+  const self.GenericClass<
+    GenericClass?,
+    self.GenericClass<Class, self.Class?>
+  >.named(),
+)
 /*member: constructorInvocations27:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)

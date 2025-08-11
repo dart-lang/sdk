@@ -4,8 +4,7 @@
 
 final unknownShouldNotIncludeNull = /*fields={isEven:-},
  type=Null
-*/
-    switch (null) {
+*/ switch (null) {
   int(:var isEven) when isEven /*space=int(isEven: bool)*/ => 1,
   _ /*space=Null*/ => 0,
 };

@@ -1277,7 +1277,7 @@ class CallSiteInliner : public ValueObject {
       DeoptIdScope deopt_id_scope(thread(), 0);
 
       // Install bailout jump.
-      LongJumpScope jump;
+      LongJumpScope jump(thread());
       if (DART_SETJMP(*jump.Set()) == 0) {
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
@@ -1312,7 +1312,7 @@ class CallSiteInliner : public ValueObject {
         kernel::FlowGraphBuilder builder(
             parsed_function, ic_data_array, /*context_level_array=*/nullptr,
             exit_collector,
-            /*optimized=*/true, Compiler::kNoOSRDeoptId,
+            /*optimizing=*/true, Compiler::kNoOSRDeoptId,
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked, &call_data->caller);
         {
@@ -1959,9 +1959,9 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       num_variants_(call->NumberOfChecks()),
       variants_(call->targets_),
       inlined_variants_(zone()),
-      non_inlined_variants_(new(zone()) CallTargets(zone())),
+      non_inlined_variants_(new (zone()) CallTargets(zone())),
       inlined_entries_(num_variants_),
-      exit_collector_(new(Z) InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
 IsolateGroup* PolymorphicInliner::isolate_group() const {

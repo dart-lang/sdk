@@ -11,7 +11,8 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        FunctionBodyResolutionTest_isPotentiallyMutatedInScope);
+      FunctionBodyResolutionTest_isPotentiallyMutatedInScope,
+    );
   });
 }
 
@@ -125,7 +126,7 @@ void f() {
 
     var body = findNode.singleFunctionBody;
     var element = findElement2.parameter('x');
-    expect(body.isPotentiallyMutatedInScope2(element), expected);
+    expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 
   /// Assign that `v` in the only [FunctionBody] is not mutated.
@@ -134,6 +135,6 @@ void f() {
 
     var body = findNode.singleFunctionBody;
     var element = findElement2.localVar('v');
-    expect(body.isPotentiallyMutatedInScope2(element), expected);
+    expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 }

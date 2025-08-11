@@ -57,16 +57,22 @@ final class A extends Struct {
   }
 
   test_class_notNullable_factoryConstructor_only() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x;
 
   factory A() => throw 0;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_notNullable_late() async {
@@ -133,7 +139,8 @@ class A {
   }
 
   test_inferredType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   int get x;
 }
@@ -141,21 +148,32 @@ abstract class A {
 class B extends A {
   var x;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          61, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_notNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   int x;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_notNullable_late() async {
@@ -167,7 +185,8 @@ mixin M {
   }
 
   test_notAllConstructors() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x;
 
@@ -175,29 +194,36 @@ class A {
 
   A.b();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           38,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_notAllFields() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x, y, z;
 
   A() : x = 0, z = 2;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
           28,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_nullable() async {
@@ -225,14 +251,20 @@ class A {
   }
 
   test_type_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   Never x;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          18, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          18,
+          1,
+        ),
+      ],
+    );
   }
 
   test_type_void() async {
@@ -244,14 +276,20 @@ class A {
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   T x;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
-          17, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          17,
+          1,
+        ),
+      ],
+    );
   }
 
   test_typeParameter_nullable() async {

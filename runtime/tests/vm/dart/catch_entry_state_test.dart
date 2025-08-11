@@ -37,11 +37,15 @@ void testThrow(bool shouldThrow) {
     Expect.equals(1275.0, dbl);
     Expect.equals(0x70000000 | 50, i32);
     Expect.equals(0x80000000 | 50, i64);
-    Expect.listEquals([1275.0, -1275.0, 1275.0, -1275.0],
-        [f32x4.x, f32x4.y, f32x4.z, f32x4.w]);
+    Expect.listEquals(
+      [1275.0, -1275.0, 1275.0, -1275.0],
+      [f32x4.x, f32x4.y, f32x4.z, f32x4.w],
+    );
     Expect.listEquals([1275.0, -1275.0], [f64x2.x, f64x2.y]);
     Expect.listEquals(
-        [-1275, 1275, -1275, 1275], [i32x4.x, i32x4.y, i32x4.z, i32x4.w]);
+      [-1275, 1275, -1275, 1275],
+      [i32x4.x, i32x4.y, i32x4.z, i32x4.w],
+    );
   }
 }
 

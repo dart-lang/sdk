@@ -234,13 +234,12 @@ class ProgramBuilder {
       }
     });
 
-    List<Class> nativeClasses =
-        collector.nativeClassesAndSubclasses
-            .map((ClassEntity classElement) => _classes[classElement]!)
-            .toList();
+    List<Class> nativeClasses = collector.nativeClassesAndSubclasses
+        .map((ClassEntity classElement) => _classes[classElement]!)
+        .toList();
 
-    Set<ClassEntity> interceptorClassesNeededByConstants =
-        collector.computeInterceptorsReferencedFromConstants();
+    Set<ClassEntity> interceptorClassesNeededByConstants = collector
+        .computeInterceptorsReferencedFromConstants();
 
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
       nativeClasses,
@@ -509,13 +508,13 @@ class ProgramBuilder {
                   if (stubNames.add(stubName.key)) {
                     final code =
                         _options.interopNullAssertions &&
-                                _nativeData.interopNullChecks[selector] ==
-                                    InteropNullCheckKind.calleeCheck
-                            ? js.js('function(obj) { return #(obj.#) }', [
-                              interopNullAssert,
-                              jsName,
-                            ])
-                            : js.js('function(obj) { return obj.# }', [jsName]);
+                            _nativeData.interopNullChecks[selector] ==
+                                InteropNullCheckKind.calleeCheck
+                        ? js.js('function(obj) { return #(obj.#) }', [
+                            interopNullAssert,
+                            jsName,
+                          ])
+                        : js.js('function(obj) { return obj.# }', [jsName]);
                     interceptorClass!.callStubs.add(
                       _buildStubMethod(stubName, code, element: member),
                     );
@@ -593,16 +592,16 @@ class ProgramBuilder {
                   // would.
                   final code =
                       _options.interopNullAssertions &&
-                              _nativeData.interopNullChecks[selector] ==
-                                  InteropNullCheckKind.calleeCheck
-                          ? js.js(
-                            'function(receiver, #) { return #(receiver.#(#)) }',
-                            [parameters, interopNullAssert, jsName, parameters],
-                          )
-                          : js.js(
-                            'function(receiver, #) { return receiver.#(#) }',
-                            [parameters, jsName, parameters],
-                          );
+                          _nativeData.interopNullChecks[selector] ==
+                              InteropNullCheckKind.calleeCheck
+                      ? js.js(
+                          'function(receiver, #) { return #(receiver.#(#)) }',
+                          [parameters, interopNullAssert, jsName, parameters],
+                        )
+                      : js.js(
+                          'function(receiver, #) { return receiver.#(#) }',
+                          [parameters, jsName, parameters],
+                        );
                   interceptorClass!.callStubs.add(
                     _buildStubMethod(stubName, code, element: member),
                   );
@@ -625,14 +624,13 @@ class ProgramBuilder {
   ) {
     String uri = library.canonicalUri.toString();
 
-    List<StaticMethod> statics =
-        memberElements
-            // We omit static stubs here because we use the function bodies directly
-            // when we install the tear offs.
-            .where((e) => e is! FieldEntity && e is! JParameterStub)
-            .cast<FunctionEntity>()
-            .map<StaticMethod>(_buildStaticMethod)
-            .toList();
+    List<StaticMethod> statics = memberElements
+        // We omit static stubs here because we use the function bodies directly
+        // when we install the tear offs.
+        .where((e) => e is! FieldEntity && e is! JParameterStub)
+        .cast<FunctionEntity>()
+        .map<StaticMethod>(_buildStaticMethod)
+        .toList();
 
     if (library == _commonElements.interceptorsLibrary) {
       statics.addAll(_generateGetInterceptorMethods());
@@ -646,13 +644,11 @@ class ProgramBuilder {
         )
         .toList(growable: false);
 
-    List<ClassTypeData> classTypeData =
-        classTypeElements
-            .map(
-              (ClassEntity classTypeElement) =>
-                  _classTypeData[classTypeElement]!,
-            )
-            .toList();
+    List<ClassTypeData> classTypeData = classTypeElements
+        .map(
+          (ClassEntity classTypeElement) => _classTypeData[classTypeElement]!,
+        )
+        .toList();
     classTypeData.addAll(classes.map((Class cls) => cls.typeData).toList());
 
     return Library(library, uri, statics, classes, classTypeData);
@@ -741,8 +737,8 @@ class ProgramBuilder {
 
     if (_backendUsage.isNoSuchMethodUsed &&
         cls == _commonElements.objectClass) {
-      Map<js.Name, Selector> selectors =
-          classStubGenerator.computeSelectorsForNsmHandlers();
+      Map<js.Name, Selector> selectors = classStubGenerator
+          .computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {
         // If the program contains `const Symbol` names we have to retain them.
         String selectorName = selector.name;
@@ -794,25 +790,20 @@ class ProgramBuilder {
       }
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
-    List<Field> instanceFields =
-        onlyForConstructorOrRti
-            ? const []
-            : _buildFields(
-              cls: cls,
-              isHolderInterceptedClass: isInterceptedClass,
-            );
+    List<Field> instanceFields = onlyForConstructorOrRti
+        ? const []
+        : _buildFields(cls: cls, isHolderInterceptedClass: isInterceptedClass);
 
-    List<StubMethod> gettersSetters =
-        onlyForConstructorOrRti
-            ? const []
-            : [
-              for (Field field in instanceFields)
-                if (field.needsGetter)
-                  classStubGenerator.generateGetter(field) as StubMethod,
-              for (Field field in instanceFields)
-                if (field.needsUncheckedSetter)
-                  classStubGenerator.generateSetter(field) as StubMethod,
-            ];
+    List<StubMethod> gettersSetters = onlyForConstructorOrRti
+        ? const []
+        : [
+            for (Field field in instanceFields)
+              if (field.needsGetter)
+                classStubGenerator.generateGetter(field) as StubMethod,
+            for (Field field in instanceFields)
+              if (field.needsUncheckedSetter)
+                classStubGenerator.generateSetter(field) as StubMethod,
+          ];
 
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
       cls,
@@ -915,18 +906,17 @@ class ProgramBuilder {
       );
 
   void associateNamedTypeVariables() {
-    for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariables
-        .union(_lateNamedTypeVariables)) {
+    for (TypeVariableType typeVariable
+        in _codegenWorld.namedTypeVariables.union(_lateNamedTypeVariables)) {
       final declaration = typeVariable.element.typeDeclaration as ClassEntity;
       Iterable<ClassEntity> subtypes =
           new_rti.mustCheckAllSubtypes(_closedWorld, declaration)
-              ? _classHierarchy.subtypesOf(declaration)
-              : _classHierarchy.subclassesOf(declaration);
+          ? _classHierarchy.subtypesOf(declaration)
+          : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
-        ClassTypeData classTypeData =
-            _nativeData.isJsInteropClass(entity)
-                ? _buildClassTypeData(_jsInteropInterceptor)
-                : _buildClassTypeData(entity);
+        ClassTypeData classTypeData = _nativeData.isJsInteropClass(entity)
+            ? _buildClassTypeData(_jsInteropInterceptor)
+            : _buildClassTypeData(entity);
         classTypeData.namedTypeVariables.add(typeVariable);
       }
     }
@@ -989,10 +979,9 @@ class ProgramBuilder {
 
     bool canBeApplied = _methodCanBeApplied(element);
 
-    final aliasName =
-        _codegenWorld.isAliasedSuperMember(element)
-            ? _namer.aliasedSuperMemberPropertyName(element)
-            : null;
+    final aliasName = _codegenWorld.isAliasedSuperMember(element)
+        ? _namer.aliasedSuperMemberPropertyName(element)
+        : null;
 
     if (isNotApplyTarget) {
       canTearOff = false;
@@ -1365,13 +1354,13 @@ class ProgramBuilder {
     final stubMethods = _codegenWorld
         .getParameterStubs(element)
         .map((stub) {
-          final name =
-              element.isStatic ? null : _namer.instanceMethodName(stub);
+          final name = element.isStatic
+              ? null
+              : _namer.instanceMethodName(stub);
           final callSelector = stub.callSelector;
-          final callName =
-              (callSelector != null)
-                  ? _namer.invocationName(callSelector)
-                  : null;
+          final callName = (callSelector != null)
+              ? _namer.invocationName(callSelector)
+              : null;
           final stubCode = _generatedCode[stub]!;
           return ParameterStubMethod(
             name,

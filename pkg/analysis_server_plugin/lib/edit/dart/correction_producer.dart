@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -12,7 +10,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -22,7 +20,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -169,20 +166,25 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     if (diagnostic == null) {
       return null;
     }
-    var errorOffset = diagnostic.problemMessage.offset;
-    var errorLength = diagnostic.problemMessage.length;
-    var endOffset = math.max(errorOffset + errorLength - 1, 0);
+    var diagnosticOffset = diagnostic.problemMessage.offset;
+    var diagnosticLength = diagnostic.problemMessage.length;
     return _coveringNode =
-        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
+        unit.nodeCovering(offset: diagnosticOffset, length: diagnosticLength);
   }
 
-  /// The length of the source range associated with the error message being
+  /// The length of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  int? get errorLength => diagnostic?.problemMessage.length;
+  int? get diagnosticLength => diagnostic?.problemMessage.length;
 
-  /// The offset of the source range associated with the error message being
+  /// The offset of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  int? get errorOffset => diagnostic?.problemMessage.offset;
+  int? get diagnosticOffset => diagnostic?.problemMessage.offset;
+
+  @Deprecated("Use 'diagnosticLength' instead")
+  int? get errorLength => diagnosticLength;
+
+  @Deprecated("Use 'diagnosticOffset' instead")
+  int? get errorOffset => diagnosticOffset;
 
   /// The arguments that should be used when composing the message for a fix, or
   /// `null` if the fix message has no parameters or if this producer doesn't
@@ -243,7 +245,7 @@ final class CorrectionProducerContext {
   })  : _libraryResult = libraryResult,
         _unitResult = unitResult,
         _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = CorrectionUtils(unitResult),
+        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
         _applyingBulkFixes = applyingBulkFixes,
         _diagnostic = diagnostic,
         _token = token,
@@ -294,9 +296,8 @@ final class CorrectionProducerContext {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(unitResult.unit);
+    var node = unitResult.unit
+        .nodeCovering(offset: selectionOffset, length: selectionLength);
     node ??= unitResult.unit;
 
     var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
@@ -349,7 +350,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -378,6 +379,7 @@ abstract class ResolvedCorrectionProducer
   AnalysisOptions get analysisOptions => sessionHelper.session.analysisContext
       .getAnalysisOptionsForFile(unitResult.file);
 
+  @Deprecated('Use InterfaceElement members instead')
   InheritanceManager3 get inheritanceManager {
     return (libraryElement2 as LibraryElementImpl).session.inheritanceManager;
   }
@@ -400,7 +402,7 @@ abstract class ResolvedCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -424,6 +426,17 @@ abstract class ResolvedCorrectionProducer
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the class declaration for the given [fragment], or `null` if there
+  /// is no such class.
+  Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
+    var node = result?.node;
+    if (node is EnumDeclaration) {
       return node;
     }
     return null;
@@ -466,13 +479,13 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement(Expression target) {
+  InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
-      return type.element3;
+      return type.element;
     } else if (target is Identifier) {
       var element = target.element;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         return element;
       }
     }
@@ -483,6 +496,30 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    // `(myFunction(),)` or `(name: myFunction())`.
+    if (parent case NamedExpression(parent: var grandParent) && var named) {
+      parent = grandParent;
+      expression = named;
+    }
+    if (parent is RecordLiteral) {
+      var recordType = inferUndefinedExpressionType(parent);
+      if (recordType is RecordType) {
+        if (expression case NamedExpression named) {
+          return recordType.namedFields
+              .firstWhere((field) => field.name == named.name.label.name)
+              .type;
+        } else {
+          var index = parent.fields.indexed
+              .firstWhere((record) => record.$2 == expression)
+              .$1;
+          return recordType.positionalFields[index].type;
+        }
+      }
+    }
+    // `await (v + v2)`
+    if (parent is ParenthesizedExpression) {
+      return inferUndefinedExpressionType(parent);
+    }
     // `myFunction();`.
     if (expression is MethodInvocation) {
       if (parent is CascadeExpression && parent.parent is ExpressionStatement) {
@@ -500,7 +537,7 @@ abstract class ResolvedCorrectionProducer
         var type = conditionalExpression.correspondingParameter?.type;
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
-            typeFormals: const [],
+            typeParameters: const [],
             parameters: const [],
             returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,
@@ -514,7 +551,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `return myFunction();`.
@@ -522,7 +559,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `int v = myFunction();`.
@@ -758,7 +795,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
     String baseName,
   ) async {
     return await _context.dartFixContext!.getTopLevelDeclarations(baseName);
@@ -788,7 +825,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

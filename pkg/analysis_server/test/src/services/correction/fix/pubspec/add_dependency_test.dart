@@ -368,6 +368,6 @@ dev_dependencies:
       resourceProvider,
     ).validate(usedDeps, usedDevDeps);
     expect(errors.length, 1);
-    error = errors[0];
+    diagnostic = errors[0];
   }
 }

@@ -6,7 +6,7 @@
 library;
 
 // import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
@@ -18,16 +18,21 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.
-  FunctionType expectFunctionType(String name, String type,
-      {String typeParams = '[]',
-      String typeFormals = '[]',
-      String? identifierType}) {
+  FunctionType expectFunctionType(
+    String name,
+    String type, {
+    String typeParams = '[]',
+    String typeFormals = '[]',
+    String? identifierType,
+  }) {
     identifierType ??= type;
 
-    String typeParametersStr(List<TypeParameterElement2> elements) {
-      var elementsStr = elements.map((e) {
-        return e.displayString2();
-      }).join(', ');
+    String typeParametersStr(List<TypeParameterElement> elements) {
+      var elementsStr = elements
+          .map((e) {
+            return e.displayString();
+          })
+          .join(', ');
       return '[$elementsStr]';
     }
 
@@ -63,9 +68,9 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
 
   FunctionType _getFunctionTypedElementType(SimpleIdentifier identifier) {
     var element = identifier.element;
-    if (element is ExecutableElement2) {
+    if (element is ExecutableElement) {
       return element.type;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       return element.type as FunctionType;
     } else {
       fail('Unexpected element: (${element.runtimeType}) $element');

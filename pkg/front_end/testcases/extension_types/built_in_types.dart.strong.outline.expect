@@ -46,23 +46,23 @@ extension type BoolET(core::bool b) implements core::bool {
 }
 static extension-type-member method ET1|constructor#(self::B b) → self::ET1 /* erasure=self::B */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* erasure=self::B */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* erasure=self::B */
   return self::ET1|constructor#(b);
 static extension-type-member method ET2|constructor#(self::B b) → self::ET2 /* erasure=self::B */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* erasure=self::B */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* erasure=self::B */
   return self::ET2|constructor#(b);
 static extension-type-member method IntET|constructor#(core::int i) → self::IntET /* erasure=core::int */
   ;
-static extension-type-member method IntET|constructor#_#new#tearOff(core::int i) → self::IntET /* erasure=core::int */
+static extension-type-member synthetic method IntET|constructor#_#new#tearOff(core::int i) → self::IntET /* erasure=core::int */
   return self::IntET|constructor#(i);
 static extension-type-member method TypeET|constructor#(core::Type t) → self::TypeET /* erasure=core::Type */
   ;
-static extension-type-member method TypeET|constructor#_#new#tearOff(core::Type t) → self::TypeET /* erasure=core::Type */
+static extension-type-member synthetic method TypeET|constructor#_#new#tearOff(core::Type t) → self::TypeET /* erasure=core::Type */
   return self::TypeET|constructor#(t);
 static extension-type-member method BoolET|constructor#(core::bool b) → self::BoolET /* erasure=core::bool */
   ;
-static extension-type-member method BoolET|constructor#_#new#tearOff(core::bool b) → self::BoolET /* erasure=core::bool */
+static extension-type-member synthetic method BoolET|constructor#_#new#tearOff(core::bool b) → self::BoolET /* erasure=core::bool */
   return self::BoolET|constructor#(b);
 static method test() → void
   ;

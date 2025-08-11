@@ -82,9 +82,11 @@ $overrides
               rootUri.startsWith('../pkg/') || // SDK package
               rootUri.startsWith('../samples/') || // sample package
               rootUri.startsWith('../runtime/') || // VM package
+              rootUri.startsWith('../tests/ffi') || // FFI tests
               rootUri.startsWith(
                 '../tools',
               ) || // A tool package for developing the SDK.
+              rootUri.startsWith('../utils' ) || // Utils for building the SDK.
               rootUri == '../' // The main workspace package
           )) {
         print('Package ${package['name']} is imported from outside the SDK.');
@@ -102,12 +104,11 @@ $overrides
 String currentSDKVersion() {
   final versionContents =
       File.fromUri(repoRoot.resolve('tools/VERSION')).readAsStringSync();
-  final lines = versionContents
-      .split('\n')
-      .where((line) => !line.startsWith('#') && line.isNotEmpty);
-  final versionParts = Map.fromEntries(lines.map((line) {
-    final parts = line.split(' ');
-    return MapEntry(parts[0], parts[1]);
-  }));
+  final lines = LineSplitter.split(versionContents);
+  final versionParts = {
+    for (var line in lines)
+      if (line.isNotEmpty && !line.startsWith('#'))
+        if (line.split(' ') case [final key, final value]) key: value
+  };
   return '${versionParts['MAJOR']}.${versionParts['MINOR']}.${versionParts['PATCH']}';
 }

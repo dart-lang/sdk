@@ -408,10 +408,10 @@ class ClassHierarchyNode {
     } else {
       dynamic subclasses = _directSubclasses;
       if (sorted) {
-        subclasses =
-            _directSubclasses.toList()..sort((a, b) {
-              return a.cls.name.compareTo(b.cls.name);
-            });
+        subclasses = _directSubclasses.toList()
+          ..sort((a, b) {
+            return a.cls.name.compareTo(b.cls.name);
+          });
       }
       bool needsComma = false;
       for (ClassHierarchyNode child in subclasses) {
@@ -1027,10 +1027,9 @@ class SubtypesIterator implements Iterator<ClassEntity> {
   bool moveNext() {
     if (elements == null && hierarchyNodes == null) {
       // Initial state. Iterate through subclasses.
-      elements =
-          iterable.subtypeSet.node
-              .subclassesByMask(mask, strict: !includeRoot)
-              .iterator;
+      elements = iterable.subtypeSet.node
+          .subclassesByMask(mask, strict: !includeRoot)
+          .iterator;
     }
     if (elements != null && elements!.moveNext()) {
       return true;

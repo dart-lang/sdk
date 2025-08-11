@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.16.0';
+const String vmServiceVersion = '4.19.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {
@@ -784,6 +784,27 @@ abstract interface class VmServiceInterface {
   /// addition of any bucket.
   Future<ProcessMemoryUsage> getProcessMemoryUsage();
 
+  /// The `getQueuedMicrotasks` RPC returns a snapshot containing information
+  /// about the microtasks that were queued in the specified isolate when the
+  /// snapshot was taken.
+  ///
+  /// If the VM was not started with the flag `--profile-microtasks`, this RPC
+  /// will return [RPCError] 100 "Feature is disabled".
+  ///
+  /// If an exception has gone unhandled in the specified isolate, this RPC will
+  /// return [RPCError] 115 "Cannot get queued microtasks".
+  ///
+  /// If custom `dart:async` `Zone`s are used to redirect microtasks to be
+  /// queued elsewhere than the root `dart:async` `Zone`'s microtask queue,
+  /// information about those redirected microtasks will not be returned by this
+  /// function.
+  ///
+  /// If `isolateId` refers to an isolate that has exited, then the `Collected`
+  /// [Sentinel] will be returned.
+  ///
+  /// See [QueuedMicrotasks].
+  Future<QueuedMicrotasks> getQueuedMicrotasks(String isolateId);
+
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
   ///
@@ -1292,6 +1313,7 @@ abstract interface class VmServiceInterface {
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
+  /// Timer | TimerSignificantlyOverdue
   ///
   /// Additionally, some embedders provide the `Stdout` and `Stderr` streams.
   /// These streams allow the client to subscribe to writes to stdout and
@@ -1604,6 +1626,11 @@ class VmServerConnection {
           break;
         case 'getProcessMemoryUsage':
           response = await _serviceImplementation.getProcessMemoryUsage();
+          break;
+        case 'getQueuedMicrotasks':
+          response = await _serviceImplementation.getQueuedMicrotasks(
+            params!['isolateId'],
+          );
           break;
         case 'getStack':
           response = await _serviceImplementation.getStack(

@@ -24,7 +24,8 @@ class UnusedLabelTest_Language219 extends PubPackageResolutionTest
 
 mixin UnusedLabelTestCases on PubPackageResolutionTest {
   test_unused_inSwitch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(x) {
   switch (x) {
     label: case 0:
@@ -33,21 +34,22 @@ f(x) {
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LABEL, 26, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LABEL, 26, 6)],
+    );
   }
 
   test_unused_onWhile() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(condition()) {
   label: while (condition()) {
     break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LABEL, 19, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LABEL, 19, 6)],
+    );
   }
 
   test_used_inSwitch() async {

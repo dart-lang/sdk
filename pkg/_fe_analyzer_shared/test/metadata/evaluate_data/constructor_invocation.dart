@@ -11,7 +11,10 @@ class Class {
   const Class.named({a});
 }
 
-@Class("a" "b")
+@Class(
+  "a"
+  "b",
+)
 /*member: constructorInvocation1:
 resolved=ConstructorInvocation(
   Class.new(AdjacentStringLiterals(
@@ -21,7 +24,11 @@ evaluate=ConstructorInvocation(
   Class.new(StringLiteral('ab')))*/
 void constructorInvocation1() {}
 
-@Class.named(a: "a" "b")
+@Class.named(
+  a:
+      "a"
+      "b",
+)
 /*member: constructorInvocation2:
 resolved=ConstructorInvocation(
   Class.named(a: AdjacentStringLiterals(

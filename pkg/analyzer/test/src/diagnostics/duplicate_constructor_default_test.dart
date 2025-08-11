@@ -68,136 +68,152 @@ augment class A {
   }
 
   test_class_empty_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C();
   C();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 1)],
+    );
   }
 
   test_class_empty_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C();
   C.new();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5)],
+    );
   }
 
   test_class_new_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.new();
   C();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 1)],
+    );
   }
 
   test_class_new_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.new();
   C.new();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5)],
+    );
   }
 
   test_enum_empty_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E();
   const E();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 1)],
+    );
   }
 
   test_enum_empty_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E();
   const E.new();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 5),
-      error(WarningCode.UNUSED_ELEMENT, 37, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 5),
+        error(WarningCode.UNUSED_ELEMENT, 37, 3),
+      ],
+    );
   }
 
   test_enum_new_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E.new();
   const E();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 1)],
+    );
   }
 
   test_enum_new_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E.new();
   const E.new();
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
-      error(WarningCode.UNUSED_ELEMENT, 41, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
+        error(WarningCode.UNUSED_ELEMENT, 41, 3),
+      ],
+    );
   }
 
   test_extensionType_empty_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   A(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 1)],
+    );
   }
 
   test_extensionType_empty_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   A.new(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 5)],
+    );
   }
 
   test_extensionType_new_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.new(int it) {
   A(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 1)],
+    );
   }
 
   test_extensionType_new_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A.new(int it) {
   A.new(this.it);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 5)],
+    );
   }
 }

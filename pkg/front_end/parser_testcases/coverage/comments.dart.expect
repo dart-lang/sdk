@@ -1,0 +1,10 @@
+Problems reported:
+
+parser/coverage/comments:1:1: Comment starting with '/*' must end with '*/'.
+/*æbler
+^
+
+beginCompilationUnit()
+  handleErrorToken(UnterminatedToken(UnterminatedComment))
+  handleRecoverableError(UnterminatedComment, UnterminatedToken(UnterminatedComment), UnterminatedToken(UnterminatedComment))
+endCompilationUnit(0, )

@@ -25,7 +25,8 @@ test() {
   Expect.isTrue(Platform.numberOfProcessors > 0);
   var os = Platform.operatingSystem;
   Expect.isTrue(
-      os == "android" || os == "linux" || os == "macos" || os == "windows");
+    os == "android" || os == "linux" || os == "macos" || os == "windows",
+  );
   Expect.equals(Platform.isLinux, Platform.operatingSystem == "linux");
   Expect.equals(Platform.isMacOS, Platform.operatingSystem == "macos");
   Expect.equals(Platform.isWindows, Platform.operatingSystem == "windows");
@@ -58,8 +59,9 @@ test() {
   var oldDir = Directory.current;
   Directory.current = Directory.current.parent;
   if (isRunningFromSource()) {
-    Expect.isTrue(Platform.script.path
-        .endsWith('tests/standalone/io/platform_test.dart'));
+    Expect.isTrue(
+      Platform.script.path.endsWith('tests/standalone/io/platform_test.dart'),
+    );
     Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
   }
 }
@@ -68,7 +70,7 @@ void f(reply) {
   reply.send({
     "Platform.executable": Platform.executable,
     "Platform.script": Platform.script,
-    "Platform.executableArguments": Platform.executableArguments
+    "Platform.executableArguments": Platform.executableArguments,
   });
 }
 
@@ -85,10 +87,13 @@ testIsolate() {
     Expect.equals("file", uri.scheme);
     if (isRunningFromSource()) {
       Expect.isTrue(
-          uri.path.endsWith('tests/standalone/io/platform_test.dart'));
+        uri.path.endsWith('tests/standalone/io/platform_test.dart'),
+      );
     }
     Expect.listEquals(
-        Platform.executableArguments, results["Platform.executableArguments"]);
+      Platform.executableArguments,
+      results["Platform.executableArguments"],
+    );
     asyncEnd();
   });
 }
@@ -142,8 +147,11 @@ testVersion() {
   checkValidVersion('1.9.0-edge');
   checkValidVersion('1.9.0-edge.r41234');
   // Check stripping of additional information.
-  checkValidVersion(stripAdditionalInfo(
-      '1.9.0-dev.1.2 (Wed Feb 25 02:22:19 2015) on "linux_ia32"'));
+  checkValidVersion(
+    stripAdditionalInfo(
+      '1.9.0-dev.1.2 (Wed Feb 25 02:22:19 2015) on "linux_ia32"',
+    ),
+  );
   // Reject some invalid versions.
   checkInvalidVersion('1.9');
   checkInvalidVersion('..');

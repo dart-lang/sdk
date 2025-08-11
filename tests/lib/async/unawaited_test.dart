@@ -41,15 +41,18 @@ void testUnawaited() {
   // Unawaited futures are still uncaught errors.
   {
     asyncStart();
-    runZonedGuarded(() {
-      var c = Completer<int>();
-      var f = c.future;
-      unawaited(f);
-      c.completeError("ERROR2");
-    }, (e, s) {
-      Expect.equals("ERROR2", e);
-      asyncEnd();
-    });
+    runZonedGuarded(
+      () {
+        var c = Completer<int>();
+        var f = c.future;
+        unawaited(f);
+        c.completeError("ERROR2");
+      },
+      (e, s) {
+        Expect.equals("ERROR2", e);
+        asyncEnd();
+      },
+    );
   }
   asyncEnd();
 }

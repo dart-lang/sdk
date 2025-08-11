@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 extension type H<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai::F<T%> /* erasure=mai::C<T%> */, mai::D<T%> {
   abstract extension-type-member representation-field get e() → mai::E<T%>;
-  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
+  abstract synthetic member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
   constructor • = self::H|constructor#;
   constructor tearoff • = self::H|constructor#_#new#tearOff;
 }
@@ -15,7 +15,7 @@ static extension-type-member method H|constructor#<T extends core::Object? = dyn
   lowered final self::H<self::H|constructor#::T%> /* erasure=mai::E<self::H|constructor#::T%> */ #this = e;
   return #this;
 }
-static extension-type-member method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<self::H|constructor#_#new#tearOff::T%> e) → self::H<self::H|constructor#_#new#tearOff::T%> /* erasure=mai::E<self::H|constructor#_#new#tearOff::T%> */
+static extension-type-member synthetic method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<self::H|constructor#_#new#tearOff::T%> e) → self::H<self::H|constructor#_#new#tearOff::T%> /* erasure=mai::E<self::H|constructor#_#new#tearOff::T%> */
   return self::H|constructor#<self::H|constructor#_#new#tearOff::T%>(e);
 
 library;
@@ -38,7 +38,7 @@ abstract class C<T extends core::Object? = dynamic> extends core::Object impleme
   synthetic constructor •() → mai::C<mai::C::T%>
     : super core::Object::•()
     ;
-  abstract member-signature method method(covariant-by-class mai::C::T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
+  abstract synthetic member-signature method method(covariant-by-class mai::C::T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
 }
 abstract class D<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → mai::D<mai::D::T%>
@@ -50,17 +50,17 @@ abstract class E<T extends core::Object? = dynamic> extends core::Object impleme
   synthetic constructor •() → mai::E<mai::E::T%>
     : super core::Object::•()
     ;
-  abstract member-signature method method(covariant-by-class mai::E::T% t) → (core::Object?, core::Object?, core::Object?); -> mai::A::method
+  abstract synthetic member-signature method method(covariant-by-class mai::E::T% t) → (core::Object?, core::Object?, core::Object?); -> mai::A::method
 }
 extension type F<T extends core::Object? = dynamic>(mai::C<T%> c) implements mai::A<T%>, mai::B<T%> {
   abstract extension-type-member representation-field get c() → mai::C<T%>;
-  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
+  abstract synthetic member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
   constructor • = mai::F|constructor#;
   constructor tearoff • = mai::F|constructor#_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai::F<T%> /* erasure=mai::C<T%> */, mai::D<T%> {
   abstract extension-type-member representation-field get e() → mai::E<T%>;
-  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
+  abstract synthetic member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
   constructor • = mai::G|constructor#;
   constructor tearoff • = mai::G|constructor#_#new#tearOff;
 }
@@ -68,11 +68,11 @@ static extension-type-member method F|constructor#<T extends core::Object? = dyn
   lowered final mai::F<mai::F|constructor#::T%> /* erasure=mai::C<mai::F|constructor#::T%> */ #this = c;
   return #this;
 }
-static extension-type-member method F|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#_#new#tearOff::T%> c) → mai::F<mai::F|constructor#_#new#tearOff::T%> /* erasure=mai::C<mai::F|constructor#_#new#tearOff::T%> */
+static extension-type-member synthetic method F|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#_#new#tearOff::T%> c) → mai::F<mai::F|constructor#_#new#tearOff::T%> /* erasure=mai::C<mai::F|constructor#_#new#tearOff::T%> */
   return mai::F|constructor#<mai::F|constructor#_#new#tearOff::T%>(c);
 static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#::T%> e) → mai::G<mai::G|constructor#::T%> /* erasure=mai::E<mai::G|constructor#::T%> */ {
   lowered final mai::G<mai::G|constructor#::T%> /* erasure=mai::E<mai::G|constructor#::T%> */ #this = e;
   return #this;
 }
-static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#_#new#tearOff::T%> e) → mai::G<mai::G|constructor#_#new#tearOff::T%> /* erasure=mai::E<mai::G|constructor#_#new#tearOff::T%> */
+static extension-type-member synthetic method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#_#new#tearOff::T%> e) → mai::G<mai::G|constructor#_#new#tearOff::T%> /* erasure=mai::E<mai::G|constructor#_#new#tearOff::T%> */
   return mai::G|constructor#<mai::G|constructor#_#new#tearOff::T%>(e);

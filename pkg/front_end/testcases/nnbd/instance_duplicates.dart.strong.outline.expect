@@ -70,6 +70,13 @@ library;
 //   int? methodAndFieldAndSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:24:12: Error: The setter conflicts with declaration 'methodAndFieldAndSetter2'.
+//   void set methodAndFieldAndSetter2(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:23:8: Context: Conflicting declaration 'methodAndFieldAndSetter2'.
+//   int? methodAndFieldAndSetter2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,15 +84,29 @@ library;
 //   void set methodAndFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Context: Conflicting setter 'methodAndFieldAndSetter3'.
 //   void set methodAndFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: 'methodAndFieldAndSetter3' is already declared in this scope.
+//   int? methodAndFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Context: Previous declaration of 'methodAndFieldAndSetter3'.
+//   int? methodAndFieldAndSetter3() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter4'.
 //   int? methodAndFieldAndSetter4;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
+//   void set methodAndFieldAndSetter4(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:32:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter4'.
+//   int? methodAndFieldAndSetter4() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
 //   void set methodAndFieldAndSetter4(int? value) {}
@@ -182,19 +203,12 @@ library;
 //   final int? fieldAndFinalFieldAndSetter2 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: The declaration conflicts with setter 'fieldAndFinalFieldAndSetter3'.
 //   int? fieldAndFinalFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Context: Conflicting setter 'fieldAndFinalFieldAndSetter3'.
 //   void set fieldAndFinalFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:72:14: Error: 'fieldAndFinalFieldAndSetter3' is already declared in this scope.
-//   final int? fieldAndFinalFieldAndSetter3 = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Context: Previous declaration of 'fieldAndFinalFieldAndSetter3'.
-//   int? fieldAndFinalFieldAndSetter3;
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:76:8: Error: 'fieldAndFinalFieldAndSetter4' is already declared in this scope.
 //   int? fieldAndFinalFieldAndSetter4;
@@ -210,8 +224,6 @@ class Class extends core::Object {
   field core::int? methodAndField2;
   final field core::int? methodAndFinalField2;
   field core::int? methodAndFieldAndSetter2;
-  field core::int? methodAndFieldAndSetter3;
-  field core::int? methodAndFieldAndSetter4;
   final field core::int? methodAndFinalFieldAndSetter2;
   final field core::int? methodAndFinalFieldAndSetter3;
   final field core::int? methodAndFinalFieldAndSetter4;
@@ -219,7 +231,7 @@ class Class extends core::Object {
   field core::int? fieldAndSetter2;
   field core::int? fieldAndFinalFieldAndSetter1;
   final field core::int? fieldAndFinalFieldAndSetter2;
-  field core::int? fieldAndFinalFieldAndSetter3;
+  final field core::int? fieldAndFinalFieldAndSetter3;
   final field core::int? fieldAndFinalFieldAndSetter4;
   synthetic constructor •() → self::Class
     ;
@@ -229,9 +241,11 @@ class Class extends core::Object {
     ;
   method methodAndFieldAndSetter1() → core::int?
     ;
-  method methodAndFinalFieldAndSetter1() → core::int?
+  set methodAndFieldAndSetter3(core::int? value) → void
     ;
-  set methodAndFinalFieldAndSetter1(core::int? value) → void
+  set methodAndFieldAndSetter4(core::int? value) → void
+    ;
+  method methodAndFinalFieldAndSetter1() → core::int?
     ;
   set methodAndFinalFieldAndSetter2(core::int? value) → void
     ;
@@ -241,13 +255,11 @@ class Class extends core::Object {
     ;
   method methodAndSetter1() → core::int?
     ;
-  set methodAndSetter1(core::int? value) → void
-    ;
   method methodAndSetter2(core::int? value) → void
     ;
-  set methodAndSetter2(dynamic #synthetic) → void
-    ;
   set fieldAndFinalFieldAndSetter2(core::int? value) → void
+    ;
+  set fieldAndFinalFieldAndSetter3(core::int? value) → void
     ;
   set fieldAndFinalFieldAndSetter4(core::int? value) → void
     ;

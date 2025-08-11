@@ -18,9 +18,7 @@ class ReturnInvocationName extends BaseClass {
   ReturnInvocationName(this._bar);
 
   noSuchMethod(Invocation invocation) {
-    var name = invocation.memberName.toString();
-    var match = new RegExp(r'Symbol\("([^"]+)"\)').matchAsPrefix(name);
-    return match != null ? match.group(1) : name;
+    return invocation.memberName;
   }
 
   bar() {
@@ -33,27 +31,26 @@ class Foo {}
 main() {
   dynamic x = new ReturnInvocationName(42);
   Expect.equals('final!', x.finalField);
-  Expect.equals('foo', x.finalField = "foo", 'should call noSuchMethod');
   Expect.equals('final!', x.finalField, 'field was not set');
 
-  Expect.equals('_prototype', x._prototype);
-  Expect.equals('_prototype', x._prototype());
+  Expect.equals(#_prototype, x._prototype);
+  Expect.equals(#_prototype, x._prototype());
 
-  Expect.equals('prototype', x.prototype);
-  Expect.equals('prototype', x.prototype());
+  Expect.equals(#prototype, x.prototype);
+  Expect.equals(#prototype, x.prototype());
 
-  Expect.equals('constructor', x.constructor);
-  Expect.equals('constructor', x.constructor());
+  Expect.equals(#constructor, x.constructor);
+  Expect.equals(#constructor, x.constructor());
 
-  Expect.equals('__proto__', x.__proto__);
-  Expect.equals('__proto__', x.__proto__);
+  Expect.equals(#__proto__, x.__proto__);
+  Expect.equals(#__proto__, x.__proto__);
 
   Expect.equals(42, x.bar());
   Expect.equals(42, (x.bar)());
 
-  Expect.equals('unary-', -x);
-  Expect.equals('+', x + 42);
-  Expect.equals('[]', x[4]);
+  Expect.equals(Symbol.unaryMinus, -x);
+  Expect.equals(#+, x + 42);
+  Expect.equals(#[], x[4]);
 
   dynamic b = new BaseClass();
   Expect.equals('final!', b.finalField);

@@ -13,13 +13,13 @@ main() {
   var target = f.target;
   //             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'target' isn't defined for the class 'dynamic Function()'.
+  // [cfe] The getter 'target' isn't defined for the type 'dynamic Function()'.
   var self = f.self;
   //           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'self' isn't defined for the class 'dynamic Function()'.
+  // [cfe] The getter 'self' isn't defined for the type 'dynamic Function()'.
   var receiver = f.receiver;
   //               ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'receiver' isn't defined for the class 'dynamic Function()'.
+  // [cfe] The getter 'receiver' isn't defined for the type 'dynamic Function()'.
 }

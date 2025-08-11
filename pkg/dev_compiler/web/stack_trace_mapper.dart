@@ -46,8 +46,10 @@ typedef SetSourceMapProvider = void Function(SourceMapProvider);
 @JS()
 @anonymous
 class DartStackTraceUtility {
-  external factory DartStackTraceUtility(
-      {StackTraceMapper? mapper, SetSourceMapProvider? setSourceMapProvider});
+  external factory DartStackTraceUtility({
+    StackTraceMapper? mapper,
+    SetSourceMapProvider? setSourceMapProvider,
+  });
 }
 
 @JS('JSON.stringify')
@@ -68,8 +70,12 @@ class LazyMapping extends Mapping {
   List toJson() => _bundle.toJson();
 
   @override
-  SourceMapSpan? spanFor(int line, int column,
-      {Map<String, SourceFile>? files, String? uri}) {
+  SourceMapSpan? spanFor(
+    int line,
+    int column, {
+    Map<String, SourceFile>? files,
+    String? uri,
+  }) {
     if (uri == null) {
       throw ArgumentError.notNull('uri');
     }
@@ -117,6 +123,7 @@ void setSourceMapProvider(SourceMapProvider provider) {
 void main() {
   // Register with DDC.
   dartStackTraceUtility = DartStackTraceUtility(
-      mapper: allowInterop(mapper),
-      setSourceMapProvider: allowInterop(setSourceMapProvider));
+    mapper: allowInterop(mapper),
+    setSourceMapProvider: allowInterop(setSourceMapProvider),
+  );
 }

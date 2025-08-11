@@ -26,15 +26,19 @@ main() {
     context['o'] = window;
     var windowType = context['Window'];
     expect(
-        context.callMethod('isPropertyInstanceOf', ['o', windowType]), isTrue);
+      context.callMethod('isPropertyInstanceOf', ['o', windowType]),
+      isTrue,
+    );
     context.deleteProperty('o');
   });
 
   skipIE9_test('document', () {
     context['o'] = document;
     var documentType = context['Document'];
-    expect(context.callMethod('isPropertyInstanceOf', ['o', documentType]),
-        isTrue);
+    expect(
+      context.callMethod('isPropertyInstanceOf', ['o', documentType]),
+      isTrue,
+    );
     context.deleteProperty('o');
   });
 
@@ -57,7 +61,9 @@ main() {
     context['o'] = new CustomEvent('test');
     var eventType = context['Event'];
     expect(
-        context.callMethod('isPropertyInstanceOf', ['o', eventType]), isTrue);
+      context.callMethod('isPropertyInstanceOf', ['o', eventType]),
+      isTrue,
+    );
     context.deleteProperty('o');
   });
 
@@ -65,8 +71,10 @@ main() {
     if (IdbFactory.supported) {
       context['o'] = new KeyRange.only(1);
       var keyRangeType = context['IDBKeyRange'];
-      expect(context.callMethod('isPropertyInstanceOf', ['o', keyRangeType]),
-          isTrue);
+      expect(
+        context.callMethod('isPropertyInstanceOf', ['o', keyRangeType]),
+        isTrue,
+      );
       context.deleteProperty('o');
     }
   });
@@ -79,8 +87,10 @@ main() {
     var ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     context['o'] = ctx.createImageData(1, 1);
     var imageDataType = context['ImageData'];
-    expect(context.callMethod('isPropertyInstanceOf', ['o', imageDataType]),
-        isTrue);
+    expect(
+      context.callMethod('isPropertyInstanceOf', ['o', imageDataType]),
+      isTrue,
+    );
     context.deleteProperty('o');
   });
 

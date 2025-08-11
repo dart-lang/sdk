@@ -64,6 +64,7 @@ enum JSONRpcErrorCode {
   kServiceDisappeared = 112,
   kExpressionCompilationError = 113,
   kInvalidTimelineRequest = 114,
+  kCannotGetQueuedMicrotasks = 115,
 
   // Experimental (used in private rpcs).
   kFileSystemAlreadyExists = 1001,

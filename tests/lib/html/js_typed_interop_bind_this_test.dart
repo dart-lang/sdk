@@ -13,9 +13,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 // This is a regression test for https://github.com/dart-lang/sdk/issues/25658
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
   "use strict";
 
   function JsTest() {
@@ -24,7 +25,8 @@ _injectJs() {
   JsTest.returnThis = function(name, value) {
     return this;
   };
-""");
+""",
+  );
 }
 
 @JS('JsTest.returnThis')

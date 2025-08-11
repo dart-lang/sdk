@@ -4,8 +4,7 @@
 
 part of 'declaration_builders.dart';
 
-abstract class ExtensionTypeDeclarationBuilder
-    implements DeclarationBuilder, ClassMemberAccess {
+abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
   /// The type of the underlying representation.
   DartType get declaredRepresentationType;
 

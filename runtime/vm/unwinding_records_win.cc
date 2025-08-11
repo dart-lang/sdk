@@ -4,18 +4,11 @@
 
 #include "vm/unwinding_records.h"
 
-#include "vm/globals.h"
-
-#include "platform/unwinding_records.h"
+#include "platform/globals.h"
 
 namespace dart {
 
-// When the host is 64-bit Windows but the target is not, only define this
-// when the ELF loader may be used, so _not_ in gen_snapshot.
-#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
-    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&               \
-     (!defined(DART_PRECOMPILER) || defined(TESTING)))
-
+#if defined(NEED_WINDOWS_UNWINDING_RECORDS)
 static void InitUnwindingRecord(intptr_t offset,
                                 CodeRangeUnwindingRecord* record,
                                 size_t code_size_in_bytes) {
@@ -34,13 +27,13 @@ static void InitUnwindingRecord(intptr_t offset,
   // committed and reserved to contain multiple PDATA/XDATA to cover the whole
   // range. All addresses are 32bit relative offsets to start.
 
-  // Maximum RUNTIME_FUNCTION count available in reserved memory, this includes
+  // Maximum runtime function count available in reserved memory, this includes
   // static part in Record as kDefaultRuntimeFunctionCount plus dynamic part in
   // the remaining reserved memory.
   const uint32_t max_runtime_function_count =
       static_cast<uint32_t>((UnwindingRecordsPlatform::SizeInBytes() -
                              sizeof(CodeRangeUnwindingRecord)) /
-                                sizeof(RUNTIME_FUNCTION) +
+                                sizeof(TargetRuntimeFunction) +
                             kDefaultRuntimeFunctionCount);
 
   uint32_t runtime_function_index = 0;
@@ -48,7 +41,7 @@ static void InitUnwindingRecord(intptr_t offset,
   int64_t remaining_size_in_bytes = static_cast<int64_t>(code_size_in_bytes);
 
   // Divide the code range into chunks in size kMaxFunctionLength and create a
-  // RUNTIME_FUNCTION for each of them. All the chunks in the same size can
+  // runtime function for each of them. All the chunks in the same size can
   // share 1 unwind_info struct, but a separate unwind_info is needed for the
   // last chunk if it is smaller than kMaxFunctionLength, because unlike X64,
   // unwind_info encodes the function/chunk length.
@@ -95,11 +88,9 @@ static void InitUnwindingRecord(intptr_t offset,
 #endif
   record->magic = kUnwindingRecordMagic;
 }
+#endif  // defined(NEED_WINDOWS_UNWINDING_RECORDS)
 
-#endif  // defined(DART_TARGET_OS_WINDOWS) || ...
-
-#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
-
+#if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
 const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
                                                   uint8_t* target_buffer) {
   CodeRangeUnwindingRecord* record =
@@ -107,15 +98,9 @@ const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
   InitUnwindingRecord(offset, record, offset);
   return target_buffer;
 }
+#endif  // defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
 
-#endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
-
-// Only use these definitions when the ELF loader may be used on 64-bit
-// Windows, as it is the only client of these methods (e.g., _not_ in
-// gen_snapshot).
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&                \
-    (!defined(DART_PRECOMPILER) || defined(TESTING))
-
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
 // Special exception-unwinding records are put at the end of executable
 // page on Windows for 64-bit applications.
 void UnwindingRecords::RegisterExecutablePage(Page* page) {
@@ -132,7 +117,8 @@ void UnwindingRecords::RegisterExecutablePage(Page* page) {
   RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   DWORD status = RtlAddGrowableFunctionTable(
       /*DynamicTable=*/&record->dynamic_table,
-      /*FunctionTable=*/record->runtime_function,
+      /*FunctionTable=*/
+      reinterpret_cast<PRUNTIME_FUNCTION>(record->runtime_function),
       /*EntryCount=*/record->runtime_function_count,
       /*MaximumEntryCount=*/record->runtime_function_count,
       /*RangeBase=*/page->memory_->start(),
@@ -153,7 +139,6 @@ void UnwindingRecords::UnregisterExecutablePage(Page* page) {
   RELEASE_ASSERT(record->magic == kUnwindingRecordMagic);
   RtlDeleteGrowableFunctionTable(record->dynamic_table);
 }
-
-#endif  // defined(DART_HOST_OS_WINDOWS) ...
+#endif  // defined(UNWINDING_RECORDS_WINDOWS_HOST)
 
 }  // namespace dart

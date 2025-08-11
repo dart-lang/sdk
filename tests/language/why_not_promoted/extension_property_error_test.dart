@@ -6,25 +6,25 @@ class C {
   get_property_via_explicit_this() {
     if (this.i == null) return;
     this.i.isEven;
-//         ^^^^^^
-// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 6] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    //     ^^^^^^
+    // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe 6] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
   get_property_via_explicit_this_parenthesized() {
     if ((this).i == null) return;
     (this).i.isEven;
-//           ^^^^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 7] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    //       ^^^^^^
+    // [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe 7] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
   get_property_by_implicit_this() {
     if (i == null) return;
     i.isEven;
-//    ^^^^^^
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    //^^^^^^
+    // [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }
 
@@ -48,18 +48,18 @@ class D extends C {
   get_property_by_implicit_super() {
     if (i == null) return;
     i.isEven;
-//    ^^^^^^
-// [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 9] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    //^^^^^^
+    // [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe 9] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }
 
 get_property_via_prefixed_identifier(C c) {
   if (c.i == null) return;
   c.i.isEven;
-//    ^^^^^^
-// [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 10] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  //  ^^^^^^
+  // [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 10] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }
 
 get_property_via_prefixed_identifier_mismatched_target(C c1, C c2) {
@@ -67,9 +67,9 @@ get_property_via_prefixed_identifier_mismatched_target(C c1, C c2) {
   // to promote is on c1, but the property the user is accessing is on c2.
   if (c1.i == null) return;
   c2.i.isEven;
-//     ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  //   ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }
 
 get_property_via_prefixed_identifier_mismatched_property(C c) {
@@ -77,7 +77,7 @@ get_property_via_prefixed_identifier_mismatched_property(C c) {
   // to promote is C.i, but the property the user is accessing is C.j.
   if (c.i == null) return;
   c.j.isEven;
-//    ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  //  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }

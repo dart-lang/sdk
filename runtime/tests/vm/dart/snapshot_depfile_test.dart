@@ -29,9 +29,13 @@ Future<void> main(List<String> args) async {
 
     var depfileContents = await new File(depfilePath).readAsString();
     print(depfileContents);
-    Expect.isTrue(depfileContents.contains('snapshot_depfile_test.snapshot:'),
-        'depfile contains output');
-    Expect.isTrue(depfileContents.contains('snapshot_depfile_test.dart'),
-        'depfile contains input');
+    Expect.isTrue(
+      depfileContents.contains('snapshot_depfile_test.snapshot:'),
+      'depfile contains output',
+    );
+    Expect.isTrue(
+      depfileContents.contains('snapshot_depfile_test.dart'),
+      'depfile contains input',
+    );
   });
 }

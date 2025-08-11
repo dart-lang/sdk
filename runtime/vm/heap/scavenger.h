@@ -27,8 +27,7 @@ class Heap;
 class Isolate;
 class JSONObject;
 class ObjectSet;
-template <bool parallel>
-class ScavengerVisitorBase;
+class ScavengerVisitor;
 class GCMarker;
 template <typename Type, typename PtrType>
 class GCLinkedList;
@@ -278,17 +277,11 @@ class Scavenger {
   void TryAllocateNewTLAB(Thread* thread, intptr_t size, bool can_safepoint);
 
   SemiSpace* Prologue(GCReason reason);
-  intptr_t ParallelScavenge(SemiSpace* from);
-  intptr_t SerialScavenge(SemiSpace* from);
   void ReverseScavenge(SemiSpace** from);
   void IterateIsolateRoots(ObjectPointerVisitor* visitor);
-  template <bool parallel>
-  void IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor);
-  template <bool parallel>
-  void IterateRememberedCards(ScavengerVisitorBase<parallel>* visitor);
-  void IterateObjectIdTable(ObjectPointerVisitor* visitor);
-  template <bool parallel>
-  void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void IterateStoreBuffers(ScavengerVisitor* visitor);
+  void IterateRememberedCards(ScavengerVisitor* visitor);
+  void IterateRoots(ScavengerVisitor* visitor);
   void IterateWeak();
   void MournWeakHandles();
   void MournWeakTables();
@@ -309,8 +302,6 @@ class Scavenger {
 
   intptr_t max_semi_capacity_in_words_;
 
-  // Keep track whether a scavenge is currently running.
-  bool scavenging_ = false;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_ = {0};
   RelaxedAtomic<intptr_t> weak_slices_started_ = {0};
@@ -336,8 +327,7 @@ class Scavenger {
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
 
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

@@ -12,33 +12,33 @@ void toplevel(port, message) {
 }
 
 Function createFuncToplevel() => (p, m) {
-      p.send(m);
-    };
+  p.send(m);
+};
 
 class C {
   Function initializer;
   Function body;
   C()
-      : initializer = ((p, m) {
-          throw "initializer";
-        }),
-        body = ((p, m) {
-          throw "body";
-        }) {}
+    : initializer = ((p, m) {
+        throw "initializer";
+      }),
+      body = ((p, m) {
+        throw "body";
+      }) {}
   static void staticFunc(port, message) {
     port.send("static:$message");
   }
 
   static Function createFuncStatic() => (p, m) {
-        throw "static expr";
-      };
+    throw "static expr";
+  };
   void instanceMethod(p, m) {
     throw "instanceMethod";
   }
 
   Function createFuncMember() => (p, m) {
-        throw "instance expr";
-      };
+    throw "instance expr";
+  };
   void call(n, p) {
     throw "C";
   }
@@ -103,8 +103,10 @@ Future<SendPort> echoPort(callback(value)) {
     completer.complete(p);
     initPort.close();
   });
-  return Isolate.spawn(_echo, [replyPort, initPort.sendPort])
-      .then((isolate) => completer.future);
+  return Isolate.spawn(_echo, [
+    replyPort,
+    initPort.sendPort,
+  ]).then((isolate) => completer.future);
 }
 
 void _echo(msg) {
@@ -131,15 +133,19 @@ void _call(initPort) {
 
 void testUnsendable(name, func) {
   asyncStart();
-  Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], func)
-      .then<void>((v) => throw "allowed spawn direct?", onError: (e, s) {
-    asyncEnd();
-  });
+  Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], func).then<void>(
+    (v) => throw "allowed spawn direct?",
+    onError: (e, s) {
+      asyncEnd();
+    },
+  );
   asyncStart();
-  Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], [func])
-      .then<void>((v) => throw "allowed spawn wrapped?", onError: (e, s) {
-    asyncEnd();
-  });
+  Isolate.spawnUri(Uri.parse("function_send_test.dart"), [], [func]).then<void>(
+    (v) => throw "allowed spawn wrapped?",
+    onError: (e, s) {
+      asyncEnd();
+    },
+  );
 }
 
 void callFunc(message) {

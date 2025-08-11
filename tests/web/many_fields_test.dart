@@ -164,7 +164,8 @@ mixin F {
 class G extends B with C, F {}
 
 bool checkFields(cls) {
-  var blockA = cls.fieldA1 ^
+  var blockA =
+      cls.fieldA1 ^
       cls.fieldA2 ^
       cls.fieldA3 ^
       cls.fieldA4 ^
@@ -180,7 +181,8 @@ bool checkFields(cls) {
       cls.fieldD2 ^
       cls.fieldD3 ^
       cls.fieldD4;
-  var blockB = cls.fieldXA1 ^
+  var blockB =
+      cls.fieldXA1 ^
       cls.fieldXA2 ^
       cls.fieldXA3 ^
       cls.fieldXA4 ^
@@ -196,7 +198,8 @@ bool checkFields(cls) {
       cls.fieldXD2 ^
       cls.fieldXD3 ^
       cls.fieldXD4;
-  var blockC = cls.fieldYA1 ^
+  var blockC =
+      cls.fieldYA1 ^
       cls.fieldYA2 ^
       cls.fieldYA3 ^
       cls.fieldYA4 ^

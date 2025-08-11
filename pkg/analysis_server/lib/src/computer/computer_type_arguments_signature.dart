@@ -7,9 +7,8 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 /// A computer for the signature help information about the type parameters for
@@ -29,7 +28,7 @@ class DartTypeArgumentsSignatureComputer {
     this.preferredFormats, {
     this.documentationPreference = DocumentationPreference.full,
   }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-       _node = NodeLocator(offset).searchWithin(unit);
+       _node = unit.nodeCovering(offset: offset);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -43,20 +42,20 @@ class DartTypeArgumentsSignatureComputer {
       return null;
     }
     var parent = argumentList.parent;
-    Element2? element;
+    Element? element;
     if (parent is NamedType) {
-      element = parent.element2;
+      element = parent.element;
     } else if (parent is MethodInvocation) {
-      element = ElementLocator.locate2(parent.methodName);
+      element = ElementLocator.locate(parent.methodName);
     }
-    if (element is! TypeParameterizedElement2 ||
-        element.typeParameters2.isEmpty) {
+    if (element is! TypeParameterizedElement ||
+        element.typeParameters.isEmpty) {
       return null;
     }
 
     _argumentList = argumentList;
 
-    var label = element.displayString2();
+    var label = element.displayString();
     var documentation = _documentationComputer.computePreferred(
       element,
       documentationPreference,
@@ -65,7 +64,7 @@ class DartTypeArgumentsSignatureComputer {
     return _toSignatureHelp(
       label,
       cleanDartdoc(documentation),
-      element.typeParameters2,
+      element.typeParameters,
     );
   }
 
@@ -87,13 +86,13 @@ class DartTypeArgumentsSignatureComputer {
   lsp.SignatureHelp? _toSignatureHelp(
     String label,
     String? documentation,
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
   ) {
     var parameters =
         typeParameters
             .map(
               (param) =>
-                  lsp.ParameterInformation(label: param.displayString2()),
+                  lsp.ParameterInformation(label: param.displayString()),
             )
             .toList();
 

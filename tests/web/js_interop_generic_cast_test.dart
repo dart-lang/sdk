@@ -36,11 +36,12 @@ void main() {
     window.PackageJSClass = function PackageJSClass(x) {
       this.x = x;
     };
-  """
+  """,
   ]);
 
-  var instance =
-      TestGenericClass<PackageJSClass<JSString>>(PackageJSClass("Hello".toJS));
+  var instance = TestGenericClass<PackageJSClass<JSString>>(
+    PackageJSClass("Hello".toJS),
+  );
   print(instance.directCast(PackageJSClass("Hello".toJS)));
   print(instance.typeArgCast(PackageJSClass("Hello".toJS)));
 }

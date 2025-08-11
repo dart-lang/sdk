@@ -6,7 +6,7 @@ import 'package:analyzer/error/error.dart';
 
 /// An error code representing a problem in a file containing an encoding of a
 /// transform set.
-class TransformSetErrorCode extends ErrorCode {
+class TransformSetErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the conflicting key
   /// 1: the key that it conflicts with
@@ -188,8 +188,8 @@ class TransformSetErrorCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+  DiagnosticSeverity get severity => DiagnosticSeverity.ERROR;
 
   @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }

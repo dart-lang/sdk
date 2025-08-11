@@ -93,24 +93,24 @@ class _InjectedClass extends core::Object { // from org-dartlang-testcase:///pat
   static method staticMethod(core::int value) → void
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension Extension on self2::Class {
   get extensionInstanceGetter = self2::Extension|get#extensionInstanceGetter;
+  set extensionInstanceSetter = self2::Extension|set#extensionInstanceSetter;
   method extensionInstanceMethod = self2::Extension|extensionInstanceMethod;
   method tearoff extensionInstanceMethod = self2::Extension|get#extensionInstanceMethod;
   operator - = self2::Extension|-;
   static get extensionStaticGetter = get self2::Extension|extensionStaticGetter;
+  static set extensionStaticSetter = set self2::Extension|extensionStaticSetter;
   static method extensionStaticMethod = self2::Extension|extensionStaticMethod;
   get _injectedExtensionInstanceGetter = self2::Extension|get#_injectedExtensionInstanceGetter;
+  set _injectedExtensionInstanceSetter = self2::Extension|set#_injectedExtensionInstanceSetter;
   method _injectedExtensionInstanceMethod = self2::Extension|_injectedExtensionInstanceMethod;
   method tearoff _injectedExtensionInstanceMethod = self2::Extension|get#_injectedExtensionInstanceMethod;
   static field _injectedExtensionStaticField = self2::Extension|_injectedExtensionStaticField;
   static get _injectedExtensionStaticGetter = get self2::Extension|_injectedExtensionStaticGetter;
-  static method _injectedExtensionStaticMethod = self2::Extension|_injectedExtensionStaticMethod;
-  set extensionInstanceSetter = self2::Extension|set#extensionInstanceSetter;
-  static set extensionStaticSetter = set self2::Extension|extensionStaticSetter;
-  set _injectedExtensionInstanceSetter = self2::Extension|set#_injectedExtensionInstanceSetter;
   static set _injectedExtensionStaticSetter = set self2::Extension|_injectedExtensionStaticSetter;
+  static method _injectedExtensionStaticMethod = self2::Extension|_injectedExtensionStaticMethod;
 }
 static field core::int Extension|_injectedExtensionStaticField /* from org-dartlang-testcase:///patch_lib.dart */;
 @_in::patch
@@ -180,7 +180,7 @@ Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:100:4 -> Instance
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:103:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:108:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:113:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:134:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:8:2 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:2 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:18:2 -> InstanceConstant(const _Patch{})

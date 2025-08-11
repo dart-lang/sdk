@@ -19,47 +19,47 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   synthetic constructor •() → self2::Class1
     ;
-  static method _#new#tearOff() → self2::Class1
+  static synthetic method _#new#tearOff() → self2::Class1
     return new self2::Class1::•();
 }
 class Class2 extends core::Object {
   constructor named() → self2::Class2
     ;
-  static method _#named#tearOff() → self2::Class2
+  static synthetic method _#named#tearOff() → self2::Class2
     return new self2::Class2::named();
   static factory redirect() → self2::Class2 /* redirection-target: self2::Class2::named */
     return new self2::Class2::named();
-  static method _#redirect#tearOff() → self2::Class2
+  static synthetic method _#redirect#tearOff() → self2::Class2
     return new self2::Class2::named();
 }
 class Class3 extends core::Object {
   final field core::int field;
   constructor •(core::int field) → self2::Class3
     ;
-  static method _#new#tearOff(core::int field) → self2::Class3
+  static synthetic method _#new#tearOff(core::int field) → self2::Class3
     return new self2::Class3::•(field);
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object {
   constructor _() → self2::Class4<self2::Class4::T%>
     ;
-  static method _#_#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#_#tearOff::T%>
+  static synthetic method _#_#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#_#tearOff::T%>
     return new self2::Class4::_<self2::Class4::_#_#tearOff::T%>();
   static factory •<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::•::T%>
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#new#tearOff::T%>
     return self2::Class4::•<self2::Class4::_#new#tearOff::T%>();
   static factory redirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::redirect::T%> /* redirection-target: self2::Class4::_<self2::Class4::redirect::T%>*/
     return new self2::Class4::_<self2::Class4::redirect::T%>();
-  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#redirect#tearOff::T%>
+  static synthetic method _#redirect#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#redirect#tearOff::T%>
     return new self2::Class4::_<self2::Class4::_#redirect#tearOff::T%>();
 }
 class Class5<T extends core::num> extends core::Object {
   constructor _() → self2::Class5<self2::Class5::T>
     ;
-  static method _#_#tearOff<T extends core::num>() → self2::Class5<self2::Class5::_#_#tearOff::T>
+  static synthetic method _#_#tearOff<T extends core::num>() → self2::Class5<self2::Class5::_#_#tearOff::T>
     return new self2::Class5::_<self2::Class5::_#_#tearOff::T>();
   static factory •<T extends core::num>() → self2::Class5<self2::Class5::•::T>
     ;
-  static method _#new#tearOff<T extends core::num>() → self2::Class5<self2::Class5::_#new#tearOff::T>
+  static synthetic method _#new#tearOff<T extends core::num>() → self2::Class5<self2::Class5::_#new#tearOff::T>
     return self2::Class5::•<self2::Class5::_#new#tearOff::T>();
 }

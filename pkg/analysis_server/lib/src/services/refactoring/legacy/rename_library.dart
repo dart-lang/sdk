@@ -6,18 +6,18 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-/// A [Refactoring] for renaming [LibraryElement2]s.
+/// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   RenameLibraryRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    LibraryElement2 super.element2,
+    LibraryElement super.element2,
   ) : super();
 
   @override
-  LibraryElement2 get element => super.element as LibraryElement2;
+  LibraryElement get element => super.element as LibraryElement;
 
   @override
   String get refactoringName {

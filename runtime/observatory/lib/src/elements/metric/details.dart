@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class MetricDetailsElement extends CustomElement implements Renderable {
   late RenderingScheduler<MetricDetailsElement> _r;
@@ -43,69 +46,69 @@ class MetricDetailsElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    children = <Element>[
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'name',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..text = _metric.name,
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'description',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..text = _metric.description,
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'refresh rate',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createRefreshRateSelect(),
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'buffer size',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createBufferSizeSelect(),
-            ]
-        ]
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'name',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = _metric.name ?? '',
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'description',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = _metric.description ?? '',
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'refresh rate',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createRefreshRateSelect()),
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'buffer size',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_createBufferSizeSelect()),
+            ])
+        ])
     ];
   }
 
-  List<Element> _createRefreshRateSelect() {
+  List<HTMLElement> _createRefreshRateSelect() {
     final current = _metrics.getSamplingRate(_isolate, _metric);
-    var s;
+    final s = new HTMLSelectElement()
+      ..value = _rateToString(current)
+      ..appendChildren(
+          M.MetricSamplingRate.values.map((rate) => HTMLOptionElement()
+            ..value = _rateToString(current)
+            ..selected = current == rate
+            ..textContent = _rateToString(rate)));
     return [
-      s = new SelectElement()
-        ..value = _rateToString(current)
-        ..children = M.MetricSamplingRate.values.map((rate) {
-          return new OptionElement(
-              value: _rateToString(current), selected: current == rate)
-            ..text = _rateToString(rate);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _metrics.setSamplingRate(
               _isolate, _metric, M.MetricSamplingRate.values[s.selectedIndex]);
@@ -114,17 +117,17 @@ class MetricDetailsElement extends CustomElement implements Renderable {
     ];
   }
 
-  List<Element> _createBufferSizeSelect() {
+  List<HTMLElement> _createBufferSizeSelect() {
     final current = _metrics.getBufferSize(_isolate, _metric);
-    var s;
+    final s = HTMLSelectElement()
+      ..value = _sizeToString(current)
+      ..appendChildren(
+          M.MetricBufferSize.values.map((rate) => HTMLOptionElement()
+            ..value = _sizeToString(current)
+            ..selected = current == rate
+            ..textContent = _sizeToString(rate)));
     return [
-      s = new SelectElement()
-        ..value = _sizeToString(current)
-        ..children = M.MetricBufferSize.values.map((rate) {
-          return new OptionElement(
-              value: _sizeToString(current), selected: current == rate)
-            ..text = _sizeToString(rate);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _metrics.setBufferSize(
               _isolate, _metric, M.MetricBufferSize.values[s.selectedIndex]);

@@ -22,50 +22,52 @@ import '../use_flag_test_helper.dart';
 
 void main(List<String> args) async {
   if (Platform.isAndroid) {
-    return; // No vm_platform_strong.dill easily available.
+    return; // No vm_platform.dill easily available.
   }
 
   asyncStart();
   final testerScriptPath = Platform.script.toFilePath();
-  final testeeScriptPath =
-      Platform.script.resolve('shared_test_body.dart').toFilePath();
+  final testeeScriptPath = Platform.script
+      .resolve('shared_test_body.dart')
+      .toFilePath();
 
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     if (isVmAotConfiguration) {
       final scriptDill = path.join(tempDir.path, 'shared_test_body.dart.dill');
       await run(
-          path.joinAll([
-            'pkg',
-            'vm',
-            'tool',
-            'gen_kernel${Platform.isWindows ? ".bat" : ""}'
-          ]),
-          <String>[
-            '--aot',
-            '--platform=$platformDill',
-            '-o',
-            scriptDill,
-            testeeScriptPath
-          ]);
+        path.joinAll([
+          'pkg',
+          'vm',
+          'tool',
+          'gen_kernel${Platform.isWindows ? ".bat" : ""}',
+        ]),
+        <String>[
+          '--aot',
+          '--platform=$platformDill',
+          '-o',
+          scriptDill,
+          testeeScriptPath,
+        ],
+      );
 
       final elfFile = path.join(tempDir.path, 'shared_test_body.dart.dill.elf');
       final stderr = (await runError(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
         '--elf=$elfFile',
         scriptDill,
-      ]))
-          .join('\n');
+      ])).join('\n');
       print('stderr: $stderr');
       Expect.contains(
-          'Encountered dart:concurrent when functionality is disabled. '
-          'Pass --experimental-shared-data',
-          stderr);
+        'Encountered dart:concurrent when functionality is disabled. '
+        'Pass --experimental-shared-data',
+        stderr,
+      );
     } else {
       final result = await Process.run(Platform.executable, <String>[
         ...Platform.executableArguments,
         '--experimental_shared_data',
-        testeeScriptPath
+        testeeScriptPath,
       ]);
       if (Platform.version.contains('(main)') ||
           Platform.version.contains('(dev)')) {
@@ -77,9 +79,10 @@ void main(List<String> args) async {
       } else {
         Expect.notEquals(0, result.exitCode);
         Expect.contains(
-            'Shared memory multithreading in only available for '
-            'experimentation in dev or main',
-            result.stderr);
+          'Shared memory multithreading in only available for '
+          'experimentation in dev or main',
+          result.stderr,
+        );
       }
     }
   } finally {

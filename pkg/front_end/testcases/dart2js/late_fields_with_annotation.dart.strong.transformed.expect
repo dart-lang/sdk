@@ -12,7 +12,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::C
+  static synthetic method _#new#tearOff() → self::C
     return new self::C::•();
   @#C3
   get a() → core::int
@@ -42,6 +42,7 @@ class C extends core::Object {
     this.{self::C::_#C#c#AI} = value;
   @#C5
   @#C9
+  @#C11
   get d() → core::int {
     synthesized core::int value = this.{self::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
@@ -88,6 +89,8 @@ constants  {
   #C7 = core::pragma {name:#C6, options:#C2}
   #C8 = "dart2js:noInline"
   #C9 = core::pragma {name:#C8, options:#C2}
+  #C10 = "dart2js:allow-cse"
+  #C11 = core::pragma {name:#C10, options:#C2}
 }
 
 Extra constant evaluation status:

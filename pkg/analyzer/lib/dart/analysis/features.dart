@@ -46,6 +46,9 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for getter-setter-error.
+  static final getter_setter_error = ExperimentalFeatures.getter_setter_error;
+
   /// Feature information for inference using bounds.
   static final inference_using_bounds =
       ExperimentalFeatures.inference_using_bounds;
@@ -144,9 +147,8 @@ abstract class FeatureSet {
   /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion({
-    List<String> flags,
-  }) = ExperimentStatus.latestLanguageVersion;
+  factory FeatureSet.latestLanguageVersion({List<String> flags}) =
+      ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

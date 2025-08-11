@@ -31,10 +31,9 @@ void main() {
           'classes/classes.js.info.data',
         );
         allInfo = decode(infoBinaryFile.readAsBytesSync());
-        classFilters =
-            (await resolveTestFile(
-              'classes/class_filter.txt',
-            )).readAsLinesSync();
+        classFilters = (await resolveTestFile(
+          'classes/class_filter.txt',
+        )).readAsLinesSync();
       });
 
       setUp(() {

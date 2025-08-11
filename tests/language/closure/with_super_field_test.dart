@@ -12,7 +12,8 @@ class A {
 class B extends A {
   int get a => 54;
   returnSuper() => super.a;
-  returnSuperInClosure() => () => super.a;
+  returnSuperInClosure() =>
+      () => super.a;
 }
 
 main() {

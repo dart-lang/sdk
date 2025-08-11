@@ -40,8 +40,9 @@ class Todo {
   /// captures of "kind1", "kind2" (since it is not possible to reuse a name
   /// across different parts of the regex).
   static RegExp TODO_REGEX = RegExp(
-      '([\\s/\\*])(((?<kind1>$_TODO_KIND_PATTERN)[^\\w\\d][^\\r\\n]*(?:\\n\\s*\\*  [^\\r\\n]*)*)'
-      '|((?<kind2>$_TODO_KIND_PATTERN):?\$))');
+    '([\\s/\\*])(((?<kind1>$_TODO_KIND_PATTERN)[^\\w\\d][^\\r\\n]*(?:\\n\\s*\\*  [^\\r\\n]*)*)'
+    '|((?<kind2>$_TODO_KIND_PATTERN):?\$))',
+  );
 
   static final _TODO_KIND_PATTERN = _codes.keys.join('|');
 
@@ -57,7 +58,7 @@ class Todo {
  * The error code indicating a marker in code for work that needs to be finished
  * or revisited.
  */
-class TodoCode extends ErrorCode {
+class TodoCode extends DiagnosticCode {
   /**
    * A standard TODO comment marked as TODO.
    */
@@ -82,15 +83,11 @@ class TodoCode extends ErrorCode {
    * Initialize a newly created error code to have the given [name].
    */
   const TodoCode(String name)
-      : super(
-          problemMessage: "{0}",
-          name: name,
-          uniqueName: 'TodoCode.$name',
-        );
+    : super(problemMessage: "{0}", name: name, uniqueName: 'TodoCode.$name');
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+  DiagnosticSeverity get severity => DiagnosticSeverity.INFO;
 
   @override
-  ErrorType get type => ErrorType.TODO;
+  DiagnosticType get type => DiagnosticType.TODO;
 }

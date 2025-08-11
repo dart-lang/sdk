@@ -16,26 +16,28 @@ main() {
 @reflectiveTest
 class AnnotationOnPointerFieldTest extends PubPackageResolutionTest {
   test_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class C extends Struct {
   @Double()
   external Pointer<Int8> x;
 }
-''', [
-      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 9),
-    ]);
+''',
+      [error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 9)],
+    );
   }
 
   test_int32() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class C extends Struct {
   @Int32()
   external Pointer<Float> x;
 }
-''', [
-      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 8),
-    ]);
+''',
+      [error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 8)],
+    );
   }
 }

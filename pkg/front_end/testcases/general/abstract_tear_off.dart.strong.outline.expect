@@ -15,5 +15,5 @@ class ClassImpl extends core::Object implements self::Class {
 }
 static method test() → dynamic
   ;
-static method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
+static synthetic method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
   return self::Class::redirect();

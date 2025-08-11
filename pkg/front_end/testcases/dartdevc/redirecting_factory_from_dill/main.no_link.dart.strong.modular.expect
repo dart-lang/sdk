@@ -24,14 +24,14 @@ import "dart:core" as core;
 class Class extends core::Object {
   static factory •() → mai2::Class /* redirection-target: mai2::_Class::• */
     return new mai2::_Class::•();
-  static method _#new#tearOff() → mai2::Class
+  static synthetic method _#new#tearOff() → mai2::Class
     return new mai2::_Class::•();
 }
 class _Class extends core::Object implements mai2::Class {
   synthetic constructor •() → mai2::_Class
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → mai2::_Class
+  static synthetic method _#new#tearOff() → mai2::_Class
     return new mai2::_Class::•();
 }
 

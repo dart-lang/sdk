@@ -17,7 +17,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
   var walker = _Walker(linker);
   var nodes = <_Node>[];
-  var elements = <ExtensionTypeElementImpl2>[];
+  var elements = <ExtensionTypeElementImpl>[];
   for (var declaration in declarations) {
     if (declaration is ExtensionTypeDeclarationImpl) {
       var element = declaration.declaredFragment!.element;
@@ -35,7 +35,7 @@ void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
 }
 
 /// Clears interfaces for extension types that have cycles.
-void _breakImplementsCycles(List<ExtensionTypeElementImpl2> elements) {
+void _breakImplementsCycles(List<ExtensionTypeElementImpl> elements) {
   var walker = _ImplementsWalker();
   for (var element in elements) {
     var node = walker.getNode(element);
@@ -45,12 +45,14 @@ void _breakImplementsCycles(List<ExtensionTypeElementImpl2> elements) {
 
 /// Collector of referenced extension types in a type.
 class _DependenciesCollector extends RecursiveTypeVisitor {
-  final List<ExtensionTypeElementImpl2> dependencies = [];
+  final List<ExtensionTypeElementImpl> dependencies = [];
+
+  _DependenciesCollector() : super(includeTypeAliasArguments: false);
 
   @override
   bool visitInterfaceType(InterfaceType type) {
-    var element = type.element3;
-    if (element is ExtensionTypeElementImpl2) {
+    var element = type.element;
+    if (element is ExtensionTypeElementImpl) {
       dependencies.add(element);
     }
 
@@ -60,7 +62,7 @@ class _DependenciesCollector extends RecursiveTypeVisitor {
 
 class _ImplementsNode extends graph.Node<_ImplementsNode> {
   final _ImplementsWalker walker;
-  final ExtensionTypeElementImpl2 element;
+  final ExtensionTypeElementImpl element;
 
   @override
   bool isEvaluated = false;
@@ -70,8 +72,8 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
   @override
   List<_ImplementsNode> computeDependencies() {
     return element.interfaces
-        .map((interface) => interface.element3)
-        .whereType<ExtensionTypeElementImpl2>()
+        .map((interface) => interface.element)
+        .whereType<ExtensionTypeElementImpl>()
         .map(walker.getNode)
         .toList();
   }
@@ -84,19 +86,19 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
     isEvaluated = true;
     element.hasImplementsSelfReference = true;
 
-    var representationType = element.firstFragment.representation.type;
-    var typeSystem = element.library2.typeSystem;
+    var representationType = element.representation.type;
+    var typeSystem = element.library.typeSystem;
 
-    var superInterface = typeSystem.isNonNullable(representationType)
-        ? typeSystem.objectNone
-        : typeSystem.objectQuestion;
+    var superInterface =
+        typeSystem.isNonNullable(representationType)
+            ? typeSystem.objectNone
+            : typeSystem.objectQuestion;
     element.firstFragment.interfaces = [superInterface];
   }
 }
 
 class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
-  final Map<ExtensionTypeElementImpl2, _ImplementsNode> nodeMap =
-      Map.identity();
+  final Map<ExtensionTypeElementImpl, _ImplementsNode> nodeMap = Map.identity();
 
   @override
   void evaluate(_ImplementsNode v) {
@@ -110,7 +112,7 @@ class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
     }
   }
 
-  _ImplementsNode getNode(ExtensionTypeElementImpl2 element) {
+  _ImplementsNode getNode(ExtensionTypeElementImpl element) {
     return nodeMap[element] ??= _ImplementsNode(this, element);
   }
 }
@@ -118,7 +120,7 @@ class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
 class _Node extends graph.Node<_Node> {
   final _Walker walker;
   final ExtensionTypeDeclarationImpl node;
-  final ExtensionTypeElementImpl2 element;
+  final ExtensionTypeElementImpl element;
 
   @override
   bool isEvaluated = false;
@@ -149,18 +151,27 @@ class _Node extends graph.Node<_Node> {
   }
 
   void _evaluateWithType(TypeImpl type) {
-    var typeSystem = element.library2.typeSystem;
+    var typeSystem = element.library.typeSystem;
 
-    element.firstFragment.representation.type = type;
+    var representationFragment = element.firstFragment.representation;
+    var representationElement = representationFragment.element;
+
+    representationFragment.type = type;
+    representationElement.type = type;
+    // TODO(scheglov): we repeat similar code in many places
+    representationElement.getter!.returnType = type;
+    representationElement.getter!.firstFragment.returnType = type;
+
     element.firstFragment.typeErasure = type.extensionTypeErasure;
-    element.firstFragment.interfaces = element.interfaces
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
+    element.firstFragment.interfaces =
+        element.interfaces
+            .whereType<InterfaceType>()
+            .where(typeSystem.isValidExtensionTypeSuperinterface)
+            .toFixedList();
 
-    var primaryConstructor = element.constructors2.first;
+    var primaryConstructor = element.constructors.first;
     var primaryFormalParameter = primaryConstructor.formalParameters.first;
-    primaryFormalParameter as FieldFormalParameterElementImpl2;
+    primaryFormalParameter as FieldFormalParameterElementImpl;
     primaryFormalParameter.type = type;
     isEvaluated = true;
   }
@@ -173,7 +184,7 @@ class _Node extends graph.Node<_Node> {
 
 class _Walker extends graph.DependencyWalker<_Node> {
   final Linker linker;
-  final Map<ExtensionTypeElementImpl2, _Node> nodeMap = Map.identity();
+  final Map<ExtensionTypeElementImpl, _Node> nodeMap = Map.identity();
 
   _Walker(this.linker);
 

@@ -32,7 +32,7 @@ extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
 }
 static extension-type-member method Class|constructor#_(core::int it) → self::Class% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Class|constructor#_#_#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Class|constructor#_#_#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#_(it);
 static extension-type-member method Class|instanceMethod(lowered final self::Class% /* erasure=core::int, declared=! */ #this) → void
   ;
@@ -54,7 +54,7 @@ static extension-type-member method Class|genericStaticMethod<S extends core::Ob
   ;
 static extension-type-member method GenericClass|constructor#_<T extends core::Object? = dynamic>(self::GenericClass|constructor#_::T% it) → self::GenericClass<self::GenericClass|constructor#_::T%>% /* erasure=self::GenericClass|constructor#_::T%, declared=! */
   ;
-static extension-type-member method GenericClass|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#_#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#_#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#_#tearOff::T%, declared=! */
+static extension-type-member synthetic method GenericClass|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#_#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#_#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#_#tearOff::T%, declared=! */
   return self::GenericClass|constructor#_<self::GenericClass|constructor#_#_#tearOff::T%>(it);
 static extension-type-member method GenericClass|instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod::T%>% /* erasure=self::GenericClass|instanceMethod::T%, declared=! */ #this) → void
   ;

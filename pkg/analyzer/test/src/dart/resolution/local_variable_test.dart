@@ -28,13 +28,13 @@ void f() {
 
     var x = findElement2.localVar('x');
     assertElement(
-      x.metadata2.annotations.single.element2,
+      x.metadata.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );
 
     var y = findElement2.localVar('y');
     assertElement(
-      y.metadata2.annotations.single.element2,
+      y.metadata.annotations.single.element2,
       declaration: findElement2.topGet('a'),
     );
   }
@@ -54,13 +54,14 @@ void f<T>(T a, T b) {
   }
 
   test_element_block() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -70,13 +71,14 @@ void f() {
   }
 
   test_element_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   const int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+    );
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isTrue);
@@ -86,13 +88,14 @@ void f() {
   }
 
   test_element_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+    );
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -102,14 +105,15 @@ void f() {
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   if (1 > 2)
     int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+    );
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -119,13 +123,14 @@ void f() {
   }
 
   test_element_late() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late int x = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
 
     var x = findElement2.localVar('x');
     expect(x.isConst, isFalse);
@@ -135,15 +140,18 @@ void f() {
   }
 
   test_localVariable_wildcardFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   _() {}
   _();
 }
-''', [
-      error(WarningCode.DEAD_CODE, 8, 6),
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 17, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 8, 6),
+        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 17, 1),
+      ],
+    );
   }
 
   test_localVariable_wildcardFunction_preWildcards() async {
@@ -181,7 +189,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  element: <testLibraryFragment>::@class::C::@getter::_#element
+  element: <testLibrary>::@class::C::@getter::_
   staticType: int
 ''');
   }
@@ -200,7 +208,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  element: <testLibraryFragment>::@getter::_#element
+  element: <testLibrary>::@getter::_
   staticType: int
 ''');
   }

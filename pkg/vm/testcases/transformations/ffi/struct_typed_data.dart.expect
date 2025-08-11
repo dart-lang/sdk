@@ -46,10 +46,10 @@ final class Coordinate extends ffi::Struct {
   set y(synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C8
-  static get x#offsetOf() → core::int
+  static synthetic get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
-  static get y#offsetOf() → core::int
+  static synthetic get y#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int

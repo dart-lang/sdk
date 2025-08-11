@@ -50,20 +50,20 @@ import "dart:_internal";
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;
-  method method([core::int i = null]) → void
+  method method([erroneously-initialized core::int i = null]) → void
     ;
   @_in::patch
-  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = null]) → void
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i = null]) → void
     ;
-  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = null]) → void
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i = null]) → void
     ;
 }
-static method method([core::int i]) → void
+static method method([erroneously-initialized core::int i]) → void
   ;
 @_in::patch
-static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i]) → void
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i]) → void
   ;
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i]) → void
   ;
 
 

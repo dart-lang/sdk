@@ -19,7 +19,7 @@ There is extensive documentation in `double-conversion/string-to-double.h` and
 Building
 ========
 
-This library can be built with [scons][0] or [cmake][1].
+This library can be built with [scons][0], [cmake][1] or [bazel][2].
 The checked-in Makefile simply forwards to scons, and provides a
 shortcut to run all tests:
 
@@ -55,5 +55,23 @@ Use `-DBUILD_TESTING=ON` to build the test executable.
     make
     test/cctest/cctest
 
+Bazel
+---
+
+The simplest way to adopt this library is through the [Bazel Central Registry](https://registry.bazel.build/modules/double-conversion).
+
+To build the library from the latest repository, run:
+
+```
+bazel build //:double-conversion
+```
+
+To run the unit test, run:
+
+```
+bazel test //:cctest
+```
+
 [0]: http://www.scons.org/
 [1]: https://cmake.org/
+[2]: https://bazel.build/

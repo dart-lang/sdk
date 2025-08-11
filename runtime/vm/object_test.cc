@@ -2698,6 +2698,11 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(VMIsolateImmutability, "Crash") {
+  // Try writing into the null object, expected to crash.
+  *reinterpret_cast<uword*>(UntaggedObject::ToAddr(Object::null())) = 0xBAD;
+}
+
 class CodeTestHelper {
  public:
   static void SetInstructions(const Code& code,
@@ -5675,10 +5680,11 @@ TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
   Dart_Isolate parent = Dart_CurrentIsolate();
   Dart_ExitIsolate();
   char* error = nullptr;
-  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
-                                                 /*shutdown_callback=*/nullptr,
-                                                 /*cleanup_callback=*/nullptr,
-                                                 /*peer=*/nullptr, &error);
+  Dart_Isolate child =
+      Dart_CreateIsolateInGroup(parent, "child",
+                                /*shutdown_callback=*/nullptr,
+                                /*cleanup_callback=*/nullptr,
+                                /*child_isolate_data=*/nullptr, &error);
   EXPECT_NE(nullptr, child);
   EXPECT_EQ(nullptr, error);
   Dart_ExitIsolate();
@@ -5791,10 +5797,11 @@ TEST_CASE(DartAPI_BreakpointLockRace) {
   Dart_Isolate parent = Dart_CurrentIsolate();
   Dart_ExitIsolate();
   char* error = nullptr;
-  Dart_Isolate child = Dart_CreateIsolateInGroup(parent, "child",
-                                                 /*shutdown_callback=*/nullptr,
-                                                 /*cleanup_callback=*/nullptr,
-                                                 /*peer=*/nullptr, &error);
+  Dart_Isolate child =
+      Dart_CreateIsolateInGroup(parent, "child",
+                                /*shutdown_callback=*/nullptr,
+                                /*cleanup_callback=*/nullptr,
+                                /*child_isolate_data=*/nullptr, &error);
   EXPECT_NE(nullptr, child);
   EXPECT_EQ(nullptr, error);
   Dart_ExitIsolate();
@@ -5806,7 +5813,6 @@ TEST_CASE(DartAPI_BreakpointLockRace) {
                                                  &done);
 
   while (!done) {
-    ReloadParticipationScope allow_reload(thread);
     {
       TransitionNativeToVM transition(thread);
       const String& name = String::Handle(String::New(TestCase::url()));
@@ -8200,7 +8206,8 @@ TEST_CASE(TypeArguments_Cache_SomeInstantiations) {
 // reasons. Any core issues will likely be found by SomeInstantiations.
 #if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
     !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
-    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) &&                            \
+    !defined(DART_INCLUDE_SIMULATOR)
 TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
   const intptr_t kNumClasses = 100000;
   static_assert(kNumClasses > TypeArguments::Cache::kMaxLinearCacheEntries,

@@ -16,8 +16,8 @@ const connectionsCount = 200;
 
 class SocketManyConnectionsTest {
   SocketManyConnectionsTest.start()
-      : _connections = 0,
-        _sockets = new List<Socket?>.filled(connectionsCount, null) {
+    : _connections = 0,
+      _sockets = new List<Socket?>.filled(connectionsCount, null) {
     initialize();
   }
 

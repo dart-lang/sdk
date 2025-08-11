@@ -41,18 +41,20 @@ import 'package:analyzer/src/string_source.dart';
 /// produced because of syntactic errors in the file an `ArgumentError` will be
 /// thrown. If the parameter is `false`, then the caller can check the result
 /// to see whether there are any errors.
-ParseStringResult parseFile(
-    {required String path,
-    ResourceProvider? resourceProvider,
-    required FeatureSet featureSet,
-    bool throwIfDiagnostics = true}) {
+ParseStringResult parseFile({
+  required String path,
+  ResourceProvider? resourceProvider,
+  required FeatureSet featureSet,
+  bool throwIfDiagnostics = true,
+}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   var content = (resourceProvider.getResource(path) as File).readAsStringSync();
   return parseString(
-      content: content,
-      path: path,
-      featureSet: featureSet,
-      throwIfDiagnostics: throwIfDiagnostics);
+    content: content,
+    path: path,
+    featureSet: featureSet,
+    throwIfDiagnostics: throwIfDiagnostics,
+  );
 }
 
 /// Returns the result of parsing the given [content] as a compilation unit.
@@ -72,41 +74,47 @@ ParseStringResult parseFile(
 /// in the presence of parse errors).  Clients interested in details about parse
 /// errors should pass `false` and check `result.errors` to determine what parse
 /// errors, if any, have occurred.
-ParseStringResult parseString(
-    {required String content,
-    FeatureSet? featureSet,
-    String? path,
-    bool throwIfDiagnostics = true}) {
+ParseStringResult parseString({
+  required String content,
+  FeatureSet? featureSet,
+  String? path,
+  bool throwIfDiagnostics = true,
+}) {
   featureSet ??= FeatureSet.latestLanguageVersion();
   var source = StringSource(content, path ?? '');
   var reader = CharSequenceReader(content);
-  var errorCollector = RecordingErrorListener();
-  var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+  var diagnosticCollector = RecordingDiagnosticListener();
+  var scanner = Scanner(source, reader, diagnosticCollector)..configureFeatures(
+    featureSetForOverriding: featureSet,
+    featureSet: featureSet,
+  );
   var token = scanner.tokenize();
   var languageVersion = LibraryLanguageVersion(
-      package: ExperimentStatus.currentVersion,
-      override: scanner.overrideVersion);
+    package: ExperimentStatus.currentVersion,
+    override: scanner.overrideVersion,
+  );
   var lineInfo = LineInfo(scanner.lineStarts);
   var parser = Parser(
     source,
-    errorCollector,
+    diagnosticCollector,
     featureSet: scanner.featureSet,
     languageVersion: languageVersion,
     lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(token);
-  ParseStringResult result =
-      ParseStringResultImpl(content, unit, errorCollector.errors);
+  ParseStringResult result = ParseStringResultImpl(
+    content,
+    unit,
+    diagnosticCollector.diagnostics,
+  );
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
     var buffer = StringBuffer();
     for (var error in result.errors) {
       var location = lineInfo.getLocation(error.offset);
-      buffer.writeln('  ${error.errorCode.name}: ${error.message} - '
-          '${location.lineNumber}:${location.columnNumber}');
+      buffer.writeln(
+        '  ${error.diagnosticCode.name}: ${error.message} - '
+        '${location.lineNumber}:${location.columnNumber}',
+      );
     }
     throw ArgumentError('Content produced diagnostics when parsed:\n$buffer');
   }
@@ -120,10 +128,14 @@ ParseStringResult parseString(
 /// Note that if more than one file is going to be resolved then this function
 /// is inefficient. Clients should instead use [AnalysisContextCollection] to
 /// create one or more contexts and use those contexts to resolve the files.
-Future<SomeResolvedUnitResult> resolveFile2(
-    {required String path, ResourceProvider? resourceProvider}) async {
-  AnalysisContext context =
-      _createAnalysisContext(path: path, resourceProvider: resourceProvider);
+Future<SomeResolvedUnitResult> resolveFile2({
+  required String path,
+  ResourceProvider? resourceProvider,
+}) async {
+  AnalysisContext context = _createAnalysisContext(
+    path: path,
+    resourceProvider: resourceProvider,
+  );
   return await context.currentSession.getResolvedUnit(path);
 }
 
@@ -131,8 +143,10 @@ Future<SomeResolvedUnitResult> resolveFile2(
 /// can be analyzed.
 ///
 /// If a [resourceProvider] is given, it will be used to access the file system.
-AnalysisContext _createAnalysisContext(
-    {required String path, ResourceProvider? resourceProvider}) {
+AnalysisContext _createAnalysisContext({
+  required String path,
+  ResourceProvider? resourceProvider,
+}) {
   AnalysisContextCollection collection = AnalysisContextCollection(
     includedPaths: <String>[path],
     resourceProvider: resourceProvider ?? PhysicalResourceProvider.INSTANCE,

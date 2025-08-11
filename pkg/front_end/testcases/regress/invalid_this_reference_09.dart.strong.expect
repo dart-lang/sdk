@@ -20,7 +20,7 @@ library;
 //   late final foo2 = baz(0);
 //                     ^^^
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the class 'Foo'.
+// pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the type 'Foo'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
 //     print(bar);
 //           ^^^
@@ -48,12 +48,12 @@ static extension-type-member method Foo|constructor#(dynamic x) → self::Foo% /
   lowered final self::Foo% /* erasure=dynamic, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(x);
 static abstract extension-type-member method Foo|get#foo1(lowered dynamic #this) → invalid-type;
 static abstract extension-type-member method Foo|get#foo2(lowered dynamic #this) → invalid-type;
 static extension-type-member method Foo|baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this, core::int i) → core::int {
-  core::print(invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the class 'Foo'.
+  core::print(invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the type 'Foo'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
     print(bar);
           ^^^" in #this{<unresolved>}.bar);
@@ -71,12 +71,12 @@ static extension-type-member method Foo2|constructor#_(dynamic _input) → self:
   lowered final self::Foo2% /* erasure=dynamic, declared=! */ #this = _input;
   return #this;
 }
-static extension-type-member method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
   return self::Foo2|constructor#_(_input);
 static extension-type-member method Foo2|constructor#fromInt(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */ {
   lowered final self::Foo2% /* erasure=dynamic, declared=! */ #this;
   #this = self::Foo2|constructor#_(i.{core::num::*}(2){(core::num) → core::int});
   return #this;
 }
-static extension-type-member method Foo2|constructor#_#fromInt#tearOff(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo2|constructor#_#fromInt#tearOff(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
   return self::Foo2|constructor#fromInt(i);

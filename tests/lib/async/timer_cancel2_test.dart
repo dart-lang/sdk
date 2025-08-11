@@ -18,7 +18,9 @@ main() {
     completer.complete();
   }
 
-  cancelTimer =
-      new Timer.periodic(const Duration(milliseconds: 1), cancelHandler);
+  cancelTimer = new Timer.periodic(
+    const Duration(milliseconds: 1),
+    cancelHandler,
+  );
   return completer.future;
 }

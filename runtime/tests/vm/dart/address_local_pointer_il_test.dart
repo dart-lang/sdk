@@ -24,8 +24,12 @@ void matchIL$identity(FlowGraph graph) {
       if (is32BitConfiguration) ...[
         // The Dart int address is truncated before being returned.
         'uint32' <<
-            match.IntConverter('address',
-                from: 'int64', to: 'uint32', is_truncating: true),
+            match.IntConverter(
+              'address',
+              from: 'int64',
+              to: 'uint32',
+              is_truncating: true,
+            ),
         'retval' << match.IntConverter('uint32', from: 'uint32', to: 'int64'),
       ],
       match.DartReturn(retval),

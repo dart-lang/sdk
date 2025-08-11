@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:19:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+// pkg/front_end/testcases/nnbd/issue41102.dart:19:36: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
 // final s3 = new List<int>.filled(2, null);
 //                                    ^
 //

@@ -16,79 +16,86 @@ main() {
 @reflectiveTest
 class IllegalEnumValuesInheritanceTest extends PubPackageResolutionTest {
   test_class_field_fromExtends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int values = 0;
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1)],
+    );
   }
 
   test_class_field_fromImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int values = 0;
 }
 
 abstract class B implements A, Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1)],
+    );
   }
 
   test_class_field_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int values = 0;
 }
 
 abstract class B with M implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 46, 1)],
+    );
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get values => 0;
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 51, 1)],
+    );
   }
 
   test_class_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void values() {}
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 47, 1)],
+    );
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set values(int _) {}
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 51, 1)],
+    );
   }
 
   test_enum_getter_fromImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get values => 0;
 }
@@ -96,13 +103,14 @@ class A {
 enum E implements A {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1)],
+    );
   }
 
   test_enum_method_fromImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int values() => 0;
 }
@@ -110,13 +118,14 @@ class A {
 enum E implements A {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1)],
+    );
   }
 
   test_enum_method_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int values() => 0;
 }
@@ -124,13 +133,14 @@ mixin M {
 enum E with M {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 39, 1)],
+    );
   }
 
   test_enum_setter_fromImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set values(int _) {}
 }
@@ -138,13 +148,14 @@ class A {
 enum E implements A {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1)],
+    );
   }
 
   test_enum_setter_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   set values(int _) {}
 }
@@ -152,56 +163,60 @@ mixin M {
 enum E with M {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 41, 1)],
+    );
   }
 
   test_mixin_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int values = 0;
 }
 
 mixin M on A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 37, 1)],
+    );
   }
 
   test_mixin_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get values => 0;
 }
 
 mixin M on A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 42, 1)],
+    );
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int values() => 0;
 }
 
 mixin M on A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 40, 1)],
+    );
   }
 
   test_mixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set values(int _) {}
 }
 
 mixin M on A implements Enum {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE, 42, 1)],
+    );
   }
 }

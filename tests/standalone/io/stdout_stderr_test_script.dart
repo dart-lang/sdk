@@ -37,8 +37,9 @@ main(List<String> arguments) {
     exit(1);
   }
 
-  stdout.encoding =
-      Encoding.getByName(arguments[1].replaceFirst("--encoding=", ""))!;
+  stdout.encoding = Encoding.getByName(
+    arguments[1].replaceFirst("--encoding=", ""),
+  )!;
 
   switch (arguments.last) {
     case "byte-list-hello":

@@ -160,14 +160,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
-  R? visitAugmentedExpression(AugmentedExpression node) =>
-      visitExpression(node);
-
-  @override
-  R? visitAugmentedInvocation(AugmentedInvocation node) =>
-      visitExpression(node);
-
-  @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
   @override
@@ -278,6 +270,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => visitStatement(node);
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) => visitExpression(node);
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) =>
@@ -599,8 +596,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclarationStatement(
-          PatternVariableDeclarationStatement node) =>
-      visitStatement(node);
+    PatternVariableDeclarationStatement node,
+  ) => visitStatement(node);
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitExpression(node);
@@ -633,18 +630,18 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordTypeAnnotationNamedFields(
-          RecordTypeAnnotationNamedFields node) =>
-      visitNode(node);
+    RecordTypeAnnotationNamedFields node,
+  ) => visitNode(node);
 
   @override
   R? visitRecordTypeAnnotationPositionalField(
-          RecordTypeAnnotationPositionalField node) =>
-      visitRecordTypeAnnotationField(node);
+    RecordTypeAnnotationPositionalField node,
+  ) => visitRecordTypeAnnotationField(node);
 
   @override
   R? visitRedirectingConstructorInvocation(
-          RedirectingConstructorInvocation node) =>
-      visitConstructorInitializer(node);
+    RedirectingConstructorInvocation node,
+  ) => visitConstructorInitializer(node);
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
@@ -858,18 +855,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitAugmentedExpression(AugmentedExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitAugmentedInvocation(AugmentedInvocation node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitAwaitExpression(AwaitExpression node) {
     node.visitChildren(this);
     return null;
@@ -1039,6 +1024,14 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
     node.visitChildren(this);
     return null;
   }
@@ -1543,7 +1536,8 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     node.visitChildren(this);
     return null;
   }
@@ -1598,21 +1592,24 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     node.visitChildren(this);
     return null;
   }
 
   @override
   R? visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     node.visitChildren(this);
     return null;
   }
 
   @override
   R? visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     node.visitChildren(this);
     return null;
   }
@@ -1893,12 +1890,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
-  R? visitAugmentedExpression(AugmentedExpression node) => null;
-
-  @override
-  R? visitAugmentedInvocation(AugmentedInvocation node) => null;
-
-  @override
   R? visitAwaitExpression(AwaitExpression node) => null;
 
   @override
@@ -1984,6 +1975,11 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => null;
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) => null;
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => null;
@@ -2239,8 +2235,8 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclarationStatement(
-          PatternVariableDeclarationStatement node) =>
-      null;
+    PatternVariableDeclarationStatement node,
+  ) => null;
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => null;
@@ -2269,18 +2265,18 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordTypeAnnotationNamedFields(
-          RecordTypeAnnotationNamedFields node) =>
-      null;
+    RecordTypeAnnotationNamedFields node,
+  ) => null;
 
   @override
   R? visitRecordTypeAnnotationPositionalField(
-          RecordTypeAnnotationPositionalField node) =>
-      null;
+    RecordTypeAnnotationPositionalField node,
+  ) => null;
 
   @override
   R? visitRedirectingConstructorInvocation(
-          RedirectingConstructorInvocation node) =>
-      null;
+    RedirectingConstructorInvocation node,
+  ) => null;
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => null;
@@ -2441,12 +2437,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
 
   @override
-  R? visitAugmentedExpression(AugmentedExpression node) => _throw(node);
-
-  @override
-  R? visitAugmentedInvocation(AugmentedInvocation node) => _throw(node);
-
-  @override
   R? visitAwaitExpression(AwaitExpression node) => _throw(node);
 
   @override
@@ -2533,6 +2523,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => _throw(node);
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) => _throw(node);
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => _throw(node);
@@ -2795,8 +2790,8 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclarationStatement(
-          PatternVariableDeclarationStatement node) =>
-      _throw(node);
+    PatternVariableDeclarationStatement node,
+  ) => _throw(node);
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => _throw(node);
@@ -2825,18 +2820,18 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordTypeAnnotationNamedFields(
-          RecordTypeAnnotationNamedFields node) =>
-      _throw(node);
+    RecordTypeAnnotationNamedFields node,
+  ) => _throw(node);
 
   @override
   R? visitRecordTypeAnnotationPositionalField(
-          RecordTypeAnnotationPositionalField node) =>
-      _throw(node);
+    RecordTypeAnnotationPositionalField node,
+  ) => _throw(node);
 
   @override
   R? visitRedirectingConstructorInvocation(
-          RedirectingConstructorInvocation node) =>
-      _throw(node);
+    RedirectingConstructorInvocation node,
+  ) => _throw(node);
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
@@ -2985,7 +2980,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
   TimedAstVisitor(this._baseVisitor, [Stopwatch? watch])
-      : stopwatch = watch ?? Stopwatch();
+    : stopwatch = watch ?? Stopwatch();
 
   @override
   T? visitAdjacentStrings(AdjacentStrings node) {
@@ -3047,22 +3042,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAssignmentExpression(AssignmentExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAssignmentExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitAugmentedExpression(AugmentedExpression node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitAugmentedExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitAugmentedInvocation(AugmentedInvocation node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitAugmentedInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -3295,6 +3274,16 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitDoStatement(DoStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDoStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDotShorthandConstructorInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -3965,7 +3954,8 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   @override
   T? visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     stopwatch.start();
     T? result = _baseVisitor.visitPatternVariableDeclarationStatement(node);
     stopwatch.stop();
@@ -4038,7 +4028,8 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   @override
   T? visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     stopwatch.start();
     T? result = _baseVisitor.visitRecordTypeAnnotationNamedFields(node);
     stopwatch.stop();
@@ -4047,7 +4038,8 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   @override
   T? visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     stopwatch.start();
     T? result = _baseVisitor.visitRecordTypeAnnotationPositionalField(node);
     stopwatch.stop();
@@ -4056,7 +4048,8 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   @override
   T? visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     stopwatch.start();
     T? result = _baseVisitor.visitRedirectingConstructorInvocation(node);
     stopwatch.stop();
@@ -4425,12 +4418,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
 
   @override
-  R? visitAugmentedExpression(AugmentedExpression node) => visitNode(node);
-
-  @override
-  R? visitAugmentedInvocation(AugmentedInvocation node) => visitNode(node);
-
-  @override
   R? visitAwaitExpression(AwaitExpression node) => visitNode(node);
 
   @override
@@ -4520,6 +4507,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => visitNode(node);
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) => visitNode(node);
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) =>
@@ -4794,8 +4786,8 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclarationStatement(
-          PatternVariableDeclarationStatement node) =>
-      visitNode(node);
+    PatternVariableDeclarationStatement node,
+  ) => visitNode(node);
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitNode(node);
@@ -4824,18 +4816,18 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordTypeAnnotationNamedFields(
-          RecordTypeAnnotationNamedFields node) =>
-      visitNode(node);
+    RecordTypeAnnotationNamedFields node,
+  ) => visitNode(node);
 
   @override
   R? visitRecordTypeAnnotationPositionalField(
-          RecordTypeAnnotationPositionalField node) =>
-      visitNode(node);
+    RecordTypeAnnotationPositionalField node,
+  ) => visitNode(node);
 
   @override
   R? visitRedirectingConstructorInvocation(
-          RedirectingConstructorInvocation node) =>
-      visitNode(node);
+    RedirectingConstructorInvocation node,
+  ) => visitNode(node);
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);

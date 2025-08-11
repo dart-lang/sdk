@@ -8,11 +8,11 @@
 library;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'
-    show TypeParameterElementImpl;
+    show TypeParameterFragmentImpl;
 
 enum Variance {
   out,
@@ -43,15 +43,15 @@ abstract class VarianceChecker {
       case NamedType():
         var arguments = typeAnnotation.typeArguments?.arguments;
         if (arguments != null) {
-          var element = typeAnnotation.element2?.baseElement;
-          List<TypeParameterElement2>? typeParameterList;
+          var element = typeAnnotation.element?.baseElement;
+          List<TypeParameterElement>? typeParameterList;
           if (element != null) {
             switch (element) {
-              case ClassElement2(:var typeParameters2):
-              case MixinElement2(:var typeParameters2):
-              case EnumElement2(:var typeParameters2):
-              case TypeAliasElement2(:var typeParameters2):
-                typeParameterList = typeParameters2;
+              case ClassElement(:var typeParameters):
+              case MixinElement(:var typeParameters):
+              case EnumElement(:var typeParameters):
+              case TypeAliasElement(:var typeParameters):
+                typeParameterList = typeParameters;
               default:
                 typeParameterList = null;
             }
@@ -72,7 +72,7 @@ abstract class VarianceChecker {
               var argument = arguments[i];
               Variance parameterVariance;
               var parameterFragment =
-                  parameter.firstFragment as TypeParameterElementImpl;
+                  parameter.firstFragment as TypeParameterFragmentImpl;
               if (parameterFragment.isLegacyCovariant ||
                   parameterFragment.variance.isCovariant) {
                 parameterVariance = variance;

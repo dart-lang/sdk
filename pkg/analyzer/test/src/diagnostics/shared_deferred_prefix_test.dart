@@ -24,13 +24,14 @@ f1() {}
 library lib2;
 f2() {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as lib;
 import 'lib2.dart' as lib;
 main() { lib.f1(); lib.f2(); }
-''', [
-      error(CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, 33, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, 33, 8)],
+    );
   }
 }

@@ -18,8 +18,8 @@ final class Struct46127 extends Struct {
 }
 
 void main() {
-  final struct =
-      nativeLib.lookupFunction<Struct46127 Function(), Struct46127 Function()>(
+  final struct = nativeLib
+      .lookupFunction<Struct46127 Function(), Struct46127 Function()>(
         'Regress46127',
       )();
   Expect.equals(123, struct.val);

@@ -19,20 +19,28 @@ class AwaitOnlyFuturesTest extends LintRuleTest {
 
   test_dynamic() async {
     await assertNoDiagnostics(r'''
-void f(dynamic future) async {
-  await future;
+void f(dynamic p) async {
+  await p;
 }
 ''');
   }
 
-  // TODO(srawlins): Test `await x` for `T extends Future` type variable.
-
   test_extensionType_implementingFuture() async {
     await assertNoDiagnostics(r'''
-extension type E(Future f) implements Future { }
+extension type E(Future f) implements Future {}
 
-void f() async {
-  await E(Future.value());
+void f(E p) async {
+  await p;
+}
+''');
+  }
+
+  test_extensionType_implementingFuture_nullable() async {
+    await assertNoDiagnostics(r'''
+extension type E(Future f) implements Future {}
+
+void f(E? p) async {
+  await p;
 }
 ''');
   }
@@ -55,8 +63,16 @@ void f() async {
 
   test_future() async {
     await assertNoDiagnostics(r'''
-void f(Future<void> future) async {
-  await future;
+void f(Future<void> p) async {
+  await p;
+}
+''');
+  }
+
+  test_future_nullable() async {
+    await assertNoDiagnostics(r'''
+void f(Future<void>? p) async {
+  await p;
 }
 ''');
   }
@@ -64,16 +80,25 @@ void f(Future<void> future) async {
   test_futureOr() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
-void f(FutureOr<int> future) async {
-  await future;
+void f(FutureOr<int> p) async {
+  await p;
+}
+''');
+  }
+
+  test_futureOr_nullable() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(FutureOr<int>? p) async {
+  await p;
 }
 ''');
   }
 
   test_futureSubClass() async {
     await assertNoDiagnostics(r'''
-void f(MyFuture future) async {
-  await future;
+void f(MyFuture<int> p) async {
+  await p;
 }
 abstract class MyFuture<T> implements Future<T> {}
 ''');
@@ -90,10 +115,39 @@ void f() async {
     );
   }
 
+  test_intersectionType_subtypeOfFuture() async {
+    await assertNoDiagnostics(r'''
+void f<T>(T f) async {
+  if (f is Future<int>) {
+    await f;
+  }
+}
+''');
+  }
+
   test_null() async {
     await assertNoDiagnostics(r'''
 void f() async {
   await null;
+}
+''');
+  }
+
+  test_typeVariable() async {
+    await assertDiagnostics(
+      r'''
+void f<T>(T f) async {
+  await f;
+}
+''',
+      [lint(25, 5)],
+    );
+  }
+
+  test_typeVariable_boundToFuture() async {
+    await assertNoDiagnostics(r'''
+void f<T extends Future<dynamic>>(T f) async {
+  await f;
 }
 ''');
   }

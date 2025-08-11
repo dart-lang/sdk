@@ -10,8 +10,12 @@ import "package:expect/expect.dart";
 
 // The type parameter forces us to create a generator body. The call from the
 // method to the body needs to correctly handle elided parameters.
-Future<T> foo<T>(T Function(int, int, int) toT,
-    {int p1 = 0, int p2 = 1, int p3 = 2}) async {
+Future<T> foo<T>(
+  T Function(int, int, int) toT, {
+  int p1 = 0,
+  int p2 = 1,
+  int p3 = 2,
+}) async {
   await null;
   return toT(p1, p2, p3);
 }

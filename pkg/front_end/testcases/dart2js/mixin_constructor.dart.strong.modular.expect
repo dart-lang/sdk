@@ -20,7 +20,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 abstract class M extends self::A /*isMixinDeclaration*/  {
@@ -32,7 +32,7 @@ class MA extends self::_MA&A&M {
   synthetic constructor •() → self::MA
     : super self::_MA&A&M::•()
     ;
-  static method _#new#tearOff() → self::MA
+  static synthetic method _#new#tearOff() → self::MA
     return new self::MA::•();
 }
 abstract class _MA&A&M = self::A with self::M /*isAnonymousMixin*/  {

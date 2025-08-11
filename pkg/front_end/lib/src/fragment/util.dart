@@ -46,16 +46,19 @@ class ConstructorName {
 }
 
 void buildMetadataForOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    LookupScope parentScope,
-    BodyBuilderContext bodyBuilderContext,
-    Annotatable annotatable,
-    List<MetadataBuilder>? metadata,
-    {required Uri fileUri,
-    required bool createFileUriExpression}) {
-  MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
-      libraryBuilder, fileUri, parentScope,
-      createFileUriExpression: createFileUriExpression);
+    {required SourceLibraryBuilder libraryBuilder,
+    required LookupScope scope,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required List<MetadataBuilder>? metadata}) {
+  MetadataBuilder.buildAnnotations(
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: scope);
 }
 
 void buildTypeParametersForOutlineExpressions(
@@ -78,7 +81,8 @@ void buildFormalsForOutlineExpressions(
     {required LookupScope scope,
     required bool isClassInstanceMember}) {
   if (formals != null) {
-    for (FormalParameterBuilder formal in formals) {
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       buildFormalForOutlineExpressions(
           libraryBuilder, declarationBuilder, formal,
           scope: scope, isClassInstanceMember: isClassInstanceMember);
@@ -95,207 +99,6 @@ void buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
   // consuming too much memory.
   formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
       scope: scope, buildDefaultValue: isClassInstanceMember);
-}
-
-/// Common interface for fragments that can declare a field.
-abstract class FieldDeclaration {
-  /// The metadata declared on this fragment.
-  List<MetadataBuilder>? get metadata;
-
-  /// Builds the core AST structures for this field declaration as needed for
-  /// the outline.
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
-      {required List<TypeParameter>? classTypeParameters});
-
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      List<Annotatable> annotatables,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
-
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
-
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal});
-
-  /// Checks the variance of type parameters [sourceClassBuilder] used in the
-  /// type of this field declaration.
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
-
-  /// The references to the members from this field declaration that are
-  /// accessible in exports through the name of the builder.
-  Iterable<Reference> getExportedMemberReferences(FieldReference references);
-
-  /// Return `true` if the declaration introduces a setter.
-  bool get hasSetter;
-
-  /// Return `true` if the declaration has an initializer.
-  bool get hasInitializer;
-
-  /// Return `true` if the declaration is final.
-  bool get isFinal;
-
-  /// Return `true` if the declaration is late.
-  bool get isLate;
-
-  /// Return `true` if the declaration is in instance field declared in an
-  /// extension type.
-  bool get isExtensionTypeDeclaredInstanceField;
-
-  /// Returns `true` if this field is declared by an enum element.
-  bool get isEnumElement;
-
-  /// The [ClassMember]s for the getter introduced by this field declaration.
-  List<ClassMember> get localMembers;
-
-  /// The [ClassMember]s for the setter introduced by this field declaration,
-  /// if any.
-  List<ClassMember> get localSetters;
-
-  /// The [Member] uses as the target for reading from this field declaration.
-  Member get readTarget;
-
-  /// The [Member] uses as the target for writing to this field declaration, or
-  /// `null` if this field declaration has no setter.
-  Member? get writeTarget;
-
-  /// The [TypeBuilder] for the declared type of this field declaration.
-  TypeBuilder get type;
-
-  /// The [DartType] of this field declaration.
-  abstract DartType fieldType;
-
-  /// Creates the [Initializer] for the invalid initialization of this field.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(Expression effect, Expression value,
-      {required int fileOffset});
-
-  /// Creates the AST node for this field as the default initializer.
-  ///
-  /// This is only used for instance fields.
-  void buildImplicitDefaultValue();
-
-  /// Creates the [Initializer] for the implicit initialization of this field
-  /// in a constructor.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildImplicitInitializer();
-
-  /// Builds the [Initializer]s for each field used to encode this field
-  /// using the [fileOffset] for the created nodes and [value] as the initial
-  /// field value.
-  ///
-  /// This is only used for instance fields.
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic});
-
-  /// Ensures that the type of this field declaration has been computed.
-  void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      Set<ClassMember>? getterOverrideDependencies,
-      Set<ClassMember>? setterOverrideDependencies);
-
-  /// Infers the type of this field declaration.
-  DartType inferType(ClassHierarchyBase hierarchy);
-
-  shared.Expression? get initializerExpression;
-}
-
-mixin FieldDeclarationMixin
-    implements FieldDeclaration, Inferable, InferredTypeListener {
-  Uri get fileUri;
-
-  int get nameOffset;
-
-  SourcePropertyBuilder get builder;
-
-  bool get isConst;
-
-  void _setCovariantByClassInternal();
-
-  abstract DartType _fieldTypeInternal;
-
-  @override
-  void onInferredType(DartType type) {
-    fieldType = type;
-  }
-
-  @override
-  void inferTypes(ClassHierarchyBase hierarchy) {
-    inferType(hierarchy);
-  }
-
-  @override
-  DartType inferType(ClassHierarchyBase hierarchy) {
-    if (fieldType is! InferredType) {
-      // We have already inferred a type.
-      return fieldType;
-    }
-
-    return builder.libraryBuilder.loader
-        .withUriForCrashReporting(fileUri, nameOffset, () {
-      InferredType implicitFieldType = fieldType as InferredType;
-      DartType inferredType = implicitFieldType.computeType(hierarchy);
-      if (fieldType is InferredType) {
-        // `fieldType` may have changed if a circularity was detected when
-        // [inferredType] was computed.
-        type.registerInferredType(inferredType);
-
-        // TODO(johnniwinther): Isn't this handled in the [fieldType] setter?
-        IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-        DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-        if (declarationBuilder is ClassBuilder) {
-          Class enclosingClass = declarationBuilder.cls;
-          if (enclosingClass.typeParameters.isNotEmpty) {
-            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant);
-          }
-        }
-        if (needsCheckVisitor != null) {
-          if (fieldType.accept(needsCheckVisitor)) {
-            _setCovariantByClassInternal();
-          }
-        }
-      }
-      return fieldType;
-    });
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldType => _fieldTypeInternal;
-
-  @override
-  void set fieldType(DartType value) {
-    _fieldTypeInternal = value;
-    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-    // TODO(johnniwinther): Should this be `hasSetter`?
-    if (!isFinal && !isConst && declarationBuilder is ClassBuilder) {
-      Class enclosingClass = declarationBuilder.cls;
-      if (enclosingClass.typeParameters.isNotEmpty) {
-        IncludesTypeParametersNonCovariantly needsCheckVisitor =
-            new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant);
-        if (value.accept(needsCheckVisitor)) {
-          _setCovariantByClassInternal();
-        }
-      }
-    }
-  }
 }
 
 sealed class PropertyEncodingStrategy {
@@ -320,33 +123,25 @@ sealed class PropertyEncodingStrategy {
     }
   }
 
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory);
 
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters);
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory);
 }
 
 class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
   const RegularPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new RegularGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new RegularSetterEncoding(fragment);
   }
 }
@@ -356,17 +151,15 @@ class ExtensionInstancePropertyEncodingStrategy
   const ExtensionInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -375,17 +168,15 @@ class ExtensionInstancePropertyEncodingStrategy
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
         declarationBuilder: declarationBuilder,
         extensionTypeParameterFragments:
             fragment.enclosingDeclaration!.typeParameters,
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
@@ -399,18 +190,14 @@ class ExtensionStaticPropertyEncodingStrategy
   const ExtensionStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionStaticSetterEncoding(fragment);
   }
 }
@@ -420,10 +207,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   const ExtensionTypeInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -431,7 +216,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return new ExtensionTypeInstanceGetterEncoding(fragment,
@@ -439,10 +224,8 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
@@ -450,7 +233,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             extensionTypeDeclarationBuilder: declarationBuilder,
             extensionTypeTypeParameters:
                 fragment.enclosingDeclaration!.typeParameters,
-            unboundNominalParameters: unboundNominalParameters,
+            typeParameterFactory: typeParameterFactory,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
     return new ExtensionTypeInstanceSetterEncoding(fragment,
@@ -463,18 +246,14 @@ class ExtensionTypeStaticPropertyEncodingStrategy
   const ExtensionTypeStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(
-      SourcePropertyBuilder builder,
-      GetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
+      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionTypeStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(
-      SourcePropertyBuilder builder,
-      SetterFragment fragment,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
+      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
     return new ExtensionTypeStaticSetterEncoding(fragment);
   }
 }

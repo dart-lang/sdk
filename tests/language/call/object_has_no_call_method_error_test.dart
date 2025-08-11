@@ -8,19 +8,19 @@ void test(dynamic d, Object o, Function f) {
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   // [error column 4]
-  // [cfe] The method 'call' isn't defined for the class 'Object'.
+  // [cfe] The method 'call' isn't defined for the type 'Object'.
   f();
   d.call;
   o.call;
   //^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'call' isn't defined for the class 'Object'.
+  // [cfe] The getter 'call' isn't defined for the type 'Object'.
   f.call;
   d.call();
   o.call();
   //^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'call' isn't defined for the class 'Object'.
+  // [cfe] The method 'call' isn't defined for the type 'Object'.
   f.call();
 }
 

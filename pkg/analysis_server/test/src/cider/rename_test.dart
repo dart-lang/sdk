@@ -4,8 +4,9 @@
 
 import 'package:analysis_server/src/cider/rename.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,7 +46,7 @@ class ^Old {}
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'Old');
+    expect(refactor!.refactoringElement.element.name, 'Old');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -59,7 +60,7 @@ class A {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'bar');
+    expect(refactor!.refactoringElement.element.name, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -71,7 +72,7 @@ class A{
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, '_val');
+    expect(refactor!.refactoringElement.element.name, '_val');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -81,7 +82,7 @@ void ^foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'foo');
+    expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -97,7 +98,7 @@ void f() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, 'myLabel');
+    expect(refactor!.refactoringElement.element.name, 'myLabel');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -108,7 +109,7 @@ void foo() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'a');
+    expect(refactor!.refactoringElement.element.name, 'a');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -119,7 +120,7 @@ extension E on int {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'foo');
+    expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -141,7 +142,7 @@ void foo(int ^bar) {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.refactoringElement.element.name3, 'bar');
+    expect(refactor!.refactoringElement.element.name, 'bar');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -154,7 +155,7 @@ void f() {
 }
 ''');
 
-    expect(refactor!.refactoringElement.element.name3, 'test');
+    expect(refactor!.refactoringElement.element.name, 'test');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -927,14 +928,13 @@ void f(bar a) {}
   }
 
   void _updateFile(String content) {
-    var offset = content.indexOf('^');
-    expect(offset, isPositive, reason: 'Expected to find ^');
-    expect(content.indexOf('^', offset + 1), -1, reason: 'Expected only one ^');
+    var code = TestCode.parse(content);
+    var offset = code.position.offset;
 
-    var lineInfo = LineInfo.fromContent(content);
+    _testCode = code.code;
+    var lineInfo = LineInfo.fromContent(_testCode);
     var location = lineInfo.getLocation(offset);
 
-    _testCode = content.substring(0, offset) + content.substring(offset + 1);
     newFile(testPath, _testCode);
 
     _correctionContext = _CorrectionContext(

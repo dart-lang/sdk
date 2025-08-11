@@ -8,6 +8,7 @@
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -92,6 +93,24 @@ DEFINE_FLAG(bool,
             kDefaultTargetMemorySanitizer,
             "Generate Dart code compatible with Memory Sanitizer");
 #endif
+
+static bool IsMainOrDevChannel() {
+  return strstr("|main|dev|", Version::Channel()) != nullptr;
+}
+
+static void EnableExperimentSharedData(bool value) {
+  if (value && !IsMainOrDevChannel()) {
+    FATAL(
+        "Shared memory multithreading in only available for "
+        "experimentation in dev or main");
+  }
+  dart::FLAG_experimental_shared_data = value;
+}
+
+bool FLAG_experimental_shared_data = false;
+DEFINE_FLAG_HANDLER(EnableExperimentSharedData,
+                    experimental_shared_data,
+                    "Enable experiment to share data between isolates.");
 
 bool Flags::initialized_ = false;
 

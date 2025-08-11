@@ -190,25 +190,10 @@ class TypeHierarchySupertypesHandler
       }
 
       var location = ElementLocation.decode(data.ref);
-      var anchor = _toServerAnchor(data);
-      var calls = await computer.findSupertypes(location, anchor: anchor);
+      var calls = await computer.findSupertypes(location);
       var results = calls != null ? _convertItems(unit, calls) : null;
       return success(results);
     });
-  }
-
-  /// Reads the anchor from [data] (if available) and converts it to a server
-  /// [type_hierarchy.TypeHierarchyAnchor].
-  type_hierarchy.TypeHierarchyAnchor? _toServerAnchor(
-    TypeHierarchyItemInfo data,
-  ) {
-    var anchor = data.anchor;
-    return anchor != null
-        ? type_hierarchy.TypeHierarchyAnchor(
-          location: ElementLocation.decode(anchor.ref),
-          path: anchor.path,
-        )
-        : null;
   }
 }
 
@@ -224,24 +209,13 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     type_hierarchy.TypeHierarchyItem item,
     LineInfo lineInfo,
   ) {
-    var anchor =
-        item is type_hierarchy.TypeHierarchyRelatedItem ? item.anchor : null;
     return TypeHierarchyItem(
       name: item.displayName,
       kind: SymbolKind.Class,
       uri: uriConverter.toClientUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
-      data: TypeHierarchyItemInfo(
-        ref: item.location.encoding,
-        anchor:
-            anchor != null
-                ? TypeHierarchyAnchor(
-                  ref: anchor.location.encoding,
-                  path: anchor.path,
-                )
-                : null,
-      ),
+      data: TypeHierarchyItemInfo(ref: item.location.encoding),
     );
   }
 

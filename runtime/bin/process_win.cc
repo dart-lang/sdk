@@ -377,12 +377,13 @@ class ProcessStarter {
     child_process_handle_ = INVALID_HANDLE_VALUE;
 
     // Transform input strings to system format.
-    const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path_);
-    const wchar_t** system_arguments;
-    system_arguments = reinterpret_cast<const wchar_t**>(
-        Dart_ScopeAllocate(arguments_length * sizeof(*system_arguments)));
+    wchar_t* system_path = nullptr;
+    StringUtilsWin::Utf8ToWide(path_, &system_path);
+    wchar_t** system_arguments;
+    system_arguments = reinterpret_cast<wchar_t**>(
+        malloc(arguments_length * sizeof(*system_arguments)));
     for (int i = 0; i < arguments_length; i++) {
-      system_arguments[i] = StringUtilsWin::Utf8ToWide(arguments[i]);
+      StringUtilsWin::Utf8ToWide(arguments[i], &(system_arguments[i]));
     }
 
     // Compute command-line length.
@@ -395,7 +396,7 @@ class ProcessStarter {
 
     // Put together command-line string.
     command_line_ = reinterpret_cast<wchar_t*>(
-        Dart_ScopeAllocate(command_line_length * sizeof(*command_line_)));
+        malloc(command_line_length * sizeof(*command_line_)));
     int len = 0;
     int remaining = command_line_length;
     int written =
@@ -410,16 +411,21 @@ class ProcessStarter {
       remaining -= written;
       ASSERT(remaining >= 0);
     }
+    for (int i = 0; i < arguments_length; i++) {
+      free(system_arguments[i]);
+    }
+    free(system_arguments);
+    free(system_path);
 
     // Create environment block if an environment is supplied.
     environment_block_ = nullptr;
     if (environment != nullptr) {
       wchar_t** system_environment;
       system_environment = reinterpret_cast<wchar_t**>(
-          Dart_ScopeAllocate(environment_length * sizeof(*system_environment)));
+          malloc(environment_length * sizeof(*system_environment)));
       // Convert environment strings to system strings.
       for (intptr_t i = 0; i < environment_length; i++) {
-        system_environment[i] = StringUtilsWin::Utf8ToWide(environment[i]);
+        StringUtilsWin::Utf8ToWide(environment[i], &(system_environment[i]));
       }
 
       // An environment block is a sequence of zero-terminated strings
@@ -429,7 +435,7 @@ class ProcessStarter {
         block_size += wcslen(system_environment[i]) + 1;
       }
       environment_block_ = reinterpret_cast<wchar_t*>(
-          Dart_ScopeAllocate(block_size * sizeof(*environment_block_)));
+          malloc(block_size * sizeof(*environment_block_)));
       intptr_t block_index = 0;
       for (intptr_t i = 0; i < environment_length; i++) {
         intptr_t len = wcslen(system_environment[i]);
@@ -442,21 +448,28 @@ class ProcessStarter {
       // Block-terminating zero char.
       environment_block_[block_index++] = '\0';
       ASSERT(block_index == block_size);
+      for (intptr_t i = 0; i < environment_length; i++) {
+        free(system_environment[i]);
+      }
+      free(system_environment);
     }
 
     system_working_directory_ = nullptr;
     if (working_directory_ != nullptr) {
-      system_working_directory_ =
-          StringUtilsWin::Utf8ToWide(working_directory_);
+      StringUtilsWin::Utf8ToWide(working_directory_,
+                                 &system_working_directory_);
     }
-
     attribute_list_ = nullptr;
   }
 
   ~ProcessStarter() {
     if (attribute_list_ != nullptr) {
       DeleteProcThreadAttributeList(attribute_list_);
+      free(attribute_list_);
     }
+    free(command_line_);
+    free(environment_block_);
+    free(system_working_directory_);
   }
 
   int Start() {
@@ -485,8 +498,8 @@ class ProcessStarter {
           (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
         return CleanupAndReturnError();
       }
-      attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
-          Dart_ScopeAllocate(size));
+      attribute_list_ =
+          reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
       ZeroMemory(attribute_list_, size);
       if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
         return CleanupAndReturnError();
@@ -598,8 +611,8 @@ class ProcessStarter {
         (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
       return CleanupAndReturnError();
     }
-    attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
-        Dart_ScopeAllocate(size));
+    attribute_list_ =
+        reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
     ZeroMemory(attribute_list_, size);
     if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
       return CleanupAndReturnError();
@@ -701,7 +714,7 @@ class ProcessStarter {
   HANDLE exit_handles_[2];
   HANDLE child_process_handle_;
 
-  const wchar_t* system_working_directory_;
+  wchar_t* system_working_directory_;
   wchar_t* command_line_;
   wchar_t* environment_block_;
   std::vector<HANDLE> inherited_handles_;

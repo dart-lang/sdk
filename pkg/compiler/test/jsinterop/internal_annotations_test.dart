@@ -36,7 +36,8 @@ testClasses(String import1, String import2) async {
     CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: {
-        mainFile: """
+        mainFile:
+            """
 import '$import1' as js1;
 import '$import2' as js2;
 

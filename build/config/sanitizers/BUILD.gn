@@ -9,7 +9,7 @@ import("//build/config/sanitizers/sanitizers.gni")
 # |is_asan|, |is_lsan|, |is_tsan|, |is_msan| and |use_custom_libcxx| are false.
 group("deps") {
   deps = [ "//third_party/instrumented_libraries:deps" ]
-  if (is_asan || is_lsan || is_msan || is_tsan || is_ubsan) {
+  if (is_asan || is_hwasan || is_lsan || is_msan || is_tsan || is_ubsan) {
     public_configs = [ ":sanitizer_options_link_helper" ]
     deps += [ ":options_sources" ]
   }
@@ -22,6 +22,9 @@ config("sanitizer_options_link_helper") {
   ldflags = [ "-Wl,-u_sanitizer_options_link_helper" ]
   if (is_asan) {
     ldflags += [ "-fsanitize=address" ]
+  }
+  if (is_hwasan && is_android && current_cpu == "arm64") {
+    ldflags += [ "-fsanitize=hwaddress" ]
   }
   if (is_lsan) {
     ldflags += [ "-fsanitize=leak" ]

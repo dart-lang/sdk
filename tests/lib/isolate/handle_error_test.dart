@@ -47,25 +47,28 @@ main() {
         sendPort.send(state);
       };
     };
-    subscription = errors.listen(null, onError: (error, stack) {
-      switch (state) {
-        case 1:
-          Expect.equals(new ArgumentError("whoops").toString(), "$error");
-          state++;
-          sendPort.send(state);
-          break;
-        case 2:
-          Expect.equals(new RangeError.value(37).toString(), "$error");
-          state++;
-          sendPort.send(state);
-          reply.close();
-          subscription.cancel();
-          asyncEnd();
-          break;
-        default:
-          throw "Bad state for error: $state: $error";
-      }
-    });
+    subscription = errors.listen(
+      null,
+      onError: (error, stack) {
+        switch (state) {
+          case 1:
+            Expect.equals(new ArgumentError("whoops").toString(), "$error");
+            state++;
+            sendPort.send(state);
+            break;
+          case 2:
+            Expect.equals(new RangeError.value(37).toString(), "$error");
+            state++;
+            sendPort.send(state);
+            reply.close();
+            subscription.cancel();
+            asyncEnd();
+            break;
+          default:
+            throw "Bad state for error: $state: $error";
+        }
+      },
+    );
     isolate.resume(isolate.pauseCapability!);
   });
 }

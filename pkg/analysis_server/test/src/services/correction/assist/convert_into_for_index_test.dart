@@ -17,60 +17,60 @@ void main() {
 @reflectiveTest
 class ConvertIntoForIndexTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
+  AssistKind get kind => DartAssistKind.convertIntoForIndex;
 
   Future<void> test_bodyNotBlock() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) print(item);
+  f^or (String item in items) print(item);
 }
 ''');
-    await assertNoAssistAt('for (String');
+    await assertNoAssist();
   }
 
   Future<void> test_doesNotDeclareVariable() async {
     await resolveTestCode('''
 void f(List<String> items) {
   String item;
-  for (item in items) {
+  ^for (item in items) {
     print(item);
   }
 }
 ''');
-    await assertNoAssistAt('for (item');
+    await assertNoAssist();
   }
 
   Future<void> test_iterableIsNotVariable() async {
     await resolveTestCode('''
 void f() {
-  for (String item in ['a', 'b', 'c']) {
+  fo^r (String item in ['a', 'b', 'c']) {
     print(item);
   }
 }
 ''');
-    await assertNoAssistAt('for (String');
+    await assertNoAssist();
   }
 
   Future<void> test_iterableNotList() async {
     await resolveTestCode('''
 void f(Iterable<String> items) {
-  for (String item in items) {
+  ^for (String item in items) {
     print(item);
   }
 }
 ''');
-    await assertNoAssistAt('for (String');
+    await assertNoAssist();
   }
 
   Future<void> test_onDeclaredIdentifier_name() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  for (String ^item in items) {
     print(item);
   }
 }
 ''');
-    await assertHasAssistAt('item in', '''
+    await assertHasAssist('''
 void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
@@ -83,12 +83,12 @@ void f(List<String> items) {
   Future<void> test_onDeclaredIdentifier_type() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  for (S^tring item in items) {
     print(item);
   }
 }
 ''');
-    await assertHasAssistAt('tring item', '''
+    await assertHasAssist('''
 void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
@@ -101,12 +101,12 @@ void f(List<String> items) {
   Future<void> test_onFor() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  f^or (String item in items) {
     print(item);
   }
 }
 ''');
-    await assertHasAssistAt('for (String', '''
+    await assertHasAssist('''
 void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
@@ -119,12 +119,12 @@ void f(List<String> items) {
   Future<void> test_usesI() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  fo^r (String item in items) {
     int i = 0;
   }
 }
 ''');
-    await assertHasAssistAt('for (String', '''
+    await assertHasAssist('''
 void f(List<String> items) {
   for (int j = 0; j < items.length; j++) {
     String item = items[j];
@@ -137,13 +137,13 @@ void f(List<String> items) {
   Future<void> test_usesIJ() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  fo^r (String item in items) {
     print(item);
     int i = 0, j = 1;
   }
 }
 ''');
-    await assertHasAssistAt('for (String', '''
+    await assertHasAssist('''
 void f(List<String> items) {
   for (int k = 0; k < items.length; k++) {
     String item = items[k];
@@ -157,12 +157,12 @@ void f(List<String> items) {
   Future<void> test_usesIJK() async {
     await resolveTestCode('''
 void f(List<String> items) {
-  for (String item in items) {
+  ^for (String item in items) {
     print(item);
     int i, j, k;
   }
 }
 ''');
-    await assertNoAssistAt('for (String');
+    await assertNoAssist();
   }
 }

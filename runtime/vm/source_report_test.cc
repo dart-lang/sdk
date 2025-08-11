@@ -10,15 +10,11 @@ namespace dart {
 
 #ifndef PRODUCT
 
-static ObjectPtr ExecuteScript(const char* script, bool allow_errors = false) {
+static ObjectPtr ExecuteScript(const char* script) {
   Dart_Handle lib;
   {
     TransitionVMToNative transition(Thread::Current());
-    if (allow_errors) {
-      lib = TestCase::LoadTestScriptWithErrors(script, nullptr);
-    } else {
-      lib = TestCase::LoadTestScript(script, nullptr);
-    }
+    lib = TestCase::LoadTestScript(script, nullptr);
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -300,59 +296,6 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
       // UnusedClass.helper1 is compiled.
       "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":53,\"compiled\":true,"
       "\"coverage\":{\"hits\":[],\"misses\":[30,42]}},"
-
-      // helper0 is compiled.
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
-
-      // One range with two hits (main).
-      "{\"scriptIndex\":0,\"startPos\":57,\"endPos\":79,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[57,68],\"misses\":[]}}],"
-
-      // Only one script in the script table.
-      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
-      buffer);
-}
-
-ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
-  // WARNING: This MUST be big enough for the serialized JSON string.
-  const int kBufferSize = 1024;
-  char buffer[kBufferSize];
-  const char* kScript =
-      "helper0() {}\n"
-      "class Unused {\n"
-      "  helper1() { helper0()+ }\n"  // syntax error
-      "}\n"
-      "main() {\n"
-      "  helper0();\n"
-      "}";
-
-  Library& lib = Library::Handle();
-  lib ^= ExecuteScript(kScript, true);
-  ASSERT(!lib.IsNull());
-  const Script& script =
-      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
-
-  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
-  JSONStream js;
-  js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
-  report.PrintJSON(&js, script);
-  const char* json_str = js.ToCString();
-  ASSERT(strlen(json_str) < kBufferSize);
-  ElideJSONSubstring("classes", json_str, buffer);
-  ElideJSONSubstring("libraries", buffer, buffer);
-  EXPECT_STREQ(
-      "{\"type\":\"SourceReport\",\"ranges\":["
-
-      // UnusedClass has a syntax error.
-      "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":53,\"compiled\":false,"
-      "\"error\":{\"type\":\"@Error\",\"_vmType\":\"LanguageError\","
-      "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\\/0\","
-      "\"message\":\"'file:\\/\\/\\/test-lib': error: "
-      "\\/test-lib:3:26: "
-      "Error: This couldn't be parsed.\\n"
-      "  helper1() { helper0()+ }\\n                         ^\"}},"
 
       // helper0 is compiled.
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
@@ -1584,6 +1527,129 @@ main() {
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_constConstructor) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+abstract class SuperClass {
+  const SuperClass();
+}
+
+class Class extends SuperClass {
+  const Class() :
+      super();
+  int method() => 123;
+}
+
+main() {
+  const Class().method();
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // The super class constructor is hit.
+      "{\"scriptIndex\":0,\"startPos\":31,\"endPos\":49,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[31],\"misses\":[]}},"
+
+      // The class constructor is hit, as well as the super() call.
+      "{\"scriptIndex\":0,\"startPos\":89,\"endPos\":118,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[89,111],\"misses\":[]}},"
+
+      // The method is called.
+      "{\"scriptIndex\":0,\"startPos\":122,\"endPos\":141,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[122],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":146,\"endPos\":181,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[146,171],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_constConstructor) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+abstract class SuperClass {
+  const SuperClass();
+}
+
+class Class extends SuperClass {
+  const Class() :
+      super();
+  int method() => 123;
+}
+
+main() {
+  const Class().method();
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage,
+                      SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // The super class constructor is hit.
+      "{\"scriptIndex\":0,\"startPos\":31,\"endPos\":49,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[31],\"misses\":[]}},"
+
+      // The class constructor is hit.
+      "{\"scriptIndex\":0,\"startPos\":89,\"endPos\":118,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[89],\"misses\":[]}},"
+
+      // The method is called.
+      "{\"scriptIndex\":0,\"startPos\":122,\"endPos\":141,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[122],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":146,\"endPos\":181,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[146],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\""
+      "uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 

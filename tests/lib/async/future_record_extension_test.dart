@@ -36,8 +36,10 @@ void main() async {
     try {
       await (fi, fbe).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(int?, bool?),
-        (AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<(int?, bool?), (AsyncError?, AsyncError?)> catch (
+      e,
+      s
+    ) {
       Expect.equals((2, null), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(be, e.errors.$2?.error);
@@ -50,8 +52,10 @@ void main() async {
     try {
       await (fie, fbe).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(int?, bool?),
-        (AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<(int?, bool?), (AsyncError?, AsyncError?)> catch (
+      e,
+      s
+    ) {
       Expect.equals((null, null), e.values);
       Expect.equals(ie, e.errors.$1?.error);
       Expect.equals(be, e.errors.$2?.error);
@@ -72,8 +76,10 @@ void main() async {
     try {
       await (fb, fse, fi).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(bool?, String?, int?),
-        (AsyncError?, AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<
+      (bool?, String?, int?),
+      (AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals((true, null, 2), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(se, e.errors.$2?.error);
@@ -87,8 +93,10 @@ void main() async {
     try {
       await (fbe, fse, fie).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(bool?, String?, int?),
-        (AsyncError?, AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<
+      (bool?, String?, int?),
+      (AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals((null, null, null), e.values);
       Expect.equals(be, e.errors.$1?.error);
       Expect.equals(se, e.errors.$2?.error);
@@ -110,8 +118,10 @@ void main() async {
     try {
       await (fs, fie, fb, fse).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(String?, int?, bool?, String?),
-        (AsyncError?, AsyncError?, AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<
+      (String?, int?, bool?, String?),
+      (AsyncError?, AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals(("s", null, true, null), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(ie, e.errors.$2?.error);
@@ -126,8 +136,10 @@ void main() async {
     try {
       await (fse, fie, fbe, fse).wait;
       Expect.fail("Did not throw");
-    } on ParallelWaitError<(String?, int?, bool?, String?),
-        (AsyncError?, AsyncError?, AsyncError?, AsyncError?)> catch (e, s) {
+    } on ParallelWaitError<
+      (String?, int?, bool?, String?),
+      (AsyncError?, AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals((null, null, null, null), e.values);
       Expect.equals(se, e.errors.$1?.error);
       Expect.equals(ie, e.errors.$2?.error);
@@ -151,14 +163,9 @@ void main() async {
       await (fi, fbe, fs, fie, fb).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (int?, bool?, String?, int?, bool?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (int?, bool?, String?, int?, bool?),
+      (AsyncError?, AsyncError?, AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals((2, null, "s", null, true), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(be, e.errors.$2?.error);
@@ -175,14 +182,9 @@ void main() async {
       await (fie, fbe, fse, fie, fbe).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (int?, bool?, String?, int?, bool?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (int?, bool?, String?, int?, bool?),
+      (AsyncError?, AsyncError?, AsyncError?, AsyncError?, AsyncError?)
+    > catch (e, s) {
       Expect.equals((null, null, null, null, null), e.values);
       Expect.equals(ie, e.errors.$1?.error);
       Expect.equals(be, e.errors.$2?.error);
@@ -207,15 +209,16 @@ void main() async {
       await (fb, fse, fi, fbe, fs, fie).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (bool?, String?, int?, bool?, String?, int?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (bool?, String?, int?, bool?, String?, int?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((true, null, 2, null, "s", null), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(se, e.errors.$2?.error);
@@ -233,15 +236,16 @@ void main() async {
       await (fbe, fse, fie, fbe, fse, fie).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (bool?, String?, int?, bool?, String?, int?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (bool?, String?, int?, bool?, String?, int?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((null, null, null, null, null, null), e.values);
       Expect.equals(be, e.errors.$1?.error);
       Expect.equals(se, e.errors.$2?.error);
@@ -267,16 +271,17 @@ void main() async {
       await (fs, fie, fb, fse, fi, fbe, fs).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (String?, int?, bool?, String?, int?, bool?, String?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (String?, int?, bool?, String?, int?, bool?, String?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals(("s", null, true, null, 2, null, "s"), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(ie, e.errors.$2?.error);
@@ -295,16 +300,17 @@ void main() async {
       await (fse, fie, fbe, fse, fie, fbe, fse).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (String?, int?, bool?, String?, int?, bool?, String?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (String?, int?, bool?, String?, int?, bool?, String?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((null, null, null, null, null, null, null), e.values);
       Expect.equals(se, e.errors.$1?.error);
       Expect.equals(ie, e.errors.$2?.error);
@@ -331,17 +337,18 @@ void main() async {
       await (fi, fbe, fs, fie, fb, fse, fi, fbe).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (int?, bool?, String?, int?, bool?, String?, int?, bool?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (int?, bool?, String?, int?, bool?, String?, int?, bool?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((2, null, "s", null, true, null, 2, null), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(be, e.errors.$2?.error);
@@ -361,17 +368,18 @@ void main() async {
       await (fie, fbe, fse, fie, fbe, fse, fie, fbe).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (int?, bool?, String?, int?, bool?, String?, int?, bool?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (int?, bool?, String?, int?, bool?, String?, int?, bool?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((null, null, null, null, null, null, null, null), e.values);
       Expect.equals(ie, e.errors.$1?.error);
       Expect.equals(be, e.errors.$2?.error);
@@ -399,18 +407,19 @@ void main() async {
       await (fb, fse, fi, fbe, fs, fie, fb, fse, fi).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (bool?, String?, int?, bool?, String?, int?, bool?, String?, int?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
+      (bool?, String?, int?, bool?, String?, int?, bool?, String?, int?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
       Expect.equals((true, null, 2, null, "s", null, true, null, 2), e.values);
       Expect.isNull(e.errors.$1);
       Expect.equals(se, e.errors.$2?.error);
@@ -431,20 +440,30 @@ void main() async {
       await (fbe, fse, fie, fbe, fse, fie, fbe, fse, fie).wait;
       Expect.fail("Did not throw");
     } on ParallelWaitError<
-        (bool?, String?, int?, bool?, String?, int?, bool?, String?, int?),
-        (
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?,
-          AsyncError?
-        )> catch (e, s) {
-      Expect.equals(
-          (null, null, null, null, null, null, null, null, null), e.values);
+      (bool?, String?, int?, bool?, String?, int?, bool?, String?, int?),
+      (
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+        AsyncError?,
+      )
+    > catch (e, s) {
+      Expect.equals((
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      ), e.values);
       Expect.equals(be, e.errors.$1?.error);
       Expect.equals(se, e.errors.$2?.error);
       Expect.equals(ie, e.errors.$3?.error);
@@ -464,7 +483,10 @@ void main() async {
 }
 
 void checkDefaultError(
-    ParallelWaitError error, int errorCount, List<Object> expectedErrors) {
+  ParallelWaitError error,
+  int errorCount,
+  List<Object> expectedErrors,
+) {
   var toString = error.toString();
   if (errorCount > 1) {
     Expect.contains("ParallelWaitError($errorCount errors):", toString);

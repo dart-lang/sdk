@@ -57,6 +57,17 @@ library;
 //   int get getter1c;
 //           ^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/override_inference.dart:136:12: Error: Can't infer a return type for 'setter1c' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   void set setter1c(x); // error
+//            ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:33:12: Context: This is one of the overridden members.
+//   void set setter1c(String x);
+//            ^^^^^^^^
+// pkg/front_end/testcases/nnbd/override_inference.dart:85:12: Context: This is one of the overridden members.
+//   void set setter1c(int x);
+//            ^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/override_inference.dart:142:9: Error: Can't infer a type for 'field1c' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   final field1c = null; // error
@@ -112,17 +123,6 @@ library;
 // pkg/front_end/testcases/nnbd/override_inference.dart:108:12: Context: This is one of the overridden members.
 //   void set field4b(Object? value);
 //            ^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/override_inference.dart:136:12: Error: Can't infer a return type for 'setter1c' as the overridden members don't have a combined signature.
-// Try adding an explicit type.
-//   void set setter1c(x); // error
-//            ^^^^^^^^
-// pkg/front_end/testcases/nnbd/override_inference.dart:33:12: Context: This is one of the overridden members.
-//   void set setter1c(String x);
-//            ^^^^^^^^
-// pkg/front_end/testcases/nnbd/override_inference.dart:85:12: Context: This is one of the overridden members.
-//   void set setter1c(int x);
-//            ^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/override_inference.dart:111:16: Error: Class 'C' inherits multiple members named 'field2c' with incompatible signatures.
 // Try adding a declaration of 'field2c' to 'C'.
@@ -272,9 +272,9 @@ abstract class C extends core::Object implements self::A<core::int>, self::B<cor
   abstract set setter1c(invalid-type x) → void;
   abstract set setter1d(core::String x) → void;
   abstract set setter1e(core::Object x) → void;
-  abstract member-signature set getter1d(core::Object x) → void; -> self::B::getter1d
-  abstract member-signature set getter1e(core::Object x) → void; -> self::B::getter1e
-  abstract member-signature set field2a(core::num? value) → void; -> self::B::field2a
+  abstract synthetic member-signature set getter1d(core::Object x) → void; -> self::B::getter1d
+  abstract synthetic member-signature set getter1e(core::Object x) → void; -> self::B::getter1e
+  abstract synthetic member-signature set field2a(core::num? value) → void; -> self::B::field2a
 }
 static method main() → dynamic
   ;

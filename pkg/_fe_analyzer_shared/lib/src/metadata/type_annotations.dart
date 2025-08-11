@@ -19,8 +19,9 @@ sealed class TypeAnnotation {
   /// the [FunctionTypeParameter]s in the returned [TypeAnnotation]. This is
   /// needed because [FunctionTypeParameter] contains its bound, which itself
   /// might be resolved in the process.
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}});
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  });
 }
 
 class NamedTypeAnnotation extends TypeAnnotation {
@@ -33,10 +34,12 @@ class NamedTypeAnnotation extends TypeAnnotation {
   String toString() => 'NamedTypeAnnotation($reference,$typeArguments)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((a) => a.resolve(env: env));
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (a) => a.resolve(env: env),
+    );
     return newTypeArguments == null
         ? null
         : new NamedTypeAnnotation(reference, newTypeArguments);
@@ -52,8 +55,9 @@ class NullableTypeAnnotation extends TypeAnnotation {
   String toString() => 'NullableTypeAnnotation($typeAnnotation)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
     TypeAnnotation? newTypeAnnotation = typeAnnotation.resolve(env: env);
     return newTypeAnnotation == null
         ? null
@@ -70,9 +74,9 @@ class VoidTypeAnnotation extends TypeAnnotation {
   String toString() => 'VoidTypeAnnotation()';
 
   @override
-  TypeAnnotation? resolve(
-          {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) =>
-      null;
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) => null;
 }
 
 class DynamicTypeAnnotation extends TypeAnnotation {
@@ -84,9 +88,9 @@ class DynamicTypeAnnotation extends TypeAnnotation {
   String toString() => 'DynamicTypeAnnotation()';
 
   @override
-  TypeAnnotation? resolve(
-          {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) =>
-      null;
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) => null;
 }
 
 class InvalidTypeAnnotation extends TypeAnnotation {
@@ -96,9 +100,9 @@ class InvalidTypeAnnotation extends TypeAnnotation {
   String toString() => 'InvalidTypeAnnotation()';
 
   @override
-  TypeAnnotation? resolve(
-          {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) =>
-      null;
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) => null;
 }
 
 class UnresolvedTypeAnnotation extends TypeAnnotation {
@@ -110,8 +114,9 @@ class UnresolvedTypeAnnotation extends TypeAnnotation {
   String toString() => 'UnresolvedTypeAnnotation($unresolved)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
     return unresolved.resolveAsTypeAnnotation();
   }
 }
@@ -132,8 +137,9 @@ class FunctionTypeAnnotation extends TypeAnnotation {
       'FunctionTypeAnnotation($returnType,$typeParameters,$formalParameters)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
     bool needsNewTypeParameters = false;
     for (FunctionTypeParameter typeParameter in typeParameters) {
       if (typeParameter.bound?.resolve(env: env) != null) {
@@ -150,8 +156,9 @@ class FunctionTypeAnnotation extends TypeAnnotation {
       resolvedTypeParameters = [];
       env = {...env};
       for (FunctionTypeParameter typeParameter in typeParameters) {
-        FunctionTypeParameter resolvedTypeParameter =
-            new FunctionTypeParameter(typeParameter.name);
+        FunctionTypeParameter resolvedTypeParameter = new FunctionTypeParameter(
+          typeParameter.name,
+        );
         env[typeParameter] = resolvedTypeParameter;
         resolvedTypeParameters.add(resolvedTypeParameter);
       }
@@ -162,20 +169,22 @@ class FunctionTypeAnnotation extends TypeAnnotation {
             typeParameter.bound?.resolve(env: env) ?? typeParameter.bound;
         resolvedTypeParameter.metadata =
             typeParameter.metadata?.resolve((e) => e.resolve()) ??
-                typeParameter.metadata;
+            typeParameter.metadata;
       }
     }
     TypeAnnotation? resolvedReturnType = returnType?.resolve();
-    List<FormalParameter>? resolvedFormalParameters =
-        formalParameters.resolve((a) => a.resolve());
+    List<FormalParameter>? resolvedFormalParameters = formalParameters.resolve(
+      (a) => a.resolve(),
+    );
     return resolvedReturnType == null &&
             resolvedFormalParameters == null &&
             resolvedTypeParameters == null
         ? null
         : new FunctionTypeAnnotation(
-            resolvedReturnType ?? returnType,
-            resolvedTypeParameters ?? typeParameters,
-            resolvedFormalParameters ?? formalParameters);
+          resolvedReturnType ?? returnType,
+          resolvedTypeParameters ?? typeParameters,
+          resolvedFormalParameters ?? formalParameters,
+        );
   }
 }
 
@@ -199,8 +208,9 @@ class FunctionTypeParameterType extends TypeAnnotation {
   String toString() => 'FunctionTypeParameterType($functionTypeParameter)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
     FunctionTypeParameter? resolvedFunctionTypeParameter =
         env[functionTypeParameter];
     return resolvedFunctionTypeParameter == null
@@ -219,16 +229,21 @@ class RecordTypeAnnotation extends TypeAnnotation {
   String toString() => 'FunctionTypeParameterType($positional,$named)';
 
   @override
-  TypeAnnotation? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
-    List<RecordTypeEntry>? resolvedPositional =
-        positional.resolve((e) => e.resolve(env: env));
-    List<RecordTypeEntry>? resolvedNamed =
-        named.resolve((e) => e.resolve(env: env));
+  TypeAnnotation? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
+    List<RecordTypeEntry>? resolvedPositional = positional.resolve(
+      (e) => e.resolve(env: env),
+    );
+    List<RecordTypeEntry>? resolvedNamed = named.resolve(
+      (e) => e.resolve(env: env),
+    );
     return resolvedPositional == null && resolvedNamed == null
         ? null
         : new RecordTypeAnnotation(
-            resolvedPositional ?? positional, resolvedNamed ?? named);
+          resolvedPositional ?? positional,
+          resolvedNamed ?? named,
+        );
   }
 }
 
@@ -239,14 +254,18 @@ class RecordTypeEntry {
 
   RecordTypeEntry(this.metadata, this.typeAnnotation, this.name);
 
-  RecordTypeEntry? resolve(
-      {Map<FunctionTypeParameter, FunctionTypeParameter> env = const {}}) {
+  RecordTypeEntry? resolve({
+    Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},
+  }) {
     List<Expression>? resolvedMetadata = metadata.resolve((e) => e.resolve());
     TypeAnnotation? resolvedTypeAnnotation = typeAnnotation.resolve(env: env);
     return resolvedMetadata == null && resolvedTypeAnnotation == null
         ? null
-        : new RecordTypeEntry(resolvedMetadata ?? metadata,
-            resolvedTypeAnnotation ?? typeAnnotation, name);
+        : new RecordTypeEntry(
+          resolvedMetadata ?? metadata,
+          resolvedTypeAnnotation ?? typeAnnotation,
+          name,
+        );
   }
 
   @override

@@ -25,45 +25,58 @@ a.Future? f(int a) {
   }
 
   test_local_variable_type_inside_function_with_shadowing_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async' as a;
 f(int a) {
   a.Future? x = null;
   return x;
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 39, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 39, 1),
+      ],
+    );
   }
 
   test_local_variable_type_inside_function_with_shadowing_variable_after() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async' as a;
 f() {
   a.Future? x = null;
   int a = 0;
   return [x, a];
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message(testFile, 60, 1)]),
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          34,
+          1,
+          contextMessages: [message(testFile, 60, 1)],
+        ),
+        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
+      ],
+    );
   }
 
   test_local_variable_type_inside_function_with_shadowing_variable_before() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async' as a;
 f() {
   int a = 0;
   a.Future? x = null;
   return [x, a];
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 47, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 47, 1),
+      ],
+    );
   }
 }

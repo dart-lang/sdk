@@ -24,22 +24,29 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
       } else {
         client.close();
       }
-      client.done.then((_) {
-        if (!useDestroy) client.destroy();
-      }).catchError((e) {/* can happen with short writes */});
+      client.done
+          .then((_) {
+            if (!useDestroy) client.destroy();
+          })
+          .catchError((e) {
+            /* can happen with short writes */
+          });
     });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       List<int> data = [];
       bool onDoneCalled = false;
       var subscription;
-      subscription = socket.listen((_) {
-        subscription.cancel();
-        socket.close();
-        server.close();
-        asyncEnd();
-      }, onDone: () {
-        Expect.fail("Unexpected pipe completion");
-      });
+      subscription = socket.listen(
+        (_) {
+          subscription.cancel();
+          socket.close();
+          server.close();
+          asyncEnd();
+        },
+        onDone: () {
+          Expect.fail("Unexpected pipe completion");
+        },
+      );
     });
   });
 }

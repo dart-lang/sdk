@@ -140,14 +140,20 @@ main() {
   Expect.equals("bB", confuse(t1b).foo(), 't1b is T1B');
   Expect.equals("cC", confuse(t1c).foo(), 't1c is T1C');
   Expect.equals("dD", confuse(t1d).foo(), 't1d is T1D');
-  Expect.equals(2, getTagCallCount(),
-      '2 = 1 fresh instance + 1 uncached (+ 2 proto cached)');
+  Expect.equals(
+    2,
+    getTagCallCount(),
+    '2 = 1 fresh instance + 1 uncached (+ 2 proto cached)',
+  );
 
   clearTagCallCount();
   Expect.equals("aA", confuse(t1a).foo(), 't1a is T1A');
   Expect.equals("bB", confuse(t1b).foo(), 't1b is T1B');
   Expect.equals("cC", confuse(t1c).foo(), 't1c is T1C');
   Expect.equals("dD", confuse(t1d).foo(), 't1d is T1D');
-  Expect.equals(1, getTagCallCount(),
-      '1 = 2 proto cached + 1 instance cached + 1 uncached');
+  Expect.equals(
+    1,
+    getTagCallCount(),
+    '1 = 2 proto cached + 1 instance cached + 1 uncached',
+  );
 }

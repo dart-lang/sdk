@@ -15,22 +15,25 @@ dependencies:
   analyzer: any
   args: any
   cli_util: any
+  code_assets: any
   collection: any
   dart2native: any
+  dart_mcp_server: any
   dart_style: any
   dartdoc: any
+  data_assets: any
   dds: any
   dds_service_extensions: any
   dtd_impl: any
   file: any
   front_end: any
   frontend_server: any
+  hooks: any
+  hooks_runner: any
   http: any
   kernel: any
   logging: any
   meta: any
-  native_assets_builder: any
-  native_assets_cli: any
   package_config: any
   path: any
   pub: any
@@ -41,7 +44,9 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  dart_mcp: any
   expect: any
   lints: any
   pub_semver: any
   test: any
+  yaml_edit: any

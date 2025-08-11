@@ -58,7 +58,8 @@ class EntryPointShimWriter {
     definitions.write('''
 #include "${path.basename(_headerPath)}"
 
-#include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -68,9 +69,9 @@ namespace {
 
 Dart_Handle CheckError(Dart_Handle handle, std::string_view context = "") {
   if (Dart_IsError(handle)) {
-    std::cerr << "Error " << context << ": " << Dart_GetError(handle)
-              << std::endl;
-    std::exit(1);
+    std::string context_str(context);
+    fprintf(stderr, "Error %s: %s\\n", context_str.c_str(), Dart_GetError(handle));
+    exit(1);
   }
   return handle;
 }
@@ -79,8 +80,8 @@ int64_t IntFromHandle(Dart_Handle handle) {
   CheckError(handle, "IntFromHandle received an error");
 
   if (!Dart_IsInteger(handle)) {
-    std::cerr << "IntFromHandle handle is not an int" << std::endl;
-    std::exit(1);
+    fprintf(stderr, "IntFromHandle handle is not an int\\n");
+    exit(1);
   }
 
   int64_t result;
@@ -93,8 +94,8 @@ double DoubleFromHandle(Dart_Handle handle) {
   CheckError(handle, "DoubleFromHandle received an error");
 
   if (!Dart_IsDouble(handle)) {
-    std::cerr << "DoubleFromHandle handle is not an double" << std::endl;
-    std::exit(1);
+    fprintf(stderr, "DoubleFromHandle handle is not a double\\n");
+    exit(1);
   }
 
   double result;
@@ -119,7 +120,7 @@ class PackageState {
       definitions.write('Dart_RootLibrary()');
     } else {
       definitions.write(
-        'Dart_LoadLibrary(Dart_NewStringFromCString(kLibraryUri))',
+        'Dart_LookupLibrary(Dart_NewStringFromCString(kLibraryUri))',
       );
     }
     definitions.writeln(''';

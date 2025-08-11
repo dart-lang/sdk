@@ -11,15 +11,18 @@ var log = [];
 
 main() {
   asyncStart();
-  runZoned(() {
-    dynamic d = new AsyncDoEvent();
-    return d.doEvent();
-  }, zoneSpecification: new ZoneSpecification(
-    scheduleMicrotask: (self, parent, zone, fn) {
-      log.add('scheduleMicrotask()');
-      return parent.scheduleMicrotask(zone, fn);
+  runZoned(
+    () {
+      dynamic d = new AsyncDoEvent();
+      return d.doEvent();
     },
-  )).then((_) {
+    zoneSpecification: new ZoneSpecification(
+      scheduleMicrotask: (self, parent, zone, fn) {
+        log.add('scheduleMicrotask()');
+        return parent.scheduleMicrotask(zone, fn);
+      },
+    ),
+  ).then((_) {
     Expect.listEquals(log, ['doEvent()', 'scheduleMicrotask()']);
     asyncEnd();
   });

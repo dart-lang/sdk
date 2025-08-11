@@ -11,29 +11,35 @@ import 'dart:typed_data';
 main() {
   test('readAsText', () {
     var reader = new FileReader();
-    reader.onLoad.listen(expectAsync((event) {
-      var result = reader.result;
-      expect(result, equals('hello world'));
-    }));
+    reader.onLoad.listen(
+      expectAsync((event) {
+        var result = reader.result;
+        expect(result, equals('hello world'));
+      }),
+    );
     reader.readAsText(new Blob(['hello ', 'world']));
   });
 
   test('readAsArrayBuffer', () {
     var reader = new FileReader();
-    reader.onLoad.listen(expectAsync((event) {
-      var result = reader.result;
-      expect(result is Uint8List, isTrue);
-      expect(result, equals([65, 66, 67]));
-    }));
+    reader.onLoad.listen(
+      expectAsync((event) {
+        var result = reader.result;
+        expect(result is Uint8List, isTrue);
+        expect(result, equals([65, 66, 67]));
+      }),
+    );
     reader.readAsArrayBuffer(new Blob(['ABC']));
   });
 
   test('readDataUrl', () {
     var reader = new FileReader();
-    reader.onLoad.listen(expectAsync((event) {
-      String result = reader.result as String;
-      expect(result.startsWith('data:'), isTrue);
-    }));
+    reader.onLoad.listen(
+      expectAsync((event) {
+        String result = reader.result as String;
+        expect(result.startsWith('data:'), isTrue);
+      }),
+    );
     reader.readAsDataUrl(new Blob(['ABC']));
   });
 }

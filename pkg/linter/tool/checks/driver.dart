@@ -6,7 +6,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -32,7 +32,7 @@ Future<void> main() async {
 
 var customChecks = [VisitRegisteredNodes(), NoSoloTests(), NoTrailingSpaces()];
 
-Future<List<AnalysisError>> runChecks() async {
+Future<List<Diagnostic>> runChecks() async {
   var rules = path.normalize(
     io.File(path.join('lib', 'src', 'rules')).absolute.path,
   );
@@ -49,7 +49,7 @@ class Driver {
 
   Driver(this.lints, {this.silent = true});
 
-  Future<List<AnalysisError>> analyze(List<String> sources) async {
+  Future<List<Diagnostic>> analyze(List<String> sources) async {
     if (sources.isEmpty) {
       _print('Specify one or more files and directories.');
       return [];
@@ -60,7 +60,7 @@ class Driver {
     return failedChecks;
   }
 
-  Future<List<AnalysisError>> _analyzeFiles(
+  Future<List<Diagnostic>> _analyzeFiles(
     ResourceProvider resourceProvider,
     List<String> analysisRoots,
   ) async {
@@ -70,7 +70,7 @@ class Driver {
     lints.forEach(Registry.ruleRegistry.registerLintRule);
 
     // Track failures.
-    var failedChecks = <AnalysisError>{};
+    var failedChecks = <Diagnostic>{};
 
     for (var root in analysisRoots) {
       var collection = AnalysisContextCollection(
@@ -78,7 +78,7 @@ class Driver {
         resourceProvider: resourceProvider,
       );
 
-      var errors = <AnalysisErrorInfo>[];
+      var errors = <DiagnosticInfo>[];
 
       for (var context in collection.contexts) {
         // Add lints.
@@ -96,11 +96,11 @@ class Driver {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
                 var filtered =
-                    result.errors
-                        .where((e) => e.errorCode.name != 'TODO')
+                    result.diagnostics
+                        .where((e) => e.diagnosticCode.name != 'TODO')
                         .toList();
                 if (filtered.isNotEmpty) {
-                  errors.add(AnalysisErrorInfo(filtered, result.lineInfo));
+                  errors.add(DiagnosticInfo(filtered, result.lineInfo));
                 }
               }
             } on Exception catch (e) {
@@ -113,7 +113,7 @@ class Driver {
       ReportFormatter(errors, silent ? MockIOSink() : io.stdout).write();
 
       for (var info in errors) {
-        failedChecks.addAll(info.errors);
+        failedChecks.addAll(info.diagnostics);
       }
     }
 

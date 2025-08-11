@@ -384,7 +384,11 @@ unresolved=UnresolvedExpression(UnresolvedInvoke(
 resolved=StringLiteral('a${UnresolvedExpression(UnresolvedIdentifier(constInt))}b')*/
 void literals2() {}
 
-@Helper('a' 'b${constInt}' 'c')
+@Helper(
+  'a'
+  'b${constInt}'
+  'c',
+)
 /*member: literals3:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -882,8 +886,12 @@ resolved=UnresolvedExpression(UnresolvedInvoke(
   ()))*/
 void constructorInvocations10() {}
 
-@Helper(self
-    .GenericClass<GenericClass?, self.GenericClass<Class, self.Class?>>.named())
+@Helper(
+  self.GenericClass<
+    GenericClass?,
+    self.GenericClass<Class, self.Class?>
+  >.named(),
+)
 /*member: constructorInvocations11:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -1061,8 +1069,12 @@ resolved=UnresolvedExpression(UnresolvedInvoke(
   ()))*/
 void constructorInvocations22() {}
 
-@Helper(const self
-    .GenericClass<GenericClass?, self.GenericClass<Class, self.Class?>>.named())
+@Helper(
+  const self.GenericClass<
+    GenericClass?,
+    self.GenericClass<Class, self.Class?>
+  >.named(),
+)
 /*member: constructorInvocations23:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -1638,7 +1650,7 @@ void mapLiterals8() {}
 @Helper(<int, int>{
   0: 0,
   1: 1,
-  ...{2: 2, 3: constInt}
+  ...{2: 2, 3: constInt},
 })
 /*member: mapLiterals9:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
@@ -1752,8 +1764,9 @@ unresolved=UnresolvedExpression(UnresolvedInvoke(
 resolved=SetOrMapLiteral(<{unresolved-type-annotation:UnresolvedIdentifier(UnresolvedClass)},{unresolved-type-annotation:UnresolvedIdentifier(UnresolvedClass)}>{})*/
 void mapLiterals16() {}
 
-@Helper(
-    const <UnresolvedGenericClass, self.UnresolvedGenericClass>{0: constInt})
+@Helper(const <UnresolvedGenericClass, self.UnresolvedGenericClass>{
+  0: constInt,
+})
 /*member: mapLiterals17:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -1762,8 +1775,10 @@ unresolved=UnresolvedExpression(UnresolvedInvoke(
 resolved=SetOrMapLiteral(<{unresolved-type-annotation:UnresolvedIdentifier(UnresolvedGenericClass)},{unresolved-type-annotation:UnresolvedIdentifier(UnresolvedGenericClass)}>{MapEntryElement(IntegerLiteral(0):UnresolvedExpression(UnresolvedIdentifier(constInt)))})*/
 void mapLiterals17() {}
 
-@Helper(const <UnresolvedGenericClass<int, int>,
-    self.UnresolvedGenericClass<int, int>>{0: 0, 1: constInt})
+@Helper(const <
+  UnresolvedGenericClass<int, int>,
+  self.UnresolvedGenericClass<int, int>
+>{0: 0, 1: constInt})
 /*member: mapLiterals18:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
@@ -1783,7 +1798,7 @@ void mapLiterals18() {}
 @Helper(const <UnresolvedGenericClass<UnresolvedClass, UnresolvedClass>, int>{
   0: 0,
   1: 1,
-  2: constInt
+  2: constInt,
 })
 /*member: mapLiterals19:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
@@ -1902,9 +1917,11 @@ resolved=ConditionalExpression(
     : IntegerLiteral(1))*/
 void conditional1() {}
 
-@Helper(bool.fromEnvironment(variable, defaultValue: true)
-    ? const String.fromEnvironment(variable, defaultValue: 'baz')
-    : int.fromEnvironment(variable, defaultValue: 42))
+@Helper(
+  bool.fromEnvironment(variable, defaultValue: true)
+      ? const String.fromEnvironment(variable, defaultValue: 'baz')
+      : int.fromEnvironment(variable, defaultValue: 42),
+)
 /*member: conditional2:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)

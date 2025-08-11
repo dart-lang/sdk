@@ -17,9 +17,9 @@ foo() async {
   // install handlers. When the function finishes, it can then synchronously
   // propagate the values.
   await null;
-  new Future.microtask(() => 'in microtask')
-      .then(events.add)
-      .then(delayedValue.complete);
+  new Future.microtask(
+    () => 'in microtask',
+  ).then(events.add).then(delayedValue.complete);
   return 'in async function';
 }
 
@@ -28,9 +28,9 @@ bar() async {
   // install handlers. When the function finishes, it can then synchronously
   // propagate the values.
   await null;
-  new Future<void>.microtask(() => throw 'in microtask error')
-      .catchError(events.add)
-      .then(delayedError.complete);
+  new Future<void>.microtask(
+    () => throw 'in microtask error',
+  ).catchError(events.add).then(delayedError.complete);
   throw 'in async function error';
 }
 
@@ -42,7 +42,7 @@ void main() {
     asyncValueFuture,
     delayedValue.future,
     asyncErrorFuture,
-    delayedError.future
+    delayedError.future,
   ]).then((_) {
     // The body completed before nested microtask. So they should appear
     // before the delayed functions. In other words, the async function should
@@ -51,7 +51,7 @@ void main() {
       "in async function",
       "in async function error",
       "in microtask",
-      "in microtask error"
+      "in microtask error",
     ], events);
     asyncEnd();
   });

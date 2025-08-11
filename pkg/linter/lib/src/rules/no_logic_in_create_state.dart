@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -15,13 +17,10 @@ class NoLogicInCreateState extends LintRule {
     : super(name: LintNames.no_logic_in_create_state, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.no_logic_in_create_state;
+  DiagnosticCode get diagnosticCode => LinterLintCode.no_logic_in_create_state;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -63,7 +62,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expressionToTest.argumentList.arguments.isEmpty) {
         return;
       }
+    } else if (expressionToTest is DotShorthandConstructorInvocation) {
+      if (expressionToTest.argumentList.arguments.isEmpty) {
+        return;
+      }
     }
-    rule.reportLint(expressionToTest ?? body);
+
+    rule.reportAtNode(expressionToTest ?? body);
   }
 }

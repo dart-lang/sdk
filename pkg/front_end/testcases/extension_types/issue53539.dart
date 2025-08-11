@@ -3,5 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type ET(int id) {
-  void set id(String i) /* Error */ {}
+  void set id(String i) {}
 }

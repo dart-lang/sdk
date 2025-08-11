@@ -20,10 +20,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -55,8 +54,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Expression? singleExpression;
   String? stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
-  final Map<Element2, int> elementIds = <Element2, int>{};
-  Set<String> excludedVariableNames = <String>{};
+  final Map<Element, int> elementIds = <Element, int>{};
+  Set<String> _excludedVariableNames = <String>{};
 
   ExtractLocalRefactoringImpl(
     this.resolveResult,
@@ -125,7 +124,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOccurrences();
     _prepareOffsetsLengths();
     // names
-    excludedVariableNames = unit.findPossibleLocalVariableConflicts(
+    _excludedVariableNames = unit.findPossibleLocalVariableConflicts(
       selectionOffset,
     );
     _prepareNames();
@@ -137,7 +136,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   RefactoringStatus checkName() {
     var result = RefactoringStatus();
     result.addStatus(validateVariableName(name));
-    if (excludedVariableNames.contains(name)) {
+    if (_excludedVariableNames.contains(name)) {
       result.addError(
         format("The name '{0}' is already used in the scope.", name),
       );
@@ -285,11 +284,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       selectionRange = SourceRange(offset, end - offset);
     }
 
-    // get covering node
-    var coveringNode = NodeLocator(
-      selectionRange.offset,
-      selectionRange.end,
-    ).searchWithin(unit);
+    var coveringNode = unit.nodeCovering(
+      offset: selectionRange.offset,
+      length: selectionRange.length,
+    );
 
     // We need an enclosing function.
     // If it has a block body, we can add a new variable declaration statement
@@ -341,7 +339,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (node is MethodInvocation) {
         var invocation = node;
         var element = invocation.methodName.element;
-        if (element is ExecutableElement2 && element.returnType is VoidType) {
+        if (element is ExecutableElement && element.returnType is VoidType) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
               'Cannot extract the void expression.',
@@ -362,7 +360,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           }
           var element = node.element;
           if (element is LocalFunctionElement ||
-              element is MethodElement2 ||
+              element is MethodElement ||
               element is TopLevelFunctionElement) {
             continue;
           }
@@ -391,9 +389,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     );
   }
 
-  /// Return an unique identifier for the given [Element2], or `null` if
+  /// Return an unique identifier for the given [Element], or `null` if
   /// [element] is `null`.
-  int? _encodeElement(Element2? element) {
+  int? _encodeElement(Element? element) {
     if (element == null) {
       return null;
     }
@@ -405,8 +403,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return id;
   }
 
-  /// Returns an [Element2]-sensitive encoding of [tokens].
-  /// Each [Token] with a [LocalVariableElement2] has a suffix of the element
+  /// Returns an [Element]-sensitive encoding of [tokens].
+  /// Each [Token] with a [LocalVariableElement] has a suffix of the element
   /// ID.
   ///
   /// So, we can distinguish different local variables with the same name, if
@@ -414,7 +412,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   /// function we are searching occurrences in.
   String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
     // prepare Token -> LocalElement map
-    Map<Token, Element2> map = HashMap<Token, Element2>(
+    Map<Token, Element> map = HashMap<Token, Element>(
       equals: (Token a, Token b) => a.lexeme == b.lexeme,
       hashCode: (Token t) => t.lexeme.hashCode,
     );
@@ -480,7 +478,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     var nodes = <AstNode>[];
     for (var range in ranges) {
-      var node = NodeLocator(range.offset).searchWithin(unit)!;
+      var node = unit.nodeCovering(offset: range.offset)!;
       nodes.add(node);
     }
     return nodes;
@@ -531,7 +529,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       names.addAll(
         getVariableNameSuggestionsForText(
           stringLiteralPart,
-          excludedVariableNames,
+          _excludedVariableNames,
         ),
       );
     } else if (singleExpression != null) {
@@ -539,7 +537,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         getVariableNameSuggestionsForExpression(
           singleExpression.staticType,
           singleExpression,
-          excludedVariableNames,
+          _excludedVariableNames,
         ),
       );
     }
@@ -641,14 +639,14 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
 }
 
 class _TokenLocalElementVisitor extends RecursiveAstVisitor<void> {
-  final Map<Token, Element2> map;
+  final Map<Token, Element> map;
 
   _TokenLocalElementVisitor(this.map);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       map[node.token] = element;
     }
   }

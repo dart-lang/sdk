@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -15,13 +17,11 @@ class UnnecessaryToListInSpreads extends LintRule {
     : super(name: LintNames.unnecessary_to_list_in_spreads, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_to_list_in_spreads;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.unnecessary_to_list_in_spreads;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSpreadElement(this, visitor);
   }
@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression.methodName.name == 'toList' &&
         target != null &&
         target.staticType.implementsInterface('Iterable', 'dart.core')) {
-      rule.reportLint(expression.methodName);
+      rule.reportAtNode(expression.methodName);
     }
   }
 }

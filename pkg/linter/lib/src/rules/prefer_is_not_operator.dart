@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -15,13 +17,10 @@ class PreferIsNotOperator extends LintRule {
     : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_is_not_operator;
+  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_operator;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addIsExpression(this, visitor);
   }
@@ -46,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Check for NOT (!) operator
       if (prefixExpression is PrefixExpression &&
           prefixExpression.operator.type == TokenType.BANG) {
-        rule.reportLint(prefixExpression);
+        rule.reportAtNode(prefixExpression);
       }
     }
   }

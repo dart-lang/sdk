@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
 
 const _desc = r'Prefer typing uninitialized variables and fields.';
 
-class PreferTypingUninitializedVariables extends LintRule {
+class PreferTypingUninitializedVariables extends MultiAnalysisRule {
   PreferTypingUninitializedVariables()
     : super(
         name: LintNames.prefer_typing_uninitialized_variables,
@@ -18,23 +20,20 @@ class PreferTypingUninitializedVariables extends LintRule {
       );
 
   @override
-  List<LintCode> get lintCodes => [
+  List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.prefer_typing_uninitialized_variables_for_field,
     LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable,
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -49,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
                 : LinterLintCode
                     .prefer_typing_uninitialized_variables_for_local_variable;
-        rule.reportLint(v, errorCode: code);
+        rule.reportAtNode(v, diagnosticCode: code);
       }
     }
   }

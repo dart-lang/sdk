@@ -43,8 +43,9 @@ class Device {
   /**
    * Prefix as used for JS property names.
    */
-  static final String propertyPrefix =
-      isFirefox ? 'moz' : (isIE ? 'ms' : (isOpera ? 'o' : 'webkit'));
+  static final String propertyPrefix = isFirefox
+      ? 'moz'
+      : (isIE ? 'ms' : (isOpera ? 'o' : 'webkit'));
 
   /**
    * Checks to see if the event class is supported by the current platform.

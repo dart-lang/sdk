@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
 
-// Requirements=nnbd
-
 import 'package:expect/expect.dart';
 
 import 'futureOr_normalization_null_safe_lib.dart';

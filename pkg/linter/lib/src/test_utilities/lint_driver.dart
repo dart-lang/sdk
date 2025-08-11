@@ -28,7 +28,7 @@ class LintDriver {
 
   LintDriver(this._options, this._resourceProvider);
 
-  Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
+  Future<List<DiagnosticInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
 
     var filesPaths =
@@ -50,13 +50,13 @@ class LintDriver {
 
     _filesAnalyzed.addAll(filesPaths);
 
-    var result = <AnalysisErrorInfo>[];
+    var result = <DiagnosticInfo>[];
     for (var path in _filesAnalyzed) {
       var analysisSession = contextCollection.contextFor(path).currentSession;
       var errorsResult = await analysisSession.getErrors(path);
       if (errorsResult is ErrorsResult) {
         result.add(
-          AnalysisErrorInfo(errorsResult.errors, errorsResult.lineInfo),
+          DiagnosticInfo(errorsResult.diagnostics, errorsResult.lineInfo),
         );
       }
     }

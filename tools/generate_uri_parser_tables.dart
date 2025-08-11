@@ -345,7 +345,7 @@ userinfo = *( unreserved / pct-encoded / sub-delims / ':')
 Characters allowed in the reg-name as of RFC 3986.
 RFC 3986 Appendix A
 reg-name = *( unreserved / pct-encoded / sub-delims )
-Same as `_userInfoMask` without the `:`.
+Same as `_userinfoMask` without the `:`.
 // [A-Za-z0-9!$%&'()*+,\-.;=_~] (including '%')
 """);
   tableEntry("_pathChar", r"!$&'()*+,\-.0-9:;=@A-Z_a-z~", r"""
@@ -395,6 +395,11 @@ This is the same characters as in a URI query (which is URI pchar plus '?')
 General delimiter characters, RFC 3986 section 2.2.
 gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
 [:/?#[]@]
+""");
+  tableEntry("_ipvFutureAddressChars", r"!$&'()*+,\-.0-9:;=A-Z_a-z~", r"""
+Characters valid in an IPvFuture address, RFC 3986 section 3.2.2.
+1*( unreserved / sub-delims / ":" )
+[A-Za-z0-9\-._~]|[!$&'()*+,;=]|:
 """);
 
   var table = (StringLiteralBuilder('_charTables')

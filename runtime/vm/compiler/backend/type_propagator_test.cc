@@ -609,8 +609,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefineCanBeSentinelWithCannotBe) {
   {
     BlockBuilder builder(H.flow_graph(), b1);
     v3 = builder.AddDefinition(new LoadStaticFieldInstr(
-        field_x, {},
-        /*calls_initializer=*/false, S.GetNextDeoptId()));
+        field_x, {}, SlowPathOnSentinelValue::kDoNothing, S.GetNextDeoptId()));
     auto v5 = builder.AddDefinition(new ConstantInstr(Object::sentinel()));
     builder.AddBranch(new StrictCompareInstr(
                           {}, Token::kEQ_STRICT, new Value(v3), new Value(v5),

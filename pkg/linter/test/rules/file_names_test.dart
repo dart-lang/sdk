@@ -8,40 +8,29 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FileNamesInvalidTest);
-    defineReflectiveTests(FileNamesNonStrictTest);
+    defineReflectiveTests(FileNamesTest);
   });
 }
 
 @reflectiveTest
-class FileNamesInvalidTest extends LintRuleTest {
+class FileNamesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.file_names;
-
-  @override
-  String get testFilePath => '$testPackageLibPath/a-test.dart';
 
   test_invalidName() async {
-    await assertDiagnostics(
-      r'''
-class A { }
-''',
-      [lint(0, 0)],
-    );
-  }
-}
-
-@reflectiveTest
-class FileNamesNonStrictTest extends LintRuleTest {
-  @override
-  String get lintRule => LintNames.file_names;
-
-  @override
-  String get testFilePath => '$testPackageLibPath/non-strict.css.dart';
-
-  test_validName() async {
-    await assertNoDiagnostics(r'''
+    var testFilePath = convertPath('$testPackageLibPath/a-test.dart');
+    newFile(testFilePath, r'''
 class A { }
 ''');
+
+    await assertDiagnosticsInFile(testFilePath, [lint(0, 0)]);
+  }
+
+  test_validName() async {
+    var testFilePath = convertPath('$testPackageLibPath/non-strict.css.dart');
+    newFile(testFilePath, r'''
+class A { }
+''');
+    await assertNoDiagnosticsInFile(testFilePath);
   }
 }

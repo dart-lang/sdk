@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -198,17 +199,10 @@ completion: Test
     required String completion,
     required String libraryUri,
   }) async {
-    var completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    var code = TestCode.parse(content);
+    var completionOffset = code.position.offset;
 
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    newFile(
-      path,
-      content.substring(0, completionOffset) +
-          content.substring(completionOffset + 1),
-    );
+    newFile(path, code.code);
 
     return await _getDetails(
       path: path,
@@ -2178,17 +2172,10 @@ suggestions
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    var code = TestCode.parse(content);
+    var completionOffset = code.position.offset;
 
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    newFile(
-      path,
-      content.substring(0, completionOffset) +
-          content.substring(completionOffset + 1),
-    );
+    newFile(path, code.code);
 
     return await _getSuggestions(
       path: path,

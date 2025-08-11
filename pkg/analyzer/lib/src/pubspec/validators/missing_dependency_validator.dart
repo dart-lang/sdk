@@ -30,13 +30,13 @@ class MissingDependencyValidator {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  late ErrorReporter reporter;
+  late DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
   /// The listener to record the errors.
-  final RecordingErrorListener recorder;
+  final RecordingDiagnosticListener recorder;
 
   /// A set of names of special packages that should not be added as
   /// dependencies in the `pubspec.yaml` file. For example, the flutter_gen
@@ -45,8 +45,8 @@ class MissingDependencyValidator {
   final Set noDepsPackages = <String>{'flutter_gen'};
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
-      : recorder = RecordingErrorListener() {
-    reporter = ErrorReporter(recorder, source);
+    : recorder = RecordingDiagnosticListener() {
+    reporter = DiagnosticReporter(recorder, source);
   }
 
   /// Given the set of dependencies and dev dependencies used in the sources,
@@ -54,7 +54,7 @@ class MissingDependencyValidator {
   /// section of the pubspec.yaml file.
   /// Returns the list of names of the packages to be added/removed for these
   /// sections.
-  List<AnalysisError> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
+  List<Diagnostic> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
     var contents = this.contents;
     if (contents is! YamlMap) {
       return [];
@@ -71,13 +71,17 @@ class MissingDependencyValidator {
         return field.nodes;
       }
       _reportErrorForNode(
-          field, PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP, [key]);
+        field,
+        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
+        [key],
+      );
       return <String, YamlNode>{};
     }
 
     var dependencies = getDeclaredDependencies(PubspecField.DEPENDENCIES_FIELD);
-    var devDependencies =
-        getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
+    var devDependencies = getDeclaredDependencies(
+      PubspecField.DEV_DEPENDENCIES_FIELD,
+    );
 
     var packageName = contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
     // Ensure that the package itself is not listed as a dependency.
@@ -90,7 +94,7 @@ class MissingDependencyValidator {
 
     var availableDeps = [
       if (dependencies.isNotEmpty)
-        for (var dep in dependencies.entries) dep.key.toString()
+        for (var dep in dependencies.entries) dep.key.toString(),
     ];
     var availableDevDeps = [
       if (devDependencies.isNotEmpty)
@@ -113,9 +117,10 @@ class MissingDependencyValidator {
         addDevDeps.add(name);
       }
     }
-    var message = addDeps.isNotEmpty
-        ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
-        : '';
+    var message =
+        addDeps.isNotEmpty
+            ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
+            : '';
     if (addDevDeps.isNotEmpty) {
       message = message.isNotEmpty ? '$message,' : message;
       message =
@@ -123,19 +128,20 @@ class MissingDependencyValidator {
     }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
       _reportErrorForNode(
-          contents.nodes.values.first,
-          PubspecWarningCode.MISSING_DEPENDENCY,
-          [message],
-          [],
-          MissingDependencyData(addDeps, addDevDeps, removeDevDeps));
+        contents.nodes.values.first,
+        PubspecWarningCode.MISSING_DEPENDENCY,
+        [message],
+        [],
+        MissingDependencyData(addDeps, addDevDeps, removeDevDeps),
+      );
     }
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 
   /// Report an error for the given node.
   void _reportErrorForNode(
     YamlNode node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
     Object? data,
@@ -144,7 +150,7 @@ class MissingDependencyValidator {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

@@ -47,8 +47,10 @@ main(List<String> args) async {
   }
 
   await withTempDir("split-literals-test", (String tempDir) async {
-    final source =
-        path.join(sdkDir, "runtime/tests/vm/dart/split_literals.dart");
+    final source = path.join(
+      sdkDir,
+      "runtime/tests/vm/dart/split_literals.dart",
+    );
     final dill = path.join(tempDir, "split_literals.dart.dill");
     final snapshot = path.join(tempDir, "split_literals.so");
     final manifest = path.join(tempDir, "split_literals.txt");
@@ -74,9 +76,10 @@ main(List<String> args) async {
     Expect.equals(2, manifestContent["loadingUnits"].length);
     // Note package:expect doesn't do deep equals on collections.
     Expect.equals(
-        "[[split_literals.dart],"
-        " [split_literals_deferred.dart]]",
-        sanitizedPartitioning(manifestContent).toString());
+      "[[split_literals.dart],"
+      " [split_literals_deferred.dart]]",
+      sanitizedPartitioning(manifestContent).toString(),
+    );
     Expect.isTrue(await new File(deferredSnapshot).exists());
 
     bool containsSubsequence(haystack, needle) {

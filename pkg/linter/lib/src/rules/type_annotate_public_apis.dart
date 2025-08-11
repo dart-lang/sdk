@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,13 +19,13 @@ class TypeAnnotatePublicApis extends LintRule {
     : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.type_annotate_public_apis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.type_annotate_public_apis;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  List<String> get incompatibleRules => const ['omit_obvious_property_types'];
+
+  @override
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -56,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // scope of another function.
         node.parent is CompilationUnit) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.functionExpression.parameters?.accept(v);
       }
@@ -67,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!node.name.isPrivate) {
       if (node.returnType == null) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.parameters.accept(v);
       }
@@ -80,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (!node.name.isPrivate) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.parameters?.accept(v);
       }
@@ -114,7 +116,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
     if (param.type == null) {
       var paramName = param.name?.lexeme;
       if (paramName != null && !paramName.isJustUnderscores) {
-        rule.reportLint(param);
+        rule.reportAtNode(param);
       }
     }
   }
@@ -124,7 +126,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
     if (!node.name.isPrivate &&
         !node.isConst &&
         !(node.isFinal && hasInferredType(node))) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 }

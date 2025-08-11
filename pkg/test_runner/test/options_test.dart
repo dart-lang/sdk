@@ -18,8 +18,7 @@ void main() {
 void testDefaults() {
   // TODO(rnystrom): Test other options.
   var configuration = parseConfiguration([]);
-  Expect.equals(Progress.compact, configuration.progress);
-  Expect.equals(NnbdMode.strong, configuration.nnbdMode);
+  Expect.equals(Progress.line, configuration.progress);
 }
 
 void testOptions() {
@@ -29,15 +28,12 @@ void testOptions() {
   Expect.equals(Mode.debug, configurations[0].mode);
   Expect.equals(Mode.release, configurations[1].mode);
 
-  var configuration = parseConfiguration(['--nnbd=weak']);
-  Expect.equals(NnbdMode.weak, configuration.nnbdMode);
-
   // Filter invalid configurations when not passing a named configuration.
   configurations = parseConfigurations(['--arch=simarm', '--system=android']);
   Expect.isEmpty(configurations);
 
   // Special handling for *-options.
-  configuration = parseConfiguration([
+  var configuration = parseConfiguration([
     '--dart2js-options=a b c',
     '--vm-options=d e f',
     '--shared-options=g h i'
@@ -91,25 +87,15 @@ void testValidation() {
   expectValidationError(['--progress=compact,silent'],
       '"compact,silent" is not an allowed value for option "--progress".');
 
-  expectValidationError(['--nnbd=unknown'],
-      '"unknown" is not an allowed value for option "--nnbd".');
-  // Don't allow multiple.
-  expectValidationError(['--nnbd=weak,strong'],
-      '"weak,strong" is not an allowed value for option "--nnbd".');
-
   // Don't allow invalid named configurations.
   expectValidationError(['-ninvalid-vm-android-simarm'],
       'The named configuration "invalid-vm-android-simarm" is invalid.');
 }
 
 void testSelectors() {
-  // Default null safe suites.
-  for (var arguments in [
-    <String>[],
-    ['--nnbd=strong'],
-    ['-nvm-strong']
-  ]) {
-    var configuration = parseConfiguration(arguments);
+  // Default suites.
+  {
+    final configuration = parseConfiguration([]);
     Expect.setEquals({
       'samples',
       'standalone',
@@ -120,7 +106,7 @@ void testSelectors() {
       'lib',
       'kernel',
       'ffi',
-    }, configuration.selectors.keys, "suites for $arguments");
+    }, configuration.selectors.keys, "default suites");
   }
 
   // The test runner can run individual tests by being given the
@@ -160,14 +146,7 @@ TestConfiguration parseConfiguration(List<String> arguments) {
 
 List<TestConfiguration> parseConfigurations(List<String> arguments) {
   var parser = OptionsParser('pkg/test_runner/test/test_matrix.json');
-  var configurations = parser.parse(arguments);
-
-  // By default, without an explicit selector, you get two configurations, one
-  // for observatory_ui, and one for all the other selectors. Discard the
-  // observatory one to keep things simpler.
-  configurations
-      .removeWhere((config) => config.selectors.containsKey('observatory_ui'));
-  return configurations;
+  return parser.parse(arguments);
 }
 
 void expectValidationError(List<String> arguments, String error) {

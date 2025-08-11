@@ -11,7 +11,7 @@ void main() {
 // Testing that a block bodied function may not have an empty return
 Future<FutureOr<void>> test() {
   return;
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.RETURN_WITHOUT_VALUE
-// [cfe] A value must be explicitly returned from a non-void function.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_WITHOUT_VALUE
+  // [cfe] A value must be explicitly returned from a non-void function.
 }

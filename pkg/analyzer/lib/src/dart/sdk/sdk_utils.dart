@@ -10,7 +10,10 @@ const int _backwardsSlash = 92;
 const int _forwardSlash = 47;
 
 String? getImportUriIfMatchesRelativeSdkPath(
-    List<SdkLibrary> libraries, String relativePathFromFile, String separator) {
+  List<SdkLibrary> libraries,
+  String relativePathFromFile,
+  String separator,
+) {
   for (SdkLibrary library in libraries) {
     if (_equalModuloPathSeparator(library.path, relativePathFromFile)) {
       return library.shortName;
@@ -19,8 +22,10 @@ String? getImportUriIfMatchesRelativeSdkPath(
 
   for (SdkLibrary library in libraries) {
     String? relativePathIfInside = getRelativePathIfInside(
-        library.path, relativePathFromFile,
-        ignoreOsSeparatorMismatch: true);
+      library.path,
+      relativePathFromFile,
+      ignoreOsSeparatorMismatch: true,
+    );
     if (relativePathIfInside != null) {
       String relPath = relativePathIfInside.replaceAll(separator, '/');
       return '${library.shortName}/$relPath';
@@ -29,8 +34,11 @@ String? getImportUriIfMatchesRelativeSdkPath(
   return null;
 }
 
-String? getRelativePathIfInside(String libraryPath, String filePath,
-    {bool ignoreOsSeparatorMismatch = false}) {
+String? getRelativePathIfInside(
+  String libraryPath,
+  String filePath, {
+  bool ignoreOsSeparatorMismatch = false,
+}) {
   int minLength = min(libraryPath.length, filePath.length);
 
   // Find how far the strings are the same (modulo path separators is asked).

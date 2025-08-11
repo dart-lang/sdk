@@ -39,7 +39,8 @@ class _DartFrame extends _ParsedFrame {
   });
 
   static final _pattern = RegExp(
-      r'^#(?<no>\d+)\s+(?<symbol>[^(]+)(\((?<location>((\w+://)?[/\w]+:)?[^:]+)(:(?<line>\d+)(:(?<column>\d+))?)?\))?$');
+    r'^#(?<no>\d+)\s+(?<symbol>[^(]+)(\((?<location>((\w+://)?[/\w]+:)?[^:]+)(:(?<line>\d+)(:(?<column>\d+))?)?\))?$',
+  );
 
   static _DartFrame parse(String frame) {
     final match = _pattern.firstMatch(frame);
@@ -55,8 +56,8 @@ class _DartFrame extends _ParsedFrame {
     }
     final lineNo =
         location.endsWith('utils.dart') || location.endsWith('tests.dart')
-            ? match.namedGroup('line')
-            : null;
+        ? match.namedGroup('line')
+        : null;
 
     return _DartFrame(
       no: no,
@@ -118,8 +119,10 @@ var _testIndex = 0;
 
 late final Dwarf? _dwarf;
 
-void configure(List<String> currentExpectations,
-    {String debugInfoFilename = 'debug.so'}) {
+void configure(
+  List<String> currentExpectations, {
+  String debugInfoFilename = 'debug.so',
+}) {
   try {
     final testCompilationDir = Platform.environment['TEST_COMPILATION_DIR'];
     if (testCompilationDir != null) {
@@ -175,7 +178,10 @@ $st
       }
 
       Expect.equals(
-          expectedFrames.length, gotFrames.length, 'wrong number of frames');
+        expectedFrames.length,
+        gotFrames.length,
+        'wrong number of frames',
+      );
       for (var i = 0; i < expectedFrames.length; i++) {
         final expectedFrame = expectedFrames[i];
         final gotFrame = gotFrames[i];
@@ -184,12 +190,21 @@ $st
         }
 
         if (expectedFrame is _DartFrame && gotFrame is _DartFrame) {
-          Expect.equals(expectedFrame.symbol, gotFrame.symbol,
-              'at frame #$i mismatched function name');
-          Expect.equals(expectedFrame.location, gotFrame.location,
-              'at frame #$i mismatched location');
-          Expect.equals(expectedFrame.lineNo, gotFrame.lineNo,
-              'at frame #$i mismatched line location');
+          Expect.equals(
+            expectedFrame.symbol,
+            gotFrame.symbol,
+            'at frame #$i mismatched function name',
+          );
+          Expect.equals(
+            expectedFrame.location,
+            gotFrame.location,
+            'at frame #$i mismatched location',
+          );
+          Expect.equals(
+            expectedFrame.lineNo,
+            gotFrame.lineNo,
+            'at frame #$i mismatched line location',
+          );
         }
 
         Expect.equals(expectedFrame, gotFrame);
@@ -212,10 +227,12 @@ void updateExpectations([String? expectationsFile]) {
   final source = sourceFile.readAsStringSync();
 
   final expectationsStart = source.lastIndexOf('// CURRENT EXPECTATIONS BEGIN');
-  final updatedExpectationsString =
-      [for (var s in _updatedExpectations) '"""\n$s"""'].join(",\n");
+  final updatedExpectationsString = [
+    for (var s in _updatedExpectations) '"""\n$s"""',
+  ].join(",\n");
 
-  final newSource = source.substring(0, expectationsStart) +
+  final newSource =
+      source.substring(0, expectationsStart) +
       """
 // CURRENT EXPECTATIONS BEGIN
 final currentExpectations = [${updatedExpectationsString}];
@@ -232,8 +249,10 @@ bool shouldSkip() {
   final stack = StackTrace.current.toString();
   final isObfuscateMode = !stack.contains('shouldSkip');
   final isDwarfStackTracesMode = stack.contains('*** ***');
+  final isDLL = Platform.script.toString().endsWith(".dll");
 
   // We should skip the test if we are running without DWARF stack
-  // traces enabled but with obfuscation.
-  return !isDwarfStackTracesMode && isObfuscateMode;
+  // traces enabled but with obfuscation. Or if running from a DLL,
+  // which lacks DWARF.
+  return isDLL || (!isDwarfStackTracesMode && isObfuscateMode);
 }

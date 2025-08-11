@@ -40,18 +40,27 @@ main() {
   Expect.equals(lf.nonConstantMultilineString, cr.nonConstantMultilineString);
 
   Expect.equals(
-      cr.nonConstantRawMultilineString, crlf.nonConstantRawMultilineString);
+    cr.nonConstantRawMultilineString,
+    crlf.nonConstantRawMultilineString,
+  );
   Expect.equals(
-      crlf.nonConstantRawMultilineString, lf.nonConstantRawMultilineString);
+    crlf.nonConstantRawMultilineString,
+    lf.nonConstantRawMultilineString,
+  );
   Expect.equals(
-      lf.nonConstantRawMultilineString, cr.nonConstantRawMultilineString);
+    lf.nonConstantRawMultilineString,
+    cr.nonConstantRawMultilineString,
+  );
 
-  const c1 =
-  cr.constantMultilineString == crlf.constantMultilineString ? true : null;
-  const c2 =
-  crlf.constantMultilineString == lf.constantMultilineString ? true : null;
-  const c3 =
-  lf.constantMultilineString == cr.constantMultilineString ? true : null;
+  const c1 = cr.constantMultilineString == crlf.constantMultilineString
+      ? true
+      : null;
+  const c2 = crlf.constantMultilineString == lf.constantMultilineString
+      ? true
+      : null;
+  const c3 = lf.constantMultilineString == cr.constantMultilineString
+      ? true
+      : null;
   Expect.isTrue(c1);
   Expect.isTrue(c2);
   Expect.isTrue(c3);
@@ -69,30 +78,18 @@ main() {
   Expect.isTrue(c2r);
   Expect.isTrue(c3r);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const c6r = c3r == true ? 3 : 4;
   Expect.equals(3, c6r);
 
-  const c7 =
-  cr.constantMultilineString != crlf.constantMultilineString ? true : null;
-  const c8 =
-  crlf.constantMultilineString != lf.constantMultilineString ? true : null;
-  const c9 =
-  lf.constantMultilineString != cr.constantMultilineString ? true : null;
+  const c7 = cr.constantMultilineString != crlf.constantMultilineString
+      ? true
+      : null;
+  const c8 = crlf.constantMultilineString != lf.constantMultilineString
+      ? true
+      : null;
+  const c9 = lf.constantMultilineString != cr.constantMultilineString
+      ? true
+      : null;
   Expect.isNull(c7);
   Expect.isNull(c8);
   Expect.isNull(c9);
@@ -118,11 +115,4 @@ main() {
   // constants is similar to the runtime evaluation tested above. For tools
   // like the analyzer, this ensures that evaluation is tested (there's no
   // runtime evaluation).
-
-
-
-
-
-
-
 }

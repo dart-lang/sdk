@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,9 +13,11 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompilationUnitImplTest);
+    defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(ExpressionImplTest);
     defineReflectiveTests(InstanceCreationExpressionImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
+    defineReflectiveTests(NodeCoveringTest);
   });
 }
 
@@ -60,7 +62,9 @@ void main() {}
 void main() {}
 ''');
     expect(
-        testUnit.languageVersionToken, testUnit.beginToken.precedingComments);
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments,
+    );
   }
 
   test_languageVersionComment_none() {
@@ -84,8 +88,10 @@ void main() {}
 // @dart=2.6
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments!.next);
+    expect(
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments!.next,
+    );
   }
 
   test_languageVersionComment_thirdComment() {
@@ -95,8 +101,112 @@ void main() {}
 // @dart=2.6
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments!.next!.next);
+    expect(
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments!.next!.next,
+    );
+  }
+}
+
+@reflectiveTest
+class EvaluateExpressionTest extends PubPackageResolutionTest {
+  test_hasError_listLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const [for (var i = 0; i < 4; i++) i];
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_mapLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i: 0};
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result?.diagnostics, isNotEmpty);
+    expect(result?.value, isNull);
+  }
+
+  test_hasError_methodInvocation() async {
+    await resolveTestCode('''
+var x = 42.abs();
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_setLiteral_forElement() async {
+    await resolveTestCode('''
+var x = const {for (var i = 0; i < 4; i++) i};
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasValue_binaryExpression() async {
+    await resolveTestCode('''
+var x = 1 + 2;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 3);
+  }
+
+  test_hasValue_constantReference() async {
+    await resolveTestCode('''
+const a = 42;
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_constantReference_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 42;
+''');
+    await resolveTestCode('''
+import 'a.dart';
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_intLiteral() async {
+    await resolveTestCode('''
+var x = 42;
+''');
+    var result = _evaluateX();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_nonConstant() async {
+    await resolveTestCode('''
+var a = 42;
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result, isNull);
+  }
+
+  AttemptedConstantEvaluationResult? _evaluateX() {
+    var node = findNode.topVariableDeclarationByName('x').initializer!;
+    return node.computeConstantValue();
   }
 }
 
@@ -108,11 +218,12 @@ class ExpressionImplTest extends ParserTestCase {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    NodeLocator visitor = NodeLocator(index);
-    var node = visitor.searchWithin(testUnit) as AstNodeImpl;
+    var node = testUnit.nodeCovering(offset: index)! as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
-    expect((node as ExpressionImpl).inConstantContext,
-        isInContext ? isTrue : isFalse);
+    expect(
+      (node as ExpressionImpl).inConstantContext,
+      isInContext ? isTrue : isFalse,
+    );
   }
 
   parse(String source) {
@@ -862,24 +973,28 @@ class C {
 class IntegerLiteralImplTest {
   test_isValidAsDouble_dec_1024Bits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '179769313486231570814527423731704356798070567525844996598917476803'
-            '157260780028538760589558632766878171540458953514382464234321326889'
-            '464182768467546703537516986049910576551282076245490090389328944075'
-            '868508455133942304583236903222948165808559332123348274797826204144'
-            '723168738177180919299881250404026184124858369'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '179769313486231570814527423731704356798070567525844996598917476803'
+        '157260780028538760589558632766878171540458953514382464234321326889'
+        '464182768467546703537516986049910576551282076245490090389328944075'
+        '868508455133942304583236903222948165808559332123348274797826204144'
+        '723168738177180919299881250404026184124858369',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_dec_11ExponentBits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '359538626972463141629054847463408713596141135051689993197834953606'
-            '314521560057077521179117265533756343080917907028764928468642653778'
-            '928365536935093407075033972099821153102564152490980180778657888151'
-            '737016910267884609166473806445896331617118664246696549595652408289'
-            '446337476354361838599762500808052368249716736'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '359538626972463141629054847463408713596141135051689993197834953606'
+        '314521560057077521179117265533756343080917907028764928468642653778'
+        '928365536935093407075033972099821153102564152490980180778657888151'
+        '737016910267884609166473806445896331617118664246696549595652408289'
+        '446337476354361838599762500808052368249716736',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_dec_16CharValue() {
@@ -889,13 +1004,15 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_dec_53BitsMax() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '179769313486231570814527423731704356798070567525844996598917476803'
-            '157260780028538760589558632766878171540458953514382464234321326889'
-            '464182768467546703537516986049910576551282076245490090389328944075'
-            '868508455133942304583236903222948165808559332123348274797826204144'
-            '723168738177180919299881250404026184124858368'),
-        true);
+      IntegerLiteralImpl.isValidAsDouble(
+        '179769313486231570814527423731704356798070567525844996598917476803'
+        '157260780028538760589558632766878171540458953514382464234321326889'
+        '464182768467546703537516986049910576551282076245490090389328944075'
+        '868508455133942304583236903222948165808559332123348274797826204144'
+        '723168738177180919299881250404026184124858368',
+      ),
+      true,
+    );
   }
 
   test_isValidAsDouble_dec_54BitsMax() {
@@ -917,22 +1034,26 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_hex_1024Bits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000001'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000001',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_hex_11ExponentBits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0x1FFFFFFFFFFFFF00000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '0000000000000000000000000000000000000000000000000000000000000'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0x1FFFFFFFFFFFFF00000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_hex_16CharValue() {
@@ -942,12 +1063,14 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_hex_53BitsMax() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000'),
-        true);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000',
+      ),
+      true,
+    );
   }
 
   test_isValidAsDouble_hex_54BitsMax() {
@@ -969,7 +1092,9 @@ class IntegerLiteralImplTest {
 
   test_isValidAsInteger_dec_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('9223372036854775808', true), true);
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775808', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_negative_fewDigits() {
@@ -977,28 +1102,38 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_dec_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('009923372036854775807', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('009923372036854775807', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('004223372036854775807', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('004223372036854775807', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_negative_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775809', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775809', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('10223372036854775808', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('10223372036854775808', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_equalMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775807', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775807', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_positive_fewDigits() {
@@ -1006,33 +1141,45 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_dec_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('009923372036854775807', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('009923372036854775807', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('004223372036854775807', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('004223372036854775807', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775808', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775808', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('10223372036854775808', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('10223372036854775808', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X8000000000000000', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0X8000000000000000', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x8000000000000000', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0x8000000000000000', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_fewDigits() {
@@ -1044,63 +1191,87 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_heX_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_oneBelowMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_oneBelowMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X8000000000000001', true), false);
+      IntegerLiteralImpl.isValidAsInteger('0X8000000000000001', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x8000000000000001', true), false);
+      IntegerLiteralImpl.isValidAsInteger('0x8000000000000001', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', false), true);
+      IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_positive_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', false), true);
+      IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_positive_fewDigits() {
@@ -1112,42 +1283,479 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_heX_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0XFF0000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0XFF0000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0xFF0000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0xFF0000000000000000', false),
+      false,
+    );
+  }
+}
+
+@reflectiveTest
+class NodeCoveringTest extends PubPackageResolutionTest {
+  Future<AstNode> coveringNode(String sourceCode) async {
+    var range = await _range(sourceCode);
+    var node = result.unit.nodeCovering(
+      offset: range.offset,
+      length: range.length,
+    );
+    return node!;
+  }
+
+  void test_after_EOF() async {
+    await resolveTestCode('''
+library myLib;
+''');
+    var node = result.unit.nodeCovering(offset: 100, length: 20);
+    expect(node, null);
+  }
+
+  Future<void> test_after_lastNonEOF() async {
+    var node = await coveringNode('''
+library myLib;
+
+^
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_atBOF_atClass() async {
+    var node = await coveringNode('''
+^class A {}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_atBOF_atComment() async {
+    var node = await coveringNode('''
+^// comment
+class A {}
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_atCommentEnd() async {
+    var node = await coveringNode('''
+/// ^
+class A {}
+''');
+    node as Comment;
+  }
+
+  Future<void> test_atEOF() async {
+    var node = await coveringNode('''
+library myLib;
+
+^''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_before_firstNonEOF() async {
+    var node = await coveringNode('''
+^
+
+library myLib;
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_between_arrowAndIdentifier() async {
+    var node = await coveringNode('''
+void f(int i) {
+  return switch (i) {
+    1 =>^g();
+    _ => 0;
+  }
+}
+int g() => 0;
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_classMembers() async {
+    var node = await coveringNode('''
+class C {
+  void a() {}
+^
+  void b() {}
+}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_between_colonAndIdentifier_namedExpression() async {
+    var node = await coveringNode('''
+void f(int i) {
+  g(a:^i)
+}
+void g({required int a}) {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_colonAndIdentifier_switchCase() async {
+    var node = await coveringNode('''
+void f(int i) {
+  switch (i) {
+    case 1:^g();
+  }
+}
+void g() {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_commaAndComma_arguments_synthetic() async {
+    var node = await coveringNode('''
+void f(int a, int b, int c) {
+  f(a,^,c);
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_commaAndIdentifier_arguments() async {
+    var node = await coveringNode('''
+void f(int a, int b) {
+  f(a,^b);
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_commaAndIdentifier_parameters() async {
+    var node = await coveringNode('''
+class C {
+  void m(int a,^int b) {}
+}
+''');
+    node as NamedType;
+  }
+
+  Future<void> test_between_commaAndIdentifier_typeArguments() async {
+    var node = await coveringNode('''
+var m = Map<int,^int>();
+''');
+    node as NamedType;
+  }
+
+  Future<void> test_between_commaAndIdentifier_typeParameters() async {
+    var node = await coveringNode('''
+class C<S,^T> {}
+''');
+    node as TypeParameter;
+  }
+
+  Future<void> test_between_declarations() async {
+    var node = await coveringNode('''
+class A {}
+^
+class B {}
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_between_directives() async {
+    var node = await coveringNode('''
+library myLib;
+^
+import 'dart:core';
+''');
+    node as CompilationUnit;
+  }
+
+  Future<void> test_between_identifierAndArgumentList() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.m^();
+}
+class C {
+  void m() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndArgumentList_synthetic() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.^();
+}
+class C {
+  void m() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndComma_arguments() async {
+    var node = await coveringNode('''
+void f(int a, int b) {
+  f(a^, b);
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndComma_parameters() async {
+    var node = await coveringNode('''
+class C {
+  void m(int a^, int b) {}
+}
+''');
+    node as SimpleFormalParameter;
+  }
+
+  Future<void> test_between_identifierAndComma_typeArguments() async {
+    var node = await coveringNode('''
+var m = Map<int^, int>();
+''');
+    node as NamedType;
+  }
+
+  Future<void> test_between_identifierAndComma_typeParameters() async {
+    var node = await coveringNode('''
+class C<S^, T> {}
+''');
+    node as TypeParameter;
+  }
+
+  Future<void> test_between_identifierAndParameterList() async {
+    var node = await coveringNode('''
+void f^() {}
+''');
+    node as FunctionDeclaration;
+  }
+
+  Future<void> test_between_identifierAndPeriod() async {
+    var node = await coveringNode('''
+var x = o^.m();
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void>
+  test_between_identifierAndTypeArgumentList_methodInvocation() async {
+    var node = await coveringNode('''
+void f(C c) {
+  c.m^<int>();
+}
+class C {
+  void m<T>() {}
+}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_identifierAndTypeParameterList() async {
+    var node = await coveringNode('''
+class C^<T> {}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_between_modifierAndFunctionBody() async {
+    var node = await coveringNode('''
+void f() async^{}
+''');
+    node as BlockFunctionBody;
+  }
+
+  Future<void> test_between_nameAndParameters_function() async {
+    var node = await coveringNode('''
+void f^() {}
+''');
+    node as FunctionDeclaration;
+  }
+
+  Future<void> test_between_nameAndParameters_method() async {
+    var node = await coveringNode('''
+class C {
+  void m^() {}
+}
+''');
+    node as MethodDeclaration;
+  }
+
+  Future<void> test_between_periodAndIdentifier() async {
+    var node = await coveringNode('''
+var x = o.^m();
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_between_statements() async {
+    var node = await coveringNode('''
+void f() {
+  var x = 0;
+^
+  print(x);
+}
+''');
+    node as Block;
+  }
+
+  Future<void> test_inComment_beginning() async {
+    var node = await coveringNode('''
+/// A [^B].
+class C {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_inComment_beginning_qualified() async {
+    var node = await coveringNode('''
+/// A [B.^b].
+class C {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_inComment_end() async {
+    var node = await coveringNode('''
+/// A [B.b^].
+class C {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_inComment_middle() async {
+    var node = await coveringNode('''
+/// A [B.b^b].
+class C {}
+''');
+    node as SimpleIdentifier;
+  }
+
+  Future<void> test_inName_class() async {
+    var node = await coveringNode('''
+class A^B {}
+''');
+    node as ClassDeclaration;
+  }
+
+  Future<void> test_inName_function() async {
+    var node = await coveringNode('''
+void f^f() {}
+''');
+    node as FunctionDeclaration;
+  }
+
+  Future<void> test_inName_method() async {
+    var node = await coveringNode('''
+class C {
+  void m^m() {}
+}
+''');
+    node as MethodDeclaration;
+  }
+
+  Future<void> test_inOperator_assignment() async {
+    var node = await coveringNode('''
+void f(int x) {
+  x +^= 3;
+}
+''');
+    node as AssignmentExpression;
+  }
+
+  Future<void> test_inOperator_nullAwareAccess() async {
+    var node = await coveringNode('''
+var x = o?^.m();
+''');
+    node as MethodInvocation;
+  }
+
+  Future<void> test_inOperator_postfix() async {
+    var node = await coveringNode('''
+var x = y+^+;
+''');
+    node as PostfixExpression;
+  }
+
+  Future<void> test_libraryKeyword() async {
+    var node = await coveringNode('''
+libr^ary myLib;
+''');
+    node as LibraryDirective;
+  }
+
+  Future<void> test_parentAndChildWithSameRange_blockFunctionBody() async {
+    var node = await coveringNode('''
+void f() { ^ }
+''');
+    node as Block;
+    var parent = node.parent;
+    parent as BlockFunctionBody;
+    expect(parent.offset, node.offset);
+    expect(parent.length, node.length);
+  }
+
+  Future<void> test_parentAndChildWithSameRange_implicitCall() async {
+    var node = await coveringNode('''
+class C { void call() {} }  Function f = C^();
+''');
+    node as NamedType;
+  }
+
+  Future<SourceRange> _range(String sourceCode) async {
+    // TODO(brianwilkerson): Move TestCode to the analyzer package and make use
+    //  of it here.
+    var offset = sourceCode.indexOf('^');
+    if (offset < 0 || sourceCode.contains('^', offset + 1)) {
+      fail('Tests must contain a single selection range');
+    }
+    var testCode =
+        sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
+    await resolveTestCode(testCode);
+    return SourceRange(offset, 0);
   }
 }

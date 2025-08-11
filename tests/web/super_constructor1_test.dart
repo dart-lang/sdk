@@ -15,18 +15,14 @@ class A {
 
 class B extends A {
   int y;
-  B(i)
-      : y = i++,
-        super(i + 5) {
+  B(i) : y = i++, super(i + 5) {
     message = '${message}B($i)';
   }
 }
 
 class C extends B {
   var z;
-  C(i)
-      : z = i,
-        super(i * 3) {
+  C(i) : z = i, super(i * 3) {
     message = '${message}C($i)';
   }
 }

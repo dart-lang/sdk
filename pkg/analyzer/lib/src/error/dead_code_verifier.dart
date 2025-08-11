@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -17,18 +17,22 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-typedef _CatchClausesVerifierReporter = void Function(
-  CatchClause first,
-  CatchClause last,
-  ErrorCode,
-  List<Object> arguments,
-);
+/// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
+/// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
+class DeadCodeForPartsState {
+  /// The value of [NullSafetyDeadCodeVerifier._firstDeadNode] at the time of
+  /// the call to [NullSafetyDeadCodeVerifier.for_conditionEnd]
+  final AstNode? _firstDeadNodeAsOfConditionEnd;
+
+  DeadCodeForPartsState._({required AstNode? firstDeadNodeAsOfConditionEnd})
+    : _firstDeadNodeAsOfConditionEnd = firstDeadNodeAsOfConditionEnd;
+}
 
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
-  /// The error reporter by which errors will be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter by which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker? _labelTracker;
@@ -36,9 +40,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._errorReporter, LibraryElement2 library)
-      : _wildCardVariablesEnabled =
-            library.featureSet.isEnabled(Feature.wildcard_variables);
+  DeadCodeVerifier(this._diagnosticReporter, LibraryElement library)
+    : _wildCardVariablesEnabled = library.featureSet.isEnabled(
+        Feature.wildcard_variables,
+      );
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -55,7 +60,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     var libraryExport = node.libraryExport;
     if (libraryExport != null) {
       // The element is null when the URI is invalid.
-      var library = libraryExport.exportedLibrary2;
+      var library = libraryExport.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -71,8 +76,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     // TODO(pq): ask the FunctionElement once implemented
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
-        element.name3 == '_') {
-      _errorReporter.atNode(node, WarningCode.DEAD_CODE);
+        element.name == '_') {
+      _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
     }
     super.visitFunctionDeclaration(node);
   }
@@ -83,7 +88,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (libraryImport != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
-      var library = libraryImport.importedLibrary2;
+      var library = libraryImport.importedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -118,10 +123,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
-          element is LocalVariableElement2 &&
-          element.name3 == '_') {
-        _errorReporter.atNode(initializer,
-            WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER);
+          element is LocalVariableElement &&
+          element.name == '_') {
+        _diagnosticReporter.atNode(
+          initializer,
+          WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER,
+        );
       }
     }
 
@@ -131,10 +138,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
-    Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
+    Namespace namespace = NamespaceBuilder().createExportNamespaceForLibrary(
+      library,
+    );
     NodeList<SimpleIdentifier> names;
-    ErrorCode warningCode;
+    DiagnosticCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
       warningCode = WarningCode.UNDEFINED_HIDDEN_NAME;
@@ -144,13 +152,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
-      Element2? element = namespace.get2(nameStr);
+      Element? element = namespace.get2(nameStr);
       element ??= namespace.get2("$nameStr=");
       if (element == null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           name,
           warningCode,
-          arguments: [library.identifier, nameStr],
+          arguments: ['${library.uri}', nameStr],
         );
       }
     }
@@ -163,7 +171,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           label,
           WarningCode.UNUSED_LABEL,
           arguments: [label.label.name],
@@ -185,7 +193,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 /// node, or contains it. So, we end the end of the covering control flow.
 class NullSafetyDeadCodeVerifier {
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final FlowAnalysisHelper? _flowAnalysis;
 
   /// The stack of verifiers of (potentially nested) try statements.
@@ -204,7 +212,7 @@ class NullSafetyDeadCodeVerifier {
 
   NullSafetyDeadCodeVerifier(
     this._typeSystem,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._flowAnalysis,
   );
 
@@ -226,10 +234,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _errorReporter.atToken(
-        node.keyword,
-        WarningCode.DEAD_CODE,
-      );
+      _diagnosticReporter.atToken(node.keyword, WarningCode.DEAD_CODE);
       _firstDeadNode = null;
       return;
     }
@@ -276,31 +281,23 @@ class NullSafetyDeadCodeVerifier {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: parent.offset,
           length: parent.end - parent.offset,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
         offset = node.end;
       } else if (parent is DoStatement) {
-        var doOffset = parent.doKeyword.offset;
-        var doEnd = parent.doKeyword.end;
         var whileOffset = parent.whileKeyword.offset;
         var whileEnd = parent.semicolon.end;
         var body = parent.body;
         if (body is Block) {
-          doEnd = body.leftBracket.end;
           whileOffset = body.rightBracket.offset;
         }
-        _errorReporter.atOffset(
-          offset: doOffset,
-          length: doEnd - doOffset,
-          errorCode: WarningCode.DEAD_CODE,
-        );
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
         offset = parent.semicolon.next!.offset;
         if (parent.hasBreakStatement) {
@@ -308,13 +305,6 @@ class NullSafetyDeadCodeVerifier {
         }
       } else if (parent is ForParts) {
         node = parent.updaters.last;
-      } else if (parent is ForStatement) {
-        _reportForUpdaters(parent);
-      } else if (parent is Block) {
-        var grandParent = parent.parent;
-        if (grandParent is ForStatement) {
-          _reportForUpdaters(grandParent);
-        }
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand;
@@ -325,15 +315,55 @@ class NullSafetyDeadCodeVerifier {
 
       var length = node.end - offset;
       if (length > 0) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: length,
-          errorCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.DEAD_CODE,
         );
       }
     }
 
     _firstDeadNode = null;
+  }
+
+  /// Performs the necessary dead code analysis when reaching the end of the
+  /// `condition` part of [ForParts].
+  ///
+  /// Some state is returned, which should be passed to [for_updaterBegin] after
+  /// visiting the body of the loop.
+  DeadCodeForPartsState for_conditionEnd() {
+    // Capture the state of this class so that `for_updaterBegin` can use it to
+    // decide whether it's necessary to create an extra dead code report for the
+    // updaters.
+    return DeadCodeForPartsState._(
+      firstDeadNodeAsOfConditionEnd: _firstDeadNode,
+    );
+  }
+
+  /// Performs the necessary dead code analysis when reaching the beginning of
+  /// the `updaters` part of [ForParts].
+  ///
+  /// [state] should be the state returned by [for_conditionEnd].
+  void for_updaterBegin(
+    NodeListImpl<ExpressionImpl> updaters,
+    DeadCodeForPartsState state,
+  ) {
+    var isReachable = _flowAnalysis?.flow?.isReachable ?? true;
+    if (!isReachable && state._firstDeadNodeAsOfConditionEnd == null) {
+      // A dead code range started either at the beginning of the loop body or
+      // somewhere inside it, and so the updaters are dead. Since the updaters
+      // appear textually before the loop body, they need their own dead code
+      // warning.
+      var beginToken = updaters.beginToken;
+      var endToken = updaters.endToken;
+      if (beginToken != null && endToken != null) {
+        _diagnosticReporter.atOffset(
+          offset: beginToken.offset,
+          length: endToken.end - beginToken.offset,
+          diagnosticCode: WarningCode.DEAD_CODE,
+        );
+      }
+    }
   }
 
   /// Rewites [_firstDeadNode] if it is equal to [oldNode], as [oldNode] is
@@ -345,21 +375,22 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void tryStatementEnter(TryStatement node) {
-    var verifier = _CatchClausesVerifier(
-      _typeSystem,
-      (first, last, errorCode, arguments) {
-        var offset = first.offset;
-        var length = last.end - offset;
-        _errorReporter.atOffset(
-          offset: offset,
-          length: length,
-          errorCode: errorCode,
-          arguments: arguments,
-        );
-        _deadCatchClauseRanges.add(SourceRange(offset, length));
-      },
-      node.catchClauses,
-    );
+    var verifier = _CatchClausesVerifier(_typeSystem, (
+      first,
+      last,
+      errorCode,
+      arguments,
+    ) {
+      var offset = first.offset;
+      var length = last.end - offset;
+      _diagnosticReporter.atOffset(
+        offset: offset,
+        length: length,
+        diagnosticCode: errorCode,
+        arguments: arguments,
+      );
+      _deadCatchClauseRanges.add(SourceRange(offset, length));
+    }, node.catchClauses);
     _catchClausesVerifiers.add(verifier);
   }
 
@@ -433,24 +464,11 @@ class NullSafetyDeadCodeVerifier {
     return false;
   }
 
-  void _reportForUpdaters(ForStatement node) {
-    var forParts = node.forLoopParts;
-    if (forParts is ForParts) {
-      var updaters = forParts.updaters;
-      var beginToken = updaters.beginToken;
-      var endToken = updaters.endToken;
-      if (beginToken != null && endToken != null) {
-        _errorReporter.atOffset(
-          offset: beginToken.offset,
-          length: endToken.end - beginToken.offset,
-          errorCode: WarningCode.DEAD_CODE,
-        );
-      }
-    }
-  }
-
   void _verifyUnassignedSimpleIdentifier(
-      AstNode node, Expression? target, Token? operator) {
+    AstNode node,
+    Expression? target,
+    Token? operator,
+  ) {
     var flowAnalysis = _flowAnalysis;
     if (flowAnalysis == null) return;
 
@@ -467,7 +485,7 @@ class NullSafetyDeadCodeVerifier {
     target = target?.unParenthesized;
     if (target is SimpleIdentifier) {
       var element = target.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent;
         while (parent is MethodInvocation ||
@@ -476,10 +494,7 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.atNode(
-          node,
-          WarningCode.DEAD_CODE,
-        );
+        _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
       }
     }
   }
@@ -502,7 +517,13 @@ class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
 
 class _CatchClausesVerifier {
   final TypeSystemImpl _typeSystem;
-  final _CatchClausesVerifierReporter _errorReporter;
+  final void Function(
+    CatchClause first,
+    CatchClause last,
+    DiagnosticCode,
+    List<Object> arguments,
+  )
+  _reportDiagnostic;
   final List<CatchClause> catchClauses;
 
   bool _done = false;
@@ -510,7 +531,7 @@ class _CatchClausesVerifier {
 
   _CatchClausesVerifier(
     this._typeSystem,
-    this._errorReporter,
+    this._reportDiagnostic,
     this.catchClauses,
   );
 
@@ -522,7 +543,7 @@ class _CatchClausesVerifier {
     if (currentType == null || currentType.isDartCoreObject) {
       if (catchClause != catchClauses.last) {
         var index = catchClauses.indexOf(catchClause);
-        _errorReporter(
+        _reportDiagnostic(
           catchClauses[index + 1],
           catchClauses.last,
           WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -537,7 +558,7 @@ class _CatchClausesVerifier {
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
       if (_typeSystem.isSubtypeOf(currentType, type)) {
-        _errorReporter(
+        _reportDiagnostic(
           catchClause,
           catchClauses.last,
           WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE,

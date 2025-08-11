@@ -6,17 +6,20 @@ library app;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
+import 'dart:js_interop';
 
 import 'package:logging/logging.dart';
-import 'package:observatory/service_html.dart';
+import 'package:stack_trace/stack_trace.dart';
+import 'package:web/web.dart' as web;
+
 import 'package:observatory/elements.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/event.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/repositories.dart';
+import 'package:observatory/service_html.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/tracer.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 export 'package:observatory/utils.dart';
 

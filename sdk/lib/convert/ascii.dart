@@ -58,10 +58,9 @@ final class AsciiCodec extends Encoding {
 
   AsciiEncoder get encoder => const AsciiEncoder();
 
-  AsciiDecoder get decoder =>
-      _allowInvalid
-          ? const AsciiDecoder(allowInvalid: true)
-          : const AsciiDecoder(allowInvalid: false);
+  AsciiDecoder get decoder => _allowInvalid
+      ? const AsciiDecoder(allowInvalid: true)
+      : const AsciiDecoder(allowInvalid: false);
 }
 
 // Superclass for [AsciiEncoder] and [Latin1Encoder].

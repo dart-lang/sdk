@@ -22,11 +22,11 @@ extension type I2(core::int it) {
 }
 static extension-type-member method I|constructor#_(core::int it) → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#_#tearOff(core::int it) → self::I% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method I|constructor#_#_#tearOff(core::int it) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#_(it);
 static extension-type-member method I|constructor#(core::int x, [core::int? y = null]) → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#new#tearOff(core::int x, [core::int? y]) → self::I% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method I|constructor#_#new#tearOff(core::int x, [core::int? y]) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#(x, y);
 static extension-type-member method I|m(lowered final self::I% /* erasure=core::int, declared=! */ #this, core::String s, [has-declared-initializer core::int i]) → void
   ;
@@ -34,11 +34,11 @@ static extension-type-member method I|get#m(lowered final self::I% /* erasure=co
   return (core::String s, [core::int i]) → void => self::I|m(#this, s, i);
 static extension-type-member method I2|constructor#_(core::int it) → self::I2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I2|constructor#_#_#tearOff(core::int it) → self::I2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method I2|constructor#_#_#tearOff(core::int it) → self::I2% /* erasure=core::int, declared=! */
   return self::I2|constructor#_(it);
 static extension-type-member method I2|constructor#(core::int x, {core::int? y = null}) → self::I2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I2|constructor#_#new#tearOff(core::int x, {core::int? y}) → self::I2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method I2|constructor#_#new#tearOff(core::int x, {core::int? y}) → self::I2% /* erasure=core::int, declared=! */
   return self::I2|constructor#(x, y: y);
 static extension-type-member method I2|m(lowered final self::I2% /* erasure=core::int, declared=! */ #this, core::String s, {has-declared-initializer core::int i}) → void
   ;

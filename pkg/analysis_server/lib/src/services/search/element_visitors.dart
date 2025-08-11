@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 
 /// Returns the fragment that is either [fragment], or one of its direct or
@@ -13,13 +13,13 @@ Fragment? findFragmentByNameOffset(LibraryFragment fragment, int nameOffset) {
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element2 element, BoolElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
+void visitChildren(Element element, BoolElementProcessor processor) {
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
-/// An [Element2] processor function type.
+/// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef BoolElementProcessor = bool Function(Element2 element);
+typedef BoolElementProcessor = bool Function(Element element);
 
 /// A [GeneralizingElementVisitor2] adapter for [BoolElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
@@ -28,10 +28,10 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   _ElementVisitorAdapter(this.processor);
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren == true) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 }
@@ -48,7 +48,7 @@ class _FragmentByNameOffsetVisitor {
     if (fragment.nameOffset2 == nameOffset) {
       return fragment;
     }
-    for (var child in fragment.children3) {
+    for (var child in fragment.children) {
       var result = _searchIn(child);
       if (result != null) {
         return result;

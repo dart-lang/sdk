@@ -25,24 +25,36 @@ class B extends A {}
   }
 
   test_class_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 class B extends T {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef T<X extends A> = X;
 class B extends T<A> {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-          55, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 }

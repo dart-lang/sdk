@@ -19,8 +19,11 @@ Future<void> main(args, message) async {
   if (message == null) {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawnUri(
-        Platform.script, <String>[], <SendPort>[receivePort.sendPort],
-        errorsAreFatal: true);
+      Platform.script,
+      <String>[],
+      <SendPort>[receivePort.sendPort],
+      errorsAreFatal: true,
+    );
     final result = await receivePort.first;
     Expect.equals("done", result);
     return;
@@ -37,8 +40,11 @@ Future<void> main(args, message) async {
     final receivePort = ReceivePort();
     try {
       final isolate = await Isolate.spawnUri(
-          Platform.script, <String>["worker"], <SendPort>[receivePort.sendPort],
-          errorsAreFatal: true);
+        Platform.script,
+        <String>["worker"],
+        <SendPort>[receivePort.sendPort],
+        errorsAreFatal: true,
+      );
       final result = await receivePort.first;
       Expect.equals("done", result);
       sendPort.send("done");

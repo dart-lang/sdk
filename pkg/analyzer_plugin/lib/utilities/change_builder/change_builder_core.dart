@@ -24,8 +24,8 @@ abstract class ChangeBuilder {
   /// Note that omitting [eol], the EOL sequence to use, can result in
   /// inconsistent EOL sequences being added to files.
   // TODO(srawlins): Should `eol` be required? Each `DartFileEditBuilderImpl`
-  // has a `ResolvedUnitResult` that can be relied on to detect the existing EOL
-  // sequences, so could `eol` be removed?
+  //  has a `ResolvedUnitResult` that can be relied on to detect the existing
+  //  EOL sequences, so could `eol` be removed? (dantup: but non-Dart builders?)
   factory ChangeBuilder(
       {AnalysisSession session,
       ChangeWorkspace workspace,
@@ -75,6 +75,8 @@ abstract class ChangeBuilder {
 
   /// Return a copy of this change builder that is constructed in such as was
   /// that changes to the copy will not effect this change builder.
+  @Deprecated('Copying change builders is expensive, so it is no longer '
+      'supported. There is no replacement.')
   ChangeBuilder copy();
 
   /// Return `true` if this builder already has edits for the file with the

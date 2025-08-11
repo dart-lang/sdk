@@ -11,22 +11,27 @@ import "dart:convert";
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-void testSignals(int usr1Expect, int usr2Expect,
-    [int? usr1Send, int? usr2Send, bool shouldFail = false]) {
+void testSignals(
+  int usr1Expect,
+  int usr2Expect, [
+  int? usr1Send,
+  int? usr2Send,
+  bool shouldFail = false,
+]) {
   if (usr1Send == null) usr1Send = usr1Expect;
   if (usr2Send == null) usr2Send = usr2Expect;
   asyncStart();
   Process.start(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add('--verbosity=warning')
-            ..addAll([
-              Platform.script.resolve('signals_test_script.dart').toFilePath(),
-              usr1Expect.toString(),
-              usr2Expect.toString()
-            ]))
-      .then((process) {
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..addAll([
+        Platform.script.resolve('signals_test_script.dart').toFilePath(),
+        usr1Expect.toString(),
+        usr2Expect.toString(),
+      ]),
+  ).then((process) {
     process.stdin.close();
     process.stderr.drain();
     int v = 0;
@@ -52,27 +57,32 @@ void testSignals(int usr1Expect, int usr2Expect,
 void testSignal(ProcessSignal signal) {
   asyncStart();
   Process.start(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add('--verbosity=warning')
-            ..addAll([
-              Platform.script.resolve('signal_test_script.dart').toFilePath(),
-              signal.toString()
-            ]))
-      .then((process) {
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..addAll([
+        Platform.script.resolve('signal_test_script.dart').toFilePath(),
+        signal.toString(),
+      ]),
+  ).then((process) {
     process.stdin.close();
     process.stderr.drain();
 
     var output = "";
-    process.stdout.transform(utf8.decoder).listen((str) {
-      output += str;
-      if (output == 'ready\n') {
-        process.kill(signal);
-      }
-    }, onDone: () {
-      Expect.equals('ready\n$signal\n', output);
-    });
+    process.stdout
+        .transform(utf8.decoder)
+        .listen(
+          (str) {
+            output += str;
+            if (output == 'ready\n') {
+              process.kill(signal);
+            }
+          },
+          onDone: () {
+            Expect.equals('ready\n$signal\n', output);
+          },
+        );
     process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
       asyncEnd();
@@ -84,27 +94,30 @@ void testMultipleSignals(List<ProcessSignal> signals) {
   for (var signal in signals) {
     asyncStart();
     Process.start(
-            Platform.executable,
-            []
-              ..addAll(Platform.executableArguments)
-              ..add('--verbosity=warning')
-              ..add(Platform.script
-                  .resolve('signal_test_script.dart')
-                  .toFilePath())
-              ..addAll(signals.map((s) => s.toString())))
-        .then((process) {
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
+        ..add(Platform.script.resolve('signal_test_script.dart').toFilePath())
+        ..addAll(signals.map((s) => s.toString())),
+    ).then((process) {
       process.stdin.close();
       process.stderr.drain();
 
       var output = "";
-      process.stdout.transform(utf8.decoder).listen((str) {
-        output += str;
-        if (output == 'ready\n') {
-          process.kill(signal);
-        }
-      }, onDone: () {
-        Expect.equals('ready\n$signal\n', output);
-      });
+      process.stdout
+          .transform(utf8.decoder)
+          .listen(
+            (str) {
+              output += str;
+              if (output == 'ready\n') {
+                process.kill(signal);
+              }
+            },
+            onDone: () {
+              Expect.equals('ready\n$signal\n', output);
+            },
+          );
       process.exitCode.then((exitCode) {
         Expect.equals(0, exitCode);
         asyncEnd();

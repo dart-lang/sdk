@@ -39,9 +39,11 @@ class ConstMap implements Map<int, String> {
   String? remove(Object? key) => throw UnsupportedError("unsupported");
   void removeWhere(bool Function(int key, String value) predicate) =>
       throw UnsupportedError("unsupported");
-  String update(int key, String Function(String value) update,
-          {String Function()? ifAbsent}) =>
-      throw UnsupportedError("unsupported");
+  String update(
+    int key,
+    String Function(String value) update, {
+    String Function()? ifAbsent,
+  }) => throw UnsupportedError("unsupported");
   void updateAll(String Function(int key, String value) update) =>
       throw UnsupportedError("unsupported");
 }

@@ -6,13 +6,13 @@ library;
 //   C._staticFoo();
 //     ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the class 'C'.
+// pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named '_foo'.
 //   c._foo();
 //     ^^^^
 //
-// pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the class 'C'.
+// pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named '_bar'.
 //   c._bar();
@@ -27,7 +27,7 @@ import "org-dartlang-testcase:///issue38750_lib2.dart";
 static method main() → dynamic {}
 static method errors() → dynamic {
   iss::C c = new iss::C::•();
-  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_foo'.
   c._foo();
@@ -37,7 +37,7 @@ Try correcting the name to the name of an existing method, or defining a method 
     ^^^^^^^^^^";
   c.{iss::C::foo}(){() → dynamic};
   iss::C::staticFoo();
-  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_bar'.
   c._bar();
@@ -87,7 +87,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the class 'C'.
+// pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named '_bar'.
 //   c._bar();
@@ -100,7 +100,7 @@ import "org-dartlang-testcase:///issue38750_lib1.dart";
 
 static method errors() → dynamic {
   iss::C c = new iss::C::•();
-  invalid-expression "pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_bar'.
   c._bar();

@@ -79,8 +79,11 @@ Future testWithNineParams() async {
   // This will take a 6x6 square from the first canvas from position 2,2
   // and then scale it to a 20x20 square and place it to the second
   // canvas at 50,50.
-  context.drawImageToRect(img, new Rectangle(50, 50, 20, 20),
-      sourceRect: new Rectangle(2, 2, 6, 6));
+  context.drawImageToRect(
+    img,
+    new Rectangle(50, 50, 20, 20),
+    sourceRect: new Rectangle(2, 2, 6, 6),
+  );
 
   checkPixel(readPixel(50, 50), [255, 0, 0, 255]);
   checkPixel(readPixel(55, 55), [255, 0, 0, 255]);

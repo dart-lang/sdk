@@ -11,10 +11,10 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -36,7 +36,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session async => sessionFor(testPackageRootPath);
+  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
 
   /// The file system-specific `analysis_options.yaml` path.
   String get testPackageAnalysisOptionsPath =>
@@ -116,7 +116,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(pathContext: pathContext));
   }
 
   /// Write an analysis options file based on the given arguments.

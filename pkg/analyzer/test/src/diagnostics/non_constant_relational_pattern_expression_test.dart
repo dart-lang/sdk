@@ -60,26 +60,38 @@ void f(x) {
   }
 
   test_notConst_formalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, int a) {
   if (x case > a) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 34,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          34,
+          1,
+        ),
+      ],
+    );
   }
 
   test_notConst_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final a = 0;
 
 void f(x) {
   if (x case > a) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 41,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 }

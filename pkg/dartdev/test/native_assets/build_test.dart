@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:code_assets/code_assets.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -21,86 +21,72 @@ String crossOSNotAllowedError(String format) =>
 final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
 String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
 
-  final bool fromDartdevSource = args.contains('--source');
-  final hostOS = Platform.operatingSystem;
-  final crossOS = Platform.isLinux ? 'macos' : 'linux';
-  for (final targetOS in [null, hostOS, crossOS]) {
-    String? osModifier;
-    if (targetOS == hostOS) {
-      osModifier = 'host';
-    } else if (targetOS == crossOS) {
-      osModifier = 'cross';
-    }
-    for (final verbose in [true, false]) {
-      final testModifier = [
-        '',
-        if (osModifier != null) osModifier,
-        if (verbose) 'verbose'
-      ].join(' ');
-      test('dart build$testModifier', timeout: longTimeout, () async {
-        await nativeAssetsTest('dart_app', (dartAppUri) async {
-          final bool expectCrossOSFailure = targetOS == crossOS;
-          final result = await runDart(
-            arguments: [
-              '--enable-experiment=native-assets',
-              if (fromDartdevSource)
-                Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
-              'build',
-              if (targetOS != null) ...[
-                '--target-os',
-                targetOS,
-              ],
-              if (verbose) '-v',
-              'bin/dart_app.dart',
-            ],
-            workingDirectory: dartAppUri,
-            logger: logger,
-            expectExitCodeZero: !expectCrossOSFailure,
-          );
-          if (expectCrossOSFailure) {
-            expect(result.stderr, contains(crossOSNotAllowedError('exe')));
-            expect(result.stderr, contains(hostOSMessage));
-            expect(result.stderr, contains(targetOSMessage(crossOS)));
-            expect(result.exitCode, 128);
-            return; // No executable to run.
-          }
-          if (verbose) {
-            expect(result.stdout, contains(usingTargetOSMessage));
-            expect(result.stdout, contains('build.dart'));
-          } else {
-            expect(result.stdout, isNot(contains('build.dart')));
-          }
+  final dartDevEntryScriptUri = resolveDartDevUri('bin/dartdev.dart');
 
-          final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
-          final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
-          expect(await File.fromUri(absoluteExeUri).exists(), true);
-          await _withTempDir((tempUri) async {
-            // The link needs to have the same extension as the executable on
-            // Windows to be able to be executable.
-            final link = Link.fromUri(tempUri.resolve('my_link.exe'));
-            await link.create(absoluteExeUri.toFilePath());
-            for (final exeUri in [
-              absoluteExeUri,
-              relativeExeUri,
-              link.uri,
-            ]) {
-              final result = await runProcess(
-                executable: exeUri,
-                arguments: [],
-                workingDirectory: dartAppUri,
-                logger: logger,
-              );
-              expectDartAppStdout(result.stdout);
-            }
-          });
+  final bool fromDartdevSource = args.contains('--source');
+
+  /// The relative uri from the package root to the app bundle.
+  final relativeBundleUri = Uri.directory(
+      './build/cli/${OS.current}_${Architecture.current}/bundle/');
+
+  for (final verbose in [true, false]) {
+    final testModifier = verbose ? ' verbose' : '';
+    test('dart build$testModifier', timeout: longTimeout, () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
+            'build',
+            'cli',
+            if (verbose) '-v',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        if (verbose) {
+          expect(result.stdout, contains(usingTargetOSMessage));
+          expect(result.stdout, contains('build.dart'));
+        } else {
+          expect(result.stdout, isNot(contains('build.dart')));
+        }
+
+        final relativeExeUri = relativeBundleUri
+            .resolve('bin/')
+            .resolve(OS.current.executableFileName('dart_app'));
+        final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+        expect(await File.fromUri(absoluteExeUri).exists(), true);
+        await _withTempDir((tempUri) async {
+          // The link needs to have the same extension as the executable on
+          // Windows to be able to be executable.
+          final link = Link.fromUri(
+              tempUri.resolve(OS.current.executableFileName('my_link')));
+          await link.create(absoluteExeUri.toFilePath());
+          for (final exeUri in [
+            absoluteExeUri,
+            relativeExeUri,
+            link.uri,
+            if (OS.current == OS.windows) ...[
+              removeDotExe(absoluteExeUri),
+              removeDotExe(relativeExeUri),
+              removeDotExe(link.uri),
+            ]
+          ]) {
+            final result = await runProcess(
+              executable: exeUri,
+              arguments: [],
+              workingDirectory: dartAppUri,
+              logger: logger,
+            );
+            expectDartAppStdout(result.stdout);
+          }
         });
       });
-    }
+    });
   }
 
   test('dart build native assets build failure', timeout: longTimeout,
@@ -114,9 +100,8 @@ void main(List<String> args) {
 ''');
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
-          'bin/dart_app.dart',
+          'cli',
         ],
         workingDirectory: dartAppUri,
         logger: logger,
@@ -136,9 +121,8 @@ void main(List<String> args) {
     await nativeAssetsTest('native_add_duplicate', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
-          'bin/native_add_duplicate.dart',
+          'cli',
         ],
         workingDirectory: dartAppUri,
         logger: logger,
@@ -158,9 +142,8 @@ void main(List<String> args) {
     await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
       await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
-          'bin/drop_dylib_link.dart',
+          'cli',
         ],
         workingDirectory: dartAppUri,
         logger: logger,
@@ -168,12 +151,12 @@ void main(List<String> args) {
       );
 
       // Check that the build directory exists
-      final directory =
-          Directory.fromUri(dartAppUri.resolve('bin/drop_dylib_link'));
-      expect(directory.existsSync(), true);
+      final libDirectory = Directory.fromUri(
+          dartAppUri.resolveUri(relativeBundleUri).resolve('lib/'));
+      expect(libDirectory.existsSync(), true);
 
       // Check that only one dylib is in the final application package
-      final buildFiles = directory.listSync(recursive: true);
+      final buildFiles = libDirectory.listSync(recursive: true);
       expect(
         buildFiles.where((file) => file.path.contains('add')),
         isNotEmpty,
@@ -189,9 +172,8 @@ void main(List<String> args) {
     await nativeAssetsTest('add_asset_link', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
           'build',
-          'bin/add_asset_link.dart',
+          'cli',
         ],
         workingDirectory: dartAppUri,
         logger: logger,
@@ -204,7 +186,7 @@ void main(List<String> args) {
 
       // Check that the build directory exists
       final directory =
-          Directory.fromUri(dartAppUri.resolve('bin/add_asset_link'));
+          Directory.fromUri(dartAppUri.resolveUri(relativeBundleUri));
       expect(directory.existsSync(), true);
       final dylib = OS.current.libraryFileName('add', DynamicLoadingBundled());
       expect(
@@ -218,12 +200,10 @@ void main(List<String> args) {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
       final result = await runDart(
         arguments: [
-          '--enable-experiment=native-assets',
-          if (fromDartdevSource)
-            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+          if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
           'build',
-          'bin/dart_app.dart',
-          '.'
+          'cli',
+          '--output=.'
         ],
         workingDirectory: dartAppUri,
         logger: logger,
@@ -252,8 +232,10 @@ void main(List<String> args) {
 
         await runDart(
           arguments: [
-            '--enable-experiment=native-assets,record-use',
+            '--enable-experiment=record-use',
             'build',
+            'cli',
+            '--target',
             'bin/$filename.dart',
           ],
           workingDirectory: dartAppUri,
@@ -261,26 +243,28 @@ void main(List<String> args) {
           expectExitCodeZero: true,
         );
 
+        final bundleDirectory =
+            Directory.fromUri(dartAppUri.resolveUri(relativeBundleUri));
         await runProcess(
-          executable: Uri.file('bin/$filename/$filename.exe'),
+          executable: bundleDirectory.uri
+              .resolve('bin/')
+              .resolve(OS.current.executableFileName(filename)),
           logger: logger,
           expectedExitCode: 0,
           throwOnUnexpectedExitCode: true,
           workingDirectory: dartAppUri,
         );
 
-        // The build directory exists
-        final shakeDirectory =
-            Directory.fromUri(dartAppUri.resolve('bin/$filename'));
-        expect(shakeDirectory.existsSync(), true);
+        // The build directory exists.
+        expect(bundleDirectory.existsSync(), true);
 
-        // The multiply asset has been treeshaken
+        // The multiply asset has been treeshaken.
         expect(
-          File.fromUri(shakeDirectory.uri.resolve('lib/$addLib')).existsSync(),
+          File.fromUri(bundleDirectory.uri.resolve('lib/$addLib')).existsSync(),
           true,
         );
         expect(
-          File.fromUri(shakeDirectory.uri.resolve('lib/$mulitplyLib'))
+          File.fromUri(bundleDirectory.uri.resolve('lib/$mulitplyLib'))
               .existsSync(),
           false,
         );
@@ -295,20 +279,19 @@ void main(List<String> args) {
       await nativeAssetsTest('native_dynamic_linking', (packageUri) async {
         await runDart(
           arguments: [
-            '--enable-experiment=native-assets',
             'build',
-            'bin/native_dynamic_linking.dart',
+            'cli',
           ],
           workingDirectory: packageUri,
           logger: logger,
         );
 
-        final outputDirectory =
-            Directory.fromUri(packageUri.resolve('bin/native_dynamic_linking'));
-        expect(outputDirectory.existsSync(), true);
+        final bundleDirectory =
+            Directory.fromUri(packageUri.resolveUri(relativeBundleUri));
+        expect(bundleDirectory.existsSync(), true);
 
         File dylibFile(String name) {
-          final libDirectoryUri = (outputDirectory.uri.resolve('lib/'));
+          final libDirectoryUri = (bundleDirectory.uri.resolve('lib/'));
           final dylibBasename =
               OS.current.libraryFileName(name, DynamicLoadingBundled());
           return File.fromUri(libDirectoryUri.resolve(dylibBasename));
@@ -319,7 +302,9 @@ void main(List<String> args) {
         expect(dylibFile('debug').existsSync(), true);
 
         final proccessResult = await runProcess(
-          executable: outputDirectory.uri.resolve('native_dynamic_linking.exe'),
+          executable: bundleDirectory.uri
+              .resolve('bin/')
+              .resolve(OS.current.executableFileName('native_dynamic_linking')),
           logger: logger,
           throwOnUnexpectedExitCode: true,
         );
@@ -328,34 +313,38 @@ void main(List<String> args) {
     },
   );
 
-  test(
-    'dart build with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'build',
-            'bin/user_defines.dart',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart build with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          await runDart(
+            arguments: [
+              'build',
+              'cli',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
 
-        final outputDirectory =
-            Directory.fromUri(packageUri.resolve('bin/user_defines'));
-        expect(outputDirectory.existsSync(), true);
+          final bundleDirectory =
+              Directory.fromUri(packageUri.resolveUri(relativeBundleUri));
+          expect(bundleDirectory.existsSync(), true);
 
-        final proccessResult = await runProcess(
-          executable: outputDirectory.uri.resolve('user_defines.exe'),
-          logger: logger,
-          throwOnUnexpectedExitCode: true,
-        );
-        expect(proccessResult.stdout, contains('Hello world!'));
-      });
-    },
-  );
+          final proccessResult = await runProcess(
+            executable: bundleDirectory.uri
+                .resolve('bin/')
+                .resolve(OS.current.executableFileName('user_defines')),
+            logger: logger,
+            throwOnUnexpectedExitCode: true,
+          );
+          expect(proccessResult.stdout, contains('Hello world!'));
+        });
+      },
+    );
+  }
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
@@ -369,4 +358,13 @@ Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
       await tempDirResolved.delete(recursive: true);
     }
   }
+}
+
+Uri removeDotExe(Uri withExe) {
+  final exeName = withExe.pathSegments.lastWhere((e) => e.isNotEmpty);
+  if (!exeName.endsWith('.exe')) {
+    throw StateError('Expected executable to end in .exe, got $exeName');
+  }
+  final fileName = exeName.replaceAll('.exe', '');
+  return withExe.resolve(fileName);
 }

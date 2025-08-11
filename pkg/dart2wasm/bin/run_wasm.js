@@ -404,21 +404,22 @@ const main = async () => {
     importObject.ffi = ffiInstance.exports;
   }
 
-  globalThis.loadData = async (relativeToWasmFileUri) => {
-    var path = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
-    return await readBytes(`${path}/${relativeToWasmFileUri}`);
-  };
-
   // Instantiate the Dart module, importing from the global scope.
   const wasmFilename = args[wasmArg];
+  const wasmDirectory = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
+
+  globalThis.loadData = async (relativeToWasmFileUri) => {
+    return await readBytes(`${wasmDirectory}/${relativeToWasmFileUri}`);
+  };
+
   const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
   const appInstance = await compiledApp.instantiate(importObject, {
     loadDeferredWasm: async (moduleName) => {
       let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
       return readBytes(filename);
     },
-    loadDynamicModule: async (uri) => {
-      return readBytes(uri);
+    loadDynamicModule: async (wasmUri, mjsUri) => {
+      return [await readBytes(wasmUri), await import(`${wasmDirectory}/${mjsUri}`)];
     }
   });
 

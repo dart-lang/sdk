@@ -15,7 +15,6 @@ class StaticField1aTest {
   static testMain() {
     if (false) {
       var foo = new Foo();
-
     }
   }
 }

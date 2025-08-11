@@ -194,8 +194,8 @@ class PagedColumnView extends View {
     int pageLength = 1;
     scheduleMicrotask(() {
       if (_container.scrollWidth > _container.offset.width) {
-        pageLength =
-            (_container.scrollWidth / _computePageSize(_container)).ceil();
+        pageLength = (_container.scrollWidth / _computePageSize(_container))
+            .ceil();
       }
       pageLength = Math.max(pageLength, 1);
 
@@ -243,10 +243,9 @@ class PagedColumnView extends View {
             current < 0) {
           // The user is trying to throw so we want to round up to the
           // nearest page in the direction they are throwing.
-          newPageNumber =
-              currentTarget < current
-                  ? currentPageNumber + 1
-                  : currentPageNumber - 1;
+          newPageNumber = currentTarget < current
+              ? currentPageNumber + 1
+              : currentPageNumber - 1;
         } else {
           newPageNumber = pageNumber.round();
         }

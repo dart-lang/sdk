@@ -4,7 +4,8 @@
 
 /*member: whileLoop:declared={a, b}, assigned={a, b}*/
 whileLoop(int a, int b) {
-  /*assigned={a, b}*/ while ((a = 0) != 0) {
+  /*assigned={a, b}*/
+  while ((a = 0) != 0) {
     b = 0;
   }
 }

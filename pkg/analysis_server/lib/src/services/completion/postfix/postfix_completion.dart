@@ -8,12 +8,11 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -401,7 +400,7 @@ final class PostfixCompletionProcessor {
   CompilationUnit get _unit => _completionContext.resolveResult.unit;
 
   Future<PostfixCompletion> compute() async {
-    _node = _selectedNode();
+    _node = _unit.nodeCovering(offset: _selectionOffset);
     if (_node == null) {
       return _noCompletion;
     }
@@ -568,7 +567,7 @@ final class PostfixCompletionProcessor {
   }
 
   Future<bool> isApplicable() async {
-    _node = _selectedNode();
+    _node = _unit.nodeCovering(offset: _selectionOffset);
     if (_node == null) {
       return false;
     }
@@ -623,7 +622,7 @@ final class PostfixCompletionProcessor {
   }
 
   Expression? _findOuterExpression(AstNode? start, InterfaceType builtInType) {
-    if (start is SimpleIdentifier && start.element is PrefixElement2) {
+    if (start is SimpleIdentifier && start.element is PrefixElement) {
       return null;
     }
 
@@ -657,9 +656,6 @@ final class PostfixCompletionProcessor {
     }
     return expr;
   }
-
-  AstNode? _selectedNode({int? at}) =>
-      NodeLocator(at ?? _selectionOffset).searchWithin(_unit);
 
   void _setCompletionFromBuilder(
     ChangeBuilder builder,

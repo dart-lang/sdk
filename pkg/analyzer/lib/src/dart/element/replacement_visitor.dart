@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -32,7 +32,7 @@ class ReplacementVisitor
   FunctionTypeImpl? createFunctionType({
     required FunctionTypeImpl type,
     required InstantiatedTypeAliasElementImpl? newAlias,
-    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<TypeParameterElementImpl>? newTypeParameters,
     required List<FormalParameterElementMixin>? newParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
@@ -55,7 +55,7 @@ class ReplacementVisitor
 
   FunctionTypeBuilder? createFunctionTypeBuilder({
     required FunctionTypeBuilder type,
-    required List<TypeParameterElementImpl2>? newTypeParameters,
+    required List<TypeParameterElementImpl>? newTypeParameters,
     required List<FormalParameterElementImpl>? newFormalParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
@@ -66,7 +66,7 @@ class ReplacementVisitor
       return null;
     }
 
-    return FunctionTypeBuilder.v2(
+    return FunctionTypeBuilder(
       typeParameters: newTypeParameters ?? type.typeParameters,
       formalParameters: newFormalParameters ?? type.formalParameters,
       returnType: newReturnType ?? type.returnType,
@@ -87,7 +87,7 @@ class ReplacementVisitor
     }
 
     return InterfaceTypeImpl(
-      element: type.element3,
+      element: type.element,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
@@ -103,10 +103,10 @@ class ReplacementVisitor
       return null;
     }
 
-    return NamedTypeBuilder.v2(
+    return NamedTypeBuilder(
       linker: type.linker,
       typeSystem: type.typeSystem,
-      element: type.element3,
+      element: type.element,
       arguments: newTypeArguments ?? type.arguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );
@@ -134,7 +134,7 @@ class ReplacementVisitor
 
     var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
     return TypeParameterTypeImpl(
-      element3: type.element3,
+      element: type.element,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
       alias: type.alias,
@@ -150,7 +150,7 @@ class ReplacementVisitor
     }
 
     return TypeParameterTypeImpl(
-      element3: type.element3,
+      element: type.element,
       nullabilitySuffix: newNullability,
       alias: type.alias,
     );
@@ -167,7 +167,7 @@ class ReplacementVisitor
     node as FunctionTypeImpl;
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElementImpl2>? newTypeParameters;
+    List<TypeParameterElementImpl>? newTypeParameters;
     for (var i = 0; i < node.typeParameters.length; i++) {
       var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
@@ -175,18 +175,19 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] = typeParameter.freshCopy()
-            ..bound =
-                // TODO(paulberry): eliminate this cast by changing the return
-                // type of `visitTypeParameterBound`.
-                newBound as TypeImpl;
+          newTypeParameters[i] =
+              typeParameter.freshCopy()
+                ..bound =
+                    // TODO(paulberry): eliminate this cast by changing the return
+                    // type of `visitTypeParameterBound`.
+                    newBound as TypeImpl;
         }
       }
     }
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement2, DartType>{};
+      var map = <TypeParameterElement, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
         var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];
@@ -195,7 +196,7 @@ class ReplacementVisitor
         );
       }
 
-      substitution = Substitution.fromMap2(map);
+      substitution = Substitution.fromMap(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];
@@ -231,8 +232,8 @@ class ReplacementVisitor
         }
       }
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element: alias.element,
           typeArguments: newArguments,
         );
       }
@@ -252,10 +253,7 @@ class ReplacementVisitor
 
       if (newType != null || newKind != null) {
         newParameters ??= node.formalParameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
-          type: newType,
-          kind: newKind,
-        );
+        newParameters[i] = parameter.copyWith(type: newType, kind: newKind);
       }
     }
 
@@ -275,7 +273,7 @@ class ReplacementVisitor
   TypeImpl? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
     var newNullability = visitNullability(node);
 
-    List<TypeParameterElementImpl2>? newTypeParameters;
+    List<TypeParameterElementImpl>? newTypeParameters;
     for (var i = 0; i < node.typeParameters.length; i++) {
       var typeParameter = node.typeParameters[i];
       var bound = typeParameter.bound;
@@ -283,18 +281,19 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] = typeParameter.freshCopy()
-            ..bound =
-                // TODO(paulberry): eliminate this cast by changing the return
-                // type of `visitTypeParameterBound`.
-                newBound as TypeImpl;
+          newTypeParameters[i] =
+              typeParameter.freshCopy()
+                ..bound =
+                    // TODO(paulberry): eliminate this cast by changing the return
+                    // type of `visitTypeParameterBound`.
+                    newBound as TypeImpl;
         }
       }
     }
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement2, DartType>{};
+      var map = <TypeParameterElement, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
         var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];
@@ -303,7 +302,7 @@ class ReplacementVisitor
         );
       }
 
-      substitution = Substitution.fromMap2(map);
+      substitution = Substitution.fromMap(map);
 
       for (var i = 0; i < newTypeParameters.length; i++) {
         var newTypeParameter = newTypeParameters[i];
@@ -366,19 +365,19 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element2.typeParameters2,
+        alias.element.typeParameters,
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element: alias.element,
           typeArguments: newArguments,
         );
       }
     }
 
     var newTypeArguments = _typeArguments(
-      type.element3.typeParameters2,
+      type.element.typeParameters,
       type.typeArguments,
     );
 
@@ -399,12 +398,12 @@ class ReplacementVisitor
   TypeImpl? visitNamedTypeBuilder(NamedTypeBuilder type) {
     var newNullability = visitNullability(type);
 
-    var parameters = const <TypeParameterElementImpl2>[];
-    var element = type.element3;
-    if (element is InterfaceElementImpl2) {
-      parameters = element.typeParameters2;
-    } else if (element is TypeAliasElementImpl2) {
-      parameters = element.typeParameters2;
+    var parameters = const <TypeParameterElementImpl>[];
+    var element = type.element;
+    if (element is InterfaceElementImpl) {
+      parameters = element.typeParameters;
+    } else if (element is TypeAliasElementImpl) {
+      parameters = element.typeParameters;
     }
 
     var newArguments = _typeArguments(parameters, type.arguments);
@@ -419,10 +418,7 @@ class ReplacementVisitor
   TypeImpl? visitNeverType(covariant NeverTypeImpl type) {
     var newNullability = visitNullability(type);
 
-    return createNeverType(
-      type: type,
-      newNullability: newNullability,
-    );
+    return createNeverType(type: type, newNullability: newNullability);
   }
 
   NullabilitySuffix? visitNullability(DartType type) {
@@ -441,12 +437,12 @@ class ReplacementVisitor
     var alias = type.alias;
     if (alias != null) {
       var newArguments = _typeArguments(
-        alias.element2.typeParameters2,
+        alias.element.typeParameters,
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element: alias.element,
           typeArguments: newArguments,
         );
       }
@@ -459,9 +455,7 @@ class ReplacementVisitor
       var newType = field.type.accept(this);
       if (newType != null) {
         newPositionalFields ??= positionalFields.toList(growable: false);
-        newPositionalFields[i] = RecordTypePositionalFieldImpl(
-          type: newType,
-        );
+        newPositionalFields[i] = RecordTypePositionalFieldImpl(type: newType);
       }
     }
 
@@ -522,7 +516,7 @@ class ReplacementVisitor
   }
 
   TypeImpl? visitTypeArgument(
-    TypeParameterElementImpl2 parameter,
+    TypeParameterElementImpl parameter,
     TypeImpl argument,
   ) {
     return argument.accept(this);
@@ -548,10 +542,7 @@ class ReplacementVisitor
       );
     }
 
-    return createTypeParameterType(
-      type: type,
-      newNullability: newNullability,
-    );
+    return createTypeParameterType(type: type, newNullability: newNullability);
   }
 
   @override
@@ -565,7 +556,7 @@ class ReplacementVisitor
   }
 
   List<TypeImpl>? _typeArguments(
-    List<TypeParameterElementImpl2> parameters,
+    List<TypeParameterElementImpl> parameters,
     List<TypeImpl> arguments,
   ) {
     if (arguments.length != parameters.length) {

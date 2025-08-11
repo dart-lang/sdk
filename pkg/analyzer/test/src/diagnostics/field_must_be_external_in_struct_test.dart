@@ -16,28 +16,30 @@ main() {
 @reflectiveTest
 class FieldMustBeExternalInStructTest extends PubPackageResolutionTest {
   test_struct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 final class A extends Struct {
   @Int16()
   int a;
 }
-''', [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1),
-    ]);
+''',
+      [error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1)],
+    );
   }
 
   test_union() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:ffi';
 
 final class A extends Union {
   @Int16()
   int a;
 }
-''', [
-      error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1),
-    ]);
+''',
+      [error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1)],
+    );
   }
 }

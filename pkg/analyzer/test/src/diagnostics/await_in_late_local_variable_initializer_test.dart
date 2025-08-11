@@ -19,7 +19,8 @@ class AwaitInLateLocalVariableInitializerTest extends PubPackageResolutionTest {
       CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER;
 
   test_closure_late_await() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   var v = () async {
     late var v2 = await 42;
@@ -27,20 +28,21 @@ main() {
   };
   print(v);
 }
-''', [
-      error(_errorCode, 48, 5),
-    ]);
+''',
+      [error(_errorCode, 48, 5)],
+    );
   }
 
   test_late_await() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() async {
   late var v = await 42;
   print(v);
 }
-''', [
-      error(_errorCode, 30, 5),
-    ]);
+''',
+      [error(_errorCode, 30, 5)],
+    );
   }
 
   test_late_await_inClosure_blockBody() async {

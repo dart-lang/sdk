@@ -211,104 +211,113 @@ class A {
   }
 
   test_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f = 0;
   main() {
     _f += 2;
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_constructorFieldInitializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f;
   A() : _f = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_extensionOnClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo {}
 extension Bar on Foo {
   static final _baz = 7;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 51, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 51, 4)],
+    );
   }
 
   test_notUsed_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f;
   A(this._f);
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int _f = 0;
 }
 class Bar with M {}
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_mixinRestriction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo {
   int _f = 0;
 }
 mixin M on Foo {}
-''', [
-      error(WarningCode.UNUSED_FIELD, 18, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 18, 2)],
+    );
   }
 
   test_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_noReference_wildcard() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _ = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 1)],
+    );
   }
 
   test_notUsed_noReference_wildcard_preWildcards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class A {
   int _ = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 60, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 60, 1)],
+    );
   }
 
   test_notUsed_nullAssign() async {
@@ -324,76 +333,83 @@ doSomething() => 0;
   }
 
   test_notUsed_postfixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f = 0;
   main() {
     _f++;
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_prefixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f = 0;
   main() {
     ++_f;
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_notUsed_publicStaticField_privateClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   static String f1 = "x";
 }
 void main() => print(_A);
-''', [
-      error(WarningCode.UNUSED_FIELD, 27, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 27, 2)],
+    );
   }
 
   test_notUsed_publicStaticField_privateExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on String {
   static String f1 = "x";
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 41, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 41, 2)],
+    );
   }
 
   test_notUsed_publicStaticField_privateMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin _A {
   static String f1 = "x";
 }
 void main() => print(_A);
-''', [
-      error(WarningCode.UNUSED_FIELD, 27, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 27, 2)],
+    );
   }
 
   test_notUsed_referenceInComment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// [A._f] is great.
 class A {
   int _f = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 37, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 37, 2)],
+    );
   }
 
   test_notUsed_simpleAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f = 0;
   m() {
@@ -403,9 +419,9 @@ class A {
 f(A a) {
   a._f = 2;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 16, 2)],
+    );
   }
 
   test_privateEnum_publicConstant_isUsed() async {
@@ -421,7 +437,8 @@ void f() {
   }
 
   test_privateEnum_publicConstant_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
 }
@@ -429,9 +446,9 @@ enum _E {
 void f() {
   _E;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 12, 1)],
+    );
   }
 
   test_privateEnum_publicInstanceField_notUsed() async {
@@ -462,7 +479,8 @@ void f() {
   }
 
   test_privateEnum_publicStaticField_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static final int foo = 0;
@@ -471,9 +489,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 34, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 34, 3)],
+    );
   }
 
   test_privateEnum_values_isUsed() async {
@@ -514,13 +532,14 @@ void f() {
   }
 
   test_publicEnum_privateConstant_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   _v
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 11, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 11, 2)],
+    );
   }
 
   test_publicEnum_privateInstanceField_isUsed() async {
@@ -537,13 +556,14 @@ void f() {
   }
 
   test_publicEnum_privateInstanceField_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int _foo = 0;
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 26, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 26, 4)],
+    );
   }
 }

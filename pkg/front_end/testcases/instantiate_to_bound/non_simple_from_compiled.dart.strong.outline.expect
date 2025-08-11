@@ -32,5 +32,5 @@ extension B<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dyna
 }
 static method main() → dynamic
   ;
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);

@@ -245,7 +245,10 @@ class Builder {
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
         _setUint8AtTail(
-            _buf, alignedTail - 4 - i, fileIdentifier.codeUnitAt(i));
+          _buf,
+          alignedTail - 4 - i,
+          fileIdentifier.codeUnitAt(i),
+        );
       }
     }
     return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
@@ -427,7 +430,8 @@ class Builder {
   void _ensureNoVTable() {
     if (_currentVTable != null) {
       throw StateError(
-          'Cannot write a non-scalar value while writing a table.');
+        'Cannot write a non-scalar value while writing a table.',
+      );
     }
   }
 
@@ -452,9 +456,10 @@ class Builder {
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
         ByteData newBuf = ByteData(newCapacity);
-        newBuf.buffer
-            .asUint8List()
-            .setAll(deltaCapacity, _buf.buffer.asUint8List());
+        newBuf.buffer.asUint8List().setAll(
+          deltaCapacity,
+          _buf.buffer.asUint8List(),
+        );
         _buf = newBuf;
       }
     }
@@ -577,8 +582,9 @@ abstract class Reader<T> {
     int vTableSize = object._getUint16(vTableOffset);
     int vTableFieldOffset = (1 + 1 + field) * 2;
     if (vTableFieldOffset < vTableSize) {
-      int fieldOffsetInObject =
-          object._getUint16(vTableOffset + vTableFieldOffset);
+      int fieldOffsetInObject = object._getUint16(
+        vTableOffset + vTableFieldOffset,
+      );
       if (fieldOffsetInObject != 0) {
         return read(object, offset + fieldOffsetInObject);
       }
@@ -734,7 +740,7 @@ class _FbGenericList<E> extends _FbList<E> {
   List<E?>? _items;
 
   _FbGenericList(this.elementReader, BufferContext bp, int offset)
-      : super(bp, offset);
+    : super(bp, offset);
 
   @override
   E operator [](int i) {

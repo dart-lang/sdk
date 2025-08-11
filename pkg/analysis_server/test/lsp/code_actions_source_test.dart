@@ -6,52 +6,43 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../tool/lsp_spec/matchers.dart';
-import 'code_actions_abstract.dart';
+import '../shared/shared_code_actions_source_tests.dart';
+import 'code_actions_mixin.dart';
+import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(SourceCodeActionsTest);
     defineReflectiveTests(SortMembersSourceCodeActionsTest);
     defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
     defineReflectiveTests(FixAllSourceCodeActionsTest);
   });
 }
 
-abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
-  /// For convenience since source code actions do not rely on a position (but
-  /// one must be provided), uses [startOfDocPos] to avoid every test needing
-  /// to include a '^' marker.
-  @override
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
-    Uri fileUri, {
-    Range? range,
-    Position? position,
-    List<CodeActionKind>? kinds,
-    CodeActionTriggerKind? triggerKind,
-    ProgressToken? workDoneToken,
-  }) {
-    return super.getCodeActions(
-      fileUri,
-      position: startOfDocPos,
-      kinds: kinds,
-      triggerKind: triggerKind,
-      workDoneToken: workDoneToken,
-    );
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    setSupportedCodeActionKinds([CodeActionKind.Source]);
-  }
-}
+abstract class AbstractSourceCodeActionsTest
+    extends AbstractLspAnalysisServerTest
+    with
+        LspSharedTestMixin,
+        SharedSourceCodeActionsTestMixin,
+        CodeActionsTestMixin {}
 
 @reflectiveTest
 class FixAllSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    // Fix tests are likely to have diagnostics that need fixing.
+    failTestOnErrorDiagnostic = false;
+
+    registerBuiltInFixGenerators();
+  }
+
   Future<void> test_appliesCorrectEdits() async {
     const analysisOptionsContent = '''
 linter:
@@ -72,7 +63,11 @@ final b = <String>{};
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_noOverlay() async {
@@ -97,7 +92,11 @@ void f() {
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_overlay() async {
@@ -121,7 +120,11 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_withClientModification() async {
@@ -139,11 +142,14 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    var codeAction = await expectAction(content, command: Commands.fixAll);
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: Commands.fixAll,
+    );
     var command = codeAction.command!;
 
     // Files must be open to apply edits.
-    await openFile(mainFileUri, content);
+    await openFile(testFileUri, content);
 
     // Execute the command with a modification and capture the edit that is
     // sent back to us.
@@ -156,10 +162,11 @@ void f() {
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () async {
-        // Apply the command and immediately modify a file afterwards.
+        // Apply the command and immediately modify a file afterwards without
+        // awaiting.
         var commandFuture = executeCommand(command);
-        await commandFuture;
-        await replaceFile(12345, mainFileUri, 'client-modified-content');
+        await replaceFile(12345, testFileUri, 'client-modified-content');
+
         return commandFuture;
       },
       handler: (edit) {
@@ -214,7 +221,7 @@ final b = <String>{};
     newFile(containerFilePath, containerFileContent);
     newFile(partFilePath, content);
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       filePath: partFilePath,
       content,
       expectedContent,
@@ -232,7 +239,7 @@ class _MyClass {
 }
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.fixAll,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -267,7 +274,11 @@ class _MyClass {
 }
 ''';
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_unavailable_outsideAnalysisRoot() async {
@@ -287,7 +298,7 @@ import 'dart:async';
 int? a;
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.fixAll,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -315,303 +326,31 @@ int? a;
 int? a;
 ''';
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 }
 
 @reflectiveTest
-class OrganizeImportsSourceCodeActionsTest
-    extends AbstractSourceCodeActionsTest {
-  Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
-    const content = '''
-import 'dart:math';
-import 'dart:async';
-import 'dart:convert';
-
-Completer foo;
-int minified(int x, int y) => min(x, y);
-''';
-    const expectedContent = '''
-import 'dart:async';
-import 'dart:math';
-
-Completer foo;
-int minified(int x, int y) => min(x, y);
-''';
-
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.organizeImports,
-    );
-  }
-
-  Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
-    const content = '''
-import 'dart:math';
-import 'dart:async';
-import 'dart:convert';
-
-Completer foo;
-int minified(int x, int y) => min(x, y);
-''';
-    const expectedContent = '''
-import 'dart:async';
-import 'dart:math';
-
-Completer foo;
-int minified(int x, int y) => min(x, y);
-''';
-
-    setDocumentChangesSupport(false);
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.organizeImports,
-    );
-  }
-
-  Future<void> test_availableAsCodeActionLiteral() async {
-    const content = '';
-
-    await expectAction(content, command: Commands.organizeImports);
-  }
-
-  Future<void> test_availableAsCommand() async {
-    newFile(mainFilePath, '');
-    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    await initialize();
-
-    var actions = await getCodeActions(mainFileUri);
-    var action = findCommand(actions, Commands.organizeImports)!;
-    action.map(
-      (command) {},
-      (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
-    );
-  }
-
-  Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
-    var content = 'invalid dart code';
-
-    var codeAction = await expectAction(
-      content,
-      command: Commands.organizeImports,
-      triggerKind: CodeActionTriggerKind.Automatic,
-    );
-    var command = codeAction.command!;
-
-    // Expect a valid null result.
-    var response = await executeCommand(command);
-    expect(response, isNull);
-  }
-
-  Future<void> test_fileHasErrors_failsWithErrorForManual() async {
-    var content = 'invalid dart code';
-
-    var codeAction = await expectAction(
-      content,
-      command: Commands.organizeImports,
-    );
-    var command = codeAction.command!;
-
-    // Ensure the request returned an error (error responses are thrown by
-    // the test helper to make consuming success results simpler).
-    await expectLater(
-      executeCommand(command),
-      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
-    );
-  }
-
-  Future<void> test_filtersCorrectly() async {
-    newFile(mainFilePath, '');
-    await initialize();
-
-    ofKind(CodeActionKind kind) => getCodeActions(mainFileUri, kinds: [kind]);
-
-    expect(await ofKind(CodeActionKind.Source), hasLength(3));
-    expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
-    expect(await ofKind(DartCodeActionKind.SortMembers), hasLength(1));
-    expect(await ofKind(DartCodeActionKind.FixAll), hasLength(1));
-    expect(await ofKind(CodeActionKind('source.foo')), isEmpty);
-    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
-  }
-
-  Future<void> test_noEdits() async {
-    const content = '''
-import 'dart:async';
-import 'dart:math';
-
-Completer foo;
-int minified(int x, int y) => min(x, y);
-''';
-
-    var codeAction = await expectAction(
-      content,
-      command: Commands.organizeImports,
-    );
-    var command = codeAction.command!;
-
-    // Execute the command and it should return without needing us to process
-    // a workspace/applyEdit command because there were no edits.
-    var commandResponse = await executeCommand(command);
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-  }
-
-  Future<void> test_unavailableWhenNotRequested() async {
-    var content = '';
-
-    setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
-    await expectNoAction(content, command: Commands.organizeImports);
-  }
-
-  Future<void> test_unavailableWithoutApplyEditSupport() async {
-    var content = '';
-
-    setApplyEditSupport(false);
-    await expectNoAction(content, command: Commands.organizeImports);
-  }
-}
+class OrganizeImportsSourceCodeActionsTest extends AbstractSourceCodeActionsTest
+    with
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
+        SharedOrganizeImportsSourceCodeActionsTests {}
 
 @reflectiveTest
-class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
-  Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
-    const content = '''
-String b;
-String a;
-''';
-    const expectedContent = '''
-String a;
-String b;
-''';
+class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest
+    with
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
+        SharedSortMembersSourceCodeActionsTests {}
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.sortMembers,
-    );
-  }
-
-  Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
-    const content = '''
-String b;
-String a;
-''';
-    const expectedContent = '''
-String a;
-String b;
-''';
-
-    setDocumentChangesSupport(false);
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.sortMembers,
-    );
-  }
-
-  Future<void> test_availableAsCodeActionLiteral() async {
-    const content = '';
-
-    await expectAction(content, command: Commands.sortMembers);
-  }
-
-  Future<void> test_availableAsCommand() async {
-    newFile(mainFilePath, '');
-    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    await initialize();
-
-    var actions = await getCodeActions(mainFileUri);
-    var action = findCommand(actions, Commands.sortMembers)!;
-    action.map(
-      (command) {},
-      (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
-    );
-  }
-
-  Future<void> test_failsIfClientDoesntApplyEdits() async {
-    const content = '''
-String b;
-String a;
-''';
-
-    var codeAction = await expectAction(content, command: Commands.sortMembers);
-    var command = codeAction.command!;
-
-    var commandResponse = handleExpectedRequest<
-      Object?,
-      ApplyWorkspaceEditParams,
-      ApplyWorkspaceEditResult
-    >(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(command),
-      // Claim that we failed tpo apply the edits. This is what the client
-      // would do if the edits provided were for an old version of the
-      // document.
-      handler:
-          (edit) => ApplyWorkspaceEditResult(
-            applied: false,
-            failureReason: 'Document changed',
-          ),
-    );
-
-    // Ensure the request returned an error (error responses are thrown by
-    // the test helper to make consuming success results simpler).
-    await expectLater(
-      commandResponse,
-      throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)),
-    );
-  }
-
-  Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
-    var content = 'invalid dart code';
-
-    var codeAction = await expectAction(
-      content,
-      command: Commands.sortMembers,
-      triggerKind: CodeActionTriggerKind.Automatic,
-    );
-    var command = codeAction.command!;
-
-    // Expect a valid null result.
-    var response = await executeCommand(command);
-    expect(response, isNull);
-  }
-
-  Future<void> test_fileHasErrors_failsWithErrorForManual() async {
-    var content = 'invalid dart code';
-
-    var codeAction = await expectAction(content, command: Commands.sortMembers);
-    var command = codeAction.command!;
-
-    // Ensure the request returned an error (error responses are thrown by
-    // the test helper to make consuming success results simpler).
-    await expectLater(
-      executeCommand(command),
-      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
-    );
-  }
-
-  Future<void> test_nonDartFile() async {
-    await expectNoAction(
-      filePath: pubspecFilePath,
-      simplePubspecContent,
-      command: Commands.sortMembers,
-    );
-  }
-
-  Future<void> test_unavailableWhenNotRequested() async {
-    var content = '';
-
-    setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
-    await expectNoAction(content, command: Commands.sortMembers);
-  }
-
-  Future<void> test_unavailableWithoutApplyEditSupport() async {
-    var content = '';
-
-    setApplyEditSupport(false);
-    await expectNoAction(content, command: Commands.sortMembers);
-  }
-}
+@reflectiveTest
+class SourceCodeActionsTest extends AbstractSourceCodeActionsTest
+    with
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
+        SharedSourceCodeActionsTests {}

@@ -58,23 +58,26 @@ main() {
     Stream errors = isolate1.errors; // Broadcast stream, never a done message.
     int state = 1;
     var subscription;
-    subscription = errors.listen(null, onError: (error, stack) {
-      switch (state) {
-        case 1:
-          Expect.equals(new ArgumentError("whoops").toString(), "$error");
-          state++;
-          break;
-        case 2:
-          Expect.equals(new RangeError.value(37).toString(), "$error");
-          state++;
-          reply.close();
-          subscription.cancel();
-          asyncEnd();
-          break;
-        default:
-          throw "Bad state for error: $state: $error";
-      }
-    });
+    subscription = errors.listen(
+      null,
+      onError: (error, stack) {
+        switch (state) {
+          case 1:
+            Expect.equals(new ArgumentError("whoops").toString(), "$error");
+            state++;
+            break;
+          case 2:
+            Expect.equals(new RangeError.value(37).toString(), "$error");
+            state++;
+            reply.close();
+            subscription.cancel();
+            asyncEnd();
+            break;
+          default:
+            throw "Bad state for error: $state: $error";
+        }
+      },
+    );
     sendPort1.send(0);
     sendPort2.send(0);
     sendPort1.send(1);

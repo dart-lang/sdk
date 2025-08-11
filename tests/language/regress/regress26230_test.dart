@@ -21,8 +21,10 @@ class SectorParentData extends ParentData {}
 
 mixin class ContainerParentDataMixin<ChildType extends RenderObject> {}
 
-mixin class ContainerRenderObjectMixin<ChildType extends RenderObject,
-    ParentDataType extends ContainerParentDataMixin<ChildType>> {}
+mixin class ContainerRenderObjectMixin<
+  ChildType extends RenderObject,
+  ParentDataType extends ContainerParentDataMixin<ChildType>
+> {}
 
 class SectorChildListParentData extends SectorParentData
     with ContainerParentDataMixin<RenderSector> {}
@@ -33,10 +35,13 @@ class RenderSectorWithChildren extends RenderDecoratedSector
     with ContainerRenderObjectMixin<RenderSector, SectorChildListParentData> {}
 
 class ContainerBoxParentDataMixin<ChildType extends RenderObject>
-    extends BoxParentData with ContainerParentDataMixin<ChildType> {}
+    extends BoxParentData
+    with ContainerParentDataMixin<ChildType> {}
 
-mixin class RenderBoxContainerDefaultsMixin<ChildType extends RenderBox,
-        ParentDataType extends ContainerBoxParentDataMixin<ChildType>>
+mixin class RenderBoxContainerDefaultsMixin<
+  ChildType extends RenderBox,
+  ParentDataType extends ContainerBoxParentDataMixin<ChildType>
+>
     implements ContainerRenderObjectMixin<ChildType, ParentDataType> {}
 
 class FlexParentData extends ContainerBoxParentDataMixin<RenderBox> {}

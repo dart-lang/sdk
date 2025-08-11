@@ -16,13 +16,18 @@ enum DirectiveUriKind {
   withNothing,
 }
 
-enum ImportElementPrefixKind {
-  isDeferred,
-  isNotDeferred,
-  isNull,
+enum ElementTag {
+  null_,
+  dynamic_,
+  never_,
+  multiplyDefined,
+  memberWithTypeArguments,
+  elementImpl,
+  typeParameter,
+  formalParameter,
 }
 
-
+enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
 class Tag {
   static const int Nothing = 0;
@@ -34,8 +39,6 @@ class Tag {
   static const int AsExpression = 84;
   static const int AssertInitializer = 82;
   static const int AssignmentExpression = 96;
-  static const int AugmentedExpression = 111;
-  static const int AugmentedInvocation = 112;
   static const int AwaitExpression = 100;
   static const int BinaryExpression = 52;
   static const int BooleanLiteral = 4;
@@ -46,6 +49,9 @@ class Tag {
   static const int ConstructorReference = 101;
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
+  static const int DotShorthandConstructorInvocation = 114;
+  static const int DotShorthandInvocation = 115;
+  static const int DotShorthandPropertyAccess = 113;
   static const int DottedName = 47;
   static const int DoubleLiteral = 9;
   static const int ExtensionOverride = 87;
@@ -122,18 +128,6 @@ class Tag {
   static const int ParameterKindOptionalPositional = 2;
   static const int ParameterKindRequiredNamed = 3;
   static const int ParameterKindOptionalNamed = 4;
-
-  static const int NullType = 2;
-  static const int DynamicType = 3;
-  static const int FunctionType = 4;
-  static const int InvalidType = 5;
-  static const int NeverType = 6;
-  static const int InterfaceType = 7;
-  static const int InterfaceType_noTypeArguments_none = 8;
-  static const int InterfaceType_noTypeArguments_question = 9;
-  static const int RecordType = 10;
-  static const int TypeParameterType = 11;
-  static const int VoidType = 12;
 }
 
 enum TypeParameterVarianceTag {
@@ -142,4 +136,18 @@ enum TypeParameterVarianceTag {
   covariant,
   contravariant,
   invariant,
+}
+
+enum TypeTag {
+  NullType,
+  DynamicType,
+  FunctionType,
+  InvalidType,
+  NeverType,
+  InterfaceType,
+  InterfaceType_noTypeArguments_none,
+  InterfaceType_noTypeArguments_question,
+  RecordType,
+  TypeParameterType,
+  VoidType,
 }

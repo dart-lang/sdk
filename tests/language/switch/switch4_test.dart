@@ -11,10 +11,10 @@ main() {
     case 1:
       x = 1;
       continue L;
-//    ^
-// [cfe] Can't find label 'L'.
-//             ^
-// [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
+    //^
+    // [cfe] Can't find label 'L'.
+    //         ^
+    // [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
     case 6:
       x = 2;
       break;

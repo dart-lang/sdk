@@ -6,6 +6,7 @@ import 'dart:math';
 
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:collection/collection.dart';
 
 /// The globally unique identifier.
 ///
@@ -25,10 +26,7 @@ class ManifestItemId {
   }
 
   factory ManifestItemId.read(SummaryDataReader reader) {
-    return ManifestItemId._(
-      reader.readUInt32(),
-      reader.readUInt32(),
-    );
+    return ManifestItemId._(reader.readUInt32(), reader.readUInt32());
   }
 
   ManifestItemId._(this.timestamp, this.randomBits);
@@ -52,5 +50,66 @@ class ManifestItemId {
   void write(BufferedSink sink) {
     sink.writeUInt32(timestamp);
     sink.writeUInt32(randomBits);
+  }
+
+  static List<ManifestItemId> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestItemId.read(reader));
+  }
+
+  static ManifestItemId? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestItemId.read(reader));
+  }
+}
+
+class ManifestItemIdList {
+  final List<ManifestItemId> ids;
+
+  ManifestItemIdList(this.ids);
+
+  factory ManifestItemIdList.read(SummaryDataReader reader) {
+    return ManifestItemIdList(ManifestItemId.readList(reader));
+  }
+
+  @override
+  int get hashCode {
+    return const ListEquality<ManifestItemId>().hash(ids);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ManifestItemIdList &&
+        const ListEquality<ManifestItemId>().equals(other.ids, ids);
+  }
+
+  bool equalToIterable(Iterable<ManifestItemId> other) {
+    return const IterableEquality<ManifestItemId>().equals(ids, other);
+  }
+
+  @override
+  String toString() {
+    return '[${ids.join(', ')}]';
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeList(ids, (id) => id.write(sink));
+  }
+
+  static ManifestItemIdList? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
+  }
+}
+
+extension ManifestItemIdExtension on ManifestItemId? {
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (it) {
+      it.write(sink);
+    });
+  }
+}
+
+extension ManifestItemIdListOrNullExtension on ManifestItemIdList? {
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (it) => it.write(sink));
   }
 }

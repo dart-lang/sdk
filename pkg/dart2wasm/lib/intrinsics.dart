@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'abi.dart' show kWasmAbiEnumIndex;
@@ -191,7 +190,11 @@ enum StaticIntrinsic {
   storeFloatUnaligned('dart:ffi', null, '_storeFloatUnaligned'),
   storeDouble('dart:ffi', null, '_storeDouble'),
   storeDoubleUnaligned('dart:ffi', null, '_storeDoubleUnaligned'),
-  ;
+  wasmI31RefNew('dart:_wasm', 'WasmI31Ref', 'fromI32'),
+  wasmI31RefExtensionsExternalize(
+      'dart:_wasm', null, 'WasmI31RefExtensions|externalize'),
+  wasmI31RefExtensionsGetS('dart:_wasm', null, 'WasmI31RefExtensions|get_s'),
+  wasmI31RefExtensionsGetU('dart:_wasm', null, 'WasmI31RefExtensions|get_u');
 
   final String library;
   final String? cls;
@@ -408,12 +411,17 @@ class Intrinsifier {
     Member target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
 
-    // WasmAnyRef.isObject
+    // WasmAnyRef.isObject, WasmAnyRef.isI31
     if (cls == translator.wasmAnyRefClass) {
-      assert(name == "isObject");
-      codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
-      b.ref_test(translator.topInfo.nonNullableType);
-      return w.NumType.i32;
+      if (name == "isObject") {
+        codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
+        b.ref_test(translator.topTypeNonNullable);
+        return w.NumType.i32;
+      } else if (name == "isI31") {
+        codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
+        b.ref_test(w.RefType.i31(nullable: false));
+        return w.NumType.i32;
+      }
     }
 
     // WasmArrayRef.length
@@ -466,14 +474,14 @@ class Intrinsifier {
 
     // WasmAnyRef.toObject
     if (cls == translator.wasmAnyRefClass && name == "toObject") {
-      w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
+      w.Label succeed = b.block(const [], [translator.topTypeNonNullable]);
       codeGen.translateExpression(
           receiver, const w.RefType.any(nullable: false));
       b.br_on_cast(succeed, const w.RefType.any(nullable: false),
-          translator.topInfo.nonNullableType);
+          translator.topTypeNonNullable);
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
-      return translator.topInfo.nonNullableType;
+      return translator.topTypeNonNullable;
     }
 
     // Wasm(I32|I64|F32|F64) conversions
@@ -1063,10 +1071,8 @@ class Intrinsifier {
         }
 
         bool canBeValueType(DartType type) =>
-            translator.typeEnvironment.isSubtypeOf(
-                doubleType, type, SubtypeCheckMode.withNullabilities) ||
-            translator.typeEnvironment
-                .isSubtypeOf(intType, type, SubtypeCheckMode.withNullabilities);
+            translator.typeEnvironment.isSubtypeOf(doubleType, type) ||
+            translator.typeEnvironment.isSubtypeOf(intType, type);
 
         if (!canBeValueType(firstType) || !canBeValueType(secondType)) {
           final nullableEqRefType = w.RefType.eq(nullable: true);
@@ -1107,8 +1113,8 @@ class Intrinsifier {
         assert(ranges.length <= 1);
 
         if (translator.dynamicModuleSupportEnabled) {
-          final dynamicModuleRanges = translator.classIdNumbering
-              .getConcreteClassIdRangeForDynamicModule(
+          final submoduleRanges = translator.classIdNumbering
+              .getConcreteClassIdRangeForDynamicSubmodule(
                   translator.coreTypes.recordClass);
           final classIdLocal = b.addLocal(w.NumType.i32);
           codeGen.translateExpression(classId, w.NumType.i32);
@@ -1116,7 +1122,7 @@ class Intrinsifier {
           b.local_get(classIdLocal);
           translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
               BuiltinUpdatableFunctions.recordId, b,
-              skipDynamic: dynamicModuleRanges.isEmpty);
+              skipSubmodule: submoduleRanges.isEmpty);
         } else {
           codeGen.translateExpression(classId, w.NumType.i32);
           b.emitClassIdRangeCheck(ranges);
@@ -1194,14 +1200,13 @@ class Intrinsifier {
         // Ensure we compile the target function & export it.
         translator.functions.getFunction(target.reference);
 
-        final topType = translator.topInfo.nullableType;
+        final topType = translator.topType;
         codeGen.translateExpression(NullLiteral(), topType);
         return topType;
       case StaticIntrinsic.getID:
-        ClassInfo info = translator.topInfo;
-        codeGen.translateExpression(
-            node.arguments.positional.single, info.nonNullableType);
-        b.struct_get(info.struct, FieldIndex.classId);
+        final type = translator.topTypeNonNullable;
+        codeGen.translateExpression(node.arguments.positional.single, type);
+        b.loadClassId(translator, type);
         return w.NumType.i32;
 
       // dart:ffi static functions
@@ -1495,9 +1500,33 @@ class Intrinsifier {
             translator.classIdNumbering.getConcreteSubclassRanges(baseClass);
 
         final object = node.arguments.positional.single;
-        codeGen.translateExpression(object, w.RefType.any(nullable: false));
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        codeGen.translateExpression(object, translator.topTypeNonNullable);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.emitClassIdRangeCheck(ranges);
+        return w.NumType.i32;
+
+      case StaticIntrinsic.wasmI31RefNew:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i32);
+        b.i31_new();
+        return w.RefType.i31(nullable: false);
+
+      case StaticIntrinsic.wasmI31RefExtensionsExternalize:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.extern_convert_any();
+        return w.RefType.extern(nullable: false);
+
+      case StaticIntrinsic.wasmI31RefExtensionsGetS:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.i31_get_s();
+        return w.NumType.i32;
+
+      case StaticIntrinsic.wasmI31RefExtensionsGetU:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.i31_get_u();
         return w.NumType.i32;
     }
   }
@@ -1646,11 +1675,11 @@ class Intrinsifier {
         // If either is `null`, or their class IDs are different, return false.
         b.local_get(first);
         b.br_on_null(fail);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.local_tee(cid);
         b.local_get(second);
         b.br_on_null(fail);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         b.i32_ne();
         b.br_if(fail);
 
@@ -1704,8 +1733,7 @@ class Intrinsifier {
 
       case MemberIntrinsic.identityHashCode:
         final w.Local arg = paramLocals[0];
-        final w.Local nonNullArg =
-            b.addLocal(translator.topInfo.nonNullableType);
+        final w.Local nonNullArg = b.addLocal(translator.topTypeNonNullable);
         final List<int> classIds = translator.valueClasses.keys
             .map((cls) =>
                 (translator.classInfo[cls]!.classId as AbsoluteClassId).value)
@@ -1714,7 +1742,7 @@ class Intrinsifier {
 
         // If the argument is `null`, return the hash code of `null`.
         final w.Label notNull =
-            b.block(const [], [translator.topInfo.nonNullableType]);
+            b.block(const [], [translator.topTypeNonNullable]);
         b.local_get(arg);
         b.br_on_non_null(notNull);
         b.i64_const(null.hashCode);
@@ -1727,7 +1755,7 @@ class Intrinsifier {
         final List<w.Label> labels =
             List.generate(classIds.length, (_) => b.block());
         b.local_get(nonNullArg);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.loadClassId(translator, translator.topTypeNonNullable);
         int labelIndex = 0;
         final List<w.Label> targets = List.generate(classIds.last + 1, (id) {
           return id == classIds[labelIndex]
@@ -2011,8 +2039,8 @@ class Intrinsifier {
             translator,
             b,
             () => b.local_get(closureLocal),
-            () => createInvocationObject(translator, b, "call", typeArgsLocal,
-                posArgsLocal, namedArgsListLocal));
+            () => createInvocationObject(translator, b, Name('call'),
+                typeArgsLocal, posArgsLocal, namedArgsListLocal));
 
       // Error._throw
       case MemberIntrinsic.errorThrow:

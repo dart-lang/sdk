@@ -9,7 +9,8 @@ class A
 
 /*class: B:B,Object*/
 class B
-    extends /*analyzer.error: CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY*/ /*cfe|cfe:builder.error: FinalClassExtendedOutsideOfLibrary*/ Function {}
+    extends /*analyzer.error: CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY*/ /*cfe|cfe:builder.error: FinalClassExtendedOutsideOfLibrary*/
+        Function {}
 
 /*cfe|cfe:builder.class: C:C,Object,_C&Object&Function*/
 /*analyzer.class: C:C,Object*/

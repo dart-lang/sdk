@@ -40,13 +40,13 @@ library from "org-dartlang-test:///lib.dart" as lib {
     set y3(synthesized dart.core::int #externalFieldValue) → void
       return dart.ffi::_storeUint64(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Y::y3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
     @#C9
-    static get y1#offsetOf() → dart.core::int
+    static synthetic get y1#offsetOf() → dart.core::int
       return #C13.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get y2#offsetOf() → dart.core::int
+    static synthetic get y2#offsetOf() → dart.core::int
       return #C15.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get y3#offsetOf() → dart.core::int
+    static synthetic get y3#offsetOf() → dart.core::int
       return #C18.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
     static get #sizeOf() → dart.core::int
@@ -313,13 +313,13 @@ library from "org-dartlang-test:///main.dart" as main {
     set x3(synthesized dart.core::int #externalFieldValue) → void
       return dart.ffi::_storeUint8(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, main::X::x3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
     @#C9
-    static get x1#offsetOf() → dart.core::int
+    static synthetic get x1#offsetOf() → dart.core::int
       return #C13.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get x2#offsetOf() → dart.core::int
+    static synthetic get x2#offsetOf() → dart.core::int
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get x3#offsetOf() → dart.core::int
+    static synthetic get x3#offsetOf() → dart.core::int
       return #C28.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
     static get #sizeOf() → dart.core::int

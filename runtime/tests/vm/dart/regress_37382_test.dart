@@ -12,7 +12,8 @@ void expectType(Type type, Pattern text) {
   var match = text.matchAsPrefix(typeString);
   if (match != null && match.end == typeString.length) return;
   Expect.fail(
-      "$typeString was not matched by $text${match == null ? "" : ", match: ${match[0]}"}");
+    "$typeString was not matched by $text${match == null ? "" : ", match: ${match[0]}"}",
+  );
 }
 
 class A<X, Y> {
@@ -21,6 +22,8 @@ class A<X, Y> {
 
 main() {
   A<num, num> a = A<int, int>();
-  expectType(a.f.runtimeType,
-      RegExp(r"<(\w+)>\(<(\w+), (\w+)>\(A<\2, \3>\) => \1\) => \1$"));
+  expectType(
+    a.f.runtimeType,
+    RegExp(r"<(\w+)>\(<(\w+), (\w+)>\(A<\2, \3>\) => \1\) => \1$"),
+  );
 }

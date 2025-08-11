@@ -8,7 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -35,14 +35,14 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
-    Element2? element;
+    Element? element;
     var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement2 ?? node.declaredFragment?.element;
+      element = node.declaredElement ?? node.declaredFragment?.element;
     } else if (node is RecordTypeAnnotationField) {
       // RecordTypeAnnotationFields do not have Elements.
       nameToken = node.name;
@@ -73,7 +73,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
 
     // Find references to the identifier.
     List<AstNode>? references;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
         references = findLocalElementReferences(root, element);

@@ -13,17 +13,14 @@ var obj = {
     'sub1': 'general kenobi',
     'sub2': 'you are',
     'sub3': 'a bold one',
-    'sub4': {
-      'nilval': null,
-      'boolval': false,
-    }
+    'sub4': {'nilval': null, 'boolval': false},
   },
   'val4': [
     'execute',
     'order',
     '66',
-    {'number': 33}
-  ]
+    {'number': 33},
+  ],
 };
 
 main() {

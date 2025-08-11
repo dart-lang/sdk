@@ -16,9 +16,10 @@ class NotAnInteger {
 testSocketCreation(host, port) {
   asyncStart();
   try {
-    Socket.connect(host, port)
-        .then((socket) => Expect.fail("Shouldn't get connected"))
-        .catchError((e) {
+    Socket.connect(
+      host,
+      port,
+    ).then((socket) => Expect.fail("Shouldn't get connected")).catchError((e) {
       Expect.isTrue(e is ArgumentError || e is SocketException);
       asyncEnd();
     });
@@ -32,9 +33,11 @@ testServerSocketCreation(address, port, backlog) {
   asyncStart();
   var server;
   try {
-    ServerSocket.bind(address, port, backlog: backlog).then((_) {
-      Expect.fail("ServerSocket bound");
-    }).catchError((e) => asyncEnd());
+    ServerSocket.bind(address, port, backlog: backlog)
+        .then((_) {
+          Expect.fail("ServerSocket bound");
+        })
+        .catchError((e) => asyncEnd());
   } catch (e) {
     asyncEnd();
   }

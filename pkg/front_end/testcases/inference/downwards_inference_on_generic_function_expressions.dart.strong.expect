@@ -43,7 +43,7 @@ library test;
 //         x;
 //         ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'substring'.
 //         .substring(3);
 //          ^^^^^^^^^
@@ -123,7 +123,7 @@ static method test() → void {
     y = <T extends core::Object? = dynamic>(core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:64:9: Error: A value of type 'int' can't be returned from a function with return type 'String'.
         x;
         ^" in x as{TypeError} core::String;
-    y = <T extends core::Object? = dynamic>(core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'int'.
+    y = <T extends core::Object? = dynamic>(core::int x) → core::String => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
         .substring(3);
          ^^^^^^^^^" in x{<unresolved>}.substring(3) as{TypeError,ForDynamic} core::String;

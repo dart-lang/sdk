@@ -34,8 +34,8 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  v1() {}
-  v2() {}
+  void v1() {}
+  void v2() {}
   v1();
   v2();
 }
@@ -52,8 +52,8 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  v1() {}
-  v2() {}
+  void v1() {}
+  void v2() {}
   v1();
   v2();
 }
@@ -80,8 +80,8 @@ void f() {
     expect(fixes, hasLength(1));
     assertProduces(fixes.first, '''
 void f() {
-  v() {
-    v() {}
+  void v() {
+    void v() {}
     v();
   }
   v();
@@ -107,7 +107,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  v() {}
+  void v() {}
   v();
 }
 ''');
@@ -123,7 +123,7 @@ void f() {
     await assertHasFix('''
 void f() {
   final v1 = 1;
-  v2(x, y) {}
+  void v2(x, y) {}
   final v3 = '';
   v2(v1, v3);
 }
@@ -139,8 +139,88 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  v() => 3;
+  int v() => 3;
   v();
+}
+''');
+  }
+
+  Future<void> test_functionTypedParameter() async {
+    await resolveTestCode('''
+void f() {
+  int Function(int Function(String)?) v1 = (p) {
+    return p?.call('') ?? 0;
+  };
+  v1((s) => 0);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int v1(int Function(String p1)? p) {
+    return p?.call('') ?? 0;
+  }
+  v1((s) => 0);
+}
+''');
+  }
+
+  Future<void> test_futureIntBody() async {
+    await resolveTestCode('''
+void f() {
+  final v1 = () async {
+    return 0;
+  };
+  v1();
+}
+''');
+    await assertHasFix('''
+void f() {
+  Future<int> v1() async {
+    return 0;
+  }
+  v1();
+}
+''');
+  }
+
+  Future<void> test_futureVoid() async {
+    await resolveTestCode('''
+void f() {
+  final v1 = () async {
+  };
+  v1();
+}
+''');
+    await assertHasFix('''
+void f() {
+  Future<void> v1() async {
+  }
+  v1();
+}
+''');
+  }
+
+  Future<void> test_innerFunctions() async {
+    await resolveTestCode('''
+void f() {
+  final v1 = () {
+    () {
+      return 0;
+    };
+    () => 0;
+  };
+  v1();
+}
+''');
+    await assertHasFix('''
+void f() {
+  void v1() {
+    () {
+      return 0;
+    };
+    () => 0;
+  }
+  v1();
 }
 ''');
   }
@@ -160,7 +240,7 @@ void f() {
 typedef F = void Function();
 
 void f() {
-  g() {}
+  void g() {}
   final F h;
   g();
   h = () {};
@@ -178,8 +258,67 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  v() => throw '';
+  String v() => throw '';
   v();
+}
+''');
+  }
+
+  Future<void> test_typedefTyped() async {
+    await resolveTestCode('''
+typedef T = int Function(int);
+
+void f() {
+  T v1 = (p) {
+    return p;
+  };
+  v1(0);
+}
+''');
+    await assertHasFix('''
+typedef T = int Function(int);
+
+void f() {
+  int v1(int p) {
+    return p;
+  }
+  v1(0);
+}
+''');
+  }
+
+  Future<void> test_typeParameter() async {
+    await resolveTestCode('''
+void f() {
+  final v1 = <T>(T p) {
+  };
+  v1(0);
+}
+''');
+    await assertHasFix('''
+void f() {
+  void v1<T>(T p) {
+  }
+  v1(0);
+}
+''');
+  }
+
+  Future<void> test_variableTyped() async {
+    await resolveTestCode('''
+void f() {
+  int Function(int) v1 = (p) {
+    return p;
+  };
+  v1(0);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int v1(int p) {
+    return p;
+  }
+  v1(0);
 }
 ''');
   }

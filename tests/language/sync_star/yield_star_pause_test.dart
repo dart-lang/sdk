@@ -14,14 +14,17 @@ main() {
     var c = new Completer();
     var s = yieldStream(mkStream());
     var sub;
-    sub = s.listen((v) {
-      sub.pause();
-      print(v);
-      Timer.run(sub.resume);
-    }, onDone: () {
-      print("DONE");
-      c.complete(null);
-    });
+    sub = s.listen(
+      (v) {
+        sub.pause();
+        print(v);
+        Timer.run(sub.resume);
+      },
+      onDone: () {
+        print("DONE");
+        c.complete(null);
+      },
+    );
     return c.future;
   });
 }

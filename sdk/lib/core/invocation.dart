@@ -114,14 +114,12 @@ class _Invocation implements Invocation {
     Iterable<Object?>? positional,
     Map<Symbol, Object?>? named,
   ) : typeArguments = _ensureNonNullTypes(types),
-      _positional =
-          positional == null
-              ? const <Object?>[]
-              : List<Object?>.unmodifiable(positional),
-      _named =
-          (named == null || named.isEmpty)
-              ? const <Symbol, Object?>{}
-              : Map<Symbol, Object?>.unmodifiable(named);
+      _positional = positional == null
+          ? const <Object?>[]
+          : List<Object?>.unmodifiable(positional),
+      _named = (named == null || named.isEmpty)
+          ? const <Symbol, Object?>{}
+          : Map<Symbol, Object?>.unmodifiable(named);
 
   _Invocation.getter(this.memberName)
     : typeArguments = const <Type>[],

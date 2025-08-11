@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -18,13 +21,10 @@ class UnnecessaryParenthesis extends LintRule {
     : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addParenthesizedExpression(this, visitor);
   }
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't over-report on records missing trailing commas.
     // `(int,) r = (3);` is OK.
     if (parent is VariableDeclaration &&
-        parent.declaredElement2?.type is RecordType) {
+        parent.declaredElement?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
 
@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (parent is DoStatement && node == parent.condition) ||
         (parent is SwitchStatement && node == parent.expression) ||
         (parent is SwitchExpression && node == parent.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
@@ -116,8 +116,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension getter, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.propertyName.element?.enclosingElement2;
-        if (target is ExtensionElement2 &&
+        var target = parent.propertyName.element?.enclosingElement;
+        if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }
@@ -131,8 +131,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension method, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.methodName.element?.enclosingElement2;
-        if (target is ExtensionElement2 &&
+        var target = parent.methodName.element?.enclosingElement;
+        if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }
@@ -155,14 +155,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       }
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
     if (expression is ConstructorReference) {
       if (parent is! FunctionExpressionInvocation ||
           parent.typeArguments == null) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         return;
       }
     }
@@ -267,7 +267,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // interpreted as a set-or-map literal.
       if (node.wouldBeParsedAsStatementBlock) return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 

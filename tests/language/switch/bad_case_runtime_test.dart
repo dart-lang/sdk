@@ -22,18 +22,10 @@ caesarSays(n) {
       return "I";
     case 4:
       return "IV";
-
-
   }
   return null;
 }
 
 archimedesSays(n) {
-
-
-
-
-
-
   return null;
 }

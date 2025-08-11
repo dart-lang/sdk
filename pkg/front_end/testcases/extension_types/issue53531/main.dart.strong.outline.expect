@@ -12,11 +12,11 @@ extension type E<X extends core::Object? = dynamic, Y extends core::Object? = dy
 }
 static extension-type-member method E|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#::X%, self::E|constructor#::Y%>% /* erasure=core::String, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>% /* erasure=core::String, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>(s);
 static method main() → void
   ;
-static method _#F#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self::E<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>% /* erasure=core::String, declared=! */
+static synthetic method _#F#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self::E<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>% /* erasure=core::String, declared=! */
   return self::E|constructor#<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>(s);
 
 library;
@@ -31,7 +31,7 @@ extension type G<X extends core::Object? = dynamic, Y extends core::Object? = dy
 }
 static extension-type-member method G|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self2::G<self2::G|constructor#::X%, self2::G|constructor#::Y%>% /* erasure=core::String, declared=! */
   ;
-static extension-type-member method G|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self2::G<self2::G|constructor#_#new#tearOff::X%, self2::G|constructor#_#new#tearOff::Y%>% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method G|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self2::G<self2::G|constructor#_#new#tearOff::X%, self2::G|constructor#_#new#tearOff::Y%>% /* erasure=core::String, declared=! */
   return self2::G|constructor#<self2::G|constructor#_#new#tearOff::X%, self2::G|constructor#_#new#tearOff::Y%>(s);
-static method _#H#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self2::G<self2::_#H#new#tearOff::X%, self2::_#H#new#tearOff::X%>% /* erasure=core::String, declared=! */
+static synthetic method _#H#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self2::G<self2::_#H#new#tearOff::X%, self2::_#H#new#tearOff::X%>% /* erasure=core::String, declared=! */
   return self2::G|constructor#<self2::_#H#new#tearOff::X%, self2::_#H#new#tearOff::X%>(s);

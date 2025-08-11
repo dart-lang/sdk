@@ -17,7 +17,9 @@ maybeThrow(bool doThrow) {
 
 @pragma('vm:never-inline')
 run(action) {
-  try { action(); } catch(e) {}
+  try {
+    action();
+  } catch (e) {}
 }
 
 test(bool doThrow) {
@@ -25,12 +27,16 @@ test(bool doThrow) {
     maybeThrow(doThrow);
   } finally {
     run(() {
-      doSomething();  // Should not crash here.
+      doSomething(); // Should not crash here.
     });
   }
 }
 
 main() {
-  try { test(true); } catch(e) {}
-  try { test(false); } catch(e) {}
+  try {
+    test(true);
+  } catch (e) {}
+  try {
+    test(false);
+  } catch (e) {}
 }

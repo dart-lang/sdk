@@ -44,7 +44,7 @@ class C extends core::Object {
   late final field core::int d;
   synthetic constructor •() → mai::C
     ;
-  static method _#new#tearOff() → mai::C
+  static synthetic method _#new#tearOff() → mai::C
     return new mai::C::•();
 }
 class Statics extends core::Object {
@@ -54,7 +54,7 @@ class Statics extends core::Object {
   late static final field core::int d;
   synthetic constructor •() → mai::Statics
     ;
-  static method _#new#tearOff() → mai::Statics
+  static synthetic method _#new#tearOff() → mai::Statics
     return new mai::Statics::•();
 }
 static method testNullableUninitializedNonFinalLocal() → void

@@ -19,10 +19,13 @@ void iterableTest<T>(Iterable<T> iterable) {
   List<T> expected = iterable.toList();
   Stream<T> stream = new Stream<T>.fromIterable(iterable);
   var events = <T>[];
-  stream.listen(events.add, onDone: () {
-    Expect.listEquals(expected, events, "fromIterable $iterable");
-    asyncEnd();
-  });
+  stream.listen(
+    events.add,
+    onDone: () {
+      Expect.listEquals(expected, events, "fromIterable $iterable");
+      asyncEnd();
+    },
+  );
 }
 
 main() {
@@ -36,7 +39,8 @@ main() {
   iterableTest<String>(<String>["one", "two", "three", "four"]);
   iterableTest<int>(new Iterable<int>.generate(1000, (i) => i));
   iterableTest<String>(
-      new Iterable<int>.generate(1000, (i) => i).map((i) => "$i"));
+    new Iterable<int>.generate(1000, (i) => i).map((i) => "$i"),
+  );
 
   Iterable<int> iter = new Iterable.generate(25, (i) => i * 2);
 
@@ -66,29 +70,36 @@ main() {
     asyncStart();
     int ctr = 0;
 
-    var stream = new Stream<int>.fromIterable(iter.map((x) {
-      ctr++;
-      return x;
-    }));
+    var stream = new Stream<int>.fromIterable(
+      iter.map((x) {
+        ctr++;
+        return x;
+      }),
+    );
 
     late StreamSubscription subscription;
     var actual = [];
-    subscription = stream.listen((int value) {
-      actual.add(value);
-      // Do a 10 ms pause during the playback of the iterable.
-      Duration duration = const Duration(milliseconds: 10);
-      if (value == 20) {
-        asyncStart();
-        int beforeCtr = ctr;
-        subscription.pause(new Future.delayed(duration, () {}).whenComplete(() {
-          Expect.equals(beforeCtr, ctr);
-          asyncEnd();
-        }));
-      }
-    }, onDone: () {
-      Expect.listEquals(iter.toList(), actual);
-      asyncEnd();
-    });
+    subscription = stream.listen(
+      (int value) {
+        actual.add(value);
+        // Do a 10 ms pause during the playback of the iterable.
+        Duration duration = const Duration(milliseconds: 10);
+        if (value == 20) {
+          asyncStart();
+          int beforeCtr = ctr;
+          subscription.pause(
+            new Future.delayed(duration, () {}).whenComplete(() {
+              Expect.equals(beforeCtr, ctr);
+              asyncEnd();
+            }),
+          );
+        }
+      },
+      onDone: () {
+        Expect.listEquals(iter.toList(), actual);
+        asyncEnd();
+      },
+    );
   }
 
   {
@@ -139,11 +150,15 @@ main() {
     asyncStart();
 
     var data = [], errors = [];
-    c.stream.listen(data.add, onError: errors.add, onDone: () {
-      Expect.listEquals([1, 3, 5], data);
-      Expect.listEquals([2, 4], errors);
-      asyncEnd();
-    });
+    c.stream.listen(
+      data.add,
+      onError: errors.add,
+      onDone: () {
+        Expect.listEquals([1, 3, 5], data);
+        Expect.listEquals([2, 4], errors);
+        asyncEnd();
+      },
+    );
     c.addStream(from).then((_) {
       c.close();
     });
@@ -187,11 +202,14 @@ main() {
   {
     // Test error behavior. Changed when fixing issue 33431.
     // Iterable where "current" throws for third value, moveNext on fifth call.
-    var m = new MockIterable<int>((n) {
-      return n != 5 || (throw "moveNext");
-    }, (n) {
-      return n != 3 ? n : throw "current";
-    });
+    var m = new MockIterable<int>(
+      (n) {
+        return n != 5 || (throw "moveNext");
+      },
+      (n) {
+        return n != 3 ? n : throw "current";
+      },
+    );
     asyncStart();
     collectEvents(new Stream<int>.fromIterable(m)).then((events) {
       // Error on "current" does not stop iteration.
@@ -206,7 +224,7 @@ main() {
         "value",
         4,
         "error",
-        "moveNext"
+        "moveNext",
       ], events);
       asyncEnd();
     });
@@ -221,17 +239,21 @@ main() {
 Future<List<Object>> collectEvents(Stream<Object> stream) {
   var c = new Completer<List<Object>>();
   var events = <Object>[];
-  stream.listen((value) {
-    events
-      ..add("value")
-      ..add(value);
-  }, onError: (error) {
-    events
-      ..add("error")
-      ..add(error);
-  }, onDone: () {
-    c.complete(events);
-  });
+  stream.listen(
+    (value) {
+      events
+        ..add("value")
+        ..add(value);
+    },
+    onError: (error) {
+      events
+        ..add("error")
+        ..add(error);
+    },
+    onDone: () {
+      c.complete(events);
+    },
+  );
   return c.future;
 }
 

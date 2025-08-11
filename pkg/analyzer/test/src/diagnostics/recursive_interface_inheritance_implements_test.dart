@@ -17,52 +17,79 @@ main() {
 class RecursiveInterfaceInheritanceImplementsTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 6,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          6,
+          1,
+        ),
+      ],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 augment class A implements A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 6,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          6,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_tail() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements A {}
 class B implements A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 15,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          15,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 mixin M {}
 class B = A with M implements B;
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 28,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          28,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A implements B {}
-mixin B implements A {}''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
-    ]);
+mixin B implements A {}''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
+      ],
+    );
   }
 }

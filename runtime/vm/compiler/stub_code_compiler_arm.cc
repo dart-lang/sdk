@@ -311,7 +311,7 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
-#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+#if defined(DART_INCLUDE_SIMULATOR) && !defined(DART_PRECOMPILER)
   // TODO(37299): FFI is not supported in SIMARM.
   __ Breakpoint();
 #else
@@ -391,6 +391,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ PopRegisters(argument_registers);
 
   Label async_callback;
+  Label sync_isolate_group_shared_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -403,6 +404,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       R4,
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
+
+  __ cmp(R4,
+         Operand(static_cast<uword>(
+             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
+  __ b(&sync_isolate_group_shared_callback, EQ);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -417,6 +423,33 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint(R4, R5);
 
   __ b(&done);
+
+  __ Bind(&sync_isolate_group_shared_callback);
+
+  __ blx(R5);
+
+  // Exit isolate group shared isolate.
+  {
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+
+    __ blx(R4);
+
+    __ PopRegisters(return_registers);
+    __ LeaveFrame(1 << FP);
+  }
+
+  __ b(&done);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and
@@ -2152,21 +2185,10 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
-  Register ic_reg = R9;
   Register func_reg = R8;
   if (FLAG_precompiled_mode) {
     __ Breakpoint();
     return;
-  }
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ PushList((1 << R9) | (1 << R8));  // Preserve.
-    __ Push(ic_reg);                     // Argument.
-    __ Push(func_reg);                   // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ Drop(2);                         // Discard argument;
-    __ PopList((1 << R9) | (1 << R8));  // Restore.
-    __ LeaveStubFrame();
   }
   __ ldr(TMP, FieldAddress(func_reg, target::Function::usage_counter_offset()));
   __ add(TMP, TMP, Operand(1));
@@ -2328,8 +2350,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(R8);
-    __ ldrb(R8, Address(R8, target::Isolate::single_step_offset()));
+    __ ldrb(R8, Address(THR, target::Thread::single_step_offset()));
     __ CompareImmediate(R8, 0);
     __ b(&stepping, NE);
     __ Bind(&done_stepping);
@@ -2681,8 +2702,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R8);
-  __ ldrb(R8, Address(R8, target::Isolate::single_step_offset()));
+  __ ldrb(R8, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R8, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
@@ -2899,8 +2919,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ ldrb(R1, Address(R1, target::Isolate::single_step_offset()));
+  __ ldrb(R1, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
@@ -3220,8 +3239,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ ldrb(R1, Address(R1, target::Isolate::single_step_offset()));
+  __ ldrb(R1, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
@@ -3343,7 +3361,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ b(&miss, EQ);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);

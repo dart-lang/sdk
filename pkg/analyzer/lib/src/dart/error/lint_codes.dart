@@ -8,34 +8,33 @@ library;
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/error/error.dart';
 
-/// Defines style and best practice recommendations.
+/// Diagnostic codes which are not reported by default.
 ///
-/// Unlike [WarningCode]s, which are akin to traditional static warnings from a
-/// compiler, lint recommendations focus on matters of avoiding errors,
-/// unintended code, maintainability, style and other best practices that might
-/// be aggregated to define a project's style guide.
+/// Lint codes are only reported when a lint rule (either a first-party lint
+/// rule, or one declared in an analyzer plugin) is enabled.
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
-class LintCode extends ErrorCode {
+class LintCode extends DiagnosticCode {
+  @override
+  final DiagnosticSeverity severity;
+
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
+    this.severity = DiagnosticSeverity.INFO,
   }) : super(
-          problemMessage: problemMessage,
-          name: name,
-          uniqueName: uniqueName ?? 'LintCode.$name',
-        );
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+         problemMessage: problemMessage,
+         name: name,
+         uniqueName: uniqueName ?? 'LintCode.$name',
+       );
 
   @override
   int get hashCode => uniqueName.hashCode;
 
   @override
-  ErrorType get type => ErrorType.LINT;
+  DiagnosticType get type => DiagnosticType.LINT;
 
   @override
   String? get url => null;
@@ -50,9 +49,12 @@ class LintCode extends ErrorCode {
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends LintCode {
-  const SecurityLintCode(super.name, super.problemMessage,
-      {String? uniqueName, super.correctionMessage})
-      : super(uniqueName: uniqueName ?? 'LintCode.$name');
+  const SecurityLintCode(
+    super.name,
+    super.problemMessage, {
+    String? uniqueName,
+    super.correctionMessage,
+  }) : super(uniqueName: uniqueName ?? 'LintCode.$name');
 
   @override
   bool get isIgnorable => false;

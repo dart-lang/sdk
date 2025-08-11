@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test/test.dart';
@@ -20,7 +20,10 @@ main() {
 @reflectiveTest
 class FragmentOffsetTest extends PubPackageResolutionTest {
   void checkOffset<F extends Fragment>(
-      AstNode declaration, Fragment fragment, int expectedOffset) {
+    AstNode declaration,
+    Fragment fragment,
+    int expectedOffset,
+  ) {
     var offset = checkOffsetInRange<F>(declaration, fragment);
     expect(offset, expectedOffset);
   }
@@ -31,7 +34,9 @@ class FragmentOffsetTest extends PubPackageResolutionTest {
   /// Used in the case of error recovery, where the precise offset is
   /// unspecified.
   int checkOffsetInRange<F extends Fragment>(
-      AstNode declaration, Fragment fragment) {
+    AstNode declaration,
+    Fragment fragment,
+  ) {
     expect(fragment, isA<F>());
     var offset = fragment.offset;
     expect(offset, greaterThanOrEqualTo(declaration.offset));
@@ -48,9 +53,10 @@ void f() {
 ''');
     var declaredVariablePattern = findNode.declaredVariablePattern('int i');
     checkOffset<BindPatternVariableFragment>(
-        declaredVariablePattern,
-        declaredVariablePattern.declaredFragment!,
-        declaredVariablePattern.name.offset);
+      declaredVariablePattern,
+      declaredVariablePattern.declaredFragment!,
+      declaredVariablePattern.name.offset,
+    );
   }
 
   test_classFragment() async {
@@ -58,8 +64,11 @@ void f() {
 class C {}
 ''');
     var classDeclaration = findNode.classDeclaration('C');
-    checkOffset<ClassFragment>(classDeclaration,
-        classDeclaration.declaredFragment!, classDeclaration.name.offset);
+    checkOffset<ClassFragment>(
+      classDeclaration,
+      classDeclaration.declaredFragment!,
+      classDeclaration.name.offset,
+    );
   }
 
   test_classFragment_classTypeAlias() async {
@@ -68,33 +77,42 @@ mixin M {}
 class C = Object with M;
 ''');
     var classTypeAlias = findNode.classTypeAlias('C');
-    checkOffset<ClassFragment>(classTypeAlias, classTypeAlias.declaredFragment!,
-        classTypeAlias.name.offset);
+    checkOffset<ClassFragment>(
+      classTypeAlias,
+      classTypeAlias.declaredFragment!,
+      classTypeAlias.name.offset,
+    );
   }
 
   test_classFragment_classTypeAlias_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 class = Object with M;
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 17, 1)],
+    );
     var classTypeAlias = findNode.classTypeAlias('Object with M');
     checkOffsetInRange<ClassFragment>(
-        classTypeAlias, classTypeAlias.declaredFragment!);
+      classTypeAlias,
+      classTypeAlias.declaredFragment!,
+    );
   }
 
   test_classFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the class declaration isn't at offset 0
 
 class {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1)],
+    );
     var classDeclaration = findNode.classDeclaration('class {}');
     checkOffsetInRange<ClassFragment>(
-        classDeclaration, classDeclaration.declaredFragment!);
+      classDeclaration,
+      classDeclaration.declaredFragment!,
+    );
   }
 
   test_constructorFragment_implicit() async {
@@ -103,23 +121,30 @@ class C {}
 ''');
     var classDeclaration = findNode.classDeclaration('C');
     checkOffset<ConstructorFragment>(
-        classDeclaration,
-        classDeclaration
-            .declaredFragment!.element.unnamedConstructor2!.firstFragment,
-        classDeclaration.name.offset);
+      classDeclaration,
+      classDeclaration
+          .declaredFragment!
+          .element
+          .unnamedConstructor!
+          .firstFragment,
+      classDeclaration.name.offset,
+    );
   }
 
   test_constructorFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.();
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1)],
+    );
     var constructorDeclaration = findNode.constructor('C.()');
     checkOffsetInRange<ConstructorFragment>(
-        constructorDeclaration, constructorDeclaration.declaredFragment!);
+      constructorDeclaration,
+      constructorDeclaration.declaredFragment!,
+    );
   }
 
   test_constructorFragment_named() async {
@@ -130,9 +155,10 @@ class C {
 ''');
     var constructorDeclaration = findNode.constructor('foo');
     checkOffset<ConstructorFragment>(
-        constructorDeclaration,
-        constructorDeclaration.declaredFragment!,
-        constructorDeclaration.name!.offset);
+      constructorDeclaration,
+      constructorDeclaration.declaredFragment!,
+      constructorDeclaration.name!.offset,
+    );
   }
 
   test_constructorFragment_unnamed() async {
@@ -143,22 +169,22 @@ class C {
 ''');
     var constructorDeclaration = findNode.constructor('C()');
     checkOffset<ConstructorFragment>(
-        constructorDeclaration,
-        constructorDeclaration.declaredFragment!,
-        constructorDeclaration.returnType.offset);
+      constructorDeclaration,
+      constructorDeclaration.declaredFragment!,
+      constructorDeclaration.returnType.offset,
+    );
   }
 
   test_dynamicFragment() async {
     await assertNoErrorsInCode(r'''
 dynamic d;
 ''');
-    var namedType = findNode
-        .topLevelVariableDeclaration('dynamic d')
-        .variables
-        .type as NamedType;
-    expect(namedType.element2!.kind, ElementKind.DYNAMIC);
+    var namedType =
+        findNode.topLevelVariableDeclaration('dynamic d').variables.type
+            as NamedType;
+    expect(namedType.element!.kind, ElementKind.DYNAMIC);
     // `dynamic` isn't defined in the source code anywhere, so its offset is 0.
-    expect(namedType.element2!.firstFragment.offset, 0);
+    expect(namedType.element!.firstFragment.offset, 0);
   }
 
   test_enumFragment() async {
@@ -166,21 +192,27 @@ dynamic d;
 enum E { e1 }
 ''');
     var enumDeclaration = findNode.enumDeclaration('E');
-    checkOffset<EnumFragment>(enumDeclaration,
-        enumDeclaration.declaredFragment!, enumDeclaration.name.offset);
+    checkOffset<EnumFragment>(
+      enumDeclaration,
+      enumDeclaration.declaredFragment!,
+      enumDeclaration.name.offset,
+    );
   }
 
   test_enumFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the enum declaration isn't at offset 0
 
 enum { e1 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 70, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 70, 1)],
+    );
     var enumDeclaration = findNode.enumDeclaration('enum { e1 }');
     checkOffsetInRange<EnumFragment>(
-        enumDeclaration, enumDeclaration.declaredFragment!);
+      enumDeclaration,
+      enumDeclaration.declaredFragment!,
+    );
   }
 
   test_extensionFragment_named() async {
@@ -192,9 +224,10 @@ extension E on int {}
 ''');
     var extensionDeclaration = findNode.extensionDeclaration('on int');
     checkOffset<ExtensionFragment>(
-        extensionDeclaration,
-        extensionDeclaration.declaredFragment!,
-        extensionDeclaration.name!.offset);
+      extensionDeclaration,
+      extensionDeclaration.declaredFragment!,
+      extensionDeclaration.name!.offset,
+    );
   }
 
   test_extensionFragment_unnamed() async {
@@ -203,9 +236,10 @@ extension on int {}
 ''');
     var extensionDeclaration = findNode.extensionDeclaration('on int');
     checkOffset<ExtensionFragment>(
-        extensionDeclaration,
-        extensionDeclaration.declaredFragment!,
-        extensionDeclaration.extensionKeyword.offset);
+      extensionDeclaration,
+      extensionDeclaration.declaredFragment!,
+      extensionDeclaration.extensionKeyword.offset,
+    );
   }
 
   test_extensionTypeFragment() async {
@@ -214,23 +248,28 @@ extension type E(int i) {}
 ''');
     var extensionTypeDeclaration = findNode.extensionTypeDeclaration('E');
     checkOffset<ExtensionTypeFragment>(
-        extensionTypeDeclaration,
-        extensionTypeDeclaration.declaredFragment!,
-        extensionTypeDeclaration.name.offset);
+      extensionTypeDeclaration,
+      extensionTypeDeclaration.declaredFragment!,
+      extensionTypeDeclaration.name.offset,
+    );
   }
 
   test_extensionTypeFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the extension type declaration isn't at offset 0
 
 extension type(int i) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 89, 1),
-    ]);
-    var extensionTypeDeclaration =
-        findNode.extensionTypeDeclaration('extension type(int i)');
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 89, 1)],
+    );
+    var extensionTypeDeclaration = findNode.extensionTypeDeclaration(
+      'extension type(int i)',
+    );
     checkOffsetInRange<ExtensionTypeFragment>(
-        extensionTypeDeclaration, extensionTypeDeclaration.declaredFragment!);
+      extensionTypeDeclaration,
+      extensionTypeDeclaration.declaredFragment!,
+    );
   }
 
   test_fieldFormalParameterFragment() async {
@@ -242,23 +281,34 @@ class C {
 ''');
     var parameter = findNode.fieldFormalParameter('this.i');
     checkOffset<FieldFormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name.offset,
+    );
   }
 
   test_fieldFormalParameterFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   int? x;
   C(this.);
 }
-''', [
-      error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 24,
-          5),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          24,
+          5,
+        ),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
+      ],
+    );
     var parameter = findNode.fieldFormalParameter('this.');
     checkOffsetInRange<FieldFormalParameterFragment>(
-        parameter, parameter.declaredFragment!);
+      parameter,
+      parameter.declaredFragment!,
+    );
   }
 
   test_fieldFormalParameterFragment_withDefaultValue() async {
@@ -270,7 +320,10 @@ class C {
 ''');
     var parameter = findNode.fieldFormalParameter('this.i');
     checkOffset<FieldFormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name.offset,
+    );
   }
 
   test_fieldFragment() async {
@@ -280,8 +333,11 @@ class C {
 }
 ''');
     var fieldDeclaration = findNode.fieldDeclaration('x').fields.variables[0];
-    checkOffset<FieldFragment>(fieldDeclaration,
-        fieldDeclaration.declaredFragment!, fieldDeclaration.name.offset);
+    checkOffset<FieldFragment>(
+      fieldDeclaration,
+      fieldDeclaration.declaredFragment!,
+      fieldDeclaration.name.offset,
+    );
   }
 
   test_fieldFragment_const() async {
@@ -291,8 +347,11 @@ class C {
 }
 ''');
     var fieldDeclaration = findNode.fieldDeclaration('x').fields.variables[0];
-    checkOffset<FieldFragment>(fieldDeclaration,
-        fieldDeclaration.declaredFragment!, fieldDeclaration.name.offset);
+    checkOffset<FieldFragment>(
+      fieldDeclaration,
+      fieldDeclaration.declaredFragment!,
+      fieldDeclaration.name.offset,
+    );
   }
 
   test_fieldFragment_enum_constant() async {
@@ -301,9 +360,10 @@ enum E { e1 }
 ''');
     var enumConstantDeclaration = findNode.enumConstantDeclaration('e1');
     checkOffset<FieldFragment>(
-        enumConstantDeclaration,
-        enumConstantDeclaration.declaredFragment!,
-        enumConstantDeclaration.name.offset);
+      enumConstantDeclaration,
+      enumConstantDeclaration.declaredFragment!,
+      enumConstantDeclaration.name.offset,
+    );
   }
 
   test_fieldFragment_enum_values() async {
@@ -312,11 +372,12 @@ enum E { e1 }
 ''');
     var enumDeclaration = findNode.enumDeclaration('E');
     checkOffset<FieldFragment>(
-        enumDeclaration,
-        enumDeclaration.declaredFragment!.element
-            .getField2('values')!
-            .firstFragment,
-        enumDeclaration.name.offset);
+      enumDeclaration,
+      enumDeclaration.declaredFragment!.element
+          .getField('values')!
+          .firstFragment,
+      enumDeclaration.name.offset,
+    );
   }
 
   test_fieldFragment_extensionTypeRepresentationField() async {
@@ -326,9 +387,10 @@ extension type E(int i) {}
     var representationDeclaration =
         findNode.extensionTypeDeclaration('int i').representation;
     checkOffset<FieldFragment>(
-        representationDeclaration,
-        representationDeclaration.fieldFragment!,
-        representationDeclaration.fieldName.offset);
+      representationDeclaration,
+      representationDeclaration.fieldFragment!,
+      representationDeclaration.fieldName.offset,
+    );
   }
 
   test_formalParameterFragment() async {
@@ -337,35 +399,46 @@ void f(int x) {}
 ''');
     var parameter = findNode.simpleFormalParameter('x');
     checkOffset<FormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name!.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name!.offset,
+    );
   }
 
   test_formalParameterFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int x)) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 7, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 7, 1)],
+    );
     var function = findNode.functionDeclaration('f(');
-    var parameter = function.functionExpression.parameters!.parameters[0]
-        as FunctionTypedFormalParameter;
+    var parameter =
+        function.functionExpression.parameters!.parameters[0]
+            as FunctionTypedFormalParameter;
     expect(parameter.name.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
-        parameter, parameter.declaredFragment!);
+      parameter,
+      parameter.declaredFragment!,
+    );
   }
 
   test_formalParameterFragment_missingName2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(void (int x)) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 12, 1)],
+    );
     var function = findNode.functionDeclaration('f(');
-    var parameter = function.functionExpression.parameters!.parameters[0]
-        as FunctionTypedFormalParameter;
+    var parameter =
+        function.functionExpression.parameters!.parameters[0]
+            as FunctionTypedFormalParameter;
     expect(parameter.name.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
-        parameter, parameter.declaredFragment!);
+      parameter,
+      parameter.declaredFragment!,
+    );
   }
 
   test_formalParameterFragment_ofImplicitSetter_member_implicit() async {
@@ -376,14 +449,15 @@ class C {
 ''');
     var fieldDeclaration = findNode.fieldDeclaration('x').fields.variables[0];
     checkOffset<FormalParameterFragment>(
-        fieldDeclaration,
-        (fieldDeclaration.declaredFragment as FieldFragment)
-            .element
-            .setter2!
-            .formalParameters
-            .single
-            .firstFragment,
-        fieldDeclaration.name.offset);
+      fieldDeclaration,
+      (fieldDeclaration.declaredFragment as FieldFragment)
+          .element
+          .setter!
+          .formalParameters
+          .single
+          .firstFragment,
+      fieldDeclaration.name.offset,
+    );
   }
 
   test_formalParameterFragment_ofImplicitSetter_topLevel_implicit() async {
@@ -393,15 +467,15 @@ int? x;
     var topLevelVariableDeclaration =
         findNode.topLevelVariableDeclaration('x').variables.variables[0];
     checkOffset<FormalParameterFragment>(
-        topLevelVariableDeclaration,
-        (topLevelVariableDeclaration.declaredFragment
-                as TopLevelVariableFragment)
-            .element
-            .setter2!
-            .formalParameters
-            .single
-            .firstFragment,
-        topLevelVariableDeclaration.name.offset);
+      topLevelVariableDeclaration,
+      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
+          .element
+          .setter!
+          .formalParameters
+          .single
+          .firstFragment,
+      topLevelVariableDeclaration.name.offset,
+    );
   }
 
   test_formalParameterFragment_withDefaultValue() async {
@@ -410,7 +484,10 @@ void f({int x = 0}) {}
 ''');
     var parameter = findNode.simpleFormalParameter('x');
     checkOffset<FormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name!.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name!.offset,
+    );
   }
 
   test_genericFunctionTypeFragment() async {
@@ -419,10 +496,14 @@ library; // Ensures that the generic function type isn't at offset 0
 
 void Function(int x)? f;
 ''');
-    var genericFunctionType =
-        findNode.genericFunctionType('void Function(int x)?');
-    checkOffset<GenericFunctionTypeFragment>(genericFunctionType,
-        genericFunctionType.declaredFragment!, genericFunctionType.offset);
+    var genericFunctionType = findNode.genericFunctionType(
+      'void Function(int x)?',
+    );
+    checkOffset<GenericFunctionTypeFragment>(
+      genericFunctionType,
+      genericFunctionType.declaredFragment!,
+      genericFunctionType.offset,
+    );
   }
 
   test_getterFragment_member() async {
@@ -432,8 +513,11 @@ class C {
 }
 ''');
     var getterDeclaration = findNode.methodDeclaration('foo');
-    checkOffset<GetterFragment>(getterDeclaration,
-        getterDeclaration.declaredFragment!, getterDeclaration.name.offset);
+    checkOffset<GetterFragment>(
+      getterDeclaration,
+      getterDeclaration.declaredFragment!,
+      getterDeclaration.name.offset,
+    );
   }
 
   test_getterFragment_member_implicit() async {
@@ -444,12 +528,13 @@ class C {
 ''');
     var fieldDeclaration = findNode.fieldDeclaration('x').fields.variables[0];
     checkOffset<GetterFragment>(
-        fieldDeclaration,
-        (fieldDeclaration.declaredFragment as FieldFragment)
-            .element
-            .getter2!
-            .firstFragment,
-        fieldDeclaration.name.offset);
+      fieldDeclaration,
+      (fieldDeclaration.declaredFragment as FieldFragment)
+          .element
+          .getter!
+          .firstFragment,
+      fieldDeclaration.name.offset,
+    );
   }
 
   test_getterFragment_topLevel() async {
@@ -457,8 +542,11 @@ class C {
 int get foo => 0;
 ''');
     var getterDeclaration = findNode.functionDeclaration('foo');
-    checkOffset<GetterFragment>(getterDeclaration,
-        getterDeclaration.declaredFragment!, getterDeclaration.name.offset);
+    checkOffset<GetterFragment>(
+      getterDeclaration,
+      getterDeclaration.declaredFragment!,
+      getterDeclaration.name.offset,
+    );
   }
 
   test_getterFragment_topLevel_implicit() async {
@@ -468,13 +556,13 @@ int? x;
     var topLevelVariableDeclaration =
         findNode.topLevelVariableDeclaration('x').variables.variables[0];
     checkOffset<GetterFragment>(
-        topLevelVariableDeclaration,
-        (topLevelVariableDeclaration.declaredFragment
-                as TopLevelVariableFragment)
-            .element
-            .getter2!
-            .firstFragment,
-        topLevelVariableDeclaration.name.offset);
+      topLevelVariableDeclaration,
+      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
+          .element
+          .getter!
+          .firstFragment,
+      topLevelVariableDeclaration.name.offset,
+    );
   }
 
   test_joinPatternVariableFragment() async {
@@ -487,12 +575,14 @@ void f() {
   }
 }
 ''');
-    var firstDeclaredVariablePattern =
-        findNode.declaredVariablePattern('var i,) ||');
+    var firstDeclaredVariablePattern = findNode.declaredVariablePattern(
+      'var i,) ||',
+    );
     checkOffset<JoinPatternVariableFragment>(
-        firstDeclaredVariablePattern,
-        firstDeclaredVariablePattern.declaredFragment!.join2!,
-        firstDeclaredVariablePattern.name.offset);
+      firstDeclaredVariablePattern,
+      firstDeclaredVariablePattern.declaredFragment!.join2!,
+      firstDeclaredVariablePattern.name.offset,
+    );
   }
 
   test_labelFragment() async {
@@ -504,7 +594,10 @@ void f() {
 ''');
     var label = findNode.label('L');
     checkOffset<LabelFragment>(
-        label, label.declaredFragment!, label.label.offset);
+      label,
+      label.declaredFragment!,
+      label.label.offset,
+    );
   }
 
   test_libraryFragment_first_named() async {
@@ -516,7 +609,10 @@ class C {}
 ''');
     var unit = findNode.unit;
     checkOffset<LibraryFragment>(
-        unit, unit.declaredFragment!, findNode.library('L').name2!.offset);
+      unit,
+      unit.declaredFragment!,
+      findNode.library('L').name!.offset,
+    );
   }
 
   test_libraryFragment_first_unnamed_withLibraryDeclaration() async {
@@ -583,8 +679,11 @@ void f() {
 }
 ''');
     var localVariable = findNode.variableDeclaration('i = 0');
-    checkOffset<LocalVariableFragment>(localVariable,
-        localVariable.declaredFragment!, localVariable.name.offset);
+    checkOffset<LocalVariableFragment>(
+      localVariable,
+      localVariable.declaredFragment!,
+      localVariable.name.offset,
+    );
   }
 
   test_local_variable_fragment_const() async {
@@ -595,8 +694,11 @@ void f() {
 }
 ''');
     var localVariable = findNode.variableDeclaration('i = 0');
-    checkOffset<LocalVariableFragment>(localVariable,
-        localVariable.declaredFragment!, localVariable.name.offset);
+    checkOffset<LocalVariableFragment>(
+      localVariable,
+      localVariable.declaredFragment!,
+      localVariable.name.offset,
+    );
   }
 
   test_localFunctionFragment_named() async {
@@ -608,8 +710,11 @@ void f() {
 ''');
     var localFunction =
         findNode.functionDeclarationStatement('g()').functionDeclaration;
-    checkOffset<LocalFunctionFragment>(localFunction,
-        localFunction.declaredFragment!, localFunction.name.offset);
+    checkOffset<LocalFunctionFragment>(
+      localFunction,
+      localFunction.declaredFragment!,
+      localFunction.name.offset,
+    );
   }
 
   test_localFunctionFragment_unnamed() async {
@@ -620,9 +725,10 @@ dynamic f() {
 ''');
     var localFunction = findNode.functionExpression('() {}');
     checkOffset<LocalFunctionFragment>(
-        localFunction,
-        localFunction.declaredFragment!,
-        localFunction.parameters!.leftParenthesis.offset);
+      localFunction,
+      localFunction.declaredFragment!,
+      localFunction.parameters!.leftParenthesis.offset,
+    );
   }
 
   test_methodFragment() async {
@@ -632,8 +738,11 @@ class C {
 }
 ''');
     var methodDeclaration = findNode.methodDeclaration('foo');
-    checkOffset<MethodFragment>(methodDeclaration,
-        methodDeclaration.declaredFragment!, methodDeclaration.name.offset);
+    checkOffset<MethodFragment>(
+      methodDeclaration,
+      methodDeclaration.declaredFragment!,
+      methodDeclaration.name.offset,
+    );
   }
 
   test_mixinFragment() async {
@@ -641,34 +750,39 @@ class C {
 mixin M {}
 ''');
     var mixinDeclaration = findNode.mixinDeclaration('M');
-    checkOffset<MixinFragment>(mixinDeclaration,
-        mixinDeclaration.declaredFragment!, mixinDeclaration.name.offset);
+    checkOffset<MixinFragment>(
+      mixinDeclaration,
+      mixinDeclaration.declaredFragment!,
+      mixinDeclaration.name.offset,
+    );
   }
 
   test_mixinFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the mixin declaration isn't at offset 0
 
 mixin {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1)],
+    );
     var mixinDeclaration = findNode.mixinDeclaration('mixin {}');
     checkOffsetInRange<MixinFragment>(
-        mixinDeclaration, mixinDeclaration.declaredFragment!);
+      mixinDeclaration,
+      mixinDeclaration.declaredFragment!,
+    );
   }
 
   test_neverFragment() async {
     await assertNoErrorsInCode(r'''
 Never n = throw '';
 ''');
-    var namedType = findNode
-        .topLevelVariableDeclaration('Never n')
-        .variables
-        .type as NamedType;
-    expect(namedType.element2!.kind, ElementKind.NEVER);
+    var namedType =
+        findNode.topLevelVariableDeclaration('Never n').variables.type
+            as NamedType;
+    expect(namedType.element!.kind, ElementKind.NEVER);
     // `Never` isn't defined in the source code anywhere, so its offset is 0.
-    expect(namedType.element2!.firstFragment.offset, 0);
+    expect(namedType.element!.firstFragment.offset, 0);
   }
 
   test_prefixFragment() async {
@@ -678,9 +792,10 @@ import 'dart:async' as a;
 ''');
     var importDirective = findNode.import('as a');
     checkOffset<PrefixFragment>(
-        importDirective,
-        importDirective.libraryImport!.prefix2!,
-        importDirective.prefix!.offset);
+      importDirective,
+      importDirective.libraryImport!.prefix2!,
+      importDirective.prefix!.offset,
+    );
   }
 
   test_prefixFragment_inMultipleImports() async {
@@ -692,21 +807,25 @@ import 'dart:math' as a; // second
 ''');
     var firstImportDirective = findNode.import('as a; // first');
     checkOffset<PrefixFragment>(
-        firstImportDirective,
-        firstImportDirective.libraryImport!.prefix2!,
-        firstImportDirective.prefix!.offset);
+      firstImportDirective,
+      firstImportDirective.libraryImport!.prefix2!,
+      firstImportDirective.prefix!.offset,
+    );
   }
 
   test_prefixFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore: unused_import
 import 'dart:async' as;
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 47, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 47, 1)],
+    );
     var importDirective = findNode.import('as;');
     checkOffsetInRange<PrefixFragment>(
-        importDirective, importDirective.libraryImport!.prefix2!);
+      importDirective,
+      importDirective.libraryImport!.prefix2!,
+    );
   }
 
   test_setterFragment_member() async {
@@ -716,8 +835,11 @@ class C {
 }
 ''');
     var setterDeclaration = findNode.methodDeclaration('foo');
-    checkOffset<SetterFragment>(setterDeclaration,
-        setterDeclaration.declaredFragment!, setterDeclaration.name.offset);
+    checkOffset<SetterFragment>(
+      setterDeclaration,
+      setterDeclaration.declaredFragment!,
+      setterDeclaration.name.offset,
+    );
   }
 
   test_setterFragment_member_implicit() async {
@@ -728,12 +850,13 @@ class C {
 ''');
     var fieldDeclaration = findNode.fieldDeclaration('x').fields.variables[0];
     checkOffset<SetterFragment>(
-        fieldDeclaration,
-        (fieldDeclaration.declaredFragment as FieldFragment)
-            .element
-            .setter2!
-            .firstFragment,
-        fieldDeclaration.name.offset);
+      fieldDeclaration,
+      (fieldDeclaration.declaredFragment as FieldFragment)
+          .element
+          .setter!
+          .firstFragment,
+      fieldDeclaration.name.offset,
+    );
   }
 
   test_setterFragment_topLevel() async {
@@ -741,8 +864,11 @@ class C {
 set foo(int value) {}
 ''');
     var setterDeclaration = findNode.functionDeclaration('foo');
-    checkOffset<SetterFragment>(setterDeclaration,
-        setterDeclaration.declaredFragment!, setterDeclaration.name.offset);
+    checkOffset<SetterFragment>(
+      setterDeclaration,
+      setterDeclaration.declaredFragment!,
+      setterDeclaration.name.offset,
+    );
   }
 
   test_setterFragment_topLevel_implicit() async {
@@ -752,13 +878,13 @@ int? x;
     var topLevelVariableDeclaration =
         findNode.topLevelVariableDeclaration('x').variables.variables[0];
     checkOffset<SetterFragment>(
-        topLevelVariableDeclaration,
-        (topLevelVariableDeclaration.declaredFragment
-                as TopLevelVariableFragment)
-            .element
-            .setter2!
-            .firstFragment,
-        topLevelVariableDeclaration.name.offset);
+      topLevelVariableDeclaration,
+      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
+          .element
+          .setter!
+          .firstFragment,
+      topLevelVariableDeclaration.name.offset,
+    );
   }
 
   test_superFormalParameterFragment() async {
@@ -773,11 +899,15 @@ class C extends B {
 ''');
     var parameter = findNode.superFormalParameter('super.i');
     checkOffset<SuperFormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name.offset,
+    );
   }
 
   test_superFormalParameterFragment_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class B {
   B([int? i]);
 }
@@ -785,12 +915,14 @@ class B {
 class C extends B {
   C(super.);
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 58, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 58, 1)],
+    );
     var parameter = findNode.superFormalParameter('super.');
     checkOffsetInRange<SuperFormalParameterFragment>(
-        parameter, parameter.declaredFragment!);
+      parameter,
+      parameter.declaredFragment!,
+    );
   }
 
   test_superFormalParameterFragment_withDefaultValue() async {
@@ -805,7 +937,10 @@ class C extends B {
 ''');
     var parameter = findNode.superFormalParameter('super.i');
     checkOffset<SuperFormalParameterFragment>(
-        parameter, parameter.declaredFragment!, parameter.name.offset);
+      parameter,
+      parameter.declaredFragment!,
+      parameter.name.offset,
+    );
   }
 
   test_topLevelFunctionFragment() async {
@@ -814,9 +949,10 @@ void foo() {}
 ''');
     var topLevelFunctionDeclaration = findNode.functionDeclaration('foo');
     checkOffset<TopLevelFunctionFragment>(
-        topLevelFunctionDeclaration,
-        topLevelFunctionDeclaration.declaredFragment!,
-        topLevelFunctionDeclaration.name.offset);
+      topLevelFunctionDeclaration,
+      topLevelFunctionDeclaration.declaredFragment!,
+      topLevelFunctionDeclaration.name.offset,
+    );
   }
 
   test_topLevelVariableFragment() async {
@@ -826,9 +962,10 @@ int? x;
     var topLevelVariableDeclaration =
         findNode.topLevelVariableDeclaration('x').variables.variables[0];
     checkOffset<TopLevelVariableFragment>(
-        topLevelVariableDeclaration,
-        topLevelVariableDeclaration.declaredFragment!,
-        topLevelVariableDeclaration.name.offset);
+      topLevelVariableDeclaration,
+      topLevelVariableDeclaration.declaredFragment!,
+      topLevelVariableDeclaration.name.offset,
+    );
   }
 
   test_topLevelVariableFragment_const() async {
@@ -838,9 +975,10 @@ const int x = 0;
     var topLevelVariableDeclaration =
         findNode.topLevelVariableDeclaration('x').variables.variables[0];
     checkOffset<TopLevelVariableFragment>(
-        topLevelVariableDeclaration,
-        topLevelVariableDeclaration.declaredFragment!,
-        topLevelVariableDeclaration.name.offset);
+      topLevelVariableDeclaration,
+      topLevelVariableDeclaration.declaredFragment!,
+      topLevelVariableDeclaration.name.offset,
+    );
   }
 
   test_typeAliasFragment_functionTypeAlias() async {
@@ -848,22 +986,30 @@ const int x = 0;
 typedef void F();
 ''');
     var functionTypeAlias = findNode.functionTypeAlias('F');
-    checkOffset<TypeAliasFragment>(functionTypeAlias,
-        functionTypeAlias.declaredFragment!, functionTypeAlias.name.offset);
+    checkOffset<TypeAliasFragment>(
+      functionTypeAlias,
+      functionTypeAlias.declaredFragment!,
+      functionTypeAlias.name.offset,
+    );
   }
 
   test_typeAliasFragment_functionTypeAlias_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the function type alias declaration isn't at offset 0
 
 typedef void();
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 0),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 92, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 0, 0),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 92, 1),
+      ],
+    );
     var functionTypeAlias = findNode.functionTypeAlias('void()');
     checkOffsetInRange<TypeAliasFragment>(
-        functionTypeAlias, functionTypeAlias.declaredFragment!);
+      functionTypeAlias,
+      functionTypeAlias.declaredFragment!,
+    );
   }
 
   test_typeAliasFragment_genericTypeAlias() async {
@@ -871,22 +1017,30 @@ typedef void();
 typedef T = int;
 ''');
     var genericTypeAlias = findNode.genericTypeAlias('T');
-    checkOffset<TypeAliasFragment>(genericTypeAlias,
-        genericTypeAlias.declaredFragment!, genericTypeAlias.name.offset);
+    checkOffset<TypeAliasFragment>(
+      genericTypeAlias,
+      genericTypeAlias.declaredFragment!,
+      genericTypeAlias.name.offset,
+    );
   }
 
   test_typeAliasFragment_genericTypeAlias_missingName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library; // Ensures that the generic type alias declaration isn't at offset 0
 
 typedef = int;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 0),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 87, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 0, 0),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 87, 1),
+      ],
+    );
     var genericTypeAlias = findNode.genericTypeAlias('= int');
     checkOffsetInRange<TypeAliasFragment>(
-        genericTypeAlias, genericTypeAlias.declaredFragment!);
+      genericTypeAlias,
+      genericTypeAlias.declaredFragment!,
+    );
   }
 
   test_typeParameterFragment() async {
@@ -894,7 +1048,10 @@ typedef = int;
 class C<T> {}
 ''');
     var typeParameter = findNode.typeParameter('T');
-    checkOffset<TypeParameterFragment>(typeParameter,
-        typeParameter.declaredFragment!, typeParameter.name.offset);
+    checkOffset<TypeParameterFragment>(
+      typeParameter,
+      typeParameter.declaredFragment!,
+      typeParameter.name.offset,
+    );
   }
 }

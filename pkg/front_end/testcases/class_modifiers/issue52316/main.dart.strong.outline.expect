@@ -69,11 +69,11 @@ abstract class _LegacyWithFinal&Object&LegacyImplementFinalCore = core::Object w
   const synthetic constructor •() → self::_LegacyWithFinal&Object&LegacyImplementFinalCore
     : super core::Object::•()
     ;
-  mixin-super-stub get key() → core::int
+  synthetic mixin-super-stub get key() → core::int
     return super.{mai::LegacyImplementFinalCore::key};
-  mixin-super-stub get value() → core::int
+  synthetic mixin-super-stub get value() → core::int
     return super.{mai::LegacyImplementFinalCore::value};
-  mixin-super-stub method toString() → core::String
+  synthetic mixin-super-stub method toString() → core::String
     return super.{mai::LegacyImplementFinalCore::toString}();
 }
 

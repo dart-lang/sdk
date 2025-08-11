@@ -8,11 +8,10 @@
 #include "bin/test_utils.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/mach_o.h"
 #include "vm/unit_test.h"
 
 namespace dart {
-
-#if defined(DART_TARGET_OS_MACOS)
 
 static const unsigned char kMachO32BitLittleEndianHeader[] = {
     0xce, 0xfa, 0xed, 0xfe, 0x07, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00,
@@ -56,12 +55,19 @@ static const struct {
 TEST_CASE(CanDetectMachOFiles) {
   for (uintptr_t i = 0; i < ARRAY_SIZE(kTestcases); i++) {
     const auto& testcase = kTestcases[i];
+    auto const magic =
+        reinterpret_cast<const mach_o::mach_header*>(testcase.contents)->magic;
+    const bool host_endian =
+        magic == mach_o::MH_MAGIC || magic == mach_o::MH_MAGIC_64;
+
     auto* const file =
         bin::DartUtils::OpenFile(testcase.filename, /*write=*/true);
     bin::DartUtils::WriteFile(testcase.contents, testcase.contents_size, file);
     bin::DartUtils::CloseFile(file);
 
-    EXPECT(bin::Snapshot::IsMachOFormattedBinary(testcase.filename));
+    // Only host-endian MachO files are recognized.
+    EXPECT_EQ(host_endian,
+              bin::Snapshot::IsMachOFormattedBinary(testcase.filename));
 
     EXPECT(bin::File::Delete(nullptr, testcase.filename));
   }
@@ -70,6 +76,5 @@ TEST_CASE(CanDetectMachOFiles) {
       bin::test::GetFileName("runtime/bin/snapshot_utils_test.cc");
   EXPECT(!bin::Snapshot::IsMachOFormattedBinary(kFilename));
 }
-#endif
 
 }  // namespace dart

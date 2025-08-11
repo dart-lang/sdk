@@ -67,8 +67,9 @@ Future<void> main(List<String> args) async {
   final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
   final vmService = await vm_service_io.vmServiceConnectUri(wsUri);
   final vm = await vmService.getVM();
-  final id =
-      vm.isolates!.firstWhere((isolate) => !isolate.isSystemIsolate!).id!;
+  final id = vm.isolates!
+      .firstWhere((isolate) => !isolate.isSystemIsolate!)
+      .id!;
 
   // Override exitFunc to prevent the defualt behavior (a process exit).
   p.exitFunc = (code) {

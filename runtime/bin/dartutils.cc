@@ -14,6 +14,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/mach_o.h"
 #include "platform/utils.h"
 
 // Return the error from the containing function if handle is in error handle.
@@ -34,9 +35,7 @@ dart::SimpleHashMap* DartUtils::environment_ = nullptr;
 
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData aotelf_magic_number = {4, {0x7F, 0x45, 0x4C, 0x46, 0x0}};
-MagicNumberData aotmacho32_magic_number = {4, {0xFE, 0xED, 0xFA, 0xCE}};
-MagicNumberData aotmacho64_magic_number = {4, {0xFE, 0xED, 0xFA, 0xCF}};
-MagicNumberData aotmacho64_arm64_magic_number = {4, {0xCF, 0xFA, 0xED, 0xFE}};
+MagicNumberData aotpe_magic_number = {2, {0x4d, 0x5a}};
 MagicNumberData aotcoff_arm32_magic_number = {2, {0x01, 0xC0}};
 MagicNumberData aotcoff_arm64_magic_number = {2, {0xAA, 0x64}};
 MagicNumberData aotcoff_riscv32_magic_number = {2, {0x50, 0x32}};
@@ -45,6 +44,7 @@ MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
 MagicNumberData kernel_list_magic_number = {
     7,
     {0x23, 0x40, 0x64, 0x69, 0x6c, 0x6c, 0x0a}};  // #@dill\n
+MagicNumberData bytecode_magic_number = {4, {0x33, 0x43, 0x42, 0x44}};
 MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
@@ -219,11 +219,6 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
 
-bool DartUtils::IsHttpSchemeURL(const char* url_name) {
-  static const intptr_t kHttpSchemeLen = strlen(kHttpScheme);
-  return (strncmp(url_name, kHttpScheme, kHttpSchemeLen) == 0);
-}
-
 bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
 }
@@ -238,15 +233,6 @@ bool DartUtils::IsDartHttpLibURL(const char* url_name) {
 
 bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
   return (strcmp(url_name, kBuiltinLibURL) == 0);
-}
-
-const char* DartUtils::RemoveScheme(const char* url) {
-  const char* colon = strchr(url, ':');
-  if (colon == nullptr) {
-    return url;
-  } else {
-    return colon + 1;
-  }
 }
 
 char* DartUtils::DirName(const char* url) {
@@ -404,15 +390,16 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   MagicNumber magic_number = DartUtils::kUnknownMagicNumber;
   ASSERT(kMaxMagicNumberSize == appjit_magic_number.length);
   ASSERT(aotelf_magic_number.length <= appjit_magic_number.length);
-  ASSERT(aotmacho32_magic_number.length <= appjit_magic_number.length);
-  ASSERT(aotmacho64_magic_number.length <= appjit_magic_number.length);
-  ASSERT(aotmacho64_arm64_magic_number.length <= appjit_magic_number.length);
+  ASSERT(static_cast<intptr_t>(sizeof(mach_o::mach_header::magic)) <=
+         appjit_magic_number.length);
+  ASSERT(aotpe_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_arm32_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_arm64_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_riscv32_magic_number.length <= appjit_magic_number.length);
   ASSERT(aotcoff_riscv64_magic_number.length <= appjit_magic_number.length);
   ASSERT(kernel_magic_number.length <= appjit_magic_number.length);
   ASSERT(kernel_list_magic_number.length <= appjit_magic_number.length);
+  ASSERT(bytecode_magic_number.length <= appjit_magic_number.length);
   ASSERT(gzip_magic_number.length <= appjit_magic_number.length);
   if (File::GetType(nullptr, filename, true) == File::kIsFile) {
     File* file = File::Open(nullptr, filename, File::kRead);
@@ -441,8 +428,8 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
     return kKernelListMagicNumber;
   }
 
-  if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
-    return kGzipMagicNumber;
+  if (CheckMagicNumber(buffer, buffer_length, bytecode_magic_number)) {
+    return kBytecodeMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
@@ -453,16 +440,23 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
     return kAotELFMagicNumber;
   }
 
-  if (CheckMagicNumber(buffer, buffer_length, aotmacho32_magic_number)) {
-    return kAotMachO32MagicNumber;
+  // Mach-O magic numbers are reported by whether the endianness of the file
+  // matches the endianness of the system. Here, we only bother looking for
+  // host-endian magic numbers, as our Mach-O parsing code won't handle the
+  // reverse endian case.
+  if (static_cast<intptr_t>(sizeof(mach_o::mach_header::magic)) <=
+      buffer_length) {
+    const uint32_t magic =
+        reinterpret_cast<const mach_o::mach_header*>(buffer)->magic;
+    if (magic == mach_o::MH_MAGIC) {
+      return kAotMachO32MagicNumber;
+    } else if (magic == mach_o::MH_MAGIC_64) {
+      return kAotMachO64MagicNumber;
+    }
   }
 
-  if (CheckMagicNumber(buffer, buffer_length, aotmacho64_magic_number)) {
-    return kAotMachO64MagicNumber;
-  }
-
-  if (CheckMagicNumber(buffer, buffer_length, aotmacho64_arm64_magic_number)) {
-    return kAotMachO64Arm64MagicNumber;
+  if (CheckMagicNumber(buffer, buffer_length, aotpe_magic_number)) {
+    return kAotPEMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, aotcoff_arm32_magic_number)) {
@@ -529,7 +523,31 @@ Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
 }
 
 Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
-                                           Dart_Handle isolate_lib) {
+                                           Dart_Handle isolate_lib,
+                                           bool flag_profile_microtasks) {
+#if !defined(PRODUCT)
+  if (flag_profile_microtasks) {
+    Dart_Handle microtask_mirror_queue_type_name =
+        Dart_NewStringFromCString("_MicrotaskMirrorQueue");
+    RETURN_IF_ERROR(microtask_mirror_queue_type_name);
+
+    Dart_Handle microtask_mirror_queue_type =
+        Dart_GetNonNullableType(async_lib, microtask_mirror_queue_type_name,
+                                /*number_of_type_arguments=*/0,
+                                /*type_arguments=*/nullptr);
+    RETURN_IF_ERROR(microtask_mirror_queue_type);
+
+    Dart_Handle should_profile_microtasks_field_name =
+        Dart_NewStringFromCString("_shouldProfileMicrotasks");
+    RETURN_IF_ERROR(should_profile_microtasks_field_name);
+
+    Dart_Handle set_field_result =
+        Dart_SetField(microtask_mirror_queue_type,
+                      should_profile_microtasks_field_name, Dart_True());
+    RETURN_IF_ERROR(set_field_result);
+  }
+#endif  // !defined(PRODUCT)
+
   Dart_Handle schedule_immediate_closure =
       Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
                   0, nullptr);
@@ -568,7 +586,8 @@ Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
 }
 
 Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
-                                               bool trace_loading) {
+                                               bool trace_loading,
+                                               bool flag_profile_microtasks) {
   // First ensure all required libraries are available.
   Dart_Handle url = NewString(kCoreLibURL);
   RETURN_IF_ERROR(url);
@@ -610,7 +629,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
                                  trace_loading);
   RETURN_IF_ERROR(result);
 
-  RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));
+  RETURN_IF_ERROR(
+      PrepareAsyncLibrary(async_lib, isolate_lib, flag_profile_microtasks));
   RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareIOLibrary(io_lib));

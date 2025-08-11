@@ -223,6 +223,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -542,6 +543,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule was removed from the SDK in Dart 3; it is no longer functional.
       Its advice is compiler-specific and mostly obsolete with null safety.
@@ -1909,6 +1911,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -1938,6 +1941,7 @@ LintCode:
     state:
       stable: "2.1"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -2347,11 +2351,17 @@ LintCode:
         return getThingFromDatabase(key: myThing.thingTypeKey);
       }
       ```
-  avoid_types_as_parameter_names:
+  avoid_types_as_parameter_names_formal_parameter:
+    sharedName: avoid_types_as_parameter_names
     problemMessage: "The parameter name '{0}' matches a visible type name."
     correctionMessage: "Try adding a name for the parameter or changing the parameter name to not match an existing type."
+    hasPublishedDocs: true
+  avoid_types_as_parameter_names_type_parameter:
+    sharedName: avoid_types_as_parameter_names
+    problemMessage: "The type parameter name '{0}' matches a visible type name."
     state:
       stable: "2.0"
+    correctionMessage: "Try changing the type parameter name to not match an existing type."
     categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
@@ -2367,6 +2377,11 @@ LintCode:
       name of the parameter is intentional), the name of the parameter will
       shadow the existing type, which can lead to bugs that are difficult to
       diagnose.
+
+      The analyzer also produces this diagnostic when the name of a type
+      parameter in a type parameter list is the same as a type whose name is
+      in scope. It is again recommended that the type parameter is renamed
+      such that the error-prone shadowing is avoided.
 
       #### Example
 
@@ -2534,6 +2549,7 @@ LintCode:
     state:
       experimental: "3.3"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       This rule has been removed.
   avoid_unused_constructor_parameters:
@@ -4097,7 +4113,7 @@ LintCode:
     hasPublishedDocs: false
   discarded_futures:
     problemMessage: "'Future'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future."
+    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited'."
     state:
       stable: "2.18"
     categories: [errorProne]
@@ -4427,6 +4443,7 @@ LintCode:
     state:
       stable: "2.19"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -5332,6 +5349,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -5417,6 +5435,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -5857,6 +5876,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.3"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
 
@@ -7940,6 +7960,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -8641,6 +8662,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0; it is no longer functional.
 
@@ -9131,8 +9153,8 @@ LintCode:
       };
       ```
   prefer_foreach:
-    problemMessage: "Use 'forEach' rather than a 'for' loop to apply a function to every element."
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop."
+    problemMessage: "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function to every element."
+    correctionMessage: "Try using 'forEach' and a tear-off rather than a 'for' loop."
     state:
       experimental: "2.0"
       stable: "2.2"
@@ -11301,6 +11323,7 @@ LintCode:
     state:
       stable: "2.0"
       removed: "3.0"
+    hasPublishedDocs: false
     deprecatedDetails: |-
       NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
 
@@ -11332,6 +11355,82 @@ LintCode:
       View(Style style, List children)
           : _children = children,
             super(style) {
+      ```
+  switch_on_type:
+    problemMessage: "Avoid switch statements on a 'Type'."
+    correctionMessage: "Try using pattern matching on a variable instead."
+    state:
+      stable: "3.9"
+    categories: [unintentional, style, languageFeatureUsage, errorProne]
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a switch statement or switch
+      expression is used on either the value of a `Type` or a `toString` call
+      on a `Type`.
+
+      #### Example
+
+      The following code produces this diagnostic because the switch statement
+      is used on a `Type`:
+
+      ```dart
+      void f(Object o) {
+        switch ([!o.runtimeType!]) {
+          case const (int):
+            print('int');
+          case const (String):
+            print('String');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Use pattern matching on the variable instead:
+
+      ```dart
+      void f(Object o) {
+        switch (o) {
+          case int():
+            print('int');
+          case String():
+            print('String');
+        }
+      }
+      ```
+    deprecatedDetails: |-
+      **AVOID** using switch on `Type`.
+
+      Switching on `Type` is not type-safe and can lead to bugs if the
+      class hierarchy changes. Prefer to use pattern matching on the variable
+      instead.
+
+      **BAD:**
+      ```dart
+      void f(Object o) {
+        switch (o.runtimeType) {
+          case int:
+            print('int');
+          case String:
+            print('String');
+        }
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f(Object o) {
+        switch(o) {
+          case int():
+            print('int');
+          case String _:
+            print('String');
+          default:
+            print('other');
+        }
+      }
       ```
   test_types_in_equals:
     problemMessage: "Missing type test for '{0}' in '=='."
@@ -11891,7 +11990,7 @@ LintCode:
 
       ```dart
       Future<void> f() async {
-        [!g();!]
+        [!g!]();
       }
 
       Future<int> g() => Future.value(0);
@@ -13574,6 +13673,77 @@ LintCode:
       children: <Widget>[
         ...['foo', 'bar', 'baz'].map((String s) => Text(s)),
       ]
+      ```
+  unnecessary_unawaited:
+    problemMessage: "Unnecessary use of 'unawaited'."
+    correctionMessage: "Try removing the use of 'unawaited', as the unawaited element is annotated with '@awaitNotRequired'."
+    state:
+      stable: "3.9"
+    categories: [brevity, unintentional, unusedCode]
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `unawaited` is used to mark a
+      call to a function, method, or operator, or a reference to a field,
+      getter, or top-level variable as safely not being awaited, but the called
+      member is also annotated with `@awaitNotRequired`. This annotation itself
+      signals that wrapping with `unawaited` is unnecessary at any call site.
+
+      #### Example
+
+      The following code produces this diagnostic because `unawaited` is invoked
+      on a call to a function that's annotated with `@awaitNotRequired`:
+
+      ```dart
+      import 'dart:async';
+      import 'package:meta/meta.dart';
+
+      @awaitNotRequired
+      Future<bool> log(String message) async => true;
+
+      void f() {
+        [!unawaited!](log('Message.'));
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the invocation of `unawaited`:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @awaitNotRequired
+      Future<bool> log(String message) async => true;
+
+      void f() {
+        log('Message.');
+      }
+      ```
+    deprecatedDetails: |-
+      A call to a function, method, or operator, or a reference to a field,
+      getter, or top-level variable which is annotated with `@awaitNotRequired`
+      does not need to be wrapped in a call to `unawaited()`.
+
+      **BAD:**
+      ```dart
+      @awaitNotRequired
+      Future<LogMessage> log(String message) { ... }
+
+      void f() {
+        unawaited(log('Message.'));
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      @awaitNotRequired
+      Future<LogMessage> log(String message) { ... }
+
+      void f() {
+        log('Message.');
+      }
       ```
   unnecessary_underscores:
     problemMessage: "Unnecessary use of multiple underscores."

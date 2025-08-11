@@ -17,9 +17,7 @@ main() {
 @reflectiveTest
 class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   test_functionType() {
-    _assertNotValid(
-      functionTypeNone(returnType: voidNone),
-    );
+    _assertNotValid(functionTypeNone(returnType: voidNone));
   }
 
   test_interfaceType() {
@@ -28,9 +26,7 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
 
   test_interfaceType_extensionType() {
     var element = extensionType2('A', representationType: intNone);
-    _assertValid(
-      interfaceTypeNone(element),
-    );
+    _assertValid(interfaceTypeNone(element));
   }
 
   test_interfaceType_function() {
@@ -38,9 +34,7 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   }
 
   test_interfaceType_futureOr() {
-    _assertNotValid(
-      futureOrNone(intNone),
-    );
+    _assertNotValid(futureOrNone(intNone));
   }
 
   test_interfaceType_null() {
@@ -56,11 +50,7 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   }
 
   test_recordType() {
-    _assertNotValid(
-      recordTypeNone(
-        positionalTypes: [intNone, stringNone],
-      ),
-    );
+    _assertNotValid(recordTypeNone(positionalTypes: [intNone, stringNone]));
   }
 
   test_topType() {
@@ -71,9 +61,7 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
 
   test_typeParameterType() {
     var T = typeParameter('T');
-    _assertNotValid(
-      typeParameterTypeNone(T),
-    );
+    _assertNotValid(typeParameterTypeNone(T));
   }
 
   void _assertNotValid(DartType type) {

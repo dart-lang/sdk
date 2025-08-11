@@ -15,10 +15,10 @@ class SpawnLatency {
     final completerResult = Completer();
     final receivePort = ReceivePort()..listen(completerResult.complete);
     final isolateExitedCompleter = Completer<DateTime>();
-    final onExitReceivePort =
-        ReceivePort()..listen((_) {
-          isolateExitedCompleter.complete(DateTime.now());
-        });
+    final onExitReceivePort = ReceivePort()
+      ..listen((_) {
+        isolateExitedCompleter.complete(DateTime.now());
+      });
     final beforeSpawn = DateTime.now();
     await Isolate.spawn(
       isolateCompiler,
@@ -32,8 +32,9 @@ class SpawnLatency {
     receivePort.close();
     final DateTime isolateExited = await isolateExitedCompleter.future;
     result.timeToExitUs = isolateExited.difference(beforeSpawn).inMicroseconds;
-    result.timeToIsolateSpawnUs =
-        afterSpawn.difference(beforeSpawn).inMicroseconds;
+    result.timeToIsolateSpawnUs = afterSpawn
+        .difference(beforeSpawn)
+        .inMicroseconds;
     onExitReceivePort.close();
 
     return result;
@@ -139,7 +140,8 @@ class AggregatedResultMessageLatency {
   );
 
   @override
-  String toString() => '''$toAfterIsolateSpawnUs
+  String toString() =>
+      '''$toAfterIsolateSpawnUs
 $toStartRunningCodeUs
 $toFinishRunningCodeUs
 $toExitUs''';
@@ -164,10 +166,12 @@ Future<void> isolateCompiler(StartMessageLatency start) async {
   final timeFinishRunningCodeUs = DateTime.now();
   start.sendPort.send(
     ResultMessageLatency(
-      timeToStartRunningCodeUs:
-          timeRunningCodeUs.difference(start.spawned).inMicroseconds,
-      timeToFinishRunningCodeUs:
-          timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds,
+      timeToStartRunningCodeUs: timeRunningCodeUs
+          .difference(start.spawned)
+          .inMicroseconds,
+      timeToFinishRunningCodeUs: timeFinishRunningCodeUs
+          .difference(start.spawned)
+          .inMicroseconds,
     ),
   );
 }

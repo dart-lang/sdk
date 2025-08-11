@@ -30,9 +30,11 @@ void test(Future<Process> future, int expectedExitCode) {
 
     void readData(List<int> data) {
       buffer.addAll(data);
-      for (int i = received;
-          i < min(input_data.length, buffer.length) - 1;
-          i++) {
+      for (
+        int i = received;
+        i < min(input_data.length, buffer.length) - 1;
+        i++
+      ) {
         Expect.equals(input_data[i], buffer[i]);
       }
       received = buffer.length;
@@ -57,7 +59,9 @@ void test(Future<Process> future, int expectedExitCode) {
 main() {
   // Run the test using the process_test binary.
   test(
-      Process.start(getProcessTestFileName(), const ["1", "1", "99", "0"]), 99);
+    Process.start(getProcessTestFileName(), const ["1", "1", "99", "0"]),
+    99,
+  );
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
@@ -67,11 +71,12 @@ main() {
   }
   Expect.isTrue(scriptFile.existsSync());
   test(
-      Process.start(Platform.executable, [
-        ...Platform.executableArguments,
-        "--verbosity=warning", // CFE info/hints pollute the stderr we are trying to test
-        scriptFile.path,
-        "1"
-      ]),
-      0);
+    Process.start(Platform.executable, [
+      ...Platform.executableArguments,
+      "--verbosity=warning", // CFE info/hints pollute the stderr we are trying to test
+      scriptFile.path,
+      "1",
+    ]),
+    0,
+  );
 }

@@ -15,7 +15,8 @@ potentiallyMutatedInClosure(Object x) {
 
 potentiallyMutatedInScope(Object x) {
   if (x is String) {
-    /*String*/ x;
+    /*String*/
+    x;
   }
 
   x = 42;

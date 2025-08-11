@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithTryCatchTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_TRY_CATCH;
+  AssistKind get kind => DartAssistKind.surroundWithTryCatch;
 
   Future<void> test_twoStatements() async {
     await resolveTestCode('''

@@ -8,6 +8,8 @@ import 'package:kernel/core_types.dart';
 import 'records.dart';
 import 'util.dart';
 
+const String dynamicModulesRecordsLibraryUri = 'dart:_dyn_mod_records';
+
 /// Generates a class extending `Record` for each record shape in the
 /// [Component].
 ///
@@ -81,10 +83,22 @@ import 'util.dart';
 /// }
 /// ```
 Map<RecordShape, Class> generateRecordClasses(
-    Component component, CoreTypes coreTypes, bool isDynamicModuleEnabled) {
+    Component component, CoreTypes coreTypes,
+    {bool isDynamicMainModule = false, bool isDynamicSubmodule = false}) {
   final Map<RecordShape, Class> recordClasses = {};
-  final recordClassGenerator =
-      _RecordClassGenerator(recordClasses, coreTypes, isDynamicModuleEnabled);
+  Library library;
+  if (isDynamicSubmodule) {
+    // Put new record classes in their own library so downstream we know to load
+    // them as new classes.
+    library = Library(Uri.parse(dynamicModulesRecordsLibraryUri),
+        fileUri: coreTypes.coreLibrary.fileUri);
+    component.libraries.add(library);
+    library.parent = component;
+  } else {
+    library = coreTypes.coreLibrary;
+  }
+  final recordClassGenerator = _RecordClassGenerator(recordClasses, library,
+      coreTypes, isDynamicMainModule || isDynamicSubmodule);
   final visitor = _RecordVisitor(recordClassGenerator);
   component.libraries.forEach(visitor.visitLibrary);
   return recordClasses;
@@ -93,6 +107,7 @@ Map<RecordShape, Class> generateRecordClasses(
 class _RecordClassGenerator {
   final CoreTypes coreTypes;
   final Map<RecordShape, Class> classes;
+  final Library library;
   final bool isDynamicModuleEnabled;
 
   late final Class typeRuntimetypeTypeClass =
@@ -182,8 +197,6 @@ class _RecordClassGenerator {
 
   DartType get intType => coreTypes.intNonNullableRawType;
 
-  Library get library => coreTypes.coreLibrary;
-
   late final Map<String, Class> _existingCoreClassNames = (() {
     final map = <String, Class>{};
     for (final cls in library.classes) {
@@ -193,7 +206,7 @@ class _RecordClassGenerator {
   })();
 
   _RecordClassGenerator(
-      this.classes, this.coreTypes, this.isDynamicModuleEnabled);
+      this.classes, this.library, this.coreTypes, this.isDynamicModuleEnabled);
 
   void generateClassForRecordType(RecordType recordType) {
     final shape = RecordShape.fromType(recordType);
@@ -209,7 +222,7 @@ class _RecordClassGenerator {
       className = '${className}_${shape.names.join('_')}';
     }
 
-    // If this is a dynamic module the loaded main module may already contain
+    // If this is a dynamic submodule the loaded main module may already contain
     // this class.
     final existingClass = _existingCoreClassNames[className];
     if (existingClass != null) return existingClass;
@@ -382,7 +395,8 @@ class _RecordClassGenerator {
         Procedure(
           Name('toString', library),
           ProcedureKind.Method,
-          FunctionNode(ReturnStatement(stringExpression)),
+          FunctionNode(ReturnStatement(stringExpression),
+              returnType: coreTypes.stringNonNullableRawType),
           fileUri: library.fileUri,
         ),
         coreTypes);
@@ -408,10 +422,11 @@ class _RecordClassGenerator {
       statements.add(IfStatement(
         Not(InstanceInvocation(
           InstanceAccessKind.Instance,
-          (InstanceInvocation(InstanceAccessKind.Instance, ThisExpression(),
-              getRti.name, Arguments([]),
+          (InstanceGet(
+              InstanceAccessKind.Instance, ThisExpression(), getRti.name,
               interfaceTarget: getRti,
-              functionType: getRti.computeSignatureOrFunctionType())),
+              resultType: InterfaceType(
+                  recordRuntimeTypeClass, Nullability.nonNullable))),
           checkInstance.name,
           Arguments([VariableGet(parameter)]),
           interfaceTarget: checkInstance,
@@ -533,7 +548,7 @@ class _RecordClassGenerator {
 
     return addWasmEntryPointPragma(
         Procedure(
-          Name('_checkRecordType', library),
+          Name('_checkRecordType', coreTypes.coreLibrary),
           ProcedureKind.Method,
           function,
           fileUri: library.fileUri,

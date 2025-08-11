@@ -26,9 +26,9 @@ class E {
 }
 
 class F implements C {
-//    ^
-// [context 1] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
-// [context 2] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.
+  //  ^
+  // [context 1] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+  // [context 2] '_i' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'F'.
   @override
   noSuchMethod(Invocation invocation) => 0;
 }

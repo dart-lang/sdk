@@ -19,16 +19,22 @@ main() {
 class IllegalConcreteEnumMemberDeclarationClassTest
     extends PubPackageResolutionTest {
   test_hashCode_field_fromExtends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int hashCode = 0;
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 48, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          48,
+          1,
+        ),
+      ],
+    );
   }
 
   test_hashCode_field_fromImplements() async {
@@ -42,29 +48,41 @@ abstract class B implements A, Enum {}
   }
 
   test_hashCode_field_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int hashCode = 0;
 }
 
 abstract class B with M implements Enum {}
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 48, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          48,
+          1,
+        ),
+      ],
+    );
   }
 
   test_hashCode_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get hashCode => 0;
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 53, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          53,
+          1,
+        ),
+      ],
+    );
   }
 
   test_hashCode_getter_abstract() async {
@@ -88,16 +106,22 @@ abstract class B extends A implements Enum {}
   }
 
   test_operatorEqEq_fromExtends() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool operator ==(Object other) => false;
 }
 
 abstract class B extends A implements Enum {}
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 71, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          71,
+          1,
+        ),
+      ],
+    );
   }
 
   test_operatorEqEq_fromImplements() async {
@@ -111,16 +135,22 @@ abstract class B implements A, Enum {}
   }
 
   test_operatorEqEq_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   bool operator ==(Object other) => false;
 }
 
 abstract class B with M implements Enum {}
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 71, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          71,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -140,7 +170,8 @@ enum E implements A {
   }
 
   test_hashCode_getter_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int get hashCode => 0;
 }
@@ -148,10 +179,15 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 43, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          43,
+          1,
+        ),
+      ],
+    );
   }
 
   test_hashCode_setter_fromWith() async {
@@ -179,7 +215,8 @@ enum E implements A {
   }
 
   test_index_getter_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int get index => 0;
 }
@@ -187,10 +224,15 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 40, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          40,
+          1,
+        ),
+      ],
+    );
   }
 
   test_index_setter_fromWith() async {
@@ -218,7 +260,8 @@ enum E implements A {
   }
 
   test_operatorEqEq_fromWith() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   bool operator ==(Object other) => false;
 }
@@ -226,10 +269,15 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE, 61, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 }
 

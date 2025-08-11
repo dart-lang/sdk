@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ThrowStatement {
   final ExpressionStatement statement;
@@ -26,7 +28,7 @@ class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix == null) {
-      names.add(node.name2.lexeme);
+      names.add(node.name.lexeme);
     }
 
     super.visitNamedType(node);
@@ -72,35 +74,13 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
-  /// Returns [ExtensionElement2] declared by an enclosing node.
-  ExtensionElement2? get enclosingExtensionElement {
-    for (var node in withParents) {
-      if (node is ExtensionDeclaration) {
-        return node.declaredFragment?.element;
-      }
-    }
-    return null;
-  }
-
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       if (node is IfStatement) {
         return node;
       } else if (node is! Expression) {
         return null;
-      }
-    }
-    return null;
-  }
-
-  /// Returns [InterfaceElement2] declared by an enclosing node.
-  InterfaceElement2? get enclosingInterfaceElement {
-    for (var node in withParents) {
-      if (node is ClassDeclaration) {
-        return node.declaredFragment?.element;
-      } else if (node is MixinDeclaration) {
-        return node.declaredFragment?.element;
       }
     }
     return null;
@@ -179,14 +159,48 @@ extension AstNodeExtension on AstNode {
     var grandparent = parent?.parent;
     if (this case SimpleIdentifier(:var element)) {
       if (element is TopLevelFunctionElement &&
-          element.name3 == 'print' &&
-          element.library2.isDartCore &&
+          element.name == 'print' &&
+          element.library.isDartCore &&
           parent is MethodInvocation &&
           grandparent is ExpressionStatement) {
         return grandparent;
       }
     }
     return null;
+  }
+
+  /// Returns the element associated with `this`.
+  ///
+  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
+  /// returned when an import directive or a prefix element is associated with
+  /// `this`. The rename-prefix refactoring should be updated to not require
+  /// this work-around.
+  ///
+  /// Returns `null` if `this` is `null` or doesn't have an element.
+  Element? getElement({bool useMockForImport = false}) {
+    AstNode? node = this;
+    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is LibraryIdentifier) {
+      node = node.parent;
+    }
+    if (node is StringLiteral && node.parent is UriBasedDirective) {
+      return null;
+    }
+
+    Element? element;
+    if (useMockForImport && node is ImportDirective) {
+      element = MockLibraryImportElement(node.libraryImport!);
+    } else {
+      element = ElementLocator.locate(node);
+    }
+    if (useMockForImport &&
+        node is SimpleIdentifier &&
+        element is PrefixElement) {
+      element = MockLibraryImportElement(getImportElement(node)!);
+    }
+    return element;
   }
 }
 
@@ -245,15 +259,15 @@ extension CompilationUnitExtension on CompilationUnit {
   /// Returns names of elements that might conflict with a new local variable
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    var conflicts = <String>{};
-    var enclosingNode = NodeLocator(offset).searchWithin(this)!;
+    var enclosingNode = nodeCovering(offset: offset)!;
     var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock != null) {
-      var visitor = _ReferencedUnprefixedNamesCollector();
-      enclosingBlock.accept(visitor);
-      return visitor.names;
+    if (enclosingBlock == null) {
+      return {};
     }
-    return conflicts;
+
+    var visitor = _ReferencedUnprefixedNamesCollector();
+    enclosingBlock.accept(visitor);
+    return visitor.names;
   }
 }
 
@@ -268,13 +282,13 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
 }
 
 extension DirectiveExtension on Directive {
-  /// If the target imports or exports a [LibraryElement2], returns it.
-  LibraryElement2? get referencedLibrary {
+  /// If the target imports or exports a [LibraryElement], returns it.
+  LibraryElement? get referencedLibrary {
     switch (this) {
       case ExportDirective directive:
-        return directive.libraryExport?.exportedLibrary2;
+        return directive.libraryExport?.exportedLibrary;
       case ImportDirective directive:
-        return directive.libraryImport?.importedLibrary2;
+        return directive.libraryImport?.importedLibrary;
       default:
         return null;
     }
@@ -338,21 +352,21 @@ extension MethodInvocationExtension on MethodInvocation {
   /// from either Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isCastMethod;
+    return element is MethodElement && element.isCastMethod;
   }
 
   /// Returns whether this expression is an invocation of the method `toList`
   /// from `Iterable`.
   bool get isToListMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isToListMethod;
+    return element is MethodElement && element.isToListMethod;
   }
 
   /// Returns whether this expression is an invocation of the method `toSet`
   /// from `Iterable`.
   bool get isToSetMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isToSetMethod;
+    return element is MethodElement && element.isToSetMethod;
   }
 }
 
@@ -360,9 +374,9 @@ extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     var importPrefix = this.importPrefix;
     if (importPrefix != null) {
-      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+      return '${importPrefix.name.lexeme}.${name.lexeme}';
     } else {
-      return name2.lexeme;
+      return name.lexeme;
     }
   }
 }

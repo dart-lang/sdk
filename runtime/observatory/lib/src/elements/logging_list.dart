@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
 import 'package:logging/logging.dart';
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/utils.dart';
 
 class LoggingListElement extends CustomElement implements Renderable {
@@ -55,26 +58,26 @@ class LoggingListElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
     _subscription.cancel();
   }
 
   void render() {
     children = _logs
         .where(_shouldBeVisible)
-        .map<Element>((logRecord) => new DivElement()
-          ..classes = ['logItem', logRecord['level'].name]
-          ..children = <Element>[
-            new SpanElement()
-              ..classes = ['level']
-              ..text = logRecord['level'].name,
-            new SpanElement()
-              ..classes = ['time']
-              ..text = Utils.formatDateTime(logRecord['time']),
-            new SpanElement()
-              ..classes = ['message']
-              ..text = logRecord["message"].valueAsString
-          ])
+        .map<HTMLElement>((logRecord) => new HTMLDivElement()
+          ..className = 'logItem ${logRecord["level"].name}'
+          ..appendChildren(<HTMLElement>[
+            new HTMLSpanElement()
+              ..className = 'level'
+              ..textContent = logRecord['level'].name,
+            new HTMLSpanElement()
+              ..className = 'time'
+              ..textContent = Utils.formatDateTime(logRecord['time']),
+            new HTMLSpanElement()
+              ..className = 'message'
+              ..textContent = logRecord["message"].valueAsString
+          ]))
         .toList();
   }
 

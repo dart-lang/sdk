@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/globals.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
@@ -976,8 +977,14 @@ void IfThenElseInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void LoadStaticFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s", String::Handle(field().name()).ToCString());
+  if (throws_access_error()) {
+    f->AddString(", ThrowsAccessError");
+  }
   if (calls_initializer()) {
     f->AddString(", CallsInitializer");
+  }
+  if (throw_exception_on_initialization()) {
+    f->AddString(", ThrowExceptionOnInitialization");
   }
 }
 
@@ -1033,6 +1040,9 @@ void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void LoadFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s%s", slot().Name(), IsImmutableLoad() ? " {final}" : "");
+  if (throws_access_error()) {
+    f->AddString(", ThrowsAccessError");
+  }
   if (calls_initializer()) {
     f->AddString(", CallsInitializer");
   }
@@ -1467,7 +1477,7 @@ void TryEntryInstr::PrintTo(BaseTextBuffer* f) const {
     for (intptr_t i = 0; i < phis()->length(); ++i) {
       if ((*phis())[i] == nullptr) continue;
       f->AddString("\n      ");
-      (*phis())[i]->PrintTo(f);
+      (*phis())[i] -> PrintTo(f);
     }
     f->AddString("\n}");
   }

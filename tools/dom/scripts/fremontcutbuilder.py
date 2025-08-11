@@ -186,8 +186,8 @@ def main(parallel=False, logging_level=logging.WARNING, examine_idls=False):
         'idl_parser',  # idl_parser has test IDL files.
     ]
 
-    # TODO(terry): Integrate this into the htmlrenamer's _removed_html_interfaces
-    #              (if possible).
+    # TODO(terry): Integrate this into the htmlrenamer's
+    #              _suppressed_html_interfaces (if possible).
     FILES_TO_IGNORE = [
         'InspectorFrontendHostFileSystem.idl',  # Uses interfaces in inspector dir (which is ignored)
         'WebKitGamepad.idl',  # Gamepad.idl is the new one.

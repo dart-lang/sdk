@@ -13,49 +13,48 @@ main() {
 class YieldStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'yield_statement',
-        [
-          TestDescriptor(
-              'keyword',
-              'yield',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "yield _s_;",
-              failing: [
-                'assert',
-                'block',
-                'labeled',
-                'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
-                'switch',
-              ]),
-          TestDescriptor('expression', 'yield a',
-              [ParserErrorCode.EXPECTED_TOKEN], "yield a;"),
-          TestDescriptor(
-              'star',
-              'yield *',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "yield * _s_;",
-              failing: [
-                'assert',
-                'block',
-                'labeled',
-                'localFunctionNonVoid',
-                'localFunctionVoid',
-                'return',
-                'switch',
-              ]),
-          TestDescriptor('star_expression', 'yield * a',
-              [ParserErrorCode.EXPECTED_TOKEN], "yield * a;"),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() sync* { ',
-        tail: ' }');
+      'yield_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'yield',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "yield _s_;",
+          failing: [
+            'assert',
+            'block',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return',
+            'switch',
+          ],
+        ),
+        TestDescriptor('expression', 'yield a', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "yield a;"),
+        TestDescriptor(
+          'star',
+          'yield *',
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          "yield * _s_;",
+          failing: [
+            'assert',
+            'block',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return',
+            'switch',
+          ],
+        ),
+        TestDescriptor('star_expression', 'yield * a', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "yield * a;"),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() sync* { ',
+      tail: ' }',
+    );
   }
 }

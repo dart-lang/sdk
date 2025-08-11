@@ -6,12 +6,14 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommentResolutionTest_PrefixedIdentifier);
     defineReflectiveTests(CommentResolutionTest_PropertyAccess);
     defineReflectiveTests(CommentResolutionTest_SimpleIdentifier);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -41,9 +43,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -68,9 +70,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -95,9 +97,37 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_class_instanceGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+typedef B = A;
+
+/// [B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: null
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -122,9 +152,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@method::foo#element
+      element: <testLibrary>::@class::A::@method::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -149,9 +179,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@setter::foo#element
+      element: <testLibrary>::@class::A::@setter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@setter::foo#element
+    element: <testLibrary>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -214,9 +244,38 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_class_staticGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+/// [B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: B
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: null
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -241,9 +300,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@method::foo#element
+      element: <testLibrary>::@class::A::@method::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -268,9 +327,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@setter::foo#element
+      element: <testLibrary>::@class::A::@setter::foo
       staticType: null
-    element: <testLibraryFragment>::@class::A::@setter::foo#element
+    element: <testLibrary>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -299,9 +358,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/foo.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/foo.dart::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -330,9 +389,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: new
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+      element: package:test/foo.dart::@class::A::@constructor::new
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/foo.dart::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -361,9 +420,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@class::A::@getter::foo#element
+      element: package:test/foo.dart::@class::A::@getter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@getter::foo#element
+    element: package:test/foo.dart::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -392,9 +451,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@class::A::@method::foo#element
+      element: package:test/foo.dart::@class::A::@method::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@method::foo#element
+    element: package:test/foo.dart::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -423,9 +482,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@class::A::@getter::foo#element
+      element: package:test/foo.dart::@class::A::@getter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@getter::foo#element
+    element: package:test/foo.dart::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -454,9 +513,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@class::A::@method::foo#element
+      element: package:test/foo.dart::@class::A::@method::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@method::foo#element
+    element: package:test/foo.dart::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -485,9 +544,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@class::A::@setter::foo#element
+      element: package:test/foo.dart::@class::A::@setter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@setter::foo#element
+    element: package:test/foo.dart::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -516,9 +575,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@getter::foo#element
+      element: package:test/foo.dart::@extension::E::@getter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@getter::foo#element
+    element: package:test/foo.dart::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -547,9 +606,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@method::foo#element
+      element: package:test/foo.dart::@extension::E::@method::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@method::foo#element
+    element: package:test/foo.dart::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -578,9 +637,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@setter::foo#element
+      element: package:test/foo.dart::@extension::E::@setter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@setter::foo#element
+    element: package:test/foo.dart::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -609,9 +668,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@getter::foo#element
+      element: package:test/foo.dart::@extension::E::@getter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@getter::foo#element
+    element: package:test/foo.dart::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -640,9 +699,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@method::foo#element
+      element: package:test/foo.dart::@extension::E::@method::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@method::foo#element
+    element: package:test/foo.dart::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -671,9 +730,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: package:test/foo.dart::<fragment>::@extension::E::@setter::foo#element
+      element: package:test/foo.dart::@extension::E::@setter::foo
       staticType: null
-    element: package:test/foo.dart::<fragment>::@extension::E::@setter::foo#element
+    element: package:test/foo.dart::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -698,9 +757,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element: <testLibrary>::@extension::E::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -725,9 +784,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@method::foo#element
+      element: <testLibrary>::@extension::E::@method::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -752,9 +811,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@setter::foo#element
+      element: <testLibrary>::@extension::E::@setter::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@setter::foo#element
+    element: <testLibrary>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -779,9 +838,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element: <testLibrary>::@extension::E::@getter::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -806,9 +865,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@method::foo#element
+      element: <testLibrary>::@extension::E::@method::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
+    element: <testLibrary>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -833,9 +892,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@setter::foo#element
+      element: <testLibrary>::@extension::E::@setter::foo
       staticType: null
-    element: <testLibraryFragment>::@extension::E::@setter::foo#element
+    element: <testLibrary>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -873,7 +932,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
     staticType: null
 ''');
@@ -908,7 +967,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: new
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
+      element: <testLibrary>::@class::A::@constructor::new
       staticType: null
     staticType: null
 ''');
@@ -943,7 +1002,43 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: null
+    staticType: null
+''');
+  }
+
+  test_class_instanceGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  int get foo => 0;
+}
+typedef B = A;
+
+/// [self.B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        element: <testLibraryFragment>::@prefix2::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: B
+        element: <testLibrary>::@typeAlias::B
+        staticType: null
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -978,7 +1073,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@method::foo#element
+      element: <testLibrary>::@class::A::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1013,7 +1108,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@setter::foo#element
+      element: <testLibrary>::@class::A::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1048,7 +1143,43 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@getter::foo#element
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: null
+    staticType: null
+''');
+  }
+
+  test_class_staticGetter_onTypedef() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  static int get foo => 0;
+}
+typedef B = A;
+
+/// [self.B.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('B.foo]'), r'''
+CommentReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: self
+        element: <testLibraryFragment>::@prefix2::self
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: B
+        element: <testLibrary>::@typeAlias::B
+        staticType: null
+      element: <testLibrary>::@typeAlias::B
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1083,7 +1214,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@method::foo#element
+      element: <testLibrary>::@class::A::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1118,7 +1249,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@class::A::@setter::foo#element
+      element: <testLibrary>::@class::A::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1153,7 +1284,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element: <testLibrary>::@extension::E::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1188,7 +1319,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@method::foo#element
+      element: <testLibrary>::@extension::E::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1223,7 +1354,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@setter::foo#element
+      element: <testLibrary>::@extension::E::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1258,7 +1389,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element: <testLibrary>::@extension::E::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1293,7 +1424,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@method::foo#element
+      element: <testLibrary>::@extension::E::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1328,7 +1459,7 @@ CommentReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: <testLibraryFragment>::@extension::E::@setter::foo#element
+      element: <testLibrary>::@extension::E::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1351,7 +1482,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@getter::foo#element
+    element: <testLibrary>::@getter::foo
     staticType: null
 ''');
   }
@@ -1372,7 +1503,7 @@ extension E2 on int {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E2::@setter::foo#element
+    element: <testLibrary>::@extension::E2::@setter::foo
     staticType: null
 ''');
   }
@@ -1389,7 +1520,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -1408,7 +1539,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p#element
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
     staticType: null
 ''');
   }
@@ -1424,7 +1555,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::p#element
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
     staticType: null
 ''');
   }
@@ -1445,7 +1576,7 @@ class B extends A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::p#element
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p
     staticType: null
 ''');
   }
@@ -1480,7 +1611,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: WITH_SWORD
-    element: <testLibraryFragment>::@enum::Samurai::@getter::WITH_SWORD#element
+    element: <testLibrary>::@enum::Samurai::@getter::WITH_SWORD
     staticType: null
 ''');
   }
@@ -1495,7 +1626,7 @@ foo(int p) {}
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  element: <testLibraryFragment>::@function::foo::@parameter::p#element
+  element: <testLibrary>::@function::foo::@formalParameter::p
   staticType: null
 ''');
   }
@@ -1510,7 +1641,7 @@ foo(int p) => null;
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@function::foo::@parameter::p#element
+    element: <testLibrary>::@function::foo::@formalParameter::p
     staticType: null
 ''');
   }
@@ -1525,7 +1656,7 @@ typedef Foo(int p);
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: p@24#element
+    element: p@24
     staticType: null
 ''');
   }
@@ -1540,7 +1671,7 @@ typedef Foo<T> = Function<S>(int p);
 CommentReference
   expression: SimpleIdentifier
     token: T
-    element: T@47
+    element: #E0 T
     staticType: null
 ''');
 
@@ -1548,7 +1679,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: S
-    element: S@61
+    element: #E0 S
     staticType: null
 ''');
 
@@ -1556,7 +1687,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p
-    element: p@68#element
+    element: p@68
     staticType: null
 ''');
   }
@@ -1597,7 +1728,7 @@ abstract class A {
 CommentReference
   expression: SimpleIdentifier
     token: p1
-    element: <testLibraryFragment>::@class::A::@method::ma::@parameter::p1#element
+    element: <testLibrary>::@class::A::@method::ma::@formalParameter::p1
     staticType: null
 ''');
 
@@ -1605,7 +1736,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p2
-    element: <testLibraryFragment>::@class::A::@method::mb::@parameter::p2#element
+    element: <testLibrary>::@class::A::@method::mb::@formalParameter::p2
     staticType: null
 ''');
 
@@ -1613,7 +1744,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p3
-    element: <testLibraryFragment>::@class::A::@method::mc::@parameter::p3#element
+    element: <testLibrary>::@class::A::@method::mc::@formalParameter::p3
     staticType: null
 ''');
 
@@ -1621,7 +1752,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p4
-    element: <testLibraryFragment>::@class::A::@method::mc::@parameter::p4#element
+    element: <testLibrary>::@class::A::@method::mc::@formalParameter::p4
     staticType: null
 ''');
 
@@ -1629,7 +1760,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p5
-    element: <testLibraryFragment>::@class::A::@method::md::@parameter::p5#element
+    element: <testLibrary>::@class::A::@method::md::@formalParameter::p5
     staticType: null
 ''');
 
@@ -1637,7 +1768,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p6
-    element: <testLibraryFragment>::@class::A::@method::md::@parameter::p6#element
+    element: <testLibrary>::@class::A::@method::md::@formalParameter::p6
     staticType: null
 ''');
   }
@@ -1660,7 +1791,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: package:test/foo.dart::<fragment>::@getter::foo#element
+    element: package:test/foo.dart::@getter::foo
     staticType: null
 ''');
   }
@@ -1685,7 +1816,7 @@ extension E2 on int {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E2::@setter::foo#element
+    element: <testLibrary>::@extension::E2::@setter::foo
     staticType: null
 ''');
   }
@@ -1721,23 +1852,26 @@ class A {
   A.named();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport 'foo.dart';
 library;
 
 /// [new A] or [new A.named]
 main() {}
-''', [
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
-    ]);
+''',
+      [
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
+    element: package:test/foo.dart::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1752,9 +1886,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+      element: package:test/foo.dart::@class::A::@constructor::named
       staticType: null
-    element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
+    element: package:test/foo.dart::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -1909,7 +2043,8 @@ CommentReference
   }
 
   test_newKeyword() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A();
   A.named();
@@ -1917,17 +2052,19 @@ class A {
 
 /// [new A] or [new A.named]
 main() {}
-''', [
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
-    ]);
+''',
+      [
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@class::A::@constructor::new#element
+    element: <testLibrary>::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1942,9 +2079,9 @@ CommentReference
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: <testLibraryFragment>::@class::A::@constructor::named#element
+      element: <testLibrary>::@class::A::@constructor::named
       staticType: null
-    element: <testLibraryFragment>::@class::A::@constructor::named#element
+    element: <testLibrary>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -1959,7 +2096,7 @@ foo(int bar()) {}
 CommentReference
   expression: SimpleIdentifier
     token: bar
-    element: <testLibraryFragment>::@function::foo::@parameter::bar#element
+    element: <testLibrary>::@function::foo::@formalParameter::bar
     staticType: null
 ''');
   }
@@ -1982,7 +2119,7 @@ class B extends A {
 CommentReference
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@setter::x#element
+    element: <testLibrary>::@class::A::@setter::x
     staticType: null
 ''');
 
@@ -1990,7 +2127,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@setter::x#element
+    element: <testLibrary>::@class::A::@setter::x
     staticType: null
 ''');
   }
@@ -2009,7 +2146,7 @@ class B extends A {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: null
 ''');
   }

@@ -18,36 +18,51 @@ class InitializerForNonExistentFieldTest extends PubPackageResolutionTest {
   test_const() async {
     // Check that the absence of a matching field doesn't cause a
     // crash during constant evaluation.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A() : x = 'foo';
 }
 A a = const A();
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 9,
-          messageContains: ["'x'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+          24,
+          9,
+          messageContains: ["'x'"],
+        ),
+      ],
+    );
   }
 
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int get x => 0;
   A() : x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 36, 5,
-          messageContains: ["'x'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+          36,
+          5,
+          messageContains: ["'x'"],
+        ),
+      ],
+    );
   }
 
   test_initializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : x = 0 {}
 }
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
   }
 }

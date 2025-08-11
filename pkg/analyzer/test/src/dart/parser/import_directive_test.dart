@@ -144,9 +144,7 @@ ImportDirective
     var parseResult = parseStringWithErrors(r'''
 import 'a.dart'
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 7, 8),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 7, 8)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''

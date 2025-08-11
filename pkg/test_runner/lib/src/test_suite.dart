@@ -23,6 +23,7 @@ import 'command.dart';
 import 'configuration.dart';
 import 'expectation_set.dart';
 import 'multitest.dart';
+import 'options.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart' show QemuConfig;
@@ -70,6 +71,9 @@ abstract class TestSuite {
           if (configuration.firefoxPath != null)
             'FIREFOX_PATH':
                 Uri.base.resolve(configuration.firefoxPath!).toFilePath(),
+          if (configuration.useQemu)
+            'QEMU_LD_PREFIX': QemuConfig
+                .all[configuration.architecture]!.elfInterpreterPrefix,
         };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -290,9 +294,9 @@ class VMTestSuite extends TestSuite {
     if (configuration.useQemu) {
       final config = QemuConfig.all[configuration.architecture]!;
       initialHostArguments.insert(0, hostRunnerPath);
-      initialHostArguments.insertAll(0, config.arguments);
+      initialHostArguments.insertAll(0, ['-L', config.elfInterpreterPrefix]);
       initialTargetArguments.insert(0, targetRunnerPath);
-      initialTargetArguments.insertAll(0, config.arguments);
+      initialTargetArguments.insertAll(0, ['-L', config.elfInterpreterPrefix]);
       hostRunnerPath = config.executable;
       targetRunnerPath = config.executable;
     }
@@ -348,7 +352,7 @@ class VMTestSuite extends TestSuite {
       if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       if (experiments.isNotEmpty)
         '--enable-experiment=${experiments.join(",")}',
-      if (configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
+      if (configuration.compiler == Compiler.dart2bytecode) '--interpreter',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name
@@ -365,8 +369,13 @@ class VMTestSuite extends TestSuite {
 
   Iterable<VMUnitTest> _listTests() {
     var args = [...initialHostArguments, "--list"];
-    var result = Process.runSync(hostRunnerPath, args);
+    var result = Process.runSync(hostRunnerPath, args,
+        environment: sanitizerEnvironmentVariables);
     if (result.exitCode != 0) {
+      print("stdout:");
+      print(result.stdout);
+      print("stderr:");
+      print(result.stderr);
       throw "Failed to list tests: '$hostRunnerPath ${args.join(' ')}'. "
           "Process exited with ${result.exitCode}";
     }
@@ -488,8 +497,13 @@ class FfiTestSuite extends TestSuite {
   }
 
   Iterable<FfiUnitTest> _listTests(String runnerName, String runnerPath) {
-    final result = Process.runSync(runnerPath, ["--list"]);
+    final result = Process.runSync(runnerPath, ["--list"],
+        environment: sanitizerEnvironmentVariables);
     if (result.exitCode != 0) {
+      print("stdout:");
+      print(result.stdout);
+      print("stderr:");
+      print(result.stderr);
       throw "Failed to list tests: '$runnerPath --list'. "
           "Process exited with ${result.exitCode}";
     }
@@ -745,8 +759,6 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service') {
-      _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     }
@@ -775,44 +787,6 @@ class StandardTestSuite extends TestSuite {
       }
 
       _addTestCase(testFile, variantTestName, commands, expectations, onTest);
-    }
-  }
-
-  void _enqueueServiceTest(
-      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
-    var commonArguments = _commonArgumentsFromFile(testFile);
-
-    var vmOptionsList = getVmOptions(testFile);
-    assert(vmOptionsList.isNotEmpty);
-
-    var emitDdsTest = false;
-    for (var i = 0; i < 2; ++i) {
-      for (var vmOptionsVariant = 0;
-          vmOptionsVariant < vmOptionsList.length;
-          vmOptionsVariant++) {
-        var vmOptions = [
-          ...vmOptionsList[vmOptionsVariant],
-          ...extraVmOptions,
-          if (emitDdsTest) '-DUSE_DDS=true',
-          if (configuration.serviceResponseSizesDirectory != null)
-            '-DSERVICE_RESPONSE_SIZES_DIR=${configuration.serviceResponseSizesDirectory}',
-        ];
-        var isCrashExpected = expectations.contains(Expectation.crash);
-        var commands = _makeCommands(
-            testFile,
-            vmOptionsVariant + (vmOptionsList.length * i),
-            vmOptions,
-            commonArguments,
-            isCrashExpected);
-        var variantTestName =
-            '${testFile.name}/${emitDdsTest ? 'dds' : 'service'}';
-        if (vmOptionsList.length > 1) {
-          variantTestName = "${variantTestName}_$vmOptionsVariant";
-        }
-
-        _addTestCase(testFile, variantTestName, commands, expectations, onTest);
-      }
-      emitDdsTest = true;
     }
   }
 

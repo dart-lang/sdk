@@ -4,7 +4,7 @@
 
 f(Object x, bool b) {
   if (x is num) {
-    if (/*num*/ x is int) {
+    if ( /*num*/ x is int) {
       try {
         throw 'foo';
       } catch (e) {
@@ -29,14 +29,16 @@ f(Object x, bool b) {
 
 f2(Object x, bool b) {
   if (x is num) {
-    if (/*num*/ x is int) {
+    if ( /*num*/ x is int) {
       try {
         throw 'foo';
       } catch (e) {
-        /*int*/ x;
+        /*int*/
+        x;
       } finally {
         // x has not been assigned to so the promotion is kept.
-        /*int*/ x;
+        /*int*/
+        x;
       }
     }
   }
@@ -44,15 +46,17 @@ f2(Object x, bool b) {
 
 f3(Object x, bool b) {
   if (x is num) {
-    if (/*num*/ x is int) {
+    if ( /*num*/ x is int) {
       try {
         throw 'foo';
       } catch (e) {
-        /*int*/ x;
+        /*int*/
+        x;
       } finally {
         // x has not been assigned to in the try/catch blocks so the promotion
         // is kept here.
-        /*int*/ x;
+        /*int*/
+        x;
         x = 'foo';
       }
     }

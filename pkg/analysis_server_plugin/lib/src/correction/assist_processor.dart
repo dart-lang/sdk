@@ -9,7 +9,6 @@ import 'package:analysis_server_plugin/src/correction/assist_generators.dart';
 import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -108,30 +107,30 @@ class AssistProcessor {
   }
 
   /// Returns whether [generator] applies to any enabled lint rule, among
-  /// [errorCodes].
+  /// [lintCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<LintCode> errorCodes,
+    Set<LintCode> lintCodes,
   ) {
-    if (errorCodes.isEmpty) {
+    if (lintCodes.isEmpty) {
       return false;
     }
 
-    var selectionEnd =
-        _assistContext.selectionOffset + _assistContext.selectionLength;
-    var locator = NodeLocator(_assistContext.selectionOffset, selectionEnd);
-    var node = locator.searchWithin(_assistContext.unitResult.unit);
+    var node = _assistContext.unitResult.unit.nodeCovering(
+      offset: _assistContext.selectionOffset,
+      length: _assistContext.selectionLength,
+    );
     if (node == null) {
       return false;
     }
 
     var fileOffset = node.offset;
-    for (var error in _assistContext.unitResult.errors) {
-      var errorSource = error.source;
+    for (var diagnostic in _assistContext.unitResult.diagnostics) {
+      var errorSource = diagnostic.source;
       if (_assistContext.unitResult.path == errorSource.fullName) {
-        if (fileOffset >= error.offset &&
-            fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode)) {
+        if (fileOffset >= diagnostic.offset &&
+            fileOffset <= diagnostic.offset + diagnostic.length) {
+          if (lintCodes.contains(diagnostic.diagnosticCode)) {
             return true;
           }
         }

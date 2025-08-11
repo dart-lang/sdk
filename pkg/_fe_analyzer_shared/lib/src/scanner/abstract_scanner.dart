@@ -57,7 +57,9 @@ import 'scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
 typedef void LanguageVersionChanged(
-    Scanner scanner, LanguageVersionToken languageVersion);
+  Scanner scanner,
+  LanguageVersionToken languageVersion,
+);
 
 abstract class AbstractScanner implements Scanner {
   /**
@@ -144,40 +146,52 @@ abstract class AbstractScanner implements Scanner {
   int recoveryCount = 0;
   final bool allowLazyStrings;
 
-  AbstractScanner(ScannerConfiguration? config, bool includeComments,
-      LanguageVersionChanged? languageVersionChanged,
-      {required int numberOfBytesHint, bool allowLazyStrings = true})
-      : this._(config, includeComments, languageVersionChanged,
-            new Token.eof(/* offset = */ -1),
-            numberOfBytesHint: numberOfBytesHint,
-            allowLazyStrings: allowLazyStrings);
+  AbstractScanner(
+    ScannerConfiguration? config,
+    bool includeComments,
+    LanguageVersionChanged? languageVersionChanged, {
+    required int numberOfBytesHint,
+    bool allowLazyStrings = true,
+  }) : this._(
+         config,
+         includeComments,
+         languageVersionChanged,
+         new Token.eof(/* offset = */ -1),
+         numberOfBytesHint: numberOfBytesHint,
+         allowLazyStrings: allowLazyStrings,
+       );
 
-  AbstractScanner._(ScannerConfiguration? config, this.includeComments,
-      this.languageVersionChanged, Token newEofToken,
-      {required int numberOfBytesHint, this.allowLazyStrings = true})
-      : lineStarts = new LineStarts(numberOfBytesHint),
-        inRecoveryOption = false,
-        tokens = newEofToken,
-        tail = newEofToken,
-        errorTail = newEofToken {
+  AbstractScanner._(
+    ScannerConfiguration? config,
+    this.includeComments,
+    this.languageVersionChanged,
+    Token newEofToken, {
+    required int numberOfBytesHint,
+    this.allowLazyStrings = true,
+  }) : lineStarts = new LineStarts(numberOfBytesHint),
+       inRecoveryOption = false,
+       tokens = newEofToken,
+       tail = newEofToken,
+       errorTail = newEofToken {
     this.configuration = config;
   }
 
   AbstractScanner createRecoveryOptionScanner();
 
   AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
-      : this._recoveryOptionScanner(copyFrom, new Token.eof(/* offset = */ -1));
+    : this._recoveryOptionScanner(copyFrom, new Token.eof(/* offset = */ -1));
 
   AbstractScanner._recoveryOptionScanner(
-      AbstractScanner copyFrom, Token newEofToken)
-      : lineStarts = [],
-        includeComments = false,
-        languageVersionChanged = null,
-        inRecoveryOption = true,
-        allowLazyStrings = true,
-        tokens = newEofToken,
-        tail = newEofToken,
-        errorTail = newEofToken {
+    AbstractScanner copyFrom,
+    Token newEofToken,
+  ) : lineStarts = [],
+      includeComments = false,
+      languageVersionChanged = null,
+      inRecoveryOption = true,
+      allowLazyStrings = true,
+      tokens = newEofToken,
+      tail = newEofToken,
+      errorTail = newEofToken {
     this._enableTripleShift = copyFrom._enableTripleShift;
     this.tokenStart = copyFrom.tokenStart;
     this.groupingStack = copyFrom.groupingStack;
@@ -276,10 +290,21 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  void appendSubstringToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]) {
-    appendToken(createSubstringToken(
-        type, start, asciiOnly, extraOffset, allowLazyStrings));
+  void appendSubstringToken(
+    TokenType type,
+    int start,
+    bool asciiOnly, [
+    int extraOffset = 0,
+  ]) {
+    appendToken(
+      createSubstringToken(
+        type,
+        start,
+        asciiOnly,
+        extraOffset,
+        allowLazyStrings,
+      ),
+    );
   }
 
   /**
@@ -291,8 +316,13 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  analyzer.StringToken createSubstringToken(TokenType type, int start,
-      bool asciiOnly, int extraOffset, bool allowLazy);
+  analyzer.StringToken createSubstringToken(
+    TokenType type,
+    int start,
+    bool asciiOnly,
+    int extraOffset,
+    bool allowLazy,
+  );
 
   /**
    * Appends a substring from the scan offset [start] to the current
@@ -302,9 +332,14 @@ abstract class AbstractScanner implements Scanner {
    * so as to be true to the original source.
    */
   void appendSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String syntheticChars) {
+    TokenType type,
+    int start,
+    bool asciiOnly,
+    String syntheticChars,
+  ) {
     appendToken(
-        createSyntheticSubstringToken(type, start, asciiOnly, syntheticChars));
+      createSyntheticSubstringToken(type, start, asciiOnly, syntheticChars),
+    );
   }
 
   /**
@@ -315,7 +350,11 @@ abstract class AbstractScanner implements Scanner {
    * those additional characters so as to be true to the original source.
    */
   analyzer.StringToken createSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String syntheticChars);
+    TokenType type,
+    int start,
+    bool asciiOnly,
+    String syntheticChars,
+  );
   /**
    * Appends a fixed token whose kind and content is determined by [type].
    * Appends an *operator* token from [type].
@@ -357,7 +396,10 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int _getLineOf(Token token) {
-    if (lineStarts.isEmpty) return -1;
+    if (lineStarts.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      return -1;
+    }
     final int offset = token.offset;
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
@@ -386,7 +428,10 @@ abstract class AbstractScanner implements Scanner {
   /// `a` because it's the indentation of the `if`, even though the _line_ of a
   /// has a different indentation of the _line_ of `{`.
   int _spacesAtStartOfLogicalLineOf(Token token) {
-    if (lineStarts.isEmpty) return -1;
+    if (lineStarts.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      return -1;
+    }
 
     // If the previous token is a `)`, e.g. if this is the start curly brace in
     // an if, we find the first token before the corresponding `(` (in this case
@@ -394,13 +439,21 @@ abstract class AbstractScanner implements Scanner {
     // for - e.g. if the if is spread over several lines the given token itself
     // will - if formatted by the formatter - be indented more than the "if".
     if (token.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      if (token.previous == null) return -1;
+      if (token.previous == null) {
+        // Coverage-ignore-block(suite): Not run.
+        return -1;
+      }
       Token previous = token.previous!;
       bool foundWanted = false;
       if (previous.isA(TokenType.CLOSE_PAREN)) {
         Token closeParen = token.previous!;
         Token? candidate = closeParen.previous;
-        while (candidate != null && candidate.endGroup != closeParen) {
+        while (candidate != null) {
+          if (candidate.endGroup == closeParen) break;
+          if (candidate.isEof) break;
+          if (candidate.endGroup != null) {
+            if (candidate.endGroup!.offset > closeParen.offset) break;
+          }
           candidate = candidate.previous;
         }
         if (candidate?.endGroup == closeParen && candidate!.previous != null) {
@@ -433,6 +486,7 @@ abstract class AbstractScanner implements Scanner {
     // Now find the line of [token].
     final int lineIndex = _getLineOf(token);
     if (lineIndex == 0) {
+      // Coverage-ignore-block(suite): Not run.
       // On first line.
       return tokens.next?.charOffset ?? -1;
     }
@@ -448,6 +502,7 @@ abstract class AbstractScanner implements Scanner {
       return candidate.next!.offset - lineStartOfToken;
     }
 
+    // Coverage-ignore(suite): Not run.
     return -1;
   }
 
@@ -543,7 +598,10 @@ abstract class AbstractScanner implements Scanner {
   /// In effect, if [foundMatchingBrace] is false this end token is basically
   /// ignored, i.e. not really seen as an end group.
   int appendEndGroupInternal(
-      bool foundMatchingBrace, TokenType type, int openKind) {
+    bool foundMatchingBrace,
+    TokenType type,
+    int openKind,
+  ) {
     if (!foundMatchingBrace) {
       // No begin group. Leave the grouping stack alone and just continue.
       appendPrecedenceToken(type);
@@ -553,8 +611,10 @@ abstract class AbstractScanner implements Scanner {
     Token close = tail;
     BeginToken begin = groupingStack.head;
     if (begin.kind != openKind) {
-      assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
-          openKind == OPEN_CURLY_BRACKET_TOKEN);
+      assert(
+        begin.kind == STRING_INTERPOLATION_TOKEN &&
+            openKind == OPEN_CURLY_BRACKET_TOKEN,
+      );
       // We're ending an interpolated expression.
       begin.endGroup = close;
       groupingStack = groupingStack.tail!;
@@ -649,8 +709,12 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]);
+  CommentToken createCommentToken(
+    TokenType type,
+    int start,
+    bool asciiOnly, [
+    int extraOffset = 0,
+  ]);
 
   /**
    * Returns a new dartdoc from the scan offset [start] to the current
@@ -661,15 +725,22 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]);
+  DartDocToken createDartDocToken(
+    TokenType type,
+    int start,
+    bool asciiOnly, [
+    int extraOffset = 0,
+  ]);
 
   /**
    * Returns a new language version token from the scan offset [start]
    * to the current [scanOffset] similar to createCommentToken.
    */
   LanguageVersionToken createLanguageVersionToken(
-      int start, int major, int minor);
+    int start,
+    int major,
+    int minor,
+  );
 
   /**
    * If a begin group token matches [openKind],
@@ -732,6 +803,7 @@ abstract class AbstractScanner implements Scanner {
         case OPEN_PAREN_TOKEN:
           type = TokenType.CLOSE_PAREN;
           break;
+        // Coverage-ignore(suite): Not run.
         default:
           throw new StateError("Unexpected openKind");
       }
@@ -742,8 +814,12 @@ abstract class AbstractScanner implements Scanner {
         AbstractScanner option1 = createRecoveryOptionScanner();
         option1.insertSyntheticClosers(originalStack, groupingStack);
         option1Recoveries = option1.recoveryOptionTokenizer(
-            option1.appendEndGroupInternal(
-                /* foundMatchingBrace = */ true, type, openKind));
+          option1.appendEndGroupInternal(
+            /* foundMatchingBrace = */ true,
+            type,
+            openKind,
+          ),
+        );
         option1Recoveries += option1.groupingStack.slowLength();
       }
 
@@ -753,16 +829,22 @@ abstract class AbstractScanner implements Scanner {
         AbstractScanner option2 = createRecoveryOptionScanner();
         option2.groupingStack = originalStack;
         option2Recoveries = option2.recoveryOptionTokenizer(
-            option2.appendEndGroupInternal(
-                /* foundMatchingBrace = */ false, type, openKind));
+          option2.appendEndGroupInternal(
+            /* foundMatchingBrace = */ false,
+            type,
+            openKind,
+          ),
+        );
         // We add 1 to make this option pay for ignoring this token.
         option2Recoveries += option2.groupingStack.slowLength() + 1;
       }
 
       // The option-runs might have set invalid endGroup pointers. Reset them.
-      for (Link<BeginToken> link = originalStack;
-          link.isNotEmpty;
-          link = link.tail!) {
+      for (
+        Link<BeginToken> link = originalStack;
+        link.isNotEmpty;
+        link = link.tail!
+      ) {
         link.head.endToken = null;
       }
 
@@ -781,7 +863,9 @@ abstract class AbstractScanner implements Scanner {
   }
 
   void insertSyntheticClosers(
-      Link<BeginToken> originalStack, Link<BeginToken> entryToUse) {
+    Link<BeginToken> originalStack,
+    Link<BeginToken> entryToUse,
+  ) {
     // Insert synthetic closers and report errors for any unbalanced openers.
     // This recovers nicely from situations like "{[}".
     while (!identical(originalStack, entryToUse)) {
@@ -902,11 +986,8 @@ abstract class AbstractScanner implements Scanner {
       while (next != $EOF) {
         next = bigSwitch(next);
       }
-      if (atEndOfFile()) {
-        appendEofToken();
-      } else {
-        unexpectedEof();
-      }
+      assert(atEndOfFile());
+      appendEofToken();
     }
 
     // Always pretend that there's a line at the end of the file.
@@ -928,18 +1009,11 @@ abstract class AbstractScanner implements Scanner {
         iterations++;
 
         if (iterations > 100) {
+          // Coverage-ignore-block(suite): Not run.
           return recoveryCount;
         }
       }
-      if (!atEndOfFile()) {
-        // $EOF in the middle of the file. Skip it as `tokenize`.
-        next = advance();
-        iterations++;
-
-        if (iterations > 100) {
-          return recoveryCount;
-        }
-      }
+      assert(atEndOfFile());
     }
     return recoveryCount;
   }
@@ -1018,7 +1092,9 @@ abstract class AbstractScanner implements Scanner {
         groupingStack = groupingStack.tail!;
       }
       return appendEndGroup(
-          TokenType.CLOSE_CURLY_BRACKET, OPEN_CURLY_BRACKET_TOKEN);
+        TokenType.CLOSE_CURLY_BRACKET,
+        OPEN_CURLY_BRACKET_TOKEN,
+      );
     }
 
     if (next == $SLASH) {
@@ -1061,7 +1137,9 @@ abstract class AbstractScanner implements Scanner {
 
     if (next == $CLOSE_SQUARE_BRACKET) {
       return appendEndGroup(
-          TokenType.CLOSE_SQUARE_BRACKET, OPEN_SQUARE_BRACKET_TOKEN);
+        TokenType.CLOSE_SQUARE_BRACKET,
+        OPEN_SQUARE_BRACKET_TOKEN,
+      );
     }
 
     if (next == $AT) {
@@ -1117,11 +1195,15 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (next == $BACKPING) {
+      // Coverage-ignore-block(suite): Not run.
+      // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKPING);
       return advance();
     }
 
     if (next == $BACKSLASH) {
+      // Coverage-ignore-block(suite): Not run.
+      // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKSLASH);
       return advance();
     }
@@ -1149,7 +1231,9 @@ abstract class AbstractScanner implements Scanner {
           next = advance();
           if (next > 127) asciiOnly = false;
         } while (next != $LF && next != $CR && next != $EOF);
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
         appendSubstringToken(TokenType.SCRIPT_TAG, start, asciiOnly);
         return next;
       }
@@ -1189,7 +1273,10 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (next == $QUESTION) {
       return select(
-          $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
+        $EQ,
+        TokenType.QUESTION_QUESTION_EQ,
+        TokenType.QUESTION_QUESTION,
+      );
     } else if (next == $PERIOD) {
       next = advance();
       if ($PERIOD == next) {
@@ -1209,6 +1296,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (next == $BAR) {
       next = advance();
+      // Coverage-ignore(suite): Not run.
       if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
@@ -1229,6 +1317,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (next == $AMPERSAND) {
       next = advance();
+      // Coverage-ignore(suite): Not run.
       if (LAZY_ASSIGNMENT_ENABLED && next == $EQ) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
@@ -1401,16 +1490,26 @@ abstract class AbstractScanner implements Scanner {
       } else if (next == $e || next == $E) {
         if (previousWasSeparator) {
           // Not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
         return tokenizeFractionPart(next, start, hasSeparators);
       } else {
         if (next == $PERIOD) {
           if (previousWasSeparator) {
             // Not allowed.
-            prependErrorToken(new UnterminatedToken(
-                messageUnexpectedSeparatorInNumber, start, stringOffset));
+            prependErrorToken(
+              new UnterminatedToken(
+                messageUnexpectedSeparatorInNumber,
+                start,
+                stringOffset,
+              ),
+            );
           }
           int nextnext = peek();
           if ($0 <= nextnext && nextnext <= $9) {
@@ -1426,8 +1525,13 @@ abstract class AbstractScanner implements Scanner {
         }
         if (previousWasSeparator) {
           // End of the number is a separator; not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
         TokenType tokenType =
             hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
@@ -1461,28 +1565,44 @@ abstract class AbstractScanner implements Scanner {
       } else if (next == $_) {
         if (!hasDigits) {
           // Not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
         hasSeparators = true;
         previousWasSeparator = true;
       } else {
         if (!hasDigits) {
-          prependErrorToken(new UnterminatedToken(
-              messageExpectedHexDigit, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(messageExpectedHexDigit, start, stringOffset),
+          );
           // Recovery
           appendSyntheticSubstringToken(
-              TokenType.HEXADECIMAL, start, /* asciiOnly = */ true, "0");
+            TokenType.HEXADECIMAL,
+            start,
+            /* asciiOnly = */ true,
+            "0",
+          );
           return next;
         }
         if (previousWasSeparator) {
           // End of the number is a separator; not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
-        TokenType tokenType = hasSeparators
-            ? TokenType.HEXADECIMAL_WITH_SEPARATORS
-            : TokenType.HEXADECIMAL;
+        TokenType tokenType =
+            hasSeparators
+                ? TokenType.HEXADECIMAL_WITH_SEPARATORS
+                : TokenType.HEXADECIMAL;
         appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
@@ -1515,34 +1635,39 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
+  /// [next] has to be in [0-9eE].
   int tokenizeFractionPart(int next, int start, bool hasSeparators) {
+    assert(($0 <= next && next <= $9) || ($e == next || $E == next));
     bool done = false;
-    bool hasDigit = false;
     bool previousWasSeparator = false;
     LOOP:
     while (!done) {
       if ($0 <= next && next <= $9) {
-        hasDigit = true;
         previousWasSeparator = false;
       } else if ($_ == next) {
-        if (!hasDigit) {
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
-        }
         hasSeparators = true;
         previousWasSeparator = true;
       } else if ($e == next || $E == next) {
         if (previousWasSeparator) {
           // Not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
-        hasDigit = true;
         previousWasSeparator = false;
         next = advance();
         while (next == $_) {
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
           hasSeparators = true;
           previousWasSeparator = true;
           next = advance();
@@ -1558,17 +1683,33 @@ abstract class AbstractScanner implements Scanner {
             previousWasSeparator = false;
           } else if (next == $_) {
             if (!hasExponentDigits) {
-              prependErrorToken(new UnterminatedToken(
-                  messageUnexpectedSeparatorInNumber, start, stringOffset));
+              prependErrorToken(
+                new UnterminatedToken(
+                  messageUnexpectedSeparatorInNumber,
+                  start,
+                  stringOffset,
+                ),
+              );
             }
             hasSeparators = true;
             previousWasSeparator = true;
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(
-                  TokenType.DOUBLE, start, /* asciiOnly = */ true, '0');
-              prependErrorToken(new UnterminatedToken(
-                  messageMissingExponent, tokenStart, stringOffset));
+                hasSeparators
+                    ? TokenType.DOUBLE_WITH_SEPARATORS
+                    : TokenType.DOUBLE,
+                start,
+                /* asciiOnly = */ true,
+                '0',
+              );
+              prependErrorToken(
+                new UnterminatedToken(
+                  messageMissingExponent,
+                  tokenStart,
+                  stringOffset,
+                ),
+              );
               return next;
             }
             break;
@@ -1577,8 +1718,13 @@ abstract class AbstractScanner implements Scanner {
         }
         if (previousWasSeparator) {
           // End of the number is a separator; not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
 
         done = true;
@@ -1586,27 +1732,18 @@ abstract class AbstractScanner implements Scanner {
       } else {
         if (previousWasSeparator) {
           // End of the number is a separator; not allowed.
-          prependErrorToken(new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber, start, stringOffset));
+          prependErrorToken(
+            new UnterminatedToken(
+              messageUnexpectedSeparatorInNumber,
+              start,
+              stringOffset,
+            ),
+          );
         }
         done = true;
         continue LOOP;
       }
       next = advance();
-    }
-    if (!hasDigit) {
-      // Reduce offset, we already advanced to the token past the period.
-      appendSubstringToken(
-          TokenType.INT, start, /* asciiOnly = */ true, /* extraOffset = */ -1);
-
-      // TODO(ahe): Wrong offset for the period. Cannot call beginToken because
-      // the scanner already advanced past the period.
-      if ($PERIOD == next) {
-        return select(
-            $PERIOD, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
-      }
-      appendPrecedenceToken(TokenType.PERIOD);
-      return next;
     }
     TokenType tokenType =
         hasSeparators ? TokenType.DOUBLE_WITH_SEPARATORS : TokenType.DOUBLE;
@@ -1713,8 +1850,11 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeSingleLineCommentRest(next, start, /* dartdoc = */ false);
     }
 
-    LanguageVersionToken languageVersion =
-        createLanguageVersionToken(start, major, minor);
+    LanguageVersionToken languageVersion = createLanguageVersionToken(
+      start,
+      major,
+      minor,
+    );
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
       languageVersionChanged!(this, languageVersion);
@@ -1752,7 +1892,10 @@ abstract class AbstractScanner implements Scanner {
   }
 
   void _tokenizeSingleLineCommentAppend(
-      bool asciiOnly, int start, bool dartdoc) {
+    bool asciiOnly,
+    int start,
+    bool dartdoc,
+  ) {
     if (!asciiOnly) handleUnicode(start);
     if (dartdoc) {
       appendDartDoc(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
@@ -1770,9 +1913,16 @@ abstract class AbstractScanner implements Scanner {
     bool dartdoc = $STAR == next;
     while (true) {
       if ($EOF == next) {
-        if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        prependErrorToken(new UnterminatedToken(
-            messageUnterminatedComment, tokenStart, stringOffset));
+        if (!asciiOnlyLines) {
+          handleUnicode(unicodeStart);
+        }
+        prependErrorToken(
+          new UnterminatedToken(
+            messageUnterminatedComment,
+            tokenStart,
+            stringOffset,
+          ),
+        );
         advanceAfterError();
         break;
       } else if ($STAR == next) {
@@ -1784,10 +1934,16 @@ abstract class AbstractScanner implements Scanner {
             next = advance();
             if (dartdoc) {
               appendDartDoc(
-                  start, TokenType.MULTI_LINE_COMMENT, asciiOnlyComment);
+                start,
+                TokenType.MULTI_LINE_COMMENT,
+                asciiOnlyComment,
+              );
             } else {
               appendComment(
-                  start, TokenType.MULTI_LINE_COMMENT, asciiOnlyComment);
+                start,
+                TokenType.MULTI_LINE_COMMENT,
+                asciiOnlyComment,
+              );
             }
             break;
           } else {
@@ -1916,14 +2072,20 @@ abstract class AbstractScanner implements Scanner {
       if (isIdentifierChar(next, /* allowDollar = */ true)) {
         next = passIdentifierCharAllowDollar();
         appendSubstringToken(
-            TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
+          TokenType.IDENTIFIER,
+          start,
+          /* asciiOnly = */ true,
+        );
       } else {
         // Identifier ends here.
         if (start == scanOffset) {
           return unexpected(next);
         } else {
           appendSubstringToken(
-              TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
+            TokenType.IDENTIFIER,
+            start,
+            /* asciiOnly = */ true,
+          );
         }
       }
     } else {
@@ -1936,7 +2098,10 @@ abstract class AbstractScanner implements Scanner {
             return unexpected(next);
           } else {
             appendSubstringToken(
-                TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
+              TokenType.IDENTIFIER,
+              start,
+              /* asciiOnly = */ true,
+            );
           }
           break;
         }
@@ -1990,16 +2155,26 @@ abstract class AbstractScanner implements Scanner {
       if (next == $BACKSLASH) {
         next = advance();
       } else if (next == $$) {
-        if (!asciiOnly) handleUnicode(start);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
         next = tokenizeStringInterpolation(start, asciiOnly);
         start = scanOffset;
         asciiOnly = true;
         continue;
       }
       if (next <= $CR && (next == $LF || next == $CR || next == $EOF)) {
-        if (!asciiOnly) handleUnicode(start);
-        unterminatedString(quoteChar, quoteStart, start,
-            asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
+        if (!asciiOnly) {
+          handleUnicode(start);
+        }
+        unterminatedString(
+          quoteChar,
+          quoteStart,
+          start,
+          asciiOnly: asciiOnly,
+          isMultiLine: false,
+          isRaw: false,
+        );
         return next;
       }
       if (next > 127) asciiOnly = false;
@@ -2049,9 +2224,18 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(
-          TokenType.IDENTIFIER, scanOffset, /* asciiOnly = */ true, '');
-      prependErrorToken(new UnterminatedToken(
-          messageUnexpectedDollarInString, tokenStart, stringOffset));
+        TokenType.IDENTIFIER,
+        scanOffset,
+        /* asciiOnly = */ true,
+        '',
+      );
+      prependErrorToken(
+        new UnterminatedToken(
+          messageUnexpectedDollarInString,
+          tokenStart,
+          stringOffset,
+        ),
+      );
     }
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -2061,23 +2245,41 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnly = true;
     while (next != $EOF) {
       if (next == quoteChar) {
-        if (!asciiOnly) handleUnicode(quoteStart);
+        if (!asciiOnly) {
+          handleUnicode(quoteStart);
+        }
         next = advance();
         appendSubstringToken(TokenType.STRING, quoteStart, asciiOnly);
         return next;
       } else if (next == $LF || next == $CR) {
-        if (!asciiOnly) handleUnicode(quoteStart);
-        unterminatedString(quoteChar, quoteStart, quoteStart,
-            asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
+        if (!asciiOnly) {
+          handleUnicode(quoteStart);
+        }
+        unterminatedString(
+          quoteChar,
+          quoteStart,
+          quoteStart,
+          asciiOnly: asciiOnly,
+          isMultiLine: false,
+          isRaw: true,
+        );
         return next;
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
-    if (!asciiOnly) handleUnicode(quoteStart);
-    unterminatedString(quoteChar, quoteStart, quoteStart,
-        asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
+    if (!asciiOnly) {
+      handleUnicode(quoteStart);
+    }
+    unterminatedString(
+      quoteChar,
+      quoteStart,
+      quoteStart,
+      asciiOnly: asciiOnly,
+      isMultiLine: false,
+      isRaw: true,
+    );
     return next;
   }
 
@@ -2108,21 +2310,33 @@ abstract class AbstractScanner implements Scanner {
       if (next == quoteChar) {
         next = advance();
         if (next == quoteChar) {
-          if (!asciiOnlyLine) handleUnicode(unicodeStart);
+          if (!asciiOnlyLine) {
+            handleUnicode(unicodeStart);
+          }
           next = advance();
           appendSubstringToken(TokenType.STRING, quoteStart, asciiOnlyString);
           return next;
         }
       }
     }
-    if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    unterminatedString(quoteChar, quoteStart, quoteStart,
-        asciiOnly: asciiOnlyLine, isMultiLine: true, isRaw: true);
+    if (!asciiOnlyLine) {
+      handleUnicode(unicodeStart);
+    }
+    unterminatedString(
+      quoteChar,
+      quoteStart,
+      quoteStart,
+      asciiOnly: asciiOnlyLine,
+      isMultiLine: true,
+      isRaw: true,
+    );
     return next;
   }
 
   int tokenizeMultiLineString(int quoteChar, int quoteStart, bool raw) {
-    if (raw) return tokenizeMultiLineRawString(quoteChar, quoteStart);
+    if (raw) {
+      return tokenizeMultiLineRawString(quoteChar, quoteStart);
+    }
     int start = quoteStart;
     bool asciiOnlyString = true;
     bool asciiOnlyLine = true;
@@ -2130,7 +2344,9 @@ abstract class AbstractScanner implements Scanner {
     int next = advance(); // Advance past the (last) quote (of three).
     while (next != $EOF) {
       if (next == $$) {
-        if (!asciiOnlyLine) handleUnicode(unicodeStart);
+        if (!asciiOnlyLine) {
+          handleUnicode(unicodeStart);
+        }
         next = tokenizeStringInterpolation(start, asciiOnlyString);
         start = scanOffset;
         unicodeStart = start;
@@ -2143,7 +2359,9 @@ abstract class AbstractScanner implements Scanner {
         if (next == quoteChar) {
           next = advance();
           if (next == quoteChar) {
-            if (!asciiOnlyLine) handleUnicode(unicodeStart);
+            if (!asciiOnlyLine) {
+              handleUnicode(unicodeStart);
+            }
             next = advance();
             appendSubstringToken(TokenType.STRING, start, asciiOnlyString);
             return next;
@@ -2153,7 +2371,9 @@ abstract class AbstractScanner implements Scanner {
       }
       if (next == $BACKSLASH) {
         next = advance();
-        if (next == $EOF) break;
+        if (next == $EOF) {
+          break;
+        }
       }
       if (next == $LF) {
         if (!asciiOnlyLine) {
@@ -2169,15 +2389,25 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
-    if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    unterminatedString(quoteChar, quoteStart, start,
-        asciiOnly: asciiOnlyString, isMultiLine: true, isRaw: false);
+    if (!asciiOnlyLine) {
+      handleUnicode(unicodeStart);
+    }
+    unterminatedString(
+      quoteChar,
+      quoteStart,
+      start,
+      asciiOnly: asciiOnlyString,
+      isMultiLine: true,
+      isRaw: false,
+    );
     return next;
   }
 
   int unexpected(int character) {
-    ErrorToken errorToken =
-        buildUnexpectedCharacterToken(character, tokenStart);
+    ErrorToken errorToken = buildUnexpectedCharacterToken(
+      character,
+      tokenStart,
+    );
     if (errorToken is NonAsciiIdentifierToken) {
       int charOffset;
       List<int> codeUnits = <int>[];
@@ -2195,9 +2425,14 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(new StringTokenImpl.fromString(
-          TokenType.IDENTIFIER, new String.fromCharCodes(codeUnits), charOffset,
-          precedingComments: comments));
+      appendToken(
+        new StringTokenImpl.fromString(
+          TokenType.IDENTIFIER,
+          new String.fromCharCodes(codeUnits),
+          charOffset,
+          precedingComments: comments,
+        ),
+      );
       return next;
     } else {
       prependErrorToken(errorToken);
@@ -2205,17 +2440,17 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
-  void unexpectedEof() {
-    ErrorToken errorToken = buildUnexpectedCharacterToken($EOF, tokenStart);
-    prependErrorToken(errorToken);
-  }
-
-  void unterminatedString(int quoteChar, int quoteStart, int start,
-      {required bool asciiOnly,
-      required bool isMultiLine,
-      required bool isRaw}) {
+  void unterminatedString(
+    int quoteChar,
+    int quoteStart,
+    int start, {
+    required bool asciiOnly,
+    required bool isMultiLine,
+    required bool isRaw,
+  }) {
     String suffix = new String.fromCharCodes(
-        isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
+      isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar],
+    );
     String prefix = isRaw ? 'r$suffix' : suffix;
 
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
@@ -2245,7 +2480,7 @@ class LineStarts extends Object with ListMixin<int> {
   int arrayLength = 0;
 
   LineStarts(int numberOfBytesHint)
-      : array = _createInitialArray(numberOfBytesHint) {
+    : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
   }
@@ -2262,6 +2497,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set length(int newLength) {
     if (newLength > array.length) {
       grow(newLength);
@@ -2270,6 +2506,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void operator []=(int index, int value) {
     if (value > 65535 && array is! Uint32List) {
       switchToUint32(array.length);
@@ -2283,7 +2520,10 @@ class LineStarts extends Object with ListMixin<int> {
     if (arrayLength >= array.length) {
       grow(/* newLengthMinimum = */ 0);
     }
-    if (value > 65535 && array is! Uint32List) {
+    if (value > 65535 &&
+        // Coverage-ignore(suite): Not run.
+        array is! Uint32List) {
+      // Coverage-ignore-block(suite): Not run.
       switchToUint32(array.length);
     }
     array[arrayLength++] = value;
@@ -2300,10 +2540,12 @@ class LineStarts extends Object with ListMixin<int> {
       newArray.setRange(/* start = */ 0, arrayLength, array);
       array = newArray;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       switchToUint32(newLength);
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void switchToUint32(int newLength) {
     final Uint32List newArray = new Uint32List(newLength);
     newArray.setRange(/* start = */ 0, arrayLength, array);
@@ -2315,6 +2557,7 @@ class LineStarts extends Object with ListMixin<int> {
     final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
 
     if (numberOfBytesHint > 65535) {
+      // Coverage-ignore-block(suite): Not run.
       return new Uint32List(expectedNumberOfLines);
     } else {
       return new Uint16List(expectedNumberOfLines);

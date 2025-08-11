@@ -35,16 +35,16 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   x is Object?; // param_is
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw x; // param_throw
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.THROW_OF_INVALID_TYPE
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
   // [cfe] Can't throw a value of 'void' since it is neither dynamic nor non-nullable.
+  // [cfe] This expression has type 'void' and can't be used.
 
   <void>[x]; // param_literal_void_list_init: ok
 
@@ -68,9 +68,9 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ?? 499; // param_null_equals1
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? x; // param_null_equals2: ok
 
@@ -101,26 +101,26 @@ Object? testVoidParam(void x) {
   for (x in [1, 2]) {} // param_for_in2: ok
 
   x += 1; // param_plus_eq
-//^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   x.toString(); // param_toString
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x?.toString(); // param_null_dot
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x..toString(); // param_cascade
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   if (x) {} // param_conditional_stmt
   //  ^
@@ -128,14 +128,14 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   !x; // param_boolean_negation
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x && true; // param_boolean_and_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && x; // param_boolean_and_right
   //      ^
@@ -143,9 +143,9 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   x || true; // param_boolean_or_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || x; // param_boolean_or_right
   //      ^
@@ -153,9 +153,9 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   x == 3; // param_equals_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == x; // param_equals_right
   //   ^
@@ -178,19 +178,19 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   -x; // param_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x(3); // param_use_as_function
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
-// ^
-// [cfe] The method 'call' isn't defined for the class 'void'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  // [error column 4]
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // param_use_in_string_interpolation
   //     ^
@@ -198,8 +198,8 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ??= 3; // param_use_in_conditional_assignment_left
-//^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 
@@ -273,11 +273,12 @@ testVoidSyncStar(void x) sync* {
 
 const void c = null;
 
-dynamic testVoidDefaultParameter(
-    [int y = c]) {} // void_default_parameter_global
-//           ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+dynamic testVoidDefaultParameter([
+  int y = c,
+  //      ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+]) {} // void_default_parameter_global
 
 dynamic testVoidDefaultParameterClosure() {
   ([int y = c]) => 3; // void_default_parameter_closure
@@ -320,10 +321,10 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   f() is Object?; // call_is
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw f(); // call_throw
   //    ^^^
@@ -358,10 +359,10 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   f() ?? 499; // call_null_equals1
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? f(); // call_null_equals2: ok
 
@@ -394,22 +395,22 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   f().toString(); // call_toString
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   f()?.toString(); // call_null_dot
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   f()..toString(); // call_cascade
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   if (f()) {} // call_conditional_stmt
   //  ^^^
@@ -418,16 +419,16 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   !f(); // call_boolean_negation
-// ^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   f() && true; // call_boolean_and_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && f(); // call_boolean_and_right
   //      ^^^
@@ -436,10 +437,10 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   f() || true; // call_boolean_or_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || f(); // call_boolean_or_right
   //      ^^^
@@ -448,10 +449,10 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   f() == 3; // call_equals_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == f(); // call_equals_right
   //   ^^^
@@ -478,21 +479,21 @@ Object? testVoidCall(void f()) {
   // [cfe] This expression has type 'void' and can't be used.
 
   -f(); // call_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   f()(3); // call_use_as_function
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
   // ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello${f()}"; // call_use_in_string_interpolation
   //      ^^^
@@ -561,16 +562,16 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x is Object?; // local_is
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw x; // local_throw
   //    ^
   // [analyzer] COMPILE_TIME_ERROR.THROW_OF_INVALID_TYPE
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
   // [cfe] Can't throw a value of 'void' since it is neither dynamic nor non-nullable.
+  // [cfe] This expression has type 'void' and can't be used.
 
   <void>[x]; // local_literal_void_list_init: ok
 
@@ -594,9 +595,9 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ?? 499; // local_null_equals1
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? x; // local_null_equals2: ok
 
@@ -627,26 +628,26 @@ Object? testVoidLocal() {
   for (x in [1, 2]) {} // local_for_in2: ok
 
   x += 1; // local_plus_eq
-//^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   x.toString(); // local_toString
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x?.toString(); // local_null_dot
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x..toString(); // local_cascade
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   if (x) {} // local_conditional_stmt
   //  ^
@@ -654,14 +655,14 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   !x; // local_boolean_negation
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x && true; // local_boolean_and_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && x; // local_boolean_and_right
   //      ^
@@ -669,9 +670,9 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x || true; // local_boolean_or_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || x; // local_boolean_or_right
   //      ^
@@ -679,9 +680,9 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x == 3; // local_equals_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == x; // local_equals_right
   //   ^
@@ -704,19 +705,19 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   -x; // local_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x(3); // local_use_as_function
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
-// ^
-// [cfe] The method 'call' isn't defined for the class 'void'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  // [error column 4]
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // local_use_in_string_interpolation
   //     ^
@@ -724,10 +725,10 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ??= 3; // local_use_in_conditional_assignment_left
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//^
-// [cfe] This expression has type 'void' and can't be used.
 
   Object? xx;
   xx ??= x; // local_use_in_conditional_assignment_right
@@ -786,16 +787,16 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x is Object?; // final_local_is
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw x; // final_local_throw
   //    ^
-  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [analyzer] COMPILE_TIME_ERROR.THROW_OF_INVALID_TYPE
-  // [cfe] This expression has type 'void' and can't be used.
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] Can't throw a value of 'void' since it is neither dynamic nor non-nullable.
+  // [cfe] This expression has type 'void' and can't be used.
 
   <void>[x]; // final_local_literal_void_list_init: ok
 
@@ -819,9 +820,9 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ?? 499; // final_local_null_equals1
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? x; // final_local_null_equals2: ok
 
@@ -856,19 +857,19 @@ Object? testVoidFinalLocal() {
   // x += 1; // final_local_plus_eq
 
   x.toString(); // final_local_toString
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x?.toString(); // final_local_null_dot
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x..toString(); // final_local_cascade
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   if (x) {} // final_local_conditional_stmt
   //  ^
@@ -876,14 +877,14 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   !x; // final_local_boolean_negation
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x && true; // final_local_boolean_and_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && x; // final_local_boolean_and_right
   //      ^
@@ -891,9 +892,9 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x || true; // final_local_boolean_or_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || x; // final_local_boolean_or_right
   //      ^
@@ -901,9 +902,9 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x == 3; // final_local_equals_left
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == x; // final_local_equals_right
   //   ^
@@ -926,19 +927,19 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   -x; // final_local_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   x(3); // final_local_use_as_function
-//^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
-// ^
-// [cfe] The method 'call' isn't defined for the class 'void'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  // [error column 4]
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // final_local_use_in_string_interpolation
   //     ^
@@ -946,10 +947,10 @@ Object? testVoidFinalLocal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   x ??= 3; // final_local_use_in_conditional_assignment_left
-//^
-// [cfe] This expression has type 'void' and can't be used.
-//  ^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
+  //^^^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 
   Object? xx;
   xx ??= x; // final_local_use_in_conditional_assignment_right
@@ -1001,9 +1002,9 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   global is Object?; // global_is
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw global; // global_throw
   //    ^^^^^^
@@ -1034,9 +1035,9 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   global ?? 499; // global_null_equals1
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? global; // global_null_equals2: ok
 
@@ -1067,26 +1068,26 @@ Object? testVoidGlobal() {
   for (global in [1, 2]) {} // global_for_in2: ok
 
   global += 1; // global_plus_eq
-//^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   global.toString(); // global_toString
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   global?.toString(); // global_null_dot
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   global..toString(); // global_cascade
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   if (global) {} // global_conditional_stmt
   //  ^^^^^^
@@ -1094,14 +1095,14 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   !global; // global_boolean_negation
-// ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 4, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   global && true; // global_boolean_and_left
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && global; // global_boolean_and_right
   //      ^^^^^^
@@ -1109,9 +1110,9 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   global || true; // global_boolean_or_left
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || global; // global_boolean_or_right
   //      ^^^^^^
@@ -1119,9 +1120,9 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   global == 3; // global_equals_left
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == global; // global_equals_right
   //   ^^^^^^
@@ -1144,19 +1145,19 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   -global; // global_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   global(3); // global_use_as_function
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   //    ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$global"; // global_use_in_string_interpolation
   //     ^^^^^^
@@ -1164,10 +1165,10 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
 
   global ??= 3; // global_use_in_conditional_assignment_left
+  // [error column 3]
+  // [cfe] This expression has type 'void' and can't be used.
   //     ^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//^
-// [cfe] This expression has type 'void' and can't be used.
 
   Object? xx;
   xx ??= global; // global_use_in_conditional_assignment_right
@@ -1205,11 +1206,11 @@ Object? testVoidConditional() {
 
   true
       ? true
-          ? x
-          : x
+            ? x
+            : x
       : true
-          ? x
-          : x; // conditional_conditional: ok
+      ? x
+      : x; // conditional_conditional: ok
 
   for (true ? x : x; false; true ? x : x) {} // conditional_for: ok
 
@@ -1230,10 +1231,10 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : x) is Object?; // conditional_is
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 14]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw true ? x : x; // conditional_throw
   //    ^^^^^^^^^^^^
@@ -1261,8 +1262,8 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : x) ?? null; // conditional_null_equals1
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 14]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //    ^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1294,22 +1295,22 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : x).toString(); // conditional_toString
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 14]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : x)?.toString(); // conditional_null_dot
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 14]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : x)..toString(); // conditional_cascade
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 14]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x); // conditional2_parens: ok
 
@@ -1317,11 +1318,11 @@ Object? testVoidConditional() {
 
   true
       ? true
-          ? 499
-          : x
+            ? 499
+            : x
       : true
-          ? 499
-          : x; // conditional2_conditional: ok
+      ? 499
+      : x; // conditional2_conditional: ok
 
   for (true ? 499 : x; false; true ? 499 : x) {} // conditional2_for: ok
 
@@ -1342,10 +1343,10 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x) is Object?; // conditional2_is
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw true ? 499 : x; // conditional2_throw
   //    ^^^^^^^^^^^^^^
@@ -1364,7 +1365,7 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   var m12 = <int, void>{
-    4: true ? 499 : x
+    4: true ? 499 : x,
   }; // conditional2_literal_map_value_init: ok
 
   // conditional2_literal_map_value_init2
@@ -1375,8 +1376,8 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x) ?? null; // conditional2_null_equals1
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //    ^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1408,22 +1409,22 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x).toString(); // conditional2_toString
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x)?.toString(); // conditional2_null_dot
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? 499 : x)..toString(); // conditional2_cascade
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499); // conditional3_parens: ok
 
@@ -1431,11 +1432,11 @@ Object? testVoidConditional() {
 
   true
       ? true
-          ? x
-          : 499
+            ? x
+            : 499
       : true
-          ? x
-          : 499; // conditional3_conditional: ok
+      ? x
+      : 499; // conditional3_conditional: ok
 
   for (true ? x : 499; false; true ? x : 499) {} // conditional3_for: ok
 
@@ -1456,10 +1457,10 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499) is Object?; // conditional3_is
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw true ? x : 499; // conditional3_throw
   //    ^^^^^^^^^^^^^^
@@ -1478,7 +1479,7 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   var m13 = <int, void>{
-    4: true ? x : 499
+    4: true ? x : 499,
   }; // conditional3_literal_map_value_init: ok
 
   // conditional3_literal_map_value_init2
@@ -1489,8 +1490,8 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499) ?? null; // conditional3_null_equals1
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //    ^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1522,22 +1523,22 @@ Object? testVoidConditional() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499).toString(); // conditional3_toString
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499)?.toString(); // conditional3_null_dot
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (true ? x : 499)..toString(); // conditional3_cascade
-//^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//      ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 16]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //    ^
+  // [cfe] This expression has type 'void' and can't be used.
 }
 
 dynamic testVoidConditionalDynamic() {
@@ -1611,8 +1612,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   a.x is Object?; // instance_is
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1650,8 +1651,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   a.x ?? 499; // instance_null_equals1
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1683,27 +1684,25 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   a.x += 1; // instance_plus_eq
-  //^
-  // [cfe] This expression has type 'void' and can't be used.
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   a.x.toString(); // instance_toString
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   a.x?.toString(); // instance_null_dot
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   a.x..toString(); // instance_cascade
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1736,8 +1735,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   b.x is Object?; // instance2_is
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1774,8 +1773,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   b.x ?? 499; // instance2_null_equals1
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1809,27 +1808,25 @@ Object? testInstanceField() {
   b.forInTest();
 
   b.x += 1; // instance2_plus_eq
-  //^
-  // [cfe] This expression has type 'void' and can't be used.
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   b.x.toString(); // instance2_toString
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   b.x?.toString(); // instance2_null_dot
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   b.x..toString(); // instance2_cascade
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1862,8 +1859,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   c.x is Object?; // instance3_is
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1900,8 +1897,8 @@ Object? testInstanceField() {
   // [cfe] This expression has type 'void' and can't be used.
 
   c.x ?? 499; // instance3_null_equals1
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -1935,27 +1932,25 @@ Object? testInstanceField() {
   c.forInTest();
 
   c.x += 1; // instance3_plus_eq
-  //^
-  // [cfe] This expression has type 'void' and can't be used.
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   c.x.toString(); // instance3_toString
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   c.x?.toString(); // instance3_null_dot
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   c.x..toString(); // instance3_cascade
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 }
@@ -2003,18 +1998,18 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (x) is Object?; // paren_is
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   throw (x); // paren_throw
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.THROW_OF_INVALID_TYPE
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //     ^
-  // [cfe] This expression has type 'void' and can't be used.
   // [cfe] Can't throw a value of 'void' since it is neither dynamic nor non-nullable.
+  // [cfe] This expression has type 'void' and can't be used.
 
   <void>[(x)]; // paren_literal_void_list_init: ok
 
@@ -2041,10 +2036,10 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (x) ?? 499; // paren_null_equals1
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   null ?? (x); // paren_null_equals2: ok
 
@@ -2077,22 +2072,22 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (x).toString(); // paren_toString
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   (x)?.toString(); // paren_null_dot
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   (x)..toString(); // paren_cascade
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   if ((x)) {} // paren_conditional_stmt
   //  ^^^
@@ -2101,16 +2096,16 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   !(x); // paren_boolean_negation
-// ^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
   // [cfe] This expression has type 'void' and can't be used.
 
   (x) && true; // paren_boolean_and_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   true && (x); // paren_boolean_and_right
   //      ^^^
@@ -2119,10 +2114,10 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (x) || true; // paren_boolean_or_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   true || (x); // paren_boolean_or_right
   //      ^^^
@@ -2131,10 +2126,10 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   (x) == 3; // paren_equals_left
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
 
   3 == (x); // paren_equals_right
   //   ^^^
@@ -2161,21 +2156,21 @@ Object? testParenthesized() {
   // [cfe] This expression has type 'void' and can't be used.
 
   -(x); // paren_negation
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe] The operator 'unary-' isn't defined for the class 'void'.
-// ^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-//  ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
+  // [error column 4, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  //^
+  // [cfe] This expression has type 'void' and can't be used.
 
   (x)(3); // paren_use_as_function
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// ^
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [error column 4]
+  // [cfe] This expression has type 'void' and can't be used.
   // ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello${(x)}"; // paren_use_in_string_interpolation
   //      ^^^

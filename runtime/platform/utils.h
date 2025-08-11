@@ -492,15 +492,13 @@ class Utils {
 #ifdef __GNUC__
   __attribute__((no_sanitize("float-divide-by-zero")))
 #endif
-  static inline float
-  DivideAllowZero(float a, float b) {
+  static inline float DivideAllowZero(float a, float b) {
     return a / b;
   }
 #ifdef __GNUC__
   __attribute__((no_sanitize("float-divide-by-zero")))
 #endif
-  static inline double
-  DivideAllowZero(double a, double b) {
+  static inline double DivideAllowZero(double a, double b) {
     return a / b;
   }
 
@@ -665,6 +663,11 @@ class Utils {
   static void* LoadDynamicLibrary(const char* library_path,
                                   bool search_dll_load_dir = false,
                                   char** error = nullptr);
+  static void* LoadDynamicLibrary(const char* library_path,
+                                  char** error = nullptr) {
+    return LoadDynamicLibrary(library_path, /*search_dll_load_dir=*/false,
+                              error);
+  }
 
   // Resolve the given |symbol| within the library referenced by the
   // given |library_handle|.
@@ -683,6 +686,14 @@ class Utils {
   // when it is no longer needed).
   static void UnloadDynamicLibrary(void* library_handle,
                                    char** error = nullptr);
+
+  // Returns the basename of the given path. The returned string is malloced
+  // and must be freed by the caller once no longer needed.
+  //
+  // If path is nullptr, returns nullptr.
+  //
+  // Returns nullptr if the operating system does not support this operation.
+  static char* Basename(const char* path);
 
 #if defined(DART_HOST_OS_LINUX)
   static bool IsWindowsSubsystemForLinux();

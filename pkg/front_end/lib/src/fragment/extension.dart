@@ -7,8 +7,7 @@ part of 'fragment.dart';
 class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   final ExtensionName extensionName;
 
-  @override
-  final int fileOffset;
+  final int nameOrExtensionOffset;
 
   SourceExtensionBuilder? _builder;
 
@@ -16,13 +15,17 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   late final Modifiers modifiers;
   late final TypeBuilder onType;
   late final int startOffset;
-  late final int nameOrExtensionOffset;
   late final int endOffset;
+
+  @override
+  late final UriOffsetLength uriOffset = isUnnamed
+      ? new UriOffset(fileUri, nameOrExtensionOffset)
+      : new UriOffsetLength(fileUri, nameOrExtensionOffset, name.length);
 
   ExtensionFragment({
     required String? name,
     required super.fileUri,
-    required this.fileOffset,
+    required this.nameOrExtensionOffset,
     required super.typeParameters,
     required super.enclosingScope,
     required super.typeParameterScope,
@@ -31,8 +34,6 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   }) : extensionName = name != null
             ? new FixedExtensionName(name)
             : new UnnamedExtensionName();
-
-  bool get isUnnamed => extensionName.isUnnamedExtension;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -49,13 +50,15 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   @override
   bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
 
-  @override
-  String get name => extensionName.name;
+  bool get isUnnamed => extensionName.isUnnamedExtension;
 
   @override
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionDeclaration;
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$fileOffset)';
+  String get name => extensionName.name;
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$nameOrExtensionOffset)';
 }

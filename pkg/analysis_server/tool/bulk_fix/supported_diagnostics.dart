@@ -16,7 +16,8 @@ Future<void> main() async {
 
   var hintEntries = registeredFixGenerators.nonLintProducers.entries.where(
     (e) =>
-        e.key.type == ErrorType.HINT || e.key.type == ErrorType.STATIC_WARNING,
+        e.key.type == DiagnosticType.HINT ||
+        e.key.type == DiagnosticType.STATIC_WARNING,
   );
 
   var diagnostics = [

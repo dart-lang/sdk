@@ -20,6 +20,7 @@ import 'constants.dart';
 import 'dtd_client.dart';
 import 'dtd_client_manager.dart';
 import 'dtd_stream_manager.dart';
+import 'service/connected_app_service.dart';
 import 'service/file_system_service.dart';
 import 'service/internal_service.dart';
 import 'service/unified_analytics_service.dart';
@@ -141,6 +142,7 @@ class DartToolingDaemon {
 
     internalServices = Map.fromEntries(
       [
+        ConnectedAppService(secret: secret, unrestrictedMode: unrestrictedMode),
         FileSystemService(
           secret: secret,
           unrestrictedMode: unrestrictedMode,
@@ -362,6 +364,9 @@ class DartToolingDaemon {
 
   Future<void> close() async {
     await clientManager.shutdown();
+    for (final service in internalServices.values) {
+      service.shutdown();
+    }
     await _server.close(force: true);
   }
 }

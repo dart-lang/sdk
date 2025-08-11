@@ -19,31 +19,52 @@ class EqualElementsInConstSetTest extends PubPackageResolutionTest
 
 mixin EqualElementsInConstSetTestCases on PubPackageResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1, 2, 1};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          21,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_entry_extensionType_typeValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const x = {int, E};
 extension type E(int it) {}
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 16, 1,
-          contextMessages: [message(testFile, 11, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          16,
+          1,
+          contextMessages: [message(testFile, 11, 3)],
+        ),
+      ],
+    );
   }
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1, if (1 < 0) 2 else 1};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          36,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
@@ -71,25 +92,39 @@ var c = const {2, if (1 < 0) 2};
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1, if (0 < 1) 1};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          29,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(), const A<int>()};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          contextMessages: [message(testFile, 44, 14)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          60,
+          14,
+          contextMessages: [message(testFile, 44, 14)],
+        ),
+      ],
+    );
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
@@ -104,12 +139,19 @@ var c = const {const A<int>(), const A<num>()};
   }
 
   test_const_list_hasEqual() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {[0], [0]};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 16, 3,
-          contextMessages: [message(testFile, 11, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          16,
+          3,
+          contextMessages: [message(testFile, 11, 3)],
+        ),
+      ],
+    );
   }
 
   test_const_list_noEqual() async {
@@ -119,12 +161,19 @@ const x = {[0], [1]};
   }
 
   test_const_record_hasEqual() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {(0, 1), (0, 1)};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 19, 6,
-          contextMessages: [message(testFile, 11, 6)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          19,
+          6,
+          contextMessages: [message(testFile, 11, 6)],
+        ),
+      ],
+    );
   }
 
   test_const_record_noEqual() async {
@@ -140,20 +189,28 @@ var c = const {1, ...{2}};
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1, ...{1}};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          21,
+          3,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_nonConst_entry() async {
     // No error, but there is a hint.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = {1, 2, 1};
-''', [
-      error(WarningCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 15, 1)],
+    );
   }
 }

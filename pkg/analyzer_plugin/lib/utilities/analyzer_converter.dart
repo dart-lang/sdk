@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart' as analyzer;
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
@@ -19,20 +19,20 @@ import 'package:path/path.dart' as path;
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyzerConverter {
-  /// Converts the analysis [error] from the 'analyzer' package to an analysis
-  /// error defined by the plugin API.
+  /// Converts the analysis [diagnostic] from the 'analyzer' package to an
+  /// analysis error defined by the plugin API.
   ///
   /// If a [lineInfo] is provided then the error's location will have a start
   /// line and start column. If a [severity] is provided, then it will override
   /// the severity defined by the error.
   plugin.AnalysisError convertAnalysisError(
-    analyzer.AnalysisError error, {
+    analyzer.Diagnostic diagnostic, {
     analyzer.LineInfo? lineInfo,
-    analyzer.ErrorSeverity? severity,
+    analyzer.DiagnosticSeverity? severity,
   }) {
-    var errorCode = error.errorCode;
-    severity ??= errorCode.errorSeverity;
-    var offset = error.offset;
+    var diagnosticCode = diagnostic.diagnosticCode;
+    severity ??= diagnosticCode.severity;
+    var offset = diagnostic.offset;
     var startLine = -1;
     var startColumn = -1;
     var endLine = -1;
@@ -41,36 +41,36 @@ class AnalyzerConverter {
       var startLocation = lineInfo.getLocation(offset);
       startLine = startLocation.lineNumber;
       startColumn = startLocation.columnNumber;
-      var endLocation = lineInfo.getLocation(offset + error.length);
+      var endLocation = lineInfo.getLocation(offset + diagnostic.length);
       endLine = endLocation.lineNumber;
       endColumn = endLocation.columnNumber;
     }
     List<plugin.DiagnosticMessage>? contextMessages;
-    if (error.contextMessages.isNotEmpty) {
-      contextMessages = error.contextMessages
+    if (diagnostic.contextMessages.isNotEmpty) {
+      contextMessages = diagnostic.contextMessages
           .map((message) =>
               convertDiagnosticMessage(message, lineInfo: lineInfo))
           .toList();
     }
     return plugin.AnalysisError(
         convertErrorSeverity(severity),
-        convertErrorType(errorCode.type),
-        plugin.Location(
-            error.source.fullName, offset, error.length, startLine, startColumn,
+        convertErrorType(diagnosticCode.type),
+        plugin.Location(diagnostic.source.fullName, offset, diagnostic.length,
+            startLine, startColumn,
             endLine: endLine, endColumn: endColumn),
-        error.message,
-        errorCode.name.toLowerCase(),
+        diagnostic.message,
+        diagnosticCode.name.toLowerCase(),
         contextMessages: contextMessages,
-        correction: error.correction,
+        correction: diagnostic.correctionMessage,
         hasFix: true);
   }
 
-  /// Converts the list of analysis [errors] from the 'analyzer' package to a
-  /// list of analysis errors defined by the plugin API.
+  /// Converts the list of analysis [diagnostics] from the 'analyzer' package to
+  /// a list of analysis errors defined by the plugin API.
   ///
   /// The severities of the errors are altered based on [options].
   List<plugin.AnalysisError> convertAnalysisErrors(
-    List<analyzer.AnalysisError> errors, {
+    List<analyzer.Diagnostic> diagnostics, {
     // TODO(srawlins): Make `lineInfo` required and non-nullable, in a breaking
     // change release.
     analyzer.LineInfo? lineInfo,
@@ -79,18 +79,18 @@ class AnalyzerConverter {
     analyzer.AnalysisOptions? options,
   }) {
     var serverErrors = <plugin.AnalysisError>[];
-    for (var error in errors) {
-      var processor = analyzer.ErrorProcessor.getProcessor(options, error);
+    for (var diagnostic in diagnostics) {
+      var processor = analyzer.ErrorProcessor.getProcessor(options, diagnostic);
       if (processor != null) {
         var severity = processor.severity;
         // Errors with null severity are filtered out.
         if (severity != null) {
           // Specified severities override.
-          serverErrors.add(convertAnalysisError(error,
+          serverErrors.add(convertAnalysisError(diagnostic,
               lineInfo: lineInfo, severity: severity));
         }
       } else {
-        serverErrors.add(convertAnalysisError(error, lineInfo: lineInfo));
+        serverErrors.add(convertAnalysisError(diagnostic, lineInfo: lineInfo));
       }
     }
     return serverErrors;
@@ -123,7 +123,7 @@ class AnalyzerConverter {
             endLine: endLine, endColumn: endColumn));
   }
 
-  Element convertElement(analyzer.Element2 element) {
+  Element convertElement(analyzer.Element element) {
     var kind = convertElementToElementKind(element);
     var name = getElementDisplayName(element);
     var elementTypeParameters = _getTypeParametersString(element);
@@ -136,7 +136,7 @@ class AnalyzerConverter {
       Element.makeFlags(
         isPrivate: element.isPrivate,
         isDeprecated: (element is analyzer.Annotatable) &&
-            (element as analyzer.Annotatable).metadata2.hasDeprecated,
+            (element as analyzer.Annotatable).metadata.hasDeprecated,
         isAbstract: _isAbstract(element),
         isConst: _isConst(element),
         isFinal: _isFinal(element),
@@ -160,14 +160,14 @@ class AnalyzerConverter {
   plugin.ElementKind convertElementKind(analyzer.ElementKind kind) =>
       kind.toPluginElementKind;
 
-  /// Return an [ElementKind] corresponding to the given [analyzer.Element2].
-  ElementKind convertElementToElementKind(analyzer.Element2 element) {
-    if (element is analyzer.EnumElement2) {
+  /// Return an [ElementKind] corresponding to the given [analyzer.Element].
+  ElementKind convertElementToElementKind(analyzer.Element element) {
+    if (element is analyzer.EnumElement) {
       return ElementKind.ENUM;
-    } else if (element is analyzer.MixinElement2) {
+    } else if (element is analyzer.MixinElement) {
       return ElementKind.MIXIN;
     }
-    if (element is analyzer.FieldElement2 && element.isEnumConstant) {
+    if (element is analyzer.FieldElement && element.isEnumConstant) {
       return ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
@@ -176,15 +176,15 @@ class AnalyzerConverter {
   /// Convert the error [severity] from the 'analyzer' package to an analysis
   /// error severity defined by the plugin API.
   plugin.AnalysisErrorSeverity convertErrorSeverity(
-          analyzer.ErrorSeverity severity) =>
+          analyzer.DiagnosticSeverity severity) =>
       plugin.AnalysisErrorSeverity.values.byName(severity.name);
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
-  plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
+  plugin.AnalysisErrorType convertErrorType(analyzer.DiagnosticType type) =>
       plugin.AnalysisErrorType.values.byName(type.name);
 
-  String getElementDisplayName(analyzer.Element2 element) {
+  String getElementDisplayName(analyzer.Element element) {
     if (element is analyzer.LibraryFragment) {
       return path
           .basename((element as analyzer.LibraryFragment).source.fullName);
@@ -193,41 +193,41 @@ class AnalyzerConverter {
     }
   }
 
-  /// Create a Location based on an [analyzer.Element2].
-  Location? newLocation_fromElement(analyzer.Element2? element) {
+  /// Create a Location based on an [analyzer.Element].
+  Location? newLocation_fromElement(analyzer.Element? element) {
     if (element == null) {
       return null;
     }
     if (element is analyzer.FormalParameterElement &&
-        element.enclosingElement2 == null) {
+        element.enclosingElement == null) {
       return null;
     }
     var fragment = element.firstFragment;
     var offset = fragment.nameOffset2 ?? -1;
-    var length = fragment.name2?.length ?? 0;
+    var length = fragment.name?.length ?? 0;
     var range = analyzer.SourceRange(offset, length);
     return _locationForArgs(fragment, range);
   }
 
-  String? _getAliasedTypeString(analyzer.Element2 element) {
-    if (element is analyzer.TypeAliasElement2) {
+  String? _getAliasedTypeString(analyzer.Element element) {
+    if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString();
     }
     return null;
   }
 
-  String? _getParametersString(analyzer.Element2 element) {
+  String? _getParametersString(analyzer.Element element) {
     // TODO(scheglov): expose the corresponding feature from ExecutableElement
     List<analyzer.FormalParameterElement> parameters;
-    if (element is analyzer.ExecutableElement2) {
+    if (element is analyzer.ExecutableElement) {
       // valid getters don't have parameters
       if (element.kind == analyzer.ElementKind.GETTER &&
           element.formalParameters.isEmpty) {
         return null;
       }
       parameters = element.formalParameters.toList();
-    } else if (element is analyzer.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         parameters = aliasedType.formalParameters.toList();
@@ -257,26 +257,26 @@ class AnalyzerConverter {
       }
       if (parameter.isRequiredNamed) {
         sb.write('required ');
-      } else if (parameter.metadata2.hasDeprecated) {
+      } else if (parameter.metadata.hasDeprecated) {
         sb.write('@required ');
       }
-      parameter.appendToWithoutDelimiters2(sb);
+      parameter.appendToWithoutDelimiters(sb);
     }
     sb.write(closeOptionalString);
     return '($sb)';
   }
 
-  String? _getReturnTypeString(analyzer.Element2 element) {
-    if (element is analyzer.ExecutableElement2) {
+  String? _getReturnTypeString(analyzer.Element element) {
+    if (element is analyzer.ExecutableElement) {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       } else {
         return element.returnType.getDisplayString();
       }
-    } else if (element is analyzer.VariableElement2) {
+    } else if (element is analyzer.VariableElement) {
       var type = element.type;
       return type.getDisplayString();
-    } else if (element is analyzer.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         var returnType = aliasedType.returnType;
@@ -286,12 +286,12 @@ class AnalyzerConverter {
     return null;
   }
 
-  String? _getTypeParametersString(analyzer.Element2 element) {
-    List<analyzer.TypeParameterElement2>? typeParameters;
-    if (element is analyzer.InterfaceElement2) {
-      typeParameters = element.typeParameters2;
-    } else if (element is analyzer.TypeAliasElement2) {
-      typeParameters = element.typeParameters2;
+  String? _getTypeParametersString(analyzer.Element element) {
+    List<analyzer.TypeParameterElement>? typeParameters;
+    if (element is analyzer.InterfaceElement) {
+      typeParameters = element.typeParameters;
+    } else if (element is analyzer.TypeAliasElement) {
+      typeParameters = element.typeParameters;
     }
     if (typeParameters == null || typeParameters.isEmpty) {
       return null;
@@ -299,41 +299,41 @@ class AnalyzerConverter {
     return '<${typeParameters.join(', ')}>';
   }
 
-  bool _isAbstract(analyzer.Element2 element) {
-    if (element is analyzer.ClassElement2) {
+  bool _isAbstract(analyzer.Element element) {
+    if (element is analyzer.ClassElement) {
       return element.isAbstract;
     }
-    if (element is analyzer.MethodElement2) {
+    if (element is analyzer.MethodElement) {
       return element.isAbstract;
     }
-    if (element is analyzer.MixinElement2) {
+    if (element is analyzer.MixinElement) {
       return true;
     }
     return false;
   }
 
-  bool _isConst(analyzer.Element2 element) {
-    if (element is analyzer.ConstructorElement2) {
+  bool _isConst(analyzer.Element element) {
+    if (element is analyzer.ConstructorElement) {
       return element.isConst;
     }
-    if (element is analyzer.VariableElement2) {
+    if (element is analyzer.VariableElement) {
       return element.isConst;
     }
     return false;
   }
 
-  bool _isFinal(analyzer.Element2 element) {
-    if (element is analyzer.VariableElement2) {
+  bool _isFinal(analyzer.Element element) {
+    if (element is analyzer.VariableElement) {
       return element.isFinal;
     }
     return false;
   }
 
-  bool _isStatic(analyzer.Element2 element) {
-    if (element is analyzer.ExecutableElement2) {
+  bool _isStatic(analyzer.Element element) {
+    if (element is analyzer.ExecutableElement) {
       return element.isStatic;
     }
-    if (element is analyzer.PropertyInducingElement2) {
+    if (element is analyzer.PropertyInducingElement) {
       return element.isStatic;
     }
     return false;
@@ -374,12 +374,12 @@ class AnalyzerConverter {
     analyzer.FormalParameterElement e1,
     analyzer.FormalParameterElement e2,
   ) {
-    var rank1 = (e1.isRequiredNamed || e1.metadata2.hasRequired)
+    var rank1 = (e1.isRequiredNamed || e1.metadata.hasRequired)
         ? 0
         : !e1.isNamed
             ? -1
             : 1;
-    var rank2 = (e2.isRequiredNamed || e2.metadata2.hasRequired)
+    var rank2 = (e2.isRequiredNamed || e2.metadata.hasRequired)
         ? 0
         : !e2.isNamed
             ? -1

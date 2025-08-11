@@ -10,7 +10,7 @@ library test;
 //   /*error:UNDEFINED_IDENTIFIER*/ x
 //                                  ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
 // Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 // var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();

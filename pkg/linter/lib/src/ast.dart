@@ -5,27 +5,25 @@
 /// Common AST helpers.
 library;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
-    show ExpressionExtension;
-import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
-    show WorkspacePackage;
+import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
-import 'analyzer.dart';
-import 'utils.dart';
-
-final List<String> reservedWords = _collectReservedWords();
+final Set<String> _reservedWords = {
+  for (var entry in Keyword.keywords.entries)
+    if (entry.value.isReservedWord) entry.key,
+};
 
 /// Returns direct children of [parent].
-List<Element2> getChildren(Element2 parent, [String? name]) {
-  var children = <Element2>[];
-  visitChildren(parent, (Element2 element) {
+List<Element> getChildren(Element parent, [String? name]) {
+  var children = <Element>[];
+  _visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -53,7 +51,7 @@ Token? getFieldName(FieldDeclaration decl, String name) {
 /// minus and then an [IntegerLiteral]. If a [context] is provided,
 /// [SimpleIdentifier]s are evaluated as constants. For anything else,
 /// returns `null`.
-int? getIntValue(Expression expression, LinterContext? context) {
+int? getIntValue(Expression expression, RuleContext? context) {
   if (expression is PrefixExpression) {
     var operand = expression.operand;
     if (expression.operator.type != TokenType.MINUS) return null;
@@ -121,36 +119,21 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
 /// If the [node] is the finishing identifier of an assignment, return its
 /// "writeElement", otherwise return its "element", which might be
 /// thought as the "readElement".
-Element2? getWriteOrReadElement(SimpleIdentifier node) =>
+Element? getWriteOrReadElement(SimpleIdentifier node) =>
     _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
-    node.computeConstantValue().errors.isNotEmpty;
+    node.computeConstantValue()?.diagnostics.isNotEmpty ?? true;
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name.lexeme == '==';
-
-/// Returns `true` if the keyword associated with this token is `final` or
-/// `const`.
-bool isFinalOrConst(Token token) =>
-    isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
 
 /// Returns `true` if this element is a `hashCode` method or field declaration.
 bool isHashCode(ClassMember element) => _hasFieldOrMethod(element, 'hashCode');
 
 /// Returns `true` if this element is an `index` method or field declaration.
 bool isIndex(ClassMember element) => _hasFieldOrMethod(element, 'index');
-
-/// Return true if this compilation unit [node] is declared within the given
-/// [package]'s `lib/` directory tree.
-bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
-  if (package == null) return false;
-  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
-  if (cuPath == null) return false;
-  var libDir = path.join(package.root, 'lib');
-  return path.isWithin(libDir, cuPath);
-}
 
 /// Return `true` if this compilation unit [node] is declared within a public
 /// directory in the given [package]'s directory tree. Public dirs are the
@@ -161,36 +144,19 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
-  var libDir = path.join(package.root, 'lib');
-  var binDir = path.join(package.root, 'bin');
+  var libDir = path.join(package.root.path, 'lib');
+  var binDir = path.join(package.root.path, 'bin');
   // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
-  var buildHookFile = path.join(package.root, 'hook', 'build.dart');
-  var linkHookFile = path.join(package.root, 'hook', 'link.dart');
+  var buildHookFile = path.join(package.root.path, 'hook', 'build.dart');
+  var linkHookFile = path.join(package.root.path, 'hook', 'link.dart');
   return path.isWithin(libDir, cuPath) ||
       path.isWithin(binDir, cuPath) ||
       cuPath == buildHookFile ||
       cuPath == linkHookFile;
 }
 
-/// Returns `true` if the given [id] is a Dart keyword.
-bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
-
-/// Returns `true` if the keyword associated with the given [token] matches
-/// [keyword].
-bool isKeyword(Token token, Keyword keyword) =>
-    token is KeywordToken && token.keyword == keyword;
-
-/// Returns `true` if the given [ClassMember] is a method.
-bool isMethod(ClassMember m) => m is MethodDeclaration;
-
-/// Returns `true` if the given [ClassMember] is a public method.
-bool isPublicMethod(ClassMember m) {
-  var declaredElement = m.declaredFragment?.element;
-  return declaredElement != null && isMethod(m) && declaredElement.isPublic;
-}
-
 /// Check if the given word is a Dart reserved word.
-bool isReservedWord(String word) => reservedWords.contains(word);
+bool isReservedWord(String word) => _reservedWords.contains(word);
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
@@ -263,14 +229,8 @@ bool isSimpleSetter(MethodDeclaration setter) {
   return false;
 }
 
-/// Returns `true` if the given [id] is a valid Dart identifier.
-bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
-
 /// Returns `true` if this element is a `values` method or field declaration.
 bool isValues(ClassMember element) => _hasFieldOrMethod(element, 'values');
-
-/// Returns `true` if the keyword associated with this token is `var`.
-bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File? locatePubspecFile(CompilationUnit compilationUnit) {
@@ -293,21 +253,15 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
   return null;
 }
 
-/// Uses [processor] to visit all of the children of [element].
-/// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element2 element, ElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
-}
-
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.element;
     if (staticElement is GetterElement) {
-      var enclosingElement = getter.declaredFragment?.element.enclosingElement2;
+      var enclosingElement = getter.declaredFragment?.element.enclosingElement;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement2 == enclosingElement) {
-        var variable = staticElement.variable3;
+      if (staticElement.enclosingElement == enclosingElement) {
+        var variable = staticElement.variable;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;
         }
@@ -328,7 +282,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = expression.leftHandSide;
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = expression.writeElement2;
+    var leftElement = expression.writeElement;
     if (leftElement is! SetterElement || !leftElement.isSynthetic) {
       return false;
     }
@@ -352,26 +306,16 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   return false;
 }
 
-List<String> _collectReservedWords() {
-  var reserved = <String>[];
-  for (var entry in Keyword.keywords.entries) {
-    if (entry.value.isReservedWord) {
-      reserved.add(entry.key);
-    }
-  }
-  return reserved;
-}
-
 int? _getIntValue(
   Expression expression,
-  LinterContext? context, {
+  RuleContext? context, {
   bool negated = false,
 }) {
   int? value;
   if (expression is IntegerLiteral) {
     value = expression.value;
   } else if (expression is SimpleIdentifier && context != null) {
-    value = expression.computeConstantValue().value?.toIntValue();
+    value = expression.computeConstantValue()?.value?.toIntValue();
   }
   if (value is! int) return null;
 
@@ -382,16 +326,16 @@ int? _getIntValue(
 /// return the corresponding "writeElement", which is the local variable,
 /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
 /// or the `[]=` operator.
-Element2? _getWriteElement(AstNode node) {
+Element? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PostfixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PrefixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
@@ -409,9 +353,15 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
 
-/// An [Element2] processor function type.
+/// Uses [processor] to visit all of the children of [element].
+/// If [processor] returns `true`, then children of a child are visited too.
+void _visitChildren(Element element, ElementProcessor processor) {
+  element.visitChildren(_ElementVisitorAdapter(processor));
+}
+
+/// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor = bool Function(Element2 element);
+typedef ElementProcessor = bool Function(Element element);
 
 /// A [GeneralizingElementVisitor2] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
@@ -420,10 +370,10 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   _ElementVisitorAdapter(this.processor);
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 }

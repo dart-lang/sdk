@@ -20,7 +20,7 @@ abstract class _C&A&M = self::A<self::A<dynamic>> with self::M /*isAnonymousMixi
   synthetic constructor •() → self::_C&A&M
     : super self::A::•()
     ;
-  mixin-super-stub method m() → dynamic
+  synthetic mixin-super-stub method m() → dynamic
     return super.{self::M::m}();
 }
 static method main() → dynamic

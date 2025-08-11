@@ -35,24 +35,24 @@ static extension-type-member method Foo|constructor#(core::String x) → self::F
   lowered final self::Foo% /* erasure=core::String, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
   return self::Foo|constructor#(x);
 static abstract extension-type-member method Foo|get#x2(lowered core::String #this) → core::int;
 static abstract extension-type-member method Foo|set#x2(lowered core::String #this, synthesized core::int #externalFieldValue) → void;
-static extension-type-member method Foo|bar1(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:9:23: Error: Not a constant expression.
+static extension-type-member method Foo|bar1(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:9:23: Error: Not a constant expression.
   int bar1({int baz = x2}) => 42;
                       ^^"}) → core::int
   return 42;
 static extension-type-member method Foo|get#bar1(lowered final self::Foo% /* erasure=core::String, declared=! */ #this) → ({baz: core::int}) → core::int
-  return ({core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:9:23: Error: Not a constant expression.
+  return ({erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:9:23: Error: Not a constant expression.
   int bar1({int baz = x2}) => 42;
                       ^^"}) → core::int => self::Foo|bar1(#this, baz: baz);
-static extension-type-member method Foo|bar2(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:10:23: Error: Not a constant expression.
+static extension-type-member method Foo|bar2(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:10:23: Error: Not a constant expression.
   int bar2({int baz = x /* oops forgot the 1 */}) => 42;
                       ^"}) → core::int
   return 42;
 static extension-type-member method Foo|get#bar2(lowered final self::Foo% /* erasure=core::String, declared=! */ #this) → ({baz: core::int}) → core::int
-  return ({core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:10:23: Error: Not a constant expression.
+  return ({erroneously-initialized core::int baz = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_02.dart:10:23: Error: Not a constant expression.
   int bar2({int baz = x /* oops forgot the 1 */}) => 42;
                       ^"}) → core::int => self::Foo|bar2(#this, baz: baz);
 

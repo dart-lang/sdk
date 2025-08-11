@@ -16,9 +16,8 @@ main() async {
 
   final completer = Completer();
 
-  final receivePort =
-      ReceivePort()
-        ..listen((receivedMessage) => completer.complete(receivedMessage));
+  final receivePort = ReceivePort()
+    ..listen((receivedMessage) => completer.complete(receivedMessage));
 
   final executableSymbols = DynamicLibrary.executable();
 

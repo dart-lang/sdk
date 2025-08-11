@@ -74,9 +74,12 @@ List<int> test3(int n) {
 // leaves the stack non-empty during a potential OSR.
 @pragma('vm:never-inline')
 List<int> test4(int n) {
-  var x = [10] +
-      z.check(42, bazz(), 'abc',
-          [more_bazz(), for (int i = 0; i < n; i++) bar(2 * i)]);
+  var x =
+      [10] +
+      z.check(42, bazz(), 'abc', [
+        more_bazz(),
+        for (int i = 0; i < n; i++) bar(2 * i),
+      ]);
   return x;
 }
 
@@ -86,9 +89,12 @@ List<int> test4(int n) {
 List<int> test5(int m, int n) {
   List<int> x = [];
   for (int k = 0; k < m; k++) {
-    x += [10] +
-        z.check(42, bazz(), 'abc',
-            [more_bazz(), for (int i = 0; i < n; i++) bar(2 * i)]);
+    x +=
+        [10] +
+        z.check(42, bazz(), 'abc', [
+          more_bazz(),
+          for (int i = 0; i < n; i++) bar(2 * i),
+        ]);
   }
   return x;
 }
@@ -96,7 +102,7 @@ List<int> test5(int m, int n) {
 List<int> globalList = [
   1,
   for (int loc1 = 2; loc1 <= 100000; loc1++) loc1,
-  100001
+  100001,
 ];
 
 main() {

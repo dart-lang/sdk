@@ -17,20 +17,24 @@ const int VERSION = 1;
 
 Future<Database> createAndOpenDb() {
   return html.window.indexedDB!.deleteDatabase(DB_NAME).then((_) {
-    return html.window.indexedDB!.open(DB_NAME, version: VERSION,
-        onUpgradeNeeded: (e) {
-      var db = e.target.result;
-      db.createObjectStore(STORE_NAME);
-    });
+    return html.window.indexedDB!.open(
+      DB_NAME,
+      version: VERSION,
+      onUpgradeNeeded: (e) {
+        var db = e.target.result;
+        db.createObjectStore(STORE_NAME);
+      },
+    );
   });
 }
 
 Future<Database> writeItems(Database db) {
   Future<Object?> write(index) {
     var transaction = db.transaction(STORE_NAME, 'readwrite');
-    return transaction
-        .objectStore(STORE_NAME)
-        .put({'content': 'Item $index'}, index) as Future<Object?>;
+    return transaction.objectStore(STORE_NAME).put({
+          'content': 'Item $index',
+        }, index)
+        as Future<Object?>;
   }
 
   var future = write(0);
@@ -91,19 +95,27 @@ main() async {
 
     test('lower1', () => testRange(db, new KeyRange.lowerBound(40), 40, 99));
     // OPTIONALS lower2() => testRange(db, new KeyRange.lowerBound(40, open: true), 41, 99);
-    test('lower2',
-        () => testRange(db, new KeyRange.lowerBound(40, true), 41, 99));
+    test(
+      'lower2',
+      () => testRange(db, new KeyRange.lowerBound(40, true), 41, 99),
+    );
     // OPTIONALS lower3() => testRange(db, new KeyRange.lowerBound(40, open: false), 40, 99);
-    test('lower3',
-        () => testRange(db, new KeyRange.lowerBound(40, false), 40, 99));
+    test(
+      'lower3',
+      () => testRange(db, new KeyRange.lowerBound(40, false), 40, 99),
+    );
 
     test('upper1', () => testRange(db, new KeyRange.upperBound(40), 0, 40));
     // OPTIONALS upper2() => testRange(db, new KeyRange.upperBound(40, open: true), 0, 39);
-    test('upper2',
-        () => testRange(db, new KeyRange.upperBound(40, true), 0, 39));
+    test(
+      'upper2',
+      () => testRange(db, new KeyRange.upperBound(40, true), 0, 39),
+    );
     // upper3() => testRange(db, new KeyRange.upperBound(40, open: false), 0, 40);
-    test('upper3',
-        () => testRange(db, new KeyRange.upperBound(40, false), 0, 40));
+    test(
+      'upper3',
+      () => testRange(db, new KeyRange.upperBound(40, false), 0, 40),
+    );
 
     test('bound1', () => testRange(db, new KeyRange.bound(20, 30), 20, 30));
 

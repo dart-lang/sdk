@@ -1,7 +1,5 @@
 // @dart = 2.19
 
-expect(expected, actual) {}
-
 final int topLevelDuplicateFieldAndDuplicateSetter = 1;
 
 final int topLevelDuplicateFieldAndDuplicateSetter = 2;
@@ -36,16 +34,10 @@ late final int topLevelLateFinalFieldAndSetter1;
 
 late final int topLevelLateFinalFieldAndSetter2;
 
-main() {}
-
 @topLevelMethod
 test() {}
 
-throws(dynamic Function() f) {}
-
 var field = topLevelMethod;
-
-var result;
 
 void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
 

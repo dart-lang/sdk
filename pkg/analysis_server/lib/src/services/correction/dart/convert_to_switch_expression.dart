@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,7 +19,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
-  LocalVariableElement2? writeElement;
+  LocalVariableElement? writeElement;
 
   /// Assignment operator used in assignment switch expression generation.
   TokenType? assignmentOperator;
@@ -35,7 +35,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
+  AssistKind get assistKind => DartAssistKind.convertToSwitchExpression;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -134,7 +134,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${functionElement!.name3}(');
+      builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
 
       var groupCount = switchType.groups.length;
       for (var i = 0; i < groupCount; ++i) {
@@ -226,7 +226,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
         node.offset,
-        '${writeElement!.name3} ${assignmentOperator!.lexeme} ',
+        '${writeElement!.name} ${assignmentOperator!.lexeme} ',
       );
 
       var groupCount = switchType.groups.length;
@@ -488,7 +488,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           if (leftHandSide is! SimpleIdentifierImpl) return null;
           if (writeElement == null) {
             var element = leftHandSide.element;
-            if (element is! LocalVariableElement2) return null;
+            if (element is! LocalVariableElement) return null;
             writeElement = element;
             assignmentOperator = expression.operator.type;
           } else if (writeElement != leftHandSide.element ||

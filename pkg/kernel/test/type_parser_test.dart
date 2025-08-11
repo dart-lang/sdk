@@ -12,7 +12,6 @@ void testParse(String text) {
 
 void main() {
   testParse("""
-() ->* void
 () ->? void
 () -> void
 (int) -> dynamic
@@ -45,13 +44,10 @@ S & T
 S & T & U
 class C;
 <E>(E) -> int & <E>(E) -> void
-C*
 C?
 C
-A<C>*
 A<C>?
 A<C>
-A<C*>
 A<C?>
 A<C>
 <T extends bool>(T) -> void

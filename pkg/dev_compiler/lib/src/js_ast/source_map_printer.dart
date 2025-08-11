@@ -92,7 +92,8 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       emit('*/');
     } else if (srcInfo is! NodeEnd) {
       throw StateError(
-          'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
+        'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>',
+      );
     }
 
     if (dartStart != null) {
@@ -118,7 +119,8 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       dartEnd = srcInfo.end;
     } else if (srcInfo is! SourceLocation && srcInfo is! HoverComment) {
       throw StateError(
-          'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
+        'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>',
+      );
     }
 
     if (dartEnd != null) {
@@ -127,16 +129,35 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
         // at its exit, so this provides a mapping for that location.
         var column = _column - 1;
         if (column >= 0) {
-          // Adjust the column, because any ending brace or semicolon is already in
-          // the output.
-          var jsEnd =
-              SourceLocation(buffer.length - 1, line: _line, column: column);
+          // Adjust the column, because any ending brace or semicolon is already
+          // in the output.
+          var jsEnd = SourceLocation(
+            buffer.length - 1,
+            line: _line,
+            column: column,
+          );
           _mark(dartEnd, jsEnd);
         }
       } else {
         _mark(dartEnd);
       }
     }
+  }
+
+  @override
+  void expressionBranch() {
+    // Only one branch of a conditional expression will be executed but the
+    // expressions could be mapped to the same source location. To ensure
+    // mappings are produced for both branches any pending locations should be
+    // flushed when switching output from one branch to the other.
+    _flushPendingMarks();
+  }
+
+  @override
+  void expressionJoin() {
+    // To ensure mappings get output for all branches when nesting conditional
+    // expressions they should be flushed after code flow joins after branching.
+    _flushPendingMarks();
   }
 
   /// Marks that we entered a Dart node at this offset.

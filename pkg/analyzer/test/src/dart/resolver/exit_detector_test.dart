@@ -122,7 +122,7 @@ void f() { // ref
 ''');
 
     var parseResult = parseUnit(path);
-    expect(parseResult.errors, isEmpty);
+    expect(parseResult.diagnostics, isEmpty);
 
     var findNode = FindNode(parseResult.content, parseResult.unit);
 
@@ -928,7 +928,7 @@ void f() { // ref
 ''');
 
     var parseResult = parseUnit(path);
-    expect(parseResult.errors, isEmpty);
+    expect(parseResult.diagnostics, isEmpty);
 
     var findNode = FindNode(parseResult.content, parseResult.unit);
 

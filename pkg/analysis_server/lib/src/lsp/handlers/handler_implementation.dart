@@ -9,9 +9,9 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 typedef StaticOptions =
@@ -45,12 +45,12 @@ class ImplementationHandler
     var path = pathOfDoc(params.textDocument);
     var unit = await performance.runAsync(
       'requireResolvedUnit',
-      (_) async => path.mapResult(requireResolvedUnit),
+      (_) => path.mapResult(requireResolvedUnit),
     );
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
       '_getImplementations',
-      (performance) async => (unit, offset).mapResults(
+      (performance) => (unit, offset).mapResults(
         (unit, offset) => _getImplementations(unit, offset, token, performance),
       ),
     );
@@ -62,8 +62,8 @@ class ImplementationHandler
     CancellationToken token,
     OperationPerformanceImpl performance,
   ) async {
-    var node = NodeLocator(offset).searchWithin(result.unit);
-    var element = server.getElementOfNode(node);
+    var node = result.unit.nodeCovering(offset: offset);
+    var element = node?.getElement();
     if (element == null) {
       return success([]);
     }
@@ -75,7 +75,7 @@ class ImplementationHandler
     }
     var needsMember = helper.findMemberElement(interfaceElement) != null;
 
-    var allSubtypes = <InterfaceElement2>{};
+    var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
       'appendAllSubtypes',
       (performance) => server.searchEngine.appendAllSubtypes(
@@ -94,7 +94,7 @@ class ImplementationHandler
                     // Filter based on type, so when searching for members we don't
                     // include any intermediate classes that don't have
                     // implementations for the method.
-                    ? helper.findMemberElement(element)?.nonSynthetic2
+                    ? helper.findMemberElement(element)?.nonSynthetic
                     : element;
               })
               .nonNulls
@@ -107,7 +107,7 @@ class ImplementationHandler
                 }
 
                 var nameOffset = firstFragment.nameOffset2;
-                var name = firstFragment.name2;
+                var name = firstFragment.name;
                 if (nameOffset == null || name == null) {
                   return null;
                 }

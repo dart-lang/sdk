@@ -52,7 +52,7 @@ main() {
   Expect.throwsAssertionError(() => false || null ?? true);
   //                                         ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] The value 'null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
   //                                                 ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }

@@ -5,8 +5,6 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
-// Requirements=nnbd-strong
-
 // Regression test for https://github.com/dart-lang/sdk/issues/41939
 
 void checkme0<T>(T? t) {}

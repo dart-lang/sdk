@@ -9,6 +9,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static get property = get self::Extension|property;
+  static set property = set self::Extension|property;
   static field field = self::Extension|field;
   static method readGetter = self::Extension|readGetter;
   static method writeSetterRequired = self::Extension|writeSetterRequired;
@@ -36,7 +37,6 @@ extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   method tearoff fieldAccessFromInstanceContext = self::Extension|get#fieldAccessFromInstanceContext;
   method getterCallsFromInstanceContext = self::Extension|getterCallsFromInstanceContext;
   method tearoff getterCallsFromInstanceContext = self::Extension|get#getterCallsFromInstanceContext;
-  static set property = set self::Extension|property;
 }
 static field dynamic Extension|field;
 static extension-member get Extension|property() → dynamic

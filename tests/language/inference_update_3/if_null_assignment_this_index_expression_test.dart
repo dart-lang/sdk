@@ -337,9 +337,8 @@ class Test13 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that T2' <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o =
-          (this[0] ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (this[0] ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }
@@ -366,9 +365,8 @@ class Test14 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o =
-          (this[0] ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (this[0] ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }
@@ -395,9 +393,8 @@ class Test15 extends Indexable<C1<int> Function()?, Function?> {
       // The fact that NonNull(T1) <!: S precludes using S as static type.
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
-      o =
-          (this[0] ??= callableClassC2Int)
-            ..expectStaticType<Exactly<A Function()>>();
+      o = (this[0] ??= callableClassC2Int)
+        ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }

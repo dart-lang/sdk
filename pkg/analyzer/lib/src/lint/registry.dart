@@ -9,30 +9,33 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 /// Registry of lint rules and warning rules.
-class Registry with IterableMixin<AnalysisRule> {
+class Registry with IterableMixin<AbstractAnalysisRule> {
   /// The default registry to be used by clients.
   static final Registry ruleRegistry = Registry();
 
   /// A table mapping rule names to rules.
-  final Map<String, AnalysisRule> _lintRules = {};
+  final Map<String, AbstractAnalysisRule> _lintRules = {};
 
-  final Map<String, AnalysisRule> _warningRules = {};
+  final Map<String, AbstractAnalysisRule> _warningRules = {};
 
   /// A table mapping unique names to lint codes.
   final Map<String, LintCode> _codeMap = {};
 
   @override
-  Iterator<AnalysisRule> get iterator => _rules.values.iterator;
+  Iterator<AbstractAnalysisRule> get iterator => _rules.values.iterator;
 
   /// Returns a list of the rules that are defined.
-  Iterable<AnalysisRule> get rules => _rules.values;
+  Iterable<AbstractAnalysisRule> get rules => _rules.values;
 
   // TODO(srawlins): This process can result in collisions. Guard against this
   // somehow.
-  Map<String, AnalysisRule> get _rules => {..._lintRules, ..._warningRules};
+  Map<String, AbstractAnalysisRule> get _rules => {
+    ..._lintRules,
+    ..._warningRules,
+  };
 
   /// Returns the rule with the given [name].
-  AnalysisRule? operator [](String name) => _rules[name];
+  AbstractAnalysisRule? operator [](String name) => _rules[name];
 
   /// Returns the lint code that has the given [uniqueName].
   LintCode? codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
@@ -47,47 +50,50 @@ class Registry with IterableMixin<AnalysisRule> {
   ///     my_rule: true
   ///
   /// enables `my_rule`.
-  Iterable<AnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs) => [
+  Iterable<AbstractAnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs) =>
+      [
         // All warning rules that haven't explicitly been disabled.
-        ..._warningRules.values
-            .where((rule) => ruleConfigs[rule.name]?.isEnabled ?? true),
+        ..._warningRules.values.where(
+          (rule) => ruleConfigs[rule.name]?.isEnabled ?? true,
+        ),
         // All lint rules that have explicitly been enabled.
-        ..._lintRules.values
-            .where((rule) => ruleConfigs[rule.name]?.isEnabled ?? false),
+        ..._lintRules.values.where(
+          (rule) => ruleConfigs[rule.name]?.isEnabled ?? false,
+        ),
       ];
 
   /// Returns the rule with the given [name].
-  AnalysisRule? getRule(String name) => _rules[name];
+  AbstractAnalysisRule? getRule(String name) => _rules[name];
 
   /// Adds the given lint [rule] to this registry.
-  void registerLintRule(AnalysisRule rule) {
+  void registerLintRule(AbstractAnalysisRule rule) {
     _lintRules[rule.name] = rule;
-    for (var lintCode in rule.lintCodes) {
-      _codeMap[lintCode.uniqueName] = lintCode;
+    for (var code in rule.diagnosticCodes) {
+      _codeMap[code.uniqueName] = code as LintCode;
     }
   }
 
   /// Adds the given warning [rule] to this registry.
-  void registerWarningRule(AnalysisRule rule) {
+  void registerWarningRule(AbstractAnalysisRule rule) {
     _warningRules[rule.name] = rule;
-    for (var lintCode in rule.lintCodes) {
-      _codeMap[lintCode.uniqueName] = lintCode;
+    for (var code in rule.diagnosticCodes) {
+      _codeMap[code.uniqueName] = code as LintCode;
     }
   }
 
   /// Removes the given lint [rule] from this registry.
-  void unregisterLintRule(AnalysisRule rule) {
+  void unregisterLintRule(AbstractAnalysisRule rule) {
     _lintRules.remove(rule.name);
-    for (var lintCode in rule.lintCodes) {
-      _codeMap.remove(lintCode.uniqueName);
+    for (var code in rule.diagnosticCodes) {
+      _codeMap.remove(code.uniqueName);
     }
   }
 
   /// Removes the given warning [rule] from this registry.
-  void unregisterWarningRule(AnalysisRule rule) {
+  void unregisterWarningRule(AbstractAnalysisRule rule) {
     _warningRules.remove(rule.name);
-    for (var lintCode in rule.lintCodes) {
-      _codeMap.remove(lintCode.uniqueName);
+    for (var code in rule.diagnosticCodes) {
+      _codeMap.remove(code.uniqueName);
     }
   }
 }

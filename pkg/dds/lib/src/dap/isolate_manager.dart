@@ -378,6 +378,16 @@ class IsolateManager {
       if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
         // It's possible something else resumed the thread (such as if another
         // debugger is attached), we can just continue.
+      } else if (e.isServiceDisposedError) {
+        // The VM service connection was terminated, we can silently ignore this
+        // because we're likely shutting down.
+      } else if (e.code == RpcErrorCodes.kInternalError &&
+          e.message.contains('No running isolate (inspector is not set).')) {
+        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
+        // is resolved.
+        // It's possible during these async requests that the isolate went away
+        // (for example a shutdown/restart) and we no longer care about
+        // resuming it.
       } else {
         rethrow;
       }
@@ -425,10 +435,20 @@ class IsolateManager {
       if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
         // It's possible something else resumed the thread (such as if another
         // debugger is attached), we can just continue.
+      } else if (e.isServiceDisposedError) {
+        // The VM service connection was terminated, we can silently ignore this
+        // because we're likely shutting down.
       } else if (e.code == RpcErrorCodes.kMethodNotFound) {
         // Fallback to a regular resume if the DDS service extension isn't
         // available:
         return _resume(threadId);
+      } else if (e.code == RpcErrorCodes.kInternalError &&
+          e.message.contains('No running isolate (inspector is not set).')) {
+        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
+        // is resolved.
+        // It's possible during these async requests that the isolate went away
+        // (for example a shutdown/restart) and we no longer care about
+        // resuming it.
       } else {
         rethrow;
       }
@@ -458,6 +478,17 @@ class IsolateManager {
       // It's possible during these async requests that the isolate went away
       // (for example a shutdown/restart) and we no longer care about
       // pausing it.
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kInternalError &&
+          e.message.contains('No running isolate (inspector is not set).')) {
+        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
+        // is resolved.
+        // It's possible during these async requests that the isolate went away
+        // (for example a shutdown/restart) and we no longer care about
+        // resuming it.
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -566,6 +597,17 @@ class IsolateManager {
       // It's possible during these async requests that the isolate went away
       // (for example a shutdown/restart) and we no longer care about
       // configuring it. State will be cleaned up by the IsolateExit event.
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kInternalError &&
+          e.message.contains('No running isolate (inspector is not set).')) {
+        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
+        // is resolved.
+        // It's possible during these async requests that the isolate went away
+        // (for example a shutdown/restart) and we no longer care about
+        // resuming it.
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -928,6 +970,17 @@ class IsolateManager {
       // If the isolate disappeared before we sent this request, just return
       // null responses.
       return uris.map((e) => null).toList();
+    } on vm.RPCError catch (e) {
+      if (e.code == RpcErrorCodes.kInternalError &&
+          e.message.contains('No running isolate (inspector is not set).')) {
+        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
+        // is resolved.
+        // If the isolate disappeared before we sent this request, just return
+        // null responses.
+        return uris.map((e) => null).toList();
+      } else {
+        rethrow;
+      }
     }
   }
 

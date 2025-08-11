@@ -35,64 +35,58 @@ const _localFlutter = 'local-flutter';
 const _reset = 'reset';
 const _verbose = 'verbose';
 
-final _parser =
-    ArgParser()
-      ..addOption(
-        _architecture,
-        abbr: 'a',
-        help: 'Specify your machine\'s architecture.',
-        allowed: ['ARM64', 'X64'],
-        defaultsTo: 'ARM64',
-      )
-      ..addFlag(
-        _buildSdk,
-        negatable: true,
-        defaultsTo: true,
-        help:
-            'Whether to build the Dart SDK as part of running this script. '
-            'Negate with --no-$_buildSdk if you have already built the Dart '
-            'SDK locally and want to skip this step.',
-      )
-      ..addOption(
-        _localDart,
-        abbr: 'd',
-        help:
-            'Path to your local Dart SDK directory. If unspecified, this value '
-            'will default to the value of the LOCAL_DART_SDK environment '
-            'variable.',
-        valueHelp: '/Users/me/path/to/dart-sdk/sdk',
-      )
-      ..addOption(
-        _localFlutter,
-        abbr: 'f',
-        help:
-            'Path to your local Flutter SDK directory. If unspecified, this '
-            'value will default to the value of the LOCAL_FLUTTER_SDK '
-            'environment variable.',
-        valueHelp: '/Users/me/path/to/flutter',
-      )
-      ..addFlag(
-        _verbose,
-        negatable: false,
-        abbr: 'v',
-        help:
-            'Run the script with verbose output, which will forward the stdout '
-            'and stderr of all sub-processes.',
-      )
-      ..addFlag(
-        _help,
-        negatable: false,
-        abbr: 'h',
-        help: 'Show the program usage.',
-      )
-      ..addSeparator('Additional commands')
-      ..addFlag(
-        _reset,
-        negatable: false,
-        help:
-            'Reset your local Flutter SDK cache to undo the effects of running '
-            'this script.',
-      );
+final _parser = ArgParser()
+  ..addOption(
+    _architecture,
+    abbr: 'a',
+    help: 'Specify your machine\'s architecture.',
+    allowed: ['ARM64', 'X64'],
+    defaultsTo: 'ARM64',
+  )
+  ..addFlag(
+    _buildSdk,
+    negatable: true,
+    defaultsTo: true,
+    help: 'Whether to build the Dart SDK as part of running this script. '
+        'Negate with --no-$_buildSdk if you have already built the Dart '
+        'SDK locally and want to skip this step.',
+  )
+  ..addOption(
+    _localDart,
+    abbr: 'd',
+    help: 'Path to your local Dart SDK directory. If unspecified, this value '
+        'will default to the value of the LOCAL_DART_SDK environment '
+        'variable.',
+    valueHelp: '/Users/me/path/to/dart-sdk/sdk',
+  )
+  ..addOption(
+    _localFlutter,
+    abbr: 'f',
+    help: 'Path to your local Flutter SDK directory. If unspecified, this '
+        'value will default to the value of the LOCAL_FLUTTER_SDK '
+        'environment variable.',
+    valueHelp: '/Users/me/path/to/flutter',
+  )
+  ..addFlag(
+    _verbose,
+    negatable: false,
+    abbr: 'v',
+    help: 'Run the script with verbose output, which will forward the stdout '
+        'and stderr of all sub-processes.',
+  )
+  ..addFlag(
+    _help,
+    negatable: false,
+    abbr: 'h',
+    help: 'Show the program usage.',
+  )
+  ..addSeparator('Additional commands')
+  ..addFlag(
+    _reset,
+    negatable: false,
+    help: 'Reset your local Flutter SDK cache to undo the effects of running '
+        'this script.',
+  );
 
 void main(List<String> args) async {
   if (Platform.isWindows) {
@@ -115,8 +109,7 @@ void main(List<String> args) async {
 
   var localDartSdk =
       options.option(_localDart) ?? Platform.environment['LOCAL_DART_SDK'];
-  var localFlutterSdk =
-      options.option(_localFlutter) ??
+  var localFlutterSdk = options.option(_localFlutter) ??
       Platform.environment['LOCAL_FLUTTER_SDK'];
   if (localDartSdk == null || localFlutterSdk == null) {
     stderr.writeln(
@@ -131,10 +124,13 @@ void main(List<String> args) async {
 
   if (options.flag(_buildSdk)) {
     stdout.writeln('Building the Dart SDK...');
-    await _runCommand('./tools/build.py', [
-      '-mrelease',
-      'create_sdk',
-    ], workingDirectory: localDartSdk);
+    await _runCommand(
+        './tools/build.py',
+        [
+          '-mrelease',
+          'create_sdk',
+        ],
+        workingDirectory: localDartSdk);
   }
 
   await _deleteDartSdkInFlutterCache(localFlutterSdk);
@@ -184,8 +180,7 @@ void main(List<String> args) async {
 }
 
 Future<void> _resetLocalFlutterSdk(ArgResults options) async {
-  var localFlutterSdk =
-      options.option(_localFlutter) ??
+  var localFlutterSdk = options.option(_localFlutter) ??
       Platform.environment['LOCAL_FLUTTER_SDK'];
   if (localFlutterSdk == null) {
     stderr.writeln(

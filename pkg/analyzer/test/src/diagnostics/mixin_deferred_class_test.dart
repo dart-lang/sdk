@@ -20,28 +20,30 @@ class MixinDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;
-''', [
-      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3)],
+    );
   }
 
   test_enum() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 enum E with a.A {
   v;
 }
-''', [
-      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 43, 3)],
+    );
   }
 
   test_mixin_deferred_class() async {
@@ -49,12 +51,13 @@ enum E with a.A {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class B extends Object with a.A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3)],
+    );
   }
 }

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_STUB_CODE_H_
 #define RUNTIME_VM_STUB_CODE_H_
 
+#include <functional>
+
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/object.h"
@@ -54,6 +56,10 @@ class StubCode : public AllStatic {
 
   // Returns nullptr if no stub found.
   static const char* NameOfStub(uword entry_point);
+
+  // Callback is called for each stub until it returns false.
+  static void ForEachStub(
+      const std::function<bool(const char*, uword)>& callback);
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \

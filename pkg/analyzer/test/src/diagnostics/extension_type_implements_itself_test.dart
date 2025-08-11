@@ -16,20 +16,24 @@ main() {
 @reflectiveTest
 class ExtensionTypeImplementsItselfTest extends PubPackageResolutionTest {
   test_hasCycle2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) implements B {}
 extension type B(int it) implements A {}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1),
-      error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 56, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1),
+        error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 56, 1),
+      ],
+    );
   }
 
   test_hasCycle_self() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) implements A {}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1)],
+    );
   }
 }

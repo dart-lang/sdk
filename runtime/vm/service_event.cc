@@ -49,25 +49,31 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
       gc_stats_(nullptr),
       bytes_(nullptr),
       bytes_length_(0),
+      milliseconds_overdue_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm isolate as it is never reported
   // over the service.
   ASSERT(isolate_ != Dart::vm_isolate());
 
-  // VM internal isolates should never post service events. However, the Isolate
-  // service object uses a service event to represent the current running state
-  // of the isolate, so we need to allow for system isolates to create resume
-  // and none events for this purpose. The resume event represents a running
-  // isolate and the none event is returned for an isolate that has not yet
-  // been marked as runnable (see "pauseEvent" in Isolate::PrintJSON).
+  // VM-internal isolates should never post service events outside of the
+  // following cases:
+  //   - The `Isolate` service object uses a service event to represent the
+  //     current running state of the isolate, so we need to allow for system
+  //     isolates to create `kResume` and `kNone` events for this purpose. The
+  //     `kResume` event represents a running isolate and the `kNone` event is
+  //     returned for an isolate that has not yet been marked as runnable (see
+  //     "pauseEvent" in Isolate::PrintJSON).
+  //   - `kEmbedder` events relaying output printed on stdout/stderr may be
+  //      posted from any isolate.
+  //   - `kCpuSamples` events may be posted from any isolate.
+  //   - `kTimerSignificantlyOverdue` events may be posted from any isolate.
   ASSERT(isolate == nullptr || !Isolate::IsVMInternalIsolate(isolate) ||
          (Isolate::IsVMInternalIsolate(isolate) &&
           (event_kind == ServiceEvent::kResume ||
            event_kind == ServiceEvent::kNone ||
-           // VM service can print Observatory information to Stdout or Stderr
-           // which are embedder streams.
            event_kind == ServiceEvent::kEmbedder ||
-           event_kind == ServiceEvent::kCpuSamples)));
+           event_kind == ServiceEvent::kCpuSamples ||
+           event_kind == ServiceEvent::kTimerSignificantlyOverdue)));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -132,6 +138,8 @@ const char* ServiceEvent::KindAsCString() const {
       return embedder_kind();
     case kLogging:
       return "Logging";
+    case kTimerSignificantlyOverdue:
+      return "TimerSignificantlyOverdue";
     case kDebuggerSettingsUpdate:
       return "_DebuggerSettingsUpdate";
     case kIllegal:
@@ -187,6 +195,9 @@ const StreamInfo* ServiceEvent::stream_info() const {
 
     case kLogging:
       return &Service::logging_stream;
+
+    case kTimerSignificantlyOverdue:
+      return &Service::timer_stream;
 
     case kExtension:
       return &Service::extension_stream;
@@ -303,6 +314,17 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     logRecord.AddProperty("zone", *(log_record_.zone));
     logRecord.AddProperty("error", *(log_record_.error));
     logRecord.AddProperty("stackTrace", *(log_record_.stack_trace));
+  }
+  if (kind() == kTimerSignificantlyOverdue) {
+    jsobj.AddPropertyF(
+        "details",
+        "A timer should have fired %" Pd
+        " ms ago, but just fired now. This means that timers were blocked from "
+        "firing for nearly %" Pd
+        " ms. Some possible causes of this are: asynchronous operations were "
+        "blocked by uninterruptible synchronous ones, or your program was "
+        "frozen by the OS to conserve resources.",
+        milliseconds_overdue(), milliseconds_overdue());
   }
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",

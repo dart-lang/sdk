@@ -438,9 +438,9 @@ class DeferredHolderExpressionFinalizerImpl
 
   /// Returns true if [element] is stored in the static state holder
   /// ([staticStateHolder]).  We intend to store only mutable static state
-  /// there, whereas constants are stored in 'C'. Functions, accessors,
-  /// classes, etc. are stored in one of the other objects in
-  /// [reservedGlobalObjectNames].
+  /// there, whereas constants, functions, accessors,
+  /// classes, etc. are stored in one of the other 'holder' objects.
+  // TODO(60939): Have multiple holders.
   bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
@@ -770,8 +770,9 @@ class DeferredHolderExpressionFinalizerImpl
 
     for (var resource in holderResources) {
       // Our default names are either 'MAIN,' 'PART<N>', or '<NAME>_C'.
-      var holderName =
-          resource.isMainFragment ? mainResourceName : 'part${resource.name}';
+      var holderName = resource.isMainFragment
+          ? mainResourceName
+          : 'part${resource.name}';
       holderName = holderName.toUpperCase();
       var holder = Holder(holderName);
 

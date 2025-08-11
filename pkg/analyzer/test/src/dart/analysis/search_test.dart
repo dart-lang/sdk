@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -30,8 +31,10 @@ main() {
 @reflectiveTest
 class SearchMultipleDriversTest extends PubPackageResolutionTest {
   @override
-  List<String> get collectionIncludedPaths =>
-      [workspaceRootPath, otherPackageRootPath];
+  List<String> get collectionIncludedPaths => [
+    workspaceRootPath,
+    otherPackageRootPath,
+  ];
 
   AnalysisDriver get driver => driverFor(testFile);
 
@@ -55,15 +58,18 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
 
     // Ensure only one result for an SDK class, and that the file was tracked as searched.
     var declarations = results.declarations;
-    expect(declarations.where((element) => element.name == 'Duration'),
-        hasLength(1));
+    expect(
+      declarations.where((element) => element.name == 'Duration'),
+      hasLength(1),
+    );
   }
 }
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  final OperationPerformanceImpl performance =
-      OperationPerformanceImpl('<root>');
+  final OperationPerformanceImpl performance = OperationPerformanceImpl(
+    '<root>',
+  );
 
   AnalysisDriver get driver => driverFor(testFile);
 
@@ -83,7 +89,7 @@ class SearchTest extends PubPackageResolutionTest {
   }
 
   Future<void> assertElementReferencesText(
-    Element2 element,
+    Element element,
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
@@ -114,8 +120,10 @@ class SearchTest extends PubPackageResolutionTest {
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
-    var results =
-        await driver.search.referencesLibraryImport(import, searchedFiles);
+    var results = await driver.search.referencesLibraryImport(
+      import,
+      searchedFiles,
+    );
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
       print(actual);
@@ -129,8 +137,10 @@ class SearchTest extends PubPackageResolutionTest {
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
-    var results =
-        await driver.search.unresolvedMemberReferences(name, searchedFiles);
+    var results = await driver.search.unresolvedMemberReferences(
+      name,
+      searchedFiles,
+    );
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       print(actual);
@@ -257,7 +267,10 @@ class C {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS C
     offset: 6 1:7
@@ -290,7 +303,8 @@ testFile
     codeOffset: 78 + 11
     className: C
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_discover() async {
@@ -323,12 +337,15 @@ testFile
       performance: performance,
     ).compute();
 
-    assertDeclarationsText(results, {
-      testFile: 'testFile',
-      file_a: 'file_a',
-      file_b: 'file_b',
-      file_c: 'file_c',
-    }, r'''
+    assertDeclarationsText(
+      results,
+      {
+        testFile: 'testFile',
+        file_a: 'file_a',
+        file_b: 'file_b',
+        file_c: 'file_c',
+      },
+      r'''
 testFile
   CLASS T
     offset: 6 1:7
@@ -341,7 +358,8 @@ file_b
   CLASS B
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_enum() async {
@@ -360,7 +378,10 @@ enum E {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   ENUM E
     offset: 5 1:6
@@ -374,7 +395,8 @@ testFile
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
-''');
+''',
+    );
   }
 
   test_declarations_extension() async {
@@ -395,7 +417,10 @@ extension E on int {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   EXTENSION E
     offset: 10 1:11
@@ -414,7 +439,8 @@ testFile
     offset: 74 5:8
     codeOffset: 69 + 11
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_extensionType() async {
@@ -434,7 +460,10 @@ extension type E(int it) {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   EXTENSION_TYPE E
     offset: 15 1:16
@@ -462,7 +491,8 @@ testFile
     codeOffset: 66 + 11
     className: E
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_fuzzyMatch() async {
@@ -481,12 +511,16 @@ class D {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS A
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_maxResults() async {
@@ -525,7 +559,10 @@ mixin M {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   MIXIN M
     offset: 6 1:7
@@ -548,7 +585,8 @@ testFile
     codeOffset: 58 + 11
     mixinName: M
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_onlyForFile() async {
@@ -567,12 +605,16 @@ testFile
     ).compute();
     expect(results.files, [b.path]);
 
-    assertDeclarationsText(results, {testFile: 'testFile', b: 'file_b'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile', b: 'file_b'},
+      r'''
 file_b
   CLASS B
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_parameters() async {
@@ -592,7 +634,10 @@ void f(bool a, String b) {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS C
     offset: 6 1:7
@@ -610,7 +655,8 @@ testFile
     offset: 64 5:6
     codeOffset: 59 + 27
     parameters: (bool a, String b)
-''');
+''',
+    );
   }
 
   test_declarations_parameters_functionTyped() async {
@@ -629,7 +675,10 @@ void f4(bool Function(int, String) a) {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   FUNCTION f1
     offset: 5 1:6
@@ -647,7 +696,8 @@ testFile
     offset: 106 4:6
     codeOffset: 101 + 40
     parameters: (bool Function(int, String) a)
-''');
+''',
+    );
   }
 
   test_declarations_parameters_typeArguments() async {
@@ -667,7 +717,10 @@ class A<T, T2> {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS A
     offset: 6 1:7
@@ -687,7 +740,8 @@ testFile
     codeOffset: 81 + 50
     className: A
     parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
-''');
+''',
+    );
   }
 
   test_declarations_top() async {
@@ -708,7 +762,10 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   GETTER g
     offset: 8 1:9
@@ -730,7 +787,8 @@ testFile
   TYPE_ALIAS tf2
     offset: 85 6:9
     codeOffset: 77 + 45
-''');
+''',
+    );
   }
 
   test_issue49951_references_dontAddToKnown_unrelated() async {
@@ -748,11 +806,12 @@ class A {}
 
     var myDriver = driverFor(myFile);
     var mySession = contextFor(myFile).currentSession;
-    var libraryElementResult =
-        await mySession.getLibraryByUri('package:my/my.dart');
+    var libraryElementResult = await mySession.getLibraryByUri(
+      'package:my/my.dart',
+    );
     libraryElementResult as LibraryElementResult;
 
-    var A = libraryElementResult.element2.getClass2('A')!;
+    var A = libraryElementResult.element2.getClass('A')!;
 
     var searchedFiles = SearchedFiles();
     searchedFiles.ownAnalyzed(myDriver.search);
@@ -800,7 +859,7 @@ void f(p) {
 ''');
 
     await assertUnresolvedMemberReferencesText('test', r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   16 2:5 |test| READ qualified unresolved
   26 3:5 |test| WRITE qualified unresolved
   40 4:5 |test| READ_WRITE qualified unresolved
@@ -837,7 +896,7 @@ class C {
 ''');
 
     await assertUnresolvedMemberReferencesText('test', r'''
-<testLibraryFragment>::@class::C::@method::main
+<testLibraryFragment> main@12
   31 3:11 |test| READ unresolved
   42 4:5 |test| WRITE unresolved
   56 5:5 |test| READ_WRITE unresolved
@@ -870,8 +929,8 @@ void f() {
 ''');
 
     var A = findElement2.class_('A');
-    var element = A.constructors2.single;
-    expect(element.name3, 'named');
+    var element = A.constructors.single;
+    expect(element.name, 'named');
 
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@class::A::@method::foo
@@ -894,7 +953,7 @@ class A {
 ''');
     var element = findElement2.getter('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   35 2:16 |foo| REFERENCE qualified
   62 3:16 || REFERENCE qualified
 ''');
@@ -913,7 +972,7 @@ class A {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   35 2:16 |foo| REFERENCE qualified
   62 3:16 || REFERENCE qualified
 ''');
@@ -928,9 +987,9 @@ Random v2;
 
     var element = findElement2.importFind('dart:math').class_('Random');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@topLevelVariable::v1
+<testLibraryFragment> v1@27
   20 2:1 |Random| REFERENCE
-<testLibraryFragment>::@topLevelVariable::v2
+<testLibraryFragment> v2@38
   31 3:1 |Random| REFERENCE
 ''');
   }
@@ -948,17 +1007,17 @@ List<A> v2 = null;
 ''');
     var element = findElement2.class_('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main::@formalParameter::p
+<testLibraryFragment> p@19
   17 2:6 |A| REFERENCE
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@12
   26 3:3 |A| REFERENCE
-<testLibraryFragment>::@class::B1
+<testLibraryFragment> B1@39
   50 5:18 |A| REFERENCE
-<testLibraryFragment>::@class::B2
+<testLibraryFragment> B2@61
   75 6:21 |A| REFERENCE
-<testLibraryFragment>::@class::B3
+<testLibraryFragment> B3@86
   109 7:30 |A| REFERENCE
-<testLibraryFragment>::@topLevelVariable::v2
+<testLibraryFragment> v2@122
   119 8:6 |A| REFERENCE
 ''');
   }
@@ -973,11 +1032,11 @@ main(A p) {
   A v;
 }
 ''');
-    var element = findNode.namedType('A p').element2!;
+    var element = findNode.namedType('A p').element!;
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main::@formalParameter::p
+<testLibraryFragment> p@26
   24 2:6 |A| REFERENCE
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@19
   33 3:3 |A| REFERENCE
 ''');
   }
@@ -993,9 +1052,9 @@ main(MyEnum p) {
 ''');
     var element = findElement2.enum_('MyEnum');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main::@formalParameter::p
+<testLibraryFragment> p@29
   22 3:6 |MyEnum| REFERENCE
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@17
   36 4:3 |MyEnum| REFERENCE
   48 5:3 |MyEnum| REFERENCE
 ''');
@@ -1009,7 +1068,7 @@ void f(({int foo, A bar}) r) {}
 ''');
     var element = findElement2.class_('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f::@formalParameter::r
+<testLibraryFragment> r@38
   30 3:19 |A| REFERENCE
 ''');
   }
@@ -1022,7 +1081,7 @@ void f((int, A) r) {}
 ''');
     var element = findElement2.class_('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f::@formalParameter::r
+<testLibraryFragment> r@28
   25 3:14 |A| REFERENCE
 ''');
   }
@@ -1034,7 +1093,7 @@ class B extends Object with A {}
 ''');
     var element = findElement2.mixin('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::B
+<testLibraryFragment> B@17
   39 2:29 |A| REFERENCE
 ''');
   }
@@ -1053,7 +1112,7 @@ void f() {}
 
     var element = findElement2.class_('B');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@54
   44 7:4 |B| REFERENCE
 ''');
   }
@@ -1063,12 +1122,13 @@ void f() {}
     await resolveTestCode('''
 export 'foo.dart';
 ''');
-    var element = findElement2
-        .export('package:test/foo.dart')
-        .exportedLibrary2!
-        .firstFragment;
+    var element =
+        findElement2
+            .export('package:test/foo.dart')
+            .exportedLibrary!
+            .firstFragment;
     await assertLibraryFragmentReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   7 1:8 |'foo.dart'|
 ''');
   }
@@ -1081,7 +1141,7 @@ import 'foo.dart';
     var element =
         findElement2.importFind('package:test/foo.dart').libraryFragment;
     await assertLibraryFragmentReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   7 1:8 |'foo.dart'|
 ''');
   }
@@ -1097,7 +1157,7 @@ part 'foo.dart';
 
     var element = findElement2.part('package:test/foo.dart');
     await assertLibraryFragmentReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   5 1:6 |'foo.dart'|
 ''');
   }
@@ -1122,15 +1182,15 @@ void f() {
 ''');
     var element = findElement2.constructor('named');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A
+<testLibraryFragment> A@26
   10 1:11 |.named| REFERENCE qualified
-<testLibraryFragment>::@class::A::@constructor::other
+<testLibraryFragment> other@49
   63 4:19 |.named| INVOCATION qualified
-<testLibraryFragment>::@class::B::@constructor::new
+<testLibraryFragment> new@null
   109 8:14 |.named| INVOCATION qualified
-<testLibraryFragment>::@class::B::@constructor::other
+<testLibraryFragment> other@131
   142 9:24 |.named| REFERENCE qualified
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@158
   167 13:4 |.named| INVOCATION qualified
   180 14:4 |.named| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
@@ -1152,7 +1212,7 @@ void f() {
 
     var element = findElement2.constructor('named');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@55
   64 8:4 |.named| INVOCATION qualified
   77 9:4 |.named| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
@@ -1178,15 +1238,15 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A
+<testLibraryFragment> A@20
   10 1:11 || REFERENCE qualified
-<testLibraryFragment>::@class::A::@constructor::other
+<testLibraryFragment> other@37
   51 4:19 || INVOCATION qualified
-<testLibraryFragment>::@class::B::@constructor::new
+<testLibraryFragment> new@null
   91 8:14 || INVOCATION qualified
-<testLibraryFragment>::@class::B::@constructor::other
+<testLibraryFragment> other@107
   118 9:24 || REFERENCE qualified
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@128
   137 13:4 || INVOCATION qualified
   144 14:4 |.new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
@@ -1210,7 +1270,7 @@ class A {
 ''');
     var element = findElement2.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-package:test/other.dart::<fragment>::@function::f
+package:test/other.dart f@26
   35 4:4 || INVOCATION qualified
 ''');
   }
@@ -1232,15 +1292,31 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A
+<testLibraryFragment> A@20
   10 1:11 || REFERENCE qualified
-<testLibraryFragment>::@class::B::@constructor::new
+<testLibraryFragment> new@null
   59 5:14 || INVOCATION qualified
-<testLibraryFragment>::@class::B::@constructor::other
+<testLibraryFragment> other@75
   86 6:24 || REFERENCE qualified
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@96
   105 10:4 || INVOCATION qualified
   112 11:4 |.new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {}
+void main() {
+  A a = .new(); // 1
+  A tearOff = .new; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> main@16
+  34 3:10 |new| INVOCATION qualified
+  61 4:16 |new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
@@ -1255,11 +1331,11 @@ enum E {
 ''');
     var element = findElement2.constructor('named');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E
+<testLibraryFragment> E@25
   10 1:11 |.named| REFERENCE qualified
-<testLibraryFragment>::@enum::E::@field::v
+<testLibraryFragment> v@31
   32 3:4 |.named| INVOCATION qualified
-<testLibraryFragment>::@enum::E::@constructor::other
+<testLibraryFragment> other@71
   85 5:25 |.named| INVOCATION qualified
 ''');
   }
@@ -1277,15 +1353,15 @@ enum E {
 ''');
     var element = findElement2.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E
+<testLibraryFragment> E@17
   10 1:11 || REFERENCE qualified
-<testLibraryFragment>::@enum::E::@field::v1
+<testLibraryFragment> v1@23
   25 3:5 || INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
-<testLibraryFragment>::@enum::E::@field::v2
+<testLibraryFragment> v2@29
   31 4:5 || INVOCATION qualified
-<testLibraryFragment>::@enum::E::@field::v3
+<testLibraryFragment> v3@37
   39 5:5 |.new| INVOCATION qualified
-<testLibraryFragment>::@enum::E::@constructor::other
+<testLibraryFragment> other@70
   84 7:25 || INVOCATION qualified
 ''');
   }
@@ -1301,13 +1377,13 @@ enum E {
 ''');
     var element = findElement2.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E
+<testLibraryFragment> E@17
   10 1:11 || REFERENCE qualified
-<testLibraryFragment>::@enum::E::@field::v1
+<testLibraryFragment> v1@23
   25 3:5 || INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
-<testLibraryFragment>::@enum::E::@field::v2
+<testLibraryFragment> v2@29
   31 4:5 || INVOCATION qualified
-<testLibraryFragment>::@enum::E::@field::v3
+<testLibraryFragment> v3@37
   39 5:5 |.new| INVOCATION qualified
 ''');
   }
@@ -1331,7 +1407,7 @@ class A {
     // Look up field 'x' and assert that its reference is correctly found.
     var field = findElement2.fieldFormalParameter('x');
     await assertElementReferencesText(field, r'''
-package:test/other.dart::<fragment>::@class::B::@constructor::new::@parameter::x
+package:test/other.dart x@52
   52 4:12 |x| REFERENCE qualified
 ''');
   }
@@ -1350,7 +1426,7 @@ main() {
 ''');
     var element = findElement2.extension_('E');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@63
   74 7:3 |E| REFERENCE
   88 8:3 |E| REFERENCE
 ''');
@@ -1368,9 +1444,9 @@ void f(E e) {
 ''');
     var element = findElement2.extensionType('E');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f::@formalParameter::e
+<testLibraryFragment> e@62
   60 5:8 |E| REFERENCE
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@58
   69 6:3 |E| REFERENCE
 ''');
   }
@@ -1395,9 +1471,9 @@ class A {
 ''');
     var element = findElement2.field('field');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new::@parameter::field
+<testLibraryFragment> field@33
   33 3:11 |field| WRITE qualified
-<testLibraryFragment>::@class::A::@method::main
+<testLibraryFragment> main@44
   92 7:5 |field| READ
   108 8:10 |field| READ qualified
   119 9:5 |field| READ
@@ -1426,13 +1502,29 @@ class A {
 ''');
     var element = findElement2.field('field');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::main
+<testLibraryFragment> main@51
   78 6:5 |field| READ
   94 7:10 |field| READ qualified
   105 8:5 |field| READ
   123 9:10 |field| READ qualified
   150 11:5 |field| WRITE
   170 12:10 |field| WRITE qualified
+''');
+  }
+
+  test_searchReferences_FieldElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A field = A();
+}
+void main() {
+  A a = .field; // 1
+}
+''');
+    var element = findElement2.field('field');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> main@41
+  59 5:10 |field| READ qualified
 ''');
   }
 
@@ -1450,9 +1542,9 @@ void f(E e) {
 ''');
     var element = findElement2.field('field');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E::@constructor::new::@parameter::field
+<testLibraryFragment> field@68
   68 4:26 |field| WRITE qualified
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@85
   98 8:5 |field| READ qualified
 ''');
   }
@@ -1469,28 +1561,28 @@ main() {
   MyEnum.B;
 }
 ''');
-    var index = typeProvider.enumElement2!.getField2('index')!;
+    var index = typeProvider.enumElement!.getField('index')!;
     await assertElementReferencesText(index, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@26
   46 5:12 |index| READ qualified
 ''');
 
     var values = findElement2.field('values');
     await assertElementReferencesText(values, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@26
   62 6:10 |values| READ qualified
 ''');
 
     var A = findElement2.field('A');
     await assertElementReferencesText(A, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@26
   44 5:10 |A| READ qualified
   79 7:10 |A| READ qualified
 ''');
 
     var B = findElement2.field('B');
     await assertElementReferencesText(B, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@26
   91 8:10 |B| READ qualified
 ''');
   }
@@ -1505,7 +1597,7 @@ main() {
 ''');
     var element = findElement2.function('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@10
   21 3:3 |test| INVOCATION
   31 4:3 |test| REFERENCE
 ''');
@@ -1522,7 +1614,7 @@ main() {
 ''');
     var element = findElement2.localFunction('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   23 3:3 |test| INVOCATION
   33 4:3 |test| REFERENCE
 ''');
@@ -1541,7 +1633,7 @@ Random bar() => null;
 ''');
     var element = findElement2.import('dart:math', mustBeUnique: false);
     await assertLibraryImportReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   111 4:3 ||
   121 5:7 ||
   133 6:3 ||
@@ -1573,7 +1665,7 @@ Random bar() => null;
 
     var element = findElement2.import('dart:math');
     await assertLibraryImportReferencesText(element, r'''
-package:aaa/a.dart::<fragment>
+#F0
   111 4:3 ||
   121 5:7 ||
   133 6:3 ||
@@ -1594,7 +1686,7 @@ math.Random bar() => null;
 ''');
     var element = findElement2.import('dart:math', mustBeUnique: false);
     await assertLibraryImportReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   119 4:3 |math.|
   134 5:7 |math.|
   151 6:3 |math.|
@@ -1614,14 +1706,14 @@ main() {
     {
       var element = findElement2.import('dart:async');
       await assertLibraryImportReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   76 5:3 |p.|
 ''');
     }
     {
       var element = findElement2.import('dart:math');
       await assertLibraryImportReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   62 4:3 |p.|
 ''');
     }
@@ -1642,7 +1734,7 @@ label:
 ''');
     var element = findElement2.label('label');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   61 5:13 |label| REFERENCE
   84 7:11 |label| REFERENCE
 ''');
@@ -1672,9 +1764,9 @@ part 'unitB.dart';
 ''');
     var element = result.libraryElement2;
     await assertElementReferencesText(element, r'''
-package:aaa/a.dart::@fragment::package:aaa/unitA.dart
+#F0
   8 1:9 |lib| REFERENCE
-package:aaa/a.dart::@fragment::package:aaa/unitB.dart
+#F1
   8 1:9 |lib| REFERENCE
 ''');
   }
@@ -1689,9 +1781,9 @@ part 'unitB.dart';
 ''');
     var element = result.libraryElement2;
     await assertElementReferencesText(element, r'''
-<testLibrary>::@fragment::package:test/unitA.dart
+#F0
   8 1:9 |lib| REFERENCE
-<testLibrary>::@fragment::package:test/unitB.dart
+#F1
   8 1:9 |lib| REFERENCE
 ''');
   }
@@ -1712,9 +1804,9 @@ part 'unitB.dart';
 
     var element = result.libraryElement2;
     await assertElementReferencesText(element, r'''
-<testLibrary>::@fragment::package:test/unitA.dart
+#F0
   8 1:9 |'test.dart'| REFERENCE
-<testLibrary>::@fragment::package:test/unitB.dart
+#F1
   8 1:9 |'test.dart'| REFERENCE
 ''');
   }
@@ -1732,7 +1824,7 @@ main() {
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   20 3:3 |v| WRITE
   29 4:3 |v| READ_WRITE
   39 5:3 |v| READ
@@ -1749,7 +1841,7 @@ Object f() => [
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@7
   36 2:21 |v| READ
 ''');
   }
@@ -1767,7 +1859,7 @@ Object f() {
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@7
   54 4:25 |v| READ
 ''');
   }
@@ -1783,7 +1875,7 @@ Object f() {
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@7
   46 3:23 |v| READ
 ''');
   }
@@ -1797,7 +1889,7 @@ var x = [
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@topLevelVariable::x
+<testLibraryFragment> x@4
   30 2:21 |v| READ
 ''');
   }
@@ -1816,7 +1908,7 @@ main() {
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   35 3:5 |v| WRITE
   46 4:5 |v| READ_WRITE
   58 5:5 |v| READ
@@ -1848,7 +1940,7 @@ main() {
 
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-package:aaa/a.dart::<fragment>::@function::main
+package:aaa/a.dart main@0
   20 3:3 |v| WRITE
   29 4:3 |v| READ_WRITE
   39 5:3 |v| READ
@@ -1870,11 +1962,29 @@ class A {
 ''');
     var element = findElement2.method('m');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::main
+<testLibraryFragment> main@21
   34 4:5 |m| INVOCATION
   48 5:10 |m| INVOCATION qualified
   57 6:5 |m| REFERENCE
   69 7:10 |m| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static A method() => A();
+}
+void main() {
+  A a = .method(); // 1
+  A aa = .method; // 2, is also a compile-time error
+}
+''');
+    var element = findElement2.method('method');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> main@45
+  63 5:10 |method| INVOCATION qualified
+  88 6:11 |method| REFERENCE qualified
 ''');
   }
 
@@ -1896,10 +2006,10 @@ void f(E e) {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E::@method::bar
+<testLibraryFragment> bar@37
   49 5:5 |foo| INVOCATION
   65 6:10 |foo| INVOCATION qualified
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@84
   97 11:5 |foo| INVOCATION qualified
   108 12:5 |foo| REFERENCE qualified
 ''');
@@ -1927,12 +2037,12 @@ main() {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::E::@method::bar
+<testLibraryFragment> bar@45
   57 5:5 |foo| INVOCATION
   73 6:10 |foo| INVOCATION qualified
   84 7:5 |foo| REFERENCE
   98 8:10 |foo| REFERENCE qualified
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@110
   126 13:8 |foo| INVOCATION qualified
   137 14:5 |foo| INVOCATION qualified
   151 15:8 |foo| REFERENCE qualified
@@ -1955,7 +2065,7 @@ extension E on int {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::E::@method::bar
+<testLibraryFragment> bar@45
   57 5:5 |foo| INVOCATION
   73 6:10 |foo| INVOCATION qualified
   84 7:5 |foo| REFERENCE
@@ -1981,10 +2091,10 @@ main() {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::E::@method::bar
+<testLibraryFragment> bar@59
   71 5:5 |foo| INVOCATION
   82 6:5 |foo| REFERENCE
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@94
   107 11:5 |foo| INVOCATION qualified
   118 12:5 |foo| REFERENCE qualified
 ''');
@@ -2005,7 +2115,7 @@ extension on int {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::0::@method::bar
+<testLibraryFragment> bar@43
   55 5:5 |foo| INVOCATION
   71 6:10 |foo| INVOCATION qualified
   82 7:5 |foo| REFERENCE
@@ -2029,9 +2139,9 @@ void f(E e) {
 ''');
     var element = findElement2.method('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extensionType::E::@method::bar
+<testLibraryFragment> bar@51
   63 5:5 |foo| INVOCATION
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@82
   95 10:5 |foo| INVOCATION qualified
 ''');
   }
@@ -2047,9 +2157,82 @@ main(A<int> a) {
 ''');
     var element = findElement2.method('m');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@32
   53 5:5 |m| INVOCATION qualified
 ''');
+  }
+
+  test_searchReferences_ParameterElement_generic_atDeclaration() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element = findElement2.parameter('p');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@5
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  @SkippedTest(
+    // When this test begins passing, the temporary test
+    // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
+    // can be removed.
+    issue: 'https://github.com/dart-lang/sdk/issues/60200',
+  )
+  test_searchReferences_ParameterElement_generic_atInvocation() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::f
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  /// A temporary test to ensure the search does not throw, while
+  /// [test_searchReferences_ParameterElement_generic_atInvocation] is marked as
+  /// failing.
+  ///
+  /// This test can be removed once [test_searchReferences_ParameterElement_generic_atInvocation]
+  /// is passing.
+  test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    expect(driver.search.references(element, SearchedFiles()), completes);
   }
 
   test_searchReferences_ParameterElement_ofConstructor_super_named() async {
@@ -2063,7 +2246,7 @@ class B extends A {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('a');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+<testLibraryFragment> a@75
   75 5:21 |a| REFERENCE qualified
 ''');
   }
@@ -2079,7 +2262,7 @@ class B extends A {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('a');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
+<testLibraryFragment> a@54
   54 5:11 |a| REFERENCE qualified
 ''');
   }
@@ -2098,12 +2281,12 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   13 2:3 |p| WRITE
   22 3:3 |p| READ_WRITE
   32 4:3 |p| READ
   37 5:3 |p| READ
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@44
   59 8:7 |p| REFERENCE qualified
 ''');
   }
@@ -2119,9 +2302,9 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   27 2:3 |p| READ
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@32
   50 5:10 |p| REFERENCE qualified
 ''');
   }
@@ -2140,12 +2323,12 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   13 2:3 |p| WRITE
   22 3:3 |p| READ_WRITE
   32 4:3 |p| READ
   37 5:3 |p| READ
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@44
   59 8:7 || REFERENCE qualified
 ''');
   }
@@ -2164,12 +2347,12 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   26 2:3 |p| WRITE
   35 3:3 |p| READ_WRITE
   45 4:3 |p| READ
   50 5:3 |p| READ
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@57
   72 8:7 |p| REFERENCE qualified
 ''');
   }
@@ -2191,7 +2374,7 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::C::@constructor::new
+<testLibraryFragment> new@null
   32 3:14 |p| READ
   44 4:5 |p| WRITE
   55 5:5 |p| READ_WRITE
@@ -2215,7 +2398,7 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   24 3:5 |p| WRITE
   35 4:5 |p| READ_WRITE
   47 5:5 |p| READ
@@ -2239,7 +2422,7 @@ main(C c) {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::C::@method::foo
+<testLibraryFragment> foo@12
   25 3:5 |p| WRITE
   36 4:5 |p| READ_WRITE
   48 5:5 |p| READ
@@ -2261,7 +2444,7 @@ main() {
 ''');
     var element = findElement2.parameter('p');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   11 2:3 |p| WRITE
   20 3:3 |p| READ_WRITE
   30 4:3 |p| READ
@@ -2286,9 +2469,9 @@ main() {
 ''');
     var element = findElement2.prefix('ppp');
     await assertElementReferencesText(element, r'''
-<testLibrary>::@fragment::package:test/my_part.dart::@topLevelVariable::c
+package:test/my_part.dart c@27
   16 2:1 |ppp| REFERENCE
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@65
   76 5:3 |ppp| REFERENCE
   92 6:3 |ppp| REFERENCE
 ''');
@@ -2310,7 +2493,7 @@ void f() {
 ''');
     var element = findElement2.prefix('prefix');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@33
   41 4:3 |prefix| REFERENCE
 ''');
   }
@@ -2345,10 +2528,10 @@ main() {
 
     var element = findElement2.prefix('ppp');
     await assertElementReferencesText(element, r'''
-package:aaa/a.dart::<fragment>::@function::main
+package:aaa/a.dart main@65
   76 5:3 |ppp| REFERENCE
   92 6:3 |ppp| REFERENCE
-package:aaa/a.dart::@fragment::package:aaa/my_part.dart::@topLevelVariable::c
+package:aaa/my_part.dart c@27
   16 2:1 |ppp| REFERENCE
 ''');
   }
@@ -2373,11 +2556,11 @@ _C v;
 ''');
     var element = findElement2.class_('_C');
     await assertElementReferencesText(element, r'''
-<testLibrary>::@fragment::package:test/part1.dart::@topLevelVariable::v1
+package:test/part1.dart v1@16
   13 1:14 |_C| REFERENCE
-<testLibrary>::@fragment::package:test/part2.dart::@topLevelVariable::v2
+package:test/part2.dart v2@16
   13 1:14 |_C| REFERENCE
-<testLibraryFragment>::@topLevelVariable::v
+<testLibraryFragment> v@85
   82 6:1 |_C| REFERENCE
 ''');
   }
@@ -2408,11 +2591,11 @@ _C v1;
 
     var element = findElement2.partFind('package:test/part1.dart').class_('_C');
     await assertElementReferencesText(element, r'''
-<testLibrary>::@fragment::package:test/part1.dart::@topLevelVariable::v1
+package:test/part1.dart v1@28
   25 3:1 |_C| REFERENCE
-<testLibrary>::@fragment::package:test/part2.dart::@topLevelVariable::v2
+package:test/part2.dart v2@16
   13 1:14 |_C| REFERENCE
-<testLibraryFragment>::@topLevelVariable::v
+<testLibraryFragment> v@54
   51 4:1 |_C| REFERENCE
 ''');
   }
@@ -2447,11 +2630,11 @@ _C v;
 
     var element = findElement2.class_('_C');
     await assertElementReferencesText(element, r'''
-package:aaa/a.dart::<fragment>::@topLevelVariable::v
+package:aaa/a.dart v@66
   63 5:1 |_C| REFERENCE
-package:aaa/a.dart::@fragment::package:aaa/part1.dart::@topLevelVariable::v1
+package:aaa/part1.dart v1@16
   13 1:14 |_C| REFERENCE
-package:aaa/a.dart::@fragment::package:aaa/part2.dart::@topLevelVariable::v2
+package:aaa/part2.dart v2@16
   13 1:14 |_C| REFERENCE
 ''');
   }
@@ -2474,10 +2657,10 @@ main() {
 ''');
     var element = findElement2.getter('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::E::@method::bar
+<testLibraryFragment> bar@49
   61 5:5 |foo| REFERENCE
   75 6:10 |foo| REFERENCE qualified
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@87
   103 11:8 |foo| REFERENCE qualified
   112 12:5 |foo| REFERENCE qualified
 ''');
@@ -2501,10 +2684,10 @@ main() {
 ''');
     var element = findElement2.setter('foo');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@extension::E::@method::bar
+<testLibraryFragment> bar@49
   61 5:5 |foo| REFERENCE
   79 6:10 |foo| REFERENCE qualified
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@95
   111 11:8 |foo| REFERENCE qualified
   124 12:5 |foo| REFERENCE qualified
 ''');
@@ -2524,7 +2707,7 @@ class A {
 ''');
     var element = findElement2.getter('ggg');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::main
+<testLibraryFragment> main@31
   44 4:5 |ggg| REFERENCE
   58 5:10 |ggg| REFERENCE qualified
   67 6:5 |ggg| REFERENCE
@@ -2544,7 +2727,7 @@ class A {
 ''');
     var element = findElement2.setter('s');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::main
+<testLibraryFragment> main@26
   39 4:5 |s| REFERENCE
   55 5:10 |s| REFERENCE qualified
 ''');
@@ -2571,9 +2754,9 @@ main() {
         .importFind('package:test/lib.dart', mustBeUnique: false)
         .topVar('V');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>
+#F0
   23 1:24 |V| REFERENCE qualified
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@53
   69 4:8 |V| WRITE qualified
   83 5:8 |V| READ qualified
   93 6:8 |V| READ qualified
@@ -2604,11 +2787,11 @@ void f(B p) {
 
     var element = findElement2.typeAlias('B');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::C
+<testLibraryFragment> C@93
   103 8:17 |B| REFERENCE
-<testLibraryFragment>::@function::f::@formalParameter::p
+<testLibraryFragment> p@118
   116 10:8 |B| REFERENCE
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@114
   125 11:3 |B| REFERENCE
   132 12:3 |B| REFERENCE
   147 13:3 |B| REFERENCE
@@ -2629,7 +2812,7 @@ void f() {
 
     var element = findElement2.typeAlias('B');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@41
   49 6:3 |B| REFERENCE
 ''');
   }
@@ -2643,9 +2826,9 @@ class A<T> {
 ''');
     var element = findElement2.typeParameter('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::foo::@formalParameter::a
+<testLibraryFragment> a@21
   19 2:7 |T| REFERENCE
-<testLibraryFragment>::@class::A::@method::bar::@formalParameter::b
+<testLibraryFragment> b@35
   33 3:7 |T| REFERENCE
 ''');
   }
@@ -2660,9 +2843,9 @@ enum E<T> {
 ''');
     var element = findElement2.typeParameter('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@enum::E::@field::a
+<testLibraryFragment> a@27
   25 3:9 |T| REFERENCE
-<testLibraryFragment>::@enum::E::@method::foo::@formalParameter::b
+<testLibraryFragment> b@43
   41 4:12 |T| REFERENCE
 ''');
   }
@@ -2678,7 +2861,7 @@ main() {
 ''');
     var element = findElement2.typeParameter('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::main
+<testLibraryFragment> main@0
   23 2:15 |T| REFERENCE
   43 3:14 |T| REFERENCE
 ''');
@@ -2692,7 +2875,7 @@ class A {
 ''');
     var element = findElement2.typeParameter('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A::@method::foo::@formalParameter::p
+<testLibraryFragment> p@21
   19 2:10 |T| REFERENCE
 ''');
   }
@@ -2705,9 +2888,9 @@ foo<T>(T a) {
 ''');
     var element = findElement2.typeParameter('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::foo::@formalParameter::a
+<testLibraryFragment> a@9
   7 1:8 |T| REFERENCE
-<testLibraryFragment>::@function::foo
+<testLibraryFragment> foo@0
   20 2:7 |T| REFERENCE
 ''');
   }
@@ -2724,7 +2907,7 @@ void f(x) {
 ''');
     var element = findNode.bindPatternVariableElement('v) =');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   29 3:3 |v| WRITE
   38 4:3 |v| READ_WRITE
   48 5:3 |v| READ
@@ -2742,7 +2925,7 @@ void f(Object? x) {
 ''');
     var element = findNode.bindPatternVariableElement('v)');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   46 3:5 |v| READ
 ''');
   }
@@ -2758,7 +2941,7 @@ void f(Object? x) {
 ''');
     var element = findNode.bindPatternVariableElement('v]');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   57 3:5 |v| READ
   64 4:5 |v| WRITE
 ''');
@@ -2775,7 +2958,7 @@ void f() {
 ''');
     var element = findElement2.localVar('v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   23 3:4 |v| WRITE
   41 4:3 |v| READ
 ''');
@@ -2790,7 +2973,7 @@ Object f(Object? x) => switch (0) {
 ''');
     var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@7
   49 2:14 |v| READ
   58 2:23 |v| READ
   67 2:32 |v| WRITE
@@ -2806,7 +2989,7 @@ var f = switch (0) {
 ''');
     var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@topLevelVariable::f
+<testLibraryFragment> f@4
   34 2:14 |v| READ
   43 2:23 |v| READ
   52 2:32 |v| WRITE
@@ -2826,7 +3009,7 @@ void f(Object? x) {
 ''');
     var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   55 3:21 |v| READ
   84 4:23 |v| READ
   97 5:7 |v| READ
@@ -2847,7 +3030,7 @@ void f(Object? x) {
 ''');
     var element = findNode.bindPatternVariableElement('int v when');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@function::f
+<testLibraryFragment> f@5
   55 3:21 |v| READ
   100 4:39 |v| READ
   113 5:7 |v| READ
@@ -2864,11 +3047,11 @@ class C implements T {}
 ''');
     var element = findElement2.class_('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@class::A
+<testLibraryFragment> A@17
   27 2:17 |T| REFERENCE
-<testLibraryFragment>::@class::B
+<testLibraryFragment> B@38
   54 3:23 |T| REFERENCE
-<testLibraryFragment>::@class::C
+<testLibraryFragment> C@63
   76 4:20 |T| REFERENCE
 ''');
   }
@@ -2881,9 +3064,9 @@ mixin B implements T {}
 ''');
     var element = findElement2.class_('T');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment>::@mixin::A
+<testLibraryFragment> A@17
   22 2:12 |T| REFERENCE
-<testLibraryFragment>::@mixin::B
+<testLibraryFragment> B@33
   46 3:20 |T| REFERENCE
 ''');
   }
@@ -2913,8 +3096,10 @@ class F {}
     var a = findElement2.class_('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: a,
+    );
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -2935,8 +3120,10 @@ class F {}
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes =
-          await driver.search.subtypes(SearchedFiles(), subtype: b);
+      List<SubtypeResult> subtypes = await driver.search.subtypes(
+        SearchedFiles(),
+        subtype: b,
+      );
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
@@ -2989,11 +3176,13 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    var aClass = aLibraryResult.element2.getClass2('A')!;
+    var aClass = aLibraryResult.element2.getClass('A')!;
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: aClass);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: aClass,
+    );
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
@@ -3039,17 +3228,19 @@ class C implements List {}
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    var listElement = coreLibResult.element2.getClass2('List')!;
+    var listElement = coreLibResult.element2.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
 
     void assertHasResult(String uriStr, String name, {bool not = false}) {
-      var matcher = contains(predicate((SearchResult r) {
-        var element = r.enclosingFragment.element;
-        return element.library2!.uri.toString() == uriStr &&
-            element.name3 == name;
-      }));
+      var matcher = contains(
+        predicate((SearchResult r) {
+          var element = r.enclosingFragment.element;
+          return element.library!.uri.toString() == uriStr &&
+              element.name == name;
+        }),
+      );
       expect(results, not ? isNot(matcher) : matcher);
     }
 
@@ -3077,8 +3268,10 @@ class A {}
 ''');
     var a = findElement2.class_('A');
 
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: a,
+    );
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -3232,11 +3425,13 @@ class NoMatchABCDEF {}
     var f = findElement2.function('f');
     var g = findElement2.topVar('g');
     RegExp regExp = RegExp(r'^[ABCDfg]$');
-    expect(await driver.search.topLevelElements(regExp),
-        unorderedEquals([a, b, c, d, f, g]));
+    expect(
+      await driver.search.topLevelElements(regExp),
+      unorderedEquals([a, b, c, d, f, g]),
+    );
   }
 
-  Future<List<Element2>> _findClassMembers(String name) {
+  Future<List<Element>> _findClassMembers(String name) {
     var searchedFiles = SearchedFiles();
     return driver.search.classMembers(name, searchedFiles);
   }
@@ -3299,20 +3494,21 @@ class NoMatchABCDEF {}
         .groupListsBy((result) => result.enclosingFragment)
         .entries
         .map((entry) {
-      var enclosingFragment = entry.key;
-      return _GroupToPrint(
-        enclosingFragment: enclosingFragment,
-        results: entry.value.sortedBy<num>((e) => e.offset),
-      );
-    }).sorted((first, second) {
-      var firstPath = first.path;
-      var secondPath = second.path;
-      var byPath = firstPath.compareTo(secondPath);
-      if (byPath != 0) {
-        return byPath;
-      }
-      return first.results.first.offset - second.results.first.offset;
-    });
+          var enclosingFragment = entry.key;
+          return _GroupToPrint(
+            enclosingFragment: enclosingFragment,
+            results: entry.value.sortedBy<num>((e) => e.offset),
+          );
+        })
+        .sorted((first, second) {
+          var firstPath = first.path;
+          var secondPath = second.path;
+          var byPath = firstPath.compareTo(secondPath);
+          if (byPath != 0) {
+            return byPath;
+          }
+          return first.results.first.offset - second.results.first.offset;
+        });
 
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
@@ -3361,22 +3557,23 @@ class NoMatchABCDEF {}
         .groupListsBy((result) => result.libraryFragment)
         .entries
         .map((entry) {
-      var enclosingFragment = entry.key;
-      return _GroupToPrint2(
-        enclosingFragment: enclosingFragment,
-        results: entry.value.sortedBy<num>((e) => e.range.offset),
-      );
-    }).sorted((first, second) {
-      var firstPath = first.path;
-      var secondPath = second.path;
-      var byPath = firstPath.compareTo(secondPath);
-      if (byPath != 0) {
-        return byPath;
-      }
-      var firstOffset = first.results.first.range.offset;
-      var secondOffset = second.results.first.range.offset;
-      return firstOffset - secondOffset;
-    });
+          var enclosingFragment = entry.key;
+          return _GroupToPrint2(
+            enclosingFragment: enclosingFragment,
+            results: entry.value.sortedBy<num>((e) => e.range.offset),
+          );
+        })
+        .sorted((first, second) {
+          var firstPath = first.path;
+          var secondPath = second.path;
+          var byPath = firstPath.compareTo(secondPath);
+          if (byPath != 0) {
+            return byPath;
+          }
+          var firstOffset = first.results.first.range.offset;
+          var secondOffset = second.results.first.range.offset;
+          return firstOffset - secondOffset;
+        });
 
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
@@ -3415,10 +3612,7 @@ class _GroupToPrint {
   final Fragment enclosingFragment;
   final List<SearchResult> results;
 
-  _GroupToPrint({
-    required this.enclosingFragment,
-    required this.results,
-  });
+  _GroupToPrint({required this.enclosingFragment, required this.results});
 
   String get path {
     return enclosingFragment.libraryFragment!.source.fullName;
@@ -3429,10 +3623,7 @@ class _GroupToPrint2 {
   final Fragment enclosingFragment;
   final List<LibraryFragmentSearchMatch> results;
 
-  _GroupToPrint2({
-    required this.enclosingFragment,
-    required this.results,
-  });
+  _GroupToPrint2({required this.enclosingFragment, required this.results});
 
   String get path {
     return enclosingFragment.libraryFragment!.source.fullName;

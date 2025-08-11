@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class CreationOfStructOrUnionTest extends PubPackageResolutionTest {
   test_struct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class A extends Struct {
@@ -27,13 +28,14 @@ final class A extends Struct {
 void f() {
   A();
 }
-''', [
-      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 96, 1),
-    ]);
+''',
+      [error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 96, 1)],
+    );
   }
 
   test_union() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class A extends Union {
@@ -44,8 +46,8 @@ final class A extends Union {
 void f() {
   A();
 }
-''', [
-      error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 95, 1),
-    ]);
+''',
+      [error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 95, 1)],
+    );
   }
 }

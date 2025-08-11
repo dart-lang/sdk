@@ -27,113 +27,122 @@ main() {
   }
 
   test_extension_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   int get g => 0;
 }
 f() {
   E.g;
 }
-''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 51, 1)],
+    );
   }
 
   test_extension_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   void m() {}
 }
 f() {
   E.m();
 }
-''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 47, 1)],
+    );
   }
 
   test_extension_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   void set s(int i) {}
 }
 f() {
   E.s = 2;
 }
-''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 56, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 56, 1)],
+    );
   }
 
   test_method_invocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   m() {}
 }
 main() {
   A.m();
-}''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+    );
   }
 
   test_method_reference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   m() {}
 }
 main() {
   A.m;
-}''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+    );
   }
 
   test_propertyAccess_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   var f;
 }
 main() {
   A.f;
-}''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+    );
   }
 
   test_propertyAccess_field_toplevel_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   List<T> t = [];
 }
 var x = C.t;
-''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 43, 1)],
+    );
   }
 
   test_propertyAccess_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   get f => 42;
 }
 main() {
   A.f;
-}''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 40, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 40, 1)],
+    );
   }
 
   test_propertyAccess_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set f(x) {}
 }
 main() {
   A.f = 42;
-}''', [
-      error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1)],
+    );
   }
 
   test_static_method() async {

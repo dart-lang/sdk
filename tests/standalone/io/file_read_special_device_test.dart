@@ -14,7 +14,7 @@ void openAndWriteScript(String script) {
   var file = script; // Use script as file.
   Process.start("bash", [
     "-c",
-    "$executable ${Platform.executableArguments.join(' ')} $script < $file"
+    "$executable ${Platform.executableArguments.join(' ')} $script < $file",
   ]).then((process) {
     process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);

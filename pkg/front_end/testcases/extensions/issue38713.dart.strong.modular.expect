@@ -16,21 +16,52 @@ library;
 //   static void set property3(int? x) {}
 //                   ^^^^^^^^^
 //
+// pkg/front_end/testcases/extensions/issue38713.dart:14:5: Error: Can't use 'property2' because it is declared more than once.
+//   C.property2;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:15:5: Error: Can't use 'property2' because it is declared more than once.
+//   C.property2 = 42;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:15:15: Error: Can't assign to this.
+//   C.property2 = 42;
+//               ^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:16:5: Error: Can't use 'property3' because it is declared more than once.
+//   C.property3 = 42;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:16:15: Error: Can't assign to this.
+//   C.property3 = 42;
+//               ^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the type 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property3'.
+//   42.property3;
+//      ^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
 extension C on core::int {
   static field property2 = self::C|property2;
-  get property3 = self::C|get#property3;
   static set property3 = set self::C|property3;
 }
 static field core::int? C|property2;
 static extension-member set C|property3(core::int? x) → void {}
-static extension-member method C|get#property3(lowered final core::int #this) → core::int?
-  return 1;
-static method main() → void {
-  self::C|property2;
-  self::C|property2 = 42;
-  self::C|property3 = 42;
-  self::C|get#property3(42);
+static method test() → void {
+  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:14:5: Error: Can't use 'property2' because it is declared more than once.
+  C.property2;
+    ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:15:15: Error: Can't assign to this.
+  C.property2 = 42;
+              ^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:16:15: Error: Can't assign to this.
+  C.property3 = 42;
+              ^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38713.dart:17:6: Error: The getter 'property3' isn't defined for the type 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property3'.
+  42.property3;
+     ^^^^^^^^^" in 42{<unresolved>}.property3;
 }

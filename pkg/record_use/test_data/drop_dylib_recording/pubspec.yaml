@@ -10,8 +10,10 @@ environment:
 dependencies:
   logging: ^1.1.1
   meta: any
-  native_assets_cli:
-    path: ../../../../third_party/pkg/native/pkgs/native_assets_cli/
+  hooks:
+    path: ../../../../third_party/pkg/native/pkgs/hooks/
+  code_assets:
+    path: ../../../../third_party/pkg/native/pkgs/code_assets/
   native_toolchain_c:
     path: ../../../../third_party/pkg/native/pkgs/native_toolchain_c/
   record_use:
@@ -20,7 +22,6 @@ dependencies:
 dev_dependencies:
   lints: any
   test: any
-
 
 dependency_overrides:
   meta:

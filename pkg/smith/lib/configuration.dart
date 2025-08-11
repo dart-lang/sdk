@@ -238,12 +238,15 @@ class Configuration {
     var system = enumOption("system", System.names, System.find);
     var nnbdMode = enumOption("nnbd", NnbdMode.names, NnbdMode.find);
     var sanitizer = enumOption("sanitizer", Sanitizer.names, Sanitizer.find);
+    var genSnapshotFormat = enumOption(
+        "gen-snapshot-format", GenSnapshotFormat.names, GenSnapshotFormat.find);
 
     // Fill in any missing values using defaults when possible.
-    architecture ??= Architecture.x64;
+    architecture ??= Architecture.host;
     system ??= System.host;
     nnbdMode ??= NnbdMode.strong;
     sanitizer ??= Sanitizer.none;
+    genSnapshotFormat ??= GenSnapshotFormat.assembly;
 
     // Infer runtime from executable if we don't know runtime and compiler.
     if (runtime == null && compiler == null && words.contains("custom")) {
@@ -295,9 +298,9 @@ class Configuration {
         isCsp: boolOption("csp"),
         enableHostAsserts: boolOption("host-asserts"),
         isMinified: boolOption("minified"),
+        genSnapshotFormat: genSnapshotFormat,
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
-        useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"),
@@ -369,7 +372,7 @@ class Configuration {
   final bool useAnalyzerCfe;
   final bool useAnalyzerFastaParser;
 
-  final bool useElf;
+  final GenSnapshotFormat? genSnapshotFormat;
 
   final bool useHotReload;
   final bool useHotReloadRollback;
@@ -395,9 +398,9 @@ class Configuration {
       bool? isCsp,
       bool? enableHostAsserts,
       bool? isMinified,
+      GenSnapshotFormat? genSnapshotFormat,
       bool? useAnalyzerCfe,
       bool? useAnalyzerFastaParser,
-      bool? useElf,
       bool? useHotReload,
       bool? useHotReloadRollback,
       bool? useSdk,
@@ -417,9 +420,11 @@ class Configuration {
         isCsp = isCsp ?? false,
         enableHostAsserts = enableHostAsserts ?? false,
         isMinified = isMinified ?? false,
+        // Use a null output for non-precompiler targets.
+        genSnapshotFormat =
+            compiler == Compiler.dartkp ? genSnapshotFormat : null,
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
-        useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false,
@@ -456,9 +461,9 @@ class Configuration {
     required this.isCsp,
     required this.enableHostAsserts,
     required this.isMinified,
+    required this.genSnapshotFormat,
     required this.useAnalyzerCfe,
     required this.useAnalyzerFastaParser,
-    required this.useElf,
     required this.useHotReload,
     required this.useHotReloadRollback,
     required this.useSdk,
@@ -493,9 +498,9 @@ class Configuration {
         isCsp: source.isCsp,
         enableHostAsserts: source.enableHostAsserts,
         isMinified: source.isMinified,
+        genSnapshotFormat: source.genSnapshotFormat,
         useAnalyzerCfe: source.useAnalyzerCfe,
         useAnalyzerFastaParser: source.useAnalyzerFastaParser,
-        useElf: source.useElf,
         useHotReload: source.useHotReload,
         useHotReloadRollback: source.useHotReloadRollback,
         useSdk: source.useSdk,
@@ -531,7 +536,7 @@ class Configuration {
       isMinified == other.isMinified &&
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
-      useElf == other.useElf &&
+      genSnapshotFormat == other.genSnapshotFormat &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk &&
@@ -566,6 +571,7 @@ class Configuration {
       mode.hashCode ^
       runtime.hashCode ^
       system.hashCode ^
+      genSnapshotFormat.hashCode ^
       nnbdMode.hashCode ^
       builderTag.hashCode ^
       genKernelOptions.join(" & ").hashCode ^
@@ -583,7 +589,6 @@ class Configuration {
         isMinified,
         useAnalyzerCfe,
         useAnalyzerFastaParser,
-        useElf,
         useHotReload,
         useHotReloadRollback,
         useSdk,
@@ -623,6 +628,11 @@ class Configuration {
     if (isCsp) fields.add("csp");
     if (enableHostAsserts) fields.add("host-asserts");
     if (isMinified) fields.add("minified");
+    // Only output the requested gen_snapshot format if using gen_snapshot
+    // or the output is unexpectedly non-null.
+    if (compiler == Compiler.dartkp || genSnapshotFormat != null) {
+      fields.add("gen-snapshot-format: $genSnapshotFormat");
+    }
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useHotReload) fields.add("hot-reload");
@@ -681,6 +691,15 @@ class Configuration {
     boolField("csp", isCsp, other.isCsp);
     boolField("host-asserts", enableHostAsserts, other.enableHostAsserts);
     boolField("minified", isMinified, other.isMinified);
+    // Only output the requested gen_snapshot format if using gen_snapshot
+    // or the output is unexpectedly non-null.
+    if (compiler == Compiler.dartkp ||
+        other.compiler == Compiler.dartkp ||
+        genSnapshotFormat != null ||
+        other.genSnapshotFormat != null) {
+      fields.add(
+          "gen-snapshot-format: $genSnapshotFormat ${other.genSnapshotFormat}");
+    }
     boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
     boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
         other.useAnalyzerFastaParser);
@@ -765,6 +784,19 @@ class Architecture extends NamedEnum {
 
   static final Architecture host = _computeHost();
   static Architecture _computeHost() {
+    if (!const bool.hasEnvironment('dart.library.ffi')){
+      // We're inside a test which very likely uses the `isXConfiguration`
+      // getters from  `package:expect/config.dart` which makes us
+      // try to guess the [Configuration]`s architecture if it wasn't passed as
+      // part of `const String.fromEnvironment("test_runner.configuration")`.
+      //
+      // A web app runs inside a browser doesn't have an architecture. Strictly
+      // speaking we should *not* ask for "whats the current architecture" if
+      // we are running on the web, as there's no answer.
+      //
+      // For now, fake it by returning x64 on the web.
+      return Architecture.x64;
+    }
     String? arch;
     if (Platform.isWindows) {
       arch = Platform.environment["PROCESSOR_ARCHITECTURE"];
@@ -801,6 +833,33 @@ class Architecture extends NamedEnum {
 
     throw "Unknown host architecture: $arch";
   }
+}
+
+/// Specifies the output format used by gen_snapshot to create AOT snapshots.
+class GenSnapshotFormat extends NamedEnum {
+  static const assembly = GenSnapshotFormat._('assembly', 'assembly');
+  static const elf = GenSnapshotFormat._('elf', 'elf');
+  static const machODylib = GenSnapshotFormat._('macho-dylib', 'macho');
+
+  static final List<String> names = _all.keys.toList();
+
+  static final _all = Map<String, GenSnapshotFormat>.fromIterable([
+    assembly,
+    elf,
+    machODylib,
+  ], key: (format) => (format as GenSnapshotFormat).name);
+
+  static GenSnapshotFormat find(String name) {
+    var format = _all[name];
+    if (format != null) return format;
+
+    throw ArgumentError('Unknown gen_snapshot format "$name".');
+  }
+
+  String get snapshotType => 'app-aot-$name';
+
+  final String fileOption;
+  const GenSnapshotFormat._(super.name, this.fileOption);
 }
 
 class Compiler extends NamedEnum {
@@ -876,6 +935,7 @@ class Compiler extends NamedEnum {
           Runtime.d8,
           Runtime.chrome,
           Runtime.firefox,
+          Runtime.safari,
         ];
       case Compiler.dart2analyzer:
         return const [Runtime.none];
@@ -962,6 +1022,7 @@ class Mode extends NamedEnum {
 class Sanitizer extends NamedEnum {
   static const none = Sanitizer._('none');
   static const asan = Sanitizer._('asan');
+  static const hwasan = Sanitizer._('hwasan');
   static const lsan = Sanitizer._('lsan');
   static const msan = Sanitizer._('msan');
   static const tsan = Sanitizer._('tsan');
@@ -970,7 +1031,7 @@ class Sanitizer extends NamedEnum {
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Sanitizer>.fromIterable(
-      [none, asan, lsan, msan, tsan, ubsan],
+      [none, asan, hwasan, lsan, msan, tsan, ubsan],
       key: (mode) => (mode as Sanitizer).name);
 
   static Sanitizer find(String name) {

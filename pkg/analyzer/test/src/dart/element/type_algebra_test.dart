@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -70,10 +70,7 @@ class SubstituteFromPairsTest extends _Base {
 
     var type = interfaceTypeNone(
       A,
-      typeArguments: [
-        typeParameterTypeNone(T),
-        typeParameterTypeNone(U),
-      ],
+      typeArguments: [typeParameterTypeNone(T), typeParameterTypeNone(U)],
     );
 
     var result = Substitution.fromPairs2(
@@ -102,15 +99,14 @@ class SubstituteTest extends _Base {
     var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone(
-        returnType: voidNone,
-      ),
+      aliasedType: functionTypeNone(returnType: voidNone),
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone(Alias, typeArguments: [
-      typeParameterTypeNone(U),
-    ]);
+    var type = typeAliasTypeNone(
+      Alias,
+      typeArguments: [typeParameterTypeNone(U)],
+    );
     assertType(type, 'void Function() via Alias<U>');
     _assertSubstitution(type, {U: intNone}, 'void Function() via Alias<int>');
   }
@@ -121,9 +117,7 @@ class SubstituteTest extends _Base {
     var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone(
-        returnType: voidNone,
-      ),
+      aliasedType: functionTypeNone(returnType: voidNone),
     );
 
     var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
@@ -139,9 +133,7 @@ class SubstituteTest extends _Base {
     var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone(
-        returnType: voidNone,
-      ),
+      aliasedType: functionTypeNone(returnType: voidNone),
     );
 
     var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
@@ -153,9 +145,7 @@ class SubstituteTest extends _Base {
 
   test_function_noSubstitutions() async {
     var type = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: intNone),
-      ],
+      formalParameters: [requiredParameter(type: intNone)],
       returnType: boolNone,
     );
 
@@ -176,16 +166,11 @@ class SubstituteTest extends _Base {
     );
 
     assertType(type, 'T Function(U, bool)');
-    _assertSubstitution(
-      type,
-      {T: intNone},
-      'int Function(U, bool)',
-    );
-    _assertSubstitution(
-      type,
-      {T: intNone, U: doubleNone},
-      'int Function(double, bool)',
-    );
+    _assertSubstitution(type, {T: intNone}, 'int Function(U, bool)');
+    _assertSubstitution(type, {
+      T: intNone,
+      U: doubleNone,
+    }, 'int Function(double, bool)');
   }
 
   test_function_typeFormals() async {
@@ -194,28 +179,25 @@ class SubstituteTest extends _Base {
     var U = typeParameter('U', bound: typeParameterTypeNone(T));
     var type = functionTypeNone(
       typeParameters: [U],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(U)),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(U))],
       returnType: typeParameterTypeNone(T),
     );
 
     assertType(type, 'T Function<U extends T>(U)');
-    _assertSubstitution(
-      type,
-      {T: intNone},
-      'int Function<U extends int>(U)',
-    );
+    _assertSubstitution(type, {T: intNone}, 'int Function<U extends int>(U)');
   }
 
   test_function_typeFormals_bounds() async {
     // class Triple<X, Y, Z> {}
     // typedef F<V> = bool Function<T extends Triplet<T, U, V>, U>();
-    var classTriplet = class_2(name: 'Triple', typeParameters: [
-      typeParameter('X'),
-      typeParameter('Y'),
-      typeParameter('Z'),
-    ]);
+    var classTriplet = class_2(
+      name: 'Triple',
+      typeParameters: [
+        typeParameter('X'),
+        typeParameter('Y'),
+        typeParameter('Z'),
+      ],
+    );
 
     var T = typeParameter('T');
     var U = typeParameter('U');
@@ -231,26 +213,17 @@ class SubstituteTest extends _Base {
     );
     T.bound = T.firstFragment.bound;
 
-    var type = functionTypeNone(
-      typeParameters: [T, U],
-      returnType: boolNone,
-    );
+    var type = functionTypeNone(typeParameters: [T, U], returnType: boolNone);
 
-    assertType(
-      type,
-      'bool Function<T extends Triple<T, U, V>, U>()',
-    );
+    assertType(type, 'bool Function<T extends Triple<T, U, V>, U>()');
 
-    var result = substitute2(type, {V: intNone}) as FunctionType;
-    assertType(
-      result,
-      'bool Function<T extends Triple<T, U, int>, U>()',
-    );
+    var result = substitute(type, {V: intNone}) as FunctionType;
+    assertType(result, 'bool Function<T extends Triple<T, U, int>, U>()');
     var T2 = result.typeParameters[0];
     var U2 = result.typeParameters[1];
     var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
-    expect((T2boundArgs[0] as TypeParameterType).element3, same(T2));
-    expect((T2boundArgs[1] as TypeParameterType).element3, same(U2));
+    expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
+    expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
   }
 
   test_interface_arguments() async {
@@ -259,9 +232,7 @@ class SubstituteTest extends _Base {
     var A = class_2(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceTypeNone(A, typeArguments: [
-      typeParameterTypeNone(U),
-    ]);
+    var type = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(U)]);
 
     assertType(type, 'A<U>');
     _assertSubstitution(type, {U: intNone}, 'A<int>');
@@ -272,14 +243,15 @@ class SubstituteTest extends _Base {
     var A = class_2(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceTypeNone(A, typeArguments: [
-      interfaceTypeNone(
-        typeProvider.listElement2,
-        typeArguments: [
-          typeParameterTypeNone(U),
-        ],
-      )
-    ]);
+    var type = interfaceTypeNone(
+      A,
+      typeArguments: [
+        interfaceTypeNone(
+          typeProvider.listElement,
+          typeArguments: [typeParameterTypeNone(U)],
+        ),
+      ],
+    );
     assertType(type, 'A<List<U>>');
 
     _assertSubstitution(type, {U: intNone}, 'A<List<int>>');
@@ -318,9 +290,10 @@ class SubstituteTest extends _Base {
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone(Alias, typeArguments: [
-      typeParameterTypeNone(U),
-    ]);
+    var type = typeAliasTypeNone(
+      Alias,
+      typeArguments: [typeParameterTypeNone(U)],
+    );
     assertType(type, 'A via Alias<U>');
     _assertSubstitution(type, {U: intNone}, 'A via Alias<int>');
   }
@@ -370,9 +343,7 @@ class SubstituteTest extends _Base {
   test_record_doesNotUseTypeParameter2() async {
     var T = typeParameter('T');
 
-    var type = recordTypeNone(
-      positionalTypes: [intNone],
-    );
+    var type = recordTypeNone(positionalTypes: [intNone]);
 
     assertType(type, '(int,)');
     _assertIdenticalType(type, {T: intNone});
@@ -384,15 +355,14 @@ class SubstituteTest extends _Base {
     var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: recordTypeNone(
-        positionalTypes: [intNone, stringNone],
-      ),
+      aliasedType: recordTypeNone(positionalTypes: [intNone, stringNone]),
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone(Alias, typeArguments: [
-      typeParameterTypeNone(U),
-    ]);
+    var type = typeAliasTypeNone(
+      Alias,
+      typeArguments: [typeParameterTypeNone(U)],
+    );
     assertType(type, '(int, String) via Alias<U>');
     _assertSubstitution(type, {U: intNone}, '(int, String) via Alias<int>');
   }
@@ -404,12 +374,7 @@ class SubstituteTest extends _Base {
     var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: recordTypeNone(
-        positionalTypes: [
-          T_none,
-          listNone(T_none),
-        ],
-      ),
+      aliasedType: recordTypeNone(positionalTypes: [T_none, listNone(T_none)]),
     );
 
     var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
@@ -421,10 +386,7 @@ class SubstituteTest extends _Base {
     var T_none = typeParameterTypeNone(T);
 
     var type = recordTypeNone(
-      namedTypes: {
-        'f1': T_none,
-        'f2': listNone(T_none),
-      },
+      namedTypes: {'f1': T_none, 'f2': listNone(T_none)},
     );
 
     assertType(type, '({T f1, List<T> f2})');
@@ -435,12 +397,7 @@ class SubstituteTest extends _Base {
     var T = typeParameter('T');
     var T_none = typeParameterTypeNone(T);
 
-    var type = recordTypeNone(
-      positionalTypes: [
-        T_none,
-        listNone(T_none),
-      ],
-    );
+    var type = recordTypeNone(positionalTypes: [T_none, listNone(T_none)]);
 
     assertType(type, '(T, List<T>)');
     _assertSubstitution(type, {T: intNone}, '(int, List<int>)');
@@ -454,12 +411,10 @@ class SubstituteTest extends _Base {
       InterfaceType typeArgument,
       InterfaceType expectedType,
     ) {
-      var result = Substitution.fromMap2({
+      var result = Substitution.fromMap({
         tElement: typeArgument,
       }).substituteType(
-        tElement.instantiate(
-          nullabilitySuffix: typeParameterNullability,
-        ),
+        tElement.instantiate(nullabilitySuffix: typeParameterNullability),
       );
       expect(result, expectedType);
     }
@@ -486,8 +441,10 @@ class SubstituteTest extends _Base {
   }
 
   void _assertIdenticalType(
-      DartType type, Map<TypeParameterElement2, DartType> substitution) {
-    var result = substitute2(type, substitution);
+    DartType type,
+    Map<TypeParameterElement, DartType> substitution,
+  ) {
+    var result = substitute(type, substitution);
     expect(result, same(type));
   }
 }
@@ -503,9 +460,7 @@ class SubstituteWithNullabilityTest extends _Base {
 
     var U = typeParameter('U');
     var type = A.instantiateImpl(
-      typeArguments: [
-        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-      ],
+      typeArguments: [U.instantiate(nullabilitySuffix: NullabilitySuffix.none)],
       nullabilitySuffix: NullabilitySuffix.none,
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>');
@@ -518,9 +473,7 @@ class SubstituteWithNullabilityTest extends _Base {
 
     var U = typeParameter('U');
     var type = A.instantiateImpl(
-      typeArguments: [
-        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-      ],
+      typeArguments: [U.instantiate(nullabilitySuffix: NullabilitySuffix.none)],
       nullabilitySuffix: NullabilitySuffix.question,
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>?');
@@ -535,10 +488,10 @@ class _Base extends AbstractTypeSystemTest {
 
   void _assertSubstitution(
     DartType type,
-    Map<TypeParameterElement2, DartType> substitution,
+    Map<TypeParameterElement, DartType> substitution,
     String expected,
   ) {
-    var result = substitute2(type, substitution);
+    var result = substitute(type, substitution);
     assertType(result, expected);
     expect(result, isNot(same(type)));
   }
@@ -548,7 +501,7 @@ class _Base extends AbstractTypeSystemTest {
 
     var alias = type.alias;
     if (alias != null) {
-      result += ' via ${alias.element2.name3}';
+      result += ' via ${alias.element.name}';
       var typeArgumentStrList = alias.typeArguments.map(_typeStr).toList();
       if (typeArgumentStrList.isNotEmpty) {
         result += '<${typeArgumentStrList.join(', ')}>';

@@ -28,16 +28,16 @@ abstract class AbstractCodeFragmentParserTest {
     String content,
     List<ExpectedError> expectedErrors,
   ) {
-    var errorListener = GatheringErrorListener();
-    var accessors = _parser(errorListener).parseAccessors(content, 0);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    var accessors = _parser(diagnosticListener).parseAccessors(content, 0);
+    diagnosticListener.assertErrors(expectedErrors);
     return accessors;
   }
 
   List<Accessor> assertNoErrors(String content) {
-    var errorListener = GatheringErrorListener();
-    var accessors = _parser(errorListener).parseAccessors(content, 0)!;
-    errorListener.assertNoErrors();
+    var diagnosticListener = GatheringDiagnosticListener();
+    var accessors = _parser(diagnosticListener).parseAccessors(content, 0)!;
+    diagnosticListener.assertNoErrors();
     return accessors;
   }
 
@@ -45,19 +45,19 @@ abstract class AbstractCodeFragmentParserTest {
     String content, {
     List<String>? variables,
   }) {
-    var errorListener = GatheringErrorListener();
+    var diagnosticListener = GatheringDiagnosticListener();
     var expression =
         _parser(
-          errorListener,
+          diagnosticListener,
           variables: variables,
         ).parseCondition(content, 0)!;
-    errorListener.assertNoErrors();
+    diagnosticListener.assertNoErrors();
     return expression;
   }
 
   // ignore:unreachable_from_main
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     String? message,
@@ -74,10 +74,10 @@ abstract class AbstractCodeFragmentParserTest {
   );
 
   CodeFragmentParser _parser(
-    GatheringErrorListener listener, {
+    GatheringDiagnosticListener listener, {
     List<String>? variables,
   }) {
-    var errorReporter = ErrorReporter(listener, MockSource());
+    var diagnosticReporter = DiagnosticReporter(listener, MockSource());
     var map = <String, ValueGenerator>{};
     if (variables != null) {
       for (var variableName in variables) {
@@ -85,7 +85,7 @@ abstract class AbstractCodeFragmentParserTest {
       }
     }
     var scope = VariableScope(null, map);
-    return CodeFragmentParser(errorReporter, scope: scope);
+    return CodeFragmentParser(diagnosticReporter, scope: scope);
   }
 }
 

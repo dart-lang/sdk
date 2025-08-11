@@ -31,12 +31,4 @@ class Class {
   static void set staticSetter(value) {}
 }
 
-expect(expected, actual) {}
-
-main() {}
-
 test() {}
-
-throws(dynamic Function() f) {}
-
-var result;

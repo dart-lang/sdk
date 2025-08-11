@@ -6,8 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -36,11 +35,11 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
     }
 
     var variable = node.element;
-    if (variable is! LocalVariableElement2) {
+    if (variable is! LocalVariableElement) {
       return;
     }
 
-    var variableName = variable.name3;
+    var variableName = variable.name;
     if (variableName == null) {
       return;
     }
@@ -50,7 +49,7 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration = NodeLocator(nameOffset).searchWithin(unit);
+    var declaration = unit.nodeCovering(offset: nameOffset);
     var declarationList = declaration?.parent;
 
     if (declaration is VariableDeclaration &&

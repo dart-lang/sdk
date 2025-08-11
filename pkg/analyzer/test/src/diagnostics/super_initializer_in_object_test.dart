@@ -17,12 +17,13 @@ main() {
 class SuperInitializerInObjectTest extends PubPackageResolutionTest {
   @failingTest
   test_superInitializerInObject() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Object {
   Object() : super();
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT, 0, 0),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT, 0, 0)],
+    );
   }
 }

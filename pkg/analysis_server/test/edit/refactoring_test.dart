@@ -2210,8 +2210,8 @@ enum E {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 17);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, 18);
+        expect(renameFeedback.length, 3);
       },
     );
   }
@@ -2237,8 +2237,8 @@ enum E {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 24);
-        expect(renameFeedback.length, 5);
+        expect(renameFeedback.offset, 25);
+        expect(renameFeedback.length, 4);
       },
     );
   }

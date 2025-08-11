@@ -26,32 +26,35 @@ f(dynamic a) async {
   }
 
   test_await_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<String> stream) async {
   await for (int i in stream) {
     i;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6)],
+    );
   }
 
   test_await_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Stream<String> stream) async {
   int i;
   await for (i in stream) {
     i;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 60, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 60, 6)],
+    );
   }
 
   test_bad_type_bound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (String i in iterable) {
@@ -59,9 +62,9 @@ class Foo<T extends Iterable<int>> {
     }
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8)],
+    );
   }
 
   test_declaredVariable_dynamic() async {
@@ -122,28 +125,30 @@ f() {
   }
 
   test_declaredVariable_wrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   for (int i in <String>[]) {
     i;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10)],
+    );
   }
 
   test_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   int i;
   for (i in <String>[]) {
     i;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10)],
+    );
   }
 
   test_implicitCallReference() async {
@@ -175,7 +180,8 @@ void foo(Iterable<C> iterable) {
   }
 
   test_implicitCallReference_unassignableFunctionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void call(int a) {}
 }
@@ -185,8 +191,8 @@ void foo(Iterable<C> iterable) {
     f;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 106, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 106, 8)],
+    );
   }
 }

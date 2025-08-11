@@ -25,5 +25,6 @@ main() {
   print(/*cfe.Set<int!>()*/ /*analyzer|dart2js.Set<int>()*/ set2);
   print(/*cfe.Set<int!>(Int(42))*/ /*analyzer|dart2js.Set<int>(Int(42))*/ set3);
   print(
-      /*cfe.Set<int!>(Int(42),Int(87))*/ /*analyzer|dart2js.Set<int>(Int(42),Int(87))*/ set4);
+    /*cfe.Set<int!>(Int(42),Int(87))*/ /*analyzer|dart2js.Set<int>(Int(42),Int(87))*/ set4,
+  );
 }

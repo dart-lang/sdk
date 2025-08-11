@@ -21,13 +21,11 @@ class ParserDiagnosticsTest {
   void assertParsedNodeText(
     AstNode node,
     String expected, {
-    bool withCheckingLinking = false,
     bool withOffsets = false,
     bool withTokenPreviousNext = false,
   }) {
     var actual = _parsedNodeText(
       node,
-      withCheckingLinking: withCheckingLinking,
       withOffsets: withOffsets,
       withTokenPreviousNext: withTokenPreviousNext,
     );
@@ -39,7 +37,7 @@ class ParserDiagnosticsTest {
   }
 
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     Pattern? correctionContains,
@@ -68,15 +66,11 @@ class ParserDiagnosticsTest {
 
   String _parsedNodeText(
     AstNode node, {
-    required bool withCheckingLinking,
     required bool withOffsets,
     required bool withTokenPreviousNext,
   }) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
@@ -85,9 +79,9 @@ class ParserDiagnosticsTest {
       ResolvedAstPrinter(
         sink: sink,
         elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..withCheckingLinking = withCheckingLinking
-          ..withTokenPreviousNext = withTokenPreviousNext,
+        configuration:
+            ResolvedNodeTextConfiguration()
+              ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,
       ),
@@ -102,9 +96,9 @@ extension ParseStringResultExtension on ParseStringResult {
   }
 
   void assertErrors(List<ExpectedError> expectedErrors) {
-    var errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    diagnosticListener.addAll(errors);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertNoErrors() {

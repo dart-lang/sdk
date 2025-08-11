@@ -25,24 +25,38 @@ enum E {
   }
 
   test_generative_nonConst_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.named();
   E.named();
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR, 24, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+          24,
+          7,
+        ),
+      ],
+    );
   }
 
   test_generative_nonConst_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   E();
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR, 16, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+          16,
+          1,
+        ),
+      ],
+    );
   }
 }

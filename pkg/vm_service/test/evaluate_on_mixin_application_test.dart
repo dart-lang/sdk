@@ -48,7 +48,7 @@ final tests = <IsolateTest>[
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
       expect(
         e.details,
-        contains("The getter 'foo' isn't defined for the class 'MA'"),
+        contains("The getter 'foo' isn't defined for the type 'MA'"),
       );
     }
   },

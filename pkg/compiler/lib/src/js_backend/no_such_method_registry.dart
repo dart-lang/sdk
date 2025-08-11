@@ -176,16 +176,19 @@ class NoSuchMethodData {
   /// Deserializes a [NoSuchMethodData] object from [source].
   factory NoSuchMethodData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Set<FunctionEntity> throwingImpls =
-        source.readMembers<FunctionEntity>().toSet();
-    Set<FunctionEntity> otherImpls =
-        source.readMembers<FunctionEntity>().toSet();
-    Set<FunctionEntity> forwardingSyntaxImpls =
-        source.readMembers<FunctionEntity>().toSet();
-    List<FunctionEntity> complexNoReturnImpls =
-        source.readMembers<FunctionEntity>();
-    List<FunctionEntity> complexReturningImpls =
-        source.readMembers<FunctionEntity>();
+    Set<FunctionEntity> throwingImpls = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    Set<FunctionEntity> otherImpls = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    Set<FunctionEntity> forwardingSyntaxImpls = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    List<FunctionEntity> complexNoReturnImpls = source
+        .readMembers<FunctionEntity>();
+    List<FunctionEntity> complexReturningImpls = source
+        .readMembers<FunctionEntity>();
     source.end(tag);
     return NoSuchMethodData(throwingImpls, otherImpls, forwardingSyntaxImpls)
       .._complexNoReturnImpls.addAll(complexNoReturnImpls)

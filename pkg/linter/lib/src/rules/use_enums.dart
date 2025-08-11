@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -17,14 +19,11 @@ class UseEnums extends LintRule {
   UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.use_enums;
+  DiagnosticCode get diagnosticCode => LinterLintCode.use_enums;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    if (!context.isEnabled(Feature.enhanced_enums)) return;
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    if (!context.isFeatureEnabled(Feature.enhanced_enums)) return;
 
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
@@ -34,7 +33,7 @@ class UseEnums extends LintRule {
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
 class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
-  final ClassElement2 classElement;
+  final ClassElement classElement;
 
   _BaseVisitor(this.classElement);
 
@@ -44,7 +43,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.element;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement2 == classElement;
+        constructorElement.enclosingElement == classElement;
   }
 }
 
@@ -104,13 +103,13 @@ class _NonEnumVisitor extends _BaseVisitor {
       throw _InvalidEnumException();
     }
     if (element != classElement) {
-      if (element.supertype?.element3 == classElement) {
+      if (element.supertype?.element == classElement) {
         throw _InvalidEnumException();
       } else if (element.interfaces
-          .map((e) => e.element3)
+          .map((e) => e.element)
           .contains(classElement)) {
         throw _InvalidEnumException();
-      } else if (element.mixins.map((e) => e.element3).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.
@@ -131,7 +130,7 @@ class _NonEnumVisitor extends _BaseVisitor {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -161,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (!member.isStatic) continue;
         for (var field in member.fields.variables) {
           var fieldElement = field.declaredFragment?.element;
-          if (fieldElement is! FieldElement2) continue;
+          if (fieldElement is! FieldElement) continue;
           if (field.isSynthetic || !field.isConst) continue;
           var initializer = field.initializer;
           if (initializer is! InstanceCreationExpression) continue;
@@ -169,7 +168,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           var constructorElement = initializer.constructorName.element;
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
-          if (constructorElement.enclosingElement2 != classElement) continue;
+          if (constructorElement.enclosingElement != classElement) continue;
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);
@@ -196,6 +195,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLintForToken(node.name);
+    rule.reportAtToken(node.name);
   }
 }

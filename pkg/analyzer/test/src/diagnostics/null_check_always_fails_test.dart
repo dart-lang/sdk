@@ -24,45 +24,49 @@ void f(int? i) {
   }
 
   test_nullLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   null!;
 }
-''', [
-      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 5),
-    ]);
+''',
+      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 5)],
+    );
   }
 
   test_nullLiteral_parenthesized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (null)!;
 }
-''', [
-      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 7),
-    ]);
+''',
+      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 7)],
+    );
   }
 
   test_nullType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   g()!;
 }
 Null g() => null;
-''', [
-      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 4),
-    ]);
+''',
+      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 13, 4)],
+    );
   }
 
   test_nullType_awaited() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() async {
   (await g())!;
 }
 Future<Null> g() async => null;
-''', [
-      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 12),
-    ]);
+''',
+      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 12)],
+    );
   }
 
   test_potentiallyNullableTypeVariable() async {

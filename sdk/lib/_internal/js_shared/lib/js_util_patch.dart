@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' show JS;
-import 'dart:_internal' show patch;
+import 'dart:_internal'
+    show getHotRestartGeneration, isCurrentHotRestartGeneration, patch;
 import 'dart:_js_helper'
     show
         assertInterop,
@@ -561,9 +562,21 @@ num unsignedRightShift(Object? leftOperand, Object? rightOperand) {
 @patch
 Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
-
-  final success = convertDartClosureToJS((r) => completer.complete(r), 1);
+  final restartGenerationBefore = getHotRestartGeneration();
+  final success = convertDartClosureToJS((r) {
+    if (restartGenerationBefore != null) {
+      // These nested if statements are intended for simple optimization by
+      // dart2js.
+      if (!isCurrentHotRestartGeneration(restartGenerationBefore)) return;
+    }
+    return completer.complete(r);
+  }, 1);
   final error = convertDartClosureToJS((e) {
+    if (restartGenerationBefore != null) {
+      // These nested if statements are intended for simple optimization by
+      // dart2js.
+      if (!isCurrentHotRestartGeneration(restartGenerationBefore)) return;
+    }
     // Note that `completeError` expects a non-nullable error regardless of
     // whether null-safety is enabled, so a `NullRejectionException` is always
     // provided if the error is `null` or `undefined`.

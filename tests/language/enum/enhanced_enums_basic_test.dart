@@ -111,7 +111,7 @@ void main() {
   Expect.identical(EnumAll.v4, EnumAll.v3 ^ EnumAll.v2);
 
   Expect.equals(
-    "EnumAll.v1:EnumMixin<num>:ObjectMixin:this",
+    "EnumAll.v1:EnumMixin<$num>:ObjectMixin:this",
     EnumAll.v1.thisAndSuper(),
   );
 

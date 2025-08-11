@@ -6,13 +6,13 @@
 /// file 'general7.dart' contains similar tests for when assertions are
 /// _disabled_.
 
-/*member: foo:Value([null|exact=JSBool|powerset=1], value: true, powerset: 1)*/
+/*member: foo:Value([null|exact=JSBool|powerset={null}{I}{O}{N}], value: true, powerset: {null}{I}{O}{N})*/
 foo(
-  /*Union([exact=JSBool|powerset=0], [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ x, [
-  /*Value([null|exact=JSBool|powerset=1], value: true, powerset: 1)*/ y,
+  /*Union([exact=JSBool|powerset={I}{O}{N}], [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ x, [
+  /*Value([null|exact=JSBool|powerset={null}{I}{O}{N}], value: true, powerset: {null}{I}{O}{N})*/ y,
 ]) => y;
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   assert(foo('Hi', true), foo(true));
   foo(1);

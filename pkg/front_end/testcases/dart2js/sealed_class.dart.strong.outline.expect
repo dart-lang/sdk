@@ -10,12 +10,12 @@ abstract sealed class Class extends core::Object {
 class A extends self::Class {
   constructor •(core::int value) → self::A
     ;
-  static method _#new#tearOff(core::int value) → self::A
+  static synthetic method _#new#tearOff(core::int value) → self::A
     return new self::A::•(value);
 }
 class B extends self::Class {
   constructor •(core::int value) → self::B
     ;
-  static method _#new#tearOff(core::int value) → self::B
+  static synthetic method _#new#tearOff(core::int value) → self::B
     return new self::B::•(value);
 }

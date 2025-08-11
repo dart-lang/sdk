@@ -106,7 +106,9 @@ void testE(Env env) {
   Expect.isFalse(mapRAndHelperOfString.isOriginalDeclaration);
   Expect.equals(eR, mapRAndHelperOfString.typeArguments.first);
   Expect.equals(
-      env.getHelperOfString(), mapRAndHelperOfString.typeArguments.last);
+    env.getHelperOfString(),
+    mapRAndHelperOfString.typeArguments.last,
+  );
 }
 
 void testF(Env env) {

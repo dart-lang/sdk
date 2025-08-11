@@ -27,10 +27,10 @@ class SimpleTTestStat {
     if (confidence < diffMean.abs()) {
       double percentDiff = diffMean * 100 / bMean;
       double percentDiffConfidence = confidence * 100 / bMean;
-      return new TTestResult(
-          true, percentDiff, percentDiffConfidence, diffMean, confidence);
+      return new TTestResult(true, percentDiff, percentDiffConfidence, diffMean,
+          confidence, aMean, bMean);
     } else {
-      return new TTestResult(false, 0, 0, 0, 0);
+      return new TTestResult(false, 0, 0, 0, 0, 0, 0);
     }
   }
 
@@ -106,9 +106,11 @@ class TTestResult {
   final double percentDiffConfidence;
   final double diff;
   final double confidence;
+  final double aMean;
+  final double bMean;
 
   TTestResult(this.significant, this.percentDiff, this.percentDiffConfidence,
-      this.diff, this.confidence);
+      this.diff, this.confidence, this.aMean, this.bMean);
 
   @override
   String toString() {
@@ -144,5 +146,12 @@ class TTestResult {
     return "${_format(diff, fractionDigits: fractionDigits)} "
         "+/- "
         "${_format(confidence, fractionDigits: fractionDigits)}";
+  }
+
+  String? meanChangeStringIfSignificant({int fractionDigits = 2}) {
+    if (!significant) return null;
+    return "${_format(bMean, fractionDigits: fractionDigits)} "
+        "-> "
+        "${_format(aMean, fractionDigits: fractionDigits)}";
   }
 }

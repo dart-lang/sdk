@@ -16,12 +16,12 @@ library;
 //     var b2 = it<int>; // Error
 //                ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:17:19: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:17:19: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c1 = this.it = 42; // Error, should not resolve to extension method.
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:18:14: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:18:14: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c2 = it = 42; // Error, should not resolve to extension method.
 //              ^^
@@ -36,12 +36,12 @@ library;
 //     var b2 = it<int>; // Error
 //                ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c1 = this.it = t; // Error, should not resolve to extension method.
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c2 = it = t; // Error, should not resolve to extension method.
 //              ^^
@@ -56,32 +56,32 @@ library;
 //     var b2 = it<int>; // Error
 //                ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:39:19: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<T>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:39:19: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c1 = this.it = t; // Error, should not resolve to extension method.
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:40:14: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<T>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:40:14: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<T>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c2 = it = t; // Error, should not resolve to extension method.
 //              ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:56:24: Error: The getter 't' isn't defined for the class 'GenericFunctionInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:56:24: Error: The getter 't' isn't defined for the type 'GenericFunctionInlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 't'.
 //     var c1 = this.it = t; // Error, should not resolve to extension method.
 //                        ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:56:19: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:56:19: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c1 = this.it = t; // Error, should not resolve to extension method.
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:57:19: Error: The getter 't' isn't defined for the class 'GenericFunctionInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:57:19: Error: The getter 't' isn't defined for the type 'GenericFunctionInlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 't'.
 //     var c2 = it = t; // Error, should not resolve to extension method.
 //                   ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:57:14: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:57:14: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c2 = it = t; // Error, should not resolve to extension method.
 //              ^^
@@ -96,12 +96,12 @@ library;
 //     var b2 = it<int>; // Error
 //                ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c1 = this.it = 42; // Error, should not resolve to extension method.
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //     var c2 = it = 42; // Error, should not resolve to extension method.
 //              ^^
@@ -126,62 +126,62 @@ library;
 //     var b4 = b<int>; // Error
 //               ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:93:19: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:93:19: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
 //     var c1 = this.a = 42; // Error
 //                   ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:94:14: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:94:14: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
 //     var c2 = a = 42; // Error
 //              ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:95:19: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:95:19: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
 //     var c3 = this.b = '42'; // Error
 //                   ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:96:14: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:96:14: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
 //     var c4 = b = '42'; // Error
 //              ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:97:20: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extension_types/field_access.dart:97:20: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var d1 = this.a(); // Error
 //                    ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:98:15: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extension_types/field_access.dart:98:15: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var d2 = a(); // Error
 //               ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:99:21: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extension_types/field_access.dart:99:21: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var d3 = this.a.call(); // Error
 //                     ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:100:16: Error: The method 'call' isn't defined for the class 'int'.
+// pkg/front_end/testcases/extension_types/field_access.dart:100:16: Error: The method 'call' isn't defined for the type 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var d4 = a.call(); // Error
 //                ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e1 = this.b(); // Error
 //                    ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e2 = b(); // Error
 //               ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e3 = this.b.call(); // Error
 //                     ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e4 = b.call(); // Error
 //                ^^^^
@@ -191,7 +191,7 @@ library;
 //   var a2 = inlineClass.it<int>; // Error
 //                          ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:119:24: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:119:24: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //   var a3 = inlineClass.it = 42; // Error,
 //                        ^^
@@ -201,7 +201,7 @@ library;
 //   var b2 = genericInlineClass.it<int>; // Error
 //                                 ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:124:31: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<String>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:124:31: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<String>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //   var b3 = genericInlineClass.it = '42'; // Error, should not
 //                               ^^
@@ -211,12 +211,12 @@ library;
 //   var c2 = functionInlineClass.it<int>; // Error
 //                                  ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:131:32: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<String>'.
+// pkg/front_end/testcases/extension_types/field_access.dart:131:32: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<String>'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //   var c5 = functionInlineClass.it = () => '42'; // Error, should not
 //                                ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:139:39: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:139:39: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //   var d6 = genericFunctionInlineClass.it = <T>() => throw ''; // Error, should
 //                                       ^^
@@ -226,7 +226,7 @@ library;
 //   var e2 = dynamicInlineClass.it<int>; // Error
 //                                 ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
 //   var e4 = dynamicInlineClass.it = '42'; // Error, should not resolve
 //                               ^^
@@ -236,7 +236,7 @@ library;
 //   var f2 = erroneousInlineClass.a<int>; // Error
 //                                  ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:150:33: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:150:33: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
 //   var f3 = erroneousInlineClass.a = 42; // Error, should not resolve
 //                                 ^
@@ -246,22 +246,22 @@ library;
 //   var g2 = erroneousInlineClass.a<int>; // Error
 //                                  ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:154:33: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:154:33: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
 //   var g3 = erroneousInlineClass.b = '42'; // Error, should not resolve
 //                                 ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:157:31: Error: The getter '_it' isn't defined for the class 'PrivateInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:157:31: Error: The getter '_it' isn't defined for the type 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
 //   var h1 = privateInlineClass._it; // Error
 //                               ^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:158:31: Error: The getter '_it' isn't defined for the class 'PrivateInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:158:31: Error: The getter '_it' isn't defined for the type 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
 //   var h2 = privateInlineClass._it<int>; // Error
 //                               ^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
 //   var h3 = privateInlineClass._it = 42; // Error
 //                               ^^^
@@ -322,7 +322,7 @@ static extension-type-member method InlineClass|constructor#(core::int it) → s
   lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   return self::InlineClass|constructor#(it);
 static extension-type-member method InlineClass|test(lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
@@ -335,11 +335,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:17:19: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:17:19: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c1 = this.it = 42; // Error, should not resolve to extension method.
                   ^^" in #this.{<unresolved>}it = 42;
-  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:18:14: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:18:14: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c2 = it = 42; // Error, should not resolve to extension method.
              ^^" in #this.{<unresolved>}it = 42;
@@ -350,7 +350,7 @@ static extension-type-member method GenericInlineClass|constructor#<T extends co
   lowered final self::GenericInlineClass<self::GenericInlineClass|constructor#::T%>% /* erasure=self::GenericInlineClass|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericInlineClass|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericInlineClass|constructor#_#new#tearOff::T%, declared=! */
   return self::GenericInlineClass|constructor#<self::GenericInlineClass|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%>% /* erasure=self::GenericInlineClass|test::T%, declared=! */ #this, self::GenericInlineClass|test::T% t) → void {
   self::GenericInlineClass|test::T% a1 = #this as{Unchecked} self::GenericInlineClass|test::T%;
@@ -363,11 +363,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  self::GenericInlineClass|test::T% c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+  self::GenericInlineClass|test::T% c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c1 = this.it = t; // Error, should not resolve to extension method.
                   ^^" in #this.{<unresolved>}it = t;
-  self::GenericInlineClass|test::T% c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+  self::GenericInlineClass|test::T% c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c2 = it = t; // Error, should not resolve to extension method.
              ^^" in #this.{<unresolved>}it = t;
@@ -378,7 +378,7 @@ static extension-type-member method FunctionInlineClass|constructor#<T extends c
   lowered final self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%>% /* erasure=() → self::FunctionInlineClass|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%>% /* erasure=() → self::FunctionInlineClass|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%>% /* erasure=() → self::FunctionInlineClass|constructor#_#new#tearOff::T%, declared=! */
   return self::FunctionInlineClass|constructor#<self::FunctionInlineClass|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%>% /* erasure=() → self::FunctionInlineClass|test::T%, declared=! */ #this, () → self::FunctionInlineClass|test::T% t) → void {
   () → self::FunctionInlineClass|test::T% a1 = #this as{Unchecked} () → self::FunctionInlineClass|test::T%;
@@ -391,11 +391,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  () → self::FunctionInlineClass|test::T% c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:39:19: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<T>'.
+  () → self::FunctionInlineClass|test::T% c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:39:19: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c1 = this.it = t; // Error, should not resolve to extension method.
                   ^^" in #this.{<unresolved>}it = t;
-  () → self::FunctionInlineClass|test::T% c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:40:14: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<T>'.
+  () → self::FunctionInlineClass|test::T% c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:40:14: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<T>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c2 = it = t; // Error, should not resolve to extension method.
              ^^" in #this.{<unresolved>}it = t;
@@ -410,7 +410,7 @@ static extension-type-member method GenericFunctionInlineClass|constructor#(<T e
   lowered final self::GenericFunctionInlineClass% /* erasure=<T extends core::Object? = dynamic>() → T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method GenericFunctionInlineClass|constructor#_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass% /* erasure=<T extends core::Object? = dynamic>() → T%, declared=! */
+static extension-type-member synthetic method GenericFunctionInlineClass|constructor#_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass% /* erasure=<T extends core::Object? = dynamic>() → T%, declared=! */
   return self::GenericFunctionInlineClass|constructor#(it);
 static extension-type-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass% /* erasure=<T extends core::Object? = dynamic>() → T%, declared=! */ #this) → void {
   <T extends core::Object? = dynamic>() → T% a1 = #this as{Unchecked} <T extends core::Object? = dynamic>() → T%;
@@ -419,17 +419,17 @@ static extension-type-member method GenericFunctionInlineClass|test(lowered fina
   () → core::int a4 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>;
   () → core::int b1 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>;
   () → core::int b2 = (#this as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>;
-  dynamic c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:56:19: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+  dynamic c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:56:19: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c1 = this.it = t; // Error, should not resolve to extension method.
-                  ^^" in #this.{<unresolved>}it = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:56:24: Error: The getter 't' isn't defined for the class 'GenericFunctionInlineClass'.
+                  ^^" in #this.{<unresolved>}it = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:56:24: Error: The getter 't' isn't defined for the type 'GenericFunctionInlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 't'.
     var c1 = this.it = t; // Error, should not resolve to extension method.
                        ^" in #this{<unresolved>}.t;
-  dynamic c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:57:14: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+  dynamic c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:57:14: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c2 = it = t; // Error, should not resolve to extension method.
-             ^^" in #this.{<unresolved>}it = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:57:19: Error: The getter 't' isn't defined for the class 'GenericFunctionInlineClass'.
+             ^^" in #this.{<unresolved>}it = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:57:19: Error: The getter 't' isn't defined for the type 'GenericFunctionInlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 't'.
     var c2 = it = t; // Error, should not resolve to extension method.
                   ^" in #this{<unresolved>}.t;
@@ -446,7 +446,7 @@ static extension-type-member method DynamicInlineClass|constructor#(dynamic it) 
   lowered final self::DynamicInlineClass% /* erasure=dynamic, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method DynamicInlineClass|constructor#_#new#tearOff(dynamic it) → self::DynamicInlineClass% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method DynamicInlineClass|constructor#_#new#tearOff(dynamic it) → self::DynamicInlineClass% /* erasure=dynamic, declared=! */
   return self::DynamicInlineClass|constructor#(it);
 static extension-type-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass% /* erasure=dynamic, declared=! */ #this) → void {
   dynamic a1 = #this as{Unchecked} dynamic;
@@ -459,11 +459,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c1 = this.it = 42; // Error, should not resolve to extension method.
                   ^^" in #this.{<unresolved>}it = 42;
-  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
     var c2 = it = 42; // Error, should not resolve to extension method.
              ^^" in #this.{<unresolved>}it = 42;
@@ -478,7 +478,7 @@ static extension-type-member method ErroneousInlineClass|constructor#(core::int 
   lowered final self::ErroneousInlineClass% /* erasure=core::int, declared=! */ #this = b;
   return #this;
 }
-static extension-type-member method ErroneousInlineClass|constructor#_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ErroneousInlineClass|constructor#_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass% /* erasure=core::int, declared=! */
   return self::ErroneousInlineClass|constructor#(a, b);
 static extension-type-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass% /* erasure=core::int, declared=! */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
@@ -501,51 +501,51 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b4 = b<int>; // Error
               ^";
-  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:93:19: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:93:19: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
     var c1 = this.a = 42; // Error
                   ^" in #this.{<unresolved>}a = 42;
-  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:94:14: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:94:14: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
     var c2 = a = 42; // Error
              ^" in #this.{<unresolved>}a = 42;
-  core::String c3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:95:19: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+  core::String c3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:95:19: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
     var c3 = this.b = '42'; // Error
                   ^" in #this.{<unresolved>}b = "42";
-  core::String c4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:96:14: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+  core::String c4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:96:14: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
     var c4 = b = '42'; // Error
              ^" in #this.{<unresolved>}b = "42";
-  dynamic d1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:97:20: Error: The method 'call' isn't defined for the class 'int'.
+  dynamic d1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:97:20: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var d1 = this.a(); // Error
                    ^^^^" in (#this as{Unchecked} core::int){<unresolved>}.call();
-  dynamic d2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:98:15: Error: The method 'call' isn't defined for the class 'int'.
+  dynamic d2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:98:15: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var d2 = a(); // Error
               ^^^^" in (#this as{Unchecked} core::int){<unresolved>}.call();
-  dynamic d3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:99:21: Error: The method 'call' isn't defined for the class 'int'.
+  dynamic d3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:99:21: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var d3 = this.a.call(); // Error
                     ^^^^" in (#this as{Unchecked} core::int){<unresolved>}.call();
-  dynamic d4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:100:16: Error: The method 'call' isn't defined for the class 'int'.
+  dynamic d4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:100:16: Error: The method 'call' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var d4 = a.call(); // Error
                ^^^^" in (#this as{Unchecked} core::int){<unresolved>}.call();
-  dynamic e1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the class 'String'.
+  dynamic e1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e1 = this.b(); // Error
                    ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
-  dynamic e2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the class 'String'.
+  dynamic e2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e2 = b(); // Error
               ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
-  dynamic e3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the class 'String'.
+  dynamic e3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e3 = this.b.call(); // Error
                     ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
-  dynamic e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the class 'String'.
+  dynamic e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e4 = b.call(); // Error
                ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
@@ -558,7 +558,7 @@ static method test(self::InlineClass% /* erasure=core::int, declared=! */ inline
 Try changing the operand or remove the type arguments.
   var a2 = inlineClass.it<int>; // Error
                          ^";
-  core::int a3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:119:24: Error: The setter 'it' isn't defined for the class 'InlineClass'.
+  core::int a3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:119:24: Error: The setter 'it' isn't defined for the type 'InlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var a3 = inlineClass.it = 42; // Error,
                        ^^" in inlineClass.{<unresolved>}it = 42;
@@ -567,7 +567,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try changing the operand or remove the type arguments.
   var b2 = genericInlineClass.it<int>; // Error
                                 ^";
-  core::String b3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:124:31: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<String>'.
+  core::String b3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:124:31: Error: The setter 'it' isn't defined for the type 'GenericInlineClass<String>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var b3 = genericInlineClass.it = '42'; // Error, should not
                               ^^" in genericInlineClass.{<unresolved>}it = "42";
@@ -578,7 +578,7 @@ Try changing the operand or remove the type arguments.
                                  ^";
   core::String c3 = (functionInlineClass as{Unchecked} () → core::String)(){() → core::String};
   core::String c4 = (functionInlineClass as{Unchecked} () → core::String)(){() → core::String};
-  () → core::String c5 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:131:32: Error: The setter 'it' isn't defined for the class 'FunctionInlineClass<String>'.
+  () → core::String c5 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:131:32: Error: The setter 'it' isn't defined for the type 'FunctionInlineClass<String>'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var c5 = functionInlineClass.it = () => '42'; // Error, should not
                                ^^" in functionInlineClass.{<unresolved>}it = () → core::String => "42";
@@ -587,7 +587,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   () → core::int d3 = (genericFunctionInlineClass as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>;
   core::int d4 = (genericFunctionInlineClass as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>(){() → core::int};
   core::int d5 = (genericFunctionInlineClass as{Unchecked} <T extends core::Object? = dynamic>() → T%)<core::int>(){() → core::int};
-  <T extends core::Object? = dynamic>() → Never d6 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:139:39: Error: The setter 'it' isn't defined for the class 'GenericFunctionInlineClass'.
+  <T extends core::Object? = dynamic>() → Never d6 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:139:39: Error: The setter 'it' isn't defined for the type 'GenericFunctionInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var d6 = genericFunctionInlineClass.it = <T>() => throw ''; // Error, should
                                       ^^" in genericFunctionInlineClass.{<unresolved>}it = <T extends core::Object? = dynamic>() → Never => throw "";
@@ -597,7 +597,7 @@ Try changing the operand or remove the type arguments.
   var e2 = dynamicInlineClass.it<int>; // Error
                                 ^";
   dynamic e3 = (dynamicInlineClass as{Unchecked} dynamic){dynamic}();
-  core::String e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
+  core::String e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the type 'DynamicInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var e4 = dynamicInlineClass.it = '42'; // Error, should not resolve
                               ^^" in dynamicInlineClass.{<unresolved>}it = "42";
@@ -606,7 +606,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try changing the operand or remove the type arguments.
   var f2 = erroneousInlineClass.a<int>; // Error
                                  ^";
-  core::int f3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:150:33: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
+  core::int f3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:150:33: Error: The setter 'a' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
   var f3 = erroneousInlineClass.a = 42; // Error, should not resolve
                                 ^" in erroneousInlineClass.{<unresolved>}a = 42;
@@ -615,19 +615,19 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try changing the operand or remove the type arguments.
   var g2 = erroneousInlineClass.a<int>; // Error
                                  ^";
-  core::String g3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:154:33: Error: The setter 'b' isn't defined for the class 'ErroneousInlineClass'.
+  core::String g3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:154:33: Error: The setter 'b' isn't defined for the type 'ErroneousInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'b'.
   var g3 = erroneousInlineClass.b = '42'; // Error, should not resolve
                                 ^" in erroneousInlineClass.{<unresolved>}b = "42";
-  dynamic h1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:157:31: Error: The getter '_it' isn't defined for the class 'PrivateInlineClass'.
+  dynamic h1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:157:31: Error: The getter '_it' isn't defined for the type 'PrivateInlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
   var h1 = privateInlineClass._it; // Error
                               ^^^" in privateInlineClass{<unresolved>}._it;
-  dynamic h2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:158:31: Error: The getter '_it' isn't defined for the class 'PrivateInlineClass'.
+  dynamic h2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:158:31: Error: The getter '_it' isn't defined for the type 'PrivateInlineClass'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
   var h2 = privateInlineClass._it<int>; // Error
                               ^^^" in privateInlineClass{<unresolved>}._it;
-  core::int h3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+  core::int h3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
   var h3 = privateInlineClass._it = 42; // Error
                               ^^^" in privateInlineClass.{<unresolved>}_it = 42;
@@ -647,12 +647,12 @@ library;
 //     var b2 = _it<int>; // Error
 //                 ^
 //
-// pkg/front_end/testcases/extension_types/field_access_lib.dart:11:19: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access_lib.dart:11:19: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
 //     var c1 = this._it = 42; // Error, should not resolve to extension method.
 //                   ^^^
 //
-// pkg/front_end/testcases/extension_types/field_access_lib.dart:12:14: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+// pkg/front_end/testcases/extension_types/field_access_lib.dart:12:14: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
 //     var c2 = _it = 42; // Error, should not resolve to extension method.
 //              ^^^
@@ -671,7 +671,7 @@ static extension-type-member method PrivateInlineClass|constructor#(core::int _i
   lowered final self2::PrivateInlineClass% /* erasure=core::int, declared=! */ #this = _it;
   return #this;
 }
-static extension-type-member method PrivateInlineClass|constructor#_#new#tearOff(core::int _it) → self2::PrivateInlineClass% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method PrivateInlineClass|constructor#_#new#tearOff(core::int _it) → self2::PrivateInlineClass% /* erasure=core::int, declared=! */
   return self2::PrivateInlineClass|constructor#(_it);
 static extension-type-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass% /* erasure=core::int, declared=! */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
@@ -684,11 +684,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = _it<int>; // Error
                 ^";
-  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access_lib.dart:11:19: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access_lib.dart:11:19: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
     var c1 = this._it = 42; // Error, should not resolve to extension method.
                   ^^^" in #this.{<unresolved>}_it = 42;
-  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access_lib.dart:12:14: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
+  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access_lib.dart:12:14: Error: The setter '_it' isn't defined for the type 'PrivateInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
     var c2 = _it = 42; // Error, should not resolve to extension method.
              ^^^" in #this.{<unresolved>}_it = 42;

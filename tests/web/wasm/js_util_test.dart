@@ -45,10 +45,14 @@ void equalTest() {
     Object gt = globalThis;
     void test(String propertyName, bool testCanonicalization) {
       Expect.equals(
-          getProperty(gt, propertyName), getProperty(gt, propertyName));
+        getProperty(gt, propertyName),
+        getProperty(gt, propertyName),
+      );
       if (testCanonicalization) {
         Expect.equals(
-            getProperty(gt, propertyName), getProperty(gt, propertyName + "2"));
+          getProperty(gt, propertyName),
+          getProperty(gt, propertyName + "2"),
+        );
       }
     }
 
@@ -69,10 +73,18 @@ void instanceofTest() {
 
       globalThis.obj = new JSClass1();
     ''');
-  Expect.isTrue(instanceof(
-      getProperty(globalThis, 'obj'), getProperty(globalThis, 'JSClass1')));
-  Expect.isFalse(instanceof(
-      getProperty(globalThis, 'obj'), getProperty(globalThis, 'JSClass2')));
+  Expect.isTrue(
+    instanceof(
+      getProperty(globalThis, 'obj'),
+      getProperty(globalThis, 'JSClass1'),
+    ),
+  );
+  Expect.isFalse(
+    instanceof(
+      getProperty(globalThis, 'obj'),
+      getProperty(globalThis, 'JSClass2'),
+    ),
+  );
 }
 
 void _expectIterableEquals(Iterable<Object?> l, Iterable<Object?> r) {
@@ -113,8 +125,11 @@ void evalAndConstructTest() {
   Object constructor = getProperty(gt, 'JSClass');
   Object jsClass = callConstructor(constructor, ['world!']);
   Expect.equals('hello world!', callMethod(jsClass, 'sum', ['hello', ' ']));
-  _expectRecEquals(
-      ['a', 'b', 'c'], getProperty(jsClass, 'list') as List<Object?>);
+  _expectRecEquals([
+    'a',
+    'b',
+    'c',
+  ], getProperty(jsClass, 'list') as List<Object?>);
 }
 
 class Foo {
@@ -135,22 +150,26 @@ void deepConversionsTest() {
   Expect.equals(true, dartify(jsify(true)));
   Expect.equals(2.0, dartify(jsify(2.0)));
   Expect.equals('foo', dartify(jsify('foo')));
+  _expectRecEquals([
+    'a',
+    'b',
+    'c',
+  ], dartify(jsify(['a', 'b', 'c'])) as List<Object?>);
   _expectRecEquals(
-      ['a', 'b', 'c'], dartify(jsify(['a', 'b', 'c'])) as List<Object?>);
-  _expectRecEquals(
-      {
-        'null': 'foo',
-        'foo': null,
-        'a': 1,
-        'b': true,
-        'c': [1, 2, 3, null],
-        'd': 'foo',
-        'e': {
-          'f': 2,
-          'g': [2, 4, 6]
-        },
+    {
+      'null': 'foo',
+      'foo': null,
+      'a': 1,
+      'b': true,
+      'c': [1, 2, 3, null],
+      'd': 'foo',
+      'e': {
+        'f': 2,
+        'g': [2, 4, 6],
       },
-      dartify(jsify({
+    },
+    dartify(
+      jsify({
         'null': 'foo',
         'foo': null,
         'a': 1,
@@ -159,9 +178,11 @@ void deepConversionsTest() {
         'd': 'foo',
         'e': {
           'f': 2,
-          'g': [2, 4, 6]
+          'g': [2, 4, 6],
         },
-      })));
+      }),
+    ),
+  );
   // TODO(joshualitt): Debug the cast failure.
   //List<Object?> l = Int8List.fromList(<int>[-128, 0, 127]);
   //_expectIterableEquals(l, dartify(jsify(l)) as Int8List);
@@ -182,11 +203,15 @@ void deepConversionsTest() {
   l = Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]);
   _expectIterableEquals(l, dartify(jsify(l)) as Float64List);
   ByteBuffer buffer = Uint8List.fromList([0, 1, 2, 3]).buffer;
-  _expectIterableEquals(buffer.asUint8List(),
-      (dartify(jsify(buffer)) as ByteBuffer).asUint8List());
+  _expectIterableEquals(
+    buffer.asUint8List(),
+    (dartify(jsify(buffer)) as ByteBuffer).asUint8List(),
+  );
   ByteData byteData = ByteData.view(buffer);
-  _expectIterableEquals(byteData.buffer.asUint8List(),
-      (dartify(jsify(byteData)) as ByteData).buffer.asUint8List());
+  _expectIterableEquals(
+    byteData.buffer.asUint8List(),
+    (dartify(jsify(byteData)) as ByteData).buffer.asUint8List(),
+  );
 
   // JS to Dart.
   eval(r'''
@@ -245,39 +270,57 @@ void deepConversionsTest() {
     'd': 'foo',
     'e': {
       'f': 2,
-      'g': [2, 4, 6]
+      'g': [2, 4, 6],
     },
   }, dartify(getProperty(gt, 'g')));
-  _expectRecEquals({
-    'a': {},
-  }, dartify(getProperty(gt, 'rec')));
+  _expectRecEquals({'a': {}}, dartify(getProperty(gt, 'rec')));
 
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      getProperty(gt, 'uint8Array') as Uint8List);
-  _expectIterableEquals(Uint8ClampedList.fromList([-1, 0, 255, 256]),
-      getProperty(gt, 'uint8ClampedArray') as Uint8ClampedList);
-  _expectIterableEquals(Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
-      getProperty(gt, 'int16Array') as Int16List);
-  _expectIterableEquals(Uint16List.fromList([-1, 0, 65535, 65536]),
-      getProperty<List<Object?>>(gt, 'uint16Array') as Uint16List);
-  _expectIterableEquals(Int32List.fromList([-2147483648, 0, 2147483647]),
-      getProperty(gt, 'int32Array') as Int32List);
-  _expectIterableEquals(Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
-      getProperty(gt, 'uint32Array') as Uint32List);
   _expectIterableEquals(
-      Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      getProperty(gt, 'float32Array') as Float32List);
+    Uint8List.fromList([-1, 0, 255, 256]),
+    getProperty(gt, 'uint8Array') as Uint8List,
+  );
   _expectIterableEquals(
-      Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
-      getProperty(gt, 'float64Array') as Float64List);
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      (getProperty(gt, 'arrayBuffer') as ByteBuffer).asUint8List());
-  _expectIterableEquals(Uint8List.fromList([-1, 0, 255, 256]),
-      (getProperty(gt, 'dataView') as ByteData).buffer.asUint8List());
+    Uint8ClampedList.fromList([-1, 0, 255, 256]),
+    getProperty(gt, 'uint8ClampedArray') as Uint8ClampedList,
+  );
+  _expectIterableEquals(
+    Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
+    getProperty(gt, 'int16Array') as Int16List,
+  );
+  _expectIterableEquals(
+    Uint16List.fromList([-1, 0, 65535, 65536]),
+    getProperty<List<Object?>>(gt, 'uint16Array') as Uint16List,
+  );
+  _expectIterableEquals(
+    Int32List.fromList([-2147483648, 0, 2147483647]),
+    getProperty(gt, 'int32Array') as Int32List,
+  );
+  _expectIterableEquals(
+    Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
+    getProperty(gt, 'uint32Array') as Uint32List,
+  );
+  _expectIterableEquals(
+    Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
+    getProperty(gt, 'float32Array') as Float32List,
+  );
+  _expectIterableEquals(
+    Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
+    getProperty(gt, 'float64Array') as Float64List,
+  );
+  _expectIterableEquals(
+    Uint8List.fromList([-1, 0, 255, 256]),
+    (getProperty(gt, 'arrayBuffer') as ByteBuffer).asUint8List(),
+  );
+  _expectIterableEquals(
+    Uint8List.fromList([-1, 0, 255, 256]),
+    (getProperty(gt, 'dataView') as ByteData).buffer.asUint8List(),
+  );
 
   // Confirm a function that takes a roundtrip remains a function.
-  Expect.equals('hello world',
-      callMethod(gt, 'invoke', <Object?>[dartify(getProperty(gt, 'f'))]));
+  Expect.equals(
+    'hello world',
+    callMethod(gt, 'invoke', <Object?>[dartify(getProperty(gt, 'f'))]),
+  );
 
   // Confirm arrays, which need to be converted implicitly, are still
   // recursively converted by dartify when desired.
@@ -287,7 +330,7 @@ void deepConversionsTest() {
       1,
       2,
       3,
-      {'baz': 'boo'}
+      {'baz': 'boo'},
     ],
   ], dartify(getProperty(globalThis, 'implicitExplicit')) as Iterable);
 
@@ -312,7 +355,8 @@ Future<void> promiseToFutureTest() async {
     globalThis.getResolvedPromise = function() {
       return resolvedPromise;
     }
-    //globalThis.nullRejectedPromise = Promise.reject(null);
+    globalThis.nullRejectedPromise = new Promise((resolve, reject) => reject(null));
+    globalThis.undefinedRejectedPromise = new Promise((resolve, reject) => reject(undefined));
   ''');
 
   // Test resolved
@@ -324,7 +368,8 @@ Future<void> promiseToFutureTest() async {
   // Test rejected
   {
     String result = await asyncExpectThrows<String>(
-        promiseToFuture(getProperty(gt, 'rejectedPromise')));
+      promiseToFuture(getProperty(gt, 'rejectedPromise')),
+    );
     Expect.equals('rejected', result);
   }
 
@@ -347,15 +392,26 @@ Future<void> promiseToFutureTest() async {
   }
 
   // Test rejecting promise with null should trigger an exception.
-  // TODO(joshualitt): Fails with an illegal cast.
-  // {
-  //   Future f = promiseToFuture(getProperty(gt, 'nullRejectedPromise'));
-  //   f.then((_) { Expect.fail("Expect promise to reject"); }).catchError((e) {
-  //     print('A');
-  //     Expect.isTrue(e is NullRejectionException);
-  //   });
-  //   await f;
-  // }
+  {
+    try {
+      await promiseToFuture(getProperty(gt, 'nullRejectedPromise'));
+      Expect.fail("Expect promise to reject");
+    } catch (e) {
+      Expect.isTrue(e is NullRejectionException);
+      Expect.isFalse((e as NullRejectionException).isUndefined);
+    }
+  }
+
+  // Test rejecting promise with undefined should trigger an exception.
+  {
+    try {
+      await promiseToFuture(getProperty(gt, 'undefinedRejectedPromise'));
+      Expect.fail("Expect promise to reject");
+    } catch (e) {
+      Expect.isTrue(e is NullRejectionException);
+      Expect.isTrue((e as NullRejectionException).isUndefined);
+    }
+  }
 }
 
 @JS('Symbol')
@@ -390,16 +446,22 @@ void symbolTest() {
       globalThis.symbol2 = symbol2;
       ''');
   Expect.equals(
-      _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart, 'symbol');
+    _JSSymbol.keyFor(_JSSymbol._for('symbol'.toJS)).toDart,
+    'symbol',
+  );
   Expect.equals(
-      getProperty<String>(
-          globalThis, getProperty<_JSSymbol>(globalThis, 'symbol')),
-      'boo');
+    getProperty<String>(
+      globalThis,
+      getProperty<_JSSymbol>(globalThis, 'symbol'),
+    ),
+    'boo',
+  );
   Expect.equals(methodWithSymbol(symbol).toDart, 'symbol');
   Expect.equals(_JSSymbol.keyFor(symbol).toDart, 'symbol');
   Expect.equals(
-      _JSSymbol.keyFor(getProperty<_JSSymbol>(globalThis, 'symbol')).toDart,
-      'symbol');
+    _JSSymbol.keyFor(getProperty<_JSSymbol>(globalThis, 'symbol')).toDart,
+    'symbol',
+  );
   Expect.equals(callMethod<String>(globalThis, symbol2, []), 'hello world');
 }
 

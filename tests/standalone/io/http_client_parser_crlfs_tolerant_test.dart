@@ -24,24 +24,32 @@ Future testHttpClient(header) {
       });
     });
 
-    await runZonedGuarded(() {
-      var client = new HttpClient();
-      client.userAgent = null;
-      client
-          .get("127.0.0.1", server.port, "/")
-          .then((request) => request.close())
-          .then((response) {
-        response.transform(utf8.decoder).listen((contents) {
-          completer.complete();
-        }, onDone: () {
-          client.close(force: true);
-          server.close();
-        });
-      });
-    }, (e, st) {
-      server.close();
-      completer.completeError(e, st);
-    });
+    await runZonedGuarded(
+      () {
+        var client = new HttpClient();
+        client.userAgent = null;
+        client
+            .get("127.0.0.1", server.port, "/")
+            .then((request) => request.close())
+            .then((response) {
+              response
+                  .transform(utf8.decoder)
+                  .listen(
+                    (contents) {
+                      completer.complete();
+                    },
+                    onDone: () {
+                      client.close(force: true);
+                      server.close();
+                    },
+                  );
+            });
+      },
+      (e, st) {
+        server.close();
+        completer.completeError(e, st);
+      },
+    );
   });
   return completer.future;
 }

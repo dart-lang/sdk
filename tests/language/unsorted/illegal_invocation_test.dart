@@ -12,7 +12,7 @@ main() {
   // probably what the user meant was foo.foo(), but the qualifier refers
   // to the library prefix, not the method defined within the library.
   foo();
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used as an expression.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used as an expression.
 }

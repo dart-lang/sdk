@@ -24,14 +24,17 @@ main() {
 @reflectiveTest
 class NNBDParserTest extends FastaParserTestCase {
   @override
-  CompilationUnitImpl parseCompilationUnit(String content,
-          {List<ErrorCode>? codes,
-          List<ExpectedError>? errors,
-          FeatureSet? featureSet}) =>
-      super.parseCompilationUnit(content,
-          codes: codes,
-          errors: errors,
-          featureSet: featureSet ?? FeatureSet.latestLanguageVersion());
+  CompilationUnitImpl parseCompilationUnit(
+    String content, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+    FeatureSet? featureSet,
+  }) => super.parseCompilationUnit(
+    content,
+    codes: codes,
+    errors: errors,
+    featureSet: featureSet ?? FeatureSet.latestLanguageVersion(),
+  );
 
   void test_assignment_complex() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
@@ -96,7 +99,7 @@ main() {
 
     expect(expression.typeArguments!.arguments.length, 1);
     var typeArgument = expression.typeArguments!.arguments.single as NamedType;
-    expect(typeArgument.name2.lexeme, "int");
+    expect(typeArgument.name.lexeme, "int");
 
     expect(expression.argumentList.arguments.length, 1);
     var argument = expression.argumentList.arguments.single as IntegerLiteral;
@@ -150,9 +153,12 @@ main() {
   }
 
   void test_cascade_withNullCheck_invalid() {
-    parseCompilationUnit('main() { a..[27]?..x; }', errors: [
-      expectedError(ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER, 16, 3),
-    ]);
+    parseCompilationUnit(
+      'main() { a..[27]?..x; }',
+      errors: [
+        expectedError(ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER, 16, 3),
+      ],
+    );
   }
 
   void test_cascade_withNullCheck_methodInvocation() {
@@ -186,12 +192,14 @@ main() {
   }
 
   void test_conditional_error() {
-    parseCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
-        errors: [
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
-        ]);
+    parseCompilationUnit(
+      'D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
+      errors: [
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
+      ],
+    );
   }
 
   void test_conditional_simple() {
@@ -220,13 +228,16 @@ main() {
 
   test_fuzz_38113() async {
     // https://github.com/dart-lang/sdk/issues/38113
-    parseCompilationUnit(r'+t{{r?this}}', errors: [
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1),
-    ]);
+    parseCompilationUnit(
+      r'+t{{r?this}}',
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1),
+      ],
+    );
   }
 
   void test_gft_nullable() {
@@ -271,8 +282,9 @@ main() {
   }
 
   void test_is_nullable() {
-    CompilationUnit unit =
-        parseCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+      'main() { x is String? ? (x + y) : z; }',
+    );
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -287,8 +299,9 @@ main() {
   }
 
   void test_is_nullable_parenthesis() {
-    CompilationUnit unit =
-        parseCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+      'main() { (x is String?) ? (x + y) : z; }',
+    );
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -356,7 +369,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name2.lexeme, 'Object');
+    expect(type.name.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -370,7 +383,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = expression.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
-      expect(expressionType.name2.lexeme, 'String');
+      expect(expressionType.name.lexeme, 'String');
     }
 
     // y = 0
@@ -402,7 +415,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name2.lexeme, 'Object');
+    expect(type.name.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -417,7 +430,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = condition.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
-      expect(expressionType.name2.lexeme, 'String');
+      expect(expressionType.name.lexeme, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');
@@ -455,7 +468,7 @@ class Foo {
     expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
-    expect(type.name2.lexeme, 'Object');
+    expect(type.name.lexeme, 'Object');
 
     expect(constructor.initializers.length, 2);
 
@@ -470,7 +483,7 @@ class Foo {
       expect(identifier.name, 'o');
       var expressionType = condition.type as NamedType;
       expect(expressionType.question, isNull);
-      expect(expressionType.name2.lexeme, 'String');
+      expect(expressionType.name.lexeme, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');

@@ -8,4 +8,6 @@ abstract class InternalService {
   String get serviceName;
 
   void register(DTDClient client);
+
+  void shutdown();
 }

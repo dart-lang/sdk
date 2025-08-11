@@ -40,13 +40,14 @@ ListLiteral
   }
 
   test_hasTypeArguments_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   <int, double>[];
 }
-''', [
-      error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 13, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 13, 13)],
+    );
 
     var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''

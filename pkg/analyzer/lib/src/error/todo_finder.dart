@@ -10,8 +10,8 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Instances of the class `ToDoFinder` find to-do comments in Dart code.
 class TodoFinder {
-  /// The error reporter by which to-do comments will be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter by which to-do comments will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// A regex for whitespace and comment markers to be removed from the text
   /// of multiline TODOs in multiline comments.
@@ -27,7 +27,7 @@ class TodoFinder {
   ///
   /// @param errorReporter the error reporter by which to-do comments will be
   ///        reported
-  TodoFinder(this._errorReporter);
+  TodoFinder(this._diagnosticReporter);
 
   /// Search the comments in the given compilation unit for to-do comments and
   /// report an error for each.
@@ -65,8 +65,9 @@ class TodoFinder {
   /// Returns the next comment token to begin searching from (skipping over
   /// any continuations).
   Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
-    Iterable<RegExpMatch> matches =
-        Todo.TODO_REGEX.allMatches(commentToken.lexeme);
+    Iterable<RegExpMatch> matches = Todo.TODO_REGEX.allMatches(
+      commentToken.lexeme,
+    );
     // Track the comment that will be returned for looking for the next `todo`.
     // This will be moved along if additional comments are consumed by multiline
     // TODOs.
@@ -98,28 +99,29 @@ class TodoFinder {
           var nextCommentLocation = lineInfo.getLocation(nextComment.offset);
           var columnOfFirstNoneMarkerOrWhitespace =
               nextCommentLocation.columnNumber +
-                  nextComment.lexeme.indexOf(_nonWhitespaceOrCommentMarker);
+              nextComment.lexeme.indexOf(_nonWhitespaceOrCommentMarker);
 
           var isContinuation =
               nextComment.type == TokenType.SINGLE_LINE_COMMENT &&
-                  // Don't consider Dartdocs that follow.
-                  !nextComment.lexeme.startsWith('///') &&
-                  // Only consider TODOs on the very next line.
-                  nextCommentLocation.lineNumber == line++ + 1 &&
-                  // Only consider comment tokens starting at the same column.
-                  nextCommentLocation.columnNumber ==
-                      commentLocation.columnNumber &&
-                  // And indented more than the original 'todo' text.
-                  columnOfFirstNoneMarkerOrWhitespace == column + 1 &&
-                  // And not their own todos.
-                  !Todo.TODO_REGEX.hasMatch(nextComment.lexeme);
+              // Don't consider Dartdocs that follow.
+              !nextComment.lexeme.startsWith('///') &&
+              // Only consider TODOs on the very next line.
+              nextCommentLocation.lineNumber == line++ + 1 &&
+              // Only consider comment tokens starting at the same column.
+              nextCommentLocation.columnNumber ==
+                  commentLocation.columnNumber &&
+              // And indented more than the original 'todo' text.
+              columnOfFirstNoneMarkerOrWhitespace == column + 1 &&
+              // And not their own todos.
+              !Todo.TODO_REGEX.hasMatch(nextComment.lexeme);
           if (!isContinuation) {
             break;
           }
 
           // Track the end of the continuation for the diagnostic range.
           end = nextComment.end;
-          var lexemeTextOffset = columnOfFirstNoneMarkerOrWhitespace -
+          var lexemeTextOffset =
+              columnOfFirstNoneMarkerOrWhitespace -
               nextCommentLocation.columnNumber;
           var continuationText =
               nextComment.lexeme.substring(lexemeTextOffset).trimRight();
@@ -128,10 +130,10 @@ class TodoFinder {
         }
       }
 
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: end - offset,
-        errorCode: Todo.forKind(todoKind),
+        diagnosticCode: Todo.forKind(todoKind),
         arguments: [todoText],
       );
     }

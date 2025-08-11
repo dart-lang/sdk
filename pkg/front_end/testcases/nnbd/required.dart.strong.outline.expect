@@ -26,7 +26,7 @@ abstract class A extends core::Object {
 class B extends self::A {
   synthetic constructor •() → self::B
     ;
-  method foo({core::int x = null}) → dynamic
+  method foo({erroneously-initialized core::int x = null}) → dynamic
     ;
 }
 class C extends self::A {

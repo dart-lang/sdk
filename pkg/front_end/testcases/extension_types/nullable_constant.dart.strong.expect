@@ -14,7 +14,7 @@ static extension-type-member method ET|constructor#(core::int? i) → self::ET% 
   lowered final self::ET% /* erasure=core::int?, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ET|constructor#_#new#tearOff(core::int? i) → self::ET% /* erasure=core::int?, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int? i) → self::ET% /* erasure=core::int?, declared=! */
   return self::ET|constructor#(i);
 
 constants  {

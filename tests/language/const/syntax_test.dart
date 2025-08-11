@@ -68,7 +68,7 @@ const int F3;
 // [cfe] Field 'F3' should be initialized because its type 'int' doesn't allow null.
 // [cfe] The const variable 'F3' must be initialized.
 //          ^
-// [cfe] The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'int'.
 
 class Point {
   final x, y;

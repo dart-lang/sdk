@@ -18,19 +18,19 @@ static extension-type-member method Class|constructor#(core::int it) → self::C
   lowered final self::Class% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method Class|constructor#_#new#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Class|constructor#_#new#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(it);
 static extension-type-member method Class|constructor#named(core::int it) → self::Class% /* erasure=core::int, declared=! */ {
   lowered final self::Class% /* erasure=core::int, declared=! */ #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method Class|constructor#_#named#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Class|constructor#_#named#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#named(it);
 static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%>% /* erasure=self::GenericClass|constructor#::T%, declared=! */ {
   lowered final self::GenericClass<self::GenericClass|constructor#::T%>% /* erasure=self::GenericClass|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#new#tearOff::T%, declared=! */
   return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic {
   self::Class% /* erasure=core::int, declared=! */ a = self::Class|constructor#(3);

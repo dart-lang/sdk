@@ -9,7 +9,7 @@ extension type Id(core::int id) {
 }
 static extension-type-member method Id|constructor#(core::int id) → self::Id% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Id|constructor#_#new#tearOff(core::int id) → self::Id% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method Id|constructor#_#new#tearOff(core::int id) → self::Id% /* erasure=core::int, declared=! */
   return self::Id|constructor#(id);
 static method test() → dynamic
   ;

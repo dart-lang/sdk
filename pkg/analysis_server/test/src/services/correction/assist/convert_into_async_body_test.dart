@@ -17,41 +17,41 @@ void main() {
 @reflectiveTest
 class ConvertIntoAsyncBodyTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_ASYNC_BODY;
+  AssistKind get kind => DartAssistKind.convertIntoAsyncBody;
 
   Future<void> test_async() async {
     await resolveTestCode('''
 import 'dart:async';
-Future<String> f() async => '';
+Future<String> f() async ^=> '';
 ''');
-    await assertNoAssistAt('=>');
+    await assertNoAssist();
   }
 
   Future<void> test_asyncStar() async {
     await resolveTestCode('''
 import 'dart:async';
-Stream<String> f() async* {}
+Stream<String> f() async* ^{}
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 
   Future<void> test_closure() async {
     await resolveTestCode('''
 void h() {
-  f(() => 123);
+  f(() ^=> 123);
 }
 f(g) {}
 ''');
-    await assertNoAssistAt('=>');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_assignment() async {
     await resolveTestCode('''
 void f() {
-  var c = () {};
+  var c = () ^{};
 }
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_future() async {
@@ -61,10 +61,10 @@ import 'dart:async';
 void g(Future<int> Function() fun) {}
 
 void f() {
-  g(() => Future.value(1));
+  g(() ^=> Future.value(1));
 }
 ''');
-    await assertNoAssistAt('=>');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_futureOr() async {
@@ -74,10 +74,10 @@ import 'dart:async';
 void g(FutureOr<int> Function() fun) {}
 
 void f() {
-  g(() => 1);
+  g(() ^=> 1);
 }
 ''');
-    await assertNoAssistAt('=>');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_int() async {
@@ -85,10 +85,10 @@ void f() {
 void g(int Function() fun) {}
 
 void f() {
-  g(() => 1);
+  g(() ^=> 1);
 }
 ''');
-    await assertNoAssistAt('=>');
+    await assertNoAssist();
   }
 
   Future<void> test_closure_void() async {
@@ -97,26 +97,26 @@ void g(void Function() fun) {
 }
 
 void f() {
-  g(() {});
+  g(() ^{});
 }
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 
   Future<void> test_constructor() async {
     await resolveTestCode('''
 class C {
-  C() {}
+  C() ^{}
 }
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 
   Future<void> test_function() async {
     await resolveTestCode('''
-String f() => '';
+String f() ^=> '';
 ''');
-    await assertHasAssistAt('=>', '''
+    await assertHasAssist('''
 Future<String> f() async => '';
 ''');
   }
@@ -124,10 +124,10 @@ Future<String> f() async => '';
   Future<void> test_function_local() async {
     await resolveTestCode('''
 void g() {
-  String f() => '';
+  String f() ^=> '';
 }
 ''');
-    await assertHasAssistAt('=>', '''
+    await assertHasAssist('''
 void g() {
   Future<String> f() async => '';
 }
@@ -136,10 +136,10 @@ void g() {
 
   Future<void> test_function_returnType_future() async {
     await resolveTestCode(r'''
-Future<int> f() => Future.value(0);
+Future<int> f() ^=> Future.value(0);
 ''');
 
-    await assertHasAssistAt('=>', r'''
+    await assertHasAssist(r'''
 Future<int> f() async => Future.value(0);
 ''');
   }
@@ -148,10 +148,10 @@ Future<int> f() async => Future.value(0);
     await resolveTestCode(r'''
 import 'dart:async';
 
-FutureOr<int> f() => 0;
+FutureOr<int> f() ^=> 0;
 ''');
 
-    await assertHasAssistAt('=>', r'''
+    await assertHasAssist(r'''
 import 'dart:async';
 
 Future<int> f() async => 0;
@@ -161,10 +161,10 @@ Future<int> f() async => 0;
   Future<void> test_getter_expression_noSpace() async {
     await resolveTestCode('''
 class C {
-  int get g=>0;
+  int ^get g=>0;
 }
 ''');
-    await assertHasAssistAt('get g', '''
+    await assertHasAssist('''
 class C {
   Future<int> get g async =>0;
 }
@@ -175,29 +175,29 @@ class C {
     await resolveTestCode('''
 class C {
   void foo() {
-    print(42);
+    ^print(42);
   }
 }
 ''');
-    await assertNoAssistAt('print');
+    await assertNoAssist();
   }
 
   Future<void> test_inBody_expression() async {
     await resolveTestCode('''
 class C {
-  void foo() => print(42);
+  void foo() => ^print(42);
 }
 ''');
-    await assertNoAssistAt('print');
+    await assertNoAssist();
   }
 
   Future<void> test_method() async {
     await resolveTestCode('''
 class C {
-  int m() { return 0; }
+  int m() ^{ return 0; }
 }
 ''');
-    await assertHasAssistAt('{ return', '''
+    await assertHasAssist('''
 class C {
   Future<int> m() async { return 0; }
 }
@@ -207,7 +207,7 @@ class C {
   Future<void> test_method_abstract() async {
     await resolveTestCode('''
 abstract class C {
-  int m();
+  int ^m();
 }
 ''');
     await assertNoAssist();
@@ -216,10 +216,10 @@ abstract class C {
   Future<void> test_method_noReturnType() async {
     await resolveTestCode('''
 class C {
-  m() { return 0; }
+  m() ^{ return 0; }
 }
 ''');
-    await assertHasAssistAt('{ return', '''
+    await assertHasAssist('''
 class C {
   m() async { return 0; }
 }
@@ -231,15 +231,15 @@ class C {
     // computing assists.
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-Iterable<String> f() sync {}
+Iterable<String> f() sync ^{}
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 
   Future<void> test_syncStar() async {
     await resolveTestCode('''
-Iterable<String> f() sync* {}
+Iterable<String> f() sync* ^{}
 ''');
-    await assertNoAssistAt('{}');
+    await assertNoAssist();
   }
 }

@@ -29,6 +29,9 @@ Future<void> main(args, message) async {
     if (msg == "done") receivePort.close();
   };
   await Isolate.spawnUri(
-      Platform.script, <String>["child"], receivePort.sendPort,
-      errorsAreFatal: true);
+    Platform.script,
+    <String>["child"],
+    receivePort.sendPort,
+    errorsAreFatal: true,
+  );
 }

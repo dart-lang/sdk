@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class AbstractSuperMemberReferenceTest extends PubPackageResolutionTest {
   test_methodInvocation_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo(int _) {}
 }
@@ -26,9 +27,9 @@ mixin M implements A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -39,14 +40,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -80,7 +81,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::M::@method::foo#element
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -91,7 +92,8 @@ MethodInvocation
   }
 
   test_methodInvocation_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   void foo();
   noSuchMethod(im) => 42;
@@ -101,9 +103,9 @@ class B extends Object with A {
   void foo() => super.foo(); // ref
   noSuchMethod(im) => 87;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
@@ -114,7 +116,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::A::@method::foo#element
+    element: <testLibrary>::@mixin::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -125,7 +127,8 @@ MethodInvocation
   }
 
   test_methodInvocation_superHasAbstract() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo(int _);
 }
@@ -137,9 +140,9 @@ abstract class B extends A {
 
   void foo(int _) {} // does not matter
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 95, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 95, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -150,14 +153,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -191,7 +194,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -223,7 +226,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -259,7 +262,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -270,7 +273,8 @@ MethodInvocation
   }
 
   test_propertyAccess_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -280,9 +284,9 @@ abstract class B extends A {
     super.foo; // ref
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 86, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 86, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -293,14 +297,15 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
   test_propertyAccess_getter_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -310,9 +315,9 @@ mixin M implements A {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -323,14 +328,15 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -340,9 +346,9 @@ class B extends Object with A {
   int get foo => super.foo; // ref
   noSuchMethod(im) => 2;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 108, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 108, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -353,7 +359,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::A::@getter::foo#element
+    element: <testLibrary>::@mixin::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -381,14 +387,15 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
   test_propertyAccess_getter_superImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -399,9 +406,9 @@ abstract class B implements A {
 class C extends B {
   int get foo => super.foo; // ref
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -412,7 +419,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -442,14 +449,15 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
   test_propertyAccess_method_tearOff_abstract() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo();
 }
@@ -459,9 +467,9 @@ abstract class B extends A {
     super.foo; // ref
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 90, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 90, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -472,14 +480,15 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');
   }
 
   test_propertyAccess_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   set foo(int _);
 }
@@ -489,9 +498,9 @@ abstract class B extends A {
     super.foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -508,11 +517,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -520,7 +529,8 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set foo(int _) {}
 }
@@ -530,9 +540,9 @@ mixin M implements A {
     super.foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -549,11 +559,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -561,7 +571,8 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   set foo(int a);
   noSuchMethod(im) {}
@@ -571,9 +582,9 @@ class B extends Object with A {
   set foo(int a) => super.foo = a; // ref
   noSuchMethod(im) {}
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -590,12 +601,12 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    correspondingParameter: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::a#element
-    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
+    correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
+    element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@mixin::A::@setter::foo#element
+  writeElement2: <testLibrary>::@mixin::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -630,12 +641,12 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::a#element
-    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
+    element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -674,11 +685,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

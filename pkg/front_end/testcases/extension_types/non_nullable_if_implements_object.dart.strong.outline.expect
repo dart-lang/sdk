@@ -39,31 +39,31 @@ extension type E7(core::num it) implements core::num {
 }
 static extension-type-member method E1|constructor#(core::Object it) → self::E1% /* erasure=core::Object, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(core::Object it) → self::E1% /* erasure=core::Object, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::Object it) → self::E1% /* erasure=core::Object, declared=! */
   return self::E1|constructor#(it);
 static extension-type-member method E2|constructor#(core::Object it) → self::E2 /* erasure=core::Object */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(core::Object it) → self::E2 /* erasure=core::Object */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::Object it) → self::E2 /* erasure=core::Object */
   return self::E2|constructor#(it);
 static extension-type-member method E3|constructor#(core::Object it) → self::E3% /* erasure=core::Object, declared=! */
   ;
-static extension-type-member method E3|constructor#_#new#tearOff(core::Object it) → self::E3% /* erasure=core::Object, declared=! */
+static extension-type-member synthetic method E3|constructor#_#new#tearOff(core::Object it) → self::E3% /* erasure=core::Object, declared=! */
   return self::E3|constructor#(it);
 static extension-type-member method E4|constructor#(core::Object it) → self::E4 /* erasure=core::Object */
   ;
-static extension-type-member method E4|constructor#_#new#tearOff(core::Object it) → self::E4 /* erasure=core::Object */
+static extension-type-member synthetic method E4|constructor#_#new#tearOff(core::Object it) → self::E4 /* erasure=core::Object */
   return self::E4|constructor#(it);
 static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E5|constructor#::X% it) → self::E5<self::E5|constructor#::X%>% /* erasure=self::E5|constructor#::X%, declared=! */
   ;
-static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% it) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* erasure=self::E5|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% it) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* erasure=self::E5|constructor#_#new#tearOff::X%, declared=! */
   return self::E5|constructor#<self::E5|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E6|constructor#<X extends core::Object>(self::E6|constructor#::X it) → self::E6<self::E6|constructor#::X> /* erasure=self::E6|constructor#::X */
   ;
-static extension-type-member method E6|constructor#_#new#tearOff<X extends core::Object>(self::E6|constructor#_#new#tearOff::X it) → self::E6<self::E6|constructor#_#new#tearOff::X> /* erasure=self::E6|constructor#_#new#tearOff::X */
+static extension-type-member synthetic method E6|constructor#_#new#tearOff<X extends core::Object>(self::E6|constructor#_#new#tearOff::X it) → self::E6<self::E6|constructor#_#new#tearOff::X> /* erasure=self::E6|constructor#_#new#tearOff::X */
   return self::E6|constructor#<self::E6|constructor#_#new#tearOff::X>(it);
 static extension-type-member method E7|constructor#(core::num it) → self::E7 /* erasure=core::num */
   ;
-static extension-type-member method E7|constructor#_#new#tearOff(core::num it) → self::E7 /* erasure=core::num */
+static extension-type-member synthetic method E7|constructor#_#new#tearOff(core::num it) → self::E7 /* erasure=core::num */
   return self::E7|constructor#(it);
 static method test1(self::E1% /* erasure=core::Object, declared=! */ e1, self::E2 /* erasure=core::Object */ e2, self::E3% /* erasure=core::Object, declared=! */ e3, self::E4 /* erasure=core::Object */ e4, self::E5<dynamic>% /* erasure=dynamic, declared=! */ e5, self::E6<core::Object> /* erasure=core::Object */ e6, self::E7 /* erasure=core::num */ e7) → dynamic
   ;

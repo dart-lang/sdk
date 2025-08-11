@@ -3,9 +3,9 @@
 
 class Hest<TypeX extends Fisk> {}
 
-typedef Fisk = void Function // don't merge lines
-
-        ();
+typedef Fisk =
+    void Function // don't merge lines
+    ();
 
 main() {
   Hest hest = new Hest();

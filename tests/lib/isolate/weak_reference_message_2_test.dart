@@ -13,10 +13,7 @@ import "package:expect/expect.dart";
 
 main() async {
   final port = ReceivePort();
-  await Isolate.spawn(
-    runHelper,
-    port.sendPort,
-  );
+  await Isolate.spawn(runHelper, port.sendPort);
   final message = await port.first;
 
   final weakRef1copy = message[0] as WeakReference<Uint8List>;

@@ -168,6 +168,7 @@ class PageSpace {
     return AllocateSnapshotLockedSlow(freelist, size);
   }
 
+  bool HasReservation() { return oom_reservation_ != nullptr; }
   void TryReleaseReservation();
   bool MarkReservation();
   void TryReserveForOOM();
@@ -449,7 +450,10 @@ class PageSpace {
     kDataFreelist = 1,
   };
   FreeList* freelists_;
+
   static constexpr intptr_t kOOMReservationSize = 32 * KB;
+  static_assert(kOOMReservationSize < kAllocatablePageSize,
+                "OOM reservation should not go to a large page");
   FreeListElement* oom_reservation_ = nullptr;
 
   // Use ExclusivePageIterator for safe access to these.

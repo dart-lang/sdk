@@ -66,10 +66,10 @@ replacement
 suggestions
   v02
     kind: localVariable
-    relevance: 572
+    relevance: 594
   v01
     kind: parameter
-    relevance: 556
+    relevance: 578
 ''');
   }
 
@@ -86,13 +86,13 @@ replacement
 suggestions
   v02
     kind: localVariable
-    relevance: 572
+    relevance: 594
   v03
     kind: localVariable
-    relevance: 566
+    relevance: 588
   v01
     kind: parameter
-    relevance: 551
+    relevance: 573
 ''');
   }
 

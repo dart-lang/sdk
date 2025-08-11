@@ -6,12 +6,14 @@ void condition_false(Object x) {
   while (x is! String) {
     x;
   }
-  /*String*/ x;
+  /*String*/
+  x;
 }
 
 void condition_true(Object x) {
   while (x is String) {
-    /*String*/ x;
+    /*String*/
+    x;
   }
   x;
 }
@@ -19,9 +21,11 @@ void condition_true(Object x) {
 void outerIsType(bool b, Object x) {
   if (x is String) {
     while (b) {
-      /*String*/ x;
+      /*String*/
+      x;
     }
-    /*String*/ x;
+    /*String*/
+    x;
   }
 }
 

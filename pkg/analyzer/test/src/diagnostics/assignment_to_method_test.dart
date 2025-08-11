@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class AssignmentToMethodTest extends PubPackageResolutionTest {
   test_instance_extendedHasMethod_extensionHasSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo() {}
 }
@@ -31,16 +32,19 @@ void f(C c) {
   c.foo++;
   --c.foo;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 94, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 107, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 121, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 134, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 94, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 107, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 121, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 134, 3),
+      ],
+    );
   }
 
   test_prefixedIdentifier_instanceMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo() {}
 }
@@ -51,16 +55,19 @@ void f(A a) {
   a.foo++;
   ++a.foo;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 47, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 60, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 74, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 47, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 60, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 74, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 3),
+      ],
+    );
   }
 
   test_propertyAccess_instanceMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo() {}
 }
@@ -71,16 +78,19 @@ void f(A a) {
   (a).foo++;
   ++(a).foo;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 49, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 64, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 80, 3),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 95, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 49, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 64, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 80, 3),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 95, 3),
+      ],
+    );
   }
 
   test_this_extendedHasMethod_extensionHasSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo() {}
 }
@@ -92,8 +102,8 @@ extension E on C {
     this.foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 91, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 91, 3)],
+    );
   }
 }

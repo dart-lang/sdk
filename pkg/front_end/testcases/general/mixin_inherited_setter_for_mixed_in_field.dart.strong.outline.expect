@@ -29,11 +29,11 @@ abstract class _Foo&Object&C = core::Object with self::C<self::B> /*isAnonymousM
   synthetic constructor •() → self::_Foo&Object&C
     : super core::Object::•()
     ;
-  mixin-super-stub get _field() → self::B
+  synthetic mixin-super-stub get _field() → self::B
     return super.{self::C::_field};
-  mixin-super-stub set _field(covariant-by-class self::B value) → void
+  synthetic mixin-super-stub set _field(covariant-by-class self::B value) → void
     return super.{self::C::_field} = value;
-  mixin-super-stub method foo(covariant-by-class self::B x) → dynamic
+  synthetic mixin-super-stub method foo(covariant-by-class self::B x) → dynamic
     return super.{self::C::foo}(x);
 }
 static method main() → dynamic

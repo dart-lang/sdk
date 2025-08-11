@@ -16,41 +16,44 @@ main() {
 @reflectiveTest
 class LateFinalLocalAlreadyAssignedTest extends PubPackageResolutionTest {
   test_assignmentExpression_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v;
   v = 0;
   v += 1;
   v;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1)],
+    );
   }
 
   test_assignmentExpression_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v;
   v = 0;
   v = 1;
   v;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1)],
+    );
   }
 
   test_assignmentExpression_simple_initialized() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v = 0;
   v = 1;
   v;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1)],
+    );
   }
 
   test_localVariable() async {
@@ -64,52 +67,56 @@ void f() {
   }
 
   test_localVariable_forEach() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   late final int i;
   for (i in [1, 2, 3]) {
     print(i);
   }
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1)],
+    );
   }
 
   test_postfixExpression_inc() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v = 0;
   v++;
   v;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1)],
+    );
   }
 
   test_postfixExpression_nullCheck() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v = 0;
   v!;
   v;
 }
-''', [
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 36, 1),
-    ]);
+''',
+      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 36, 1)],
+    );
   }
 
   test_prefixExpression_inc() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   late final int v = 0;
   ++v;
   v;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 37, 1)],
+    );
   }
 
   test_prefixExpression_negation() async {

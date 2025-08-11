@@ -4,9 +4,12 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:yaml/yaml.dart';
 import '../source/source_loader.dart' show SourceLoader;
+import '../api_prototype/lowering_predicates.dart'
+    show extractQualifiedNameFromExtensionMethodName;
 
 import '../codes/cfe_codes.dart'
     show
@@ -14,6 +17,7 @@ import '../codes/cfe_codes.dart'
         noLength,
         templateConstructorShouldBeListedAsCallableInDynamicInterface,
         templateMemberShouldBeListedAsCallableInDynamicInterface,
+        templateExtensionTypeShouldBeListedAsCallableInDynamicInterface,
         templateClassShouldBeListedAsCallableInDynamicInterface,
         templateClassShouldBeListedAsExtendableInDynamicInterface,
         templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface;
@@ -28,6 +32,7 @@ void validateDynamicModule(
     String dynamicInterfaceSpecification,
     Uri dynamicInterfaceSpecificationUri,
     Component component,
+    CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
     SourceLoader loader) {
@@ -35,8 +40,10 @@ void validateDynamicModule(
       dynamicInterfaceSpecification,
       dynamicInterfaceSpecificationUri,
       component);
+  final DynamicInterfaceLanguageImplPragmas languageImplPragmas =
+      new DynamicInterfaceLanguageImplPragmas(coreTypes);
   final _DynamicModuleValidator validator = new _DynamicModuleValidator(
-      spec, new Set.of(libraries), hierarchy, loader);
+      spec, languageImplPragmas, new Set.of(libraries), hierarchy, loader);
   for (Library library in libraries) {
     library.accept(validator);
   }
@@ -52,11 +59,11 @@ class DynamicInterfaceSpecification {
   DynamicInterfaceSpecification(
       String dynamicInterfaceSpecification, Uri baseUri, Component component) {
     final YamlNode spec = loadYamlNode(dynamicInterfaceSpecification);
+    final LibraryIndex libraryIndex = new LibraryIndex.all(component);
+
     // If the spec is empty, the result is a scalar and not a map.
     if (spec is! YamlMap) return;
     _verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
-
-    final LibraryIndex libraryIndex = new LibraryIndex.all(component);
 
     _parseList(spec['extendable'], extendable, baseUri, component, libraryIndex,
         allowStaticMembers: false, allowInstanceMembers: false);
@@ -183,8 +190,72 @@ class DynamicInterfaceSpecification {
   }
 }
 
+/// Recognizes dyn-module:language-impl:* pragmas which can be used
+/// to annotate classes and members in core libraries to include
+/// them to the dynamic interface automatically.
+class DynamicInterfaceLanguageImplPragmas {
+  static const String extendablePragmaName =
+      "dyn-module:language-impl:extendable";
+  static const String canBeOverriddenPragmaName =
+      "dyn-module:language-impl:can-be-overridden";
+  static const String callablePragmaName = "dyn-module:language-impl:callable";
+
+  final CoreTypes coreTypes;
+  DynamicInterfaceLanguageImplPragmas(this.coreTypes);
+
+  bool isPlatformLibrary(Library library) => library.importUri.isScheme('dart');
+
+  bool isExtendable(Class node) =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+      // Coverage-ignore(suite): Not run.
+      isAnnotatedWith(node, extendablePragmaName);
+
+  bool canBeOverridden(Member node) =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+      // Coverage-ignore(suite): Not run.
+      isAnnotatedWith(node, canBeOverriddenPragmaName);
+
+  bool isCallable(TreeNode node) => switch (node) {
+        Member() => isPlatformLibrary(node.enclosingLibrary) &&
+            // Coverage-ignore(suite): Not run.
+            (isAnnotatedWith(node, callablePragmaName) ||
+                (!node.name.isPrivate &&
+                    node.enclosingClass != null &&
+                    isAnnotatedWith(node.enclosingClass!, callablePragmaName))),
+        Class() => isPlatformLibrary(node.enclosingLibrary) &&
+            // Coverage-ignore(suite): Not run.
+            isAnnotatedWith(node, callablePragmaName),
+        ExtensionTypeDeclaration() =>
+          isPlatformLibrary(node.enclosingLibrary) &&
+              // Coverage-ignore(suite): Not run.
+              isAnnotatedWith(node, callablePragmaName),
+        // Coverage-ignore(suite): Not run.
+        Extension() => isPlatformLibrary(node.enclosingLibrary) &&
+            isAnnotatedWith(node, callablePragmaName),
+        _ => // Coverage-ignore(suite): Not run.
+          throw 'Unexpected node ${node.runtimeType} $node'
+      };
+
+  // Coverage-ignore(suite): Not run.
+  bool isAnnotatedWith(Annotatable node, String pragmaName) {
+    for (Expression annotation in node.annotations) {
+      if (annotation case ConstantExpression(:var constant)) {
+        if (constant case InstanceConstant(:var classNode, :var fieldValues)
+            when classNode == coreTypes.pragmaClass) {
+          if (fieldValues[coreTypes.pragmaName.fieldReference]
+              case StringConstant(:var value) when value == pragmaName) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+}
+
 class _DynamicModuleValidator extends RecursiveVisitor {
   final DynamicInterfaceSpecification spec;
+  final DynamicInterfaceLanguageImplPragmas languageImplPragmas;
   final Set<Library> moduleLibraries;
   final ClassHierarchy hierarchy;
   final SourceLoader loader;
@@ -192,21 +263,66 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   TreeNode? _enclosingTreeNode;
 
-  _DynamicModuleValidator(
-      this.spec, this.moduleLibraries, this.hierarchy, this.loader) {
-    _addLibraryExports(spec.callable);
-    _addLibraryExports(spec.extendable);
-    _addLibraryExports(spec.canBeOverridden);
+  _DynamicModuleValidator(this.spec, this.languageImplPragmas,
+      this.moduleLibraries, this.hierarchy, this.loader) {
+    _expandNodes(spec.callable);
+    _expandNodes(spec.extendable);
+    _expandNodes(spec.canBeOverridden);
   }
 
-  void _addLibraryExports(Set<TreeNode> nodes) {
-    Set<TreeNode> exports = {};
+  // Add nodes which do not have direct relation to its logical "parent" node.
+  void _expandNodes(Set<TreeNode> nodes) {
+    Set<TreeNode> extraNodes = {};
     for (TreeNode node in nodes) {
-      if (node is Library) {
-        exports.addAll(node.additionalExports.map((ref) => ref.node!));
-      }
+      _expandNode(node, extraNodes);
     }
-    nodes.addAll(exports);
+    nodes.addAll(extraNodes);
+  }
+
+  // Add re-exports of Library and members of ExtensionTypeDeclaration and
+  // Extension. These nodes do not have direct relations to their "parents".
+  void _expandNode(TreeNode node, Set<TreeNode> extraNodes) {
+    switch (node) {
+      case Library():
+        for (Reference ref in node.additionalExports) {
+          TreeNode node = ref.node!;
+          extraNodes.add(node);
+          _expandNode(node, extraNodes);
+        }
+        for (ExtensionTypeDeclaration e in node.extensionTypeDeclarations) {
+          // Coverage-ignore-block(suite): Not run.
+          if (e.name[0] != '_') {
+            _expandNode(e, extraNodes);
+          }
+        }
+        for (Extension e in node.extensions) {
+          if (e.name[0] != '_') {
+            _expandNode(e, extraNodes);
+          }
+        }
+      case ExtensionTypeDeclaration():
+        for (ExtensionTypeMemberDescriptor md in node.memberDescriptors) {
+          TreeNode? member = md.memberReference?.node;
+          if (member != null) {
+            extraNodes.add(member);
+          }
+          TreeNode? tearOff = md.tearOffReference?.node;
+          if (tearOff != null) {
+            extraNodes.add(tearOff);
+          }
+        }
+      case Extension():
+        for (ExtensionMemberDescriptor md in node.memberDescriptors) {
+          TreeNode? member = md.memberReference?.node;
+          if (member != null) {
+            extraNodes.add(member);
+          }
+          TreeNode? tearOff = md.tearOffReference?.node;
+          if (tearOff != null) {
+            extraNodes.add(tearOff);
+          }
+        }
+    }
   }
 
   @override
@@ -419,9 +535,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitExtensionType(ExtensionType node) {
-    node.extensionTypeErasure.accept(this);
+    _verifyCallable(node.extensionTypeDeclaration, _enclosingTreeNode!);
+    super.visitExtensionType(node);
   }
 
   @override
@@ -493,7 +609,12 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (target is Procedure) {
       target = _unwrapMixinStubs(target);
     }
-    if (!_isFromDynamicModule(target) && !_isSpecified(target, spec.callable)) {
+    if (target is Member) {
+      target = _unwrapMixinCopy(target);
+    }
+    if (!_isFromDynamicModule(target) &&
+        !_isSpecified(target, spec.callable) &&
+        !languageImplPragmas.isCallable(target)) {
       switch (target) {
         case Constructor():
           String name = target.enclosingClass.name;
@@ -508,9 +629,15 @@ class _DynamicModuleValidator extends RecursiveVisitor {
               node.location!.file);
         case Member():
           final Class? cls = target.enclosingClass;
-          final String name = (cls != null)
-              ? '${cls.name}.${target.name.text}'
-              : target.name.text;
+          String name;
+          if (cls != null) {
+            name = '${cls.name}.${target.name.text}';
+          } else {
+            name = target.name.text;
+            if (target.isExtensionMember || target.isExtensionTypeMember) {
+              name = extractQualifiedNameFromExtensionMethodName(name)!;
+            }
+          }
           loader.addProblem(
               templateMemberShouldBeListedAsCallableInDynamicInterface
                   .withArguments(name),
@@ -520,6 +647,13 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         case Class():
           loader.addProblem(
               templateClassShouldBeListedAsCallableInDynamicInterface
+                  .withArguments(target.name),
+              node.fileOffset,
+              noLength,
+              node.location!.file);
+        case ExtensionTypeDeclaration():
+          loader.addProblem(
+              templateExtensionTypeShouldBeListedAsCallableInDynamicInterface
                   .withArguments(target.name),
               node.fileOffset,
               noLength,
@@ -534,7 +668,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   void _verifyExtendable(Supertype base, Class node) {
     final Class baseClass = base.classNode;
     if (!_isFromDynamicModule(baseClass) &&
-        !_isSpecified(baseClass, spec.extendable)) {
+        !_isSpecified(baseClass, spec.extendable) &&
+        !languageImplPragmas.isExtendable(baseClass)) {
       loader.addProblem(
           templateClassShouldBeListedAsExtendableInDynamicInterface
               .withArguments(baseClass.name),
@@ -551,6 +686,22 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       return _unwrapMixinStubs(member.stubTarget!);
     }
     return member;
+  }
+
+  // Unwrap copied method from an eliminated mixin to get actual
+  // interface member.
+  Member _unwrapMixinCopy(Member member) {
+    if (!member.isInstanceMember) {
+      return member;
+    }
+    Class enclosingClass = member.enclosingClass!;
+    if (!enclosingClass.isEliminatedMixin) {
+      return member;
+    }
+    // Coverage-ignore-block(suite): Not run.
+    Class origin = enclosingClass.implementedTypes.last.classNode;
+    return hierarchy.getInterfaceMember(origin, member.name,
+        setter: member is Procedure && member.isSetter)!;
   }
 
   void _verifyOverrides(
@@ -577,8 +728,10 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyOverride(Member ownMember, Member superMember) {
+    superMember = _unwrapMixinCopy(superMember);
     if (!_isFromDynamicModule(superMember) &&
-        !_isSpecified(superMember, spec.canBeOverridden)) {
+        !_isSpecified(superMember, spec.canBeOverridden) &&
+        !languageImplPragmas.canBeOverridden(superMember)) {
       loader.addProblem(
           templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
               .withArguments(
@@ -595,6 +748,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   Library _enclosingLibrary(TreeNode node) => switch (node) {
         Member() => node.enclosingLibrary,
         Class() => node.enclosingLibrary,
+        ExtensionTypeDeclaration() => node.enclosingLibrary,
         // Coverage-ignore(suite): Not run.
         Library() => node,
         _ => // Coverage-ignore(suite): Not run.
@@ -607,6 +761,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         Member() =>
           !node.name.isPrivate && _isSpecified(node.parent!, specified),
         Class() =>
+          node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
+        ExtensionTypeDeclaration() =>
           node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
         Library() => false,
         _ => // Coverage-ignore(suite): Not run.

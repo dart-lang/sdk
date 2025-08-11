@@ -31,12 +31,8 @@ int and0(int x) {
 void matchIL$and0(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_zero' << match.UnboxedConstant(value: 0),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_zero'),
-    ]),
+    match.block('Graph', ['c_zero' << match.UnboxedConstant(value: 0)]),
+    match.block('Function', [match.DartReturn('c_zero')]),
   ]);
 }
 
@@ -100,12 +96,8 @@ int or_1(int x) {
 void matchIL$or_1(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_minus_one' << match.UnboxedConstant(value: -1),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_minus_one'),
-    ]),
+    match.block('Graph', ['c_minus_one' << match.UnboxedConstant(value: -1)]),
+    match.block('Function', [match.DartReturn('c_minus_one')]),
   ]);
 }
 
@@ -118,12 +110,8 @@ int xor(int x) {
 void matchIL$xor(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_zero' << match.UnboxedConstant(value: 0),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_zero'),
-    ]),
+    match.block('Graph', ['c_zero' << match.UnboxedConstant(value: 0)]),
+    match.block('Function', [match.DartReturn('c_zero')]),
   ]);
 }
 
@@ -170,12 +158,8 @@ int sub(int x) {
 void matchIL$sub(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_zero' << match.UnboxedConstant(value: 0),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_zero'),
-    ]),
+    match.block('Graph', ['c_zero' << match.UnboxedConstant(value: 0)]),
+    match.block('Function', [match.DartReturn('c_zero')]),
   ]);
 }
 
@@ -205,12 +189,8 @@ int mul0(int x) {
 void matchIL$mul0(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_zero' << match.UnboxedConstant(value: 0),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_zero'),
-    ]),
+    match.block('Graph', ['c_zero' << match.UnboxedConstant(value: 0)]),
+    match.block('Function', [match.DartReturn('c_zero')]),
   ]);
 }
 
@@ -308,12 +288,8 @@ int srl64(int x) {
 void matchIL$srl64(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_zero' << match.UnboxedConstant(value: 0),
-    ]),
-    match.block('Function', [
-      match.DartReturn('c_zero'),
-    ]),
+    match.block('Graph', ['c_zero' << match.UnboxedConstant(value: 0)]),
+    match.block('Function', [match.DartReturn('c_zero')]),
   ]);
 }
 

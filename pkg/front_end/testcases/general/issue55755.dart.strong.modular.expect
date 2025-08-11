@@ -27,9 +27,9 @@ class GenericClass<X extends core::Object? = dynamic, Y extends core::Object? = 
 @#C2
 @#C2
 static method type() → void {}
-static method _#ComplexAlias#new#tearOff<unrelated X extends core::Object? = dynamic>([dynamic a = #C1]) → self::Class
+static synthetic method _#ComplexAlias#new#tearOff<unrelated X extends core::Object? = dynamic>([dynamic a = #C1]) → self::Class
   return new self::Class::•(a);
-static method _#ComplexAlias#named#tearOff<unrelated X extends core::Object? = dynamic>({dynamic a = #C1, dynamic b = #C1}) → self::Class
+static synthetic method _#ComplexAlias#named#tearOff<unrelated X extends core::Object? = dynamic>({dynamic a = #C1, dynamic b = #C1}) → self::Class
   return new self::Class::named(a: a, b: b);
 
 constants  {

@@ -52,29 +52,29 @@ extension type E7(core::String it) implements self::E1% /* erasure=core::num, de
 }
 static extension-type-member method E1|constructor#(core::num it) → self::E1% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(core::num it) → self::E1% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::num it) → self::E1% /* erasure=core::num, declared=! */
   return self::E1|constructor#(it);
 static extension-type-member method E2|constructor#(self::E1% /* erasure=core::num, declared=! */ it) → self::E2% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(self::E1% /* erasure=core::num, declared=! */ it) → self::E2% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(self::E1% /* erasure=core::num, declared=! */ it) → self::E2% /* erasure=core::num, declared=! */
   return self::E2|constructor#(it);
 static extension-type-member method E3|constructor#(core::int it) → self::E3% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E3|constructor#_#new#tearOff(core::int it) → self::E3% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E3|constructor#_#new#tearOff(core::int it) → self::E3% /* erasure=core::int, declared=! */
   return self::E3|constructor#(it);
 static extension-type-member method E4|constructor#(self::E3% /* erasure=core::int, declared=! */ it) → self::E4% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E4|constructor#_#new#tearOff(self::E3% /* erasure=core::int, declared=! */ it) → self::E4% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E4|constructor#_#new#tearOff(self::E3% /* erasure=core::int, declared=! */ it) → self::E4% /* erasure=core::int, declared=! */
   return self::E4|constructor#(it);
 static extension-type-member method E5|constructor#(self::E3% /* erasure=core::int, declared=! */ it) → self::E5% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E5|constructor#_#new#tearOff(self::E3% /* erasure=core::int, declared=! */ it) → self::E5% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E5|constructor#_#new#tearOff(self::E3% /* erasure=core::int, declared=! */ it) → self::E5% /* erasure=core::int, declared=! */
   return self::E5|constructor#(it);
 static extension-type-member method E6|constructor#(self::E2% /* erasure=core::num, declared=! */ it) → self::E6% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method E6|constructor#_#new#tearOff(self::E2% /* erasure=core::num, declared=! */ it) → self::E6% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method E6|constructor#_#new#tearOff(self::E2% /* erasure=core::num, declared=! */ it) → self::E6% /* erasure=core::num, declared=! */
   return self::E6|constructor#(it);
 static extension-type-member method E7|constructor#(core::String it) → self::E7% /* erasure=core::String, declared=! */
   ;
-static extension-type-member method E7|constructor#_#new#tearOff(core::String it) → self::E7% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method E7|constructor#_#new#tearOff(core::String it) → self::E7% /* erasure=core::String, declared=! */
   return self::E7|constructor#(it);

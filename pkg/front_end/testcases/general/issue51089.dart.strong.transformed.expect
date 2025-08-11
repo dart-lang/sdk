@@ -10,5 +10,5 @@ class A<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
 }
 static method main() → void
   return new self::A::•<core::int, () → core::int>(0, () → core::int => 1);
-static method _#F#new#tearOff<X extends core::Object? = dynamic>(self::_#F#new#tearOff::X% x, () → self::_#F#new#tearOff::X% y) → self::A<self::_#F#new#tearOff::X%, () → self::_#F#new#tearOff::X%>
+static synthetic method _#F#new#tearOff<X extends core::Object? = dynamic>(self::_#F#new#tearOff::X% x, () → self::_#F#new#tearOff::X% y) → self::A<self::_#F#new#tearOff::X%, () → self::_#F#new#tearOff::X%>
   return new self::A::•<self::_#F#new#tearOff::X%, () → self::_#F#new#tearOff::X%>(x, y);

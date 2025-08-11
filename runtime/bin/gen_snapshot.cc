@@ -78,6 +78,7 @@ enum SnapshotKind {
   kAppJIT,
   kAppAOTAssembly,
   kAppAOTElf,
+  kAppAOTMachODylib,
   kVMAOTAssembly,
 };
 static SnapshotKind snapshot_kind = kCore;
@@ -90,6 +91,7 @@ static const char* const kSnapshotKindNames[] = {
     "app-jit",
     "app-aot-assembly",
     "app-aot-elf",
+    "app-aot-macho-dylib",
     "vm-aot-assembly",
     nullptr,
     // clang-format on
@@ -108,6 +110,7 @@ static const char* const kSnapshotKindNames[] = {
   V(blobs_container_filename, blobs_container_filename)                        \
   V(assembly, assembly_filename)                                               \
   V(elf, elf_filename)                                                         \
+  V(macho, macho_filename)                                                     \
   V(loading_unit_manifest, loading_unit_manifest_filename)                     \
   V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
@@ -137,6 +140,7 @@ DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
+         (snapshot_kind == kAppAOTMachODylib) ||
          (snapshot_kind == kVMAOTAssembly);
 }
 
@@ -170,6 +174,15 @@ static void PrintUsage() {
 "To create an AOT application snapshot as an ELF shared library:             \n"
 "--snapshot_kind=app-aot-elf                                                 \n"
 "--elf=<output-file>                                                         \n"
+"[--strip]                                                                   \n"
+"[--obfuscate]                                                               \n"
+"[--save-debugging-info=<debug-filename>]                                    \n"
+"[--save-obfuscation-map=<map-filename>]                                     \n"
+"<dart-kernel-file>                                                          \n"
+"                                                                            \n"
+"To create an AOT application snapshot as an Mach-O dynamic library (dylib): \n"
+"--snapshot_kind=app-aot-macho-dylib                                         \n"
+"--macho=<output-file>                                                       \n"
 "[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
 "[--save-debugging-info=<debug-filename>]                                    \n"
@@ -267,6 +280,15 @@ static int ParseArguments(int argc,
       }
       break;
     }
+    case kAppAOTMachODylib: {
+      if (macho_filename == nullptr) {
+        Syslog::PrintErr(
+            "Building an AOT snapshot as a Mach-O dynamic library requires "
+            " specifying an output file for --macho.\n\n");
+        return -1;
+      }
+      break;
+    }
     case kAppAOTAssembly:
     case kVMAOTAssembly: {
       if (assembly_filename == nullptr) {
@@ -275,6 +297,14 @@ static int ParseArguments(int argc,
             "an output file for --assembly.\n\n");
         return -1;
       }
+#if defined(DART_TARGET_OS_WINDOWS)
+      if (debugging_info_filename != nullptr) {
+        // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
+        Syslog::PrintErr(
+            "warning: ignoring --save-debugging-info when "
+            "generating assembly for Windows.\n\n");
+      }
+#endif
       break;
     }
   }
@@ -597,78 +627,100 @@ static void NextElfCallback(void* callback_data,
 
 static void CreateAndWritePrecompiledSnapshot() {
   ASSERT(IsSnapshottingForPrecompilation());
-  Dart_Handle result;
+
+  if (snapshot_kind == kVMAOTAssembly) {
+    File* file = OpenFile(assembly_filename);
+    RefCntReleaseScope<File> rs(file);
+    Dart_Handle result =
+        Dart_CreateVMAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+    CHECK_RESULT(result);
+    return;
+  }
+
+  Dart_AotBinaryFormat format;
+  const char* kind_str = nullptr;
+  const char* filename = nullptr;
+  // Default to the assembly ones just to avoid having to type-specify here.
+  auto* next_callback = NextAsmCallback;
+  auto* create_multiple_callback = Dart_CreateAppAOTSnapshotAsAssemblies;
+  switch (snapshot_kind) {
+    case kAppAOTAssembly:
+      kind_str = "assembly code";
+      filename = assembly_filename;
+      format = Dart_AotBinaryFormat_Assembly;
+      break;
+    case kAppAOTElf:
+      kind_str = "ELF library";
+      filename = elf_filename;
+      format = Dart_AotBinaryFormat_Elf;
+      next_callback = NextElfCallback;
+      create_multiple_callback = Dart_CreateAppAOTSnapshotAsElfs;
+      break;
+    case kAppAOTMachODylib:
+      kind_str = "MachO dynamic library";
+      filename = macho_filename;
+      format = Dart_AotBinaryFormat_MachO_Dylib;
+      // Not currently implemented.
+      next_callback = nullptr;
+      create_multiple_callback = nullptr;
+      break;
+    default:
+      UNREACHABLE();
+  }
+  ASSERT(kind_str != nullptr);
+  ASSERT(filename != nullptr);
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile();
+  Dart_Handle result = Dart_Precompile();
   CHECK_RESULT(result);
 
+  if (strip && (debugging_info_filename == nullptr)) {
+    Syslog::PrintErr(
+        "Warning: Generating %s without DWARF debugging"
+        " information.\n",
+        kind_str);
+  }
+
+  char* identifier = Utils::Basename(filename);
+
   // Create a precompiled snapshot.
-  if (snapshot_kind == kAppAOTAssembly) {
-    if (strip && (debugging_info_filename == nullptr)) {
-      Syslog::PrintErr(
-          "Warning: Generating assembly code without DWARF debugging"
-          " information.\n");
+  if (loading_unit_manifest_filename == nullptr) {
+    File* file = OpenFile(filename);
+    RefCntReleaseScope<File> rs(file);
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
     }
-    if (loading_unit_manifest_filename == nullptr) {
-      File* file = OpenFile(assembly_filename);
-      RefCntReleaseScope<File> rs(file);
-      File* debug_file = nullptr;
-      if (debugging_info_filename != nullptr) {
-        debug_file = OpenFile(debugging_info_filename);
-      }
-      result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file,
-                                                   strip, debug_file);
-      if (debug_file != nullptr) debug_file->Release();
-      CHECK_RESULT(result);
-    } else {
-      File* manifest_file = OpenLoadingUnitManifest();
-      result = Dart_CreateAppAOTSnapshotAsAssemblies(
-          NextAsmCallback, manifest_file, strip, StreamingWriteCallback,
-          StreamingCloseCallback);
-      CHECK_RESULT(result);
-      CloseLoadingUnitManifest(manifest_file);
+    result = Dart_CreateAppAOTSnapshotAsBinary(format, StreamingWriteCallback,
+                                               file, strip, debug_file,
+                                               identifier, filename);
+    if (debug_file != nullptr) debug_file->Release();
+    if (identifier != nullptr) {
+      free(identifier);
+      identifier = nullptr;
     }
-    if (obfuscate && !strip) {
-      Syslog::PrintErr(
-          "Warning: The generated assembly code contains unobfuscated DWARF "
-          "debugging information.\n"
-          "         To avoid this, use --strip to remove it.\n");
-    }
-  } else if (snapshot_kind == kAppAOTElf) {
-    if (strip && (debugging_info_filename == nullptr)) {
-      Syslog::PrintErr(
-          "Warning: Generating ELF library without DWARF debugging"
-          " information.\n");
-    }
-    if (loading_unit_manifest_filename == nullptr) {
-      File* file = OpenFile(elf_filename);
-      RefCntReleaseScope<File> rs(file);
-      File* debug_file = nullptr;
-      if (debugging_info_filename != nullptr) {
-        debug_file = OpenFile(debugging_info_filename);
-      }
-      result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file,
-                                              strip, debug_file);
-      if (debug_file != nullptr) debug_file->Release();
-      CHECK_RESULT(result);
-    } else {
-      File* manifest_file = OpenLoadingUnitManifest();
-      result = Dart_CreateAppAOTSnapshotAsElfs(NextElfCallback, manifest_file,
-                                               strip, StreamingWriteCallback,
-                                               StreamingCloseCallback);
-      CHECK_RESULT(result);
-      CloseLoadingUnitManifest(manifest_file);
-    }
-    if (obfuscate && !strip) {
-      Syslog::PrintErr(
-          "Warning: The generated ELF library contains unobfuscated DWARF "
-          "debugging information.\n"
-          "         To avoid this, use --strip to remove it and "
-          "--save-debugging-info=<...> to save it to a separate file.\n");
-    }
+    CHECK_RESULT(result);
   } else {
-    UNREACHABLE();
+    ASSERT(create_multiple_callback != nullptr);
+    ASSERT(next_callback != nullptr);
+    File* manifest_file = OpenLoadingUnitManifest();
+    result = create_multiple_callback(next_callback, manifest_file, strip,
+                                      StreamingWriteCallback,
+                                      StreamingCloseCallback);
+    if (identifier != nullptr) {
+      free(identifier);
+      identifier = nullptr;
+    }
+    CHECK_RESULT(result);
+    CloseLoadingUnitManifest(manifest_file);
+  }
+
+  if (obfuscate && !strip) {
+    Syslog::PrintErr(
+        "Warning: The generated %s contains unobfuscated DWARF "
+        "debugging information.\n"
+        "         To avoid this, use --strip to remove it.\n",
+        kind_str);
   }
 
   // Serialize obfuscation map if requested.
@@ -694,7 +746,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = nullptr;
 
@@ -769,15 +821,10 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
       break;
     case kAppAOTAssembly:
     case kAppAOTElf:
+    case kAppAOTMachODylib:
+    case kVMAOTAssembly:
       CreateAndWritePrecompiledSnapshot();
       break;
-    case kVMAOTAssembly: {
-      File* file = OpenFile(assembly_filename);
-      RefCntReleaseScope<File> rs(file);
-      result = Dart_CreateVMAOTSnapshotAsAssembly(StreamingWriteCallback, file);
-      CHECK_RESULT(result);
-      break;
-    }
     default:
       UNREACHABLE();
   }

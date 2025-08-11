@@ -7,15 +7,15 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::Class<self::Class::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#new#tearOff::T%>
     return new self::Class::•<self::Class::_#new#tearOff::T%>();
   static factory fact<T extends core::Object? = dynamic>() → self::Class<self::Class::fact::T%>
     return new self::Class::•<self::Class::fact::T%>();
-  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#fact#tearOff::T%>
+  static synthetic method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::T%>();
   static factory redirect<T extends core::Object? = dynamic>() → self::Class<self::Class::redirect::T%> /* redirection-target: self::Class::•<self::Class::redirect::T%>*/
     return new self::Class::•<self::Class::redirect::T%>();
-  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#redirect#tearOff::T%>
+  static synthetic method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#redirect#tearOff::T%>
     return new self::Class::•<self::Class::_#redirect#tearOff::T%>();
 }
 static const field <T extends core::Object? = dynamic>() → self::Class<T%> a = #C1;
@@ -27,11 +27,11 @@ static const field <T extends core::num>() → self::Class<T> f = #C6;
 static method main() → dynamic {
   core::print("${#C1}${#C2}${#C3}${#C4}${#C5}${#C6}");
 }
-static method _#Alias#new#tearOff<T extends core::num>() → self::Class<self::_#Alias#new#tearOff::T>
+static synthetic method _#Alias#new#tearOff<T extends core::num>() → self::Class<self::_#Alias#new#tearOff::T>
   return new self::Class::•<self::_#Alias#new#tearOff::T>();
-static method _#Alias#fact#tearOff<T extends core::num>() → self::Class<self::_#Alias#fact#tearOff::T>
+static synthetic method _#Alias#fact#tearOff<T extends core::num>() → self::Class<self::_#Alias#fact#tearOff::T>
   return self::Class::fact<self::_#Alias#fact#tearOff::T>();
-static method _#Alias#redirect#tearOff<T extends core::num>() → self::Class<self::_#Alias#redirect#tearOff::T>
+static synthetic method _#Alias#redirect#tearOff<T extends core::num>() → self::Class<self::_#Alias#redirect#tearOff::T>
   return self::Class::_#redirect#tearOff<self::_#Alias#redirect#tearOff::T>();
 
 constants  {

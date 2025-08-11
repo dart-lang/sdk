@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 void main() {
   method(<int>[]);
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: 'method'.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: 'method'.
 }

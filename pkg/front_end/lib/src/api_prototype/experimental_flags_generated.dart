@@ -157,11 +157,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
       name: 'getter-setter-error',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 9),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
@@ -229,11 +229,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag nativeAssets = const ExperimentalFlag(
       name: 'native-assets',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 9),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag nonNullable = const ExperimentalFlag(
       name: 'non-nullable',
@@ -301,11 +301,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
       name: 'sound-flow-analysis',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 9),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag spreadCollections = const ExperimentalFlag(
       name: 'spread-collections',

@@ -19,12 +19,22 @@ declare_args() {
   # Set to the docker image to use in the RBE.
   rbe_image = "docker://gcr.io/cloud-marketplace/google/debian11@sha256:69e2789c9f3d28c6a0f13b25062c240ee7772be1f5e6d41bb4680b63eae6b304"
 
-  # Do expensive RBE compilations both locally and remotely, whatever is faster.
-  rbe_expensive_exec_strategy = "racing"
+  # Do expensive RBE actions remotely, falling back to local on failure/timeout.
+  # The "racing" strategy can cause a memory exhaustion problem if too many
+  # actions run locally at the same time.
+  rbe_expensive_exec_strategy = "remote_local_fallback"
 
   rbe_exec_root = rebase_path("//", root_build_dir)
 
-  rbe_dir = rebase_path(_dart_root + "/buildtools/reclient", root_build_dir)
+  if (host_os == "win") {
+    rbe_dir =
+        rebase_path(_dart_root + "/buildtools/reclient-win", root_build_dir)
+  } else if (host_os == "linux") {
+    rbe_dir =
+        rebase_path(_dart_root + "/buildtools/reclient-linux", root_build_dir)
+  } else {
+    rbe_dir = rebase_path(_dart_root + "/buildtools/reclient", root_build_dir)
+  }
 }
 
 declare_args() {

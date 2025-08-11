@@ -107,3 +107,37 @@ shared_library("dart_engine_aot_shared") {
     ]
   }
 }
+
+static_library("dart_engine_jit_static") {
+  deps = [ ":engine_jit_set" ]
+  complete_static_lib = true
+
+  if (is_win) {
+    libs = [
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
+}
+
+static_library("dart_engine_aot_static") {
+  deps = [ ":engine_aot_set" ]
+  complete_static_lib = true
+
+  if (is_win) {
+    libs = [
+      "ole32.lib",
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "shlwapi.lib",
+      "winmm.lib",
+    ]
+  }
+}

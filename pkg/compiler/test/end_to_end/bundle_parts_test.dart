@@ -15,6 +15,17 @@ const String verifyParts = '''
 if (!\$__dart_deferred_initializers__) {
   throw 'Did not intialize \$__dart_deferred_initializers__';
 }
+// Expect 'current', and 2 hashes for part files.
+if (Object.keys(\$__dart_deferred_initializers__).length != 3) {
+  var data =  JSON.stringify(\$__dart_deferred_initializers__);
+  throw '\$__dart_deferred_initializers__ has unexpected format: ' + data;
+}
+''';
+
+const String verifyPartsWithEventLog = '''
+if (!\$__dart_deferred_initializers__) {
+  throw 'Did not intialize \$__dart_deferred_initializers__';
+}
 // Expect 'eventLog', 'current', and 2 hashes for part files.
 if (Object.keys(\$__dart_deferred_initializers__).length != 4) {
   var data =  JSON.stringify(\$__dart_deferred_initializers__);
@@ -26,7 +37,10 @@ Future<Directory> createTempDir() {
   return Directory.systemTemp.createTemp('dart2js_bundle_parts_test-');
 }
 
-Future<void> runTestWithOptions(List<String> options) async {
+Future<void> runTestWithOptions(
+  List<String> options,
+  String verificationString,
+) async {
   print('Running with flags: $options');
   final tmpDir = await createTempDir();
   Uri inUri = Platform.script.resolve('deferred_data/deferred_main.dart');
@@ -41,7 +55,10 @@ Future<void> runTestWithOptions(List<String> options) async {
     await part2.readAsBytes(),
     mode: FileMode.append,
   );
-  await bundledParts.writeAsString('\n$verifyParts', mode: FileMode.append);
+  await bundledParts.writeAsString(
+    '\n$verificationString',
+    mode: FileMode.append,
+  );
   final result = executeJsWithD8([bundledPartsUri]);
   if (result.exitCode != 0) {
     Expect.fail(
@@ -53,6 +70,10 @@ Future<void> runTestWithOptions(List<String> options) async {
 }
 
 void main() async {
-  await runTestWithOptions([]);
-  await runTestWithOptions(['--minify']);
+  await runTestWithOptions([], verifyParts);
+  await runTestWithOptions(['--minify'], verifyParts);
+  await runTestWithOptions([
+    '--minify',
+    '--log-deferred-loading-events',
+  ], verifyPartsWithEventLog);
 }

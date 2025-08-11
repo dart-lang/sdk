@@ -1520,6 +1520,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagHoisted = 1 << 10;
   static const int FlagWildcard = 1 << 11;
   static const int FlagSuperInitializingFormal = 1 << 12;
+  static const int FlagErroneouslyInitialized = 1 << 13;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -1537,6 +1538,9 @@ class VariableDeclaration extends Statement implements Annotatable {
   @informative
   bool get isSuperInitializingFormal =>
       flags & FlagSuperInitializingFormal != 0;
+
+  @informative
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -1635,6 +1639,13 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value
         ? (flags | FlagSuperInitializingFormal)
         : (flags & ~FlagSuperInitializingFormal);
+  }
+
+  @informative
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
   }
 
   void set isCovariantByClass(bool value) {

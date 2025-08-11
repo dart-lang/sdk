@@ -36,7 +36,6 @@ void main() {
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
-    testNativeFunctionNullableInt();
   }
 }
 
@@ -95,118 +94,100 @@ void testNativeFunctionFromLookup() {
 }
 
 typedef NativeReturnMaxUint8 = Uint8 Function();
-int Function() returnMaxUint8 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint8")
-        .cast<NativeFunction<NativeReturnMaxUint8>>()
-        .asFunction();
-int Function() returnMaxUint8v2 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint8v2")
-        .cast<NativeFunction<NativeReturnMaxUint8>>()
-        .asFunction();
+int Function() returnMaxUint8 = ffiTestFunctions
+    .lookup("ReturnMaxUint8")
+    .cast<NativeFunction<NativeReturnMaxUint8>>()
+    .asFunction();
+int Function() returnMaxUint8v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint8v2")
+    .cast<NativeFunction<NativeReturnMaxUint8>>()
+    .asFunction();
 
 typedef NativeReturnMaxUint16 = Uint16 Function();
-int Function() returnMaxUint16 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint16")
-        .cast<NativeFunction<NativeReturnMaxUint16>>()
-        .asFunction();
-int Function() returnMaxUint16v2 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint16v2")
-        .cast<NativeFunction<NativeReturnMaxUint16>>()
-        .asFunction();
+int Function() returnMaxUint16 = ffiTestFunctions
+    .lookup("ReturnMaxUint16")
+    .cast<NativeFunction<NativeReturnMaxUint16>>()
+    .asFunction();
+int Function() returnMaxUint16v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint16v2")
+    .cast<NativeFunction<NativeReturnMaxUint16>>()
+    .asFunction();
 
 typedef NativeReturnMaxUint32 = Uint32 Function();
-int Function() returnMaxUint32 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint32")
-        .cast<NativeFunction<NativeReturnMaxUint32>>()
-        .asFunction();
-int Function() returnMaxUint32v2 =
-    ffiTestFunctions
-        .lookup("ReturnMaxUint32v2")
-        .cast<NativeFunction<NativeReturnMaxUint32>>()
-        .asFunction();
+int Function() returnMaxUint32 = ffiTestFunctions
+    .lookup("ReturnMaxUint32")
+    .cast<NativeFunction<NativeReturnMaxUint32>>()
+    .asFunction();
+int Function() returnMaxUint32v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint32v2")
+    .cast<NativeFunction<NativeReturnMaxUint32>>()
+    .asFunction();
 
 typedef NativeReturnMinInt8 = Int8 Function();
-int Function() returnMinInt8 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt8")
-        .cast<NativeFunction<NativeReturnMinInt8>>()
-        .asFunction();
-int Function() returnMinInt8v2 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt8v2")
-        .cast<NativeFunction<NativeReturnMinInt8>>()
-        .asFunction();
+int Function() returnMinInt8 = ffiTestFunctions
+    .lookup("ReturnMinInt8")
+    .cast<NativeFunction<NativeReturnMinInt8>>()
+    .asFunction();
+int Function() returnMinInt8v2 = ffiTestFunctions
+    .lookup("ReturnMinInt8v2")
+    .cast<NativeFunction<NativeReturnMinInt8>>()
+    .asFunction();
 
 typedef NativeReturnMinInt16 = Int16 Function();
-int Function() returnMinInt16 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt16")
-        .cast<NativeFunction<NativeReturnMinInt16>>()
-        .asFunction();
-int Function() returnMinInt16v2 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt16v2")
-        .cast<NativeFunction<NativeReturnMinInt16>>()
-        .asFunction();
+int Function() returnMinInt16 = ffiTestFunctions
+    .lookup("ReturnMinInt16")
+    .cast<NativeFunction<NativeReturnMinInt16>>()
+    .asFunction();
+int Function() returnMinInt16v2 = ffiTestFunctions
+    .lookup("ReturnMinInt16v2")
+    .cast<NativeFunction<NativeReturnMinInt16>>()
+    .asFunction();
 
 typedef NativeReturnMinInt32 = Int32 Function();
-int Function() returnMinInt32 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt32")
-        .cast<NativeFunction<NativeReturnMinInt32>>()
-        .asFunction();
-int Function() returnMinInt32v2 =
-    ffiTestFunctions
-        .lookup("ReturnMinInt32v2")
-        .cast<NativeFunction<NativeReturnMinInt32>>()
-        .asFunction();
+int Function() returnMinInt32 = ffiTestFunctions
+    .lookup("ReturnMinInt32")
+    .cast<NativeFunction<NativeReturnMinInt32>>()
+    .asFunction();
+int Function() returnMinInt32v2 = ffiTestFunctions
+    .lookup("ReturnMinInt32v2")
+    .cast<NativeFunction<NativeReturnMinInt32>>()
+    .asFunction();
 
 typedef NativeTakeMaxUint8 = IntPtr Function(Uint8);
-int Function(int) takeMaxUint8 =
-    ffiTestFunctions
-        .lookup("TakeMaxUint8")
-        .cast<NativeFunction<NativeTakeMaxUint8>>()
-        .asFunction();
+int Function(int) takeMaxUint8 = ffiTestFunctions
+    .lookup("TakeMaxUint8")
+    .cast<NativeFunction<NativeTakeMaxUint8>>()
+    .asFunction();
 
 typedef NativeTakeMaxUint16 = IntPtr Function(Uint16);
-int Function(int) takeMaxUint16 =
-    ffiTestFunctions
-        .lookup("TakeMaxUint16")
-        .cast<NativeFunction<NativeTakeMaxUint16>>()
-        .asFunction();
+int Function(int) takeMaxUint16 = ffiTestFunctions
+    .lookup("TakeMaxUint16")
+    .cast<NativeFunction<NativeTakeMaxUint16>>()
+    .asFunction();
 
 typedef NativeTakeMaxUint32 = IntPtr Function(Uint32);
-int Function(int) takeMaxUint32 =
-    ffiTestFunctions
-        .lookup("TakeMaxUint32")
-        .cast<NativeFunction<NativeTakeMaxUint32>>()
-        .asFunction();
+int Function(int) takeMaxUint32 = ffiTestFunctions
+    .lookup("TakeMaxUint32")
+    .cast<NativeFunction<NativeTakeMaxUint32>>()
+    .asFunction();
 
 typedef NativeTakeMinInt8 = IntPtr Function(Int8);
-int Function(int) takeMinInt8 =
-    ffiTestFunctions
-        .lookup("TakeMinInt8")
-        .cast<NativeFunction<NativeTakeMinInt8>>()
-        .asFunction();
+int Function(int) takeMinInt8 = ffiTestFunctions
+    .lookup("TakeMinInt8")
+    .cast<NativeFunction<NativeTakeMinInt8>>()
+    .asFunction();
 
 typedef NativeTakeMinInt16 = IntPtr Function(Int16);
-int Function(int) takeMinInt16 =
-    ffiTestFunctions
-        .lookup("TakeMinInt16")
-        .cast<NativeFunction<NativeTakeMinInt16>>()
-        .asFunction();
+int Function(int) takeMinInt16 = ffiTestFunctions
+    .lookup("TakeMinInt16")
+    .cast<NativeFunction<NativeTakeMinInt16>>()
+    .asFunction();
 
 typedef NativeTakeMinInt32 = IntPtr Function(Int32);
-int Function(int) takeMinInt32 =
-    ffiTestFunctions
-        .lookup("TakeMinInt32")
-        .cast<NativeFunction<NativeTakeMinInt32>>()
-        .asFunction();
+int Function(int) takeMinInt32 = ffiTestFunctions
+    .lookup("TakeMinInt32")
+    .cast<NativeFunction<NativeTakeMinInt32>>()
+    .asFunction();
 
 typedef NativeTakeMaxUint8x10 =
     IntPtr Function(
@@ -536,7 +517,7 @@ void testNativeFunctionPointer() {
   Pointer<Int64> result = assign1337Index1(p2);
   Expect.equals(1337, result.value);
   Expect.equals(1337, p2[1]);
-  Expect.equals(p2.elementAt(1).address, result.address);
+  Expect.equals((p2 + 1).address, result.address);
   calloc.free(p2);
 }
 
@@ -600,21 +581,4 @@ void testNoArgs() {
 String get arg2ObfuscatedName {
   final str = (arg2: 0).toString();
   return str.substring('('.length, str.length - ': 0)'.length);
-}
-
-void testNativeFunctionNullableInt() {
-  final sumPlus42 = ffiTestFunctions
-      .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int?)>(
-        "SumPlus42",
-      );
-
-  try {
-    sumPlus42(3, null);
-  } catch (e) {
-    // TODO(http://dartbug.com/47098): Save param names to dwarf.
-    Expect.isTrue(
-      e.toString().contains(arg2ObfuscatedName) ||
-          e.toString().contains('<optimized out>'),
-    );
-  }
 }

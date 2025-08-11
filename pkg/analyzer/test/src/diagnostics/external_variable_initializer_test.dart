@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class ExternalVariableInitializerTest extends PubPackageResolutionTest {
   test_external_variable_final_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 external final int x = 0;
-''', [
-      error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 19, 1)],
+    );
   }
 
   test_external_variable_final_no_initializer() async {
@@ -30,11 +31,12 @@ external final int x;
   }
 
   test_external_variable_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 external int x = 0;
-''', [
-      error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 13, 1)],
+    );
   }
 
   test_external_variable_no_initializer() async {

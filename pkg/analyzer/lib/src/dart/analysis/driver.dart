@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -35,6 +34,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -63,6 +63,15 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+
+/// This function is used to test recording requirements during analysis.
+///
+/// Some [ElementImpl] APIs are not trivial, or maybe even impossible, to
+/// trigger. For example because this API is not used during normal resolution
+/// of Dart code, but can be used by a linter rule.
+@visibleForTesting
+void Function(List<CompilationUnitImpl> units)?
+testFineAfterLibraryAnalyzerHook;
 
 /// This class computes analysis results for Dart files.
 ///
@@ -100,7 +109,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 450;
+  static const int DATA_VERSION = 494;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -120,11 +129,6 @@ class AnalysisDriver {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final ByteStore _byteStore;
-
-  /// The cache of deserialized data read from SummaryDataReader.
-  ///
-  /// It can be shared with other [AnalysisDriver]s.
-  final InfoDeclarationStore _infoDeclarationStore;
 
   final LinkedBundleProvider linkedBundleProvider;
 
@@ -295,7 +299,6 @@ class AnalysisDriver {
     AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
@@ -303,38 +306,36 @@ class AnalysisDriver {
     bool retainDataForTesting = false,
     this.testView,
     bool enableLintRuleTiming = false,
-  })  : _scheduler = scheduler,
-        _resourceProvider = resourceProvider,
-        _byteStore = byteStore,
-        _fileContentCache =
-            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
-        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-        _infoDeclarationStore =
-            infoDeclarationStore ?? NoOpInfoDeclarationStore(),
-        _logger = logger,
-        _packages = packages,
-        linkedBundleProvider = linkedBundleProvider ??
-            LinkedBundleProvider(
-              byteStore: byteStore,
-            ),
-        _sourceFactory = sourceFactory,
-        _externalSummaries = externalSummaries,
-        declaredVariables = declaredVariables ?? DeclaredVariables(),
-        testingData = retainDataForTesting ? TestingData() : null,
-        _enableLintRuleTiming = enableLintRuleTiming,
-        // This '!' is temporary. The analysisOptionsMap is effectively
-        // required but can't be until Google3 is updated.
-        analysisOptionsMap = analysisOptions == null
-            ? analysisOptionsMap!
-            : AnalysisOptionsMap.forSharedOptions(analysisOptions),
-        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
-        _saltForElements =
-            _calculateSaltForElements(declaredVariables ?? DeclaredVariables()),
-        _saltForResolution = _calculateSaltForResolution(
-          enableIndex: enableIndex,
-          analysisContext: analysisContext,
-          declaredVariables: declaredVariables ?? DeclaredVariables(),
-        ) {
+  }) : _scheduler = scheduler,
+       _resourceProvider = resourceProvider,
+       _byteStore = byteStore,
+       _fileContentCache =
+           fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
+       _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
+       _logger = logger,
+       _packages = packages,
+       linkedBundleProvider =
+           linkedBundleProvider ?? LinkedBundleProvider(byteStore: byteStore),
+       _sourceFactory = sourceFactory,
+       _externalSummaries = externalSummaries,
+       declaredVariables = declaredVariables ?? DeclaredVariables(),
+       testingData = retainDataForTesting ? TestingData() : null,
+       _enableLintRuleTiming = enableLintRuleTiming,
+       // This '!' is temporary. The analysisOptionsMap is effectively
+       // required but can't be until Google3 is updated.
+       analysisOptionsMap =
+           analysisOptions == null
+               ? analysisOptionsMap!
+               : AnalysisOptionsMap.forSharedOptions(analysisOptions),
+       _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+       _saltForElements = _calculateSaltForElements(
+         declaredVariables ?? DeclaredVariables(),
+       ),
+       _saltForResolution = _calculateSaltForResolution(
+         enableIndex: enableIndex,
+         analysisContext: analysisContext,
+         declaredVariables: declaredVariables ?? DeclaredVariables(),
+       ) {
     analysisContext?.driver = this;
     testView?.driver = this;
 
@@ -353,10 +354,6 @@ class AnalysisDriver {
     return addedFiles.map(resourceProvider.getFile).toSet();
   }
 
-  /// Return the analysis options used to control analysis.
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => analysisOptionsMap.firstOrDefault;
-
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
     return libraryContext.elementFactory.analysisSession;
@@ -374,9 +371,9 @@ class AnalysisDriver {
     // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(rootOptionsFile)
-            .enabledLegacyPluginNames
-            .toSet()
+        ? getAnalysisOptionsForFile(
+          rootOptionsFile,
+        ).enabledLegacyPluginNames.toSet()
         : const {};
   }
 
@@ -401,7 +398,6 @@ class AnalysisDriver {
       logger: _logger,
       byteStore: _byteStore,
       eventsController: _scheduler.eventsController,
-      infoDeclarationStore: _infoDeclarationStore,
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
@@ -558,9 +554,7 @@ class AnalysisDriver {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(
-        _FileChange(path, _FileChangeKind.add),
-      );
+      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.add));
       _scheduler.notify();
     }
   }
@@ -570,9 +564,7 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
-  void afterPerformWork() {
-    _fsState.parsedFileStateCache.clear();
-  }
+  void afterPerformWork() {}
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
@@ -602,11 +594,7 @@ class AnalysisDriver {
     required List<Uri> uriList,
     PackageBundleSdk? packageBundleSdk,
   }) async {
-    var elementFactory = libraryContext.elementFactory;
-
-    var bundleWriter = BundleWriter(
-      elementFactory.dynamicRef,
-    );
+    var bundleWriter = BundleWriter();
     var packageBundleBuilder = PackageBundleBuilder();
 
     for (var uri in uriList) {
@@ -657,9 +645,7 @@ class AnalysisDriver {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(
-        _FileChange(path, _FileChangeKind.change),
-      );
+      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.change));
       _scheduler.notify();
     }
   }
@@ -809,21 +795,15 @@ class AnalysisDriver {
   /// interactive analysis, such as Analysis Server or its plugins.
   Future<SomeErrorsResult> getErrors(String path) {
     if (!_isAbsolutePath(path)) {
-      return Future.value(
-        InvalidPathResult(),
-      );
+      return Future.value(InvalidPathResult());
     }
 
     if (!_fsState.hasUri(path)) {
-      return Future.value(
-        NotPathOfUriResult(),
-      );
+      return Future.value(NotPathOfUriResult());
     }
 
     if (_disposed) {
-      return Future.value(
-        DisposedAnalysisContextResult(),
-      );
+      return Future.value(DisposedAnalysisContextResult());
     }
 
     // Schedule analysis.
@@ -860,10 +840,7 @@ class AnalysisDriver {
     }
 
     FileState file = _fsState.getFileForPath(path);
-    return FileResultImpl(
-      session: currentSession,
-      fileState: file,
-    );
+    return FileResultImpl(session: currentSession, fileState: file);
   }
 
   /// See [getFileSync].
@@ -905,7 +882,7 @@ class AnalysisDriver {
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
       var reference = rootReference.getChild('$uriObj');
-      var element = reference.element2;
+      var element = reference.element;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }
@@ -926,7 +903,7 @@ class AnalysisDriver {
 
         var unitResult = await getUnitElement(file.path);
         if (unitResult is UnitElementResultImpl) {
-          return LibraryElementResultImpl(unitResult.element.library);
+          return LibraryElementResultImpl(unitResult.fragment.element);
         }
 
         // Some invalid results are invalid results for this request.
@@ -977,10 +954,7 @@ class AnalysisDriver {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(
-      session: currentSession,
-      units: units,
-    );
+    return ParsedLibraryResultImpl(session: currentSession, units: units);
   }
 
   /// See [getParsedLibrary].
@@ -1022,9 +996,7 @@ class AnalysisDriver {
     }
 
     if (_disposed) {
-      return Future.value(
-        DisposedAnalysisContextResult(),
-      );
+      return Future.value(DisposedAnalysisContextResult());
     }
 
     if (_resolvedLibraryCache[path] case var cached?) {
@@ -1076,18 +1048,17 @@ class AnalysisDriver {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
-  Future<SomeResolvedUnitResult> getResolvedUnit(String path,
-      {bool sendCachedToStream = false, bool interactive = true}) {
+  Future<SomeResolvedUnitResult> getResolvedUnit(
+    String path, {
+    bool sendCachedToStream = false,
+    bool interactive = true,
+  }) {
     if (!_isAbsolutePath(path)) {
-      return Future.value(
-        InvalidPathResult(),
-      );
+      return Future.value(InvalidPathResult());
     }
 
     if (!_fsState.hasUri(path)) {
-      return Future.value(
-        NotPathOfUriResult(),
-      );
+      return Future.value(NotPathOfUriResult());
     }
 
     // Return the cached result.
@@ -1102,9 +1073,7 @@ class AnalysisDriver {
     }
 
     if (_disposed) {
-      return Future.value(
-        DisposedAnalysisContextResult(),
-      );
+      return Future.value(DisposedAnalysisContextResult());
     }
 
     // Schedule analysis.
@@ -1119,33 +1088,26 @@ class AnalysisDriver {
   }
 
   /// See [getResolvedUnit].
-  Future<SomeResolvedUnitResult> getResolvedUnit2(File file,
-      {bool sendCachedToStream = false}) {
-    return getResolvedUnit(
-      file.path,
-      sendCachedToStream: sendCachedToStream,
-    );
+  Future<SomeResolvedUnitResult> getResolvedUnit2(
+    File file, {
+    bool sendCachedToStream = false,
+  }) {
+    return getResolvedUnit(file.path, sendCachedToStream: sendCachedToStream);
   }
 
   /// Return a [Future] that completes with the [SomeUnitElementResult]
   /// for the file with the given [path].
   Future<SomeUnitElementResult> getUnitElement(String path) {
     if (!_isAbsolutePath(path)) {
-      return Future.value(
-        InvalidPathResult(),
-      );
+      return Future.value(InvalidPathResult());
     }
 
     if (!_fsState.hasUri(path)) {
-      return Future.value(
-        NotPathOfUriResult(),
-      );
+      return Future.value(NotPathOfUriResult());
     }
 
     if (_disposed) {
-      return Future.value(
-        DisposedAnalysisContextResult(),
-      );
+      return Future.value(DisposedAnalysisContextResult());
     }
 
     // Schedule analysis.
@@ -1177,16 +1139,16 @@ class AnalysisDriver {
     _applyPendingFileChanges();
 
     var file = _fsState.getFileForPath(path);
-    RecordingErrorListener listener = RecordingErrorListener();
+    RecordingDiagnosticListener listener = RecordingDiagnosticListener();
     CompilationUnit unit = file.parse(
-      errorListener: listener,
+      diagnosticListener: listener,
       performance: OperationPerformanceImpl('<root>'),
     );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
       unit: unit,
-      errors: listener.errors,
+      diagnostics: listener.diagnostics,
     );
   }
 
@@ -1291,9 +1253,7 @@ class AnalysisDriver {
       _lastProducedSignatures.remove(path);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(
-        _FileChange(path, _FileChangeKind.remove),
-      );
+      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.remove));
       _scheduler.notify();
     }
   }
@@ -1319,15 +1279,9 @@ class AnalysisDriver {
   }
 
   void _analyzeFile(String path) {
-    scheduler.accumulatedPerformance.run(
-      'analyzeFile',
-      (performance) {
-        _analyzeFileImpl(
-          path: path,
-          performance: performance,
-        );
-      },
-    );
+    scheduler.accumulatedPerformance.run('analyzeFile', (performance) {
+      _analyzeFileImpl(path: path, performance: performance);
+    });
   }
 
   void _analyzeFileImpl({
@@ -1350,10 +1304,7 @@ class AnalysisDriver {
       try {
         testView?.numOfAnalyzedLibraries++;
         _scheduler.eventsController.add(
-          events.AnalyzeFile(
-            file: file,
-            library: library,
-          ),
+          events.AnalyzeFile(file: file, library: library),
         );
 
         if (!_hasLibraryByUri('dart:core')) {
@@ -1373,10 +1324,7 @@ class AnalysisDriver {
         }
 
         performance.run('libraryContext', (performance) {
-          libraryContext.load(
-            targetLibrary: library,
-            performance: performance,
-          );
+          libraryContext.load(targetLibrary: library, performance: performance);
         });
 
         for (var import in library.docLibraryImports) {
@@ -1391,16 +1339,18 @@ class AnalysisDriver {
         }
 
         var analysisOptions = file.analysisOptions;
-        var libraryElement =
-            libraryContext.elementFactory.libraryOfUri2(library.file.uri);
+        var libraryElement = libraryContext.elementFactory.libraryOfUri2(
+          library.file.uri,
+        );
         var typeSystemOperations = TypeSystemOperations(
-            libraryElement.typeSystem,
-            strictCasts: analysisOptions.strictCasts);
+          libraryElement.typeSystem,
+          strictCasts: analysisOptions.strictCasts,
+        );
 
-        BundleRequirementsManifest? libraryRequirements;
+        RequirementsManifest? requirements;
         if (withFineDependencies) {
-          libraryRequirements = BundleRequirementsManifest();
-          linkingBundleManifest = libraryRequirements;
+          requirements = RequirementsManifest();
+          globalResultRequirements = requirements;
         }
 
         var results = performance.run('LibraryAnalyzer', (performance) {
@@ -1417,8 +1367,14 @@ class AnalysisDriver {
           ).analyze();
         });
 
+        // Invoke the test only hook to trigger additional requirements.
+        if (testFineAfterLibraryAnalyzerHook case var hook?) {
+          var units = results.map((result) => result.unit).toList();
+          hook(units);
+        }
+
         if (withFineDependencies) {
-          linkingBundleManifest = null;
+          globalResultRequirements = null;
         }
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1428,9 +1384,10 @@ class AnalysisDriver {
         for (var unitResult in results) {
           var unitFile = unitResult.file;
 
-          var index = enableIndex
-              ? indexUnit(unitResult.unit)
-              : AnalysisDriverUnitIndexBuilder();
+          var index =
+              enableIndex
+                  ? indexUnit(unitResult.unit)
+                  : AnalysisDriverUnitIndexBuilder();
 
           var resolvedUnit = _createResolvedUnitImpl(
             file: unitFile,
@@ -1441,14 +1398,16 @@ class AnalysisDriver {
           // getResolvedUnit()
           _requestedFiles.completeAll(unitFile.path, resolvedUnit);
           _requestedFilesNonInteractive.completeAll(
-              unitFile.path, resolvedUnit);
+            unitFile.path,
+            resolvedUnit,
+          );
 
           // getErrors()
           _errorsRequestedFiles.completeAll(
             unitFile.path,
             _createErrorsResultImpl(
               file: unitFile,
-              errors: unitResult.errors,
+              diagnostics: unitResult.diagnostics,
             ),
           );
 
@@ -1458,12 +1417,14 @@ class AnalysisDriver {
           var unitSignature = _getResolvedUnitSignature(library, unitFile);
           {
             var unitKey = _getResolvedUnitKey(unitSignature);
-            var unitBytes = AnalysisDriverResolvedUnitBuilder(
-              errors: unitResult.errors.map((error) {
-                return ErrorEncoding.encode(error);
-              }).toList(),
-              index: index,
-            ).toBuffer();
+            var unitBytes =
+                AnalysisDriverResolvedUnitBuilder(
+                  errors:
+                      unitResult.diagnostics
+                          .map((d) => ErrorEncoding.encode(d))
+                          .toList(),
+                  index: index,
+                ).toBuffer();
             _byteStore.putGet(unitKey, unitBytes);
             fileResultBytesMap[unitFile.uri] = unitBytes;
           }
@@ -1476,10 +1437,12 @@ class AnalysisDriver {
             _priorityResults[unitFile.path] = resolvedUnit;
           }
 
-          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
+          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.diagnostics);
         }
 
-        if (withFineDependencies && libraryRequirements != null) {
+        if (withFineDependencies && requirements != null) {
+          requirements.removeReqForLibs({library.file.uri});
+
           performance.run('writeResolvedLibrary', (_) {
             var mapSink = BufferedSink();
             mapSink.writeMap(
@@ -1490,12 +1453,12 @@ class AnalysisDriver {
             var mapBytes = mapSink.takeBytes();
 
             library.lastResolutionResult = LibraryResolutionResult(
-              requirements: libraryRequirements!,
+              requirements: requirements!,
               bytes: mapBytes,
             );
 
             var sink = BufferedSink();
-            libraryRequirements.write(sink);
+            requirements.write(sink);
             sink.writeUint8List(mapBytes);
             var allBytes = sink.takeBytes();
 
@@ -1506,7 +1469,7 @@ class AnalysisDriver {
           _scheduler.eventsController.add(
             events.AnalyzedLibrary(
               library: library,
-              requirements: libraryRequirements,
+              requirements: requirements,
             ),
           );
         }
@@ -1528,8 +1491,12 @@ class AnalysisDriver {
         _logger.writeln('Computed new analysis result.');
         // return result;
       } catch (exception, stackTrace) {
-        var contextKey =
-            _storeExceptionContext(path, library, exception, stackTrace);
+        var contextKey = _storeExceptionContext(
+          path,
+          library,
+          exception,
+          stackTrace,
+        );
         _reportException(path, exception, stackTrace, contextKey);
 
         // Complete all related requests with an error.
@@ -1544,21 +1511,13 @@ class AnalysisDriver {
         // TODO(scheglov): write tests
         for (var file in library.files) {
           // getResolvedUnit()
-          completeWithError(
-            _requestedFiles.remove(file.path),
-          );
-          completeWithError(
-            _requestedFilesNonInteractive.remove(file.path),
-          );
+          completeWithError(_requestedFiles.remove(file.path));
+          completeWithError(_requestedFilesNonInteractive.remove(file.path));
           // getErrors()
-          completeWithError(
-            _errorsRequestedFiles.remove(file.path),
-          );
+          completeWithError(_errorsRequestedFiles.remove(file.path));
         }
         // getResolvedLibrary()
-        completeWithError(
-          _requestedLibraries.remove(library.file.path),
-        );
+        completeWithError(_requestedLibraries.remove(library.file.path));
         _clearLibraryContextAfterException();
       }
     });
@@ -1590,9 +1549,7 @@ class AnalysisDriver {
       var completers = _pendingFileChangesCompleters.toList();
       _pendingFileChangesCompleters.clear();
       for (var completer in completers) {
-        completer.complete(
-          accumulatedAffected.toList(),
-        );
+        completer.complete(accumulatedAffected.toList());
       }
     }
   }
@@ -1613,24 +1570,18 @@ class AnalysisDriver {
     Uint8List bytes,
   ) {
     _scheduler.eventsController.add(
-      events.GetErrorsFromBytes(
-        file: file,
-        library: library,
-      ),
+      events.GetErrorsFromBytes(file: file, library: library),
     );
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    var errors = _getErrorsFromSerialized(file, unit.errors);
-    _updateHasErrorOrWarningFlag(file, errors);
-    var result = _createErrorsResultImpl(
-      file: file,
-      errors: errors,
-    );
+    var diagnostics = _getDiagnosticsFromSerialized(file, unit.errors);
+    _updateHasErrorOrWarningFlag(file, diagnostics);
+    var result = _createErrorsResultImpl(file: file, diagnostics: diagnostics);
     return result;
   }
 
   ErrorsResultImpl _createErrorsResultImpl({
     required FileState file,
-    required List<AnalysisError> errors,
+    required List<Diagnostic> diagnostics,
   }) {
     return ErrorsResultImpl(
       session: currentSession,
@@ -1640,7 +1591,7 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: errors,
+      diagnostics: diagnostics,
       analysisOptions: file.analysisOptions,
     );
   }
@@ -1684,7 +1635,7 @@ class AnalysisDriver {
       session: currentSession,
       fileState: file,
       unit: unitResult.unit,
-      errors: unitResult.errors,
+      diagnostics: unitResult.diagnostics,
     );
   }
 
@@ -1726,6 +1677,21 @@ class AnalysisDriver {
     }
   }
 
+  /// Return [Diagnostic]s for the given [serialized] diagnostics.
+  List<Diagnostic> _getDiagnosticsFromSerialized(
+    FileState file,
+    List<AnalysisDriverUnitError> serialized,
+  ) {
+    List<Diagnostic> diagnostics = <Diagnostic>[];
+    for (AnalysisDriverUnitError error in serialized) {
+      var diagnostic = ErrorEncoding.decode(file.source, error);
+      if (diagnostic != null) {
+        diagnostics.add(diagnostic);
+      }
+    }
+    return diagnostics;
+  }
+
   void _getErrors(String path) {
     var file = _fsState.getFileForPath(path);
 
@@ -1753,10 +1719,7 @@ class AnalysisDriver {
 
     // Errors are based on elements, so load them.
     scheduler.accumulatedPerformance.run('libraryContext', (performance) {
-      libraryContext.load(
-        targetLibrary: library,
-        performance: performance,
-      );
+      libraryContext.load(targetLibrary: library, performance: performance);
 
       for (var import in library.docLibraryImports) {
         if (import is LibraryImportWithFile) {
@@ -1772,49 +1735,45 @@ class AnalysisDriver {
 
     if (withFineDependencies) {
       var performance = OperationPerformanceImpl('<root>');
-      var fileResultBytesMap = performance.run(
-        'errors(isSatisfied)',
-        (performance) {
-          var reqAndUnitBytes = performance.run('getBytes', (_) {
-            return _byteStore.get(library.resolvedKey);
+      var fileResultBytesMap = performance.run('errors(isSatisfied)', (
+        performance,
+      ) {
+        var reqAndUnitBytes = performance.run('getBytes', (_) {
+          return _byteStore.get(library.resolvedKey);
+        });
+
+        if (reqAndUnitBytes != null) {
+          var elementFactory = libraryContext.elementFactory;
+
+          var reader = SummaryDataReader(reqAndUnitBytes);
+          var requirements = performance.run('readRequirements', (_) {
+            return RequirementsManifest.read(reader);
           });
 
-          if (reqAndUnitBytes != null) {
-            var elementFactory = libraryContext.elementFactory;
-
-            var reader = SummaryDataReader(reqAndUnitBytes);
-            var requirements = performance.run('readRequirements', (_) {
-              return BundleRequirementsManifest.read(reader);
-            });
-
-            var failure = requirements.isSatisfied(
-              elementFactory: elementFactory,
-              libraryManifests: elementFactory.libraryManifests,
+          var failure = requirements.isSatisfied(
+            elementFactory: elementFactory,
+            libraryManifests: elementFactory.libraryManifests,
+          );
+          if (failure == null) {
+            var mapBytes = reader.readUint8List();
+            library.lastResolutionResult = LibraryResolutionResult(
+              requirements: requirements,
+              bytes: mapBytes,
             );
-            if (failure == null) {
-              var mapBytes = reader.readUint8List();
-              library.lastResolutionResult = LibraryResolutionResult(
-                requirements: requirements,
-                bytes: mapBytes,
-              );
 
-              var reader2 = SummaryDataReader(mapBytes);
-              return reader2.readMap(
-                readKey: () => reader2.readUri(),
-                readValue: () => reader2.readUint8List(),
-              );
-            } else {
-              scheduler.eventsController.add(
-                events.GetErrorsCannotReuse(
-                  library: library,
-                  failure: failure,
-                ),
-              );
-            }
+            var reader2 = SummaryDataReader(mapBytes);
+            return reader2.readMap(
+              readKey: () => reader2.readUri(),
+              readValue: () => reader2.readUint8List(),
+            );
+          } else {
+            scheduler.eventsController.add(
+              events.GetErrorsCannotReuse(library: library, failure: failure),
+            );
           }
-          return null;
-        },
-      );
+        }
+        return null;
+      });
 
       if (fileResultBytesMap != null) {
         var bytes = fileResultBytesMap[file.uri]!;
@@ -1836,19 +1795,6 @@ class AnalysisDriver {
     }
 
     _analyzeFile(path);
-  }
-
-  /// Return [AnalysisError]s for the given [serialized] errors.
-  List<AnalysisError> _getErrorsFromSerialized(
-      FileState file, List<AnalysisDriverUnitError> serialized) {
-    List<AnalysisError> errors = <AnalysisError>[];
-    for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source, error);
-      if (analysisError != null) {
-        errors.add(analysisError);
-      }
-    }
-    return errors;
   }
 
   Future<void> _getFilesDefiningClassMemberName(
@@ -1904,10 +1850,7 @@ class AnalysisDriver {
       case LibraryFileKind():
         break;
       case PartFileKind():
-        _requestedLibraries.completeAll(
-          path,
-          NotLibraryButPartResult(),
-        );
+        _requestedLibraries.completeAll(path, NotLibraryButPartResult());
         return;
       default:
         throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -1933,7 +1876,6 @@ class AnalysisDriver {
     signature.addUint32List(_saltForResolution);
     if (file.workspacePackage case PubPackage pubPackage) {
       signature.addString(pubPackage.pubspecContent ?? '');
-      signature.addString(pubPackage.analyzerUseNewElementsContent ?? '');
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
@@ -1944,32 +1886,26 @@ class AnalysisDriver {
   }
 
   void _getUnitElement(String path) {
-    scheduler.accumulatedPerformance.run(
-      'getUnitElement',
-      (performance) {
-        var file = _fsState.getFileForPath(path);
+    scheduler.accumulatedPerformance.run('getUnitElement', (performance) {
+      var file = _fsState.getFileForPath(path);
 
-        // Prepare the library - the file itself, or the known library.
-        var kind = file.kind;
-        var library = kind.library ?? kind.asLibrary;
+      // Prepare the library - the file itself, or the known library.
+      var kind = file.kind;
+      var library = kind.library ?? kind.asLibrary;
 
-        performance.run('libraryContext', (performance) {
-          libraryContext.load(
-            targetLibrary: library,
-            performance: performance,
-          );
-        });
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(targetLibrary: library, performance: performance);
+      });
 
-        var element = libraryContext.computeUnitElement(library, file);
-        var result = UnitElementResultImpl(
-          session: currentSession,
-          fileState: file,
-          element: element,
-        );
+      var element = libraryContext.computeUnitElement(library, file);
+      var result = UnitElementResultImpl(
+        session: currentSession,
+        fileState: file,
+        fragment: element,
+      );
 
-        _unitElementRequestedFiles.completeAll(path, result);
-      },
-    );
+      _unitElementRequestedFiles.completeAll(path, result);
+    });
   }
 
   bool _hasLibraryByUri(String uriStr) {
@@ -2009,7 +1945,9 @@ class AnalysisDriver {
   /// We detected that one of the required `dart` libraries is missing.
   /// Return the empty analysis result with the error.
   ErrorsResultImpl _newMissingDartLibraryResult(
-      FileState file, String missingUri) {
+    FileState file,
+    String missingUri,
+  ) {
     // TODO(scheglov): Find a better way to report this.
     return ErrorsResultImpl(
       session: currentSession,
@@ -2019,12 +1957,12 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: [
-        AnalysisError.tmp(
+      diagnostics: [
+        Diagnostic.tmp(
           source: file.source,
           offset: 0,
           length: 0,
-          errorCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
+          diagnosticCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
           arguments: [missingUri],
         ),
       ],
@@ -2044,160 +1982,152 @@ class AnalysisDriver {
   }
 
   void _produceErrors(String path) {
-    scheduler.accumulatedPerformance.run(
-      'produceErrors',
-      (performance) {
-        var file = _fsState.getFileForPath(path);
+    scheduler.accumulatedPerformance.run('produceErrors', (performance) {
+      var file = _fsState.getFileForPath(path);
 
-        // Prepare the library - the file itself, or the known library.
-        var kind = file.kind;
-        var library = kind.library ?? kind.asLibrary;
+      // Prepare the library - the file itself, or the known library.
+      var kind = file.kind;
+      var library = kind.library ?? kind.asLibrary;
 
-        // Errors are based on elements, so load them.
-        performance.run('libraryContext', (performance) {
-          libraryContext.load(
-            targetLibrary: library,
-            performance: performance,
-          );
+      // Errors are based on elements, so load them.
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(targetLibrary: library, performance: performance);
 
-          for (var import in library.docLibraryImports) {
-            if (import is LibraryImportWithFile) {
-              if (import.importedLibrary case var libraryFileKind?) {
-                libraryContext.load(
-                  targetLibrary: libraryFileKind,
-                  performance: OperationPerformanceImpl('<root>'),
-                );
-              }
+        for (var import in library.docLibraryImports) {
+          if (import is LibraryImportWithFile) {
+            if (import.importedLibrary case var libraryFileKind?) {
+              libraryContext.load(
+                targetLibrary: libraryFileKind,
+                performance: OperationPerformanceImpl('<root>'),
+              );
             }
           }
+        }
+      });
+
+      if (withFineDependencies) {
+        var fileResultBytesMap = performance.run('errors(isSatisfied)', (
+          performance,
+        ) {
+          var elementFactory = libraryContext.elementFactory;
+
+          if (library.lastResolutionResult case var lastResult?) {
+            var failure = lastResult.requirements.isSatisfied(
+              elementFactory: elementFactory,
+              libraryManifests: elementFactory.libraryManifests,
+            );
+            if (failure == null) {
+              var reader = SummaryDataReader(lastResult.bytes);
+              return reader.readMap(
+                readKey: () => reader.readUri(),
+                readValue: () => reader.readUint8List(),
+              );
+            }
+          }
+
+          var reqAndUnitBytes = performance.run('getBytes', (_) {
+            return _byteStore.get(library.resolvedKey);
+          });
+
+          if (reqAndUnitBytes != null) {
+            var reader = SummaryDataReader(reqAndUnitBytes);
+            var requirements = performance.run('readRequirements', (_) {
+              return RequirementsManifest.read(reader);
+            });
+
+            var failure = requirements.isSatisfied(
+              elementFactory: elementFactory,
+              libraryManifests: elementFactory.libraryManifests,
+            );
+            if (failure == null) {
+              var mapBytes = reader.readUint8List();
+              library.lastResolutionResult = LibraryResolutionResult(
+                requirements: requirements,
+                bytes: mapBytes,
+              );
+
+              var reader2 = SummaryDataReader(mapBytes);
+              return reader2.readMap(
+                readKey: () => reader2.readUri(),
+                readValue: () => reader2.readUint8List(),
+              );
+            } else {
+              scheduler.eventsController.add(
+                events.ProduceErrorsCannotReuse(
+                  library: library,
+                  failure: failure,
+                ),
+              );
+            }
+          }
+          return null;
         });
 
-        if (withFineDependencies) {
-          var fileResultBytesMap = performance.run(
-            'errors(isSatisfied)',
-            (performance) {
-              var elementFactory = libraryContext.elementFactory;
-
-              if (library.lastResolutionResult case var lastResult?) {
-                var failure = lastResult.requirements.isSatisfied(
-                  elementFactory: elementFactory,
-                  libraryManifests: elementFactory.libraryManifests,
-                );
-                if (failure == null) {
-                  var reader = SummaryDataReader(lastResult.bytes);
-                  return reader.readMap(
-                    readKey: () => reader.readUri(),
-                    readValue: () => reader.readUint8List(),
-                  );
-                }
-              }
-
-              var reqAndUnitBytes = performance.run('getBytes', (_) {
-                return _byteStore.get(library.resolvedKey);
-              });
-
-              if (reqAndUnitBytes != null) {
-                var reader = SummaryDataReader(reqAndUnitBytes);
-                var requirements = performance.run('readRequirements', (_) {
-                  return BundleRequirementsManifest.read(reader);
-                });
-
-                var failure = requirements.isSatisfied(
-                  elementFactory: elementFactory,
-                  libraryManifests: elementFactory.libraryManifests,
-                );
-                if (failure == null) {
-                  var mapBytes = reader.readUint8List();
-                  library.lastResolutionResult = LibraryResolutionResult(
-                    requirements: requirements,
-                    bytes: mapBytes,
-                  );
-
-                  var reader2 = SummaryDataReader(mapBytes);
-                  return reader2.readMap(
-                    readKey: () => reader2.readUri(),
-                    readValue: () => reader2.readUint8List(),
-                  );
-                } else {
-                  scheduler.eventsController.add(
-                    events.ProduceErrorsCannotReuse(
-                      library: library,
-                      failure: failure,
-                    ),
-                  );
-                }
-              }
-              return null;
-            },
-          );
-
-          if (fileResultBytesMap != null) {
-            for (var fileEntry in fileResultBytesMap.entries) {
-              var file = library.files
-                  .where((file) => file.uri == fileEntry.key)
-                  .single;
-              _fileTracker.fileWasAnalyzed(file.path);
-              var result =
-                  _createErrorsResultFromBytes(file, library, fileEntry.value);
-              _errorsRequestedFiles.completeAll(file.path, result);
-              _scheduler.eventsController.add(result);
-            }
-            return;
-          }
-        }
-
-        // Check if we have cached errors for all library files.
-        List<(FileState, String, Uint8List)>? forAllFiles = [];
-        for (var file in library.files) {
-          // If the file is priority, we need the resolved unit.
-          // So, the cached errors is not enough.
-          if (priorityFiles.contains(file.path)) {
-            forAllFiles = null;
-            break;
-          }
-
-          var signature = _getResolvedUnitSignature(library, file);
-          var key = _getResolvedUnitKey(signature);
-
-          var bytes = _byteStore.get(key);
-          if (bytes == null) {
-            forAllFiles = null;
-            break;
-          }
-
-          // Will not be `null` here.
-          forAllFiles?.add((file, signature, bytes));
-        }
-
-        // If we have results for all library files, produce them.
-        if (forAllFiles != null) {
-          for (var (file, signature, bytes) in forAllFiles) {
-            // We have the result for this file.
+        if (fileResultBytesMap != null) {
+          for (var fileEntry in fileResultBytesMap.entries) {
+            var file =
+                library.files.where((file) => file.uri == fileEntry.key).single;
             _fileTracker.fileWasAnalyzed(file.path);
-
-            // Don't produce the result if the signature is the same.
-            if (_lastProducedSignatures[file.path] == signature) {
-              continue;
-            }
-
-            // Produce the result from bytes.
-            var result = _createErrorsResultFromBytes(file, library, bytes);
-            _lastProducedSignatures[file.path] = signature;
+            var result = _createErrorsResultFromBytes(
+              file,
+              library,
+              fileEntry.value,
+            );
             _errorsRequestedFiles.completeAll(file.path, result);
             _scheduler.eventsController.add(result);
           }
-          // We produced all results for the library.
           return;
         }
+      }
 
-        performance.run('analyzeFile', (performance) {
-          _analyzeFileImpl(
-            path: path,
-            performance: performance,
-          );
-        });
-      },
-    );
+      // Check if we have cached errors for all library files.
+      List<(FileState, String, Uint8List)>? forAllFiles = [];
+      for (var file in library.files) {
+        // If the file is priority, we need the resolved unit.
+        // So, the cached errors is not enough.
+        if (priorityFiles.contains(file.path)) {
+          forAllFiles = null;
+          break;
+        }
+
+        var signature = _getResolvedUnitSignature(library, file);
+        var key = _getResolvedUnitKey(signature);
+
+        var bytes = _byteStore.get(key);
+        if (bytes == null) {
+          forAllFiles = null;
+          break;
+        }
+
+        // Will not be `null` here.
+        forAllFiles?.add((file, signature, bytes));
+      }
+
+      // If we have results for all library files, produce them.
+      if (forAllFiles != null) {
+        for (var (file, signature, bytes) in forAllFiles) {
+          // We have the result for this file.
+          _fileTracker.fileWasAnalyzed(file.path);
+
+          // Don't produce the result if the signature is the same.
+          if (_lastProducedSignatures[file.path] == signature) {
+            continue;
+          }
+
+          // Produce the result from bytes.
+          var result = _createErrorsResultFromBytes(file, library, bytes);
+          _lastProducedSignatures[file.path] = signature;
+          _errorsRequestedFiles.completeAll(file.path, result);
+          _scheduler.eventsController.add(result);
+        }
+        // We produced all results for the library.
+        return;
+      }
+
+      performance.run('analyzeFile', (performance) {
+        _analyzeFileImpl(path: path, performance: performance);
+      });
+    });
   }
 
   void _removePotentiallyAffectedLibraries(
@@ -2224,8 +2154,12 @@ class AnalysisDriver {
     );
   }
 
-  void _reportException(String path, Object exception, StackTrace stackTrace,
-      String? contextKey) {
+  void _reportException(
+    String path,
+    Object exception,
+    StackTrace stackTrace,
+    String? contextKey,
+  ) {
     CaughtException caught = CaughtException(exception, stackTrace);
 
     var fileContentMap = <String, String>{};
@@ -2283,18 +2217,18 @@ class AnalysisDriver {
       var library = kind.library ?? kind.asLibrary;
 
       performance.run('libraryContext', (performance) {
-        libraryContext.load(
-          targetLibrary: library,
-          performance: performance,
-        );
+        libraryContext.load(targetLibrary: library, performance: performance);
       });
       var unitElement = libraryContext.computeUnitElement(library, file);
       var analysisOptions = libraryContext.analysisContext
           .getAnalysisOptionsForFile(file.resource);
-      var libraryElement =
-          libraryContext.elementFactory.libraryOfUri2(library.file.uri);
-      var typeSystemOperations = TypeSystemOperations(libraryElement.typeSystem,
-          strictCasts: analysisOptions.strictCasts);
+      var libraryElement = libraryContext.elementFactory.libraryOfUri2(
+        library.file.uri,
+      );
+      var typeSystemOperations = TypeSystemOperations(
+        libraryElement.typeSystem,
+        strictCasts: analysisOptions.strictCasts,
+      );
 
       var analysisResult = performance.run('LibraryAnalyzer', (performance) {
         return LibraryAnalyzer(
@@ -2329,25 +2263,35 @@ class AnalysisDriver {
     });
   }
 
-  String? _storeExceptionContext(String path, LibraryFileKind library,
-      Object exception, StackTrace stackTrace) {
+  String? _storeExceptionContext(
+    String path,
+    LibraryFileKind library,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
     } else {
       allowedNumberOfContextsToWrite--;
     }
     try {
-      var contextFiles = library.files
-          .map((file) => AnalysisDriverExceptionFileBuilder(
-              path: file.path, content: file.content))
-          .toList();
+      var contextFiles =
+          library.files
+              .map(
+                (file) => AnalysisDriverExceptionFileBuilder(
+                  path: file.path,
+                  content: file.content,
+                ),
+              )
+              .toList();
       contextFiles.sort((a, b) => a.path.compareTo(b.path));
       AnalysisDriverExceptionContextBuilder contextBuilder =
           AnalysisDriverExceptionContextBuilder(
-              path: path,
-              exception: exception.toString(),
-              stackTrace: stackTrace.toString(),
-              files: contextFiles);
+            path: path,
+            exception: exception.toString(),
+            stackTrace: stackTrace.toString(),
+            files: contextFiles,
+          );
       var bytes = contextBuilder.toBuffer();
 
       String twoDigits(int n) {
@@ -2385,13 +2329,15 @@ class AnalysisDriver {
     }
   }
 
-  /// Given the list of [errors] for the [file], update the [file]'s
+  /// Given the list of [diagnostics] for the [file], update the [file]'s
   /// [FileState.hasErrorOrWarning] flag.
   void _updateHasErrorOrWarningFlag(
-      FileState file, List<AnalysisError> errors) {
-    for (var error in errors) {
-      var severity = error.errorCode.errorSeverity;
-      if (severity == ErrorSeverity.ERROR) {
+    FileState file,
+    List<Diagnostic> diagnostics,
+  ) {
+    for (var diagnostic in diagnostics) {
+      var severity = diagnostic.diagnosticCode.severity;
+      if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }
@@ -2400,7 +2346,9 @@ class AnalysisDriver {
   }
 
   static void _addDeclaredVariablesToSignature(
-      ApiSignature buffer, DeclaredVariables declaredVariables) {
+    ApiSignature buffer,
+    DeclaredVariables declaredVariables,
+  ) {
     buffer.addInt(declaredVariables.variableNames.length);
 
     for (var name in declaredVariables.variableNames) {
@@ -2411,7 +2359,8 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForElements(
-      DeclaredVariables declaredVariables) {
+    DeclaredVariables declaredVariables,
+  ) {
     var buffer = ApiSignature()..addInt(DATA_VERSION);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
@@ -2422,10 +2371,11 @@ class AnalysisDriver {
     required DriverBasedAnalysisContext? analysisContext,
     required DeclaredVariables declaredVariables,
   }) {
-    var buffer = ApiSignature()
-      ..addInt(DATA_VERSION)
-      ..addBool(enableIndex)
-      ..addBool(enableDebugResolutionMarkers);
+    var buffer =
+        ApiSignature()
+          ..addInt(DATA_VERSION)
+          ..addBool(enableIndex)
+          ..addBool(enableDebugResolutionMarkers);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2435,9 +2385,10 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
-    var buffer = ApiSignature()
-      ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+    var buffer =
+        ApiSignature()
+          ..addInt(DATA_VERSION)
+          ..addBool(enableIndex);
 
     return buffer.toUint32List();
   }
@@ -2455,7 +2406,7 @@ enum AnalysisDriverPriority {
   changedFiles,
   priority,
   interactive,
-  completion
+  completion,
 }
 
 /// Instances of this class schedule work in multiple [AnalysisDriver]s so that
@@ -2507,8 +2458,9 @@ class AnalysisDriverScheduler {
   /// It is expected that the consumer of this performance operation will
   /// do analysis operations, take the instance to print and otherwise
   /// process, and reset this field with a new instance.
-  OperationPerformanceImpl accumulatedPerformance =
-      OperationPerformanceImpl('<scheduler>');
+  OperationPerformanceImpl accumulatedPerformance = OperationPerformanceImpl(
+    '<scheduler>',
+  );
 
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
@@ -2604,7 +2556,7 @@ class AnalysisDriverScheduler {
 
   /// Run infinitely analysis cycle, selecting the drivers with the highest
   /// priority first.
-  Future<void> _run() async {
+  void _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
     Stopwatch timer = Stopwatch()..start();
@@ -2711,19 +2663,17 @@ abstract class DriverWatcher {
 }
 
 class ErrorEncoding {
-  static AnalysisError? decode(
-    Source source,
-    AnalysisDriverUnitError error,
-  ) {
+  static Diagnostic? decode(Source source, AnalysisDriverUnitError error) {
     String errorName = error.uniqueName;
-    ErrorCode? errorCode =
+    DiagnosticCode? diagnosticCode =
         errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
-    if (errorCode == null) {
+    if (diagnosticCode == null) {
       // This could fail because the error code is no longer defined, or, in
       // the case of a lint rule, if the lint rule has been disabled since the
       // errors were written.
-      AnalysisEngine.instance.instrumentationService
-          .logError('No error code for "$error" in "$source"');
+      AnalysisEngine.instance.instrumentationService.logError(
+        'No error code for "$error" in "$source"',
+      );
       return null;
     }
 
@@ -2741,20 +2691,20 @@ class ErrorEncoding {
       );
     }
 
-    return AnalysisError.forValues(
+    return Diagnostic.forValues(
       source: source,
       offset: error.offset,
       length: error.length,
-      errorCode: errorCode,
+      diagnosticCode: diagnosticCode,
       message: error.message,
       correctionMessage: error.correction.isEmpty ? null : error.correction,
       contextMessages: contextMessages,
     );
   }
 
-  static AnalysisDriverUnitErrorBuilder encode(AnalysisError error) {
+  static AnalysisDriverUnitErrorBuilder encode(Diagnostic diagnostic) {
     var contextMessages = <DiagnosticMessageBuilder>[];
-    for (var message in error.contextMessages) {
+    for (var message in diagnostic.contextMessages) {
       contextMessages.add(
         DiagnosticMessageBuilder(
           filePath: message.filePath,
@@ -2767,19 +2717,19 @@ class ErrorEncoding {
     }
 
     return AnalysisDriverUnitErrorBuilder(
-      offset: error.offset,
-      length: error.length,
-      uniqueName: error.errorCode.uniqueName,
-      message: error.message,
-      correction: error.correction ?? '',
+      offset: diagnostic.offset,
+      length: diagnostic.length,
+      uniqueName: diagnostic.diagnosticCode.uniqueName,
+      message: diagnostic.message,
+      correction: diagnostic.correctionMessage ?? '',
       contextMessages: contextMessages,
     );
   }
 
-  /// Return the lint code with the given [errorName], or `null` if there is no
-  /// lint registered with that name.
-  static ErrorCode? _lintCodeByUniqueName(String errorName) {
-    return linter.Registry.ruleRegistry.codeForUniqueName(errorName);
+  /// Returns the lint code with the given [diagnosticName], or `null` if there
+  /// is no lint registered with that name.
+  static DiagnosticCode? _lintCodeByUniqueName(String diagnosticName) {
+    return linter.Registry.ruleRegistry.codeForUniqueName(diagnosticName);
   }
 }
 

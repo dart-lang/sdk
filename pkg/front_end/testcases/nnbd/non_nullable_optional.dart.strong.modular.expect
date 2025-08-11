@@ -27,10 +27,10 @@ import "dart:core" as core;
 
 part non_nullable_optional_part.dart;
 static method main() → dynamic {}
-static method method1({core::int a = #C1}) → dynamic {}
-static method method2([core::int a = #C1]) → dynamic {}
-static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method3({core::int a = #C1}) → dynamic {}
-static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method4([core::int a = #C1]) → dynamic {}
+static method method1({erroneously-initialized core::int a = #C1}) → dynamic {}
+static method method2([erroneously-initialized core::int a = #C1]) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method3({erroneously-initialized core::int a = #C1}) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method4([erroneously-initialized core::int a = #C1]) → dynamic {}
 
 constants  {
   #C1 = null

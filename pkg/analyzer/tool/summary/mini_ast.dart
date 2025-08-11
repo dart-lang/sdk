@@ -21,7 +21,7 @@ class AnnotatedNode {
   final List<Annotation> metadata;
 
   AnnotatedNode(this.documentationComment, List<Annotation>? metadata)
-      : metadata = metadata ?? const [];
+    : metadata = metadata ?? const [];
 }
 
 /// "Mini AST" representation of an annotation.
@@ -43,8 +43,13 @@ class ClassDeclaration extends CompilationUnitMember {
 
   final List<ClassMember> members;
 
-  ClassDeclaration(super.documentationComment, super.metadata, this.name,
-      this.superclass, this.members);
+  ClassDeclaration(
+    super.documentationComment,
+    super.metadata,
+    this.name,
+    this.superclass,
+    this.members,
+  );
 }
 
 /// "Mini AST" representation of a class member.
@@ -99,7 +104,10 @@ class EnumConstantDeclaration extends AnnotatedNode {
   final String name;
 
   EnumConstantDeclaration(
-      super.documentationComment, super.metadata, this.name);
+    super.documentationComment,
+    super.metadata,
+    this.name,
+  );
 }
 
 /// "Mini AST" representation of an enum declaration.
@@ -109,7 +117,11 @@ class EnumDeclaration extends CompilationUnitMember {
   final List<EnumConstantDeclaration> constants;
 
   EnumDeclaration(
-      super.documentationComment, super.metadata, this.name, this.constants);
+    super.documentationComment,
+    super.metadata,
+    this.name,
+    this.constants,
+  );
 }
 
 /// "Mini AST" representation of an expression.
@@ -148,8 +160,13 @@ class MethodDeclaration extends ClassMember {
 
   final TypeName? returnType;
 
-  MethodDeclaration(super.documentationComment, super.metadata, this.isGetter,
-      this.name, this.returnType);
+  MethodDeclaration(
+    super.documentationComment,
+    super.metadata,
+    this.isGetter,
+    this.name,
+    this.returnType,
+  );
 }
 
 /// Parser listener which generates a "mini AST" representation of the source
@@ -166,8 +183,13 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => throw UnimplementedError();
 
   @override
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage>? context}) {
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+  }) {
     internalProblem(message, charOffset, uri);
   }
 
@@ -221,13 +243,17 @@ class MiniAstBuilder extends StackListener {
     var name = pop() as String;
     var metadata = popTypedList<Annotation>();
     var comment = pop() as Comment?;
-    compilationUnit.declarations
-        .add(ClassDeclaration(comment, metadata, name, superclass, members));
+    compilationUnit.declarations.add(
+      ClassDeclaration(comment, metadata, name, superclass, members),
+    );
   }
 
   @override
   void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     debugEvent("ClassFactoryMethod");
     pop(); // Body
     pop(); // Type variables
@@ -238,8 +264,13 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     debugEvent("Method");
     pop(); // Body
     pop(); // Initializers
@@ -249,16 +280,31 @@ class MiniAstBuilder extends StackListener {
     var returnType = pop() as TypeName?;
     var metadata = popTypedList<Annotation>();
     var comment = pop() as Comment?;
-    push(MethodDeclaration(
-        comment, metadata, getOrSet?.lexeme == 'get', name, returnType));
+    push(
+      MethodDeclaration(
+        comment,
+        metadata,
+        getOrSet?.lexeme == 'get',
+        name,
+        returnType,
+      ),
+    );
   }
 
   @override
   void endClassOrMixinOrExtensionBody(
-      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    DeclarationKind kind,
+    int memberCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     debugEvent("ClassOrMixinBody");
-    push(popList(memberCount,
-        List<ClassMember?>.filled(memberCount, null, growable: true)));
+    push(
+      popList(
+        memberCount,
+        List<ClassMember?>.filled(memberCount, null, growable: true),
+      ),
+    );
   }
 
   @override
@@ -271,21 +317,31 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-          templateInternalProblemUnsupported.withArguments("Conditional URIs"),
-          -1,
-          null);
+        templateInternalProblemUnsupported.withArguments("Conditional URIs"),
+        -1,
+        null,
+      );
     }
   }
 
   @override
-  void endConstructorReference(Token start, Token? periodBeforeName,
-      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+  void endConstructorReference(
+    Token start,
+    Token? periodBeforeName,
+    Token endToken,
+    ConstructorReferenceContext constructorReferenceContext,
+  ) {
     debugEvent("ConstructorReference");
   }
 
   @override
-  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
-      int memberCount, Token endToken) {
+  void endEnum(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
     debugEvent("Enum");
   }
 
@@ -297,14 +353,15 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type
@@ -314,7 +371,11 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     debugEvent("FormalParameters");
   }
 
@@ -364,8 +425,9 @@ class MiniAstBuilder extends StackListener {
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
     push(
-        popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
-            NullValues.Metadata);
+      popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
+          NullValues.Metadata,
+    );
   }
 
   @override
@@ -376,15 +438,16 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     // We ignore top level variable declarations; they are present just to make
     // the IDL analyze without warnings.
     debugEvent("TopLevelFields");
@@ -425,20 +488,27 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleEnumElements(Token endToken, int count) {
     debugEvent("EnumElements");
-    var constants =
-        List<EnumConstantDeclaration?>.filled(count, null, growable: true);
+    var constants = List<EnumConstantDeclaration?>.filled(
+      count,
+      null,
+      growable: true,
+    );
     popList(count, constants);
     pop(); // Type variables.
     var name = pop() as String;
     var metadata = popTypedList<Annotation>();
     var comment = pop() as Comment?;
     compilationUnit.declarations.add(
-        EnumDeclaration(comment, metadata, name, constants.nonNulls.toList()));
+      EnumDeclaration(comment, metadata, name, constants.nonNulls.toList()),
+    );
   }
 
   @override
   void handleEnumHeader(
-      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
     debugEvent("EnumHeader");
   }
 
@@ -507,7 +577,11 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
     debugEvent("LiteralList");
 
     var elements = List<Object?>.filled(count, null);
@@ -515,11 +589,7 @@ class MiniAstBuilder extends StackListener {
     pop(); // type arguments
 
     push(
-      ListLiteral(
-        leftBracket,
-        List<Expression>.from(elements),
-        rightBracket,
-      ),
+      ListLiteral(leftBracket, List<Expression>.from(elements), rightBracket),
     );
   }
 

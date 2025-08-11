@@ -4,24 +4,69 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMethodOrFunction extends ResolvedCorrectionProducer {
-  FixKind _fixKind = DartFixKind.CREATE_METHOD;
+  @override
+  final FixKind fixKind;
 
   String _functionName = '';
 
-  CreateMethodOrFunction({required super.context});
+  /// The [Element] for the target of the node's parent, if that is a
+  /// [PrefixedIdentifier] or [PropertyAccess], and `null` otherwise.
+  final Element? _targetElement;
+
+  factory CreateMethodOrFunction({required CorrectionProducerContext context}) {
+    if (context is StubCorrectionProducerContext) {
+      return CreateMethodOrFunction._(context: context);
+    }
+
+    if (context.node case SimpleIdentifier node) {
+      // Prepare the argument expression (to get the parameter).
+      Element? targetElement;
+      var target = getQualifiedPropertyTarget(node);
+      if (target == null) {
+        targetElement = node.enclosingInterfaceElement;
+      } else {
+        var targetType = target.staticType;
+        if (targetType is InterfaceType) {
+          targetElement = targetType.element;
+        } else {
+          targetElement = switch (target) {
+            SimpleIdentifier() => target.element,
+            PrefixedIdentifier() => target.identifier.element,
+            _ => null,
+          };
+        }
+      }
+
+      return CreateMethodOrFunction._(
+        context: context,
+        targetElement: targetElement,
+        fixKind:
+            targetElement is InterfaceElement
+                ? DartFixKind.CREATE_METHOD
+                : DartFixKind.CREATE_FUNCTION,
+      );
+    }
+
+    return CreateMethodOrFunction._(context: context);
+  }
+
+  CreateMethodOrFunction._({
+    required super.context,
+    Element? targetElement,
+    this.fixKind = DartFixKind.CREATE_METHOD,
+  }) : _targetElement = targetElement;
 
   @override
   CorrectionApplicability get applicability =>
@@ -32,82 +77,45 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_functionName];
 
   @override
-  FixKind get fixKind => _fixKind;
-
-  @override
   Future<void> compute(ChangeBuilder builder) async {
-    var nameNode = node;
-    if (nameNode is SimpleIdentifier) {
-      // prepare argument expression (to get parameter)
-      InterfaceElement2? targetElement;
-      Expression argument;
+    if (node case SimpleIdentifier node) {
+      DartType? parameterType;
+      var fieldTypeNode = climbPropertyAccess(node);
+      parameterType = inferUndefinedExpressionType(fieldTypeNode);
       var target = getQualifiedPropertyTarget(node);
-      if (target != null) {
-        var targetType = target.staticType;
-        if (targetType is InterfaceType) {
-          targetElement = targetType.element3;
-          argument = target.parent as Expression;
-        } else {
-          return;
-        }
-      } else {
-        targetElement = node.enclosingInterfaceElement;
-        argument = nameNode;
-      }
-      argument = stepUpNamedExpression(argument);
-      // should be argument of some invocation
-      // or child of an expression that is one
-      var parameterElement = argument.correspondingParameter;
-      int? recordFieldIndex;
-      if (argument.parent case ConditionalExpression parent) {
-        if (argument == parent.condition) {
-          return;
-        }
-        parameterElement = parent.correspondingParameter;
-      } else if (argument.parent case RecordLiteral record) {
-        parameterElement = record.correspondingParameter;
-        for (var (index, field)
-            in record.fields.whereNotType<NamedExpression>().indexed) {
-          if (field == argument) {
-            recordFieldIndex = index;
-            break;
-          }
-        }
-      }
-      if (parameterElement == null) {
+
+      if (parameterType == null) {
+        // If we cannot infer the type, we cannot create a method or function.
         return;
       }
-      // should be parameter of function type
-      var parameterType = parameterElement.type;
-      if (parameterType is RecordType) {
-        // Finds the corresponding field for argument
-        if (argument is NamedExpression) {
-          var fieldName = argument.name.label.name;
-          for (var field in parameterType.namedFields) {
-            if (field.name == fieldName) {
-              parameterType = field.type;
-              break;
-            }
-          }
-        } else if (recordFieldIndex != null) {
-          var field = parameterType.positionalFields[recordFieldIndex];
-          parameterType = field.type;
-        }
-      }
+
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
         parameterType = FunctionTypeImpl(
-          typeFormals: const [],
+          typeParameters: const [],
           parameters: const [],
           returnType: DynamicTypeImpl.instance,
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
+
       if (parameterType is! FunctionType) {
+        // If the type is not a function type, we cannot create a method or
+        // function.
         return;
       }
-      // add proposal
-      if (targetElement != null) {
-        await _createMethod(builder, targetElement, parameterType);
+
+      if (_targetElement is InterfaceElement) {
+        var isStatic =
+            (target is SimpleIdentifier &&
+                target.element is InterfaceElement) ||
+            (target is PrefixedIdentifier &&
+                target.identifier.element is InterfaceElement);
+        await _createMethod(
+          builder,
+          _targetElement,
+          parameterType,
+          isStatic: isStatic,
+        );
       } else {
         await _createFunction(builder, parameterType);
       }
@@ -147,6 +155,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(name);
         });
+        // append type parameters
+        builder.writeTypeParameters(functionType.typeParameters);
         // append parameters
         builder.writeFormalParameters(functionType.formalParameters);
         if (functionType.returnType.isDartAsyncFuture) {
@@ -186,7 +196,6 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       sourcePrefix,
       sourceSuffix,
     );
-    _fixKind = DartFixKind.CREATE_FUNCTION;
     _functionName = name;
   }
 
@@ -194,22 +203,31 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// [FunctionType] inside the target element.
   Future<void> _createMethod(
     ChangeBuilder builder,
-    InterfaceElement2 targetClassElement,
-    FunctionType functionType,
-  ) async {
+    InterfaceElement targetClassElement,
+    FunctionType functionType, {
+    required bool isStatic,
+  }) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var targetSource = targetClassElement.firstFragment.libraryFragment.source;
     // prepare insert offset
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
-    if (targetClassElement is MixinElement2) {
+    if (targetClassElement is MixinElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getMixinDeclaration(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is ClassElement2) {
+    } else if (targetClassElement is ClassElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getClassDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is ExtensionTypeElement) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getExtensionTypeDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is EnumElement) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getEnumDeclaration(fragment);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {
@@ -231,12 +249,11 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       name,
       targetSource.fullName,
       insertOffset,
-      inStaticContext,
+      isStatic || inStaticContext,
       prefix,
       sourcePrefix,
       sourceSuffix,
     );
-    _fixKind = DartFixKind.CREATE_METHOD;
     _functionName = name;
   }
 }

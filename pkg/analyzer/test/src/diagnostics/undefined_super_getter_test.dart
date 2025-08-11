@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class UndefinedSuperGetterTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   get g {
     return super.g;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 58, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 58, 1)],
+    );
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 37, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 37, 3)],
+    );
   }
 
   test_enum_OK() async {

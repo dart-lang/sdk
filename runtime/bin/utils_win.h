@@ -32,12 +32,14 @@ class StringUtilsWin {
   static char* WideToUtf8(wchar_t* wide,
                           intptr_t len = -1,
                           intptr_t* result_len = nullptr);
+  static void WideToUtf8(const wchar_t* wide, char** result);
   static const char* WideToUtf8(const wchar_t* wide,
                                 intptr_t len = -1,
                                 intptr_t* result_len = nullptr);
   static wchar_t* Utf8ToWide(char* utf8,
                              intptr_t len = -1,
                              intptr_t* result_len = nullptr);
+  static void Utf8ToWide(const char* utf8, wchar_t** result);
   static const wchar_t* Utf8ToWide(const char* utf8,
                                    intptr_t len = -1,
                                    intptr_t* result_len = nullptr);

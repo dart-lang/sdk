@@ -18,35 +18,48 @@ main() {
 class ExtraPositionalArgumentsCouldBeNamedTest
     extends PubPackageResolutionTest {
   test_class_constConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A({int x = 0});
 }
 main() {
   const A(0);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 55,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_constConstructor_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A({int x = 0});
 }
 class B extends A {
   const B() : super(0);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 76,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          76,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_constConstructor_typedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A({int x = 0});
 }
@@ -54,147 +67,190 @@ typedef B = A;
 main() {
   const B(0);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 70,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          70,
+          1,
+        ),
+      ],
+    );
   }
 
   test_context() async {
     // No context type should be supplied when type inferring an extra
     // positional argument, even if there is an unmatched name parameter.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 T f<T>() => throw '$T';
 g({int? named}) {}
 main() {
   g(f());
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 56,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          56,
+          3,
+        ),
+      ],
+    );
     assertType(
-        findNode.methodInvocation('f()').typeArgumentTypes!.single, 'dynamic');
+      findNode.methodInvocation('f()').typeArgumentTypes!.single,
+      'dynamic',
+    );
   }
 
   test_functionExpressionInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   (int x, {int y = 0}) {} (0, 1);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 39,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 
   test_metadata_enumConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(0);
   const E({int? a});
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 13,
-          1),
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          13,
+          1,
+        ),
+        error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+      ],
+    );
   }
 
   test_metadata_extensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type const A(int it) {}
 
 @A(0, 1)
 void f() {}
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 41, 1)],
+    );
   }
 
   test_methodInvocation_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f({x, y}) {}
 main() {
   f(0, 1, '2');
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 26,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          26,
+          1,
+        ),
+      ],
+    );
   }
 
   test_partiallyTypedName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f({int xx = 0, int yy = 0, int zz = 0}) {}
 
 main() {
   f(xx: 1, yy: 2, z);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
-          1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
+          71,
+          1,
+        ),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 1),
+      ],
+    );
   }
 }
 
 @reflectiveTest
 class ExtraPositionalArgumentsTest extends PubPackageResolutionTest {
   test_constConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 main() {
   const A(0);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1)],
+    );
   }
 
   test_constConstructor_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 class B extends A {
   const B() : super(0);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 1)],
+    );
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(0)
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 13, 1)],
+    );
   }
 
   test_functionExpressionInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   (int x) {} (0, 1);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 26, 1)],
+    );
   }
 
   test_methodInvocation_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {}
 main() {
   f(0, 1, '2');
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 20, 1)],
+    );
   }
 }

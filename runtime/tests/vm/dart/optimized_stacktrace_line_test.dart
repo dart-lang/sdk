@@ -21,8 +21,9 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
-    RegExp regex =
-        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+    RegExp regex = new RegExp(
+      "optimized_stacktrace_line_test(_none|_01)*\.dart:11",
+    );
     Expect.isTrue(regex.hasMatch(s), "B");
   }
 
@@ -35,8 +36,9 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
-    RegExp regex =
-        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+    RegExp regex = new RegExp(
+      "optimized_stacktrace_line_test(_none|_01)*\.dart:11",
+    );
     Expect.isTrue(regex.hasMatch(s), "D");
   }
 }

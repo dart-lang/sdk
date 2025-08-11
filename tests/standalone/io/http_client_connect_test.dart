@@ -25,8 +25,8 @@ void testGetEmptyRequest() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      response.listen((data) {}, onDone: server.close);
-    });
+          response.listen((data) {}, onDone: server.close);
+        });
   });
 }
 
@@ -43,12 +43,15 @@ void testGetDataRequest() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      int count = 0;
-      response.listen((data) => count += data.length, onDone: () {
-        server.close();
-        Expect.equals(data.length, count);
-      });
-    });
+          int count = 0;
+          response.listen(
+            (data) => count += data.length,
+            onDone: () {
+              server.close();
+              Expect.equals(data.length, count);
+            },
+          );
+        });
   });
 }
 
@@ -56,8 +59,8 @@ void testGetInvalidHost() {
   asyncStart();
   var client = new HttpClient();
   Future<HttpClientRequest?>.value(
-          client.get("__SOMETHING_INVALID__", 8888, "/"))
-      .catchError((error) {
+    client.get("__SOMETHING_INVALID__", 8888, "/"),
+  ).catchError((error) {
     client.close();
     asyncEnd();
   });
@@ -112,9 +115,12 @@ void testGetServerForceClose() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      Expect.fail("Request not expected");
-    }).catchError((error) => asyncEnd(),
-            test: (error) => error is HttpException);
+          Expect.fail("Request not expected");
+        })
+        .catchError(
+          (error) => asyncEnd(),
+          test: (error) => error is HttpException,
+        );
   });
 }
 
@@ -135,17 +141,19 @@ void testGetDataServerForceClose() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      // Close the (incomplete) response, now that we have seen
-      // the response object.
-      completer.complete(null);
-      int errors = 0;
-      response.listen((data) {},
-          onError: (error) => errors++,
-          onDone: () {
-            Expect.equals(1, errors);
-            asyncEnd();
-          });
-    });
+          // Close the (incomplete) response, now that we have seen
+          // the response object.
+          completer.complete(null);
+          int errors = 0;
+          response.listen(
+            (data) {},
+            onError: (error) => errors++,
+            onDone: () {
+              Expect.equals(1, errors);
+              asyncEnd();
+            },
+          );
+        });
   });
 }
 
@@ -158,7 +166,7 @@ void testOpenEmptyRequest() {
     [client.put, 'PUT'],
     [client.delete, 'DELETE'],
     [client.patch, 'PATCH'],
-    [client.head, 'HEAD']
+    [client.head, 'HEAD'],
   ];
 
   for (var method in methods) {
@@ -169,11 +177,11 @@ void testOpenEmptyRequest() {
       });
 
       Callback1 cb = method[0] as Callback1;
-      cb("127.0.0.1", server.port, "/")
-          .then((request) => request.close())
-          .then((response) {
-        response.listen((data) {}, onDone: server.close);
-      });
+      cb("127.0.0.1", server.port, "/").then((request) => request.close()).then(
+        (response) {
+          response.listen((data) {}, onDone: server.close);
+        },
+      );
     });
   }
 }
@@ -187,7 +195,7 @@ void testOpenUrlEmptyRequest() {
     [client.putUrl, 'PUT'],
     [client.deleteUrl, 'DELETE'],
     [client.patchUrl, 'PATCH'],
-    [client.headUrl, 'HEAD']
+    [client.headUrl, 'HEAD'],
   ];
 
   for (var method in methods) {
@@ -198,9 +206,9 @@ void testOpenUrlEmptyRequest() {
       });
 
       Callback2 cb = method[0] as Callback2;
-      cb(Uri.parse("http://127.0.0.1:${server.port}/"))
-          .then((request) => request.close())
-          .then((response) {
+      cb(
+        Uri.parse("http://127.0.0.1:${server.port}/"),
+      ).then((request) => request.close()).then((response) {
         response.listen((data) {}, onDone: server.close);
       });
     });
@@ -222,36 +230,38 @@ void testNoBuffer() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((clientResponse) {
-      var iterator = new StreamIterator(clientResponse
-          .cast<List<int>>()
-          .transform(utf8.decoder)
-          .transform(new LineSplitter()));
-      iterator.moveNext().then((hasValue) {
-        Expect.isTrue(hasValue);
-        Expect.equals('init', iterator.current);
-        int count = 0;
-        void run() {
-          if (count == 10) {
-            response.close();
-            iterator.moveNext().then((hasValue) {
-              Expect.isFalse(hasValue);
-              server.close();
-              asyncEnd();
-            });
-          } else {
-            response.writeln('output$count');
-            iterator.moveNext().then((hasValue) {
-              Expect.isTrue(hasValue);
-              Expect.equals('output$count', iterator.current);
-              count++;
-              run();
-            });
-          }
-        }
+          var iterator = new StreamIterator(
+            clientResponse
+                .cast<List<int>>()
+                .transform(utf8.decoder)
+                .transform(new LineSplitter()),
+          );
+          iterator.moveNext().then((hasValue) {
+            Expect.isTrue(hasValue);
+            Expect.equals('init', iterator.current);
+            int count = 0;
+            void run() {
+              if (count == 10) {
+                response.close();
+                iterator.moveNext().then((hasValue) {
+                  Expect.isFalse(hasValue);
+                  server.close();
+                  asyncEnd();
+                });
+              } else {
+                response.writeln('output$count');
+                iterator.moveNext().then((hasValue) {
+                  Expect.isTrue(hasValue);
+                  Expect.equals('output$count', iterator.current);
+                  count++;
+                  run();
+                });
+              }
+            }
 
-        run();
-      });
-    });
+            run();
+          });
+        });
   });
 }
 
@@ -261,9 +271,10 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
     int handled = 0;
     server.listen((request) {
       Expect.isTrue(
-          server.connectionsInfo().total <= connectionCap,
-          '${server.connectionsInfo().total} <= $connectionCap ' +
-              '(connections: $connections)');
+        server.connectionsInfo().total <= connectionCap,
+        '${server.connectionsInfo().total} <= $connectionCap ' +
+            '(connections: $connections)',
+      );
       request.response.close();
       handled++;
       if (handled == connections) {
@@ -280,10 +291,13 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
           .get("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
-        response.listen(null, onDone: () {
-          asyncEnd();
-        });
-      });
+            response.listen(
+              null,
+              onDone: () {
+                asyncEnd();
+              },
+            );
+          });
     }
   });
 }
@@ -303,8 +317,10 @@ Future<void> testMaxConnectionsWithFailure() async {
   }
   try {
     await client.getUrl(Uri.parse('http://domain.invalid'));
-    Expect.fail("Calls exceed client's maxConnectionsPerHost should throw "
-        "exceptions as well");
+    Expect.fail(
+      "Calls exceed client's maxConnectionsPerHost should throw "
+      "exceptions as well",
+    );
   } catch (e) {
     if (e is! SocketException) {
       Expect.fail("Unexpected exception $e is thrown");
@@ -334,13 +350,16 @@ Future<void> testHttpAbort() async {
       asyncEnd();
     });
   });
-  request.close().then((response) {
-    Expect.fail('abort() prevents a response being returned');
-  }, onError: (e) {
-    Expect.type<HttpException>(e);
-    Expect.isTrue(e.toString().contains('abort'));
-    asyncEnd();
-  });
+  request.close().then(
+    (response) {
+      Expect.fail('abort() prevents a response being returned');
+    },
+    onError: (e) {
+      Expect.type<HttpException>(e);
+      Expect.isTrue(e.toString().contains('abort'));
+      asyncEnd();
+    },
+  );
 }
 
 Future<void> testHttpAbortBeforeWrite() async {
@@ -368,12 +387,15 @@ Future<void> testHttpAbortBeforeWrite() async {
     server.close();
     asyncEnd();
   });
-  request.close().then((response) {
-    Expect.fail('abort() prevents a response being returned');
-  }, onError: (e) {
-    Expect.type<HttpException>(e);
-    asyncEnd();
-  });
+  request.close().then(
+    (response) {
+      Expect.fail('abort() prevents a response being returned');
+    },
+    onError: (e) {
+      Expect.type<HttpException>(e);
+      asyncEnd();
+    },
+  );
 }
 
 Future<void> testHttpAbortBeforeClose() async {
@@ -401,13 +423,16 @@ Future<void> testHttpAbortBeforeClose() async {
   await completer.future;
   final string = 'abort message';
   request.abort(string);
-  request.close().then((response) {
-    Expect.fail('abort() prevents a response being returned');
-  }, onError: (e) {
-    Expect.type<String>(e);
-    Expect.equals(string, e);
-    asyncEnd();
-  });
+  request.close().then(
+    (response) {
+      Expect.fail('abort() prevents a response being returned');
+    },
+    onError: (e) {
+      Expect.type<String>(e);
+      Expect.equals(string, e);
+      asyncEnd();
+    },
+  );
 }
 
 Future<void> testHttpAbortAfterClose() async {

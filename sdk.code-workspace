@@ -50,7 +50,6 @@
       // will show as analyzer warnings/errors we don't intend to fix.
       "tests",
       "runtime/tests",
-      "runtime/observatory/tests",
 
       // We don't control the third_party code, so don't analyze it.
       // It includes old Dart examples (e.g. protobuf) or README.dart

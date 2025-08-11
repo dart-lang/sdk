@@ -32,8 +32,10 @@ main() {
   });
 
   test('callback as parameter', () {
-    expect(context.callMethod('getTypeOf', [context['razzle']]),
-        equals("function"));
+    expect(
+      context.callMethod('getTypeOf', [context['razzle']]),
+      equals("function"),
+    );
   });
 
   test('invoke Dart callback from JS with this', () {
@@ -51,13 +53,15 @@ main() {
     context['callbackWith11params'] =
         (p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) =>
             '$p1$p2$p3$p4$p5$p6$p7$p8$p9$p10$p11';
-    expect(context.callMethod('invokeCallbackWith11params'),
-        equals('1234567891011'));
+    expect(
+      context.callMethod('invokeCallbackWith11params'),
+      equals('1234567891011'),
+    );
   });
 
   test('return a JS proxy to JavaScript', () {
     var result = context.callMethod('testJsMap', [
-      () => new JsObject.jsify({'value': 42})
+      () => new JsObject.jsify({'value': 42}),
     ]);
     expect(result, 42);
   });

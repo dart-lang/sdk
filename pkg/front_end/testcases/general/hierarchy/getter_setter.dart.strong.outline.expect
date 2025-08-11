@@ -43,7 +43,7 @@ library;
 //                ^^^^^
 // pkg/front_end/testcases/general/hierarchy/getter_setter.dart:35:14: Context: This is one of the overridden members.
 //   String get mixedInGetterImplementedField => '';
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/getter_setter.dart:57:7: Context: This is one of the overridden members.
 //   int mixedInGetterImplementedField = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,11 +183,11 @@ abstract class Interface2 extends core::Object {
     ;
 }
 abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
-  field core::int extendedGetterDeclaredField;
+  erroneous field core::int extendedGetterDeclaredField;
   final field core::String extendedSetterDeclaredField;
-  field core::int mixedInGetterDeclaredField;
+  erroneous field core::int mixedInGetterDeclaredField;
   final field core::String mixedInSetterDeclaredField;
-  field core::int implementedGetterDeclaredField;
+  erroneous field core::int implementedGetterDeclaredField;
   final field core::String implementedSetterDeclaredField;
   final field core::String declaredFieldDeclaredSetter;
   synthetic constructor •() → self::Class
@@ -221,37 +221,37 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub get mixedInGetterDeclaredField() → core::String
+  synthetic mixin-super-stub get mixedInGetterDeclaredField() → core::String
     return super.{self::Mixin::mixedInGetterDeclaredField};
-  mixin-super-stub set mixedInSetterDeclaredField(core::int value) → void
-    return super.{self::Mixin::mixedInSetterDeclaredField} = value;
-  mixin-super-stub get mixedInGetterDeclaredSetter() → core::String
+  synthetic mixin-super-stub get mixedInGetterDeclaredSetter() → core::String
     return super.{self::Mixin::mixedInGetterDeclaredSetter};
-  mixin-super-stub get mixedInFieldDeclaredSetter() → core::String
+  synthetic mixin-super-stub get mixedInFieldDeclaredSetter() → core::String
     return super.{self::Mixin::mixedInFieldDeclaredSetter};
-  mixin-super-stub set mixedInSetterDeclaredGetter(core::int value) → void
+  synthetic mixin-super-stub set mixedInSetterDeclaredField(core::int value) → void
+    return super.{self::Mixin::mixedInSetterDeclaredField} = value;
+  synthetic mixin-super-stub set mixedInSetterDeclaredGetter(core::int value) → void
     return super.{self::Mixin::mixedInSetterDeclaredGetter} = value;
-  mixin-super-stub get extendedGetterMixedInField() → core::int
+  synthetic erroneous mixin-super-stub get extendedGetterMixedInField() → core::int
     return super.{self::Mixin::extendedGetterMixedInField};
-  mixin-super-stub set extendedGetterMixedInField(core::int value) → void
+  synthetic erroneous mixin-super-stub set extendedGetterMixedInField(core::int value) → void
     return super.{self::Mixin::extendedGetterMixedInField} = value;
-  mixin-super-stub get extendedSetterMixedInField() → core::String
-    return super.{self::Mixin::extendedSetterMixedInField};
-  mixin-super-stub get extendedSetterMixedInGetter() → core::String
-    return super.{self::Mixin::extendedSetterMixedInGetter};
-  mixin-super-stub get mixedInGetterImplementedField() → core::String
-    return super.{self::Mixin::mixedInGetterImplementedField};
-  mixin-super-stub get mixedInGetterImplementedSetter() → core::String
-    return super.{self::Mixin::mixedInGetterImplementedSetter};
-  mixin-super-stub get mixedInFieldImplementedSetter() → core::String
-    return super.{self::Mixin::mixedInFieldImplementedSetter};
-  mixin-super-stub set extendedGetterMixedInSetter(core::int value) → void
+  synthetic mixin-super-stub set extendedGetterMixedInSetter(core::int value) → void
     return super.{self::Mixin::extendedGetterMixedInSetter} = value;
-  mixin-super-stub set extendedFieldMixedInSetter(core::int value) → void
+  synthetic mixin-super-stub set extendedFieldMixedInSetter(core::int value) → void
     return super.{self::Mixin::extendedFieldMixedInSetter} = value;
-  mixin-super-stub set mixedInSetterImplementedField(core::int value) → void
+  synthetic mixin-super-stub get extendedSetterMixedInField() → core::String
+    return super.{self::Mixin::extendedSetterMixedInField};
+  synthetic mixin-super-stub get extendedSetterMixedInGetter() → core::String
+    return super.{self::Mixin::extendedSetterMixedInGetter};
+  synthetic mixin-super-stub get mixedInGetterImplementedField() → core::String
+    return super.{self::Mixin::mixedInGetterImplementedField};
+  synthetic mixin-super-stub get mixedInGetterImplementedSetter() → core::String
+    return super.{self::Mixin::mixedInGetterImplementedSetter};
+  synthetic mixin-super-stub get mixedInFieldImplementedSetter() → core::String
+    return super.{self::Mixin::mixedInFieldImplementedSetter};
+  synthetic mixin-super-stub set mixedInSetterImplementedField(core::int value) → void
     return super.{self::Mixin::mixedInSetterImplementedField} = value;
-  mixin-super-stub set mixedInSetterImplementedGetter(core::int value) → void
+  synthetic mixin-super-stub set mixedInSetterImplementedGetter(core::int value) → void
     return super.{self::Mixin::mixedInSetterImplementedGetter} = value;
 }
 static method main() → dynamic

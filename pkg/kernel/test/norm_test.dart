@@ -12,7 +12,6 @@ void run() {
   checkNormToSame('Null');
   checkNormToSame('Never');
   check('Never?', 'Null');
-  checkNormToSame('Never*');
   checkNormToSame('void');
   checkNormToSame('dynamic');
   checkNormToSame('Object?');
@@ -20,23 +19,14 @@ void run() {
   check('FutureOr<void>', 'void');
   check('FutureOr<Object>', 'Object');
   check('FutureOr<Object?>', 'Object?');
-  check('FutureOr<Object*>', 'Object*');
   check('FutureOr<Never>', 'Future<Never>');
   check('FutureOr<Never?>', 'Future<Null>?');
-
-  // TODO(cstefantsova): Use the following test case instead when FutureOr can
-  // distinguish between the declared nullability and the nullability as a
-  // property.
-  //
-  //check('FutureOr<Never*>', 'Future<Never*>');
-  check('FutureOr<Never*>', 'Future<Never*>*');
 
   check('FutureOr<Null>', 'Future<Null>?');
   check('FutureOr<FutureOr<dynamic>>', 'dynamic');
   check('FutureOr<FutureOr<void>>', 'void');
   check('FutureOr<FutureOr<Object>>', 'Object');
   check('FutureOr<FutureOr<Object?>>', 'Object?');
-  check('FutureOr<FutureOr<Object*>>', 'Object*');
   check('FutureOr<FutureOr<Never>>', 'FutureOr<Future<Never>>');
 
   // TODO(cstefantsova): Use the following test case instead when FutureOr can
@@ -50,40 +40,22 @@ void run() {
   // distinguish between the declared nullability and the nullability as a
   // property.
   //
-  //check('FutureOr<FutureOr<Never*>>', 'FutureOr<Future<Never*>>');
-  check('FutureOr<FutureOr<Never*>>', 'FutureOr<Future<Never*>*>*');
-
-  // TODO(cstefantsova): Use the following test case instead when FutureOr can
-  // distinguish between the declared nullability and the nullability as a
-  // property.
-  //
   //check('FutureOr<FutureOr<Null>>', 'FutureOr<Future<Null>?>');
   check('FutureOr<FutureOr<Null>>', 'FutureOr<Future<Null>?>?');
 
   checkNormToSame('bool');
   checkNormToSame('bool?');
-  checkNormToSame('bool*');
 
   checkNormToSame('List<bool>');
   checkNormToSame('List<bool?>');
-  checkNormToSame('List<bool*>');
   checkNormToSame('List<bool>?');
   checkNormToSame('List<bool?>?');
-  checkNormToSame('List<bool*>?');
-  checkNormToSame('List<bool>*');
-  checkNormToSame('List<bool?>*');
-  checkNormToSame('List<bool*>*');
   check('List<FutureOr<Object?>>', 'List<Object?>');
   check('List<T>', 'List<Never>', 'T extends Never');
   check('List<T?>', 'List<Null>', 'T extends Never');
 
-  checkNormToSame('() ->* bool*');
-  checkNormToSame('() ->? bool*');
-  checkNormToSame('() -> bool*');
-  checkNormToSame('() ->* bool?');
   checkNormToSame('() ->? bool?');
   checkNormToSame('() -> bool?');
-  checkNormToSame('() ->* bool');
   checkNormToSame('() ->? bool');
   checkNormToSame('() -> bool');
   check('() ->? List<FutureOr<Object?>>', '() ->? List<Object?>');
@@ -91,16 +63,12 @@ void run() {
   check('() ->? List<T?>', '() ->? List<Null>',
       'T extends S, S extends U, U extends Never');
 
-  checkNormToSame('(int*) -> void');
   checkNormToSame('(int?) -> void');
   checkNormToSame('(int) -> void');
-  checkNormToSame('([int*]) -> void');
   checkNormToSame('([int?]) -> void');
   checkNormToSame('([int]) -> void');
-  checkNormToSame('({int* a}) -> void');
   checkNormToSame('({int? a}) -> void');
   checkNormToSame('({int a}) -> void');
-  checkNormToSame('({required int* a}) -> void');
   checkNormToSame('({required int? a}) -> void');
   checkNormToSame('({required int a}) -> void');
   check('(List<FutureOr<Object?>>) -> void', '(List<Object?>) -> void');

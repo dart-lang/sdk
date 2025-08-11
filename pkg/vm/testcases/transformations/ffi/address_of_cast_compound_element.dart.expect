@@ -51,16 +51,16 @@ final class MyStruct extends ffi::Struct {
   set array2(synthesized ffi::Array<ffi::UnsignedLong> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array2#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C13
-  static get a#offsetOf() → core::int
+  static synthetic get a#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get b#offsetOf() → core::int
+  static synthetic get b#offsetOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get array2#offsetOf() → core::int
+  static synthetic get array2#offsetOf() → core::int
     return #C29.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
   static get #sizeOf() → core::int
@@ -95,10 +95,10 @@ final class MyUnion extends ffi::Union {
   set b(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::b#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C13
-  static get a#offsetOf() → core::int
+  static synthetic get a#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
-  static get b#offsetOf() → core::int
+  static synthetic get b#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C13
   static get #sizeOf() → core::int

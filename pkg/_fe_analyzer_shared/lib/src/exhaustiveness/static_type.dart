@@ -10,8 +10,9 @@ import 'witness.dart';
 /// A static type in the type system.
 abstract class StaticType {
   /// Built-in top type that all types are a subtype of.
-  static const StaticType nullableObject =
-      const NullableStaticType(nonNullableObject);
+  static const StaticType nullableObject = const NullableStaticType(
+    nonNullableObject,
+  );
 
   /// Built-in top type that all types are a subtype of.
   static const StaticType nonNullableObject = const _NonNullableObject();
@@ -98,17 +99,22 @@ abstract class StaticType {
 
   /// Returns a textual representation of a single space consisting of this
   /// type and the provided [spaceProperties] and [additionalSpaceProperties].
-  String spaceToText(Map<Key, Space> spaceProperties,
-      Map<Key, Space> additionalSpaceProperties);
+  String spaceToText(
+    Map<Key, Space> spaceProperties,
+    Map<Key, Space> additionalSpaceProperties,
+  );
 
   /// Write this [witness] with the [witnessFields] as a pattern into [buffer]
   /// using this [StaticType] to determine the syntax.
   ///
   /// If [forCorrection] is true, [witnessFields] that fully cover their static
   /// type are omitted if possible.
-  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
-      Map<Key, PropertyWitness> witnessFields,
-      {required bool forCorrection});
+  void witnessToDart(
+    DartTemplateBuffer buffer,
+    PropertyWitness witness,
+    Map<Key, PropertyWitness> witnessFields, {
+    required bool forCorrection,
+  });
 }
 
 mixin _ObjectFieldMixin on _BaseStaticType {
@@ -153,10 +159,14 @@ abstract class _BaseStaticType implements StaticType {
   }
 
   @override
-  String spaceToText(Map<Key, Space> spaceProperties,
-      Map<Key, Space> additionalSpaceProperties) {
-    assert(additionalSpaceProperties.isEmpty,
-        "Additional fields not supported in ${runtimeType}.");
+  String spaceToText(
+    Map<Key, Space> spaceProperties,
+    Map<Key, Space> additionalSpaceProperties,
+  ) {
+    assert(
+      additionalSpaceProperties.isEmpty,
+      "Additional fields not supported in ${runtimeType}.",
+    );
     if (this == StaticType.nullableObject && spaceProperties.isEmpty) {
       return '()';
     }
@@ -186,9 +196,12 @@ abstract class _BaseStaticType implements StaticType {
   }
 
   @override
-  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
-      Map<Key, PropertyWitness> witnessFields,
-      {required bool forCorrection}) {
+  void witnessToDart(
+    DartTemplateBuffer buffer,
+    PropertyWitness witness,
+    Map<Key, PropertyWitness> witnessFields, {
+    required bool forCorrection,
+  }) {
     if (this == StaticType.nullableObject && witnessFields.isEmpty) {
       buffer.write('_');
     } else if (this == StaticType.nullType && witnessFields.isEmpty) {
@@ -310,8 +323,10 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
-      [underlying, StaticType.nullType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => [
+    underlying,
+    StaticType.nullType,
+  ];
 
   @override
   bool isSubtypeOf(StaticType other) {
@@ -437,7 +452,7 @@ class WrappedStaticType extends _BaseStaticType {
       // neither a super type of `Object` nor `O?`.
       return [
         new WrappedStaticType(wrappedType.underlying, impliedType.underlying),
-        StaticType.nullType
+        StaticType.nullType,
       ];
     }
     return wrappedType
@@ -464,18 +479,29 @@ class WrappedStaticType extends _BaseStaticType {
   }
 
   @override
-  void witnessToDart(DartTemplateBuffer buffer, PropertyWitness witness,
-      Map<Key, PropertyWitness> witnessFields,
-      {required bool forCorrection}) {
-    return wrappedType.witnessToDart(buffer, witness, witnessFields,
-        forCorrection: forCorrection);
+  void witnessToDart(
+    DartTemplateBuffer buffer,
+    PropertyWitness witness,
+    Map<Key, PropertyWitness> witnessFields, {
+    required bool forCorrection,
+  }) {
+    return wrappedType.witnessToDart(
+      buffer,
+      witness,
+      witnessFields,
+      forCorrection: forCorrection,
+    );
   }
 
   @override
-  late final StaticType nonNullable = wrappedType.nonNullable == wrappedType &&
-          impliedType.nonNullable == impliedType
-      ? this
-      : new WrappedStaticType(wrappedType.nonNullable, impliedType.nonNullable);
+  late final StaticType nonNullable =
+      wrappedType.nonNullable == wrappedType &&
+              impliedType.nonNullable == impliedType
+          ? this
+          : new WrappedStaticType(
+            wrappedType.nonNullable,
+            impliedType.nonNullable,
+          );
 
   @override
   late final StaticType nullable =

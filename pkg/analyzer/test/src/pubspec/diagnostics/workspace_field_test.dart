@@ -16,28 +16,37 @@ main() {
 @reflectiveTest
 class WorkspaceFieldTest extends PubspecDiagnosticTest {
   test_workspaceIsList() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 workspace: package1
-''', [PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST]);
+''',
+      [PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST],
+    );
   }
 
   test_workspaceValueIsNotString() {
     newFolder('/sample/package1');
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 workspace:
     - 23
-''', [PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING]);
+''',
+      [PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING],
+    );
   }
 
   test_workspaceValueIsNotSubDirectory() {
     newFolder('/sample/package1');
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 workspace:
     - /sample2
-''', [PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY]);
+''',
+      [PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY],
+    );
   }
 
   test_workspaceValueIsString() {

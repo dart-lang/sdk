@@ -8,14 +8,31 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 
 import 'customized_codes.dart';
 
+/// A diagnostic code associated with an `AnalysisError`.
+///
+/// Generally, messages should follow the [Guide for Writing
+/// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+@Deprecated("Use 'DiagnosticCode' instead.")
+typedef ErrorCode = DiagnosticCode;
+
+/// The severity of a [DiagnosticCode].
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+@Deprecated("Use 'DiagnosticSeverity' instead.")
+typedef ErrorSeverity = DiagnosticSeverity;
+
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+@Deprecated("Use 'DiagnosticType' instead.")
+typedef ErrorType = DiagnosticType;
+
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-abstract class ErrorCode {
+abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
-  static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
+  static final RegExp _positionalArgumentRegExp = new RegExp(r'\{(\d+)\}');
 
   /**
    * The name of the error code.
@@ -48,47 +65,38 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correctionMessage] template.
    */
-  const ErrorCode({
+  const DiagnosticCode({
     String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier = false,
     required this.name,
     required String problemMessage,
     required this.uniqueName,
-  })  : _correctionMessage = correctionMessage,
-        _problemMessage = problemMessage;
+  }) : _correctionMessage = correctionMessage,
+       _problemMessage = problemMessage;
 
   /**
-   * The template used to create the correction to be displayed for this error,
-   * or `null` if there is no correction information for this error. The
-   * correction should indicate how the user can fix the error.
+   * The template used to create the correction to be displayed for this
+   * diagnostic, or `null` if there is no correction information for this
+   * diagnostic. The correction should indicate how the user can fix the
+   * diagnostic.
    */
   String? get correctionMessage =>
       customizedCorrections[uniqueName] ?? _correctionMessage;
 
-  /**
-   * The severity of the error.
-   */
-  ErrorSeverity get errorSeverity;
+  @Deprecated("Use 'diagnosticSeverity' instead")
+  DiagnosticSeverity get errorSeverity => severity;
 
-  /// Whether a finding of this error is ignorable via comments such as
+  /// Whether a finding of this diagnostic is ignorable via comments such as
   /// `// ignore:` or `// ignore_for_file:`.
-  bool get isIgnorable => errorSeverity != ErrorSeverity.ERROR;
-
-  /**
-   * The template used to create the problem message to be displayed for this
-   * error. The problem message should indicate what is wrong and why it is
-   * wrong.
-   */
-  String get problemMessage =>
-      customizedMessages[uniqueName] ?? _problemMessage;
+  bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
 
   int get numParameters {
     int result = 0;
     String? correctionMessage = _correctionMessage;
     for (String s in [
       _problemMessage,
-      if (correctionMessage != null) correctionMessage
+      if (correctionMessage != null) correctionMessage,
     ]) {
       for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
         result = max(result, int.parse(match.group(1)!) + 1);
@@ -98,9 +106,22 @@ abstract class ErrorCode {
   }
 
   /**
+   * The template used to create the problem message to be displayed for this
+   * diagnostic. The problem message should indicate what is wrong and why it is
+   * wrong.
+   */
+  String get problemMessage =>
+      customizedMessages[uniqueName] ?? _problemMessage;
+
+  /**
+   * The severity of the diagnostic.
+   */
+  DiagnosticSeverity get severity;
+
+  /**
    * The type of the error.
    */
-  ErrorType get type;
+  DiagnosticType get type;
 
   /**
    * Return a URL that can be used to access documentation for diagnostics with
@@ -118,44 +139,61 @@ abstract class ErrorCode {
 }
 
 /**
- * The severity of an [ErrorCode].
+ * The severity of an [DiagnosticCode].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-class ErrorSeverity implements Comparable<ErrorSeverity> {
+class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   /**
    * The severity representing a non-error. This is never used for any error
    * code, but is useful for clients.
    */
-  static const ErrorSeverity NONE = const ErrorSeverity('NONE', 0, " ", "none");
+  static const DiagnosticSeverity NONE = const DiagnosticSeverity(
+    'NONE',
+    0,
+    " ",
+    "none",
+  );
 
   /**
    * The severity representing an informational level analysis issue.
    */
-  static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
+  static const DiagnosticSeverity INFO = const DiagnosticSeverity(
+    'INFO',
+    1,
+    "I",
+    "info",
+  );
 
   /**
    * The severity representing a warning. Warnings can become errors if the
    * `-Werror` command line flag is specified.
    */
-  static const ErrorSeverity WARNING =
-      const ErrorSeverity('WARNING', 2, "W", "warning");
+  static const DiagnosticSeverity WARNING = const DiagnosticSeverity(
+    'WARNING',
+    2,
+    "W",
+    "warning",
+  );
 
   /**
    * The severity representing an error.
    */
-  static const ErrorSeverity ERROR =
-      const ErrorSeverity('ERROR', 3, "E", "error");
+  static const DiagnosticSeverity ERROR = const DiagnosticSeverity(
+    'ERROR',
+    3,
+    "E",
+    "error",
+  );
 
-  static const List<ErrorSeverity> values = const [NONE, INFO, WARNING, ERROR];
+  static const List<DiagnosticSeverity> values = const [
+    NONE,
+    INFO,
+    WARNING,
+    ERROR,
+  ];
 
-  /**
-   * The name of this error code.
-   */
   final String name;
 
-  /**
-   * The ordinal value of the error code.
-   */
   final int ordinal;
 
   /**
@@ -168,22 +206,23 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
    */
   final String displayName;
 
-  /**
-   * Initialize a newly created severity with the given names.
-   */
-  const ErrorSeverity(
-      this.name, this.ordinal, this.machineCode, this.displayName);
+  const DiagnosticSeverity(
+    this.name,
+    this.ordinal,
+    this.machineCode,
+    this.displayName,
+  );
 
   @override
   int get hashCode => ordinal;
 
   @override
-  int compareTo(ErrorSeverity other) => ordinal - other.ordinal;
+  int compareTo(DiagnosticSeverity other) => ordinal - other.ordinal;
 
   /**
    * Return the severity constant that represents the greatest severity.
    */
-  ErrorSeverity max(ErrorSeverity severity) =>
+  DiagnosticSeverity max(DiagnosticSeverity severity) =>
       this.ordinal >= severity.ordinal ? this : severity;
 
   @override
@@ -191,58 +230,83 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
 }
 
 /**
- * The type of an [ErrorCode].
+ * The type of a [DiagnosticCode].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-class ErrorType implements Comparable<ErrorType> {
+class DiagnosticType implements Comparable<DiagnosticType> {
   /**
    * Task (todo) comments in user code.
    */
-  static const ErrorType TODO = const ErrorType('TODO', 0, ErrorSeverity.INFO);
+  static const DiagnosticType TODO = const DiagnosticType(
+    'TODO',
+    0,
+    DiagnosticSeverity.INFO,
+  );
 
   /**
    * Extra analysis run over the code to follow best practices, which are not in
    * the Dart Language Specification.
    */
-  static const ErrorType HINT = const ErrorType('HINT', 1, ErrorSeverity.INFO);
+  static const DiagnosticType HINT = const DiagnosticType(
+    'HINT',
+    1,
+    DiagnosticSeverity.INFO,
+  );
 
   /**
    * Compile-time errors are errors that preclude execution. A compile time
    * error must be reported by a Dart compiler before the erroneous code is
    * executed.
    */
-  static const ErrorType COMPILE_TIME_ERROR =
-      const ErrorType('COMPILE_TIME_ERROR', 2, ErrorSeverity.ERROR);
+  static const DiagnosticType COMPILE_TIME_ERROR = const DiagnosticType(
+    'COMPILE_TIME_ERROR',
+    2,
+    DiagnosticSeverity.ERROR,
+  );
 
   /**
    * Checked mode compile-time errors are errors that preclude execution in
    * checked mode.
    */
-  static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType(
-      'CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.ERROR);
+  static const DiagnosticType CHECKED_MODE_COMPILE_TIME_ERROR =
+      const DiagnosticType(
+        'CHECKED_MODE_COMPILE_TIME_ERROR',
+        3,
+        DiagnosticSeverity.ERROR,
+      );
 
   /**
    * Static warnings are those warnings reported by the static checker. They
    * have no effect on execution. Static warnings must be provided by Dart
    * compilers used during development.
    */
-  static const ErrorType STATIC_WARNING =
-      const ErrorType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
+  static const DiagnosticType STATIC_WARNING = const DiagnosticType(
+    'STATIC_WARNING',
+    4,
+    DiagnosticSeverity.WARNING,
+  );
 
   /**
    * Syntactic errors are errors produced as a result of input that does not
    * conform to the grammar.
    */
-  static const ErrorType SYNTACTIC_ERROR =
-      const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
+  static const DiagnosticType SYNTACTIC_ERROR = const DiagnosticType(
+    'SYNTACTIC_ERROR',
+    6,
+    DiagnosticSeverity.ERROR,
+  );
 
   /**
    * Lint warnings describe style and best practice recommendations that can be
    * used to formalize a project's style guidelines.
    */
-  static const ErrorType LINT = const ErrorType('LINT', 7, ErrorSeverity.INFO);
+  static const DiagnosticType LINT = const DiagnosticType(
+    'LINT',
+    7,
+    DiagnosticSeverity.INFO,
+  );
 
-  static const List<ErrorType> values = const [
+  static const List<DiagnosticType> values = const [
     TODO,
     HINT,
     COMPILE_TIME_ERROR,
@@ -265,13 +329,13 @@ class ErrorType implements Comparable<ErrorType> {
   /**
    * The severity of this type of error.
    */
-  final ErrorSeverity severity;
+  final DiagnosticSeverity severity;
 
   /**
    * Initialize a newly created error type to have the given [name] and
    * [severity].
    */
-  const ErrorType(this.name, this.ordinal, this.severity);
+  const DiagnosticType(this.name, this.ordinal, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 
@@ -279,7 +343,7 @@ class ErrorType implements Comparable<ErrorType> {
   int get hashCode => ordinal;
 
   @override
-  int compareTo(ErrorType other) => ordinal - other.ordinal;
+  int compareTo(DiagnosticType other) => ordinal - other.ordinal;
 
   @override
   String toString() => name;

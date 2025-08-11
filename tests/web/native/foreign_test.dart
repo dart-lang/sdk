@@ -21,15 +21,30 @@ foreign2() {
 }
 
 foreign11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
-  return JS("num|String", r"# + # + # + # + # + # + # + # + # + # + #", a1, a2,
-      a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  return JS(
+    "num|String",
+    r"# + # + # + # + # + # + # + # + # + # + #",
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+    a11,
+  );
 }
 
 void main() {
   Expect.equals(9, foreign1(4, 5));
   Expect.equals(998, foreign2());
-  Expect.equals('1234567891011',
-      foreign11('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'));
+  Expect.equals(
+    '1234567891011',
+    foreign11('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'),
+  );
   // Ensure there will be isNaN and NaN variable names.
   var isNaN = called ? 42 : 44;
   var NaN = called ? 52 : 54;

@@ -4,7 +4,7 @@
 
 import '../ast.dart';
 import '../type_algebra.dart';
-import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
+import '../type_environment.dart' show TypeEnvironment;
 import '../util/graph.dart' show Graph, computeStrongComponents;
 import 'replacement_visitor.dart';
 
@@ -212,16 +212,23 @@ List<DartType> calculateBounds(
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   final DartType topType = const DynamicType();
   final DartType bottomType = const NeverType.nonNullable();
-  for (List<int> component in stronglyConnected) {
+  for (int scIndex = 0; scIndex < stronglyConnected.length; scIndex++) {
+    List<int> component = stronglyConnected[scIndex];
     Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
     Map<TypeParameter, DartType> lowerBounds = <TypeParameter, DartType>{};
-    for (int typeParameterIndex in component) {
+    for (int componentIndex = 0;
+        componentIndex < component.length;
+        componentIndex++) {
+      int typeParameterIndex = component[componentIndex];
       upperBounds[typeParameters[typeParameterIndex]] = topType;
       lowerBounds[typeParameters[typeParameterIndex]] = bottomType;
     }
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
-    for (int typeParameterIndex in component) {
+    for (int componentIndex = 0;
+        componentIndex < component.length;
+        componentIndex++) {
+      int typeParameterIndex = component[componentIndex];
       bounds[typeParameterIndex] = substitution.substituteType(
           bounds[typeParameterIndex],
           contravariant: typeParameters[typeParameterIndex].variance ==
@@ -308,8 +315,8 @@ class TypeArgumentIssue {
 // checks for super-boundedness for construction of the auxiliary type.  For
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
-List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
-    TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
+List<TypeArgumentIssue> findTypeArgumentIssues(
+    DartType type, TypeEnvironment typeEnvironment,
     {required bool allowSuperBounded,
     required bool areGenericArgumentsAllowed}) {
   List<TypeParameter> variables;
@@ -334,15 +341,14 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       ):
       return <TypeArgumentIssue>[
         for (DartType formal in positionalParameters)
-          ...findTypeArgumentIssues(formal, typeEnvironment, subtypeCheckMode,
+          ...findTypeArgumentIssues(formal, typeEnvironment,
               allowSuperBounded: true,
               areGenericArgumentsAllowed: areGenericArgumentsAllowed),
         for (NamedType named in namedParameters)
-          ...findTypeArgumentIssues(
-              named.type, typeEnvironment, subtypeCheckMode,
+          ...findTypeArgumentIssues(named.type, typeEnvironment,
               allowSuperBounded: true,
               areGenericArgumentsAllowed: areGenericArgumentsAllowed),
-        ...findTypeArgumentIssues(returnType, typeEnvironment, subtypeCheckMode,
+        ...findTypeArgumentIssues(returnType, typeEnvironment,
             allowSuperBounded: true,
             areGenericArgumentsAllowed: areGenericArgumentsAllowed)
       ];
@@ -380,7 +386,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
           isGenericTypeAsArgumentIssue: true));
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitution.substituteType(variables[i].bound);
-      if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
+      if (!typeEnvironment.isSubtypeOf(argument, bound)) {
         result.add(new TypeArgumentIssue(i, argument, variables[i], type));
       }
     } else {
@@ -421,8 +427,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
       isCorrectSuperBounded = false;
-    } else if (!typeEnvironment.isSubtypeOf(argument,
-        substitution.substituteType(variables[i].bound), subtypeCheckMode)) {
+    } else if (!typeEnvironment.isSubtypeOf(
+        argument, substitution.substituteType(variables[i].bound))) {
       isCorrectSuperBounded = false;
     }
   }
@@ -451,7 +457,6 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     List<TypeParameter> parameters,
     List<DartType> arguments,
     TypeEnvironment typeEnvironment,
-    SubtypeCheckMode subtypeCheckMode,
     DartType bottomType,
     {required bool areGenericArgumentsAllowed}) {
   assert(arguments.length == parameters.length);
@@ -472,7 +477,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
           isGenericTypeAsArgumentIssue: true));
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitution.substituteType(parameters[i].bound);
-      if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
+      if (!typeEnvironment.isSubtypeOf(argument, bound)) {
         result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
       }
     }

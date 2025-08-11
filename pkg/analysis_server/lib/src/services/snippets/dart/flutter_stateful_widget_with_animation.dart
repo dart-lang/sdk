@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -16,14 +16,14 @@ class FlutterStatefulWidgetWithAnimationController
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
 
-  late ClassElement2? classStatefulWidget;
-  late ClassElement2? classState;
+  late ClassElement? classStatefulWidget;
+  late ClassElement? classState;
   @override
-  late ClassElement2? classBuildContext;
+  late ClassElement? classBuildContext;
   @override
-  late ClassElement2? classKey;
-  late ClassElement2? classAnimationController;
-  late MixinElement2? classSingleTickerProviderStateMixin;
+  late ClassElement? classKey;
+  late ClassElement? classAnimationController;
+  late MixinElement? classSingleTickerProviderStateMixin;
 
   FlutterStatefulWidgetWithAnimationController(
     super.request, {
@@ -35,7 +35,10 @@ class FlutterStatefulWidgetWithAnimationController
 
   @override
   Future<Snippet> compute() async {
-    var builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(
+      session: request.analysisSession,
+      eol: utils.endOfLine,
+    );
 
     // Checked by isValid().
     var classStatefulWidget = this.classStatefulWidget!;

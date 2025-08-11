@@ -28,15 +28,11 @@ main() {
 class Sup {
   var x, y, z;
 
-  Sup(a, b)
-      : this.x = a,
-        this.y = b {
+  Sup(a, b) : this.x = a, this.y = b {
     z = a + b;
   }
 
-  Sup.stat()
-      : this.x = i++,
-        this.y = i++ {
+  Sup.stat() : this.x = i++, this.y = i++ {
     z = i++;
   }
 }
@@ -44,17 +40,11 @@ class Sup {
 class Sub extends Sup {
   var u, v, w;
 
-  Sub(a, b)
-      : this.v = a,
-        this.w = b,
-        super(a, b) {
+  Sub(a, b) : this.v = a, this.w = b, super(a, b) {
     u = a + b;
   }
 
-  Sub.stat()
-      : this.v = i++,
-        this.w = i++,
-        super.stat() {
+  Sub.stat() : this.v = i++, this.w = i++, super.stat() {
     u = i++;
   }
 }

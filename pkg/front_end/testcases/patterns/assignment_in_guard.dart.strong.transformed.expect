@@ -36,7 +36,7 @@ static method test1() → void {
     final synthesized core::int #0#0 = 42;
     {
       hoisted core::int v;
-      if((let final core::int #t1 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
+      if((let final dynamic #t1 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
         {
           core::print(v);
           break #L1;
@@ -56,7 +56,7 @@ static method test2() → void {
     {
       {
         hoisted core::int v;
-        if(#0#0 is core::int && (let final core::int #t3 = v = #0#0 in true) && (v = 1).{core::num::>=}(0){(core::num) → core::bool}) {
+        if(#0#0 is core::int && (let final dynamic #t3 = v = #0#0 in true) && (v = 1).{core::num::>=}(0){(core::num) → core::bool}) {
           #t2 = v;
           break #L2;
         }
@@ -76,7 +76,7 @@ static method test3() → void {
     final synthesized core::int #0#0 = 42;
     {
       hoisted core::int v;
-      if((let final core::int #t4 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
+      if((let final dynamic #t4 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool}) {
         core::print(v);
       }
     }
@@ -89,7 +89,7 @@ static method test4() → void {
       final synthesized core::int #0#0 = 42;
       {
         hoisted core::int v;
-        if(#0#0 is core::int && (let final core::int #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
+        if(#0#0 is core::int && (let final dynamic #t6 = v = #0#0 in true) && (v = 1).{core::num::>}(0){(core::num) → core::bool})
           #t5.{core::List::add}{Invariant}(v){(dynamic) → void};
         else
           #t5.{core::List::add}{Invariant}(1){(dynamic) → void};

@@ -125,7 +125,7 @@ class CInherit1 implements IOptx {
     x.arglebargle();
     //^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    // [cfe] The method 'arglebargle' isn't defined for the class 'int'.
+    // [cfe] The method 'arglebargle' isn't defined for the type 'int'.
 
     // Return type is exactly int.
     if (x == 0) {
@@ -221,7 +221,7 @@ class CInheritGeneric<S> implements CGeneric<S> {
     x.arglebargle();
     //^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'arglebargle' isn't defined for the class 'Object?'.
+    // [cfe] The method 'arglebargle' isn't defined for the type 'Object?'.
 
     // Return type is S.
     tmp = foo(x);
@@ -237,7 +237,7 @@ class CInheritGeneric<S> implements CGeneric<S> {
     x.arglebargle();
     //^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The method 'arglebargle' isn't defined for the class 'Object?'.
+    // [cfe] The method 'arglebargle' isn't defined for the type 'Object?'.
 
     // Return type is Q.
     tmp = bar<Q>(x);

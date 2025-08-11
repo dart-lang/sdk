@@ -16,26 +16,28 @@ main() {
 @reflectiveTest
 class RedirectToMissingConstructorTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements B{
   A() {}
 }
 class B {
   factory B() = A.name;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 6),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 6)],
+    );
   }
 
   test_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements B{
   A.name() {}
 }
 class B {
   factory B() = A;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 64, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 64, 1)],
+    );
   }
 }

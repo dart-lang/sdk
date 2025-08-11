@@ -2,26 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   typeLiteral();
   typeLiteralToString();
   typeLiteralSubstring();
 }
 
-/*member: typeLiteral:[exact=_Type|powerset=0]*/
+/*member: typeLiteral:[exact=_Type|powerset={N}{O}{N}]*/
 typeLiteral() => Object;
 
-/*member: typeLiteralToString:[exact=JSString|powerset=0]*/
+/*member: typeLiteralToString:[exact=JSString|powerset={I}{O}{I}]*/
 typeLiteralToString() =>
-    (Object). /*invoke: [exact=_Type|powerset=0]*/ toString();
+    (Object). /*invoke: [exact=_Type|powerset={N}{O}{N}]*/ toString();
 
-/*member: typeLiteralSubstring:[exact=JSString|powerset=0]*/
+/*member: typeLiteralSubstring:[exact=JSString|powerset={I}{O}{I}]*/
 typeLiteralSubstring() {
-  String name = (List). /*invoke: [exact=_Type|powerset=0]*/ toString();
-  name = name. /*invoke: [exact=JSString|powerset=0]*/ substring(
+  String name = (List). /*invoke: [exact=_Type|powerset={N}{O}{N}]*/ toString();
+  name = name. /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ substring(
     0,
-    name. /*invoke: [exact=JSString|powerset=0]*/ indexOf('<'),
+    name. /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ indexOf('<'),
   );
   return name;
 }

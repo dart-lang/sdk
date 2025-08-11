@@ -76,7 +76,8 @@ const b = a == Object();
   }
 
   test_equal_userClass_int_hasEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   bool operator ==(other) => false;
@@ -84,13 +85,14 @@ class A {
 
 const a = A();
 const b = a == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6)],
+    );
   }
 
   test_equal_userClass_int_hasHashCode() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   int get hashCode => 0;
@@ -98,9 +100,9 @@ class A {
 
 const a = A();
 const b = a == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6)],
+    );
   }
 
   test_equal_userClass_int_hasPrimitiveEquality() async {
@@ -154,7 +156,8 @@ const b = a != Object();
   }
 
   test_notEqual_userClass_int_hasEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   bool operator ==(other) => false;
@@ -162,13 +165,14 @@ class A {
 
 const a = A();
 const b = a != 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6)],
+    );
   }
 
   test_notEqual_userClass_int_hasHashCode() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   int get hashCode => 0;
@@ -176,9 +180,9 @@ class A {
 
 const a = A();
 const b = a != 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6)],
+    );
   }
 
   test_notEqual_userClass_int_hasPrimitiveEquality() async {

@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -71,25 +72,25 @@ class LintFixTester {
 
     var unitResult = resolvedLibrary.unitWithPath(path)!;
 
-    AnalysisError error;
-    var errors = unitResult.errors;
+    Diagnostic diagnostic;
+    var errors = unitResult.diagnostics;
     if (inFile) {
-      var groups = errors.groupListsBy((error) => error.errorCode);
+      var groups = errors.groupListsBy((error) => error.diagnosticCode);
       if (groups.length != 1) {
         throw StateError(
           'Exactly one error code expected:'
           '\n$errors\n${groups.keys.toList()}',
         );
       }
-      error = errors.first;
+      diagnostic = errors.first;
     } else {
       if (errors.length != 1) {
         throw StateError('Exactly one lint expected: $errors');
       }
-      error = errors.single;
+      diagnostic = errors.single;
     }
 
-    if (error.errorCode is! LintCode) {
+    if (diagnostic.diagnosticCode is! LintCode) {
       throw StateError('A lint expected: $errors');
     }
 
@@ -99,7 +100,7 @@ class LintFixTester {
       workspace: workspace,
       libraryResult: resolvedLibrary,
       unitResult: unitResult,
-      error: error,
+      error: diagnostic,
     );
 
     List<Fix> fixes;

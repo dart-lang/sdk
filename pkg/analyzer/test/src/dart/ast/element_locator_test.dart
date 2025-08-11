@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
@@ -29,7 +29,7 @@ void f() {
 }
 ''');
     var node = findNode.assignedVariablePattern('foo,');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 foo@17
 ''');
@@ -43,18 +43,18 @@ void main() {
 }
 ''');
     var node = findNode.assignment('+=');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
   test_locate_BinaryExpression() async {
     await resolveTestCode('var x = 3 + 4');
     var node = findNode.binary('+');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -65,12 +65,12 @@ void f() {
 }
 ''');
     var node = findNode.catchClauseParameter('e');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 e@27
 ''');
     node = findNode.catchClauseParameter('s');
-    element = ElementLocator.locate2(node);
+    element = ElementLocator.locate(node);
     _assertElement(element, r'''
 s@30
 ''');
@@ -79,7 +79,7 @@ s@30
   test_locate_ClassDeclaration() async {
     await resolveTestCode('class A {}');
     var node = findNode.classDeclaration('class');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A
 ''');
@@ -92,9 +92,9 @@ class A {
 }
 ''');
     var node = findNode.constructor('A.foo()');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::foo#element
+<testLibrary>::@class::A::@constructor::foo
 ''');
   }
 
@@ -105,9 +105,9 @@ class A {
 }
 ''');
     var node = findNode.constructor('A()');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -119,9 +119,9 @@ enum E {
 }
 ''');
     var node = findNode.constructorSelector('named(); // 0');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@enum::E::@constructor::named#element
+<testLibrary>::@enum::E::@constructor::named
 ''');
   }
 
@@ -132,9 +132,58 @@ void f(Object? x) {
 }
 ''');
     var node = findNode.declaredVariablePattern('foo');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 foo@37
+''');
+  }
+
+  test_locate_DotShorthandConstructorInvocation() async {
+    await resolveTestCode(r'''
+class A {}
+
+void main() {
+ A a = .new();
+}
+''');
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_DotShorthandInvocation() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo() => A();
+}
+
+void main() {
+ A a = .foo();
+}
+''');
+    var node = findNode.singleDotShorthandInvocation;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::foo
+''');
+  }
+
+  test_locate_DotShorthandPropertyAccess() async {
+    await resolveTestCode(r'''
+class A {
+  static A foo = A();
+}
+
+void main() {
+ A a = .foo;
+}
+''');
+    var node = findNode.singleDotShorthandPropertyAccess;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@getter::foo
 ''');
   }
 
@@ -145,16 +194,16 @@ enum E {
 }
 ''');
     var node = findNode.enumConstantDeclaration('one');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@enum::E::@field::one#element
+<testLibrary>::@enum::E::@field::one
 ''');
   }
 
   test_locate_ExportDirective() async {
     await resolveTestCode("export 'dart:core';");
     var node = findNode.export('export');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core
 ''');
@@ -163,7 +212,7 @@ dart:core
   test_locate_ExtensionDeclaration() async {
     await resolveTestCode('extension A on int {}');
     var node = findNode.singleExtensionDeclaration;
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extension::A
 ''');
@@ -172,7 +221,7 @@ dart:core
   test_locate_ExtensionTypeDeclaration() async {
     await resolveTestCode('extension type A(int it) {}');
     var node = findNode.singleExtensionTypeDeclaration;
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A
 ''');
@@ -185,7 +234,7 @@ void f() {
 }
 ''');
     var node = findNode.functionDeclaration('g');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 g@17
 ''');
@@ -194,7 +243,7 @@ g@17
   test_locate_FunctionDeclaration_topLevel() async {
     await resolveTestCode('int f() => 3;');
     var node = findNode.functionDeclaration('f');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
 ''');
@@ -208,7 +257,7 @@ class Class {
 void main(@Class.name() parameter) {}
 ''');
     var node = findNode.simple('Class.name() parameter');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::Class
 ''');
@@ -222,16 +271,16 @@ class Class {
 void main(@Class() parameter) {}
 ''');
     var node = findNode.simple('Class() parameter');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::Class::@constructor::new#element
+<testLibrary>::@class::Class::@constructor::new
 ''');
   }
 
   test_locate_Identifier_className() async {
     await resolveTestCode('class A {}');
     var node = findNode.classDeclaration('A');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A
 ''');
@@ -244,9 +293,9 @@ class A {
 }
 ''');
     var node = findNode.constructor('bar');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::bar#element
+<testLibrary>::@class::A::@constructor::bar
 ''');
   }
 
@@ -257,9 +306,9 @@ class A {
 }
 ''');
     var node = findNode.simple('A()');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -270,16 +319,16 @@ class A {
 }
 ''');
     var node = findNode.variableDeclaration('x;');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@field::x#element
+<testLibrary>::@class::A::@field::x
 ''');
   }
 
   test_locate_Identifier_libraryDirective() async {
     await resolveTestCode('library foo.bar;');
     var node = findNode.simple('foo');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>
 ''');
@@ -292,16 +341,16 @@ void main() {
 }
 ''');
     var node = findNode.simple('length');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::String::@getter::length#element
+dart:core::@class::String::@getter::length
 ''');
   }
 
   test_locate_ImportDirective() async {
     await resolveTestCode("import 'dart:core';");
     var node = findNode.import('import');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core
 ''');
@@ -315,10 +364,10 @@ void main() {
 }
 ''');
     var node = findNode.index('[0]');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 MethodMember
-  baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+  baseElement: dart:core::@class::List::@method::[]
   substitution: {E: int}
 ''');
   }
@@ -332,9 +381,9 @@ void main() {
 }
 ''');
     var node = findNode.instanceCreation('new A()');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
@@ -350,9 +399,9 @@ void main() {
 }
 ''');
     var node = findNode.instanceCreation('A();');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+package:test/a.dart::@class::A::@constructor::new
 ''');
   }
 
@@ -367,16 +416,16 @@ void main() {
 }
 ''');
     var node = findNode.instanceCreation('A();');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@constructor::new#element
+<testLibrary>::@class::A::@constructor::new
 ''');
   }
 
   test_locate_LibraryDirective() async {
     await resolveTestCode('library foo;');
     var node = findNode.library('library');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>
 ''');
@@ -385,7 +434,7 @@ void main() {
   test_locate_LibraryElement() async {
     await resolveTestCode('// only comment');
 
-    var element = ElementLocator.locate2(result.unit);
+    var element = ElementLocator.locate(result.unit);
     _assertElement(element, r'''
 <testLibrary>
 ''');
@@ -398,9 +447,9 @@ class A {
 }
 ''');
     var node = findNode.methodDeclaration('foo');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -415,9 +464,9 @@ void main() {
 }
 ''');
     var node = findNode.methodInvocation('foo();');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@class::A::@method::foo#element
+<testLibrary>::@class::A::@method::foo
 ''');
   }
 
@@ -430,7 +479,7 @@ void main() {
 }
 ''');
     var node = findNode.methodInvocation('foo(0)');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
 ''');
@@ -439,7 +488,7 @@ void main() {
   test_locate_MixinDeclaration() async {
     await resolveTestCode('mixin A {}');
     var node = findNode.singleMixinDeclaration;
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@mixin::A
 ''');
@@ -452,18 +501,18 @@ void f(Object? x) {
 }
 ''');
     var node = findNode.patternField('isEven:');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::int::@getter::isEven#element
+dart:core::@class::int::@getter::isEven
 ''');
   }
 
   test_locate_PostfixExpression() async {
     await resolveTestCode('int addOne(int x) => x++;');
     var node = findNode.postfix('x++');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
@@ -474,7 +523,7 @@ import 'dart:math' as math;
 math.Random? r;
 ''');
     var node = findNode.importPrefixReference('math.Random');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibraryFragment>::@prefix2::math
 ''');
@@ -487,36 +536,36 @@ void f(int a) {
 }
 ''');
     var node = findNode.prefixed('a.isEven');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::int::@getter::isEven#element
+dart:core::@class::int::@getter::isEven
 ''');
   }
 
   test_locate_PrefixExpression() async {
     await resolveTestCode('int addOne(int x) => ++x;');
     var node = findNode.prefix('++x');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::num::@method::+#element
+dart:core::@class::num::@method::+
 ''');
   }
 
   test_locate_RepresentationDeclaration() async {
     await resolveTestCode('extension type A(int it) {}');
     var node = findNode.singleRepresentationDeclaration;
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@extensionType::A::@field::it#element
+<testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
   test_locate_RepresentationDeclaration2() async {
     await resolveTestCode('extension type A.named(int it) {}');
     var node = findNode.singleRepresentationConstructorName;
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@extensionType::A::@constructor::named#element
+<testLibrary>::@extensionType::A::@constructor::named
 ''');
   }
 
@@ -524,7 +573,7 @@ dart:core::<fragment>::@class::num::@method::+#element
     newFile("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("export 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
 ''');
@@ -533,7 +582,7 @@ package:test/foo.dart
   test_locate_StringLiteral_expression() async {
     await resolveTestCode("var x = 'abc';");
     var node = findNode.stringLiteral('abc');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <null>
 ''');
@@ -543,7 +592,7 @@ package:test/foo.dart
     newFile("$testPackageLibPath/foo.dart", '');
     await resolveTestCode("import 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
 ''');
@@ -556,7 +605,7 @@ f() {
 }
 ''');
     var node = findNode.variableDeclaration('x =');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 x@12
 ''');
@@ -565,19 +614,16 @@ x@12
   test_locate_VariableDeclaration_TopLevel() async {
     await resolveTestCode('var x = 42;');
     var node = findNode.variableDeclaration('x =');
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@topLevelVariable::x
 ''');
   }
 
-  void _assertElement(Element2? element, String expected) {
+  void _assertElement(Element? element, String expected) {
     var buffer = StringBuffer();
 
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
 
     var elementPrinter = ElementPrinter(
       sink: sink,

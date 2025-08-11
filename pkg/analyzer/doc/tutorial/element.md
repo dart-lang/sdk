@@ -70,32 +70,32 @@ print the names of all of the members of each class in a given library,
 it might look something like this:
 
 ```dart
-void printMembers(LibraryElement2 libraryElement) {
-  for (ClassElement2 classElement in libraryElement.classes) {
-    print(classElement.name3);
-    for (ConstructorElement2 constructorElement in classElement.constructors2) {
+void printMembers(LibraryElement libraryElement) {
+  for (ClassElement classElement in libraryElement.classes) {
+    print(classElement.name);
+    for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
       }
     }
-    for (FieldElement2 fieldElement in classElement.fields2) {
+    for (FieldElement fieldElement in classElement.fields) {
       if (!fieldElement.isSynthetic) {
-        print('  ${fieldElement.name3}');
+        print('  ${fieldElement.name}');
       }
     }
-    for (GetterElement getterElement in classElement.getters2) {
+    for (GetterElement getterElement in classElement.getters) {
       if (!getterElement.isSynthetic) {
-        print('  ${getterElement.name3}');
+        print('  ${getterElement.name}');
       }
     }
-    for (SetterElement setterElement in classElement.setters2) {
+    for (SetterElement setterElement in classElement.setters) {
       if (!setterElement.isSynthetic) {
-        print('  ${setterElement.name3}');
+        print('  ${setterElement.name}');
       }
     }
-    for (MethodElement2 methodElement in classElement.methods2) {
+    for (MethodElement methodElement in classElement.methods) {
       if (!methodElement.isSynthetic) {
-        print('  ${methodElement.name3}');
+        print('  ${methodElement.name}');
       }
     }
   }
@@ -144,7 +144,7 @@ class ParameterCounter extends GeneralizingElementVisitor2<void> {
   int maxParameterCount = 0;
 
   @override
-  void visitExecutableElement(ExecutableElement2 element) {
+  void visitExecutableElement(ExecutableElement element) {
     maxParameterCount = math.max(maxParameterCount, element.formalParameters.length);
     super.visitExecutableElement(element);
   }

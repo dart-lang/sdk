@@ -21,30 +21,33 @@ main() {
 @reflectiveTest
 class AddressOfTest extends PubPackageResolutionTest {
   test_invalid_Lambda() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 void main() => print(Native.addressOf(() => 3));
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 7),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 7)],
+    );
   }
 
   test_invalid_MismatchedInferredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external Pointer<IntPtr> global;
 
 void main() => print(Native.addressOf<Pointer<Double>>(global));
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 85, 41),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 85, 41)],
+    );
   }
 
   test_invalid_MismatchingType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Void Function()>()
@@ -53,13 +56,14 @@ external void foo();
 void main() {
   print(Native.addressOf<NativeFunction<Int8 Function()>>(foo));
 }
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 91, 54),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 91, 54)],
+    );
   }
 
   test_invalid_MissingType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Void Function()>()
@@ -68,13 +72,14 @@ external void foo();
 void main() {
   print(Native.addressOf(foo));
 }
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 91, 21),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 91, 21)],
+    );
   }
 
   test_invalid_MissingType2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
@@ -83,26 +88,28 @@ external void foo();
 void main() {
   print(Native.addressOf(foo));
 }
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 74, 21),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 74, 21)],
+    );
   }
 
   test_invalid_MissingType3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external Pointer<IntPtr> global;
 
 void main() => print(Native.addressOf(global));
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 85, 24),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 85, 24)],
+    );
   }
 
   test_invalid_NotAConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Void Function()>()
@@ -113,45 +120,48 @@ external void bar();
 void entry(bool condition) {
   print(Native.addressOf(condition ? foo : bar));
 }
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 171, 21),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 171, 21)],
+    );
   }
 
   test_invalid_NotAPreciseType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Void Function()>()
 external void foo();
 
 void main() => print(Native.addressOf<NativeFunction>(foo));
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 90, 37),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 90, 37)],
+    );
   }
 
   test_invalid_NotAPreciseType2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external void foo();
 
 void main() => print(Native.addressOf<NativeFunction>(foo));
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 73, 37),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 73, 37)],
+    );
   }
 
   test_invalid_String() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 void main() => print(Native.addressOf('malloc'));
-''', [
-      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 8),
-    ]);
+''',
+      [error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 8)],
+    );
   }
 
   test_valid() async {
@@ -179,19 +189,21 @@ void main() {
 @reflectiveTest
 class DefaultAssetTest extends PubPackageResolutionTest {
   test_invalid_duplicate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @DefaultAsset('foo')
 @DefaultAsset('bar')
 library;
 
 import 'dart:ffi';
-''', [
-      error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 12)],
+    );
   }
 
   test_invalid_duplicateFromConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @DefaultAsset('bar')
 @defaults
 library;
@@ -199,9 +211,9 @@ library;
 import 'dart:ffi';
 
 const defaults = DefaultAsset('foo');
-''', [
-      error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 8),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 8)],
+    );
   }
 
   test_valid() async {
@@ -250,25 +262,27 @@ base class Paragraph extends NativeFieldWrapperClass1 {
   }
 
   test_annotation_FfiNative_noArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native
 external int foo();
-''', [
-      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7)],
+    );
   }
 
   test_annotation_FfiNative_noTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external int foo();
-''', [
-      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3)],
+    );
   }
 
   test_FfiNativeCanUseHandles() async {
@@ -288,56 +302,66 @@ external int doesntMatter(int x);
   }
 
   test_FfiNativeInstanceMethodsMustHaveReceiver() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 class K {
   @Native<Void Function(Double)>(symbol: 'DoesntMatter')
   external void doesntMatter(double x);
 }
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
-          102, 12),
-    ]);
+''',
+      [
+        error(
+          FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
+          102,
+          12,
+        ),
+      ],
+    );
   }
 
   test_FfiNativeLeafMustNotReturnHandle() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Handle Function()>(symbol: 'DoesntMatter', isLeaf:true)
 external Object doesntMatter();
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 99, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 99, 12)],
+    );
   }
 
   test_FfiNativeLeafMustNotTakeHandles() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Handle)>(symbol: 'DoesntMatter', isLeaf:true)
 external void doesntMatter(Object o);
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 101, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 101, 12)],
+    );
   }
 
   test_FfiNativeNonFfiParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(int)>(symbol: 'doesntmatter')
 external int nonFfiParameter(int v);
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 86, 15),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 86, 15)],
+    );
   }
 
   test_FfiNativeNonFfiReturnType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<double Function(IntPtr)>(symbol: 'doesntmatter')
 external double nonFfiReturnType(int v);
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 92, 16),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 92, 16)],
+    );
   }
 
   test_FfiNativePointerParameter() async {
@@ -349,53 +373,58 @@ external void posixFree(Pointer pointer);
   }
 
   test_FfiNativeTooFewParameters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Double)>(symbol: 'DoesntMatter')
 external void doesntMatter(double x, double y);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 88, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 88, 12)],
+    );
   }
 
   test_FfiNativeTooManyParameters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Double, Double)>(symbol: 'DoesntMatter')
 external void doesntMatter(double x);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 96, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 96, 12)],
+    );
   }
 
   test_FfiNativeVoidReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Handle Function(Uint32, Uint32, Handle)>(symbol: 'doesntmatter')
 external void voidReturn(int width, int height, Object outImage);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 106, 10),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 106, 10)],
+    );
   }
 
   test_FfiNativeWrongFfiParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(Double)>(symbol: 'doesntmatter')
 external int wrongFfiParameter(int v);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 89, 17),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 89, 17)],
+    );
   }
 
   test_FfiNativeWrongFfiReturnType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(IntPtr)>(symbol: 'doesntmatter')
 external double wrongFfiReturnType(int v);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 92, 18),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 92, 18)],
+    );
   }
 }
 
@@ -423,38 +452,41 @@ external set foo(int value);
   }
 
   test_Array_InvalidDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 @Array(0)
 external Array<IntPtr> field;
-''', [
-      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 37, 1),
-    ]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 37, 1)],
+    );
   }
 
   test_Array_InvalidDimensionCount() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 @Array(10, 20)
 external Array<IntPtr> field;
-''', [
-      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 30, 14),
-    ]);
+''',
+      [error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 30, 14)],
+    );
   }
 
   test_Array_MissingAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external Array<IntPtr> field;
-''', [
-      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 53, 5),
-    ]);
+''',
+      [error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 53, 5)],
+    );
   }
 
   test_Array_Valid() async {
@@ -489,64 +521,76 @@ external Pointer<MyStruct> last;
   }
 
   test_InvalidFunctionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(IntPtr)>()
 external int field;
-''', [
-      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 67, 5),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 67, 5)],
+    );
   }
 
   test_InvalidInstanceMember() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 class Foo {
   @Native<IntPtr>()
   external int field;
 }
-''', [
-      error(FfiCode.NATIVE_FIELD_NOT_STATIC, 67, 5),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FIELD_NOT_STATIC, 67, 5)],
+    );
   }
 
   test_InvalidNotExternal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<IntPtr>()
 int field;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 42, 5),
-      error(FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, 42, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          42,
+          5,
+        ),
+        error(FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, 42, 5),
+      ],
+    );
   }
 
   test_MismatchingFunctionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<NativeFunction<Double Function()>>()
 external int Function() field;
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 89, 5),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 89, 5)],
+    );
   }
 
   test_MismatchingType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Double>()
 external int field;
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 51, 5),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 51, 5)],
+    );
   }
 
   test_MissingType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
@@ -554,69 +598,74 @@ external int invalid;
 
 @Native()
 external Pointer<IntPtr> valid;
-''', [
-      error(FfiCode.NATIVE_FIELD_MISSING_TYPE, 43, 7),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FIELD_MISSING_TYPE, 43, 7)],
+    );
   }
 
   test_Unsupported_Function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<NativeFunction<Void Function()>>()
 external void Function() field;
-''', [
-      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 88, 5),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 88, 5)],
+    );
   }
 
   test_Unsupported_Handle() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<Handle>()
 external Object field;
-''', [
-      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 54, 5),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 54, 5)],
+    );
   }
 }
 
 @reflectiveTest
 class NativeTest extends PubPackageResolutionTest {
   test_annotation_InvalidFieldType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native<IntPtr>()
 external int foo();
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 51, 3),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 51, 3)],
+    );
   }
 
   test_annotation_MissingType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native()
 external int foo();
-''', [
-      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 43, 3)],
+    );
   }
 
   test_annotation_MissingTypeConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 const a = Native();
 
 @a
 external int foo();
-''', [
-      error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 57, 3),
-    ]);
+''',
+      [error(FfiCode.NATIVE_FUNCTION_MISSING_TYPE, 57, 3)],
+    );
   }
 
   test_annotation_Native_getters() async {
@@ -636,14 +685,15 @@ base class Paragraph extends NativeFieldWrapperClass1 {
   }
 
   test_annotation_Native_noArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Native
 external int foo();
-''', [
-      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7)],
+    );
   }
 
   test_InferPointerReturnNoParameters() async {
@@ -891,18 +941,20 @@ external int doesntMatter(int x);
   }
 
   test_NativeDuplicateAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Int32 Function(Int32)>()
 @Native<Int32 Function(Int32)>(isLeaf: true)
 external int foo(int v);
-''', [
-      error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 53, 6),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 53, 6)],
+    );
   }
 
   test_NativeDuplicateAnnotationConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 const duplicate = Native<Int32 Function(Int32)>(isLeaf: true);
@@ -910,9 +962,9 @@ const duplicate = Native<Int32 Function(Int32)>(isLeaf: true);
 @Native<Int32 Function(Int32)>()
 @duplicate
 external int foo(int v);
-''', [
-      error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 118, 9),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 118, 9)],
+    );
   }
 
   test_NativeFromConst() async {
@@ -927,80 +979,92 @@ external int wrongFfiReturnType(int v);
   }
 
   test_NativeInstanceMethodsMustHaveReceiver() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 class K {
   @Native<Void Function(Double)>()
   external void doesntMatter(double x);
 }
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
-          80, 12),
-    ]);
+''',
+      [
+        error(
+          FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
+          80,
+          12,
+        ),
+      ],
+    );
   }
 
   test_NativeLeafMustNotReturnHandle() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Handle Function()>(isLeaf:true)
 external Object doesntMatter();
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 75, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 75, 12)],
+    );
   }
 
   test_NativeLeafMustNotReturnHandleConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 const annotation = Native<Handle Function()>(isLeaf:true);
 
 @annotation
 external Object doesntMatter();
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 107, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 107, 12)],
+    );
   }
 
   test_NativeLeafMustNotTakeHandles() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Handle)>(symbol: 'DoesntMatter', isLeaf:true)
 external void doesntMatter(Object o);
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 101, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 101, 12)],
+    );
   }
 
   test_NativeLeafMustNotTakeHandlesConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 const annotation = Native<Void Function(Handle)>(symbol: 'DoesntMatter', isLeaf:true);
 
 @annotation
 external void doesntMatter(Object o);
-''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 133, 12),
-    ]);
+''',
+      [error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 133, 12)],
+    );
   }
 
   test_NativeNonFfiParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(int)>()
 external int nonFfiParameter(int v);
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 64, 15),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 64, 15)],
+    );
   }
 
   test_NativeNonFfiReturnType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<double Function(IntPtr)>()
 external double nonFfiReturnType(int v);
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 70, 16),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 70, 16)],
+    );
   }
 
   test_NativePointerParameter() async {
@@ -1012,23 +1076,25 @@ external void free(Pointer pointer);
   }
 
   test_NativeTooFewParameters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Double)>()
 external void doesntMatter(double x, double y);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 66, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 66, 12)],
+    );
   }
 
   test_NativeTooManyParameters() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Void Function(Double, Double)>()
 external void doesntMatter(double x);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 74, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 74, 12)],
+    );
   }
 
   test_NativeVarArgs() async {
@@ -1040,52 +1106,57 @@ external int doesntMatter(int x, int y, double z);
   }
 
   test_NativeVarArgsTooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Int8 Function(Int64, VarArgs<(Int32, Double)>)>()
 external int doesntMatter(int x, int y);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 90, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 90, 12)],
+    );
   }
 
   test_NativeVarArgsTooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Int8 Function(Int64, VarArgs<(Int32, Double)>)>()
 external int doesntMatter(int x, int y, double z, int superfluous);
-''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 90, 12),
-    ]);
+''',
+      [error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 90, 12)],
+    );
   }
 
   test_NativeVoidReturn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<Handle Function(Uint32, Uint32, Handle)>()
 external void voidReturn(int width, int height, Object outImage);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 84, 10),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 84, 10)],
+    );
   }
 
   test_NativeWrongFfiParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(Double)>()
 external int wrongFfiParameter(int v);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 67, 17),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 67, 17)],
+    );
   }
 
   test_NativeWrongFfiReturnType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 @Native<IntPtr Function(IntPtr)>()
 external double wrongFfiReturnType(int v);
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 70, 18),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 70, 18)],
+    );
   }
 }

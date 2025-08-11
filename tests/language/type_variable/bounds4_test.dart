@@ -4,10 +4,7 @@
 
 // Test instantiation of object with malbounded types.
 
-class A<
-    T
-          extends num
-    > {}
+class A<T extends num> {}
 
 class B<T> implements A<T> {}
 //                    ^
@@ -15,10 +12,7 @@ class B<T> implements A<T> {}
 //                      ^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
-class C<
-    T
-          extends num
-    > implements B<T> {}
+class C<T extends num> implements B<T> {}
 
 class Class<T> {
   newA() {
@@ -28,9 +22,11 @@ class Class<T> {
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
+
   newB() {
     new B<T>();
   }
+
   newC() {
     new C<T>();
     //  ^

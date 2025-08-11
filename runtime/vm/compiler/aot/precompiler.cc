@@ -363,14 +363,15 @@ static void Jump(const Error& error) {
 }
 
 ErrorPtr Precompiler::CompileAll() {
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Precompiler precompiler(Thread::Current());
+    Precompiler precompiler(thread);
     precompiler.DoCompileAll();
     precompiler.ReportStats();
     return Error::null();
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -1821,7 +1822,7 @@ static void AddNamesToFunctionsTable(Zone* zone,
   AddNameToFunctionsTable(zone, table, fname, function);
 
   *dyn_function = function.ptr();
-  if (kernel::NeedsDynamicInvocationForwarder(function)) {
+  if (function.NeedsDynamicInvocationForwarder()) {
     *mangled_name = function.name();
     *mangled_name =
         Function::CreateDynamicInvocationForwarderName(*mangled_name);
@@ -2234,6 +2235,8 @@ void Precompiler::DropFunctions() {
       function.ClearCode();
       // Wrap the owner of the code object in case the code object will be
       // serialized but the function object will not.
+      // If you are changing this code you might want to adjust
+      // SnapshotAnalyzer::DumpCode which looks at owners.
       owner = code.owner();
       owner = WeakSerializationReference::New(
           owner, Smi::Handle(Smi::New(owner.GetClassId())));
@@ -3485,7 +3488,7 @@ bool PrecompileParsedFunctionHelper::GenerateCode(FlowGraph* flow_graph) {
   volatile intptr_t far_branch_level = 0;
 
   while (!done) {
-    LongJumpScope jump;
+    LongJumpScope jump(thread());
     const intptr_t val = DART_SETJMP(*jump.Set());
     if (val == 0) {
       // Even in bare instructions mode we don't directly add objects into

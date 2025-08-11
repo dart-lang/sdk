@@ -13,13 +13,15 @@ import 'package:expect/expect.dart';
 // This is a regression test for https://github.com/dart-lang/sdk/issues/24817
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
   "use strict";
 
   window.foo = [function() { return 42; }];
-""");
+""",
+  );
 }
 
 @JS("window.foo")

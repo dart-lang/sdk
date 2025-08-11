@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/extension_table.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../../options.dart';
@@ -73,6 +74,12 @@ class LateLowering {
 
   Member? _contextMember;
 
+  final ExtensionTable _extensionTable = ExtensionTable();
+
+  late final InstanceConstant pragmaAllowCSE = _pragmaConstant(
+    'dart2js:allow-cse',
+  );
+
   LateLowering(this._coreTypes, CompilerOptions? _options)
     : _omitLateNames = _options?.omitLateNames ?? false,
       _readLocal = _Reader(_coreTypes.cellReadLocal),
@@ -104,14 +111,13 @@ class LateLowering {
   Name _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));
     final prefix = _lateInstanceFieldPrefix;
-    final suffix =
-        field.initializer == null
-            ? field.isFinal
-                ? _lateFinalUninitializedSuffix
-                : _lateAssignableUninitializedSuffix
-            : field.isFinal
-            ? _lateFinalInitializedSuffix
-            : _lateAssignableInitializedSuffix;
+    final suffix = field.initializer == null
+        ? field.isFinal
+              ? _lateFinalUninitializedSuffix
+              : _lateAssignableUninitializedSuffix
+        : field.isFinal
+        ? _lateFinalInitializedSuffix
+        : _lateAssignableInitializedSuffix;
 
     Class cls = field.enclosingClass!;
     return Name(
@@ -122,8 +128,8 @@ class LateLowering {
 
   ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
       _omitLateNames
-          ? _callCellUnnamedConstructor(fileOffset)
-          : _callCellNamedConstructor(name, fileOffset);
+      ? _callCellUnnamedConstructor(fileOffset)
+      : _callCellNamedConstructor(name, fileOffset);
 
   ConstructorInvocation _callCellUnnamedConstructor(int fileOffset) =>
       ConstructorInvocation(
@@ -143,10 +149,9 @@ class LateLowering {
     Expression name,
     Expression initializer,
     int fileOffset,
-  ) =>
-      _omitLateNames
-          ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
-          : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
+  ) => _omitLateNames
+      ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
+      : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
 
   ConstructorInvocation _callInitializedCellUnnamedConstructor(
     Expression initializer,
@@ -326,10 +331,9 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    _Reader reader =
-        variable.initializer == null
-            ? _readLocal
-            : (variable.isFinal ? _readInitializedFinal : _readInitialized);
+    _Reader reader = variable.initializer == null
+        ? _readLocal
+        : (variable.isFinal ? _readInitializedFinal : _readInitialized);
     return _callReader(
       reader,
       cell,
@@ -346,14 +350,13 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    Procedure setter =
-        variable.initializer == null
-            ? (variable.isFinal
-                ? _coreTypes.cellFinalLocalValueSetter
-                : _coreTypes.cellValueSetter)
-            : (variable.isFinal
-                ? _coreTypes.initializedCellFinalValueSetter
-                : _coreTypes.initializedCellValueSetter);
+    Procedure setter = variable.initializer == null
+        ? (variable.isFinal
+              ? _coreTypes.cellFinalLocalValueSetter
+              : _coreTypes.cellValueSetter)
+        : (variable.isFinal
+              ? _coreTypes.initializedCellFinalValueSetter
+              : _coreTypes.initializedCellValueSetter);
     return _callSetter(setter, cell, node.value, fileOffset);
   }
 
@@ -367,6 +370,17 @@ class LateLowering {
       // We need to unbind the canonical name since we reuse the reference but
       // change the name.
       field.fieldReference.canonicalName?.unbind();
+      ExtensionMemberInfo? extensionMemberInfo;
+      if (field.isExtensionMember) {
+        extensionMemberInfo = _extensionTable.getExtensionMemberInfo(field);
+      }
+      ExtensionTypeMemberInfo? extensionTypeMemberInfo;
+      if (field.isExtensionTypeMember) {
+        extensionTypeMemberInfo = _extensionTable.getExtensionTypeMemberInfo(
+          field,
+        );
+      }
+
       Field fieldCell =
           Field.immutable(
               _mangleFieldCellName(field),
@@ -400,6 +414,8 @@ class LateLowering {
         isStatic: true,
         fileUri: fileUri,
         reference: field.getterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
       VariableDeclaration setterValue = VariableDeclaration(
@@ -430,17 +446,67 @@ class LateLowering {
         isStatic: true,
         fileUri: fileUri,
         reference: field.setterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
-      TreeNode parent = field.parent!;
-      if (parent is Class) {
-        parent.addProcedure(getter);
-        parent.addProcedure(setter);
-      } else if (parent is Library) {
-        parent.addProcedure(getter);
-        parent.addProcedure(setter);
+      if (extensionMemberInfo != null) {
+        extensionMemberInfo.descriptor.isInternalImplementation = true;
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Getter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Setter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else if (extensionTypeMemberInfo != null) {
+        extensionTypeMemberInfo.descriptor.isInternalImplementation = true;
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Getter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Setter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else {
+        switch (field.enclosingTypeDeclaration) {
+          case null:
+            field.enclosingLibrary.addProcedure(getter);
+            field.enclosingLibrary.addProcedure(setter);
+          case Class cls:
+            cls.addProcedure(getter);
+            cls.addProcedure(setter);
+          case ExtensionTypeDeclaration extensionTypeDeclaration:
+            extensionTypeDeclaration.addProcedure(getter);
+            extensionTypeDeclaration.addProcedure(setter);
+        }
       }
-
       return fieldCell;
     });
   }
@@ -612,6 +678,12 @@ class LateLowering {
     // transformer flags to reflect whether the getter contains super calls.
     getter.transformerFlags = field.transformerFlags;
     _copyAnnotations(getter, field);
+    if (initializer != null && field.isFinal) {
+      getter.addAnnotation(
+        ConstantExpression(pragmaAllowCSE, _coreTypes.pragmaNonNullableRawType)
+          ..fileOffset = field.fileOffset,
+      );
+    }
     enclosingClass.addProcedure(getter);
 
     VariableDeclaration setterValue = VariableDeclaration(
@@ -686,6 +758,13 @@ class LateLowering {
         throw StateError('Non-constant annotation on $source');
       }
     }
+  }
+
+  InstanceConstant _pragmaConstant(String pragmaName) {
+    return InstanceConstant(_coreTypes.pragmaClass.reference, [], {
+      _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+      _coreTypes.pragmaOptions.fieldReference: NullConstant(),
+    });
   }
 
   TreeNode transformField(Field field, Member contextMember) {

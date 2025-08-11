@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart'
-    show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
+    show StaticTypeContext, TypeEnvironment;
 
 // Removes redundant type casts and reduces casts to null checks.
 //
@@ -67,11 +67,7 @@ bool isRedundantTypeCast(
     return false;
   }
 
-  return env.isSubtypeOf(
-    operandStaticType,
-    node.type,
-    SubtypeCheckMode.withNullabilities,
-  );
+  return env.isSubtypeOf(operandStaticType, node.type);
 }
 
 // Returns true if type cast [node] which has operand of the given
@@ -90,11 +86,7 @@ bool canBeReducedToNullCheckAndCast(
 
   if (dst.nullability != Nullability.nullable) {
     final nullableDst = dst.withDeclaredNullability(Nullability.nullable);
-    return env.isSubtypeOf(
-      operandStaticType,
-      nullableDst,
-      SubtypeCheckMode.withNullabilities,
-    );
+    return env.isSubtypeOf(operandStaticType, nullableDst);
   }
 
   return false;

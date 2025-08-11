@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -36,21 +37,16 @@ class CompletionDriver with ExpectMixin {
   }
 
   void addTestFile(String content, {int? offset}) {
-    completionOffset = content.indexOf('^');
+    var code = TestCode.parse(content);
+
     if (offset != null) {
-      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
+      expect(code.positions, isEmpty, reason: 'cannot supply offset and ^');
       completionOffset = offset;
-      server.newFile(server.testFilePath, content);
     } else {
-      expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-      var nextOffset = content.indexOf('^', completionOffset + 1);
-      expect(nextOffset, equals(-1), reason: 'too many ^');
-      server.newFile(
-        server.testFilePath,
-        content.substring(0, completionOffset) +
-            content.substring(completionOffset + 1),
-      );
+      completionOffset = code.position.offset;
     }
+
+    server.newFile(server.testFilePath, code.code);
   }
 
   void assertValidId(String id) {

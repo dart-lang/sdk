@@ -13,5 +13,5 @@ static extension-type-member method E|constructor#(core::List<dynamic> it) → s
   lowered final self::E% /* erasure=core::List<dynamic>, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */
   return self::E|constructor#(it);

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -21,13 +23,10 @@ class PublicMemberApiDocs extends LintRule {
     : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.public_member_api_docs;
+  DiagnosticCode get diagnosticCode => LinterLintCode.public_member_api_docs;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var package = context.package;
     if (package != null && !package.canHavePublicApi) {
       return;
@@ -53,22 +52,22 @@ class PublicMemberApiDocs extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
   bool check(Declaration node) {
+    if (node.isInternal) return false;
+
     if (node.documentationComment == null && !isOverridingMember(node)) {
       var errorNode = getNodeToAnnotate(node);
-      rule.reportLintForOffset(errorNode.offset, errorNode.length);
+      rule.reportAtOffset(errorNode.offset, errorNode.length);
       return true;
     }
     return false;
   }
 
   void checkMethods(List<ClassMember> members) {
-    // Check methods
-
     var getters = <String, MethodDeclaration>{};
     var setters = <MethodDeclaration>[];
 
@@ -110,15 +109,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Whether [node] overrides some other member.
   bool isOverridingMember(Declaration node) =>
-      context.inheritanceManager.overriddenMember(
-        node.declaredFragment?.element,
-      ) !=
-      null;
+      node.declaredFragment?.element.overriddenMember != null;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredFragment?.element;
-    if (element == null || element.metadata2.hasInternal) return;
+    if (node.declaredFragment?.element == null) return;
     _visitMembers(node, node.name, node.members);
   }
 
@@ -133,8 +128,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var getters = <String, FunctionDeclaration>{};
     var setters = <FunctionDeclaration>[];
-
-    // Check functions.
 
     // Non-getters/setters.
     var functions = <FunctionDeclaration>[];
@@ -172,11 +165,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Check remaining functions.
-    for (var function in functions) {
-      if (!function.isEffectivelyPrivate) {
-        check(function);
-      }
-    }
+    functions.forEach(check);
 
     super.visitCompilationUnit(node);
   }
@@ -193,9 +182,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    // TODO(pq): update this to be called from the parent (like with visitMembers)
-    if (node.isInternal) return;
-
     if (!node.inPrivateMember && !node.name.isPrivate) {
       check(node);
     }
@@ -204,7 +190,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     if (node.name.isPrivate) return;
-    if (node.isInternal) return;
 
     check(node);
     checkMethods(node.members);
@@ -221,8 +206,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    var element = node.declaredFragment?.element;
-    if (element == null || element.metadata2.hasInternal) return;
+    if (node.declaredFragment?.element == null) return;
     _visitMembers(node, node.name, node.members);
   }
 
@@ -256,7 +240,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    if (node.isInternal) return;
     _visitMembers(node, node.name, node.members);
   }
 
@@ -271,6 +254,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitMembers(Declaration node, Token name, List<ClassMember> members) {
     if (name.isPrivate) return;
+    if (node.isInternal) return;
 
     check(node);
     checkMethods(members);

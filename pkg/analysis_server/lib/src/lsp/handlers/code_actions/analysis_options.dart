@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -16,7 +17,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
-/// Produces [CodeAction]s from analysis options fixes.
+/// Produces [CodeActionLiteral]s from analysis options fixes.
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   AnalysisOptionsCodeActionsProducer(
     super.server,
@@ -25,8 +26,12 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
     required super.analysisOptions,
+    required super.allowSnippets,
   });
 
   @override
@@ -41,6 +46,12 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getFixActions(
     OperationPerformance? performance,
   ) async {
+    // These fixes are only provided as literal CodeActions.
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
+      return [];
+    }
+
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
@@ -95,15 +106,24 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          var action = createFixAction(
-            fix.change,
-            fix.change.id,
-            diagnostic,
-            path,
-            lineInfo,
+          var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);
+          // TODO(dantup): Find a way to filter these earlier, so we don't
+          //  compute fixes we will filter out.
+          if (!shouldIncludeKind(kind)) {
+            return null;
+          }
+          var action = CodeAction.t1(
+            createCodeActionLiteral(
+              fix.change,
+              kind,
+              fix.change.id,
+              path,
+              lineInfo,
+              diagnostic: diagnostic,
+            ),
           );
           return (action: action, priority: fix.kind.priority);
-        }),
+        }).nonNulls,
       );
     }
 
@@ -111,12 +131,12 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
+  Future<List<CodeAction>> getSourceActions() async => [];
 
   YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);

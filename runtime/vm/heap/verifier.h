@@ -72,7 +72,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 class VerifyWeakPointersVisitor : public HandleVisitor {
  public:
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
-      : HandleVisitor(Thread::Current()), visitor_(visitor) {}
+      : HandleVisitor(), visitor_(visitor) {}
 
   void VisitHandle(uword addr) override;
 
@@ -83,20 +83,6 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };
-
-#if defined(DEBUG)
-class VerifyCanonicalVisitor : public ObjectVisitor {
- public:
-  explicit VerifyCanonicalVisitor(Thread* thread);
-  void VisitObject(ObjectPtr obj) override;
-
- private:
-  Thread* thread_;
-  Instance& instanceHandle_;
-
-  DISALLOW_COPY_AND_ASSIGN(VerifyCanonicalVisitor);
-};
-#endif  // defined(DEBUG)
 
 }  // namespace dart
 

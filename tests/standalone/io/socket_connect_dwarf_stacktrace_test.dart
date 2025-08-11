@@ -17,21 +17,26 @@ import "package:native_stack_traces/native_stack_traces.dart";
 import "package:path/path.dart" as path;
 
 Future<List<String>> findFrames(
-    Dwarf dwarf, RegExp re, StackTrace stackTrace) async {
-  final dwarfed = await Stream.value(stackTrace.toString())
-      .transform(const LineSplitter())
-      .toList();
-  return Stream.fromIterable(dwarfed)
-      .transform(DwarfStackTraceDecoder(dwarf))
-      .where(re.hasMatch)
-      .toList();
+  Dwarf dwarf,
+  RegExp re,
+  StackTrace stackTrace,
+) async {
+  final dwarfed = await Stream.value(
+    stackTrace.toString(),
+  ).transform(const LineSplitter()).toList();
+  return Stream.fromIterable(
+    dwarfed,
+  ).transform(DwarfStackTraceDecoder(dwarf)).where(re.hasMatch).toList();
 }
 
 Future<void> main() async {
   asyncStart();
-  final dwarf = Dwarf.fromFile(path.join(
+  final dwarf = Dwarf.fromFile(
+    path.join(
       Platform.environment['TEST_COMPILATION_DIR']!,
-      'socket_connect_debug.so'))!;
+      'socket_connect_debug.so',
+    ),
+  )!;
   // Test stacktrace when lookup fails
   try {
     await WebSocket.connect('ws://localhost.tld:0/ws');

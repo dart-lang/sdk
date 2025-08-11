@@ -332,26 +332,6 @@ void f({int? a, ^}) {}
     assertHasCompletion('void');
   }
 
-  Future<void> test_named_last_afterCovariant() async {
-    await getTestCodeSuggestions('''
-void f({covariant ^}) {}
-''');
-    assertHasNoCompletion('covariant');
-    assertHasCompletion('dynamic');
-    assertHasNoCompletion('required');
-    assertHasCompletion('void');
-  }
-
-  Future<void> test_named_last_afterRequired() async {
-    await getTestCodeSuggestions('''
-void f({required ^}) {}
-''');
-    assertHasCompletion('covariant');
-    assertHasCompletion('dynamic');
-    assertHasNoCompletion('required');
-    assertHasCompletion('void');
-  }
-
   Future<void> test_named_only() async {
     await getTestCodeSuggestions('''
 void f({^}) {}

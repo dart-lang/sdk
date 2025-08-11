@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -17,13 +19,10 @@ class AvoidVoidAsync extends LintRule {
     : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_void_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_void_async;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -54,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (fragment.isGenerator) return;
     if (!fragment.isAsynchronous) return;
     if (fragment.element.returnType is VoidType) {
-      rule.reportLintForToken(errorNode);
+      rule.reportAtToken(errorNode);
     }
   }
 }

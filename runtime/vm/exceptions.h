@@ -73,6 +73,7 @@ class Exceptions : AllStatic {
     kType,
     kAbstractClassInstantiation,
     kCompileTimeError,
+    kStaticFieldAccessedWithoutIsolate,
     kLateFieldAlreadyInitialized,
     kLateFieldAssignedDuringInitialization,
     kLateFieldNotInitialized,
@@ -90,6 +91,8 @@ class Exceptions : AllStatic {
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
+  DART_NORETURN static void ThrowStaticFieldAccessedWithoutIsolate(
+      const String& name);
   DART_NORETURN static void ThrowLateFieldAlreadyInitialized(
       const String& name);
   DART_NORETURN static void ThrowLateFieldAssignedDuringInitialization(
@@ -329,9 +332,9 @@ class CatchEntryMovesRefPtr {
     return *this;
   }
 
-  bool IsEmpty() { return ref_count_ == nullptr; }
+  bool IsEmpty() const { return ref_count_ == nullptr; }
 
-  const CatchEntryMoves& moves() { return *moves_; }
+  const CatchEntryMoves& moves() const { return *moves_; }
 
  private:
   void Destroy() {

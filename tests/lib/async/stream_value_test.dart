@@ -53,12 +53,15 @@ void main() async {
     var stream = Stream<int>.value(42);
     var value;
     var onDone = Completer();
-    var sub = stream.listen((v) {
-      value = v;
-    }, onDone: () {
-      Expect.equals(42, value);
-      onDone.complete();
-    });
+    var sub = stream.listen(
+      (v) {
+        value = v;
+      },
+      onDone: () {
+        Expect.equals(42, value);
+        onDone.complete();
+      },
+    );
     sub.pause();
     await Future.delayed(Duration(milliseconds: 10));
     Expect.isNull(value);

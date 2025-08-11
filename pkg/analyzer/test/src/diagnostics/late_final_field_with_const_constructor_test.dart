@@ -19,37 +19,40 @@ class LateFinalFieldWithConstConstructorTest extends PubPackageResolutionTest {
       CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR;
 
   test_class_hasConstConstructor_instance_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   late final f = 0;
   const A();
 }
-''', [
-      error(_errorCode, 12, 4),
-    ]);
+''',
+      [error(_errorCode, 12, 4)],
+    );
   }
 
   test_class_hasConstConstructor_instance_hasNotConst() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   late final f = 0;
   const A();
   A.notConst();
 }
-''', [
-      error(_errorCode, 12, 4),
-    ]);
+''',
+      [error(_errorCode, 12, 4)],
+    );
   }
 
   test_class_hasConstConstructor_instance_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   late final f;
   const A();
 }
-''', [
-      error(_errorCode, 12, 4),
-    ]);
+''',
+      [error(_errorCode, 12, 4)],
+    );
   }
 
   test_class_hasConstConstructor_static_late_final() async {
@@ -87,14 +90,15 @@ class A {
   }
 
   test_enum_instance_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   late final f = 0;
 }
-''', [
-      error(_errorCode, 16, 4),
-    ]);
+''',
+      [error(_errorCode, 16, 4)],
+    );
   }
 
   test_enum_static() async {
@@ -111,12 +115,13 @@ enum E {
     // This test is here because the code that tests for
     // LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR is where the referenced issue was
     // caused.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   late final int i;
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1)],
+    );
   }
 }

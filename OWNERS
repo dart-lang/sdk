@@ -10,6 +10,8 @@ vsm@google.com #{LAST_RESORT_SUGGESTION}
 
 # DEPS
 per-file DEPS=file:/tools/OWNERS_ENG
+per-file pubspec.yaml=file:/tools/OWNERS_ENG
+
 # Updates fuchsia components only.
 per-file DEPS=file:/tools/OWNERS_FUCHSIA
 

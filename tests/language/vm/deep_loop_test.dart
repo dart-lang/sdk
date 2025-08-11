@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't try to fit in 80 columns with this much nesting.
+// dart format width=300
 import 'package:expect/expect.dart';
 
 // Stress tests on loop nesting depth. Make sure loop and induction
@@ -27,87 +29,27 @@ foo(List<int?> a) {
                               for (int i14 = i13 - 1; i14 <= i13 + 1; i14++)
                                 for (int i15 = i14 - 1; i15 <= i14 + 1; i15++)
                                   for (int i16 = i15 - 1; i16 <= i15 + 1; i16++)
-                                    for (int i17 = i16 - 1;
-                                        i17 <= i16 + 1;
-                                        i17++)
-                                      for (int i18 = i17 - 1;
-                                          i18 <= i17 + 1;
-                                          i18++)
-                                        for (int i19 = i18 - 1;
-                                            i19 <= i18 + 1;
-                                            i19++)
-                                          for (int i20 = i19 - 1;
-                                              i20 <= i19 + 1;
-                                              i20++)
-                                            for (int i21 = i20 - 1;
-                                                i21 <= i20 + 1;
-                                                i21++)
-                                              for (int i22 = i21 - 1;
-                                                  i22 <= i21 + 1;
-                                                  i22++)
-                                                for (int i23 = i22 - 1;
-                                                    i23 <= i22 + 1;
-                                                    i23++)
-                                                  for (int i24 = i23 - 1;
-                                                      i24 <= i23 + 1;
-                                                      i24++)
-                                                    for (int i25 = i24 - 1;
-                                                        i25 <= i24 + 1;
-                                                        i25++)
-                                                      for (int i26 = i25 - 1;
-                                                          i26 <= i25 + 1;
-                                                          i26++)
-                                                        for (int i27 = i26 - 1;
-                                                            i27 <= i26 + 1;
-                                                            i27++)
-                                                          for (int i28 =
-                                                                  i27 - 1;
-                                                              i28 <= i27 + 1;
-                                                              i28++)
-                                                            for (int i29 =
-                                                                    i28 - 1;
-                                                                i29 <= i28 + 1;
-                                                                i29++)
-                                                              for (int i30 =
-                                                                      i29 - 1;
-                                                                  i30 <=
-                                                                      i29 + 1;
-                                                                  i30++)
-                                                                for (int i31 =
-                                                                        i30 - 1;
-                                                                    i31 <=
-                                                                        i30 + 1;
-                                                                    i31++)
-                                                                  for (int i32 =
-                                                                          i31 -
-                                                                              1;
-                                                                      i32 <=
-                                                                          i31 +
-                                                                              1;
-                                                                      i32++)
-                                                                    for (int i33 =
-                                                                            i32 -
-                                                                                1;
-                                                                        i33 <=
-                                                                            i32 +
-                                                                                1;
-                                                                        i33++)
-                                                                      for (int i34 = i33 -
-                                                                              1;
-                                                                          i34 <=
-                                                                              i33 + 1;
-                                                                          i34++)
-                                                                        for (int i35 = i34 -
-                                                                                1;
-                                                                            i35 <=
-                                                                                i34 + 1;
-                                                                            i35++)
-                                                                          for (int i36 = i35 - 1;
-                                                                              i36 <= i35 + 1;
-                                                                              i36++)
-                                                                            for (int i37 = i36 - 1;
-                                                                                i37 <= i36 + 1;
-                                                                                i37++)
+                                    for (int i17 = i16 - 1; i17 <= i16 + 1; i17++)
+                                      for (int i18 = i17 - 1; i18 <= i17 + 1; i18++)
+                                        for (int i19 = i18 - 1; i19 <= i18 + 1; i19++)
+                                          for (int i20 = i19 - 1; i20 <= i19 + 1; i20++)
+                                            for (int i21 = i20 - 1; i21 <= i20 + 1; i21++)
+                                              for (int i22 = i21 - 1; i22 <= i21 + 1; i22++)
+                                                for (int i23 = i22 - 1; i23 <= i22 + 1; i23++)
+                                                  for (int i24 = i23 - 1; i24 <= i23 + 1; i24++)
+                                                    for (int i25 = i24 - 1; i25 <= i24 + 1; i25++)
+                                                      for (int i26 = i25 - 1; i26 <= i25 + 1; i26++)
+                                                        for (int i27 = i26 - 1; i27 <= i26 + 1; i27++)
+                                                          for (int i28 = i27 - 1; i28 <= i27 + 1; i28++)
+                                                            for (int i29 = i28 - 1; i29 <= i28 + 1; i29++)
+                                                              for (int i30 = i29 - 1; i30 <= i29 + 1; i30++)
+                                                                for (int i31 = i30 - 1; i31 <= i30 + 1; i31++)
+                                                                  for (int i32 = i31 - 1; i32 <= i31 + 1; i32++)
+                                                                    for (int i33 = i32 - 1; i33 <= i32 + 1; i33++)
+                                                                      for (int i34 = i33 - 1; i34 <= i33 + 1; i34++)
+                                                                        for (int i35 = i34 - 1; i35 <= i34 + 1; i35++)
+                                                                          for (int i36 = i35 - 1; i36 <= i35 + 1; i36++)
+                                                                            for (int i37 = i36 - 1; i37 <= i36 + 1; i37++)
                                                                               for (int i38 = i37 - 1; i38 <= i37 + 1; i38++)
                                                                                 for (int i39 = i38 - 1; i39 <= i38 + 1; i39++)
                                                                                   for (int i40 = i39 - 1; i40 <= i39 + 1; i40++)
@@ -195,87 +137,27 @@ bar(List<int?> a) {
                               for (int i14 = i13 + 1; i14 >= i13 - 1; i14--)
                                 for (int i15 = i14 + 1; i15 >= i14 - 1; i15--)
                                   for (int i16 = i15 + 1; i16 >= i15 - 1; i16--)
-                                    for (int i17 = i16 + 1;
-                                        i17 >= i16 - 1;
-                                        i17--)
-                                      for (int i18 = i17 + 1;
-                                          i18 >= i17 - 1;
-                                          i18--)
-                                        for (int i19 = i18 + 1;
-                                            i19 >= i18 - 1;
-                                            i19--)
-                                          for (int i20 = i19 + 1;
-                                              i20 >= i19 - 1;
-                                              i20--)
-                                            for (int i21 = i20 + 1;
-                                                i21 >= i20 - 1;
-                                                i21--)
-                                              for (int i22 = i21 + 1;
-                                                  i22 >= i21 - 1;
-                                                  i22--)
-                                                for (int i23 = i22 + 1;
-                                                    i23 >= i22 - 1;
-                                                    i23--)
-                                                  for (int i24 = i23 + 1;
-                                                      i24 >= i23 - 1;
-                                                      i24--)
-                                                    for (int i25 = i24 + 1;
-                                                        i25 >= i24 - 1;
-                                                        i25--)
-                                                      for (int i26 = i25 + 1;
-                                                          i26 >= i25 - 1;
-                                                          i26--)
-                                                        for (int i27 = i26 + 1;
-                                                            i27 >= i26 - 1;
-                                                            i27--)
-                                                          for (int i28 =
-                                                                  i27 + 1;
-                                                              i28 >= i27 - 1;
-                                                              i28--)
-                                                            for (int i29 =
-                                                                    i28 + 1;
-                                                                i29 >= i28 - 1;
-                                                                i29--)
-                                                              for (int i30 =
-                                                                      i29 + 1;
-                                                                  i30 >=
-                                                                      i29 - 1;
-                                                                  i30--)
-                                                                for (int i31 =
-                                                                        i30 + 1;
-                                                                    i31 >=
-                                                                        i30 - 1;
-                                                                    i31--)
-                                                                  for (int i32 =
-                                                                          i31 +
-                                                                              1;
-                                                                      i32 >=
-                                                                          i31 -
-                                                                              1;
-                                                                      i32--)
-                                                                    for (int i33 =
-                                                                            i32 +
-                                                                                1;
-                                                                        i33 >=
-                                                                            i32 -
-                                                                                1;
-                                                                        i33--)
-                                                                      for (int i34 = i33 +
-                                                                              1;
-                                                                          i34 >=
-                                                                              i33 - 1;
-                                                                          i34--)
-                                                                        for (int i35 = i34 +
-                                                                                1;
-                                                                            i35 >=
-                                                                                i34 - 1;
-                                                                            i35--)
-                                                                          for (int i36 = i35 + 1;
-                                                                              i36 >= i35 - 1;
-                                                                              i36--)
-                                                                            for (int i37 = i36 + 1;
-                                                                                i37 >= i36 - 1;
-                                                                                i37--)
+                                    for (int i17 = i16 + 1; i17 >= i16 - 1; i17--)
+                                      for (int i18 = i17 + 1; i18 >= i17 - 1; i18--)
+                                        for (int i19 = i18 + 1; i19 >= i18 - 1; i19--)
+                                          for (int i20 = i19 + 1; i20 >= i19 - 1; i20--)
+                                            for (int i21 = i20 + 1; i21 >= i20 - 1; i21--)
+                                              for (int i22 = i21 + 1; i22 >= i21 - 1; i22--)
+                                                for (int i23 = i22 + 1; i23 >= i22 - 1; i23--)
+                                                  for (int i24 = i23 + 1; i24 >= i23 - 1; i24--)
+                                                    for (int i25 = i24 + 1; i25 >= i24 - 1; i25--)
+                                                      for (int i26 = i25 + 1; i26 >= i25 - 1; i26--)
+                                                        for (int i27 = i26 + 1; i27 >= i26 - 1; i27--)
+                                                          for (int i28 = i27 + 1; i28 >= i27 - 1; i28--)
+                                                            for (int i29 = i28 + 1; i29 >= i28 - 1; i29--)
+                                                              for (int i30 = i29 + 1; i30 >= i29 - 1; i30--)
+                                                                for (int i31 = i30 + 1; i31 >= i30 - 1; i31--)
+                                                                  for (int i32 = i31 + 1; i32 >= i31 - 1; i32--)
+                                                                    for (int i33 = i32 + 1; i33 >= i32 - 1; i33--)
+                                                                      for (int i34 = i33 + 1; i34 >= i33 - 1; i34--)
+                                                                        for (int i35 = i34 + 1; i35 >= i34 - 1; i35--)
+                                                                          for (int i36 = i35 + 1; i36 >= i35 - 1; i36--)
+                                                                            for (int i37 = i36 + 1; i37 >= i36 - 1; i37--)
                                                                               for (int i38 = i37 + 1; i38 >= i37 - 1; i38--)
                                                                                 for (int i39 = i38 + 1; i39 >= i38 - 1; i39--)
                                                                                   for (int i40 = i39 + 1; i40 >= i39 - 1; i40--)

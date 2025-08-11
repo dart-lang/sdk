@@ -755,7 +755,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
-    NoActiveIsolateScope no_active_isolate_scope;
+    NoActiveIsolateScope no_active_isolate_scope(thread);
 
     IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z,
@@ -777,7 +777,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
   }
 
-  NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope(thread);
 
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -1177,16 +1177,13 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
     retval = KernelIsolate::CompileToKernel(
         root_lib_url, nullptr, 0, modified_scripts_count, modified_scripts,
         /*incremental_compile=*/true,
-        /*snapshot_compile=*/false,
+        /*for_snapshot=*/false,
         /*embed_sources=*/true,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
         /*multiroot_scheme=*/nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
-    if (retval.kernel != nullptr) {
-      free(retval.kernel);
-    }
     return retval.error;
   }
   *kernel_buffer = retval.kernel;
@@ -1220,7 +1217,8 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  LongJumpScope jump;
+  HANDLESCOPE(thread);
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {

@@ -16,25 +16,40 @@ main() {
 @reflectiveTest
 class NonConstantDefaultValueTest extends PubPackageResolutionTest {
   test_constructor_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int y = 0;
   A({x = y}) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+    );
   }
 
   test_constructor_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int y = 0;
   A([x = y]) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+    );
+  }
+
+  test_dotShorthand_issue60962() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  const A();
+}
+
+void f([A a = .new()]) {}
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 40, 6)],
+    );
   }
 
   test_enum_issue49097() async {
@@ -57,12 +72,13 @@ enum E {
   }
 
   test_function_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int y = 0;
 f({x = y}) {}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1)],
+    );
   }
 
   test_function_named_constList() async {
@@ -102,11 +118,12 @@ void f({x = (a: 0, b: 1)}) {}
   }
 
   test_function_named_record_namedFields_listLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f({x = (a: 0, b: [1])}) {}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 22, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 22, 3)],
+    );
   }
 
   test_function_named_record_namedFields_listLiteral_const() async {
@@ -122,11 +139,12 @@ void f({x = (0, 1)}) {}
   }
 
   test_function_named_record_positionalFields_listLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f({x = (0, [1])}) {}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 16, 3)],
+    );
   }
 
   test_function_named_record_positionalFields_listLiteral_const() async {
@@ -136,50 +154,55 @@ void f({x = (0, const [1])}) {}
   }
 
   test_function_named_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f({int x = X}) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1)],
+    );
   }
 
   test_function_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int y = 0;
 f([x = y]) {}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1)],
+    );
   }
 
   test_function_positional_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f([int x = X]) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1)],
+    );
   }
 
   test_method_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int y = 0;
   m({x = y}) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+    );
   }
 
   test_method_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int y = 0;
   m([x = y]) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+    );
   }
 
   test_noAppliedTypeParameters_defaultConstructorValue_dynamic() async {

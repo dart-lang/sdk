@@ -16,8 +16,9 @@ import 'package:ffi/ffi.dart';
 import 'test_utils.dart' show isArtificialReloadMode;
 import '../../../../../tests/ffi/dylib_utils.dart';
 
-final bool usesDwarfStackTraces = Platform.executableArguments
-    .any((entry) => RegExp('--dwarf[-_]stack[-_]traces').hasMatch(entry));
+final bool usesDwarfStackTraces = Platform.executableArguments.any(
+  (entry) => RegExp('--dwarf[-_]stack[-_]traces').hasMatch(entry),
+);
 final bool hasSymbolicStackTraces = !usesDwarfStackTraces;
 final sdkRoot = Platform.script.resolve('../../../../../');
 
@@ -26,35 +27,60 @@ final class Isolate extends Opaque {}
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-  static final IGH_MsanUnpoison = ffiTestFunctions.lookupFunction<
-      Pointer<Isolate> Function(Pointer<Void>, IntPtr),
-      Pointer<Isolate> Function(Pointer<Void>, int)>('IGH_MsanUnpoison');
+  static final IGH_MsanUnpoison = ffiTestFunctions
+      .lookupFunction<
+        Pointer<Isolate> Function(Pointer<Void>, IntPtr),
+        Pointer<Isolate> Function(Pointer<Void>, int)
+      >('IGH_MsanUnpoison');
 
-  static final IGH_CreateIsolate = ffiTestFunctions.lookupFunction<
-      Pointer<Isolate> Function(Pointer<Utf8>, Pointer<Void>),
-      Pointer<Isolate> Function(
-          Pointer<Utf8>, Pointer<Void>)>('IGH_CreateIsolate');
+  static final IGH_CreateIsolate = ffiTestFunctions
+      .lookupFunction<
+        Pointer<Isolate> Function(Pointer<Utf8>, Pointer<Void>),
+        Pointer<Isolate> Function(Pointer<Utf8>, Pointer<Void>)
+      >('IGH_CreateIsolate');
 
-  static final IGH_StartIsolate = ffiTestFunctions.lookupFunction<
-      Pointer<Void> Function(Pointer<Isolate>, Int64, Pointer<Utf8>,
-          Pointer<Utf8>, IntPtr, Int64, Int64),
-      Pointer<Void> Function(Pointer<Isolate>, int, Pointer<Utf8>,
-          Pointer<Utf8>, int, int, int)>('IGH_StartIsolate');
+  static final IGH_StartIsolate = ffiTestFunctions
+      .lookupFunction<
+        Pointer<Void> Function(
+          Pointer<Isolate>,
+          Int64,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          IntPtr,
+          Int64,
+          Int64,
+        ),
+        Pointer<Void> Function(
+          Pointer<Isolate>,
+          int,
+          Pointer<Utf8>,
+          Pointer<Utf8>,
+          int,
+          int,
+          int,
+        )
+      >('IGH_StartIsolate');
 
   static final Dart_CurrentIsolate = DynamicLibrary.executable()
       .lookupFunction<Pointer<Isolate> Function(), Pointer<Isolate> Function()>(
-          "Dart_CurrentIsolate");
+        "Dart_CurrentIsolate",
+      );
 
-  static final Dart_IsolateData = DynamicLibrary.executable().lookupFunction<
-      Pointer<Isolate> Function(Pointer<Isolate>),
-      Pointer<Isolate> Function(Pointer<Isolate>)>("Dart_IsolateData");
+  static final Dart_IsolateData = DynamicLibrary.executable()
+      .lookupFunction<
+        Pointer<Isolate> Function(Pointer<Isolate>),
+        Pointer<Isolate> Function(Pointer<Isolate>)
+      >("Dart_IsolateData");
 
   static final Dart_PostInteger = DynamicLibrary.executable()
       .lookupFunction<IntPtr Function(Int64, Int64), int Function(int, int)>(
-          "Dart_PostInteger");
+        "Dart_PostInteger",
+      );
 
   static Pointer<Isolate> createLightweightIsolate(
-      String name, Pointer<Void> peer) {
+    String name,
+    Pointer<Void> peer,
+  ) {
     final cname = name.toNativeUtf8();
     IGH_MsanUnpoison(cname.cast(), name.length + 10);
     try {
@@ -67,10 +93,16 @@ abstract class FfiBindings {
   }
 
   static void invokeTopLevelAndRunLoopAsync(
-      Pointer<Isolate> isolate, SendPort sendPort, String name,
-      {bool? errorsAreFatal, SendPort? onError, SendPort? onExit}) {
+    Pointer<Isolate> isolate,
+    SendPort sendPort,
+    String name, {
+    bool? errorsAreFatal,
+    SendPort? onError,
+    SendPort? onExit,
+  }) {
     final dartScriptUri = sdkRoot.resolve(
-        'runtime/tests/vm/dart/isolates/dart_api_create_lightweight_isolate_test.dart');
+      'runtime/tests/vm/dart/isolates/dart_api_create_lightweight_isolate_test.dart',
+    );
     final dartScript = dartScriptUri.toString();
     final libraryUri = dartScript.toNativeUtf8();
     IGH_MsanUnpoison(libraryUri.cast(), dartScript.length + 1);
@@ -78,13 +110,14 @@ abstract class FfiBindings {
     IGH_MsanUnpoison(functionName.cast(), name.length + 1);
 
     IGH_StartIsolate(
-        isolate,
-        sendPort.nativePort,
-        libraryUri,
-        functionName,
-        errorsAreFatal == false ? 0 : 1,
-        onError != null ? onError.nativePort : 0,
-        onExit != null ? onExit.nativePort : 0);
+      isolate,
+      sendPort.nativePort,
+      libraryUri,
+      functionName,
+      errorsAreFatal == false ? 0 : 1,
+      onError != null ? onError.nativePort : 0,
+      onExit != null ? onExit.nativePort : 0,
+    );
 
     calloc.free(libraryUri);
     calloc.free(functionName);
@@ -126,8 +159,9 @@ Future withPeerPointer(fun(Pointer<Void> peer)) async {
 
 @pragma('vm:entry-point')
 void childTestIsolateData(int mainPort) {
-  final peerIsolateData =
-      FfiBindings.Dart_IsolateData(FfiBindings.Dart_CurrentIsolate());
+  final peerIsolateData = FfiBindings.Dart_IsolateData(
+    FfiBindings.Dart_CurrentIsolate(),
+  );
   FfiBindings.Dart_PostInteger(mainPort, peerIsolateData.address);
 }
 
@@ -137,8 +171,11 @@ Future testIsolateData() async {
     final exit = ReceivePort();
     final isolate = FfiBindings.createLightweightIsolate('debug-name', peer);
     FfiBindings.invokeTopLevelAndRunLoopAsync(
-        isolate, rp.sendPort, 'childTestIsolateData',
-        onExit: exit.sendPort);
+      isolate,
+      rp.sendPort,
+      'childTestIsolateData',
+      onExit: exit.sendPort,
+    );
 
     Expect.equals(peer.address, await rp.first);
     await exit.first;
@@ -165,15 +202,21 @@ Future testMultipleErrors() async {
     final exit = ReceivePort();
     final isolate = FfiBindings.createLightweightIsolate('debug-name', peer);
     FfiBindings.invokeTopLevelAndRunLoopAsync(
-        isolate, rp.sendPort, 'childTestMultipleErrors',
-        errorsAreFatal: false, onError: errors.sendPort, onExit: exit.sendPort);
+      isolate,
+      rp.sendPort,
+      'childTestMultipleErrors',
+      errorsAreFatal: false,
+      onError: errors.sendPort,
+      onExit: exit.sendPort,
+    );
     await exit.first;
     Expect.equals(10, accumulatedErrors.length);
     for (int i = 0; i < 10; ++i) {
       Expect.equals('error-$i', accumulatedErrors[i][0]);
       if (hasSymbolicStackTraces) {
         Expect.isTrue(
-            accumulatedErrors[i][1].contains('childTestMultipleErrors'));
+          accumulatedErrors[i][1].contains('childTestMultipleErrors'),
+        );
       }
     }
 
@@ -199,8 +242,13 @@ Future testFatalError() async {
     final exit = ReceivePort();
     final isolate = FfiBindings.createLightweightIsolate('debug-name', peer);
     FfiBindings.invokeTopLevelAndRunLoopAsync(
-        isolate, rp.sendPort, 'childTestFatalError',
-        errorsAreFatal: true, onError: errors.sendPort, onExit: exit.sendPort);
+      isolate,
+      rp.sendPort,
+      'childTestFatalError',
+      errorsAreFatal: true,
+      onError: errors.sendPort,
+      onExit: exit.sendPort,
+    );
     await exit.first;
     Expect.equals(1, accumulatedErrors.length);
     Expect.equals('error-0', accumulatedErrors[0][0]);

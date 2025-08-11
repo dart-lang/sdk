@@ -4,14 +4,14 @@
 
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -21,9 +21,9 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
     String initialContent,
     String expectedContent, {
-    bool Function(AnalysisError)? errorFilter,
+    bool Function(Diagnostic)? errorFilter,
   }) async {
-    var fixes = await _getFixes(initialContent, errorFilter: errorFilter);
+    var fixes = await _getFixes(initialContent, diagnosticFilter: errorFilter);
     expect(fixes, hasLength(1));
     var fileEdits = fixes[0].change.edits;
     expect(fileEdits, hasLength(1));
@@ -42,7 +42,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
 
   Future<List<Fix>> _getFixes(
     String content, {
-    bool Function(AnalysisError)? errorFilter,
+    bool Function(Diagnostic)? diagnosticFilter,
   }) {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
@@ -53,11 +53,11 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       '/',
       dart2_12,
     );
-    if (errorFilter != null) {
+    if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');
       }
-      errors = errors.where(errorFilter).toList();
+      errors = errors.where(diagnosticFilter).toList();
     }
     expect(errors, hasLength(1));
     var error = errors[0];

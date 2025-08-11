@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 /// Information about a class with nested properties.
@@ -18,15 +18,15 @@ import 'package:analyzer/dart/element/type.dart';
 ///
 /// This class provides such "how to materialize" information.
 class ClassDescription {
-  final ClassElement2 element;
-  final ConstructorElement2 constructor;
+  final ClassElement element;
+  final ConstructorElement constructor;
 
   ClassDescription(this.element, this.constructor);
 }
 
 /// The lazy-fill registry of [ClassDescription].
 class ClassDescriptionRegistry {
-  final Map<ClassElement2, ClassDescription> _map = {};
+  final Map<ClassElement, ClassDescription> _map = {};
 
   /// Flush all data, because there was a change to a file.
   void flush() {
@@ -35,8 +35,8 @@ class ClassDescriptionRegistry {
 
   /// If we know how to materialize the [element], return [ClassDescription].
   /// Otherwise return `null`.
-  ClassDescription? get(InterfaceElement2 element) {
-    if (element is! ClassElement2) {
+  ClassDescription? get(InterfaceElement element) {
+    if (element is! ClassElement) {
       return null;
     }
 
@@ -53,19 +53,19 @@ class ClassDescriptionRegistry {
   /// Return `true` if properties should be created for instances of [type].
   bool hasNestedProperties(DartType type) {
     if (type is InterfaceType) {
-      return _isOptedInClass(type.element3);
+      return _isOptedInClass(type.element);
     }
     return false;
   }
 
-  ClassDescription? _classDescription(ClassElement2 element) {
+  ClassDescription? _classDescription(ClassElement element) {
     if (!_isOptedInClass(element)) return null;
 
-    var constructor = element.unnamedConstructor2;
+    var constructor = element.unnamedConstructor;
     if (constructor == null) return null;
 
     for (var parameter in constructor.formalParameters) {
-      if (parameter.isRequired || parameter.metadata2.hasRequired) {
+      if (parameter.isRequired || parameter.metadata.hasRequired) {
         return null;
       }
     }
@@ -73,8 +73,8 @@ class ClassDescriptionRegistry {
     return ClassDescription(element, constructor);
   }
 
-  bool _isOptedInClass(InterfaceElement2 element) {
-    if (element is! ClassElement2) {
+  bool _isOptedInClass(InterfaceElement element) {
+    if (element is! ClassElement) {
       return false;
     }
 
@@ -90,7 +90,7 @@ class ClassDescriptionRegistry {
         );
   }
 
-  static bool _isClass(ClassElement2 element, String uri, String name) {
-    return element.name3 == name && element.library2.uri.toString() == uri;
+  static bool _isClass(ClassElement element, String uri, String name) {
+    return element.name == name && element.library.uri.toString() == uri;
   }
 }

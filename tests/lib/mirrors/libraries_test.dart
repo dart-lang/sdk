@@ -19,8 +19,9 @@ main() {
   LibraryMirror? mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
   if (mirrorsLibrary == null) {
     // In minified mode we don't preserve the URIs.
-    mirrorsLibrary = libraries.values
-        .firstWhere((LibraryMirror lm) => lm.simpleName == #dart.mirrors);
+    mirrorsLibrary = libraries.values.firstWhere(
+      (LibraryMirror lm) => lm.simpleName == #dart.mirrors,
+    );
     Uri uri = mirrorsLibrary.uri;
     Expect.equals("https", uri.scheme);
     Expect.equals("dartlang.org", uri.host);

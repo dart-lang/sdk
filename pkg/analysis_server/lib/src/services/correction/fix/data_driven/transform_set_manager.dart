@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -38,7 +38,7 @@ class TransformSetManager {
   }
 
   /// Return the transform sets associated with the [library].
-  List<TransformSet> forLibrary(LibraryElement2 library) {
+  List<TransformSet> forLibrary(LibraryElement library) {
     var transformSets = <TransformSet>[];
     var analysisContext = library.session.analysisContext;
     var workspace = analysisContext.contextRoot.workspace;
@@ -115,7 +115,7 @@ class TransformSetManager {
     try {
       var content = file.readAsStringSync();
       var parser = TransformSetParser(
-        ErrorReporter(AnalysisErrorListener.NULL_LISTENER, FileSource(file)),
+        DiagnosticReporter(DiagnosticListener.nullListener, FileSource(file)),
         packageName,
       );
       return parser.parse(content);

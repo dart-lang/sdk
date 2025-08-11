@@ -21,17 +21,20 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 Future<SecureServerSocket> startEchoServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((SecureSocket client) {
-      client.fold<List<int>>(
-          <int>[], (message, data) => message..addAll(data)).then((message) {
-        client.add(message);
-        client.close();
-      });
+      client
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            client.add(message);
+            client.close();
+          });
     });
     return server;
   });
@@ -45,8 +48,9 @@ testVersion(SecureServerSocket server, TlsProtocolVersion tlsVersion) async {
     ..minimumTlsProtocolVersion = tlsVersion
     ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
-  await SecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((socket) async {
+  await SecureSocket.connect(HOST, server.port, context: clientContext).then((
+    socket,
+  ) async {
     socket.write("Hello server.");
     socket.close();
     Expect.isTrue(await utf8.decoder.bind(socket).contains("Hello server."));

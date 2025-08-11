@@ -9,11 +9,10 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -94,7 +93,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       if (edit != null) {
-        doSourceChange_addFragmentEdit(change, element, edit);
+        doSourceChange_addSourceEdit(
+          change,
+          element.libraryFragment.source,
+          edit,
+        );
       }
     }
     // update references
@@ -155,9 +158,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
-    var unit = unitResult.unit;
-    var nodeLocator = NodeLocator(reference.range.offset);
-    var node = nodeLocator.searchWithin(unit);
+    var node = unitResult.unit.nodeCovering(offset: reference.range.offset);
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is InterpolationExpression && parent.rightBracket == null) {

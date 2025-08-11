@@ -36,12 +36,14 @@ class DirectoryMock extends FileSystemEntity implements Directory {
   Future<Directory> rename(String newPath) => throw "";
   Directory renameSync(String newPath) => throw "";
   Directory get absolute => throw "";
-  Stream<FileSystemEntity> list(
-          {bool recursive = false, bool followLinks = true}) =>
-      throw "";
-  List<FileSystemEntity> listSync(
-          {bool recursive = false, bool followLinks = true}) =>
-      throw "";
+  Stream<FileSystemEntity> list({
+    bool recursive = false,
+    bool followLinks = true,
+  }) => throw "";
+  List<FileSystemEntity> listSync({
+    bool recursive = false,
+    bool followLinks = true,
+  }) => throw "";
 }
 
 class FileMock extends FileSystemEntity implements File {
@@ -74,29 +76,38 @@ class FileMock extends FileSystemEntity implements File {
   Future<RandomAccessFile> open({FileMode mode = FileMode.read}) => throw "";
   RandomAccessFile openSync({FileMode mode = FileMode.read}) => throw "";
   Stream<List<int>> openRead([int? start, int? end]) => throw "";
-  IOSink openWrite(
-          {FileMode mode = FileMode.write, Encoding encoding = utf8}) =>
-      throw "";
+  IOSink openWrite({
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+  }) => throw "";
   Future<Uint8List> readAsBytes() => throw "";
   Uint8List readAsBytesSync() => throw "";
   Future<String> readAsString({Encoding encoding = utf8}) => throw "";
   String readAsStringSync({Encoding encoding = utf8}) => throw "";
   Future<List<String>> readAsLines({Encoding encoding = utf8}) => throw "";
   List<String> readAsLinesSync({Encoding encoding = utf8}) => throw "";
-  Future<File> writeAsBytes(List<int> bytes,
-          {FileMode mode = FileMode.write, bool flush = false}) =>
-      throw "";
-  void writeAsBytesSync(List<int> bytes,
-      {FileMode mode = FileMode.write, bool flush = false}) {}
-  Future<File> writeAsString(String contents,
-          {FileMode mode = FileMode.write,
-          Encoding encoding = utf8,
-          bool flush = false}) =>
-      throw "";
-  void writeAsStringSync(String contents,
-      {FileMode mode = FileMode.write,
-      Encoding encoding = utf8,
-      bool flush = false}) {}
+  Future<File> writeAsBytes(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  }) => throw "";
+  void writeAsBytesSync(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  }) {}
+  Future<File> writeAsString(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  }) => throw "";
+  void writeAsStringSync(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  }) {}
 }
 
 class FileStatMock implements FileStat {
@@ -138,8 +149,10 @@ final _mockFileSystemEvent = new Stream<FileSystemEvent>.empty();
 
 class FileSystemWatcherMock {
   static Stream<FileSystemEvent> watch(
-          String path, int events, bool recursive) =>
-      _mockFileSystemEvent;
+    String path,
+    int events,
+    bool recursive,
+  ) => _mockFileSystemEvent;
 
   static bool watchSupported() => false;
 }
@@ -166,18 +179,32 @@ class LinkMock extends FileSystemEntity implements Link {
   String targetSync() => throw "";
 }
 
-Future<Socket> socketConnect(dynamic host, int port,
-    {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) async {
+Future<Socket> socketConnect(
+  dynamic host,
+  int port, {
+  dynamic sourceAddress,
+  int sourcePort = 0,
+  Duration? timeout,
+}) async {
   throw "";
 }
 
-Future<ConnectionTask<Socket>> socketStartConnect(dynamic host, int port,
-    {dynamic sourceAddress, int sourcePort = 0}) async {
+Future<ConnectionTask<Socket>> socketStartConnect(
+  dynamic host,
+  int port, {
+  dynamic sourceAddress,
+  int sourcePort = 0,
+}) async {
   throw "";
 }
 
-Future<ServerSocket> serverSocketBind(dynamic address, int port,
-    {int backlog = 0, bool v6Only = false, bool shared = false}) async {
+Future<ServerSocket> serverSocketBind(
+  dynamic address,
+  int port, {
+  int backlog = 0,
+  bool v6Only = false,
+  bool shared = false,
+}) async {
   throw "";
 }
 
@@ -189,11 +216,16 @@ class StdinMock extends Stream<List<int>> implements Stdin {
   bool get supportsAnsiEscapes => throw "";
 
   int readByteSync() => throw "";
-  String readLineSync(
-          {Encoding encoding = systemEncoding, bool retainNewlines = false}) =>
-      throw "";
-  StreamSubscription<List<int>> listen(void onData(List<int> event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  String readLineSync({
+    Encoding encoding = systemEncoding,
+    bool retainNewlines = false,
+  }) => throw "";
+  StreamSubscription<List<int>> listen(
+    void onData(List<int> event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     throw "";
   }
 }
@@ -227,12 +259,18 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isFalse(await FileSystemEntity.identical("file", "file"));
       Expect.isFalse(FileSystemEntity.identicalSync("file", "file"));
       Expect.equals(
-          await FileSystemEntity.type("file"), FileSystemEntityType.file);
+        await FileSystemEntity.type("file"),
+        FileSystemEntityType.file,
+      );
       Expect.equals(
-          FileSystemEntity.typeSync("file"), FileSystemEntityType.file);
+        FileSystemEntity.typeSync("file"),
+        FileSystemEntityType.file,
+      );
       Expect.isFalse(FileSystemEntity.isWatchSupported);
       Expect.identical(
-          _mockFileSystemEvent, new Directory("directory").watch());
+        _mockFileSystemEvent,
+        new Directory("directory").watch(),
+      );
       Expect.isTrue(new Link("link") is LinkMock);
       asyncExpectThrows(Socket.connect(null, 0));
       asyncExpectThrows(Socket.startConnect(null, 0));
@@ -298,7 +336,9 @@ class EmptyOverride extends IOOverrides {}
 void emptyIOOverride() {
   IOOverrides.runWithIOOverrides(
     () => Expect.equals(
-        FileSystemEntity.typeSync('/'), FileSystemEntityType.directory),
+      FileSystemEntity.typeSync('/'),
+      FileSystemEntityType.directory,
+    ),
     EmptyOverride(),
   );
 }

@@ -31,7 +31,9 @@ void main() {
   // Should return the same value if the value is already a wrapped function.
   Expect.equals(wrappedFunction, allowInterop(wrappedFunction));
   Expect.equals(
-      wrappedFunctionCaptureThis, allowInterop(wrappedFunctionCaptureThis));
+    wrappedFunctionCaptureThis,
+    allowInterop(wrappedFunctionCaptureThis),
+  );
   // Passing a non-Dart function to `allowInteropCaptureThis` throws in dart2js,
   // so for now, capture the existing semantics. We may want to update DDC to
   // match this.
@@ -40,8 +42,10 @@ void main() {
     Expect.throws(() => allowInteropCaptureThis(wrappedFunctionCaptureThis));
   } else {
     Expect.equals(wrappedFunction, allowInteropCaptureThis(wrappedFunction));
-    Expect.equals(wrappedFunctionCaptureThis,
-        allowInteropCaptureThis(wrappedFunctionCaptureThis));
+    Expect.equals(
+      wrappedFunctionCaptureThis,
+      allowInteropCaptureThis(wrappedFunctionCaptureThis),
+    );
   }
   // Should directly return JS functions without doing anything.
   Expect.equals(jsFunction, allowInterop(jsFunction));
@@ -54,5 +58,7 @@ void main() {
   // Dart value, should return the previously wrapped function.
   Expect.equals(wrappedFunction, allowInterop(dartFunction));
   Expect.equals(
-      wrappedFunctionCaptureThis, allowInteropCaptureThis(dartFunction));
+    wrappedFunctionCaptureThis,
+    allowInteropCaptureThis(dartFunction),
+  );
 }

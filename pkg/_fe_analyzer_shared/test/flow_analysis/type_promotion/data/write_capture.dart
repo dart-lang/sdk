@@ -24,15 +24,17 @@ doLoop(Object a, Object b, Object c) {
 }
 
 forLoop(Object a, Object b, Object c, Object d, Object e) {
-  for (var x = f(0, () {
-    a = '';
-  });
-      f(true, () {
-    b = '';
-  });
-      f(0, () {
-    c = '';
-  })) {
+  for (
+    var x = f(0, () {
+      a = '';
+    });
+    f(true, () {
+      b = '';
+    });
+    f(0, () {
+      c = '';
+    })
+  ) {
     if (a is int) a;
     if (b is int) b;
     if (c is int) c;
@@ -65,15 +67,17 @@ forEachLoop(Object a, Object b, Object c) {
 
 forElement(Object a, Object b, Object c, Object d, Object e) {
   [
-    for (var x = f(0, () {
-      a = '';
-    });
-        f(true, () {
-      b = '';
-    });
-        f(0, () {
-      c = '';
-    }))
+    for (
+      var x = f(0, () {
+        a = '';
+      });
+      f(true, () {
+        b = '';
+      });
+      f(0, () {
+        c = '';
+      })
+    )
       [
         a is int ? a : null,
         b is int ? b : null,
@@ -82,8 +86,8 @@ forElement(Object a, Object b, Object c, Object d, Object e) {
         e is int ? /*int*/ e : null,
         f(0, () {
           d = '';
-        })
-      ]
+        }),
+      ],
   ];
   f(0, () {
     e = '';
@@ -102,8 +106,8 @@ forEachElement(Object a, Object b, Object c) {
         c is int ? /*int*/ c : null,
         f(0, () {
           b = '';
-        })
-      ]
+        }),
+      ],
   ];
   f(0, () {
     c = '';
@@ -216,11 +220,15 @@ localFunction(Object a, Object b, Object c) {
   if (a is! int) return;
   if (b is! int) return;
   if (c is! int) return;
-  /*int*/ a;
-  /*int*/ b;
-  /*int*/ c;
+  /*int*/
+  a;
+  /*int*/
+  b;
+  /*int*/
+  c;
   foo() {
-    /*int*/ a;
+    /*int*/
+    a;
     b;
     c;
     if (b is int) /*int*/ b;
@@ -228,12 +236,15 @@ localFunction(Object a, Object b, Object c) {
   }
 
   b = '';
-  /*int*/ a;
+  /*int*/
+  a;
   b;
-  /*int*/ c;
+  /*int*/
+  c;
   if (b is int) /*int*/ b;
   bar() {
-    /*int*/ a;
+    /*int*/
+    a;
     b;
     c;
     if (b is int) /*int*/ b;
@@ -241,7 +252,8 @@ localFunction(Object a, Object b, Object c) {
     c = '';
   }
 
-  /*int*/ a;
+  /*int*/
+  a;
   b;
   c;
   if (b is int) /*int*/ b;
@@ -252,30 +264,38 @@ closure(Object a, Object b, Object c) {
   if (a is! int) return;
   if (b is! int) return;
   if (c is! int) return;
-  /*int*/ a;
-  /*int*/ b;
-  /*int*/ c;
+  /*int*/
+  a;
+  /*int*/
+  b;
+  /*int*/
+  c;
   f(0, () {
-    /*int*/ a;
+    /*int*/
+    a;
     b;
     c;
     if (b is int) /*int*/ b;
     if (c is int) c;
   });
   b = '';
-  /*int*/ a;
+  /*int*/
+  a;
   b;
-  /*int*/ c;
+  /*int*/
+  c;
   if (b is int) /*int*/ b;
   f(0, () {
-    /*int*/ a;
+    /*int*/
+    a;
     b;
     c;
     if (b is int) /*int*/ b;
     if (c is int) c;
     c = '';
   });
-  /*int*/ a;
+  /*int*/
+  a;
   b;
   c;
   if (b is int) /*int*/ b;

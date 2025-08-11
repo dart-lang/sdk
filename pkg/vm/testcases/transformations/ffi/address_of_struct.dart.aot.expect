@@ -21,7 +21,7 @@ final class MyStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C11
-  static get a#offsetOf() → core::int
+  static synthetic get a#offsetOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 10)]

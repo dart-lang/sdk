@@ -116,8 +116,8 @@ class RunningIsolates implements MessageRouter {
       final reloadKernelRequest = Message.forMethod('_reloadKernel');
       reloadKernelRequest.params[_isolateIdString] =
           message.params[isolate.serviceId];
-      reloadKernelRequest.params['kernelFilePath'] =
-          outputDill.uri.toFilePath();
+      reloadKernelRequest.params['kernelFilePath'] = outputDill.uri
+          .toFilePath();
       final response = await isolate.routeRequest(service, message);
 
       tempDirectory.deleteSync(recursive: true);
@@ -206,10 +206,9 @@ final class _ResidentCompilerInfo {
     final fileContents = file.readAsStringSync();
 
     return _ResidentCompilerInfo._(
-      sdkHash:
-          fileContents.contains('sdkHash:')
-              ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
-              : null,
+      sdkHash: fileContents.contains('sdkHash:')
+          ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
+          : null,
       address: InternetAddress(
         _extractValueAssociatedWithKey(fileContents, 'address'),
       ),

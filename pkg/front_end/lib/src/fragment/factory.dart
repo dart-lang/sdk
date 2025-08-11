@@ -30,7 +30,11 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   SourceFactoryBuilder? _builder;
 
-  FactoryDeclaration? _declaration;
+  FactoryFragmentDeclaration? _declaration;
+
+  @override
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+      fileUri, constructorName.fullNameOffset, constructorName.fullNameLength);
 
   FactoryFragment({
     required this.constructorName,
@@ -52,11 +56,6 @@ class FactoryFragment implements Fragment, FunctionFragment {
   });
 
   @override
-  String get name => constructorName.name;
-
-  int get fullNameOffset => constructorName.fullNameOffset;
-
-  @override
   SourceFactoryBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
@@ -67,17 +66,22 @@ class FactoryFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  FactoryDeclaration get declaration {
+  FactoryFragmentDeclaration get declaration {
     assert(
         _declaration != null, "Declaration has not been computed for $this.");
     return _declaration!;
   }
 
-  void set declaration(FactoryDeclaration value) {
+  void set declaration(FactoryFragmentDeclaration value) {
     assert(_declaration == null,
         "Declaration has already been computed for $this.");
     _declaration = value;
   }
+
+  int get fullNameOffset => constructorName.fullNameOffset;
+
+  @override
+  String get name => constructorName.name;
 
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
@@ -94,6 +98,13 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   _FactoryBodyBuildingContext(this._fragment);
 
   @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
   // Coverage-ignore(suite): Not run.
   MemberKind get memberKind => MemberKind.Factory;
 
@@ -101,11 +112,22 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   bool get shouldBuild => true;
 
   @override
+  List<TypeParameter>? get thisTypeParameters => null;
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+
+  @override
+  LookupScope get typeParameterScope {
+    return _fragment.typeParameterScope;
+  }
+
+  @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
     if (_fragment.formals == null) {
       return new FormalParameterScope(parent: typeParameterScope);
     }
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in _fragment.formals!) {
       if (formal.isWildcard) {
         continue;
@@ -116,25 +138,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  LookupScope get typeParameterScope {
-    return _fragment.typeParameterScope;
-  }
-
-  @override
   BodyBuilderContext createBodyBuilderContext() {
     return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
-
-  @override
-  InferenceDataForTesting? get inferenceDataForTesting => _fragment
-      .builder
-      .dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.inferenceData;
-
-  @override
-  List<TypeParameter>? get thisTypeParameters => null;
-
-  @override
-  VariableDeclaration? get thisVariable => null;
 }

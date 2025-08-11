@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToSetLiteralTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SET_LITERAL;
+  AssistKind get kind => DartAssistKind.convertToSetLiteral;
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class IllegalSyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
   test_arrowFunction_iterator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<void> f() sync* => [];
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 25, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 25, 2)],
+    );
   }
 
   test_function_iterator() async {
@@ -30,58 +31,64 @@ Iterable<void> f() sync* {}
   }
 
   test_function_nonIterator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() sync* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3)],
+    );
   }
 
   test_function_subclassOfIterator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 56, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 56, 16)],
+    );
   }
 
   test_function_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() sync* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 4)],
+    );
   }
 
   test_method_nonIterator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int f() sync* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 3)],
+    );
   }
 
   test_method_subclassOfIterator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubIterator<T> implements Iterator<T> {}
 class C {
   SubIterator<int> f() sync* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 68, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 68, 16)],
+    );
   }
 
   test_method_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void f() sync* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 4)],
+    );
   }
 }

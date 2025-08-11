@@ -53,8 +53,24 @@ class ApiSignatureTest {
     sig.addInt(1000);
     sig.addInt(1000000);
     sig.addInt(1000000000);
-    checkBytes(
-        [1, 0, 0, 0, 0xe8, 3, 0, 0, 0x40, 0x42, 0xf, 0, 0, 0xca, 0x9a, 0x3b]);
+    checkBytes([
+      1,
+      0,
+      0,
+      0,
+      0xe8,
+      3,
+      0,
+      0,
+      0x40,
+      0x42,
+      0xf,
+      0,
+      0,
+      0xca,
+      0x9a,
+      0x3b,
+    ]);
   }
 
   void test_addString() {

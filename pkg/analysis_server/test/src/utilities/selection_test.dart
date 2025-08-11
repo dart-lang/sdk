@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
@@ -1409,6 +1411,20 @@ nodesInRange
   void _assertSelection(_CodeSelection selection, String expected) {
     var buffer = StringBuffer();
     _writeSelectionToBuffer(buffer, selection);
+    // Expectation descriptions are always written with literal newlines as '\n'
+    // so on Windows we will need to update the expectation to '\r\n' before
+    // comparing.
+    expect(
+      expected,
+      isNot(contains(r'\r')),
+      reason:
+          r'Expectations should always be written with literal '
+          "'\n' to indicate newlines regardless of platform",
+    );
+    if (Platform.isWindows) {
+      expected = expected.replaceAll(r'\n', r'\r\n');
+    }
+
     _assertTextExpectation(buffer.toString(), expected);
   }
 
@@ -1423,7 +1439,7 @@ nodesInRange
   }
 
   Future<_CodeSelection> _computeSelection(String annotatedCode) async {
-    var testCode = TestCode.parse(annotatedCode);
+    var testCode = TestCode.parse(normalizeSource(annotatedCode));
     expect(testCode.positions, isEmpty);
     var range = testCode.range.sourceRange;
 

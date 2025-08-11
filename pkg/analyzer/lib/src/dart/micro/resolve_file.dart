@@ -7,8 +7,8 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -83,10 +82,7 @@ class CiderFileContent implements FileContent {
     }
 
     var digestStr = strategy.getFileDigest(path);
-    return _ContentWithDigest(
-      content: content,
-      digestStr: digestStr,
-    );
+    return _ContentWithDigest(content: content, digestStr: digestStr);
   }
 }
 
@@ -106,11 +102,7 @@ class CiderFileContentStrategy implements FileContentStrategy {
   @override
   CiderFileContent get(String path) {
     var digestStr = getFileDigest(path);
-    return CiderFileContent(
-      strategy: this,
-      path: path,
-      digestStr: digestStr,
-    );
+    return CiderFileContent(strategy: this, path: path, digestStr: digestStr);
   }
 }
 
@@ -139,8 +131,10 @@ class CiderSearchMatch {
   bool operator ==(Object other) =>
       other is CiderSearchMatch &&
       path == other.path &&
-      const ListEquality<CiderSearchInfo>()
-          .equals(references, other.references);
+      const ListEquality<CiderSearchInfo>().equals(
+        references,
+        other.references,
+      );
 
   @override
   String toString() {
@@ -199,8 +193,10 @@ class FileResolver {
   final Map<String, ResolvedLibraryResult> cachedResults = {};
 
   /// The cache of error results.
-  final Cache<String, Uint8List> _errorResultsCache =
-      Cache(128 * 1024, (bytes) => bytes.length);
+  final Cache<String, Uint8List> _errorResultsCache = Cache(
+    128 * 1024,
+    (bytes) => bytes.length,
+  );
 
   FileResolver({
     required this.logger,
@@ -254,13 +250,17 @@ class FileResolver {
 
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
-  Future<List<CiderSearchMatch>> findReferences(Element2 element,
-      {OperationPerformanceImpl? performance}) {
-    return logger.runAsync('findReferences for ${element.name3}', () async {
+  Future<List<CiderSearchMatch>> findReferences(
+    Element element, {
+    OperationPerformanceImpl? performance,
+  }) {
+    return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
       Future<void> collectReferences2(
-          String path, OperationPerformanceImpl performance) async {
+        String path,
+        OperationPerformanceImpl performance,
+      ) async {
         await performance.runAsync('collectReferences', (_) async {
           var resolved = await resolve(path: path);
           var collector = ReferencesCollector(element);
@@ -268,21 +268,27 @@ class FileResolver {
           var matches = collector.references;
           if (matches.isNotEmpty) {
             var lineInfo = resolved.unit.lineInfo;
-            references.add(CiderSearchMatch(
+            references.add(
+              CiderSearchMatch(
                 path,
                 matches
-                    .map((match) => CiderSearchInfo(
+                    .map(
+                      (match) => CiderSearchInfo(
                         lineInfo.getLocation(match.offset),
                         match.length,
-                        match.matchKind))
-                    .toList()));
+                        match.matchKind,
+                      ),
+                    )
+                    .toList(),
+              ),
+            );
           }
         });
       }
 
       performance ??= OperationPerformanceImpl('<default>');
       // TODO(keertip): check if element is named constructor.
-      if (element is LocalVariableElement2 ||
+      if (element is LocalVariableElement ||
           (element is FormalParameterElement && !element.isNamed)) {
         await collectReferences2(
           element.firstFragment.libraryFragment!.source.fullName,
@@ -297,7 +303,6 @@ class FileResolver {
         for (var filePath in result) {
           await collectReferences2(filePath, performance!);
         }
-        _clearFileSystemStateParsedCache();
       }
       return references;
     });
@@ -312,10 +317,7 @@ class FileResolver {
     performance ??= OperationPerformanceImpl('<default>');
 
     return logger.runAsync('Get errors for $path', () async {
-      var fileContext = getFileContext(
-        path: path,
-        performance: performance!,
-      );
+      var fileContext = getFileContext(path: path, performance: performance!);
       var file = fileContext.file;
       var kind = file.kind.library ?? file.kind.asLibrary;
 
@@ -324,24 +326,22 @@ class FileResolver {
       errorsSignatureBuilder.addString(file.contentHash);
       var errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
-      List<AnalysisError> errors;
+      List<Diagnostic> diagnostics;
       var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
-        errors = data.errors.map((error) {
-          return ErrorEncoding.decode(file.source, error)!;
-        }).toList();
+        diagnostics =
+            data.errors.map((error) {
+              return ErrorEncoding.decode(file.source, error)!;
+            }).toList();
       } else {
-        var unitResult = await resolve(
-          path: path,
-          performance: performance,
-        );
-        errors = unitResult.errors;
+        var unitResult = await resolve(path: path, performance: performance);
+        diagnostics = unitResult.diagnostics;
 
         _errorResultsCache.put(
           errorsKey,
           CiderUnitErrorsBuilder(
-            errors: errors.map(ErrorEncoding.encode).toList(),
+            errors: diagnostics.map(ErrorEncoding.encode).toList(),
           ).toBuffer(),
         );
       }
@@ -354,7 +354,7 @@ class FileResolver {
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
         isPart: file.kind is PartFileKind,
-        errors: errors,
+        diagnostics: diagnostics,
         analysisOptions: file.analysisOptions,
       );
     });
@@ -366,10 +366,7 @@ class FileResolver {
   }) {
     return performance.run('fileContext', (performance) {
       var analysisOptions = performance.run('analysisOptions', (performance) {
-        return _getAnalysisOptions(
-          path: path,
-          performance: performance,
-        );
+        return _getAnalysisOptions(path: path, performance: performance);
       });
 
       performance.run('createContext', (_) {
@@ -406,10 +403,7 @@ class FileResolver {
       throw ArgumentError('$uri cannot be resolved to a file.');
     }
 
-    var fileContext = getFileContext(
-      path: path,
-      performance: performance,
-    );
+    var fileContext = getFileContext(path: path, performance: performance);
     var file = fileContext.file;
 
     var kind = file.kind;
@@ -418,11 +412,7 @@ class FileResolver {
     }
 
     performance.run('libraryContext', (performance) {
-      libraryContext!.load(
-        targetLibrary: kind,
-        performance: performance,
-      );
-      _clearFileSystemStateParsedCache();
+      libraryContext!.load(targetLibrary: kind, performance: performance);
     });
 
     return libraryContext!.elementFactory.libraryOfUri2(uri);
@@ -457,35 +447,24 @@ class FileResolver {
   /// partially resynthesized data, and so prepare for loading linked summaries
   /// from bytes, which will be done by [getErrors2]. It is OK for it to
   /// spend some more time on this.
-  Future<void> linkLibraries2({
-    required String path,
-  }) async {
+  Future<void> linkLibraries2({required String path}) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
     var performance = OperationPerformanceImpl('<unused>');
 
-    var fileContext = getFileContext(
-      path: path,
-      performance: performance,
-    );
+    var fileContext = getFileContext(path: path, performance: performance);
     var file = fileContext.file;
     var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
     // Load the library, link if necessary.
-    libraryContext!.load(
-      targetLibrary: libraryKind,
-      performance: performance,
-    );
+    libraryContext!.load(targetLibrary: libraryKind, performance: performance);
 
     // Unload libraries, but don't release the linked data.
     // If we are the only consumer of it, we will lose it.
     var linkedKeysToRelease = libraryContext!.unloadAll();
 
     // Load the library again, the reference count is `>= 2`.
-    libraryContext!.load(
-      targetLibrary: libraryKind,
-      performance: performance,
-    );
+    libraryContext!.load(targetLibrary: libraryKind, performance: performance);
 
     // Release the linked data, the reference count is `>= 1`.
     if (linkedKeysToRelease.isNotEmpty) {
@@ -523,10 +502,7 @@ class FileResolver {
     performance ??= OperationPerformanceImpl('<default>');
 
     return logger.runAsync('Resolve $path', () async {
-      var fileContext = getFileContext(
-        path: path,
-        performance: performance!,
-      );
+      var fileContext = getFileContext(path: path, performance: performance!);
       var file = fileContext.file;
 
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
@@ -536,14 +512,14 @@ class FileResolver {
         path: libraryFile.path,
         performance: performance,
       );
-      _clearFileSystemStateParsedCache();
       var unit = libraryResult.units.firstWhereOrNull(
         (unitResult) => unitResult.path == path,
       );
       if (unit == null) {
         var unitPaths = libraryResult.units.map((u) => "'${u.path}'");
         throw StateError(
-            "No unit found among ${unitPaths.join(', ')} equal to '$path'");
+          "No unit found among ${unitPaths.join(', ')} equal to '$path'",
+        );
       }
       return unit;
     });
@@ -561,22 +537,17 @@ class FileResolver {
     performance ??= OperationPerformanceImpl('<default>');
 
     return logger.runAsync('Resolve $path', () async {
-      var fileContext = getFileContext(
-        path: path,
-        performance: performance!,
-      );
+      var fileContext = getFileContext(path: path, performance: performance!);
       var file = fileContext.file;
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
       var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
       var completionOffset = lineOffset + completionColumn;
 
-      performance.run('libraryContext', (performance) {
-        libraryContext!.load(
-          targetLibrary: libraryKind,
-          performance: performance,
-        );
-      });
+      _loadLibraryAndDocLibraryImports(
+        libraryKind: libraryKind,
+        performance: performance,
+      );
 
       var unitElement = libraryContext!.computeUnitElement(libraryKind, file);
 
@@ -587,8 +558,9 @@ class FileResolver {
         var libraryElement = elementFactory.libraryOfUri2(libraryKind.file.uri);
 
         var typeSystemOperations = TypeSystemOperations(
-            libraryElement.typeSystem,
-            strictCasts: fileContext.analysisOptions.strictCasts);
+          libraryElement.typeSystem,
+          strictCasts: fileContext.analysisOptions.strictCasts,
+        );
 
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
@@ -599,7 +571,6 @@ class FileResolver {
           performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
-        _clearFileSystemStateParsedCache();
 
         var analysisResult = performance!.run('analyze', (performance) {
           return libraryAnalyzer.analyzeForCompletion(
@@ -640,31 +611,28 @@ class FileResolver {
     }
 
     return logger.runAsync('Resolve $path', () async {
-      var fileContext = getFileContext(
-        path: path,
-        performance: performance!,
-      );
+      var fileContext = getFileContext(path: path, performance: performance!);
       var file = fileContext.file;
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
-      performance.run('libraryContext', (performance) {
-        libraryContext!.load(
-          targetLibrary: libraryKind,
-          performance: performance,
-        );
-      });
+      _loadLibraryAndDocLibraryImports(
+        libraryKind: libraryKind,
+        performance: performance,
+      );
 
       testData?.addResolvedLibrary(path);
 
       late List<UnitAnalysisResult> results;
 
       logger.run('Compute analysis results', () {
-        var libraryElement =
-            libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri);
+        var libraryElement = libraryContext!.elementFactory.libraryOfUri2(
+          libraryKind.file.uri,
+        );
 
         var typeSystemOperations = TypeSystemOperations(
-            libraryElement.typeSystem,
-            strictCasts: fileContext.analysisOptions.strictCasts);
+          libraryElement.typeSystem,
+          strictCasts: fileContext.analysisOptions.strictCasts,
+        );
 
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
@@ -681,15 +649,16 @@ class FileResolver {
         });
       });
 
-      var resolvedUnits = results.map((fileResult) {
-        var file = fileResult.file;
-        return ResolvedUnitResultImpl(
-          session: contextObjects!.analysisSession,
-          fileState: file,
-          unit: fileResult.unit,
-          errors: fileResult.errors,
-        );
-      }).toList();
+      var resolvedUnits =
+          results.map((fileResult) {
+            var file = fileResult.file;
+            return ResolvedUnitResultImpl(
+              session: contextObjects!.analysisSession,
+              fileState: file,
+              unit: fileResult.unit,
+              diagnostics: fileResult.diagnostics,
+            );
+          }).toList();
 
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
@@ -702,10 +671,6 @@ class FileResolver {
 
       return result;
     });
-  }
-
-  void _clearFileSystemStateParsedCache() {
-    fsState?.parsedFileStateCache.clear();
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are
@@ -721,21 +686,18 @@ class FileResolver {
   /// system. And there are lints that are enabled for one package, but not
   /// for another.
   void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
-    // Clear it here too, so that even if we miss the invocation somewhere,
-    // we still eventually do it, and so limit the number of cached items.
-    _clearFileSystemStateParsedCache();
-
     if (contextObjects != null) {
       libraryContext!.analysisContext.analysisOptions = fileAnalysisOptions;
       return;
     }
 
-    var analysisOptions = (AnalysisOptionsBuilder()
-          ..strictInference = fileAnalysisOptions.strictInference
-          ..contextFeatures =
-              FeatureSet.latestLanguageVersion() as ExperimentStatus
-          ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
-        .build();
+    var analysisOptions =
+        (AnalysisOptionsBuilder()
+              ..strictInference = fileAnalysisOptions.strictInference
+              ..contextFeatures =
+                  FeatureSet.latestLanguageVersion() as ExperimentStatus
+              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+            .build();
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
@@ -784,9 +746,9 @@ class FileResolver {
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
         eventsController: null,
-        infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
-            contextObjects!.analysisOptions),
+          contextObjects!.analysisOptions,
+        ),
         analysisSession: contextObjects!.analysisSession,
         logger: logger,
         fileSystemState: fsState!,
@@ -794,9 +756,7 @@ class FileResolver {
         externalSummaries: SummaryDataStore(),
         packagesFile: null,
         testData: testData?.libraryContext,
-        linkedBundleProvider: LinkedBundleProvider(
-          byteStore: byteStore,
-        ),
+        linkedBundleProvider: LinkedBundleProvider(byteStore: byteStore),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -819,8 +779,8 @@ class FileResolver {
     YamlMap? optionMap;
 
     var separator = resourceProvider.pathContext.separator;
-    var isThirdParty = path
-            .contains('${separator}third_party${separator}dart$separator') ||
+    var isThirdParty =
+        path.contains('${separator}third_party${separator}dart$separator') ||
         path.contains('${separator}third_party${separator}dart_lang$separator');
 
     File? optionsFile;
@@ -881,23 +841,53 @@ class FileResolver {
     return options;
   }
 
+  void _loadLibraryAndDocLibraryImports({
+    required LibraryFileKind libraryKind,
+    required OperationPerformanceImpl performance,
+  }) {
+    performance.run('libraryContext', (performance) {
+      libraryContext!.load(
+        targetLibrary: libraryKind,
+        performance: performance,
+      );
+
+      for (var import in libraryKind.docLibraryImports) {
+        if (import is LibraryImportWithFile) {
+          if (import.importedLibrary case var libraryFileKind?) {
+            libraryContext!.load(
+              targetLibrary: libraryFileKind,
+              performance: performance,
+            );
+          }
+        }
+      }
+    });
+  }
+
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      MockLibraryImportElement element) async {
+    MockLibraryImportElement element,
+  ) async {
     var results = <CiderSearchMatch>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var libraryFragment in libraryElement.fragments) {
       String unitPath = libraryFragment.source.fullName;
       var unitResult = await resolve(path: unitPath);
-      var visitor =
-          ImportElementReferencesVisitor(element.import, libraryFragment);
+      var visitor = ImportElementReferencesVisitor(
+        element.import,
+        libraryFragment,
+      );
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
-      var infos = visitor.results
-          .map((searchResult) => CiderSearchInfo(
-              lineInfo.getLocation(searchResult.offset),
-              searchResult.length,
-              MatchKind.REFERENCE))
-          .toList();
+      var infos =
+          visitor.results
+              .map(
+                (searchResult) => CiderSearchInfo(
+                  lineInfo.getLocation(searchResult.offset),
+                  searchResult.length,
+                  MatchKind.REFERENCE,
+                ),
+              )
+              .toList();
       results.add(CiderSearchMatch(unitPath, infos));
     }
     return results;
@@ -906,9 +896,7 @@ class FileResolver {
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (pathContext.normalize(path) != path) {
-      throw ArgumentError(
-        'Only normalized paths are supported: $path',
-      );
+      throw ArgumentError('Only normalized paths are supported: $path');
     }
   }
 }
@@ -934,8 +922,5 @@ class _ContentWithDigest {
   final String content;
   final String digestStr;
 
-  _ContentWithDigest({
-    required this.content,
-    required this.digestStr,
-  });
+  _ContentWithDigest({required this.content, required this.digestStr});
 }

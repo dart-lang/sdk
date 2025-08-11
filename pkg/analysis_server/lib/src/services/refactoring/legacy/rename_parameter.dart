@@ -9,23 +9,24 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/// A [Refactoring] for renaming [FormalParameterElement]s.
+/// A [Refactoring] for renaming [analyzer.FormalParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
-  List<FormalParameterElement> elements = [];
+  List<analyzer.FormalParameterElement> elements = [];
   bool _renameAllPositionalOccurences = false;
 
   RenameParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    FormalParameterElement super.element,
+    analyzer.FormalParameterElement super.element,
   ) : super();
 
   @override
-  FormalParameterElement get element => super.element as FormalParameterElement;
+  analyzer.FormalParameterElement get element =>
+      super.element as analyzer.FormalParameterElement;
 
   @override
   String get refactoringName {
@@ -42,7 +43,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         result.addError(
           format(
             "The parameter '{0}' is named and can not be private.",
-            element.name3,
+            element.name,
           ),
         );
         break;
@@ -101,8 +102,8 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
       var fieldRenamed = false;
-      if (element is FieldFormalParameterElement2) {
-        var field = element.field2;
+      if (element is analyzer.FieldFormalParameterElement) {
+        var field = element.field;
         if (field != null) {
           await processor.renameElement(field);
           fieldRenamed = true;
@@ -123,7 +124,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       // References to positional parameters from super-formal.
       if (element.isPositional) {
         references.removeWhere(
-          (match) => match.element is SuperFormalParameterElement2,
+          (match) => match.element is analyzer.SuperFormalParameterElement,
         );
       }
 
@@ -131,7 +132,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /// Fills [elements] with [Element2]s to rename.
+  /// Fills [elements] with [Element]s to rename.
   Future<void> _prepareElements() async {
     var element = this.element;
     if (element.isNamed) {

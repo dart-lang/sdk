@@ -111,7 +111,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       // The instructionType of [nullCheck] is not nullable (since it is the
       // (not) null check!) This means that if we do need to check the type, we
       // should test against nullCheck.checkedInput, not the direct input.
-      if (current!.getDartReceiver(_closedWorld) == nullCheck) {
+      if (current!.getDartReceiver() == nullCheck) {
         if (current is HFieldGet) return current;
         if (current is HFieldSet) return current;
         if (current is HGetLength) return current;
@@ -161,10 +161,9 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            successor =
-                condition.constant is TrueConstantValue
-                    ? current.thenBlock
-                    : current.elseBlock;
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
           }
         }
         if (successor != null && successor.id > current.block!.id) {
@@ -224,10 +223,9 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   // ToPrimitive conversions of an object occur when the other operand is a
   // primitive (Number, String, Symbol and, indirectly, Boolean). We use
   // 'intercepted' types as a proxy for all the primitive types.
-  bool _intercepted(AbstractValue type) =>
-      _abstractValueDomain
-          .isInterceptor(_abstractValueDomain.excludeNull(type))
-          .isPotentiallyTrue;
+  bool _intercepted(AbstractValue type) => _abstractValueDomain
+      .isInterceptor(_abstractValueDomain.excludeNull(type))
+      .isPotentiallyTrue;
 
   @override
   HBinaryBitOp visitBinaryBitOp(HBinaryBitOp node) {

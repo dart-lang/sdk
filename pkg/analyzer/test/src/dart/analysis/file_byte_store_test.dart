@@ -43,9 +43,16 @@ class FileByteStoreValidatorTest {
   }
 
   test_get_bad_wrongVersion() {
-    var bytes = Uint8List.fromList(
-      [0xBA, 0xDA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-    );
+    var bytes = Uint8List.fromList([
+      0xBA,
+      0xDA,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+    ]);
     var data = validator.getData(bytes);
     expect(data, isNull);
   }

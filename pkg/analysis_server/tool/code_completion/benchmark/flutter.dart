@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 import 'sliding_statistics.dart';
@@ -45,22 +46,14 @@ Future<void> _runForever({
   required String path,
   required String markedCode,
 }) async {
-  var offset = markedCode.indexOf('^');
-  if (offset == -1) {
-    throw ArgumentError('No ^ marker');
-  }
-
-  var rawCode =
-      markedCode.substring(0, offset) + markedCode.substring(offset + 1);
-  if (rawCode.contains('^')) {
-    throw ArgumentError('Duplicate ^ marker');
-  }
+  var code = TestCode.parse(markedCode);
+  var offset = code.position.offset;
 
   var resourceProvider = OverlayResourceProvider(
     PhysicalResourceProvider.INSTANCE,
   );
 
-  resourceProvider.setOverlay(path, content: rawCode, modificationStamp: -1);
+  resourceProvider.setOverlay(path, content: code.code, modificationStamp: -1);
 
   var collection = AnalysisContextCollectionImpl(
     resourceProvider: resourceProvider,

@@ -24,9 +24,7 @@ bool loadLoadStrongRef(StrongRef obj) {
 
 void matchIL$loadLoadStrongRef(FlowGraph graph) {
   graph.match([
-    match.block('Graph', [
-      'true' << match.Constant(value: true),
-    ]),
+    match.block('Graph', ['true' << match.Constant(value: true)]),
     match.block('Function', [
       'obj' << match.Parameter(index: 0),
       match.DartReturn('true'),
@@ -65,9 +63,7 @@ bool storeLoadStrongRef(Object v1) {
 
 void matchIL$storeLoadStrongRef(FlowGraph graph) {
   graph.match([
-    match.block('Graph', [
-      'true' << match.Constant(value: true),
-    ]),
+    match.block('Graph', ['true' << match.Constant(value: true)]),
     match.block('Function', [
       'obj' << match.Parameter(index: 0),
       match.DartReturn('true'),

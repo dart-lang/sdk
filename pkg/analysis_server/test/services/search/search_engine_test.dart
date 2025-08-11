@@ -5,12 +5,12 @@
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -58,6 +58,12 @@ class PubPackageResolutionTest extends AbstractContextTest {
 class SearchEngineImplTest extends PubPackageResolutionTest {
   SearchEngineImpl get searchEngine {
     return SearchEngineImpl(allDrivers);
+  }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
@@ -208,7 +214,7 @@ class C implements B {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -237,7 +243,7 @@ class C extends B {}
     await resolveFile2(a);
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -258,7 +264,7 @@ extension type C(int it) implements A {}
 
     var element = findElement2.class_('A');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -284,7 +290,7 @@ mixin E implements C {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -326,7 +332,7 @@ int test;
           predicate(
             (SearchMatch m) =>
                 m.kind == MatchKind.DECLARATION &&
-                m.element.name3 == name &&
+                m.element.name == name &&
                 m.element.firstFragment.nameOffset2 == nameOffset,
           ),
         ),
@@ -361,7 +367,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element.name3 == 'foo' || m.kind == MatchKind.READ,
+              m.element.name == 'foo' || m.kind == MatchKind.READ,
         ),
       ),
     );
@@ -370,7 +376,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element.name3 == 'bar' || m.kind == MatchKind.WRITE,
+              m.element.name == 'bar' || m.kind == MatchKind.WRITE,
         ),
       ),
     );
@@ -394,11 +400,11 @@ T b;
     expect(matches, hasLength(2));
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element.name3 == 'a')),
+      contains(predicate((SearchMatch m) => m.element.name == 'a')),
     );
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element.name3 == 'b')),
+      contains(predicate((SearchMatch m) => m.element.name == 'b')),
     );
   }
 
@@ -421,7 +427,7 @@ int t;
             as LibraryElementResult;
     var intElement =
         coreLibResult.element2.classes.firstWhereOrNull(
-          (e) => e.name3 == 'int',
+          (e) => e.name == 'int',
         )!;
 
     var matches = await searchEngine.searchReferences(intElement);
@@ -430,8 +436,8 @@ int t;
       expect(
         matches.where((m) {
           var element = m.element;
-          return element.name3 == name &&
-              element.library2?.firstFragment.source.fullName == path;
+          return element.name == name &&
+              element.library?.firstFragment.source.fullName == path;
         }),
         hasLength(1),
       );
@@ -691,7 +697,7 @@ get b => 42;
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -728,7 +734,7 @@ class B extends A {}
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -762,12 +768,12 @@ class B extends A {}
   }
 
   static void _assertContainsClass(
-    Set<InterfaceElement2> subtypes,
+    Set<InterfaceElement> subtypes,
     String name,
   ) {
     expect(
       subtypes,
-      contains(predicate((InterfaceElement2 e) => e.name3 == name)),
+      contains(predicate((InterfaceElement e) => e.name == name)),
     );
   }
 }
@@ -775,6 +781,12 @@ class B extends A {}
 @reflectiveTest
 class SearchEngineImplWithNonFunctionTypeAliasesTest
     extends SearchEngineImplTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_searchReferences_typeAlias_interfaceType() async {
     await resolveTestCode('''
 typedef A<T> = Map<T, String>;
@@ -785,7 +797,7 @@ void f(A<int> a, A<double> b) {}
     var element = findElement2.typeAlias('A');
     var matches = await searchEngine.searchReferences(element);
 
-    Matcher hasOne(Element2 element, String search) {
+    Matcher hasOne(Element element, String search) {
       return predicate((SearchMatch match) {
         return match.element == element &&
             match.sourceRange.offset == findNode.offset(search);

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -22,14 +24,11 @@ class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
       );
 
   @override
-  LintCode get lintCode =>
+  DiagnosticCode get diagnosticCode =>
       LinterLintCode.avoid_equals_and_hash_code_on_mutable_classes;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -47,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = node.classElement;
       if (classElement != null && !classElement.hasImmutableAnnotation) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           node.firstTokenAfterCommentAndMetadata,
           arguments: [node.name.lexeme],
         );
@@ -57,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on MethodDeclaration {
-  ClassElement2? get classElement =>
+  ClassElement? get classElement =>
       // TODO(pq): should this be ClassOrMixinDeclaration ?
       thisOrAncestorOfType<ClassDeclaration>()?.declaredFragment?.element;
 }

@@ -23,30 +23,34 @@ main() {
       test('peer connection', () {
         var pc = new RtcPeerConnection({
           'iceServers': [
-            {'url': 'stun:216.93.246.18:3478'}
-          ]
+            {'url': 'stun:216.93.246.18:3478'},
+          ],
         });
         expect(pc is RtcPeerConnection, isTrue);
         pc.onIceCandidate.listen((candidate) {});
       });
 
       test('ice candidate', () {
-        var candidate =
-            new RtcIceCandidate({'sdpMLineIndex': 1, 'candidate': 'hello'});
+        var candidate = new RtcIceCandidate({
+          'sdpMLineIndex': 1,
+          'candidate': 'hello',
+        });
         expect(candidate is RtcIceCandidate, isTrue);
       });
 
       test('session description', () {
-        var description =
-            new RtcSessionDescription({'sdp': 'foo', 'type': 'offer'});
+        var description = new RtcSessionDescription({
+          'sdp': 'foo',
+          'type': 'offer',
+        });
         expect(description is RtcSessionDescription, isTrue);
       });
 
       test('connection state', () {
         var pc = new RtcPeerConnection({
           'iceServers': [
-            {'url': 'stun:216.93.246.18:3478'}
-          ]
+            {'url': 'stun:216.93.246.18:3478'},
+          ],
         });
         // `connectionState` is unsupported on some browsers, so we check
         // whether the attribute exists first.

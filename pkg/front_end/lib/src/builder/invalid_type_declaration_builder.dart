@@ -4,6 +4,7 @@
 
 part of 'declaration_builders.dart';
 
+// TODO(johnniwinther): Make this a [ProblemBuilder].
 class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin
     implements TypeDeclarationBuilder {
@@ -18,6 +19,9 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   InvalidTypeDeclarationBuilder(this.name, this.message,
       {this.context, this.suppressMessage = true});
+
+  @override
+  int get typeParametersCount => 0;
 
   @override
   Builder? get parent => null;

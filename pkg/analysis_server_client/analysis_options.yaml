@@ -10,7 +10,6 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
-    - analyzer_use_new_elements
     - omit_local_variable_types
     - prefer_single_quotes
     - unawaited_futures

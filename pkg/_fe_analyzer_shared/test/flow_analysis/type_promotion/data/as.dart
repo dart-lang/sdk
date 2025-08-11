@@ -10,7 +10,8 @@ class C implements A, B {}
 
 promotesIfSubtype(A a) {
   a as C;
-  /*C*/ a;
+  /*C*/
+  a;
 }
 
 doesNotPromoteIfNotSubtype(A a) {
@@ -26,6 +27,7 @@ doesNotPromoteIfSameType(A a) {
 class D<T extends A> {
   promotesTypeParameter(T t) {
     t as C;
-    /*T & C*/ t;
+    /*T & C*/
+    t;
   }
 }

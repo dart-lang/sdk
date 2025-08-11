@@ -19,9 +19,9 @@ class DartObjectPrinter {
     required DartObjectPrinterConfiguration configuration,
     required TreeStringSink sink,
     required ElementPrinter elementPrinter,
-  })  : _configuration = configuration,
-        _sink = sink,
-        _elementPrinter = elementPrinter;
+  }) : _configuration = configuration,
+       _sink = sink,
+       _elementPrinter = elementPrinter;
 
   void write(DartObjectImpl? object) {
     if (object != null) {

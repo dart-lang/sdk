@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 class ImplementedComputer {
   final SearchEngine searchEngine;
@@ -32,27 +32,27 @@ class ImplementedComputer {
     }
   }
 
-  void _addImplementedClass(InterfaceElement2 element) {
+  void _addImplementedClass(InterfaceElement element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
-      var name = fragment.name2;
+      var name = fragment.name;
       if (offset != null && name != null) {
         classes.add(protocol.ImplementedClass(offset, name.length));
       }
     }
   }
 
-  void _addImplementedMember(Element2 element) {
+  void _addImplementedMember(Element element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
-      var name = fragment.name2;
+      var name = fragment.name;
       if (offset != null && name != null) {
         members.add(protocol.ImplementedMember(offset, name.length));
       }
     }
   }
 
-  void _addMemberIfImplemented(Element2 element) {
+  void _addMemberIfImplemented(Element element) {
     if (element.isSynthetic || _isStatic(element)) {
       return;
     }
@@ -61,14 +61,14 @@ class ImplementedComputer {
     }
   }
 
-  Future<void> _computeForInterfaceElement(InterfaceElement2 element) async {
+  Future<void> _computeForInterfaceElement(InterfaceElement element) async {
     // Always include Object and its members.
-    if (element is ClassElement2 && element.isDartCoreObject) {
+    if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);
-      element.getters2.forEach(_addImplementedMember);
-      element.setters2.forEach(_addImplementedMember);
-      element.fields2.forEach(_addImplementedMember);
-      element.methods2.forEach(_addImplementedMember);
+      element.getters.forEach(_addImplementedMember);
+      element.setters.forEach(_addImplementedMember);
+      element.fields.forEach(_addImplementedMember);
+      element.methods.forEach(_addImplementedMember);
       return;
     }
 
@@ -76,23 +76,23 @@ class ImplementedComputer {
     subtypeMembers = await searchEngine.membersOfSubtypes(element);
     if (subtypeMembers != null) {
       _addImplementedClass(element);
-      element.getters2.forEach(_addMemberIfImplemented);
-      element.setters2.forEach(_addMemberIfImplemented);
-      element.fields2.forEach(_addMemberIfImplemented);
-      element.methods2.forEach(_addMemberIfImplemented);
+      element.getters.forEach(_addMemberIfImplemented);
+      element.setters.forEach(_addMemberIfImplemented);
+      element.fields.forEach(_addMemberIfImplemented);
+      element.methods.forEach(_addMemberIfImplemented);
     }
   }
 
-  bool _hasOverride(Element2 element) {
+  bool _hasOverride(Element element) {
     var name = element.displayName;
     return subtypeMembers!.contains(name);
   }
 
   /// Return `true` if the given [element] is a static element.
-  static bool _isStatic(Element2 element) {
-    if (element is ExecutableElement2) {
+  static bool _isStatic(Element element) {
+    if (element is ExecutableElement) {
       return element.isStatic;
-    } else if (element is PropertyInducingElement2) {
+    } else if (element is PropertyInducingElement) {
       return element.isStatic;
     }
     return false;

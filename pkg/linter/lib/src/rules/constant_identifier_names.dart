@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -17,13 +19,10 @@ class ConstantIdentifierNames extends LintRule {
     : super(name: LintNames.constant_identifier_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.constant_identifier_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.constant_identifier_names;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkIdentifier(Token id) {
     var name = id.lexeme;
     if (!isLowerCamelCase(name)) {
-      rule.reportLintForToken(id, arguments: [name]);
+      rule.reportAtToken(id, arguments: [name]);
     }
   }
 

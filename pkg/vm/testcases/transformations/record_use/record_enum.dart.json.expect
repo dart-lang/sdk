@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.2.0"
+  },
+  "constants": [
+    {
+      "type": "int",
+      "value": 0
+    },
+    {
+      "type": "String",
+      "value": "a"
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "index": 0,
+        "_name": 1
+      }
+    },
+    {
+      "type": "Instance",
+      "value": {
+        "a": 2
+      }
+    }
+  ],
+  "locations": [
+    {
+      "uri": "record_enum.dart"
+    }
+  ],
+  "recordings": [
+    {
+      "definition": {
+        "identifier": {
+          "uri": "record_enum.dart",
+          "name": "MyClass"
+        },
+        "loading_unit": "1"
+      },
+      "instances": [
+        {
+          "constant_index": 3,
+          "loading_unit": "1",
+          "@": 0
+        }
+      ]
+    }
+  ]
+}

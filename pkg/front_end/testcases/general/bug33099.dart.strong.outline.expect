@@ -23,7 +23,7 @@ abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest /*isAnony
   const synthetic constructor •() → self::_MyTest2&Object&MyTest
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{self::MyTest::foo}();
 }
 static const field self::_FailingTest failingTest = const self::_FailingTest::•();

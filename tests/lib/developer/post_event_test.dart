@@ -17,7 +17,7 @@ final protectedStreams = [
   'Logging',
   'Timeline',
   'Profiler',
-  '_aStreamThatStartsWithAnUnderScore'
+  '_aStreamThatStartsWithAnUnderScore',
 ];
 
 main() {

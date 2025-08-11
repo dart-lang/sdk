@@ -18,10 +18,13 @@ main() {
   StackTrace trace = captureStackTrace();
   asyncStart();
   var f = new Future.error(499, trace);
-  f.then<Null>((_) {
-    throw "Unreachable";
-  }, onError: (e, st) {
-    Expect.identical(trace, st);
-    asyncEnd();
-  });
+  f.then<Null>(
+    (_) {
+      throw "Unreachable";
+    },
+    onError: (e, st) {
+      Expect.identical(trace, st);
+      asyncEnd();
+    },
+  );
 }

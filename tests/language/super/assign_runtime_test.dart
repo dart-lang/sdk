@@ -18,5 +18,4 @@ class C extends A {
 main() {
   A a = new C();
   a.x = 37;
-
 }

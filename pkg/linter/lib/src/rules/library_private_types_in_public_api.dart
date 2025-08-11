@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -20,13 +22,11 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.library_private_types_in_public_api;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -133,10 +133,10 @@ class Validator extends SimpleAstVisitor<void> {
 
     // Check implicit type.
     var element = node.declaredFragment?.element;
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
-        rule.reportLintForToken(node.name);
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
+        rule.reportAtToken(node.name);
       }
     }
   }
@@ -214,9 +214,9 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element != null && isPrivate(element)) {
-      rule.reportLintForToken(node.name2);
+      rule.reportAtToken(node.name);
     }
     node.typeArguments?.accept(this);
   }
@@ -245,10 +245,10 @@ class Validator extends SimpleAstVisitor<void> {
 
     // Check implicit type.
     var element = node.declaredFragment?.element;
-    if (element is SuperFormalParameterElement2) {
+    if (element is SuperFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
-        rule.reportLintForToken(node.name);
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
+        rule.reportAtToken(node.name);
       }
     }
   }
@@ -279,7 +279,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   /// Return `true` if the given [element] is private or is defined in a private
   /// library.
-  static bool isPrivate(Element2 element) => isPrivateName(element.name3);
+  static bool isPrivate(Element element) => isPrivateName(element.name);
 
   static bool isPrivateName(String? name) =>
       name != null && Identifier.isPrivateName(name);

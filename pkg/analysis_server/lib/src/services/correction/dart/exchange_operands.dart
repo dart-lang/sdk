@@ -19,7 +19,7 @@ class ExchangeOperands extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.EXCHANGE_OPERANDS;
+  AssistKind get assistKind => DartAssistKind.exchangeOperands;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

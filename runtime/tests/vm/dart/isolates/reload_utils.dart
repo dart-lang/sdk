@@ -129,7 +129,7 @@ Future<Reloader> launchOn(String file, {bool verbose = false}) async {
     '--enable-vm-service:0',
     '--no-dds',
     '--disable-service-auth-codes',
-    file
+    file,
   ];
   final env = Platform.environment;
   final executable = Platform.executable;
@@ -157,16 +157,16 @@ class Reloader {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      print('stdout: $line');
-      _addStdout(line);
-    });
+          print('stdout: $line');
+          _addStdout(line);
+        });
     _process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      print('stderr: $line');
-      _addStderr(line);
-    });
+          print('stderr: $line');
+          _addStderr(line);
+        });
   }
 
   Future _waitUntilService() async {
@@ -273,7 +273,11 @@ class Reloader {
   }
 
   Future<String> _waitUntilContains(
-      List<String> lines, Set<_Filter> filterSet, String needle, int N) {
+    List<String> lines,
+    Set<_Filter> filterSet,
+    String needle,
+    int N,
+  ) {
     int count = 0;
 
     bool handleLine(String line) {
@@ -291,13 +295,15 @@ class Reloader {
       if (handleLine(line)) return Future.value(line);
     }
     final c = Completer<String>();
-    filterSet.add(_Filter(needle, (line) {
-      if (handleLine(line)) {
-        c.complete(line);
-        return true;
-      }
-      return false;
-    }));
+    filterSet.add(
+      _Filter(needle, (line) {
+        if (handleLine(line)) {
+          c.complete(line);
+          return true;
+        }
+        return false;
+      }),
+    );
     return c.future;
   }
 

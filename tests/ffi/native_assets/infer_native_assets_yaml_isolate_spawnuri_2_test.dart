@@ -25,7 +25,8 @@ const helper2Name = 'infer_native_assets_yaml_isolate_spawnuri_2_helper_2.dart';
 final helperSourceuri = Platform.script.resolve(helperName);
 final helper2Sourceuri = Platform.script.resolve(helper2Name);
 
-final emptyPackageConfig = '''{
+final emptyPackageConfig =
+    '''{
   "configVersion": 2,
   "packages": [],
   "generated": "${DateTime.now()}",

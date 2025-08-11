@@ -5918,7 +5918,7 @@ class DropTempsInstr : public Definition {
 class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit MakeTempInstr(Zone* zone)
-      : null_(new(zone) ConstantInstr(Object::ZoneHandle())) {
+      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
     // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
@@ -6602,27 +6602,47 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
+enum class SlowPathOnSentinelValue {
+  kDoNothing,
+  kThrowAccessError,  // This is part of shared field implementation.
+  kCallInitializer,   // This will also do the shared field access check.
+};
+
 template <intptr_t N>
 class TemplateLoadField : public TemplateDefinition<N, Throws> {
   using Base = TemplateDefinition<N, Throws>;
 
  public:
-  TemplateLoadField(const InstructionSource& source,
-                    bool calls_initializer = false,
-                    intptr_t deopt_id = DeoptId::kNone,
-                    const Field* field = nullptr)
+  TemplateLoadField(
+      const InstructionSource& source,
+      SlowPathOnSentinelValue slow_path = SlowPathOnSentinelValue::kDoNothing,
+      intptr_t deopt_id = DeoptId::kNone,
+      const Field* field = nullptr)
       : Base(source, deopt_id),
         token_pos_(source.token_pos),
         throw_exception_on_initialization_(
             field != nullptr && !field->has_initializer() && field->is_late()),
-        calls_initializer_(calls_initializer) {
-    ASSERT(!calls_initializer || field != nullptr);
-    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+        slow_path_(slow_path) {
+    ASSERT(slow_path == SlowPathOnSentinelValue::kDoNothing ||
+           field != nullptr);
+    ASSERT(slow_path == SlowPathOnSentinelValue::kDoNothing ||
+           (deopt_id != DeoptId::kNone));
   }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  bool calls_initializer() const { return calls_initializer_; }
-  void set_calls_initializer(bool value) { calls_initializer_ = value; }
+
+  bool does_throw_access_error_or_call_initializer() const {
+    return slow_path_ > SlowPathOnSentinelValue::kDoNothing;
+  }
+  bool throws_access_error() const {
+    return slow_path_ == SlowPathOnSentinelValue::kThrowAccessError;
+  }
+  bool calls_initializer() const {
+    return slow_path_ == SlowPathOnSentinelValue::kCallInitializer;
+  }
+  void clear_calls_initializer() {
+    slow_path_ = SlowPathOnSentinelValue::kDoNothing;
+  }
 
   bool throw_exception_on_initialization() const {
     return throw_exception_on_initialization_;
@@ -6636,14 +6656,16 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
   virtual intptr_t DeoptimizationTarget() const { return Base::GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return calls_initializer() && !CompilerState::Current().is_aot();
+    return does_throw_access_error_or_call_initializer() &&
+           !CompilerState::Current().is_aot();
   }
   virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
     return Base::InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const {
-    return calls_initializer() && !throw_exception_on_initialization();
+    return does_throw_access_error_or_call_initializer() &&
+           !throw_exception_on_initialization();
   }
 
   virtual bool CanCallDart() const {
@@ -6653,13 +6675,17 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
     // automatically (see Thread::RestoreWriteBarrierInvariant).
     return false;
   }
-  virtual bool CanTriggerGC() const { return calls_initializer(); }
-  virtual bool MayThrow() const { return calls_initializer(); }
+  virtual bool CanTriggerGC() const {
+    return does_throw_access_error_or_call_initializer();
+  }
+  virtual bool MayThrow() const {
+    return does_throw_access_error_or_call_initializer();
+  }
 
 #define FIELD_LIST(F)                                                          \
   F(const TokenPosition, token_pos_)                                           \
   F(const bool, throw_exception_on_initialization_)                            \
-  F(bool, calls_initializer_)
+  F(SlowPathOnSentinelValue, slow_path_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TemplateLoadField, Base, FIELD_LIST)
 #undef FIELD_LIST
@@ -6670,11 +6696,12 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
 
 class LoadStaticFieldInstr : public TemplateLoadField<0> {
  public:
-  LoadStaticFieldInstr(const Field& field,
-                       const InstructionSource& source,
-                       bool calls_initializer = false,
-                       intptr_t deopt_id = DeoptId::kNone)
-      : TemplateLoadField<0>(source, calls_initializer, deopt_id, &field),
+  LoadStaticFieldInstr(
+      const Field& field,
+      const InstructionSource& source,
+      SlowPathOnSentinelValue slow_path = SlowPathOnSentinelValue::kDoNothing,
+      intptr_t deopt_id = DeoptId::kNone)
+      : TemplateLoadField<0>(source, slow_path, deopt_id, &field),
         field_(field) {}
 
   DECLARE_INSTRUCTION(LoadStaticField)
@@ -6710,12 +6737,13 @@ class LoadStaticFieldInstr : public TemplateLoadField<0> {
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
-class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
+class StoreStaticFieldInstr : public TemplateDefinition<1, Throws> {
  public:
   StoreStaticFieldInstr(const Field& field,
                         Value* value,
-                        const InstructionSource& source)
-      : TemplateDefinition(source),
+                        const InstructionSource& source,
+                        intptr_t deopt_id)
+      : TemplateDefinition(source, deopt_id),
         field_(field),
         token_pos_(source.token_pos) {
     DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
@@ -6731,6 +6759,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   Value* value() const { return inputs_[kValuePos]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return FLAG_experimental_shared_data;
+  }
 
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
@@ -6738,6 +6769,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool MayHaveVisibleEffect() const { return true; }
+
+  virtual bool CanTriggerGC() const { return FLAG_experimental_shared_data; }
+  virtual bool MayThrow() const { return FLAG_experimental_shared_data; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -8094,7 +8128,9 @@ class LoadFieldInstr : public TemplateLoadField<1> {
                  bool calls_initializer = false,
                  intptr_t deopt_id = DeoptId::kNone)
       : TemplateLoadField(source,
-                          calls_initializer,
+                          calls_initializer
+                              ? SlowPathOnSentinelValue::kCallInitializer
+                              : SlowPathOnSentinelValue::kDoNothing,
                           deopt_id,
                           slot.IsDartField() ? &slot.field() : nullptr),
         slot_(slot),

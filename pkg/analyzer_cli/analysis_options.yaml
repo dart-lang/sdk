@@ -13,12 +13,10 @@ analyzer:
 
 linter:
   rules:
-    - analyzer_use_new_elements
     - always_declare_return_types
     - avoid_unused_constructor_parameters
     - directives_ordering
     - flutter_style_todos
-    - library_annotations
     - omit_local_variable_types
     - prefer_single_quotes
     - unawaited_futures

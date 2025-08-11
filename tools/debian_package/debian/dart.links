@@ -1,2 +1,3 @@
 usr/lib/dart/bin/dart usr/bin/dart
+usr/lib/dart/bin/dartaotruntime usr/bin/dartaotruntime
 

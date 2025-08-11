@@ -102,7 +102,7 @@ class A extends core::Enum {
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
-  no-such-method-forwarder get _name() → core::String
+  synthetic no-such-method-forwarder get core::_name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class B extends core::Object implements core::Enum {
@@ -111,7 +111,7 @@ class B extends core::Object implements core::Enum {
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
-  no-such-method-forwarder get _name() → core::String
+  synthetic no-such-method-forwarder get core::_name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 abstract class EnumInterface extends core::Object implements core::Enum {
@@ -125,7 +125,7 @@ class EnumClass extends self::EnumInterface {
     ;
   get index() → core::int
     return 0;
-  no-such-method-forwarder get _name() → core::String
+  synthetic no-such-method-forwarder get core::_name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 abstract class AbstractEnumClass extends self::EnumInterface {
@@ -137,7 +137,7 @@ class EnumClass2 extends self::AbstractEnumClass {
   synthetic constructor •() → self::EnumClass2
     : super self::AbstractEnumClass::•()
     ;
-  no-such-method-forwarder get _name() → core::String
+  synthetic no-such-method-forwarder get core::_name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 abstract class EnumMixin extends core::Enum /*isMixinDeclaration*/  {
@@ -151,7 +151,7 @@ class EnumClass3 extends self::AbstractEnumClass2 {
   synthetic constructor •() → self::EnumClass3
     : super self::AbstractEnumClass2::•()
     ;
-  no-such-method-forwarder get _name() → core::String
+  synthetic no-such-method-forwarder get core::_name() → core::String
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 abstract class _AbstractEnumClass2&Object&EnumMixin = core::Object with self::EnumMixin /*isAnonymousMixin,hasConstConstructor*/  {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,13 +31,17 @@ class AnalysisOptionsTest {
 
   final resourceProvider = MemoryResourceProvider();
 
+  String convertPath(String filePath) =>
+      ResourceProviderExtension(resourceProvider).convertPath(filePath);
+
   // TODO(srawlins): Add tests that exercise
   // `optionsProvider.getOptionsFromString` throwing an exception.
   AnalysisOptionsImpl parseOptions(String content) =>
       AnalysisOptionsImpl.fromYaml(
         optionsMap: optionsProvider.getOptionsFromString(content),
         file: resourceProvider.getFile(
-            resourceProvider.convertPath('/project/analysis_options.yaml')),
+          convertPath('/project/analysis_options.yaml'),
+        ),
         resourceProvider: resourceProvider,
       );
 
@@ -47,8 +53,11 @@ analyzer:
     - another
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(
+      unignorableCodeNames,
+      unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']),
+    );
   }
 
   test_analyzer_cannotIgnore_severity() {
@@ -58,9 +67,9 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('INVALID_ANNOTATION'));
-    expect(unignorableNames.length, greaterThan(500));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_cannotIgnore_severity_withProcessor() {
@@ -72,8 +81,8 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('UNUSED_IMPORT'));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('UNUSED_IMPORT'));
   }
 
   test_analyzer_chromeos_checks() {
@@ -104,11 +113,11 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],
@@ -129,11 +138,11 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
@@ -141,7 +150,7 @@ analyzer:
 
     var processor = processors.first;
     expect(processor.appliesTo(warning), isTrue);
-    expect(processor.severity, ErrorSeverity.ERROR);
+    expect(processor.severity, DiagnosticSeverity.ERROR);
   }
 
   test_analyzer_errors_severityIsIgnore() {
@@ -154,11 +163,11 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var error = AnalysisError.tmp(
+    var error = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [
         ['x'],
         ['y'],
@@ -180,11 +189,11 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],
@@ -335,7 +344,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: ${resourceProvider.convertPath('/project/foo/bar')}
+    path: ${convertPath('/project/foo/bar')}
 ''',
       ),
     );
@@ -358,7 +367,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: ${resourceProvider.convertPath('/foo/baz')}
+    path: ${convertPath('/foo/baz')}
 ''',
       ),
     );
@@ -488,7 +497,8 @@ plugins:
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     var otherOptions = resourceProvider.getFile(
-        resourceProvider.convertPath("/project/analysis_options_helper.yaml"));
+      convertPath("/project/analysis_options_helper.yaml"),
+    );
     otherOptions.writeAsStringSync('''
 analyzer:
   errors:
@@ -497,7 +507,8 @@ analyzer:
     c: ignore
 ''');
     var mainOptions = resourceProvider.getFile(
-        resourceProvider.convertPath("/project/analysis_options.yaml"));
+      convertPath("/project/analysis_options.yaml"),
+    );
     mainOptions.writeAsStringSync('''
 include: analysis_options_helper.yaml
 analyzer:

@@ -138,8 +138,10 @@ class MintMakerWrapper {
 
   static Future<MintMakerWrapper> create() {
     ReceivePort reply = new ReceivePort();
-    return Isolate.spawn(mintMakerWrapper, reply.sendPort)
-        .then((_) => reply.first.then((port) => new MintMakerWrapper._(port)));
+    return Isolate.spawn(
+      mintMakerWrapper,
+      reply.sendPort,
+    ).then((_) => reply.first.then((port) => new MintMakerWrapper._(port)));
   }
 
   MintMakerWrapper._(this._port);

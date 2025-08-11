@@ -199,7 +199,8 @@ class TranslationHelper {
 
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
-    expression_evaluation_function_ = &Function::Handle(zone_, function.ptr());
+    expression_evaluation_function_ =
+        &Function::ZoneHandle(zone_, function.ptr());
   }
   const Function& GetExpressionEvaluationFunction() {
     if (expression_evaluation_function_ == nullptr) {
@@ -210,7 +211,7 @@ class TranslationHelper {
   void SetExpressionEvaluationClass(const Class& cls) {
     ASSERT(expression_evaluation_class_ == nullptr);
     ASSERT(!cls.IsNull());
-    expression_evaluation_class_ = &Class::Handle(zone_, cls.ptr());
+    expression_evaluation_class_ = &Class::ZoneHandle(zone_, cls.ptr());
   }
   const Class& GetExpressionEvaluationClass() {
     if (expression_evaluation_class_ == nullptr) {
@@ -221,7 +222,8 @@ class TranslationHelper {
   void SetExpressionEvaluationRealClass(const Class& real_class) {
     ASSERT(expression_evaluation_real_class_ == nullptr);
     ASSERT(!real_class.IsNull());
-    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.ptr());
+    expression_evaluation_real_class_ =
+        &Class::ZoneHandle(zone_, real_class.ptr());
   }
   const Class& GetExpressionEvaluationRealClass() {
     if (expression_evaluation_real_class_ == nullptr) {

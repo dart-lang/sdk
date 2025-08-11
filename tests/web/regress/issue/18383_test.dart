@@ -7,7 +7,8 @@
 import "package:expect/expect.dart";
 
 class F {
-  call() => (x) => new G(x.toInt());
+  call() =>
+      (x) => new G(x.toInt());
 }
 
 class G {

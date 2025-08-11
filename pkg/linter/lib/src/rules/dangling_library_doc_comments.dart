@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -15,13 +18,11 @@ class DanglingLibraryDocComments extends LintRule {
     : super(name: LintNames.dangling_library_doc_comments, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.dangling_library_doc_comments;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.dangling_library_doc_comments;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -50,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var docComment = firstDirective.documentationComment;
       if (docComment != null) {
-        rule.reportLintForToken(docComment.beginToken);
+        rule.reportAtToken(docComment.beginToken);
         return;
       }
 
@@ -63,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       Token? endComment = node.endToken.precedingComments;
       while (endComment is CommentToken) {
         if (endComment is DocumentationCommentToken) {
-          rule.reportLintForToken(endComment);
+          rule.reportAtToken(endComment);
         }
         endComment = endComment.next;
       }
@@ -86,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             lineInfo.getLocation(followingCommentToken.offset).lineNumber;
         if (followingCommentLine > commentEndLine + 1) {
           // There is a blank line within the declaration's doc comments.
-          rule.reportLintForToken(commentToken);
+          rule.reportAtToken(commentToken);
           return;
         }
       }
@@ -106,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (followingCommentLine > commentEndLine + 1) {
         // There is a blank line between the declaration's doc comment and the
         // declaration.
-        rule.reportLint(docComment);
+        rule.reportAtNode(docComment);
         return;
       }
 
@@ -129,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declarationStartLine > commentEndLine + 1) {
       // There is a blank line between the declaration's doc comment and the
       // declaration.
-      rule.reportLint(docComment);
+      rule.reportAtNode(docComment);
     }
   }
 }

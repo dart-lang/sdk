@@ -11,7 +11,6 @@ import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
 import 'dart:math';
 import 'dart:typed_data';
 
-part 'asset.dart';
 part 'client.dart';
 part 'devfs.dart';
 part 'constants.dart';
@@ -58,6 +57,7 @@ const kServiceAlreadyRegistered = 111;
 const kServiceDisappeared = 112;
 const kExpressionCompilationError = 113;
 const kInvalidTimelineRequest = 114;
+const kCannotGetQueuedMicrotasks = 115;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;
@@ -170,9 +170,6 @@ typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 /// server.
 typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 
-/// Called when a client wants the service to serve Observatory.
-typedef void ServeObservatoryCallback();
-
 /// Called when we want to get the appropriate resident compiler info file for
 /// the current program execution.
 typedef File? getResidentCompilerInfoFileCallback();
@@ -192,7 +189,6 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
   acceptNewWebSocketConnections;
-  static ServeObservatoryCallback? serveObservatory;
   static getResidentCompilerInfoFileCallback? getResidentCompilerInfoFile;
 }
 
@@ -357,13 +353,11 @@ class VMService extends MessageRouter {
       return;
     }
     final cpuSamplesEvent = eventData['cpuSamples']! as Map<String, dynamic>;
-    final samples =
-        (cpuSamplesEvent['samples']! as List<dynamic>)
-            .cast<Map<String, dynamic>>();
-    final updatedSamples =
-        samples
-            .where((s) => client.profilerUserTagFilters.contains(s['userTag']))
-            .toList();
+    final samples = (cpuSamplesEvent['samples']! as List<dynamic>)
+        .cast<Map<String, dynamic>>();
+    final updatedSamples = samples
+        .where((s) => client.profilerUserTagFilters.contains(s['userTag']))
+        .toList();
     if (updatedSamples.isEmpty) {
       return;
     }
@@ -762,8 +756,8 @@ class VMService extends MessageRouter {
 
     // TODO(bkonyi): handle "subscribe all" case.
     final client = message.client!;
-    final userTags =
-        (message.params['userTags']! as List<dynamic>).cast<String>();
+    final userTags = (message.params['userTags']! as List<dynamic>)
+        .cast<String>();
     final tags = userTags.toSet();
     final newTags = tags.difference(_profilerUserTagSubscriptions);
 
@@ -815,10 +809,6 @@ class VMService extends MessageRouter {
     try {
       if (message.completed) {
         return await message.response;
-      }
-      if (message.method == '_serveObservatory') {
-        VMServiceEmbedderHooks.serveObservatory?.call();
-        return encodeSuccess(message);
       }
       if (message.method == '_yieldControlToDDS') {
         return await _yieldControlToDDS(message);
@@ -911,10 +901,6 @@ external bool _vmListenStream(String streamId, bool include_privates);
 /// Cancel a subscription to a service stream.
 @pragma("vm:external-name", "VMService_CancelStream")
 external void _vmCancelStream(String streamId);
-
-/// Get the bytes to the tar archive.
-@pragma("vm:external-name", "VMService_RequestAssets")
-external Uint8List? _requestAssets();
 
 @pragma("vm:external-name", "VMService_AddUserTagsToStreamableSampleList")
 external void _addUserTagsToStreamableSampleList(List<String> userTags);

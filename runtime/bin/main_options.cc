@@ -161,14 +161,14 @@ void Options::PrintUsage() {
 #if !defined(PRODUCT)
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
-"  set of options which are often useful for debugging under Observatory.\n"
+"  set of options which are often useful for debugging under Dart DevTools.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
 "      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
-"      --timeline-streams=\"Compiler, Dart, GC\"\n"
+"      --timeline-streams=\"Compiler, Dart, GC, Microtask\"\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
 "--write-service-info=<file_uri>\n"
@@ -203,16 +203,19 @@ void Options::PrintUsage() {
 #if !defined(PRODUCT)
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
-"  set of options which are often useful for debugging under Observatory.\n"
+"  set of options which are often useful for debugging under Dart DevTools.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
 "      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
-"      --timeline-streams=\"Compiler, Dart, GC\"\n"
+"      --timeline-streams=\"Compiler, Dart, GC, Microtask\"\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--profile-microtasks\n"
+"  Record information about each microtask. Information about completed\n"
+"  microtasks will be written to the \"Microtask\" timeline stream.\n"
 #endif  // !defined(PRODUCT)
 "--version\n"
 "  Print the VM version.\n"
@@ -456,7 +459,7 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
-  vm_options->AddArgument("--timeline-streams=\"Compiler,Dart,GC\"");
+  vm_options->AddArgument("--timeline-streams=\"Compiler,Dart,GC,Microtask\"");
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -466,6 +469,24 @@ bool Options::ProcessObserveOption(const char* arg,
   // VM service not available in product mode.
   return false;
 #endif  // !defined(PRODUCT)
+}
+
+bool Options::ProcessProfileMicrotasksOption(const char* arg,
+                                             CommandLineOptions* vm_options) {
+#if !defined(PRODUCT)
+  constexpr const char* kProfileMicrotasksFlagAsCstr = "--profile-microtasks";
+  constexpr const char* kAlternativeProfileMicrotasksFlagAsCstr =
+      "--profile_microtasks";
+  if (strncmp(kProfileMicrotasksFlagAsCstr, arg,
+              strlen(kProfileMicrotasksFlagAsCstr)) == 0 ||
+      strncmp(kAlternativeProfileMicrotasksFlagAsCstr, arg,
+              strlen(kAlternativeProfileMicrotasksFlagAsCstr)) == 0) {
+    profile_microtasks_ = true;
+    vm_options->AddArgument(kProfileMicrotasksFlagAsCstr);
+    return true;
+  }
+#endif  // !defined(PRODUCT)
+  return false;
 }
 
 // Explicitly handle VM flags that can be parsed by DartDev's run command.
@@ -698,11 +719,14 @@ bool Options::ParseArguments(int argc,
     ASSERT(i == argc);
     return true;
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).
-  if (!run_script) {
+  bool record_vm_options = false;
+  if ((i < argc) && DartDevIsolate::ShouldParseVMOptions(argv[i])) {
+    record_vm_options = true;
+  }
+  if (!run_script && record_vm_options) {
     // Skip the command.
     int tmp_i = i + 1;
     while (tmp_i < argc) {
@@ -715,14 +739,9 @@ bool Options::ParseArguments(int argc,
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
       tmp_i++;
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (Options::disable_dart_dev()) {
-      Syslog::PrintErr(
-          "Attempted to use --disable-dart-dev with a Dart CLI command.\n");
-      Platform::Exit(kErrorExitCode);
-    }
-#endif  // !defined(DART_PRECOMIPLED_RUNTIME)
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   bool first_option = true;
   // Parse out options to be passed to dart main.
   while (i < argc) {
@@ -733,6 +752,13 @@ bool Options::ParseArguments(int argc,
         !IsOption(argv[i], "enable-vm-service")) {
       dart_options->AddArgument(argv[i]);
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (IsOption(argv[i], "disable-dart-dev")) {
+      Syslog::PrintErr(
+          "Attempted to use --disable-dart-dev with a Dart CLI command.\n");
+      Platform::Exit(kErrorExitCode);
+    }
+#endif  // !defined(DART_PRECOMIPLED_RUNTIME)
     i++;
     // Add DDS specific flags immediately after the dartdev command.
     if (first_option) {

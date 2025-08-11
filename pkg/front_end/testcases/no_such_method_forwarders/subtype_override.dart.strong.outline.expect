@@ -12,7 +12,7 @@ class B extends core::Object implements self::A {
     ;
   method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
-  no-such-method-forwarder method /* signature-type: ([core::int]) → void */ method([core::int? a]) → void
+  synthetic no-such-method-forwarder method /* signature-type: ([core::int]) → void */ method([core::int? a]) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#method, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[a]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
 }
 class C extends core::Object implements self::B {
@@ -24,7 +24,7 @@ class C extends core::Object implements self::B {
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///subtype_override.dart:5:7 -> SymbolConstant(#method)
-Evaluated: ListLiteral @ org-dartlang-testcase:///subtype_override.dart:5:7 -> ListConstant(const <Type>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///subtype_override.dart:5:7 -> MapConstant(const <Symbol, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///subtype_override.dart:9:7 -> SymbolConstant(#method)
+Evaluated: ListLiteral @ org-dartlang-testcase:///subtype_override.dart:9:7 -> ListConstant(const <Type>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///subtype_override.dart:9:7 -> MapConstant(const <Symbol, dynamic>{})
 Extra constant evaluation: evaluated: 10, effectively constant: 3

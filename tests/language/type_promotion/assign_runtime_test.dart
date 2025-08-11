@@ -40,7 +40,6 @@ void main() {
   if (a is B) {
     a = A();
     print(a.a);
-
   }
   if (a is B) {
     print(a.a);
@@ -49,6 +48,5 @@ void main() {
       a = A();
     }
     print(a.a);
-
   }
 }

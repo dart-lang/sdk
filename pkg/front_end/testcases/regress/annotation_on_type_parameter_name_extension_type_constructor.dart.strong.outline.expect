@@ -82,41 +82,41 @@ extension type FooBad4<T1 extends core::Object? = dynamic, T2 extends core::Obje
 }
 static extension-type-member method FooOK|constructor#<T extends core::Object? = dynamic>(core::int foo) → self::FooOK<self::FooOK|constructor#::T%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooOK|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int foo) → self::FooOK<self::FooOK|constructor#_#new#tearOff::T%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooOK|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int foo) → self::FooOK<self::FooOK|constructor#_#new#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::FooOK|constructor#<self::FooOK|constructor#_#new#tearOff::T%>(foo);
 static extension-type-member method FooOK|constructor#bar<T extends core::Object? = dynamic>(self::FooOK|constructor#bar::T% theFoo) → self::FooOK<self::FooOK|constructor#bar::T%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooOK|constructor#_#bar#tearOff<T extends core::Object? = dynamic>(self::FooOK|constructor#_#bar#tearOff::T% theFoo) → self::FooOK<self::FooOK|constructor#_#bar#tearOff::T%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooOK|constructor#_#bar#tearOff<T extends core::Object? = dynamic>(self::FooOK|constructor#_#bar#tearOff::T% theFoo) → self::FooOK<self::FooOK|constructor#_#bar#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::FooOK|constructor#bar<self::FooOK|constructor#_#bar#tearOff::T%>(theFoo);
 static extension-type-member method FooBad1|constructor#(core::int foo) → self::FooBad1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad1|constructor#_#new#tearOff(core::int foo) → self::FooBad1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad1|constructor#_#new#tearOff(core::int foo) → self::FooBad1% /* erasure=core::int, declared=! */
   return self::FooBad1|constructor#(foo);
 static extension-type-member method FooBad1|constructor#bar(invalid-type theFoo) → self::FooBad1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad1|constructor#_#bar#tearOff(invalid-type theFoo) → self::FooBad1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad1|constructor#_#bar#tearOff(invalid-type theFoo) → self::FooBad1% /* erasure=core::int, declared=! */
   return self::FooBad1|constructor#bar(theFoo);
 static extension-type-member method FooBad2|constructor#<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad2<self::FooBad2|constructor#::T1%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad2|constructor#_#new#tearOff<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad2<self::FooBad2|constructor#_#new#tearOff::T1%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad2|constructor#_#new#tearOff<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad2<self::FooBad2|constructor#_#new#tearOff::T1%>% /* erasure=core::int, declared=! */
   return self::FooBad2|constructor#<self::FooBad2|constructor#_#new#tearOff::T1%>(foo);
 static extension-type-member method FooBad2|constructor#bar<T1 extends core::Object? = dynamic>(self::FooBad2|constructor#bar::T1% theFoo1, invalid-type theFoo2) → self::FooBad2<self::FooBad2|constructor#bar::T1%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad2|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic>(self::FooBad2|constructor#_#bar#tearOff::T1% theFoo1, invalid-type theFoo2) → self::FooBad2<self::FooBad2|constructor#_#bar#tearOff::T1%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad2|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic>(self::FooBad2|constructor#_#bar#tearOff::T1% theFoo1, invalid-type theFoo2) → self::FooBad2<self::FooBad2|constructor#_#bar#tearOff::T1%>% /* erasure=core::int, declared=! */
   return self::FooBad2|constructor#bar<self::FooBad2|constructor#_#bar#tearOff::T1%>(theFoo1, theFoo2);
 static extension-type-member method FooBad3|constructor#<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad3<self::FooBad3|constructor#::T1%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad3|constructor#_#new#tearOff<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad3<self::FooBad3|constructor#_#new#tearOff::T1%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad3|constructor#_#new#tearOff<T1 extends core::Object? = dynamic>(core::int foo) → self::FooBad3<self::FooBad3|constructor#_#new#tearOff::T1%>% /* erasure=core::int, declared=! */
   return self::FooBad3|constructor#<self::FooBad3|constructor#_#new#tearOff::T1%>(foo);
 static extension-type-member method FooBad3|constructor#bar<T1 extends core::Object? = dynamic>(self::FooBad3|constructor#bar::T1% theFoo1, invalid-type theFoo2, invalid-type theFoo3) → self::FooBad3<self::FooBad3|constructor#bar::T1%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad3|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic>(self::FooBad3|constructor#_#bar#tearOff::T1% theFoo1, invalid-type theFoo2, invalid-type theFoo3) → self::FooBad3<self::FooBad3|constructor#_#bar#tearOff::T1%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad3|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic>(self::FooBad3|constructor#_#bar#tearOff::T1% theFoo1, invalid-type theFoo2, invalid-type theFoo3) → self::FooBad3<self::FooBad3|constructor#_#bar#tearOff::T1%>% /* erasure=core::int, declared=! */
   return self::FooBad3|constructor#bar<self::FooBad3|constructor#_#bar#tearOff::T1%>(theFoo1, theFoo2, theFoo3);
 static extension-type-member method FooBad4|constructor#<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(core::int foo) → self::FooBad4<self::FooBad4|constructor#::T1%, self::FooBad4|constructor#::T2%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad4|constructor#_#new#tearOff<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(core::int foo) → self::FooBad4<self::FooBad4|constructor#_#new#tearOff::T1%, self::FooBad4|constructor#_#new#tearOff::T2%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad4|constructor#_#new#tearOff<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(core::int foo) → self::FooBad4<self::FooBad4|constructor#_#new#tearOff::T1%, self::FooBad4|constructor#_#new#tearOff::T2%>% /* erasure=core::int, declared=! */
   return self::FooBad4|constructor#<self::FooBad4|constructor#_#new#tearOff::T1%, self::FooBad4|constructor#_#new#tearOff::T2%>(foo);
 static extension-type-member method FooBad4|constructor#bar<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(self::FooBad4|constructor#bar::T1% theFoo1, self::FooBad4|constructor#bar::T2% theFoo2, invalid-type theFoo3) → self::FooBad4<self::FooBad4|constructor#bar::T1%, self::FooBad4|constructor#bar::T2%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method FooBad4|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(self::FooBad4|constructor#_#bar#tearOff::T1% theFoo1, self::FooBad4|constructor#_#bar#tearOff::T2% theFoo2, invalid-type theFoo3) → self::FooBad4<self::FooBad4|constructor#_#bar#tearOff::T1%, self::FooBad4|constructor#_#bar#tearOff::T2%>% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method FooBad4|constructor#_#bar#tearOff<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(self::FooBad4|constructor#_#bar#tearOff::T1% theFoo1, self::FooBad4|constructor#_#bar#tearOff::T2% theFoo2, invalid-type theFoo3) → self::FooBad4<self::FooBad4|constructor#_#bar#tearOff::T1%, self::FooBad4|constructor#_#bar#tearOff::T2%>% /* erasure=core::int, declared=! */
   return self::FooBad4|constructor#bar<self::FooBad4|constructor#_#bar#tearOff::T1%, self::FooBad4|constructor#_#bar#tearOff::T2%>(theFoo1, theFoo2, theFoo3);

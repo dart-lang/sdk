@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/results.dart';
@@ -21,10 +21,10 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var node = this.node;
-    Element2? element;
+    Element? element;
     String? prefix;
     if (node is NamedType) {
-      element = node.element2;
+      element = node.element;
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;
@@ -34,11 +34,11 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
         prefix = currentPrefix.name;
       }
     }
-    if (element is! MultiplyDefinedElement2) {
+    if (element is! MultiplyDefinedElement) {
       return const [];
     }
     var conflictingElements = element.conflictingElements2;
-    var name = element.name3;
+    var name = element.name;
     if (name == null || name.isEmpty) {
       return const [];
     }
@@ -99,7 +99,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
-    List<Element2> conflictingElements,
+    List<Element> conflictingElements,
     String name,
     String? prefix,
   ) {

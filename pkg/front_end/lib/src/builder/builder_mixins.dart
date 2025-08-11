@@ -5,14 +5,15 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart';
-import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'nullability_builder.dart';
+import 'property_builder.dart';
 import 'type_builder.dart';
 
 /// Shared implementation between extension and extension type declaration
@@ -20,31 +21,15 @@ import 'type_builder.dart';
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Lookup a static member of this declaration.
   @override
-  Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter = false}) {
+  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
+      LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
-    Builder? declaration;
-    if (getable != null || setable != null) {
-      declaration = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: this.name,
-          isSetter: isSetter,
-          forStaticAccess: true);
-    }
-    // TODO(johnniwinther): Handle augmented extensions/extension type
-    //  declarations.
-    return declaration;
+    return nameSpace.lookupLocal(name,
+        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
   }
 
   @override
@@ -67,19 +52,16 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
-  void forEach(void f(String name, Builder builder)) {
-    nameSpace.filteredNameIterator(includeDuplicates: false).forEach(f);
-  }
-
   @override
   InterfaceType? get thisType => null;
 
   @override
-  Builder? lookupLocalMember(String name,
+  NamedBuilder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
-    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
+    LookupResult? result = nameSpace.lookupLocalMember(name);
+    NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
@@ -90,35 +72,30 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     return builder;
   }
 
-  Builder? lookupLocalMemberByName(Name name,
+  MemberBuilder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false}) {
-    Builder? builder =
+    NamedBuilder? builder =
         lookupLocalMember(name.text, setter: setter, required: required);
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
       builder = lookupLocalMember(name.text, setter: false, required: required);
-      if (builder is! MemberBuilder ||
-          !builder.isField ||
-          !builder.isAssignable) {
+      if (builder is! PropertyBuilder || !builder.hasSetter) {
         builder = null;
       }
     }
     if (builder != null) {
       if (name.isPrivate && libraryBuilder.library != name.library) {
         builder = null;
-      } else if (builder.isField && !builder.isStatic && !builder.isExternal) {
+      } else if (builder is PropertyBuilder &&
+          builder.hasConcreteField &&
+          !builder.isStatic) {
         // Non-external extension instance fields are invalid.
         builder = null;
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.
         builder = null;
-      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-        // Conflicting setters are not visible in the instance scope.
-        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
-        // above?
-        builder = null;
       }
     }
-    return builder;
+    return builder as MemberBuilder?;
   }
 }

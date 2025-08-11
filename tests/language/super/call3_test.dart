@@ -7,12 +7,11 @@
 import "package:expect/expect.dart";
 
 class A {
-  A(this.x
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
-//       ^
-// [cfe] 'x' isn't an instance field of this class.
-      );
+  A(this.x);
+  //^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
+  //     ^
+  // [cfe] 'x' isn't an instance field of this class.
   final foo = 499;
 }
 
@@ -23,13 +22,13 @@ class B extends A {}
 
 class B2 extends A {
   B2();
-//^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-// [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+  // [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
   B2.named() : this.x = 499;
-//^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
-// [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+  // [cfe] The implicitly called unnamed constructor from 'A' has required parameters.
   var x;
 }
 
@@ -45,13 +44,13 @@ class D extends C {}
 
 class D2 extends C {
   D2();
-//^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
-// [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+  // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   D2.named() : this.x = 499;
-//^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
-// [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
+  // [error column 3, length 2]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+  // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   var x;
 }
 

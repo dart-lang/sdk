@@ -184,10 +184,7 @@ void f() {
     _assertReplacementForChildren<AsExpression>(
       destination: findNode.as_('0 as'),
       source: findNode.as_('1 as'),
-      childAccessors: [
-        (node) => node.expression,
-        (node) => node.type,
-      ],
+      childAccessors: [(node) => node.expression, (node) => node.type],
     );
   }
 
@@ -201,10 +198,7 @@ void f() {
     _assertReplacementForChildren<AssertStatement>(
       destination: findNode.assertStatement('first'),
       source: findNode.assertStatement('second'),
-      childAccessors: [
-        (node) => node.condition,
-        (node) => node.message!,
-      ],
+      childAccessors: [(node) => node.condition, (node) => node.message!],
     );
   }
 
@@ -235,9 +229,7 @@ void f() async {
     _assertReplacementForChildren<AwaitExpression>(
       destination: findNode.awaitExpression('0'),
       source: findNode.awaitExpression('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -251,10 +243,7 @@ void f() {
     _assertReplacementForChildren<BinaryExpression>(
       destination: findNode.binary('0 + 1'),
       source: findNode.binary('1 + 2'),
-      childAccessors: [
-        (node) => node.leftOperand,
-        (node) => node.rightOperand,
-      ],
+      childAccessors: [(node) => node.leftOperand, (node) => node.rightOperand],
     );
   }
 
@@ -286,10 +275,7 @@ void g() {
     _assertReplacementForChildren<BlockFunctionBody>(
       destination: findNode.blockFunctionBody('fff'),
       source: findNode.blockFunctionBody('ggg'),
-      childAccessors: [
-        (node) => node.block,
-        (node) => node.block,
-      ],
+      childAccessors: [(node) => node.block, (node) => node.block],
     );
   }
 
@@ -305,9 +291,7 @@ void f() {
     _assertReplacementForChildren<BreakStatement>(
       destination: findNode.breakStatement('first'),
       source: findNode.breakStatement('second'),
-      childAccessors: [
-        (node) => node.label!,
-      ],
+      childAccessors: [(node) => node.label!],
     );
   }
 
@@ -328,9 +312,7 @@ void f() {
     _assertReplacementForChildren<CascadeExpression>(
       destination: findNode.cascade('0'),
       source: findNode.cascade('1'),
-      childAccessors: [
-        (node) => node.target,
-      ],
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -363,9 +345,7 @@ class A<T> = A0 with M implements I;
 /// Comment B.
 class B<U> = B0 with N implements J;
 ''');
-    _assertAnnotatedNode(
-      findNode.classTypeAlias('A<T>'),
-    );
+    _assertAnnotatedNode(findNode.classTypeAlias('A<T>'));
     _assertReplacementForChildren<ClassTypeAlias>(
       destination: findNode.classTypeAlias('A<T>'),
       source: findNode.classTypeAlias('B<U>'),
@@ -400,9 +380,7 @@ void f() {}
     _assertReplacementForChildren<CommentReference>(
       destination: findNode.commentReference('foo'),
       source: findNode.commentReference('bar'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -456,9 +434,7 @@ void f(x) async {
           findNode.caseClause('0').guardedPattern.pattern as ConstantPattern,
       source:
           findNode.caseClause('1').guardedPattern.pattern as ConstantPattern,
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -483,9 +459,7 @@ class B {
         (node) => node.returnType,
       ],
     );
-    _assertAnnotatedNode(
-      findNode.constructor('A.named'),
-    );
+    _assertAnnotatedNode(findNode.constructor('A.named'));
   }
 
   void test_constructorDeclaration_redirectedConstructor() {
@@ -501,9 +475,7 @@ class B {
     _assertReplacementForChildren<ConstructorDeclaration>(
       destination: findNode.constructor('factory A'),
       source: findNode.constructor('factory B'),
-      childAccessors: [
-        (node) => node.redirectedConstructor!,
-      ],
+      childAccessors: [(node) => node.redirectedConstructor!],
     );
   }
 
@@ -516,10 +488,7 @@ class A {
     _assertReplacementForChildren<ConstructorFieldInitializer>(
       destination: findNode.constructorFieldInitializer('a ='),
       source: findNode.constructorFieldInitializer('b ='),
-      childAccessors: [
-        (node) => node.fieldName,
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.fieldName, (node) => node.expression],
     );
   }
 
@@ -533,10 +502,7 @@ void f() {
     _assertReplacementForChildren<ConstructorName>(
       destination: findNode.constructorName('A.foo'),
       source: findNode.constructorName('B.bar'),
-      childAccessors: [
-        (node) => node.type,
-        (node) => node.name!,
-      ],
+      childAccessors: [(node) => node.type, (node) => node.name!],
     );
   }
 
@@ -552,9 +518,7 @@ void f() {
     _assertReplacementForChildren<ContinueStatement>(
       destination: findNode.continueStatement('first'),
       source: findNode.continueStatement('second'),
-      childAccessors: [
-        (node) => node.label!,
-      ],
+      childAccessors: [(node) => node.label!],
     );
   }
 
@@ -568,9 +532,7 @@ void f() {
     _assertReplacementForChildren<DeclaredIdentifier>(
       destination: findNode.declaredIdentifier('i in'),
       source: findNode.declaredIdentifier('j in'),
-      childAccessors: [
-        (node) => node.type!,
-      ],
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -581,10 +543,7 @@ void f({int a = 0, double b = 1}) {}
     _assertReplacementForChildren<DefaultFormalParameter>(
       destination: findNode.defaultParameter('a ='),
       source: findNode.defaultParameter('b ='),
-      childAccessors: [
-        (node) => node.parameter,
-        (node) => node.defaultValue!,
-      ],
+      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
     );
   }
 
@@ -595,10 +554,7 @@ void f({int a = 0, double b = 1}) {}
     _assertReplacementForChildren<DefaultFormalParameter>(
       destination: findNode.defaultParameter('a ='),
       source: findNode.defaultParameter('b ='),
-      childAccessors: [
-        (node) => node.parameter,
-        (node) => node.defaultValue!,
-      ],
+      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
     );
   }
 
@@ -611,9 +567,7 @@ enum E {
   bbb;
 }
 ''');
-    _assertAnnotatedNode(
-      findNode.enumConstantDeclaration('aaa'),
-    );
+    _assertAnnotatedNode(findNode.enumConstantDeclaration('aaa'));
   }
 
   void test_enumDeclaration() {
@@ -673,9 +627,7 @@ export 'b.dart';
     _assertReplacementForChildren<ExportDirective>(
       destination: findNode.export('a.dart'),
       source: findNode.export('b.dart'),
-      childAccessors: [
-        (node) => node.uri,
-      ],
+      childAccessors: [(node) => node.uri],
     );
   }
 
@@ -687,9 +639,7 @@ void g() => 1;
     _assertReplacementForChildren<ExpressionFunctionBody>(
       destination: findNode.expressionFunctionBody('0'),
       source: findNode.expressionFunctionBody('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -703,9 +653,7 @@ void f() {
     _assertReplacementForChildren<ExpressionStatement>(
       destination: findNode.expressionStatement('0'),
       source: findNode.expressionStatement('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -717,9 +665,7 @@ class B extends B0 {}
     _assertReplacementForChildren<ExtendsClause>(
       destination: findNode.extendsClause('A0'),
       source: findNode.extendsClause('B0'),
-      childAccessors: [
-        (node) => node.superclass,
-      ],
+      childAccessors: [(node) => node.superclass],
     );
   }
 
@@ -733,15 +679,11 @@ class A {
 }
 class B extends B0 {}
 ''');
-    _assertAnnotatedNode(
-      findNode.fieldDeclaration('foo'),
-    );
+    _assertAnnotatedNode(findNode.fieldDeclaration('foo'));
     _assertReplacementForChildren<FieldDeclaration>(
       destination: findNode.fieldDeclaration('foo'),
       source: findNode.fieldDeclaration('bar'),
-      childAccessors: [
-        (node) => node.fields,
-      ],
+      childAccessors: [(node) => node.fields],
     );
   }
 
@@ -779,10 +721,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithDeclaration>(
       destination: findNode.forEachPartsWithDeclaration('a in'),
       source: findNode.forEachPartsWithDeclaration('b in'),
-      childAccessors: [
-        (node) => node.loopVariable,
-        (node) => node.iterable,
-      ],
+      childAccessors: [(node) => node.loopVariable, (node) => node.iterable],
     );
   }
 
@@ -796,10 +735,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
       destination: findNode.forEachPartsWithIdentifier('a in'),
       source: findNode.forEachPartsWithIdentifier('b in'),
-      childAccessors: [
-        (node) => node.identifier,
-        (node) => node.iterable,
-      ],
+      childAccessors: [(node) => node.identifier, (node) => node.iterable],
     );
   }
 
@@ -813,9 +749,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithPattern>(
       destination: findNode.forEachPartsWithPattern('(a)'),
       source: findNode.forEachPartsWithPattern('(b)'),
-      childAccessors: [
-        (node) => node.iterable,
-      ],
+      childAccessors: [(node) => node.iterable],
     );
   }
 
@@ -829,10 +763,7 @@ void f(int a) {
     _assertReplacementForChildren<ForStatement>(
       destination: findNode.forStatement('a in'),
       source: findNode.forStatement('b in'),
-      childAccessors: [
-        (node) => node.body,
-        (node) => node.forLoopParts,
-      ],
+      childAccessors: [(node) => node.body, (node) => node.forLoopParts],
     );
   }
 
@@ -863,10 +794,7 @@ void f() {
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
       source: findNode.forPartsWithDeclarations('j = 0'),
-      childAccessors: [
-        (node) => node.variables,
-        (node) => node.condition!,
-      ],
+      childAccessors: [(node) => node.variables, (node) => node.condition!],
     );
   }
 
@@ -900,9 +828,7 @@ void f() {
 int f() => 0;
 double g() => 0;
 ''');
-    _assertAnnotatedNode(
-      findNode.functionDeclaration('f()'),
-    );
+    _assertAnnotatedNode(findNode.functionDeclaration('f()'));
     _assertReplacementForChildren<FunctionDeclaration>(
       destination: findNode.functionDeclaration('f()'),
       source: findNode.functionDeclaration('g()'),
@@ -923,9 +849,7 @@ void f() {
     _assertReplacementForChildren<FunctionDeclarationStatement>(
       destination: findNode.functionDeclarationStatement('g()'),
       source: findNode.functionDeclarationStatement('h()'),
-      childAccessors: [
-        (node) => node.functionDeclaration,
-      ],
+      childAccessors: [(node) => node.functionDeclaration],
     );
   }
 
@@ -974,9 +898,7 @@ void f() {
 typedef int F<T>(int a);
 typedef double G<U>(double b);
 ''');
-    _assertAnnotatedNode(
-      findNode.functionTypeAlias('int F'),
-    );
+    _assertAnnotatedNode(findNode.functionTypeAlias('int F'));
     _assertReplacementForChildren<FunctionTypeAlias>(
       destination: findNode.functionTypeAlias('int F'),
       source: findNode.functionTypeAlias('double G'),
@@ -1077,9 +999,7 @@ import 'b.dart';
     _assertReplacementForChildren<ImportDirective>(
       destination: findNode.import('a.dart'),
       source: findNode.import('b.dart'),
-      childAccessors: [
-        (node) => node.uri,
-      ],
+      childAccessors: [(node) => node.uri],
     );
   }
 
@@ -1093,10 +1013,7 @@ void f() {
     _assertReplacementForChildren<IndexExpression>(
       destination: findNode.index('[0]'),
       source: findNode.index('[1]'),
-      childAccessors: [
-        (node) => node.target!,
-        (node) => node.index,
-      ],
+      childAccessors: [(node) => node.target!, (node) => node.index],
     );
   }
 
@@ -1126,9 +1043,7 @@ void f() {
     _assertReplacementForChildren<InterpolationExpression>(
       destination: findNode.interpolationExpression('foo'),
       source: findNode.interpolationExpression('bar'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1142,10 +1057,7 @@ void f() {
     _assertReplacementForChildren<IsExpression>(
       destination: findNode.isExpression('0 is'),
       source: findNode.isExpression('1 is'),
-      childAccessors: [
-        (node) => node.expression,
-        (node) => node.type,
-      ],
+      childAccessors: [(node) => node.expression, (node) => node.type],
     );
   }
 
@@ -1159,9 +1071,7 @@ void f() {
     _assertReplacementForChildren<Label>(
       destination: findNode.label('foo:'),
       source: findNode.label('bar'),
-      childAccessors: [
-        (node) => node.label,
-      ],
+      childAccessors: [(node) => node.label],
     );
   }
 
@@ -1181,9 +1091,7 @@ void f() {
     _assertReplacementForChildren<LabeledStatement>(
       destination: foo,
       source: findNode.labeledStatement('baz'),
-      childAccessors: [
-        (node) => node.statement,
-      ],
+      childAccessors: [(node) => node.statement],
     );
   }
 
@@ -1198,9 +1106,7 @@ library foo;
     _assertReplacementForChildren<LibraryDirective>(
       destination: node,
       source: node,
-      childAccessors: [
-        (node) => node.name2!,
-      ],
+      childAccessors: [(node) => node.name!],
     );
   }
 
@@ -1232,9 +1138,7 @@ void f() {
     _assertReplacementForChildren<ListLiteral>(
       destination: findNode.listLiteral('<int>'),
       source: findNode.listLiteral('<double>'),
-      childAccessors: [
-        (node) => node.typeArguments!,
-      ],
+      childAccessors: [(node) => node.typeArguments!],
     );
   }
 
@@ -1247,10 +1151,7 @@ void f() {
     _assertReplacementForChildren<MapLiteralEntry>(
       destination: findNode.mapLiteralEntry('0: 1'),
       source: findNode.mapLiteralEntry('2: 3'),
-      childAccessors: [
-        (node) => node.key,
-        (node) => node.value,
-      ],
+      childAccessors: [(node) => node.key, (node) => node.value],
     );
   }
 
@@ -1281,10 +1182,7 @@ void f() {
     _assertReplacementForChildren<NamedExpression>(
       destination: findNode.namedExpression('foo'),
       source: findNode.namedExpression('bar'),
-      childAccessors: [
-        (node) => node.name,
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.name, (node) => node.expression],
     );
   }
 
@@ -1296,9 +1194,7 @@ void g() native 'bar';
     _assertReplacementForChildren<NativeFunctionBody>(
       destination: findNode.nativeFunctionBody('foo'),
       source: findNode.nativeFunctionBody('bar'),
-      childAccessors: [
-        (node) => node.stringLiteral!,
-      ],
+      childAccessors: [(node) => node.stringLiteral!],
     );
   }
 
@@ -1312,9 +1208,7 @@ void f() {
     _assertReplacementForChildren<ParenthesizedExpression>(
       destination: findNode.parenthesized('0'),
       source: findNode.parenthesized('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1330,9 +1224,7 @@ part 'b.dart';
     _assertReplacementForChildren<PartDirective>(
       destination: findNode.part('a.dart'),
       source: findNode.part('b.dart'),
-      childAccessors: [
-        (node) => node.uri,
-      ],
+      childAccessors: [(node) => node.uri],
     );
   }
 
@@ -1347,9 +1239,7 @@ part of 'a.dart';
     _assertReplacementForChildren<PartOfDirective>(
       destination: findNode.partOf('a.dart'),
       source: findNode.partOf('a.dart'),
-      childAccessors: [
-        (node) => node.uri!,
-      ],
+      childAccessors: [(node) => node.uri!],
     );
   }
 
@@ -1365,9 +1255,7 @@ void f() {
     _assertReplacementForChildren<PatternAssignment>(
       destination: findNode.patternAssignment('0'),
       source: findNode.patternAssignment('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1381,9 +1269,7 @@ void f() {
     _assertReplacementForChildren<PatternVariableDeclaration>(
       destination: findNode.patternVariableDeclaration('0'),
       source: findNode.patternVariableDeclaration('1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1397,9 +1283,7 @@ void f() {
     _assertReplacementForChildren<PostfixExpression>(
       destination: findNode.postfix('a++'),
       source: findNode.postfix('b++'),
-      childAccessors: [
-        (node) => node.operand,
-      ],
+      childAccessors: [(node) => node.operand],
     );
   }
 
@@ -1413,10 +1297,7 @@ void f() {
     _assertReplacementForChildren<PrefixedIdentifier>(
       destination: findNode.prefixed('a.foo'),
       source: findNode.prefixed('b.bar'),
-      childAccessors: [
-        (node) => node.prefix,
-        (node) => node.identifier,
-      ],
+      childAccessors: [(node) => node.prefix, (node) => node.identifier],
     );
   }
 
@@ -1430,9 +1311,7 @@ void f() {
     _assertReplacementForChildren<PrefixExpression>(
       destination: findNode.prefix('++a'),
       source: findNode.prefix('++b'),
-      childAccessors: [
-        (node) => node.operand,
-      ],
+      childAccessors: [(node) => node.operand],
     );
   }
 
@@ -1446,10 +1325,7 @@ void f() {
     _assertReplacementForChildren<PropertyAccess>(
       destination: findNode.propertyAccess('(a)'),
       source: findNode.propertyAccess('(b)'),
-      childAccessors: [
-        (node) => node.target!,
-        (node) => node.propertyName,
-      ],
+      childAccessors: [(node) => node.target!, (node) => node.propertyName],
     );
   }
 
@@ -1495,9 +1371,7 @@ void f(x) {
     _assertReplacementForChildren<RelationalPattern>(
       destination: findNode.relationalPattern('> 0'),
       source: findNode.relationalPattern('> 1'),
-      childAccessors: [
-        (node) => node.operand,
-      ],
+      childAccessors: [(node) => node.operand],
     );
   }
 
@@ -1511,9 +1385,7 @@ void f() {
     _assertReplacementForChildren<ReturnStatement>(
       destination: findNode.returnStatement('0;'),
       source: findNode.returnStatement('1;'),
-      childAccessors: [
-        (node) => node.expression!,
-      ],
+      childAccessors: [(node) => node.expression!],
     );
   }
 
@@ -1533,9 +1405,7 @@ void f() {
     _assertReplacementForChildren<SetOrMapLiteral>(
       destination: findNode.setOrMapLiteral('<int'),
       source: findNode.setOrMapLiteral('<double'),
-      childAccessors: [
-        (node) => node.typeArguments!,
-      ],
+      childAccessors: [(node) => node.typeArguments!],
     );
   }
 
@@ -1565,9 +1435,7 @@ void f(
     _assertReplacementForChildren<SimpleFormalParameter>(
       destination: a,
       source: findNode.simpleFormalParameter('int b'),
-      childAccessors: [
-        (node) => node.type!,
-      ],
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -1616,9 +1484,7 @@ class B extends A {
     _assertReplacementForChildren<SuperFormalParameter>(
       destination: findNode.superFormalParameter('a1'),
       source: findNode.superFormalParameter('a2'),
-      childAccessors: [
-        (node) => node.type!,
-      ],
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -1655,15 +1521,11 @@ void f() {
   }
 }
 ''');
-    _assertSwitchMember(
-      findNode.switchCase('case 0'),
-    );
+    _assertSwitchMember(findNode.switchCase('case 0'));
     _assertReplacementForChildren<SwitchCase>(
       destination: findNode.switchCase('case 0'),
       source: findNode.switchCase('case 1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1676,9 +1538,7 @@ void f() {
   }
 }
 ''');
-    _assertSwitchMember(
-      findNode.switchDefault('default: 0'),
-    );
+    _assertSwitchMember(findNode.switchDefault('default: 0'));
   }
 
   void test_switchStatement_language219() {
@@ -1700,9 +1560,7 @@ void f() {
     _assertReplacementForChildren<SwitchStatement>(
       destination: findNode.switchStatement('(0)'),
       source: findNode.switchStatement('(1)'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1716,9 +1574,7 @@ void f() {
     _assertReplacementForChildren<ThrowExpression>(
       destination: findNode.throw_('throw 0'),
       source: findNode.throw_('throw 1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1729,15 +1585,11 @@ void f() {
 var a = 0;
 var b = 1;
 ''');
-    _assertAnnotatedNode(
-      findNode.topLevelVariableDeclaration('a = 0'),
-    );
+    _assertAnnotatedNode(findNode.topLevelVariableDeclaration('a = 0'));
     _assertReplacementForChildren<TopLevelVariableDeclaration>(
       destination: findNode.topLevelVariableDeclaration('a = 0'),
       source: findNode.topLevelVariableDeclaration('b = 1'),
-      childAccessors: [
-        (node) => node.variables,
-      ],
+      childAccessors: [(node) => node.variables],
     );
   }
 
@@ -1766,10 +1618,7 @@ void f() {
     _assertReplacementForChildren<TryStatement>(
       destination: findNode.tryStatement('// 0'),
       source: findNode.tryStatement('// 1'),
-      childAccessors: [
-        (node) => node.body,
-        (node) => node.finallyBlock!,
-      ],
+      childAccessors: [(node) => node.body, (node) => node.finallyBlock!],
     );
   }
 
@@ -1793,9 +1642,7 @@ class A<T extends int, U extends double> {}
     _assertReplacementForChildren<TypeParameter>(
       destination: findNode.typeParameter('T extends'),
       source: findNode.typeParameter('U extends'),
-      childAccessors: [
-        (node) => node.bound!,
-      ],
+      childAccessors: [(node) => node.bound!],
     );
   }
 
@@ -1823,9 +1670,7 @@ void f() {
     _assertReplacementForChildren<VariableDeclaration>(
       destination: findNode.variableDeclaration('a = 0'),
       source: findNode.variableDeclaration('b = 1'),
-      childAccessors: [
-        (node) => node.initializer!,
-      ],
+      childAccessors: [(node) => node.initializer!],
     );
   }
 
@@ -1844,9 +1689,7 @@ void f() {
     _assertReplacementForChildren<VariableDeclarationList>(
       destination: findNode.variableDeclarationList('int a'),
       source: findNode.variableDeclarationList('double c'),
-      childAccessors: [
-        (node) => node.type!,
-      ],
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -1860,9 +1703,7 @@ void f() {
     _assertReplacementForChildren<VariableDeclarationStatement>(
       destination: findNode.variableDeclarationStatement('int a'),
       source: findNode.variableDeclarationStatement('double b'),
-      childAccessors: [
-        (node) => node.variables,
-      ],
+      childAccessors: [(node) => node.variables],
     );
   }
 
@@ -1876,9 +1717,7 @@ void f() {
     _assertReplacementForChildren<WhenClause>(
       destination: findNode.whenClause('when 1'),
       source: findNode.whenClause('when 2'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -1896,10 +1735,7 @@ void f() {
     _assertReplacementForChildren<WhileStatement>(
       destination: findNode.whileStatement('(true)'),
       source: findNode.whileStatement('(false)'),
-      childAccessors: [
-        (node) => node.condition,
-        (node) => node.body,
-      ],
+      childAccessors: [(node) => node.condition, (node) => node.body],
     );
   }
 
@@ -1925,9 +1761,7 @@ void f() sync* {
     _assertReplacementForChildren<YieldStatement>(
       destination: findNode.yieldStatement('yield 0;'),
       source: findNode.yieldStatement('yield 1'),
-      childAccessors: [
-        (node) => node.expression,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -2108,14 +1942,22 @@ class SourceRangeTest {
 
   void test_getUnion() {
     expect(
-        SourceRange(10, 10).getUnion(SourceRange(15, 10)), SourceRange(10, 15));
+      SourceRange(10, 10).getUnion(SourceRange(15, 10)),
+      SourceRange(10, 15),
+    );
     expect(
-        SourceRange(15, 10).getUnion(SourceRange(10, 10)), SourceRange(10, 15));
+      SourceRange(15, 10).getUnion(SourceRange(10, 10)),
+      SourceRange(10, 15),
+    );
     // "other" is covered/covers
     expect(
-        SourceRange(10, 10).getUnion(SourceRange(15, 2)), SourceRange(10, 10));
+      SourceRange(10, 10).getUnion(SourceRange(15, 2)),
+      SourceRange(10, 10),
+    );
     expect(
-        SourceRange(15, 2).getUnion(SourceRange(10, 10)), SourceRange(10, 10));
+      SourceRange(15, 2).getUnion(SourceRange(10, 10)),
+      SourceRange(10, 10),
+    );
   }
 
   void test_intersects() {

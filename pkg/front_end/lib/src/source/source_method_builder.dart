@@ -8,6 +8,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
@@ -89,22 +90,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => _modifiers.isAugment;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => _modifiers.isExternal;
-
-  @override
   bool get isAbstract => _modifiers.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -115,7 +101,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  bool get isEnumElement => false;
+  NamedBuilder get getable => this;
+
+  @override
+  NamedBuilder? get setable => null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
@@ -154,17 +143,24 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, this, _invokeTarget,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _invokeTarget.fileUri != _introductory.fileUri);
-      for (MethodDeclaration augmentation in _augmentations) {
-        augmentation.buildOutlineExpressions(classHierarchy, libraryBuilder,
-            declarationBuilder, this, _invokeTarget,
-            isClassInstanceMember: isClassInstanceMember,
-            createFileUriExpression:
-                _invokeTarget.fileUri != augmentation.fileUri);
+      _introductory.buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          methodBuilder: this,
+          annotatable: _invokeTarget,
+          annotatableFileUri: _invokeTarget.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
+      for (int i = 0; i < _augmentations.length; i++) {
+        MethodDeclaration augmentation = _augmentations[i];
+        augmentation.buildOutlineExpressions(
+            classHierarchy: classHierarchy,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: declarationBuilder,
+            methodBuilder: this,
+            annotatable: _invokeTarget,
+            annotatableFileUri: _invokeTarget.fileUri,
+            isClassInstanceMember: isClassInstanceMember);
       }
       hasBuiltOutlineExpressions = true;
     }
@@ -177,7 +173,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     // default values declared on the introductory method and omitted on the
     // augmenting method.
     _introductory.checkTypes(library, typeEnvironment);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       augmentation.checkTypes(library, typeEnvironment);
     }
   }
@@ -187,7 +184,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     if (!isClassInstanceMember) return;
     _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
     }
   }
@@ -197,16 +195,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         _reference,
       ];
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable =>
-      throw new UnsupportedError('$runtimeType.isAssignable');
-
   List<ClassMember>? _localMembers;
+
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new _MethodClassMember(this)];
+      _localMembers ??= [new _MethodClassMember(this, uriOffset)];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -225,10 +220,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Member get invokeTarget => _invokeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -239,7 +234,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
     int count = _introductory.computeDefaultTypes(context);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       count += augmentation.computeDefaultTypes(context);
     }
     return count;
@@ -251,9 +247,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isProperty => false;
-
-  @override
-  bool get isRegularMethod => !isOperator;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;
@@ -288,10 +281,10 @@ class _MethodClassMember implements ClassMember {
   late final Covariance _covariance =
       new Covariance.fromMethod(_builder.invokeTarget as Procedure);
 
-  _MethodClassMember(this._builder);
-
   @override
-  int get charOffset => _builder.fileOffset;
+  final UriOffsetLength uriOffset;
+
+  _MethodClassMember(this._builder, this.uriOffset);
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -302,12 +295,10 @@ class _MethodClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _builder.fileUri;
-
-  @override
   bool get forSetter => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}";
@@ -373,15 +364,6 @@ class _MethodClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isNoSuchMethodForwarder => false;

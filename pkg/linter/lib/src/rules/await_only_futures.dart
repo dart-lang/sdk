@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Await only futures.';
 
@@ -17,14 +18,11 @@ class AwaitOnlyFutures extends LintRule {
     : super(name: LintNames.await_only_futures, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.await_only_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.await_only_futures;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
-    var visitor = _Visitor(this);
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+    var visitor = _Visitor(this, context);
     registry.addAwaitExpression(this, visitor);
   }
 }
@@ -32,22 +30,28 @@ class AwaitOnlyFutures extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  _Visitor(this.rule);
+  final RuleContext context;
+
+  _Visitor(this.rule, this.context);
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
     if (node.expression is NullLiteral) return;
 
     var type = node.expression.staticType;
-    if (!(type == null ||
-        type.element3 is ExtensionTypeElement2 ||
-        type.isDartAsyncFuture ||
-        type is DynamicType ||
-        type is InvalidType ||
-        type.extendsClass('Future', 'dart.async') ||
-        type.implementsInterface('Future', 'dart.async') ||
-        type.isDartAsyncFutureOr)) {
-      rule.reportLintForToken(node.awaitKeyword, arguments: [type]);
+    if (type == null || type is DynamicType) return;
+    type = context.typeSystem.promoteToNonNull(type);
+    if (type.isDartAsyncFutureOr) return;
+    if (type.element is ExtensionTypeElement) return;
+    if (type is InvalidType) return;
+
+    if (context.typeSystem.isAssignableTo(
+      type,
+      context.typeProvider.futureDynamicType,
+    )) {
+      return;
     }
+
+    rule.reportAtToken(node.awaitKeyword, arguments: [type]);
   }
 }

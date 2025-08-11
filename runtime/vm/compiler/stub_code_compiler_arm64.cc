@@ -76,7 +76,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   const Register kTsanUtilsReg = R3;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -147,11 +147,11 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ Bind(&do_native_call);
     __ MoveRegister(kSavedRspReg, SP);
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
   fun();
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_target_thread_sanitizer) {
     __ MoveRegister(SP, kSavedRspReg);
     __ AddImmediate(SP, kJumpBufferSize);
@@ -161,7 +161,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ str(TMP,
            Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 // Input parameters:
@@ -417,7 +417,9 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
 #endif
 
 #if defined(SIMULATOR_FFI)
-  __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+  if (FLAG_use_simulator) {
+    __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+  }
 #endif
   __ blr(R9);
 
@@ -469,11 +471,6 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
-#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
-  // TODO(37299): FFI is not supported in SIMARM64.
-  // See Simulator::DoDirectedFfiCallback.
-  __ Breakpoint();
-#else
   Label body;
 
   // R9 is volatile and not used for passing any arguments.
@@ -571,6 +568,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label async_callback;
+  Label sync_isolate_group_shared_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -584,6 +582,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
+  __ cmp(R9,
+         Operand(static_cast<uword>(
+             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
+  __ b(&sync_isolate_group_shared_callback, EQ);
+
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
   // re-enter it afterwards.
@@ -596,6 +599,53 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint(/*scratch=*/R9);
 
   __ b(&done);
+
+  __ Bind(&sync_isolate_group_shared_callback);
+
+  __ blr(R10);
+
+  // Exit isolate group shared isolate.
+  {
+    __ SetupDartSP();
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+                           R4, R9);
+    } else {
+      Label call;
+      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Bind(&call);
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+#endif
+
+    __ mov(CSP, SP);
+    __ blr(R4);
+    __ mov(SP, CSP);
+    __ mov(THR, R0);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ RestoreCSP();
+  }
+
+  __ b(&done);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and
@@ -652,7 +702,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Breakpoint();
   }
 #endif
-#endif  // !defined(HOST_ARCH_ARM64)
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
@@ -2539,23 +2588,10 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // Cannot use function object from ICData as it may be the inlined
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
-  Register ic_reg = R5;
   Register func_reg = R6;
   if (FLAG_precompiled_mode) {
     __ Breakpoint();
     return;
-  }
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ Push(R6);        // Preserve.
-    __ Push(R5);        // Preserve.
-    __ Push(ic_reg);    // Argument.
-    __ Push(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ Drop(2);  // Discard argument;
-    __ Pop(R5);  // Restore.
-    __ Pop(R6);  // Restore.
-    __ LeaveStubFrame();
   }
   __ LoadFieldFromOffset(R7, func_reg, target::Function::usage_counter_offset(),
                          kFourBytes);
@@ -2698,7 +2734,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement();
   } else {
-    GenerateUsageCounterIncrement(/*scratch=*/R6);
+    GenerateUsageCounterIncrement(/*temp_reg=*/R6);
   }
 
   ASSERT(num_args == 1 || num_args == 2);
@@ -2723,8 +2759,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(R6);
-    __ LoadFromOffset(R6, R6, target::Isolate::single_step_offset(),
+    __ LoadFromOffset(R6, THR, target::Thread::single_step_offset(),
                       kUnsignedByte);
     __ CompareRegisters(R6, ZR);
     __ b(&stepping, NE);
@@ -3095,8 +3130,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
   // Check single stepping.
 #if !defined(PRODUCT)
   Label stepping, done_stepping;
-  __ LoadIsolate(R6);
-  __ LoadFromOffset(R6, R6, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(R6, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ CompareImmediate(R6, 0);
   __ b(&stepping, NE);
@@ -3337,8 +3371,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ LoadFromOffset(R1, R1, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(R1, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
@@ -3597,8 +3630,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ LoadFromOffset(R1, R1, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(R1, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
@@ -3741,7 +3773,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ b(&miss, EQ);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);

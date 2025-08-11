@@ -5,14 +5,14 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart'
+import 'package:analyzer/dart/element/element.dart'
     show
-        ExtensionElement2,
-        InterfaceElement2,
-        LibraryElement2,
+        ExtensionElement,
+        InterfaceElement,
+        LibraryElement,
         LibraryFragment,
-        PrefixElement2,
-        PropertyAccessorElement2;
+        PrefixElement,
+        PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -28,7 +28,7 @@ class ElementMatcher {
   final List<String> components;
 
   /// A list of the kinds of elements that are appropriate for some given
-  /// location in the code An empty list represents all kinds rather than no
+  /// location in the code. An empty list represents all kinds rather than no
   /// kinds.
   final List<ElementKind> validKinds;
 
@@ -93,10 +93,10 @@ class ElementMatcher {
           }
           var element =
               (parent as CompilationUnitMember).declaredFragment?.element;
-          if (element is! InterfaceElement2) {
+          if (element is! InterfaceElement) {
             return false;
           }
-          var types = element.allSupertypes.map((e) => e.element3.name3);
+          var types = element.allSupertypes.map((e) => e.element.name);
           for (var t in types) {
             if (elementComponents.contains(t)) {
               return true;
@@ -171,7 +171,7 @@ class ElementMatcher {
       for (var libraryImport in part.libraryImports2) {
         // TODO(brianwilkerson): Filter based on combinators to help avoid making
         //  invalid suggestions.
-        var uri = libraryImport.importedLibrary2?.uri;
+        var uri = libraryImport.importedLibrary?.uri;
         if (uri != null) {
           // The [uri] is `null` if the literal string is not a valid URI.
           importedUris.add(uri);
@@ -269,7 +269,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.element?.enclosingElement2.name3;
+      var superclassName = parent.element?.enclosingElement.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -291,12 +291,21 @@ class _MatcherBuilder {
     //  get a more exact matcher.
     // TODO(brianwilkerson): Use 'new' for the name of the unnamed constructor.
     var constructorName = node.name?.name ?? ''; // ?? 'new';
-    var className = node.type.name2.lexeme;
+    var typeName = node.type.name.lexeme;
     _addMatcher(
-      components: [constructorName, className],
+      components: [constructorName, typeName],
       kinds: const [ElementKind.constructorKind],
     );
-    _addMatcher(components: [className], kinds: const [ElementKind.classKind]);
+    _addMatcher(
+      components: [typeName],
+      kinds: const [
+        ElementKind.classKind,
+        ElementKind.enumKind,
+        ElementKind.extensionTypeKind,
+        ElementKind.typedefKind,
+        ElementKind.mixinKind, // Can't *yet* have factory constructors.
+      ],
+    );
   }
 
   /// Build a matcher for the extension.
@@ -369,10 +378,14 @@ class _MatcherBuilder {
         kinds: [
           ElementKind.classKind,
           ElementKind.constructorKind,
+          ElementKind.enumKind,
           ElementKind.extensionKind,
+          ElementKind.extensionTypeKind,
           ElementKind.functionKind,
           ElementKind.getterKind,
           ElementKind.methodKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind,
         ],
       );
     }
@@ -387,10 +400,11 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     _addMatcher(
-      components: [node.name2.lexeme],
+      components: [node.name.lexeme],
       kinds: const [
         ElementKind.classKind,
         ElementKind.enumKind,
+        ElementKind.extensionTypeKind,
         ElementKind.mixinKind,
         ElementKind.typedefKind,
       ],
@@ -412,21 +426,18 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var prefix = node.prefix;
-    if (prefix.element is PrefixElement2) {
-      var parent = node.parent;
-      if ((parent is NamedType && parent.parent is! ConstructorName) ||
-          (parent is PropertyAccess && parent.target == node)) {
-        _addMatcher(
-          components: [node.identifier.name],
-          kinds: const [
-            ElementKind.classKind,
-            ElementKind.enumKind,
-            ElementKind.extensionKind,
-            ElementKind.mixinKind,
-            ElementKind.typedefKind,
-          ],
-        );
-      }
+    if (prefix.element is PrefixElement) {
+      _addMatcher(
+        components: [node.identifier.name],
+        kinds: const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.extensionKind,
+          ElementKind.extensionTypeKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind,
+        ],
+      );
       _addMatcher(
         components: [node.identifier.name],
         kinds: const [
@@ -445,7 +456,7 @@ class _MatcherBuilder {
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
       _addMatcher(
-        components: [node.identifier.name, targetType.element3.name3!],
+        components: [node.identifier.name, targetType.element.name!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -459,9 +470,9 @@ class _MatcherBuilder {
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
     var container = node.prefix.element;
-    if (container is InterfaceElement2) {
+    if (container is InterfaceElement) {
       _addMatcher(
-        components: [node.identifier.name, container.name3!],
+        components: [node.identifier.name, container.name!],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -471,7 +482,7 @@ class _MatcherBuilder {
           ElementKind.setterKind,
         ],
       );
-    } else if (container is ExtensionElement2) {
+    } else if (container is ExtensionElement) {
       _addMatcher(
         components: [node.identifier.name, container.displayName],
         kinds: const [
@@ -545,9 +556,9 @@ class _MatcherBuilder {
         var element = node.element;
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
-        if (element is PropertyAccessorElement2) {
-          var enclosingElement = element.enclosingElement2;
-          if (enclosingElement is! LibraryElement2) {
+        if (element is PropertyAccessorElement) {
+          var enclosingElement = element.enclosingElement;
+          if (enclosingElement is! LibraryElement) {
             _addMatcher(
               components: [node.name, enclosingElement.displayName],
               kinds: [],
@@ -582,15 +593,15 @@ class _MatcherBuilder {
     if (element == null) {
       var parent = identifier.parent;
       if (parent is AssignmentExpression && identifier == parent.leftHandSide) {
-        element = parent.writeElement2;
+        element = parent.writeElement;
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is InterfaceElement2) {
-        return [identifier.name, enclosingElement.name3!];
-      } else if (enclosingElement is ExtensionElement2) {
-        var name = enclosingElement.name3;
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is InterfaceElement) {
+        return [identifier.name, enclosingElement.name!];
+      } else if (enclosingElement is ExtensionElement) {
+        var name = enclosingElement.name;
         if (name != null) {
           return [identifier.name, name];
         }
@@ -601,7 +612,7 @@ class _MatcherBuilder {
 
   /// Returns `true` if the [node] is a prefix.
   static bool _isPrefix(AstNode? node) {
-    return node is SimpleIdentifier && node.element is PrefixElement2;
+    return node is SimpleIdentifier && node.element is PrefixElement;
   }
 
   /// Returns the name of the class associated with the given [target].
@@ -610,7 +621,7 @@ class _MatcherBuilder {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
-          return type.element3.name3;
+          return type.element.name;
         } else if (type is DynamicType) {
           // The name is likely to be undefined.
           return target.name;
@@ -621,7 +632,7 @@ class _MatcherBuilder {
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {
-        return type.element3.name3;
+        return type.element.name;
       }
       return null;
     }

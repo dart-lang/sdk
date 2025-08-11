@@ -156,13 +156,17 @@ List<bool> restrictEnableFlagsToVersion({
 // public API, consider making a version that reports validation results using
 // the AnalysisError type.
 Iterable<ConflictingFlagLists> validateFlagCombination(
-    List<String> flags1, List<String> flags2) sync* {
+  List<String> flags1,
+  List<String> flags2,
+) sync* {
   var flag1Map = _flagStringsToMap(flags1);
   var flag2Map = _flagStringsToMap(flags2);
   for (var entry in flag2Map.entries) {
     if (flag1Map[entry.key] != null && flag1Map[entry.key] != entry.value) {
       yield ConflictingFlagLists(
-          _featureIndexToFeature(entry.key), !entry.value);
+        _featureIndexToFeature(entry.key),
+        !entry.value,
+      );
     }
   }
 }
@@ -197,8 +201,12 @@ Iterable<ValidationResult> validateFlags(List<String> flags) sync* {
           : IllegalUseOfExpiredFlag(flagIndex, feature);
     } else if (previousFlagIndex.containsKey(feature.index) &&
         previousFlagValue[feature.index] != requestedValue) {
-      yield ConflictingFlags(flagIndex, previousFlagIndex[feature.index]!,
-          feature, requestedValue);
+      yield ConflictingFlags(
+        flagIndex,
+        previousFlagIndex[feature.index]!,
+        feature,
+        requestedValue,
+      );
     } else {
       previousFlagIndex[feature.index] = flagIndex;
       previousFlagValue[feature.index] = requestedValue;
@@ -262,9 +270,12 @@ class ConflictingFlags extends ValidationResult {
   /// The string at [previousStringIndex] requested the opposite.
   final bool requestedValue;
 
-  ConflictingFlags(super.stringIndex, this.previousStringIndex, this.feature,
-      this.requestedValue)
-      : super._();
+  ConflictingFlags(
+    super.stringIndex,
+    this.previousStringIndex,
+    this.feature,
+    this.requestedValue,
+  ) : super._();
 
   @override
   String get flag => feature.stringForValue(requestedValue);
@@ -334,9 +345,9 @@ class ExperimentalFeature implements Feature {
     required this.experimentalReleaseVersion,
     required this.releaseVersion,
     this.channels = const [],
-  }) : assert(isEnabledByDefault
-            ? releaseVersion != null
-            : releaseVersion == null);
+  }) : assert(
+         isEnabledByDefault ? releaseVersion != null : releaseVersion == null,
+       );
 
   /// The string to disable the feature.
   String get disableString => 'no-$enableString';

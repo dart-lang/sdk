@@ -5,8 +5,11 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -19,14 +22,20 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     if (node is! SimpleIdentifier) return const [];
     var parent = node.parent;
     Expression? target;
+    DartType? targetType;
     if (parent is MethodInvocation) {
       target = parent.target;
+      targetType = target?.staticType;
     } else if (parent is PropertyAccess) {
       target = parent.target;
-    } else {
-      return const [];
+      targetType = target?.staticType;
+    } else if (parent is PrefixedIdentifier) {
+      target = parent.prefix;
+      targetType = target.staticType;
     }
-    if (target == null) return const [];
+    targetType ??= node.enclosingInstanceElement?.thisType;
+    if (targetType == null) return const [];
+
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) return const [];
 
@@ -34,11 +43,15 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var libraryElement = libraryFragment.element;
 
     var nodeName = Name(libraryElement.uri, node.name);
-    var extensions = libraryFragment.accessibleExtensions2
-        .havingMemberWithBaseName(nodeName);
+    var extensions = libraryFragment.accessibleExtensions
+        .havingMemberWithBaseName(nodeName)
+        .applicableTo(
+          targetLibrary: libraryElement,
+          targetType: targetType as TypeImpl,
+        );
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
-      var name = extension.extension.name3;
+      var name = extension.extension.name;
       if (name != null) {
         producers.add(_AddOverride(target, name, context: context));
       }
@@ -51,7 +64,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
 /// the [AddExtensionOverride] producer.
 class _AddOverride extends ResolvedCorrectionProducer {
   /// The expression around which to add the override.
-  final Expression _expression;
+  final Expression? _expression;
 
   /// The extension name to be inserted.
   final String _name;
@@ -72,15 +85,23 @@ class _AddOverride extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var needsParentheses = _expression is! ParenthesizedExpression;
+    var offset = _expression?.offset ?? node.offset;
+    var endOffset = _expression?.end ?? node.offset;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(_expression.offset, (builder) {
+      builder.addInsertion(offset, (builder) {
         builder.write(_name);
         if (needsParentheses) {
           builder.write('(');
         }
+        if (_expression == null) {
+          builder.write('this');
+        }
+        if (offset == endOffset && needsParentheses) {
+          builder.write(').');
+        }
       });
-      if (needsParentheses) {
-        builder.addSimpleInsertion(_expression.end, ')');
+      if (needsParentheses && offset != endOffset) {
+        builder.addSimpleInsertion(endOffset, ')');
       }
     });
   }

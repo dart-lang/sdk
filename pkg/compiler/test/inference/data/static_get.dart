@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   getTopLevelFieldUninitialized();
   getStaticFieldUninitialized();
@@ -22,10 +22,10 @@ main() {
 /// Static get of an uninitialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _field1:[null|powerset=1]*/
+/*member: _field1:[null|powerset={null}]*/
 var _field1;
 
-/*member: getTopLevelFieldUninitialized:[null|powerset=1]*/
+/*member: getTopLevelFieldUninitialized:[null|powerset={null}]*/
 getTopLevelFieldUninitialized() => _field1;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,21 +33,21 @@ getTopLevelFieldUninitialized() => _field1;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1 {
-  /*member: Class1.field:[null|powerset=1]*/
+  /*member: Class1.field:[null|powerset={null}]*/
   static var field;
 }
 
-/*member: getStaticFieldUninitialized:[null|powerset=1]*/
+/*member: getStaticFieldUninitialized:[null|powerset={null}]*/
 getStaticFieldUninitialized() => Class1.field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _field2:[exact=JSUInt31|powerset=0]*/
+/*member: _field2:[exact=JSUInt31|powerset={I}{O}{N}]*/
 var _field2 = 42;
 
-/*member: getTopLevelFieldInitialized:[exact=JSUInt31|powerset=0]*/
+/*member: getTopLevelFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getTopLevelFieldInitialized() => _field2;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +55,11 @@ getTopLevelFieldInitialized() => _field2;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*member: Class2.field:[exact=JSUInt31|powerset=0]*/
+  /*member: Class2.field:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static var field = 42;
 }
 
-/*member: getStaticFieldInitialized:[exact=JSUInt31|powerset=0]*/
+/*member: getStaticFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getStaticFieldInitialized() => Class2.field;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +67,13 @@ getStaticFieldInitialized() => Class2.field;
 /// null.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method3:[exact=JSUInt31|powerset=0]*/
+/*member: _method3:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _method3() => 42;
 
-/*member: _field3:[null|exact=JSUInt31|powerset=1]*/
+/*member: _field3:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 var _field3 = _method3();
 
-/*member: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset=1]*/
+/*member: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 getTopLevelFieldInitializedPotentiallyNull() => _field3;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,24 +81,24 @@ getTopLevelFieldInitializedPotentiallyNull() => _field3;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*member: Class3.method:[exact=JSUInt31|powerset=0]*/
+  /*member: Class3.method:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static method() => 42;
 
-  /*member: Class3.field:[null|exact=JSUInt31|powerset=1]*/
+  /*member: Class3.field:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
   static var field = method();
 }
 
-/*member: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset=1]*/
+/*member: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 getStaticFieldInitializedPotentiallyNull() => Class3.field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method4:[exact=JSUInt31|powerset=0]*/
+/*member: _method4:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _method4() => 42;
 
-/*member: getTopLevelMethod:[subclass=Closure|powerset=0]*/
+/*member: getTopLevelMethod:[subclass=Closure|powerset={N}{O}{N}]*/
 getTopLevelMethod() => _method4;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,21 +106,21 @@ getTopLevelMethod() => _method4;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*member: Class4.method:[exact=JSUInt31|powerset=0]*/
+  /*member: Class4.method:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static method() => 42;
 }
 
-/*member: getStaticMethod:[subclass=Closure|powerset=0]*/
+/*member: getStaticMethod:[subclass=Closure|powerset={N}{O}{N}]*/
 getStaticMethod() => Class4.method;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _getter1:[exact=JSUInt31|powerset=0]*/
+/*member: _getter1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 get _getter1 => 42;
 
-/*member: getTopLevelGetter:[exact=JSUInt31|powerset=0]*/
+/*member: getTopLevelGetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getTopLevelGetter() => _getter1;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,9 +128,9 @@ getTopLevelGetter() => _getter1;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*member: Class5.getter:[exact=JSUInt31|powerset=0]*/
+  /*member: Class5.getter:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static get getter => 42;
 }
 
-/*member: getStaticGetter:[exact=JSUInt31|powerset=0]*/
+/*member: getStaticGetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getStaticGetter() => Class5.getter;

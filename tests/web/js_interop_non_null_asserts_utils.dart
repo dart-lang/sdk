@@ -209,7 +209,7 @@ class AnotherClass {
 
   @pragma('dart2js:prefer-inline')
   external static double Function()
-      get staticGetterFunctionReturnsUndefinedInlined;
+  get staticGetterFunctionReturnsUndefinedInlined;
 
   @pragma('dart2js:never-inline')
   external static bool staticNullField;
@@ -315,7 +315,7 @@ class NamedClass {
 
   @pragma('dart2js:prefer-inline')
   external static double Function()
-      get staticGetterFunctionReturnsUndefinedInlined;
+  get staticGetterFunctionReturnsUndefinedInlined;
 
   @pragma('dart2js:never-inline')
   external bool nullField;
@@ -412,8 +412,10 @@ void topLevelMemberTests({required bool checksEnabled}) {
   var getterFunction = getterFunctionReturnsNull;
   Expect.isNull(getterFunction());
 
-  eval(r'self.getterFunctionReturnsUndefined = function() { '
-      'return void 0; };');
+  eval(
+    r'self.getterFunctionReturnsUndefined = function() { '
+    'return void 0; };',
+  );
   Expect.isNull(getterFunctionReturnsUndefined());
   getterFunction = getterFunctionReturnsUndefined;
   Expect.isNull(getterFunction());
@@ -461,8 +463,10 @@ void inlinedTopLevelMemberTests({required bool checksEnabled}) {
   var getterFunction = getterFunctionReturnsNullInlined;
   Expect.isNull(getterFunction());
 
-  eval(r'self.getterFunctionReturnsUndefinedInlined = function() { '
-      'return void 0; };');
+  eval(
+    r'self.getterFunctionReturnsUndefinedInlined = function() { '
+    'return void 0; };',
+  );
   Expect.isNull(getterFunctionReturnsUndefinedInlined());
   getterFunction = getterFunctionReturnsUndefinedInlined;
   Expect.isNull(getterFunction());
@@ -560,9 +564,13 @@ void anonymousClassTests({required bool checksEnabled}) {
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => x.getterFunctionReturnsNull());
+    checksEnabled,
+    () => x.getterFunctionReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => x.getterFunctionReturnsUndefined());
+    checksEnabled,
+    () => x.getterFunctionReturnsUndefined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -581,16 +589,22 @@ void anonymousClassTests({required bool checksEnabled}) {
   Expect.isNull(x.nullableField);
 
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticReturnsNull());
+    checksEnabled,
+    () => AnotherClass.staticReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticReturnsUndefined());
+    checksEnabled,
+    () => AnotherClass.staticReturnsUndefined(),
+  );
   functionTearoff = AnotherClass.staticReturnsNull;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   functionTearoff = AnotherClass.staticReturnsUndefined;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   Expect.throwsTypeErrorWhen(checksEnabled, () => AnotherClass.staticGetsNull);
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticUndefinedGetter);
+    checksEnabled,
+    () => AnotherClass.staticUndefinedGetter,
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -605,7 +619,9 @@ void anonymousClassTests({required bool checksEnabled}) {
 
   Expect.throwsTypeErrorWhen(checksEnabled, () => AnotherClass.staticNullField);
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticUndefinedField);
+    checksEnabled,
+    () => AnotherClass.staticUndefinedField,
+  );
 
   Expect.isNull(AnotherClass.staticNullableFunction());
   Expect.isNull(AnotherClass.staticNullableGetter);
@@ -634,9 +650,13 @@ void inlinedAnonymousClassTests({required bool checksEnabled}) {
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => x.getterFunctionReturnsNullInlined());
+    checksEnabled,
+    () => x.getterFunctionReturnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => x.getterFunctionReturnsUndefinedInlined());
+    checksEnabled,
+    () => x.getterFunctionReturnsUndefinedInlined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -655,17 +675,25 @@ void inlinedAnonymousClassTests({required bool checksEnabled}) {
   Expect.isNull(x.nullableFieldInlined);
 
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticReturnsNullInlined());
+    checksEnabled,
+    () => AnotherClass.staticReturnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticReturnsUndefinedInlined());
+    checksEnabled,
+    () => AnotherClass.staticReturnsUndefinedInlined(),
+  );
   functionTearoff = AnotherClass.staticReturnsNullInlined;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   functionTearoff = AnotherClass.staticReturnsUndefinedInlined;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticGetsNullInlined);
+    checksEnabled,
+    () => AnotherClass.staticGetsNullInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticUndefinedGetterInlined);
+    checksEnabled,
+    () => AnotherClass.staticUndefinedGetterInlined,
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -679,9 +707,13 @@ void inlinedAnonymousClassTests({required bool checksEnabled}) {
   Expect.isNull(getterFunction());
 
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticNullFieldInlined);
+    checksEnabled,
+    () => AnotherClass.staticNullFieldInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => AnotherClass.staticUndefinedFieldInlined);
+    checksEnabled,
+    () => AnotherClass.staticUndefinedFieldInlined,
+  );
 
   Expect.isNull(AnotherClass.staticNullableFunctionInlined());
   Expect.isNull(AnotherClass.staticNullableGetterInlined);
@@ -697,7 +729,9 @@ void dynamicAnonymousClassTests({required bool checksEnabled}) {
   obj = createSomeClass();
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.returnsNull());
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsUndefined());
+    dart2js && checksEnabled,
+    () => obj.returnsUndefined(),
+  );
 
   // In dart2js, a tearoff of an interop method is indistinguishable from a
   // getter returning the underlying function.
@@ -708,14 +742,20 @@ void dynamicAnonymousClassTests({required bool checksEnabled}) {
 
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.getsNull);
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedGetter);
+    dart2js && checksEnabled,
+    () => obj.undefinedGetter,
+  );
 
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsNull());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsUndefined());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsUndefined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -728,7 +768,9 @@ void dynamicAnonymousClassTests({required bool checksEnabled}) {
 
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.nullField);
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedField);
+    dart2js && checksEnabled,
+    () => obj.undefinedField,
+  );
 
   Expect.isNull(obj.nullableFunction());
   Expect.isNull(obj.nullableGetter);
@@ -743,9 +785,13 @@ void dynamicInlinedAnonymousClassTests({required bool checksEnabled}) {
 
   obj = createSomeClass();
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsNullInlined());
+    dart2js && checksEnabled,
+    () => obj.returnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsUndefinedInlined());
+    dart2js && checksEnabled,
+    () => obj.returnsUndefinedInlined(),
+  );
 
   // In dart2js, a tearoff of an interop method is indistinguishable from a
   // getter returning the underlying function.
@@ -755,16 +801,24 @@ void dynamicInlinedAnonymousClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(false, () => functionTearoff());
 
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getsNullInlined);
+    dart2js && checksEnabled,
+    () => obj.getsNullInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedGetterInlined);
+    dart2js && checksEnabled,
+    () => obj.undefinedGetterInlined,
+  );
 
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsNullInlined());
-  Expect.throwsTypeErrorWhen(dart2js && checksEnabled,
-      () => obj.getterFunctionReturnsUndefinedInlined());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsNullInlined(),
+  );
+  Expect.throwsTypeErrorWhen(
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsUndefinedInlined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -776,9 +830,13 @@ void dynamicInlinedAnonymousClassTests({required bool checksEnabled}) {
   Expect.isNull(getterFunction());
 
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.nullFieldInlined);
+    dart2js && checksEnabled,
+    () => obj.nullFieldInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedFieldInlined);
+    dart2js && checksEnabled,
+    () => obj.undefinedFieldInlined,
+  );
 
   Expect.isNull(obj.nullableFunctionInlined());
   Expect.isNull(obj.nullableGetterInlined);
@@ -856,9 +914,13 @@ void namedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(ddc && checksEnabled, () => functionTearoff());
 
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticReturnsNull());
+    checksEnabled,
+    () => NamedClass.staticReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticReturnsUndefined());
+    checksEnabled,
+    () => NamedClass.staticReturnsUndefined(),
+  );
   functionTearoff = NamedClass.staticReturnsNull;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   functionTearoff = NamedClass.staticReturnsUndefined;
@@ -868,12 +930,18 @@ void namedClassTests({required bool checksEnabled}) {
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => y.getterFunctionReturnsNull());
+    checksEnabled,
+    () => y.getterFunctionReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => y.getterFunctionReturnsUndefined());
+    checksEnabled,
+    () => y.getterFunctionReturnsUndefined(),
+  );
   Expect.throwsTypeErrorWhen(checksEnabled, () => NamedClass.staticGetsNull);
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticUndefinedGetter);
+    checksEnabled,
+    () => NamedClass.staticUndefinedGetter,
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -894,7 +962,9 @@ void namedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => y.undefinedField);
   Expect.throwsTypeErrorWhen(checksEnabled, () => NamedClass.staticNullField);
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticUndefinedField);
+    checksEnabled,
+    () => NamedClass.staticUndefinedField,
+  );
 
   Expect.isNull(y.nullableFunction());
   Expect.isNull(y.nullableGetter);
@@ -921,9 +991,13 @@ void inlinedNamedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(ddc && checksEnabled, () => functionTearoff());
 
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticReturnsNullInlined());
+    checksEnabled,
+    () => NamedClass.staticReturnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticReturnsUndefinedInlined());
+    checksEnabled,
+    () => NamedClass.staticReturnsUndefinedInlined(),
+  );
   functionTearoff = NamedClass.staticReturnsNullInlined;
   Expect.throwsTypeErrorWhen(checksEnabled, () => functionTearoff());
   functionTearoff = NamedClass.staticReturnsUndefinedInlined;
@@ -933,13 +1007,21 @@ void inlinedNamedClassTests({required bool checksEnabled}) {
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => y.getterFunctionReturnsNullInlined());
+    checksEnabled,
+    () => y.getterFunctionReturnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => y.getterFunctionReturnsUndefinedInlined());
+    checksEnabled,
+    () => y.getterFunctionReturnsUndefinedInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticGetsNullInlined);
+    checksEnabled,
+    () => NamedClass.staticGetsNullInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticUndefinedGetterInlined);
+    checksEnabled,
+    () => NamedClass.staticUndefinedGetterInlined,
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -959,9 +1041,13 @@ void inlinedNamedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => y.nullFieldInlined);
   Expect.throwsTypeErrorWhen(checksEnabled, () => y.undefinedFieldInlined);
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticNullFieldInlined);
+    checksEnabled,
+    () => NamedClass.staticNullFieldInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      checksEnabled, () => NamedClass.staticUndefinedFieldInlined);
+    checksEnabled,
+    () => NamedClass.staticUndefinedFieldInlined,
+  );
 
   Expect.isNull(y.nullableFunctionInlined());
   Expect.isNull(y.nullableGetterInlined);
@@ -980,7 +1066,9 @@ void dynamicNamedClassTests({required bool checksEnabled}) {
   obj = NamedClass.createNamedClass();
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.returnsNull());
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsUndefined());
+    dart2js && checksEnabled,
+    () => obj.returnsUndefined(),
+  );
 
   // In dart2js, a tearoff of an interop method is indistinguishable from a
   // getter returning the underlying function.
@@ -991,13 +1079,19 @@ void dynamicNamedClassTests({required bool checksEnabled}) {
 
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.getsNull);
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedGetter);
+    dart2js && checksEnabled,
+    () => obj.undefinedGetter,
+  );
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsNull());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsNull(),
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsUndefined());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsUndefined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -1010,7 +1104,9 @@ void dynamicNamedClassTests({required bool checksEnabled}) {
 
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.nullField);
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedField);
+    dart2js && checksEnabled,
+    () => obj.undefinedField,
+  );
 
   Expect.isNull(obj.nullableFunction());
   Expect.isNull(obj.nullableGetter);
@@ -1025,9 +1121,13 @@ void dynamicInlinedNamedClassTests({required bool checksEnabled}) {
 
   obj = NamedClass.createNamedClass();
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsNullInlined());
+    dart2js && checksEnabled,
+    () => obj.returnsNullInlined(),
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.returnsUndefinedInlined());
+    dart2js && checksEnabled,
+    () => obj.returnsUndefinedInlined(),
+  );
 
   // In dart2js, a tearoff of an interop method is indistinguishable from a
   // getter returning the underlying function.
@@ -1037,15 +1137,23 @@ void dynamicInlinedNamedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(false, () => functionTearoff());
 
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getsNullInlined);
+    dart2js && checksEnabled,
+    () => obj.getsNullInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedGetterInlined);
+    dart2js && checksEnabled,
+    () => obj.undefinedGetterInlined,
+  );
   // Immediate invocations of instance getters are seen as function calls so
   // the results get checked.
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.getterFunctionReturnsNullInlined());
-  Expect.throwsTypeErrorWhen(dart2js && checksEnabled,
-      () => obj.getterFunctionReturnsUndefinedInlined());
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsNullInlined(),
+  );
+  Expect.throwsTypeErrorWhen(
+    dart2js && checksEnabled,
+    () => obj.getterFunctionReturnsUndefinedInlined(),
+  );
 
   // At the time this test was written, getters that return function types don't
   // get the same wrappers as function tearoffs so there isn't an opportunity to
@@ -1057,9 +1165,13 @@ void dynamicInlinedNamedClassTests({required bool checksEnabled}) {
   Expect.isNull(getterFunction());
 
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.nullFieldInlined);
+    dart2js && checksEnabled,
+    () => obj.nullFieldInlined,
+  );
   Expect.throwsTypeErrorWhen(
-      dart2js && checksEnabled, () => obj.undefinedFieldInlined);
+    dart2js && checksEnabled,
+    () => obj.undefinedFieldInlined,
+  );
 
   Expect.isNull(obj.nullableFunctionInlined());
   Expect.isNull(obj.nullableGetterInlined);

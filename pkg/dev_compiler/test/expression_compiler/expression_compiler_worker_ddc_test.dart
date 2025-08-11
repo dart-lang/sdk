@@ -13,8 +13,10 @@ void main(List<String> args) async {
   var debug = false;
 
   group('ddc module format -', () {
-    var setup =
-        SetupCompilerOptions(moduleFormat: ModuleFormat.ddc, args: args);
+    var setup = SetupCompilerOptions(
+      moduleFormat: ModuleFormat.ddc,
+      args: args,
+    );
     runTests(setup, verbose: debug);
   });
 }

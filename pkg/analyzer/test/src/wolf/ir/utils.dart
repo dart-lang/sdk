@@ -43,10 +43,9 @@ base class AstNodes extends AstToIREventListener {
   ///
   /// Only available after [onFinished] has been called.
   InstructionRange? operator [](AstNode node) => switch (_nodeMap[node]) {
-        null => null,
-        (:var start, :var end) =>
-          InstructionRange(ir: ir, start: start, end: end)
-      };
+    null => null,
+    (:var start, :var end) => InstructionRange(ir: ir, start: start, end: end),
+  };
 
   @override
   void onEnterNode(AstNode node) {
@@ -57,8 +56,10 @@ base class AstNodes extends AstToIREventListener {
 
   @override
   void onExitNode() {
-    _nodeMap[_nodeStack.removeLast()] =
-        (start: _nodeStartStack.removeLast(), end: nextInstructionAddress);
+    _nodeMap[_nodeStack.removeLast()] = (
+      start: _nodeStartStack.removeLast(),
+      end: nextInstructionAddress,
+    );
     super.onExitNode();
   }
 
@@ -77,7 +78,7 @@ base class AstNodes extends AstToIREventListener {
       'AstNodes(',
       for (var MapEntry(:key, :value) in _nodeMap.entries)
         '  ${key.runtimeType} $key => $value',
-      ')'
+      ')',
     ].join('\n');
   }
 }
@@ -139,10 +140,10 @@ class TestIRContainer extends BaseIRContainer {
   final Map<String, int> _labelToAddress;
 
   TestIRContainer(TestIRWriter super.writer)
-      : _addressToLabel = writer._addressToLabel,
-        _allocNames = writer._allocNames,
-        _functionTypes = writer._functionTypes,
-        _labelToAddress = writer._labelToAddress;
+    : _addressToLabel = writer._addressToLabel,
+      _allocNames = writer._allocNames,
+      _functionTypes = writer._functionTypes,
+      _labelToAddress = writer._labelToAddress;
 
   String? addressToLabel(int address) => _addressToLabel[address];
 
@@ -178,8 +179,9 @@ class TestIRWriter extends RawIRWriter {
       _allocNames.add(instructionLabel);
     } else {
       for (var i = 0; i < count; i++) {
-        _allocNames
-            .add(instructionLabel == null ? null : '$instructionLabel$i');
+        _allocNames.add(
+          instructionLabel == null ? null : '$instructionLabel$i',
+        );
       }
     }
     super.alloc(count);
@@ -215,7 +217,9 @@ class TestIRWriter extends RawIRWriter {
   /// Convenience method for creating an ordinary function (not a method, not
   /// async, not a generator).
   void ordinaryFunction({int parameterCount = 0}) => function(
-      encodeFunctionType(parameterCount: parameterCount), FunctionFlags());
+    encodeFunctionType(parameterCount: parameterCount),
+    FunctionFlags(),
+  );
 }
 
 /// Testing methods for [AstNodes].
@@ -224,26 +228,34 @@ extension SubjectAstNodes on Subject<AstNodes> {
   /// allows its properties to be tested.
   @meta.useResult
   Subject<InstructionRange> operator [](AstNode node) {
-    return context
-        .nest(() => prefixFirst('contains ${node.runtimeType} ', literal(node)),
-            (astNodes) {
-      if (astNodes[node] case var range?) return Extracted.value(range);
-      return Extracted.rejection(
+    return context.nest(
+      () => prefixFirst('contains ${node.runtimeType} ', literal(node)),
+      (astNodes) {
+        if (astNodes[node] case var range?) return Extracted.value(range);
+        return Extracted.rejection(
           which: prefixFirst(
-              'does not contain ${node.runtimeType} ', literal(node)));
-    });
+            'does not contain ${node.runtimeType} ',
+            literal(node),
+          ),
+        );
+      },
+    );
   }
 
   /// Verifies that an entry exists for [node].
   void containsNode(AstNode node) {
     context.expect(
-        () => prefixFirst('contains ${node.runtimeType} ', literal(node)),
-        (astNodes) {
-      if (astNodes[node] != null) return null;
-      return Rejection(
+      () => prefixFirst('contains ${node.runtimeType} ', literal(node)),
+      (astNodes) {
+        if (astNodes[node] != null) return null;
+        return Rejection(
           which: prefixFirst(
-              'does not contain ${node.runtimeType} ', literal(node)));
-    });
+            'does not contain ${node.runtimeType} ',
+            literal(node),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -257,16 +269,19 @@ extension SubjectInstruction on Subject<Instruction> {
 /// Testing methods for `Iterable<Instruction>`.
 extension SubjectInstructionIterable on Subject<Iterable<Instruction>> {
   void hasLength(int expectedLength) => context.expect(
-      () => ['has length $expectedLength'],
-      (instructions) => instructions.length == expectedLength
-          ? null
-          : Rejection(which: ['does not have length $expectedLength']));
+    () => ['has length $expectedLength'],
+    (instructions) =>
+        instructions.length == expectedLength
+            ? null
+            : Rejection(which: ['does not have length $expectedLength']),
+  );
 
   @meta.useResult
   Subject<Iterable<Instruction>> withOpcode(Opcode opcode) => context.nest(
-      () => ['contains instructions matching ${opcode.describe()}'],
-      (instructions) =>
-          Extracted.value(instructions.where((i) => i.opcode == opcode)));
+    () => ['contains instructions matching ${opcode.describe()}'],
+    (instructions) =>
+        Extracted.value(instructions.where((i) => i.opcode == opcode)),
+  );
 }
 
 /// Testing methods for [InstructionRange].
@@ -276,11 +291,12 @@ extension SubjectInstructionRange on Subject<InstructionRange> {
 
   @meta.useResult
   Subject<List<Instruction>> get instructions => has(
-      (range) => [
-            for (var address = range.start; address < range.end; address++)
-              Instruction(range.ir, address)
-          ],
-      'instructions');
+    (range) => [
+      for (var address = range.start; address < range.end; address++)
+        Instruction(range.ir, address),
+    ],
+    'instructions',
+  );
 
   @meta.useResult
   Subject<int> get start => has((range) => range.start, 'start');
@@ -289,13 +305,15 @@ extension SubjectInstructionRange on Subject<InstructionRange> {
   ///
   /// The check passes if [subrange] is the same as the subject range.
   void containsSubrange(InstructionRange subrange) {
-    context.expect(() => prefixFirst('contains subrange ', literal(subrange)),
-        (range) {
+    context.expect(() => prefixFirst('contains subrange ', literal(subrange)), (
+      range,
+    ) {
       if (range.start <= subrange.start && subrange.end <= range.end) {
         return null;
       }
       return Rejection(
-          which: prefixFirst('does not contain subrange ', literal(subrange)));
+        which: prefixFirst('does not contain subrange ', literal(subrange)),
+      );
     });
   }
 }

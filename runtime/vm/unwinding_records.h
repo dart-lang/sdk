@@ -6,6 +6,7 @@
 #ifndef RUNTIME_VM_UNWINDING_RECORDS_H_
 #define RUNTIME_VM_UNWINDING_RECORDS_H_
 
+#include "platform/unwinding_records.h"
 #include "vm/allocation.h"
 #include "vm/heap/page.h"
 

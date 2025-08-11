@@ -32,7 +32,7 @@ Map<int, String> var9 = {
   99: 't',
   49: 'Qu',
   20: 'FujA\u2665',
-  47: ''
+  47: '',
 };
 
 String? foo2() {
@@ -55,22 +55,25 @@ String? foo2() {
                       : {
                           (var4++),
                           (var7[(false ? -87 : (++loc0))] %
-                              (var7[((++loc0) * var4)] ~/ 73))
+                              (var7[((++loc0) * var4)] ~/ 73)),
                         });
-                  var0 = ((((-((((true ? var2 : false) ? (!(var3)) : true)
+                  var0 =
+                      ((((-((((true ? var2 : false) ? (!(var3)) : true)
                                   ? var5
                                   : ((0.38834735336907733 as dynamic) ??
-                                      0.8105736840461367)))) +
+                                        0.8105736840461367)))) +
                               (0.3752597438445757).abs()))
                           .isFinite
                       ? {
                           (true ? 65 : (var3 ? (loc0--) : var4)),
-                          var7[Float32x4.xxxx]
+                          var7[Float32x4.xxxx],
                         }
                       : Set.identity());
-                  var1 = (((true
-                          ? ({var7[var7[-9223372032559808513]]}).toSet()
-                          : (Set.identity()).difference(var8!)) as dynamic) ??
+                  var1 =
+                      (((true
+                              ? ({var7[var7[-9223372032559808513]]}).toSet()
+                              : (Set.identity()).difference(var8!))
+                          as dynamic) ??
                       var8);
                   var9[Float32x4.zxyz] = '';
                 } catch (e) {
@@ -86,7 +89,7 @@ String? foo2() {
                     (var4--),
                     (-(ZLibOption.defaultWindowBits)),
                     (~((loc0--))),
-                    (var4++)
+                    (var4++),
                   ];
                 }
               }

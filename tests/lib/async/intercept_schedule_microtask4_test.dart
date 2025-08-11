@@ -44,7 +44,7 @@ main() {
         "run async body",
         "handler",
         "handler done",
-        "run nested body"
+        "run nested body",
       ], events);
       asyncEnd();
     });

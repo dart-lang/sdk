@@ -7,7 +7,6 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:test_runner/src/feature.dart';
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
@@ -112,7 +111,6 @@ void testParseOtherOptions() {
   /\/ ddcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
-  /\/ Requirements=nnbd nnbd-strong
   """);
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
@@ -120,7 +118,6 @@ void testParseOtherOptions() {
   Expect.listEquals(["dart2wasm", "options"], file.dart2wasmOptions);
   Expect.listEquals(["ddc", "options"], file.ddcOptions);
   Expect.listEquals(["other", "resources"], file.otherResources);
-  Expect.listEquals([Feature.nnbd, Feature.nnbdStrong], file.requirements);
 
   // Disallows multiple lines for some options.
   expectParseThrows("""
@@ -142,10 +139,6 @@ void testParseOtherOptions() {
   expectParseThrows("""
   /\/ ddcOptions=first
   /\/ ddcOptions=second
-  """);
-  expectParseThrows("""
-  /\/ Requirements=nnbd
-  /\/ Requirements=nnbd-strong
   """);
 
   // Merges multiple lines for others.

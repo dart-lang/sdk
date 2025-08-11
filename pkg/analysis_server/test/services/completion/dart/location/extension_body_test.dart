@@ -125,6 +125,20 @@ suggestions
 ''');
   }
 
+  Future<void> test_inMethod_namedRecordFields() async {
+    allowedIdentifiers = {'value1'};
+    await computeSuggestions('''
+extension E on ({int value1,}) {foo() {  val^;} }
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  value1
+    kind: identifier
+''');
+  }
+
   Future<void> test_inMethod_parameterShadowField() async {
     allowedIdentifiers = {'aaa'};
     await computeSuggestions('''
@@ -142,6 +156,22 @@ suggestions
     kind: parameter
   assert
     kind: keyword
+''');
+  }
+
+  Future<void> test_inMethod_positionalRecordFields() async {
+    allowedIdentifiers = {r'$1', r'$2'};
+    await computeSuggestions(r'''
+extension E on (int, String,) {foo() {  $^;} }
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  $1
+    kind: identifier
+  $2
+    kind: identifier
 ''');
   }
 }

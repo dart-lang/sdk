@@ -20,7 +20,7 @@ void main() async {
       '--deterministic',
       '--optimization-counter-threshold=10',
       '--no-use-osr',
-      testBody.path
+      testBody.path,
     ]);
     if (result.exitCode != 0) {
       print('''

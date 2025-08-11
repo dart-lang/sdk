@@ -34,7 +34,7 @@ class DocumentLinkHandler
     DocumentLinkParams params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
+  ) {
     var path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
       if (isDartDocument(params.textDocument)) {

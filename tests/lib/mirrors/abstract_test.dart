@@ -14,5 +14,7 @@ abstract class Foo {}
 
 void main() {
   expect(
-      'Class(s(Foo) in s(test.abstract_test), top-level)', reflectClass(Foo));
+    'Class(s(Foo) in s(test.abstract_test), top-level)',
+    reflectClass(Foo),
+  );
 }

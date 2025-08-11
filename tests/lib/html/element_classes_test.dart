@@ -14,12 +14,14 @@ Element makeElementWithClasses() =>
 
 CssClassSet makeClassSet() => makeElementWithClasses().classes;
 
-Element makeListElement() => new Element.html('<ul class="foo bar baz">'
-    '<li class="quux qux">'
-    '<li class="meta">'
-    '<li class="classy lassy">'
-    '<li class="qux lassy">'
-    '</ul>');
+Element makeListElement() => new Element.html(
+  '<ul class="foo bar baz">'
+  '<li class="quux qux">'
+  '<li class="meta">'
+  '<li class="classy lassy">'
+  '<li class="qux lassy">'
+  '</ul>',
+);
 
 Element? listElement;
 
@@ -89,13 +91,17 @@ main() {
   });
 
   test('map', () {
-    expect(makeClassSet().map((c) => c.toUpperCase()).toList(),
-        equals(['FOO', 'BAR', 'BAZ']));
+    expect(
+      makeClassSet().map((c) => c.toUpperCase()).toList(),
+      equals(['FOO', 'BAR', 'BAZ']),
+    );
   });
 
   test('where', () {
-    expect(makeClassSet().where((c) => c.contains('a')).toList(),
-        equals(['bar', 'baz']));
+    expect(
+      makeClassSet().where((c) => c.contains('a')).toList(),
+      equals(['bar', 'baz']),
+    );
   });
 
   test('every', () {
@@ -142,8 +148,11 @@ main() {
     expect(added, isFalse);
     final list = new List.from(classes);
     list.sort((a, b) => a.compareTo(b));
-    expect(list, equals(['bar', 'baz', 'foo', 'qux']),
-        reason: "The class set shouldn't have duplicate elements.");
+    expect(
+      list,
+      equals(['bar', 'baz', 'foo', 'qux']),
+      reason: "The class set shouldn't have duplicate elements.",
+    );
   });
 
   test('add-bad', () {
@@ -245,8 +254,10 @@ main() {
 
   test('intersection', () {
     final classes = makeClassSet();
-    expect(classes.intersection(['foo', 'qux', 'baz'].toSet()),
-        unorderedEquals(['foo', 'baz']));
+    expect(
+      classes.intersection(['foo', 'qux', 'baz'].toSet()),
+      unorderedEquals(['foo', 'baz']),
+    );
   });
 
   test('clear', () {
@@ -272,7 +283,9 @@ main() {
     var elements = listElementSetup();
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
     expect(
-        view(elements), '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
+      view(elements),
+      '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]',
+    );
   });
 
   test('listClasses=', () {
@@ -291,8 +304,10 @@ main() {
 
   test('listMap', () {
     var elements = listElementSetup();
-    expect(elements.classes.map((c) => c.toUpperCase()).toList(),
-        unorderedEquals(['QUX', 'QUUX', 'META', 'CLASSY', 'LASSY']));
+    expect(
+      elements.classes.map((c) => c.toUpperCase()).toList(),
+      unorderedEquals(['QUX', 'QUUX', 'META', 'CLASSY', 'LASSY']),
+    );
   });
 
   test('listContains', () {
@@ -308,9 +323,10 @@ main() {
 
     expect(view(elements.classes), '[classy, lassie, lassy, meta, quux, qux]');
     expect(
-        view(elements),
-        '[[lassie, quux, qux], [lassie, meta], [classy, lassie, lassy], '
-        '[lassie, lassy, qux]]');
+      view(elements),
+      '[[lassie, quux, qux], [lassie, meta], [classy, lassie, lassy], '
+      '[lassie, lassy, qux]]',
+    );
   });
 
   test('listRemove', () {
@@ -318,7 +334,9 @@ main() {
     expect(elements.classes.remove('lassi'), isFalse);
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
     expect(
-        view(elements), '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
+      view(elements),
+      '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]',
+    );
 
     expect(elements.classes.remove('qux'), isTrue);
     expect(view(elements.classes), '[classy, lassy, meta, quux]');
@@ -330,18 +348,23 @@ main() {
     elements.classes.toggle('qux');
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
     expect(
-        view(elements), '[[quux], [meta, qux], [classy, lassy, qux], [lassy]]');
+      view(elements),
+      '[[quux], [meta, qux], [classy, lassy, qux], [lassy]]',
+    );
   });
 
   test('listAddAll', () {
     var elements = listElementSetup();
     elements.classes.addAll(['qux', 'lassi', 'sassy']);
-    expect(view(elements.classes),
-        '[classy, lassi, lassy, meta, quux, qux, sassy]');
     expect(
-        view(elements),
-        '[[lassi, quux, qux, sassy], [lassi, meta, qux, sassy], '
-        '[classy, lassi, lassy, qux, sassy], [lassi, lassy, qux, sassy]]');
+      view(elements.classes),
+      '[classy, lassi, lassy, meta, quux, qux, sassy]',
+    );
+    expect(
+      view(elements),
+      '[[lassi, quux, qux, sassy], [lassi, meta, qux, sassy], '
+      '[classy, lassi, lassy, qux, sassy], [lassi, lassy, qux, sassy]]',
+    );
   });
 
   test('listRemoveAll', () {
@@ -356,9 +379,10 @@ main() {
     elements.classes.toggleAll(['qux', 'meta', 'mornin']);
     expect(view(elements.classes), '[classy, lassy, meta, mornin, quux, qux]');
     expect(
-        view(elements),
-        '[[meta, mornin, quux], [mornin, qux], '
-        '[classy, lassy, meta, mornin, qux], [lassy, meta, mornin]]');
+      view(elements),
+      '[[meta, mornin, quux], [mornin, qux], '
+      '[classy, lassy, meta, mornin, qux], [lassy, meta, mornin]]',
+    );
   });
 
   test('listRetainAll', () {

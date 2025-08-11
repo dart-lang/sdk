@@ -5,18 +5,19 @@
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode;
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
+import 'package:analyzer/src/dart/element/element.dart' show FragmentImpl;
 
 export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
 /// If the given [node] has a documentation comment, remember its content
 /// and range into the given [element].
-void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
+void setElementDocumentationComment(FragmentImpl element, AnnotatedNode node) {
   var comment = node.documentationComment;
   if (comment != null) {
-    element.documentationComment =
-        comment.tokens.map((Token t) => t.lexeme).join('\n');
+    element.documentationComment = comment.tokens
+        .map((Token t) => t.lexeme)
+        .join('\n');
   }
 }
 
@@ -110,7 +111,7 @@ class ParameterKind implements Comparable<ParameterKind> {
     REQUIRED,
     POSITIONAL,
     NAMED_REQUIRED,
-    NAMED
+    NAMED,
   ];
 
   /// The name of this parameter.

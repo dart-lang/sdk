@@ -114,13 +114,13 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
     return let final core::int? #t17 = self::B::_#finalStaticFieldWithInitializer in #t17 == null ?{core::int} let final core::int #t18 = 0 in self::B::_#finalStaticFieldWithInitializer == null ?{core::int} self::B::_#finalStaticFieldWithInitializer = #t18 : throw{for-error-handling} new _in::LateError::fieldADI("finalStaticFieldWithInitializer") : #t17{core::int};
 }
 extension Extension on self::A {
-  static field extensionStaticField = self::_#Extension|extensionStaticField;
+  static impl field extensionStaticField = self::_#Extension|extensionStaticField;
   static get extensionStaticField = get self::Extension|extensionStaticField;
   static set extensionStaticField = set self::Extension|extensionStaticField;
-  static field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
+  static impl field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
   static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
   static set finalExtensionStaticField = set self::Extension|finalExtensionStaticField;
-  static field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
+  static impl field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
   static get finalExtensionStaticFieldWithInitializer = get self::Extension|finalExtensionStaticFieldWithInitializer;
 }
 static field core::int? _#topLevelField = null;

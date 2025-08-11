@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -19,13 +21,11 @@ class PreferAssertsInInitializerLists extends LintRule {
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
@@ -33,7 +33,7 @@ class PreferAssertsInInitializerLists extends LintRule {
 }
 
 class _AssertVisitor extends RecursiveAstVisitor<void> {
-  final ConstructorElement2 constructorElement;
+  final ConstructorElement constructorElement;
   final _ClassAndSuperClasses? classAndSuperClasses;
 
   bool needInstance = false;
@@ -47,12 +47,12 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     // use method
     needInstance =
         needInstance ||
-        element is MethodElement2 && !element.isStatic && _hasMethod(element);
+        element is MethodElement && !element.isStatic && _hasMethod(element);
 
     // use property accessor not used as field formal parameter
     needInstance =
         needInstance ||
-        (element is PropertyAccessorElement2) &&
+        (element is PropertyAccessorElement) &&
             !element.isStatic &&
             _hasAccessor(element) &&
             !_paramMatchesField(element, constructorElement.formalParameters);
@@ -63,28 +63,28 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     needInstance = true;
   }
 
-  bool _hasAccessor(PropertyAccessorElement2 element) {
+  bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
-  bool _hasMethod(MethodElement2 element) {
+  bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement);
   }
 
   bool _paramMatchesField(
-    PropertyAccessorElement2 element,
+    PropertyAccessorElement element,
     List<FormalParameterElement> parameters,
   ) {
     for (var p in parameters) {
       FormalParameterElement? parameterElement = p;
-      if (parameterElement is SuperFormalParameterElement2) {
-        parameterElement = parameterElement.superConstructorParameter2;
+      if (parameterElement is SuperFormalParameterElement) {
+        parameterElement = parameterElement.superConstructorParameter;
       }
 
-      if (parameterElement is FieldFormalParameterElement2) {
-        if (parameterElement.field2?.getter2 == element) {
+      if (parameterElement is FieldFormalParameterElement) {
+        if (parameterElement.field?.getter == element) {
           return true;
         }
       }
@@ -95,20 +95,20 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
 /// Lazy cache of elements.
 class _ClassAndSuperClasses {
-  final ClassElement2? element;
-  final Set<InterfaceElement2> _classes = {};
+  final ClassElement? element;
+  final Set<InterfaceElement> _classes = {};
 
   _ClassAndSuperClasses(this.element);
 
   /// The [element] and its super classes, including mixins.
-  Set<InterfaceElement2> get classes {
+  Set<InterfaceElement> get classes {
     if (_classes.isEmpty) {
-      void addRecursively(InterfaceElement2? element) {
+      void addRecursively(InterfaceElement? element) {
         if (element != null && _classes.add(element)) {
           for (var t in element.mixins) {
-            addRecursively(t.element3);
+            addRecursively(t.element);
           }
-          addRecursively(element.supertype?.element3);
+          addRecursively(element.supertype?.element);
         }
       }
 
@@ -149,7 +149,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
-          rule.reportLintForToken(statement.beginToken);
+          rule.reportAtToken(statement.beginToken);
         }
       }
     }

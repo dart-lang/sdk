@@ -30,7 +30,7 @@ static method test2() → <X extends self::E /* erasure=core::num */ = dynamic>(
   ;
 static extension-type-member method E|constructor#(core::num it) → self::E /* erasure=core::num */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
   return self::E|constructor#(it);
 static method returnsNull<Y extends self::E /* erasure=core::num */>() → Null
   ;

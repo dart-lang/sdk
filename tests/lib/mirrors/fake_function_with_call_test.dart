@@ -27,8 +27,10 @@ main() {
   Expect.equals(7, cm.invoke(#call, [3, 4]).reflectee);
   Expect.throwsNoSuchMethodError(() => cm.invoke(#call, [3]), "Wrong arity");
   Expect.equals(49, cm.invoke(#method, [7]).reflectee);
-  Expect.throwsNoSuchMethodError(() => cm.invoke(#method, [3, 4]),
-      "Wrong arity");
+  Expect.throwsNoSuchMethodError(
+    () => cm.invoke(#method, [3, 4]),
+    "Wrong arity",
+  );
   Expect.equals(7, cm.apply([3, 4]).reflectee);
   Expect.throwsNoSuchMethodError(() => cm.apply([3]), "Wrong arity");
 

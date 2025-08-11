@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class MetricGraphElement extends CustomElement implements Renderable {
   late RenderingScheduler<MetricGraphElement> _r;
@@ -45,7 +48,7 @@ class MetricGraphElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
     _timer.cancel();
   }
 
@@ -62,41 +65,41 @@ class MetricGraphElement extends CustomElement implements Renderable {
     message = 'min: $min, $message';
     message = message + ', max: $max';
 
-    children = <Element>[
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = [
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'min',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..text = '$min'
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'current',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..text = '$current'
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = [
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'max',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..text = '$max'
-            ]
-        ],
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren([
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'min',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = '$min'
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'current',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = '$current'
+            ]),
+          new HTMLDivElement()
+            ..className = 'memberItem'
+            ..appendChildren([
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'max',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..textContent = '$max'
+            ])
+        ]),
     ];
     if (rows.length <= 1) {
       return;

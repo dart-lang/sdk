@@ -174,10 +174,12 @@ void nonExhaustiveSwitch2(A<int> a) {
    type=A<int>
   */
   switch (a) {
-    /*space=C*/ case C c:
+    /*space=C*/
+    case C c:
       print('C');
       break;
-    /*space=D<dynamic, int>*/ case D<dynamic, int> d:
+    /*space=D<dynamic, int>*/
+    case D<dynamic, int> d:
       print('D');
       break;
   }

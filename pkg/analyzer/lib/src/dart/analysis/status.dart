@@ -66,9 +66,8 @@ class StatusSupport {
   /// The last status sent to [_eventsController].
   AnalysisStatus _currentStatus = const AnalysisStatusIdle._();
 
-  StatusSupport({
-    required StreamController<Object> eventsController,
-  }) : _eventsController = eventsController;
+  StatusSupport({required StreamController<Object> eventsController})
+    : _eventsController = eventsController;
 
   /// The last status sent to [_eventsController].
   AnalysisStatus get currentStatus => _currentStatus;

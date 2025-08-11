@@ -35,8 +35,10 @@ main(List<String> args) async {
   await withTempDir('strip-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
     // We can just reuse the program for the use_save_debugging_info_flag test.
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -65,7 +67,9 @@ main(List<String> args) async {
     ]);
 
     compareStrippedAndUnstripped(
-        stripped: strippedSnapshot, unstripped: unstrippedSnapshot);
+      stripped: strippedSnapshot,
+      unstripped: unstrippedSnapshot,
+    );
 
     if (Platform.isWindows) {
       return; // No assembly generation on Windows.
@@ -87,12 +91,16 @@ main(List<String> args) async {
     ]);
 
     compareStrippedAndUnstripped(
-        stripped: strippedCode, unstripped: unstrippedCode);
+      stripped: strippedCode,
+      unstripped: unstrippedCode,
+    );
   });
 }
 
-void compareStrippedAndUnstripped(
-    {required String stripped, required String unstripped}) {
+void compareStrippedAndUnstripped({
+  required String stripped,
+  required String unstripped,
+}) {
   final strippedSize = File(stripped).lengthSync();
   final unstrippedSize = File(unstripped).lengthSync();
   print("File size for stripped file $stripped: $strippedSize");

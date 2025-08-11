@@ -14,5 +14,6 @@ void do_true() {
   do {
     1;
   } while (true);
-  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/
+  2;
 }

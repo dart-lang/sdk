@@ -16,23 +16,25 @@ main() {
 @reflectiveTest
 class ReturnInGenerativeConstructorTest extends PubPackageResolutionTest {
   test_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() { return 0; }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 25, 1)],
+    );
   }
 
   test_expressionFunctionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() => A();
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 7)],
+    );
   }
 
   test_return_without_value() async {

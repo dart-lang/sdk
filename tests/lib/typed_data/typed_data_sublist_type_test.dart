@@ -69,7 +69,7 @@ void testTypes() {
     isUint8List,
     isUint16List,
     isUint32List,
-    isUint8ClampedList
+    isUint8ClampedList,
   ];
 
   testInt(list, check) {
@@ -77,8 +77,11 @@ void testTypes() {
   }
 
   testDouble(list, check) {
-    testSublistType(
-        list, <Is<List>>[check, isDoubleList, isNumList], allChecks);
+    testSublistType(list, <Is<List>>[
+      check,
+      isDoubleList,
+      isNumList,
+    ], allChecks);
   }
 
   testDouble(new Float32List(10), isFloat32list);

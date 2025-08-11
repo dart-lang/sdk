@@ -17,15 +17,19 @@ checkClass(classMirror) {
   Expect.notEquals(null, classMirror.owner);
   Expect.isTrue(classMirror.owner is LibraryMirror);
   if (!isAnonymousMixinApplication(classMirror)) {
-    Expect.equals(classMirror.originalDeclaration,
-        classMirror.owner.declarations[classMirror.simpleName]);
+    Expect.equals(
+      classMirror.originalDeclaration,
+      classMirror.owner.declarations[classMirror.simpleName],
+    );
   } else {
     Expect.isNull(classMirror.owner.declarations[classMirror.simpleName]);
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
-    Expect.isTrue((reflectClass(Object) == classMirror) ||
-        (classMirror.toString() == "ClassMirror on 'FutureOr'"));
+    Expect.isTrue(
+      (reflectClass(Object) == classMirror) ||
+          (classMirror.toString() == "ClassMirror on 'FutureOr'"),
+    );
   } else {
     checkClass(classMirror.superclass);
   }

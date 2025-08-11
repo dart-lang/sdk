@@ -393,8 +393,10 @@ typedef int CEHash(CE e1);
 typedef bool CEEq(CE e1, CE e2);
 typedef bool ValidKey(dynamic o);
 // Equality of Id objects based on id modulo value.
-CEEq customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
-CEHash customHash(int mod) => (CE e) => e.id % mod;
+CEEq customEq(int mod) =>
+    (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
+CEHash customHash(int mod) =>
+    (CE e) => e.id % mod;
 CECompare customCompare(int mod) =>
     (CE e1, CE e2) => (e1.id % mod) - (e2.id % mod);
 bool validKey(dynamic o) => o is CE;

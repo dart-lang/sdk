@@ -9,7 +9,6 @@ import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'augmented_expression_test.dart' as augmented_expression;
-import 'augmented_invocation_test.dart' as augmented_invocation;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
 import 'cascade_expression_resolution_test.dart'
@@ -26,6 +25,11 @@ import 'constructor_field_initializer_test.dart'
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
+import 'dot_shorthand_constructor_invocation_test.dart'
+    as dot_shorthand_constructor_invocation;
+import 'dot_shorthand_invocation_test.dart' as dot_shorthand_invocation;
+import 'dot_shorthand_property_access_test.dart'
+    as dot_shorthand_property_access;
 import 'enum_test.dart' as enum_resolution;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
@@ -41,6 +45,7 @@ import 'function_declaration_statement_test.dart'
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'function_expression_test.dart' as function_expression;
 import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
 import 'function_typed_formal_parameter_test.dart'
@@ -124,7 +129,6 @@ main() {
     assignment.main();
     ast_rewrite.main();
     augmented_expression.main();
-    augmented_invocation.main();
     await_expression.main();
     binary_expression.main();
     cascade_expression_resolution_test.main();
@@ -139,6 +143,9 @@ main() {
     constructor_reference.main();
     constructor.main();
     declared_variable_pattern.main();
+    dot_shorthand_constructor_invocation.main();
+    dot_shorthand_invocation.main();
+    dot_shorthand_property_access.main();
     enum_resolution.main();
     extension_method.main();
     extension_override.main();
@@ -151,6 +158,7 @@ main() {
     function_body.main();
     function_declaration_statement.main();
     function_declaration.main();
+    function_expression.main();
     function_expression_invocation.main();
     function_reference.main();
     function_type_alias.main();

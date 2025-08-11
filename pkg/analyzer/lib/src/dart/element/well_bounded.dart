@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -13,10 +13,7 @@ class NotWellBoundedTypeResult implements TypeBoundedResult {
   final String elementName;
   final List<TypeArgumentIssue> issues;
 
-  NotWellBoundedTypeResult._({
-    required this.elementName,
-    required this.issues,
-  });
+  NotWellBoundedTypeResult._({required this.elementName, required this.issues});
 }
 
 class RegularBoundedTypeResult implements WellBoundedTypeResult {
@@ -32,7 +29,7 @@ class TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement2 parameter;
+  final TypeParameterElement parameter;
 
   /// The substituted bound of the [parameter].
   final DartType parameterBound;
@@ -78,16 +75,16 @@ class TypeBoundedHelper {
     List<TypeArgumentIssue>? issues;
 
     String? elementName;
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element2.name3;
-      typeParameters = alias.element2.typeParameters2;
+      elementName = alias.element.name;
+      typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
-      elementName = type.element3.name3;
-      typeParameters = type.element3.typeParameters2;
+      elementName = type.element.name;
+      typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return const RegularBoundedTypeResult._();
@@ -107,9 +104,7 @@ class TypeBoundedHelper {
 
       if (!typeSystem.isSubtypeOf(typeArgument, bound)) {
         issues ??= <TypeArgumentIssue>[];
-        issues.add(
-          TypeArgumentIssue(i, typeParameter, bound, typeArgument),
-        );
+        issues.add(TypeArgumentIssue(i, typeParameter, bound, typeArgument));
       }
     }
 

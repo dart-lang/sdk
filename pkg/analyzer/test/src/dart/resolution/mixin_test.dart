@@ -64,7 +64,7 @@ mixin M {}
 CommentReference
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: null
 ''');
   }
@@ -83,12 +83,12 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: T
-      element2: T@8
+      element2: #E0 T
       type: T
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment>::@mixin::M::@field::f
+        declaredElement: <testLibraryFragment> f@22
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -116,7 +116,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: <testLibraryFragment>::@mixin::M::@getter::foo
+  declaredElement: <testLibraryFragment> foo@20
     type: int Function()
 ''');
   }
@@ -146,7 +146,8 @@ ImplementsClause
   }
 
   test_invalid_unresolved_before_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int foo();
 }
@@ -158,15 +159,18 @@ mixin M on A {
 }
 
 abstract class X extends A with U1, U2, M {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
+        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           129,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_lookUpMemberInInterfaces_Object() async {
@@ -193,9 +197,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibraryFragment>::@getter::a#element
+  element2: <testLibrary>::@getter::a
 ''');
   }
 
@@ -221,13 +225,14 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M::@method::foo
+  declaredElement: <testLibraryFragment> foo@17
     type: void Function()
 ''');
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 g(M<T> f<T>()) {
   C<int> c = f();
 }
@@ -235,16 +240,16 @@ g(M<T> f<T>()) {
 class C<T> {}
 
 mixin M<T> on C<T> {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1)],
+    );
 
     var node = findNode.functionExpressionInvocation('f()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@function::g::@parameter::f#element
+    element: <testLibrary>::@function::g::@formalParameter::f
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -305,14 +310,14 @@ MethodDeclaration
         element2: dart:core::@class::int
         type: int
       name: _
-      declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@formalParameter::_
+      declaredElement: <testLibraryFragment> _@29
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo
+  declaredElement: <testLibraryFragment> foo@21
     type: void Function(int)
 ''');
   }
@@ -341,7 +346,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -371,14 +376,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -417,11 +422,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

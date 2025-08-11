@@ -16,22 +16,24 @@ main() {
 @reflectiveTest
 class WrongNumberOfTypeArgumentsEnumTest extends PubPackageResolutionTest {
   test_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E<T, U> {
   v<int>()
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 18, 5)],
+    );
   }
 
   test_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E<T> {
   v<int, int>()
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 15, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 15, 10)],
+    );
   }
 }

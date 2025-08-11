@@ -22,29 +22,35 @@ class InvalidVisibilityAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_fields_multipleMixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 0, b = 0;
 }
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+        error(WarningCode.UNUSED_FIELD, 68, 2),
+      ],
+    );
   }
 
   test_fields_multiplePrivate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 0, _b = 0;
 }
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
-      error(WarningCode.UNUSED_FIELD, 76, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+        error(WarningCode.UNUSED_FIELD, 68, 2),
+        error(WarningCode.UNUSED_FIELD, 76, 2),
+      ],
+    );
   }
 
   test_fields_multiplePublic() async {
@@ -57,130 +63,162 @@ class C {
   }
 
   test_privateClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 58, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+      ],
+    );
   }
 
   test_privateConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting C._() {}
 }
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17)],
+    );
   }
 
   test_privateEnum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b}
 void f(_E e) => e == _E.a || e == _E.b;
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17)],
+    );
   }
 
   test_privateExtensionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting extension type _E(int i) {}
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 67, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 67, 2),
+      ],
+    );
   }
 
   test_privateField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a = 1;
 }
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-      error(WarningCode.UNUSED_FIELD, 68, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+        error(WarningCode.UNUSED_FIELD, 68, 2),
+      ],
+    );
   }
 
   test_privateMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting void _m() {}
 }
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-      error(WarningCode.UNUSED_ELEMENT, 69, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
+        error(WarningCode.UNUSED_ELEMENT, 69, 2),
+      ],
+    );
   }
 
   test_privateMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 58, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+      ],
+    );
   }
 
   test_privateTopLevelFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 57, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 57, 2),
+      ],
+    );
   }
 
   test_privateTopLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 58, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+      ],
+    );
   }
 
   test_privateTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 60, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 60, 2),
+      ],
+    );
   }
 
   test_topLevelVariable_multipleMixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 58, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+      ],
+    );
   }
 
   test_topLevelVariable_multiplePrivate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
-''', [
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-      error(WarningCode.UNUSED_ELEMENT, 58, 2),
-      error(WarningCode.UNUSED_ELEMENT, 66, 2),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
+        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+        error(WarningCode.UNUSED_ELEMENT, 66, 2),
+      ],
+    );
   }
 
   test_topLevelVariable_multiplePublic() async {

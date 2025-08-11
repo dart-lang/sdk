@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -50,7 +50,7 @@ AssertInitializer
         IntegerLiteral
           literal: 0
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -70,7 +70,7 @@ AssertInitializer
         IntegerLiteral
           literal: 1
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -107,7 +107,7 @@ AssertStatement
         IntegerLiteral
           literal: 0
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -127,7 +127,7 @@ AssertStatement
         IntegerLiteral
           literal: 1
           correspondingParameter: ParameterMember
-            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -167,7 +167,8 @@ void main() {
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -181,9 +182,9 @@ void set topLevel(A value) {}
 main() {
   var /*@type=B*/ v = topLevel += 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1)],
+    );
     _assertTypeAnnotations();
   }
 
@@ -238,10 +239,14 @@ void test(List<A> listA, List<B> listB) {
 ''';
     await resolveTestCode(code);
     void assertTypes(
-        String vSearch, String vType, String fSearch, String fType) {
+      String vSearch,
+      String vType,
+      String fSearch,
+      String fType,
+    ) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement2 as LocalVariableElement2;
+      var element = node.declaredElement as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
@@ -263,12 +268,12 @@ class C {
 }
 ''';
     await resolveTestCode(code);
-    ClassElement2 c = findElement2.class_('C');
+    ClassElement c = findElement2.class_('C');
 
-    SetterElement x = c.setters2[0];
+    SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement2 operator = c.methods2[0];
+    MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -284,12 +289,12 @@ class Derived extends Base {
   operator[]=(int x, int y) {}
 }''';
     await resolveTestCode(code);
-    ClassElement2 c = findElement2.class_('Derived');
+    ClassElement c = findElement2.class_('Derived');
 
-    SetterElement x = c.setters2[0];
+    SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement2 operator = c.methods2[0];
+    MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -504,24 +509,28 @@ main() {
         }
         int closeIndex = code.indexOf('*/', openIndex + 1);
         expect(closeIndex, isPositive);
-        types[openIndex] =
-            code.substring(openIndex + prefix.length, closeIndex);
+        types[openIndex] = code.substring(
+          openIndex + prefix.length,
+          closeIndex,
+        );
         lastIndex = closeIndex;
       }
     }
 
-    unit.accept(FunctionAstVisitor(
-      simpleIdentifier: (node) {
-        var comment = node.token.precedingComments;
-        if (comment != null) {
-          var expectedType = types[comment.offset];
-          if (expectedType != null) {
-            var element = node.element as VariableElement2;
-            String actualType = typeString(element.type);
-            expect(actualType, expectedType, reason: '@${comment.offset}');
+    unit.accept(
+      FunctionAstVisitor(
+        simpleIdentifier: (node) {
+          var comment = node.token.precedingComments;
+          if (comment != null) {
+            var expectedType = types[comment.offset];
+            if (expectedType != null) {
+              var element = node.element as VariableElement;
+              String actualType = typeString(element.type);
+              expect(actualType, expectedType, reason: '@${comment.offset}');
+            }
           }
-        }
-      },
-    ));
+        },
+      ),
+    );
   }
 }

@@ -12,7 +12,10 @@ import '../../base/messages.dart'
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
         templateCombinedMemberSignatureFailed,
         templateExtensionTypeCombinedMemberSignatureFailed;
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
+import '../../builder/member_builder.dart';
+import '../../builder/property_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -52,6 +55,7 @@ sealed class MemberResult {
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType);
 }
 
+// Coverage-ignore(suite): Not run.
 class TypeDeclarationInstanceMemberResult implements MemberResult {
   final Member member;
   final ClassMemberKind kind;
@@ -87,8 +91,7 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     DartType type = switch (kind) {
-      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
-        member.getterType,
+      ClassMemberKind.Method => member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
@@ -104,6 +107,7 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class StaticMemberResult implements MemberResult {
   final Member member;
   final ClassMemberKind kind;
@@ -131,14 +135,14 @@ class StaticMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     return switch (kind) {
-      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
-        member.getterType,
+      ClassMemberKind.Method => member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class ExtensionTypeMemberResult implements MemberResult {
   final ExtensionTypeDeclaration extensionTypeDeclaration;
   final Member member;
@@ -174,7 +178,6 @@ class ExtensionTypeMemberResult implements MemberResult {
         "Unexpected member type for $member (${member.runtimeType}).");
     FunctionType type = member.getterType as FunctionType;
     if (type.typeParameters.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
       type = FunctionTypeInstantiator.instantiate(
           type,
           membersBuilder.hierarchyBuilder.types.getTypeArgumentsAsInstanceOf(
@@ -182,7 +185,6 @@ class ExtensionTypeMemberResult implements MemberResult {
     }
     switch (kind) {
       case ClassMemberKind.Method:
-        // Coverage-ignore(suite): Not run.
         // For methods [member] is the tear-off so the member type is the return
         // type.
         return type.returnType;
@@ -203,9 +205,7 @@ enum ClassMemberKind {
 abstract class ClassMember {
   Name get name;
   bool get isStatic;
-  bool get isField;
   bool get isSetter;
-  bool get isGetter;
   bool get forSetter;
 
   ClassMemberKind get memberKind;
@@ -256,8 +256,8 @@ abstract class ClassMember {
   /// into the extension type declaration.
   bool get isExtensionTypeMember;
 
-  Uri get fileUri;
-  int get charOffset;
+  /// Returns the source location used for messaging related to this member.
+  UriOffsetLength get uriOffset;
 
   /// Returns `true` if this class member is an interface member.
   bool get isAbstract;
@@ -265,13 +265,6 @@ abstract class ClassMember {
   /// Returns `true` if this member doesn't corresponds to a declaration in the
   /// source code.
   bool get isSynthesized;
-
-  /// If `true` this member is not part of the interface but only part of the
-  /// class members.
-  ///
-  /// This is `true` for instance for synthesized fields added for the late
-  /// lowering.
-  bool get isInternalImplementation;
 
   /// Returns `true` if this member is a noSuchMethod forwarder.
   bool get isNoSuchMethodForwarder;
@@ -376,20 +369,10 @@ abstract class SynthesizedMember extends ClassMember {
   bool get isDuplicate => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isField => throw new UnimplementedError();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => throw new UnimplementedError();
-
-  @override
-  bool get isInternalImplementation => false;
-
-  @override
   bool get isSetter => forSetter;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSourceDeclaration => false;
 
   @override
@@ -405,6 +388,7 @@ abstract class SynthesizedMember extends ClassMember {
       ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
         getMember(membersBuilder), memberKind,
@@ -580,15 +564,15 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
             classBuilder.isAnonymousMixinApplication ? 1 : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
           return messageDeclaredMemberConflictsWithOverriddenMembersCause
-              .withLocation(
-                  d.fileUri, d.charOffset, d.fullNameForErrors.length);
+              .withLocation2(d.uriOffset);
         }).toList();
 
-        classBuilder.addProblem(
+        classBuilder.libraryBuilder.addProblem(
             templateCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
             classBuilder.fileOffset,
             nameLength,
+            classBuilder.fileUri,
             context: context);
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
         // cascading errors.
@@ -692,10 +676,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       _noSuchMethodTarget != null && _shouldModifyKernel;
 
   @override
-  int get charOffset => declarations.first.charOffset;
-
-  @override
-  Uri get fileUri => declarations.first.fileUri;
+  UriOffsetLength get uriOffset => declarations.first.uriOffset;
 
   @override
   bool get isAbstract => _noSuchMethodTarget == null;
@@ -885,10 +866,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   }
 
   @override
-  int get charOffset => inheritedClassMember.charOffset;
-
-  @override
-  Uri get fileUri => inheritedClassMember.fileUri;
+  UriOffsetLength get uriOffset => inheritedClassMember.uriOffset;
 
   @override
   bool get hasDeclarations => false;
@@ -955,14 +933,15 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
         return messageDeclaredMemberConflictsWithInheritedMembersCause
-            .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
+            .withLocation2(d.uriOffset);
       }).toList();
 
-      extensionTypeDeclarationBuilder.addProblem(
+      extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
           templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
           extensionTypeDeclarationBuilder.fileOffset,
           nameLength,
+          extensionTypeDeclarationBuilder.fileUri,
           context: context);
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
       // cascading errors.
@@ -1061,11 +1040,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => declarations.first.charOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get fileUri => declarations.first.fileUri;
+  UriOffsetLength get uriOffset => declarations.first.uriOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1087,4 +1062,24 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   String toString() =>
       'SynthesizedNonExtensionTypeMember($declarationBuilder,$name,'
       '$declarations,forSetter=$forSetter)';
+}
+
+/// Helper method for [MemberResult]s that determines whether [memberBuilder] is
+/// known to be declared as a field. If [forSetter] is `true`, this determined
+/// for the setter aspect of the builder, otherwise for the getter aspect.
+///
+/// This is used for messages related to [MemberResult]s.
+bool isDeclaredAsField(MemberBuilder memberBuilder, {required bool forSetter}) {
+  if (forSetter) {
+    return memberBuilder is PropertyBuilder &&
+        memberBuilder.hasField &&
+        (memberBuilder.setterQuality == SetterQuality.Implicit ||
+            // Coverage-ignore(suite): Not run.
+            memberBuilder.setterQuality == SetterQuality.ImplicitExternal ||
+            // Coverage-ignore(suite): Not run.
+            memberBuilder.setterQuality == SetterQuality.ImplicitAbstract);
+  } else {
+    // Coverage-ignore-block(suite): Not run.
+    return memberBuilder is PropertyBuilder && memberBuilder.hasField;
+  }
 }

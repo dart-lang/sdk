@@ -7,7 +7,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:args/args.dart';
 import 'package:heap_snapshot/analysis.dart';
 import 'package:heap_snapshot/format.dart';
@@ -31,40 +31,36 @@ void main(List<String> arguments) async {
   var byteStore = MemoryByteStore();
 
   print('First pass, fill ByteStore');
-  await _withNewAnalysisContext<void>(
-    byteStore: byteStore,
-    (collection) async {
-      print('  Analysis contexts: ${collection.contexts.length}');
+  await _withNewAnalysisContext<void>(byteStore: byteStore, (collection) async {
+    print('  Analysis contexts: ${collection.contexts.length}');
 
-      timer.start();
-      await _analyzeFiles(collection);
-      print('  [+${timer.elapsedMilliseconds} ms] Analyze');
+    timer.start();
+    await _analyzeFiles(collection);
+    print('  [+${timer.elapsedMilliseconds} ms] Analyze');
 
-      timer.reset();
-      await _getAvailableLibraries(collection);
-      print('  [+${timer.elapsedMilliseconds} ms] Get available libraries');
-      print('');
-    },
-  );
+    timer.reset();
+    await _getAvailableLibraries(collection);
+    print('  [+${timer.elapsedMilliseconds} ms] Get available libraries');
+    print('');
+  });
 
   timer.reset();
   print('Second pass, read elements');
-  var heapBytes = await _withNewAnalysisContext(
-    byteStore: byteStore,
-    (collection) async {
-      print('  Analysis contexts: ${collection.contexts.length}');
+  var heapBytes = await _withNewAnalysisContext(byteStore: byteStore, (
+    collection,
+  ) async {
+    print('  Analysis contexts: ${collection.contexts.length}');
 
-      await _analyzeFiles(collection);
-      print('  [+${timer.elapsedMilliseconds} ms] Analyze');
+    await _analyzeFiles(collection);
+    print('  [+${timer.elapsedMilliseconds} ms] Analyze');
 
-      timer.reset();
-      await _getAvailableLibraries(collection);
-      print('  [+${timer.elapsedMilliseconds} ms] Get available libraries');
-      print('');
+    timer.reset();
+    await _getAvailableLibraries(collection);
+    print('  [+${timer.elapsedMilliseconds} ms] Get available libraries');
+    print('');
 
-      return _getHeapSnapshot();
-    },
-  );
+    return _getHeapSnapshot();
+  });
 
   var allResults = _analyzeSnapshot(heapBytes);
   _printResults(allResults);
@@ -92,9 +88,7 @@ String get _resultFilePath {
 /// Analyzes all included files.
 ///
 /// Throws if there is a compile-time error.
-Future<void> _analyzeFiles(
-  AnalysisContextCollectionImpl collection,
-) async {
+Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
   for (var analysisContext in collection.contexts) {
     var analyzedFiles = analysisContext.contextRoot.analyzedFiles().toList();
     for (var filePath in analyzedFiles) {
@@ -106,10 +100,14 @@ Future<void> _analyzeFiles(
         // We want to be sure that we get elements models.
         var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
-          var errors = errorsResult.errors
-              .where((element) =>
-                  element.errorCode.type == ErrorType.COMPILE_TIME_ERROR)
-              .toList();
+          var errors =
+              errorsResult.diagnostics
+                  .where(
+                    (element) =>
+                        element.diagnosticCode.type ==
+                        DiagnosticType.COMPILE_TIME_ERROR,
+                  )
+                  .toList();
           if (errors.isNotEmpty) {
             throw StateError('Errors in $filePath\n$errors');
           }
@@ -120,13 +118,12 @@ Future<void> _analyzeFiles(
 }
 
 BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
-  var allResults = BenchmarkResultCompound(
-    name: 'flutter_elements',
-  );
+  var allResults = BenchmarkResultCompound(name: 'flutter_elements');
 
   timer.reset();
-  var graph = HeapSnapshotGraph.fromChunks(
-      [bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length)]);
+  var graph = HeapSnapshotGraph.fromChunks([
+    bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length),
+  ]);
   print('[+${timer.elapsedMilliseconds} ms] Create HeapSnapshotGraph');
 
   var analysis = Analysis(graph);
@@ -139,16 +136,13 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
   {
     var measure = analysis.measureObjects(analysis.reachableObjects);
     allResults.add(
-      BenchmarkResultCompound(name: 'reachableObjects', children: [
-        BenchmarkResultCount(
-          name: 'count',
-          value: measure.count,
-        ),
-        BenchmarkResultBytes(
-          name: 'size',
-          value: measure.size,
-        ),
-      ]),
+      BenchmarkResultCompound(
+        name: 'reachableObjects',
+        children: [
+          BenchmarkResultCount(name: 'count', value: measure.count),
+          BenchmarkResultBytes(name: 'size', value: measure.size),
+        ],
+      ),
     );
   }
 
@@ -161,17 +155,11 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
 
   timer.reset();
 
-  allResults.add(
-    _doUniqueUriStr(analysis),
-  );
+  allResults.add(_doUniqueUriStr(analysis));
 
-  allResults.add(
-    _doInterfaceType(analysis),
-  );
+  allResults.add(_doInterfaceType(analysis));
 
-  allResults.add(
-    _doLinkedData(analysis),
-  );
+  allResults.add(_doLinkedData(analysis));
 
   print('[+${timer.elapsedMilliseconds} ms] Compute benchmark results');
   print('');
@@ -187,22 +175,17 @@ BenchmarkResult _doInterfaceType(Analysis analysis) {
   );
 
   var measure = analysis.measureObjects(objects);
-  return BenchmarkResultCompound(name: 'InterfaceTypeImpl', children: [
-    BenchmarkResultCount(
-      name: 'count',
-      value: measure.count,
-    ),
-    BenchmarkResultBytes(
-      name: 'size(shallow)',
-      value: measure.size,
-    ),
-  ]);
+  return BenchmarkResultCompound(
+    name: 'InterfaceTypeImpl',
+    children: [
+      BenchmarkResultCount(name: 'count', value: measure.count),
+      BenchmarkResultBytes(name: 'size(shallow)', value: measure.size),
+    ],
+  );
 }
 
 BenchmarkResult _doLinkedData(Analysis analysis) {
-  var readerUri = Uri.parse(
-    'package:analyzer/src/summary2/bundle_reader.dart',
-  );
+  var readerUri = Uri.parse('package:analyzer/src/summary2/bundle_reader.dart');
 
   var classSet = analysis.classByPredicate((e) {
     return e.libraryUri == readerUri && e.name.endsWith('LinkedData');
@@ -211,17 +194,18 @@ BenchmarkResult _doLinkedData(Analysis analysis) {
   var objects = analysis.filterByClassId(analysis.reachableObjects, classSet);
 
   var measure = analysis.measureObjects(objects);
-  return BenchmarkResultCompound(name: 'LinkedData', children: [
-    BenchmarkResultCount(
-      name: 'count',
-      value: measure.count,
-    ),
-  ]);
+  return BenchmarkResultCompound(
+    name: 'LinkedData',
+    children: [BenchmarkResultCount(name: 'count', value: measure.count)],
+  );
 }
 
 BenchmarkResult _doUniqueUriStr(Analysis analysis) {
-  var uriList = analysis.filterByClass(analysis.reachableObjects,
-      libraryUri: Uri.parse('dart:core'), name: '_SimpleUri');
+  var uriList = analysis.filterByClass(
+    analysis.reachableObjects,
+    libraryUri: Uri.parse('dart:core'),
+    name: '_SimpleUri',
+  );
 
   var uriStringList = analysis.findReferences(uriList, [':_uri']);
   var uniqueUriStrSet = <String>{};
@@ -235,20 +219,17 @@ BenchmarkResult _doUniqueUriStr(Analysis analysis) {
   }
 
   var uriListMeasure = analysis.measureObjects(uriList);
-  return BenchmarkResultCompound(name: '_SimpleUri', children: [
-    BenchmarkResultCount(
-      name: 'count',
-      value: uriListMeasure.count,
-    ),
-    BenchmarkResultBytes(
-      name: 'size(shallow)',
-      value: uriListMeasure.size,
-    ),
-    BenchmarkResultCount(
-      name: 'duplicateCount',
-      value: duplicateUriStrList.length,
-    ),
-  ]);
+  return BenchmarkResultCompound(
+    name: '_SimpleUri',
+    children: [
+      BenchmarkResultCount(name: 'count', value: uriListMeasure.count),
+      BenchmarkResultBytes(name: 'size(shallow)', value: uriListMeasure.size),
+      BenchmarkResultCount(
+        name: 'duplicateCount',
+        value: duplicateUriStrList.length,
+      ),
+    ],
+  );
 }
 
 /// Loads all libraries available in the analysis contexts, and deserializes
@@ -268,7 +249,7 @@ Future<void> _getAvailableLibraries(
       // }
       var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
-        result.element2.accept2(_AllElementVisitor());
+        result.element2.accept(_AllElementVisitor());
       }
     }
   }
@@ -333,10 +314,10 @@ void _writeResultFile(BenchmarkResultCompound result) {
 
 class _AllElementVisitor extends GeneralizingElementVisitor2<void> {
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     // This triggers lazy reading.
     if (element case Annotatable element) {
-      element.metadata2;
+      element.metadata;
     }
     super.visitElement(element);
   }
@@ -366,9 +347,10 @@ extension on Analysis {
     required Uri libraryUri,
     required String name,
   }) {
-    var cid = graph.classes.singleWhere((class_) {
-      return class_.libraryUri == libraryUri && class_.name == name;
-    }).classId;
+    var cid =
+        graph.classes.singleWhere((class_) {
+          return class_.libraryUri == libraryUri && class_.name == name;
+        }).classId;
     return filter(objectIds, (object) => object.classId == cid);
   }
 
@@ -390,10 +372,7 @@ extension on Analysis {
   }
 
   // ignore: unused_element
-  void printRetainers(
-    IntSet objectIds, {
-    int maxEntries = 3,
-  }) {
+  void printRetainers(IntSet objectIds, {int maxEntries = 3}) {
     var paths = retainingPathsOf(objectIds, 20);
     for (int i = 0; i < paths.length; ++i) {
       if (i >= maxEntries) break;

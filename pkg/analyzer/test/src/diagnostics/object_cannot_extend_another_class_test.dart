@@ -18,10 +18,11 @@ class ObjectCannotExtendAnotherClassTest extends PubPackageResolutionTest {
   @failingTest
   test_object_extends_class() async {
     // TODO(brianwilkerson): Implement this check.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Object extends List {}
-''', [
-      error(CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, 0, 0),
-    ]);
+''',
+      [error(CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, 0, 0)],
+    );
   }
 }

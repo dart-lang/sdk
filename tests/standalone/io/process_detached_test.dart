@@ -14,72 +14,89 @@ import "package:expect/expect.dart";
 
 void test() {
   asyncStart();
-  var script =
-      Platform.script.resolve('process_detached_script.dart').toFilePath();
+  var script = Platform.script
+      .resolve('process_detached_script.dart')
+      .toFilePath();
   var future = Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--verbosity=warning')
-        ..add(script),
-      mode: ProcessStartMode.detached);
-  future.then((process) {
-    Expect.isNotNull(process.pid);
-    Expect.isTrue(process.pid is int);
-    Expect.throwsStateError(() => process.exitCode);
-    Expect.throwsStateError(() => process.stderr);
-    Expect.throwsStateError(() => process.stdin);
-    Expect.throwsStateError(() => process.stdout);
-    Expect.isTrue(process.kill());
-  }).whenComplete(() {
-    asyncEnd();
-  });
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add(script),
+    mode: ProcessStartMode.detached,
+  );
+  future
+      .then((process) {
+        Expect.isNotNull(process.pid);
+        Expect.isTrue(process.pid is int);
+        Expect.throwsStateError(() => process.exitCode);
+        Expect.throwsStateError(() => process.stderr);
+        Expect.throwsStateError(() => process.stdin);
+        Expect.throwsStateError(() => process.stdout);
+        Expect.isTrue(process.kill());
+      })
+      .whenComplete(() {
+        asyncEnd();
+      });
 }
 
 void testWithStdio() {
   asyncStart();
-  var script =
-      Platform.script.resolve('process_detached_script.dart').toFilePath();
+  var script = Platform.script
+      .resolve('process_detached_script.dart')
+      .toFilePath();
   var future = Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--verbosity=warning')
-        ..addAll([script, 'echo']),
-      mode: ProcessStartMode.detachedWithStdio);
-  future.then((process) {
-    Expect.isNotNull(process.pid);
-    Expect.isTrue(process.pid is int);
-    Expect.throwsStateError(() => process.exitCode);
-    var message = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    process.stdin.add(message);
-    process.stdin.flush().then((_) => process.stdin.close());
-    var f1 = process.stdout.fold<List<int>>([], (p, e) => p..addAll(e));
-    var f2 = process.stderr.fold<List<int>>([], (p, e) => p..addAll(e));
-    return Future.wait([f1, f2]).then((values) {
-      Expect.listEquals(values[0] as List, message);
-      Expect.listEquals(values[1] as List, message);
-    }).whenComplete(() {
-      Expect.isTrue(process.kill());
-    });
-  }).whenComplete(() {
-    asyncEnd();
-  });
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..addAll([script, 'echo']),
+    mode: ProcessStartMode.detachedWithStdio,
+  );
+  future
+      .then((process) {
+        Expect.isNotNull(process.pid);
+        Expect.isTrue(process.pid is int);
+        Expect.throwsStateError(() => process.exitCode);
+        var message = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        process.stdin.add(message);
+        process.stdin.flush().then((_) => process.stdin.close());
+        var f1 = process.stdout.fold<List<int>>([], (p, e) => p..addAll(e));
+        var f2 = process.stderr.fold<List<int>>([], (p, e) => p..addAll(e));
+        return Future.wait([f1, f2])
+            .then((values) {
+              Expect.listEquals(values[0] as List, message);
+              Expect.listEquals(values[1] as List, message);
+            })
+            .whenComplete(() {
+              Expect.isTrue(process.kill());
+            });
+      })
+      .whenComplete(() {
+        asyncEnd();
+      });
 }
 
 void testFailure() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_detached_process').then((temp) {
-    var future =
-        Process.start(temp.path, ['a', 'b'], mode: ProcessStartMode.detached);
-    future.then((process) {
-      Expect.fail('Starting process from invalid executable succeeded');
-    }, onError: (e) {
-      Expect.isTrue(e is ProcessException);
-    }).whenComplete(() {
-      temp.deleteSync();
-      asyncEnd();
-    });
+    var future = Process.start(temp.path, [
+      'a',
+      'b',
+    ], mode: ProcessStartMode.detached);
+    future
+        .then(
+          (process) {
+            Expect.fail('Starting process from invalid executable succeeded');
+          },
+          onError: (e) {
+            Expect.isTrue(e is ProcessException);
+          },
+        )
+        .whenComplete(() {
+          temp.deleteSync();
+          asyncEnd();
+        });
   });
 }
 

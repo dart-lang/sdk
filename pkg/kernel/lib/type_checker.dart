@@ -7,8 +7,10 @@ library kernel.type_checker;
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
+import 'names.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
+import 'src/non_null.dart';
 
 /// Performs type checking on the kernel IR.
 ///
@@ -95,16 +97,6 @@ abstract class TypeChecker {
   /// [where] is an AST node indicating roughly where the check is required.
   void checkAssignable(TreeNode where, DartType from, DartType to);
 
-  /// Checks that [expression], which has type [from], can be assigned to [to].
-  ///
-  /// Should return a downcast if necessary, or [expression] if no cast is
-  /// needed.
-  Expression checkAndDowncastExpression(
-      Expression expression, DartType from, DartType to) {
-    checkAssignable(expression, from, to);
-    return expression;
-  }
-
   /// Check unresolved invocation (one that has no interfaceTarget)
   /// and report an error if necessary.
   void checkUnresolvedInvocation(DartType receiver, TreeNode where) {
@@ -144,12 +136,10 @@ class TypeCheckingVisitor
     checker.checkUnresolvedInvocation(receiver, where);
   }
 
-  Expression checkAndDowncastExpression(Expression from, DartType to) {
-    TreeNode? parent = from.parent;
+  Expression checkExpressionAndAssignability(Expression from, DartType to) {
     DartType type = visitExpression(from);
-    Expression result = checker.checkAndDowncastExpression(from, type, to);
-    result.parent = parent;
-    return result;
+    checker.checkAssignable(from, type, to);
+    return from;
   }
 
   void checkExpressionNoDowncast(Expression expression, DartType to) {
@@ -190,9 +180,22 @@ class TypeCheckingVisitor
 
   @override
   void visitField(Field node) {
-    if (node.initializer != null) {
+    Expression? initializer = node.initializer;
+    if (initializer != null) {
+      bool initializerIsNullExpression = initializer is NullLiteral ||
+          initializer is ConstantExpression && initializer.type is NullType;
+      if (initializerIsNullExpression) {
+        // We skip type checks for `null` as the initializer as follows:
+        //
+        //   * If [node.type] is nullable, `null` is a valid initializer and
+        //     doesn't need to be checked.
+        //   * If [node.type] is non-nullable, `null` encodes an issue elsewhere
+        //     in an erroneous program, such as a final field not being
+        //     initialized in the constructors.
+        return;
+      }
       node.initializer =
-          checkAndDowncastExpression(node.initializer!, node.type);
+          checkExpressionAndAssignability(initializer, node.type);
     }
   }
 
@@ -200,24 +203,46 @@ class TypeCheckingVisitor
   void visitConstructor(Constructor node) {
     currentReturnType = null;
     currentYieldType = null;
-    node.initializers.forEach(visitInitializer);
-    handleFunctionNode(node.function);
+    if (!node.isErroneous) {
+      node.initializers.forEach(visitInitializer);
+      handleFunctionNode(node.function,
+          // Constructors can't be abstract, but can be external.
+          isPartOfAbstractExternalOrNoSuchMethodForwarderMember:
+              node.isExternal);
+    }
   }
 
   @override
   void visitProcedure(Procedure node) {
     currentReturnType = _getInternalReturnType(node.function);
     currentYieldType = _getYieldType(node.function);
-    handleFunctionNode(node.function);
+    handleFunctionNode(node.function,
+        isPartOfAbstractExternalOrNoSuchMethodForwarderMember:
+            node.isAbstract ||
+                node.isExternal ||
+                node.stubKind == ProcedureStubKind.NoSuchMethodForwarder);
   }
 
-  void handleFunctionNode(FunctionNode node) {
+  void handleFunctionNode(FunctionNode node,
+      {required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMember}) {
     AsyncMarker oldAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;
-    node.positionalParameters
-        .skip(node.requiredParameterCount)
-        .forEach(handleOptionalParameter);
-    node.namedParameters.forEach(handleOptionalParameter);
+    for (int parameterIndex = 0;
+        parameterIndex < node.positionalParameters.length;
+        parameterIndex++) {
+      if (parameterIndex >= node.requiredParameterCount) {
+        handleOptionalParameter(node.positionalParameters[parameterIndex],
+            isPartOfAbstractExternalOrNoSuchMethodForwarderMethod:
+                isPartOfAbstractExternalOrNoSuchMethodForwarderMember);
+      }
+    }
+    for (VariableDeclaration namedParameter in node.namedParameters) {
+      if (!namedParameter.isRequired) {
+        handleOptionalParameter(namedParameter,
+            isPartOfAbstractExternalOrNoSuchMethodForwarderMethod:
+                isPartOfAbstractExternalOrNoSuchMethodForwarderMember);
+      }
+    }
     if (node.body != null) {
       visitStatement(node.body!);
     }
@@ -229,15 +254,21 @@ class TypeCheckingVisitor
     DartType? oldYield = currentYieldType;
     currentReturnType = _getInternalReturnType(node);
     currentYieldType = _getYieldType(node);
-    handleFunctionNode(node);
+    handleFunctionNode(node,
+        // Nested functions can't be abstract.
+        isPartOfAbstractExternalOrNoSuchMethodForwarderMember: false);
     currentReturnType = oldReturn;
     currentYieldType = oldYield;
   }
 
-  void handleOptionalParameter(VariableDeclaration parameter) {
-    if (parameter.initializer != null) {
+  void handleOptionalParameter(VariableDeclaration parameter,
+      {required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod}) {
+    Expression? initializer = parameter.initializer;
+    if (initializer != null &&
+        !parameter.isErroneouslyInitialized &&
+        !isPartOfAbstractExternalOrNoSuchMethodForwarderMethod) {
       // Default parameter values cannot be downcast.
-      checkExpressionNoDowncast(parameter.initializer!, parameter.type);
+      checkExpressionNoDowncast(initializer, parameter.type);
     }
   }
 
@@ -298,7 +329,7 @@ class TypeCheckingVisitor
   }
 
   DartType handleCall(Arguments arguments, DartType functionType,
-      {Substitution receiver = Substitution.empty}) {
+      {Substitution receiver = Substitution.empty, required Member target}) {
     if (functionType is FunctionType) {
       if (arguments.positional.length < functionType.requiredParameterCount) {
         fail(arguments, 'Too few positional arguments');
@@ -325,26 +356,33 @@ class TypeCheckingVisitor
         checkAssignable(arguments, argument, bound);
       }
 
-      for (int i = 0; i < arguments.positional.length; ++i) {
-        DartType expectedType = functionType.positionalParameters[i];
-        arguments.positional[i] =
-            checkAndDowncastExpression(arguments.positional[i], expectedType);
-      }
-      for (int i = 0; i < arguments.named.length; ++i) {
-        NamedExpression argument = arguments.named[i];
-        bool found = false;
-        for (int j = 0; j < functionType.namedParameters.length; ++j) {
-          if (argument.name == functionType.namedParameters[j].name) {
-            DartType expectedType = functionType.namedParameters[j].type;
-            argument.value =
-                checkAndDowncastExpression(argument.value, expectedType);
-            found = true;
-            break;
-          }
+      // Arguments of all types are allowed for `==`.
+      bool targetIsEquals = target is Procedure &&
+          target.kind == ProcedureKind.Operator &&
+          target.name == equalsName;
+      if (!targetIsEquals) {
+        for (int i = 0; i < arguments.positional.length; ++i) {
+          DartType expectedType = functionType.positionalParameters[i];
+          arguments.positional[i] = checkExpressionAndAssignability(
+              arguments.positional[i], expectedType);
         }
-        if (!found) {
-          fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-          return NeverType.fromNullability(currentLibrary!.nonNullable);
+        for (int i = 0; i < arguments.named.length; ++i) {
+          NamedExpression argument = arguments.named[i];
+          bool found = false;
+          for (int j = 0; j < functionType.namedParameters.length; ++j) {
+            if (argument.name == functionType.namedParameters[j].name) {
+              DartType expectedType = functionType.namedParameters[j].type;
+              argument.value =
+                  checkExpressionAndAssignability(argument.value, expectedType);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            fail(
+                argument.value, 'Unexpected named parameter: ${argument.name}');
+            return NeverType.fromNullability(currentLibrary!.nonNullable);
+          }
         }
       }
       return functionType.returnType;
@@ -429,11 +467,47 @@ class TypeCheckingVisitor
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
-    node.condition = checkAndDowncastExpression(
+    bool staticTypeIsNonNullable =
+        node.staticType.nullability == Nullability.nonNullable;
+    bool staticTypeIsNonNullableFunctionType =
+        node.staticType is FunctionType && staticTypeIsNonNullable;
+    bool conditionIsEqualsNull = node.condition is EqualsNull;
+    Expression then = node.then;
+    bool thenIsNull = then is NullLiteral ||
+        then is ConstantExpression && then.type is NullType;
+    Expression otherwise = node.otherwise;
+    bool otherwiseIsCallTearoff =
+        otherwise is InstanceTearOff && otherwise.name == callName;
+
+    if (staticTypeIsNonNullableFunctionType &&
+        conditionIsEqualsNull &&
+        thenIsNull &&
+        otherwiseIsCallTearoff) {
+      // Case of implicit `call` tear-offs for type coercion.
+      //
+      // Currently, coercions of interface types to function types, that is,
+      // tearing off the `call` method, is encoded as follows:
+      //
+      //     FT f = let #t = e in #t == null ?{FT} null : #t.call;
+      //
+      // The line above is the encoding for `FT f = e;`, where `e` is an
+      // expression of a static type that is an interface type, `FT` is a
+      // function type, such as `void Function(int)`, `#t` is a synthesized
+      // intermediate variable, and `{FT}` following `?` indicates the static
+      // type of the conditional expression.
+      //
+      // We skip the type check in the then-part of the conditional expression
+      // in such an encoding, due to the unconventional use of the `null`.
+
+      // TODO(cstefantsova): Implement a type-safe encoding instead.
+    } else {
+      node.then = checkExpressionAndAssignability(node.then, node.staticType);
+    }
+
+    node.condition = checkExpressionAndAssignability(
         node.condition, environment.coreTypes.boolNonNullableRawType);
-    node.then = checkAndDowncastExpression(node.then, node.staticType);
     node.otherwise =
-        checkAndDowncastExpression(node.otherwise, node.staticType);
+        checkExpressionAndAssignability(node.otherwise, node.staticType);
     return node.staticType;
   }
 
@@ -445,7 +519,8 @@ class TypeCheckingVisitor
     handleCall(
         arguments,
         target.function
-            .computeThisFunctionType(class_.enclosingLibrary.nonNullable));
+            .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
+        target: target);
     return new InterfaceType(
         target.enclosingClass, currentLibrary!.nonNullable, arguments.types);
   }
@@ -481,9 +556,7 @@ class TypeCheckingVisitor
   @override
   DartType visitLet(Let node) {
     DartType value = visitExpression(node.variable.initializer!);
-    if (node.variable.type is DynamicType) {
-      node.variable.type = value;
-    }
+    checkAssignable(node, value, node.variable.type);
     return visitExpression(node.body);
   }
 
@@ -551,8 +624,8 @@ class TypeCheckingVisitor
   @override
   DartType visitListLiteral(ListLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
-      node.expressions[i] =
-          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
+      node.expressions[i] = checkExpressionAndAssignability(
+          node.expressions[i], node.typeArgument);
     }
     return environment.listType(node.typeArgument, currentLibrary!.nonNullable);
   }
@@ -560,8 +633,8 @@ class TypeCheckingVisitor
   @override
   DartType visitSetLiteral(SetLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
-      node.expressions[i] =
-          checkAndDowncastExpression(node.expressions[i], node.typeArgument);
+      node.expressions[i] = checkExpressionAndAssignability(
+          node.expressions[i], node.typeArgument);
     }
     return environment.setType(node.typeArgument, currentLibrary!.nonNullable);
   }
@@ -569,7 +642,7 @@ class TypeCheckingVisitor
   @override
   DartType visitRecordLiteral(RecordLiteral node) {
     for (int i = 0; i < node.positional.length; ++i) {
-      node.positional[i] = checkAndDowncastExpression(
+      node.positional[i] = checkExpressionAndAssignability(
           node.positional[i], node.recordType.positional[i]);
     }
     for (int i = 0; i < node.named.length; ++i) {
@@ -580,7 +653,7 @@ class TypeCheckingVisitor
         }
       }
       node.named[i].value =
-          checkAndDowncastExpression(node.named[i].value, namedFieldType!);
+          checkExpressionAndAssignability(node.named[i].value, namedFieldType!);
     }
     return new RecordType(node.recordType.positional, node.recordType.named,
         currentLibrary!.nonNullable);
@@ -588,9 +661,9 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLogicalExpression(LogicalExpression node) {
-    node.left = checkAndDowncastExpression(
+    node.left = checkExpressionAndAssignability(
         node.left, environment.coreTypes.boolNonNullableRawType);
-    node.right = checkAndDowncastExpression(
+    node.right = checkExpressionAndAssignability(
         node.right, environment.coreTypes.boolNonNullableRawType);
     return environment.coreTypes.boolNonNullableRawType;
   }
@@ -598,8 +671,30 @@ class TypeCheckingVisitor
   @override
   DartType visitMapLiteral(MapLiteral node) {
     for (MapLiteralEntry entry in node.entries) {
-      entry.key = checkAndDowncastExpression(entry.key, node.keyType);
-      entry.value = checkAndDowncastExpression(entry.value, node.valueType);
+      Expression key = entry.key;
+      Expression value = entry.value;
+
+      bool keyIsNull = key is NullLiteral ||
+          key is ConstantExpression && key.type is NullType;
+      bool keyIsInvalid = key is InvalidExpression;
+      bool valueIsNull = value is NullLiteral ||
+          value is ConstantExpression && value.type is NullType;
+      bool valueIsInvalid = value is InvalidExpression;
+      if (keyIsNull && valueIsInvalid || keyIsInvalid && valueIsNull) {
+        // Erroneous map entries are encoded as follows:
+        //
+        //     {null: invalid-expression "..."}
+        //
+        //     or
+        //
+        //     {invalid-expression "...": null}
+        //
+        // We're skipping type checks in those kinds of entries.
+        continue;
+      }
+
+      entry.key = checkExpressionAndAssignability(key, node.keyType);
+      entry.value = checkExpressionAndAssignability(value, node.valueType);
     }
     return environment.mapType(
         node.keyType, node.valueType, currentLibrary!.nonNullable);
@@ -613,8 +708,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitNullCheck(NullCheck node) {
-    // TODO(johnniwinther): Return `NonNull(visitExpression(types))`.
-    return visitExpression(node.operand);
+    return computeNonNull(visitExpression(node.operand));
   }
 
   @override
@@ -634,7 +728,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitStaticInvocation(StaticInvocation node) {
-    return handleCall(node.arguments, node.target.getterType);
+    return handleCall(node.arguments, node.target.getterType,
+        target: node.target);
   }
 
   @override
@@ -711,14 +806,14 @@ class TypeCheckingVisitor
       AbstractSuperMethodInvocation node) {
     Member target = node.interfaceTarget;
     return handleCall(node.arguments, target.superGetterType,
-        receiver: getSuperReceiverType(target));
+        receiver: getSuperReceiverType(target), target: target);
   }
 
   @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
     Member target = node.interfaceTarget;
     return handleCall(node.arguments, target.superGetterType,
-        receiver: getSuperReceiverType(target));
+        receiver: getSuperReceiverType(target), target: target);
   }
 
   @override
@@ -858,7 +953,7 @@ class TypeCheckingVisitor
   @override
   void visitDoStatement(DoStatement node) {
     visitStatement(node.body);
-    node.condition = checkAndDowncastExpression(
+    node.condition = checkExpressionAndAssignability(
         node.condition, environment.coreTypes.boolNonNullableRawType);
   }
 
@@ -929,7 +1024,7 @@ class TypeCheckingVisitor
   void visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
-      node.condition = checkAndDowncastExpression(
+      node.condition = checkExpressionAndAssignability(
           node.condition!, environment.coreTypes.boolNonNullableRawType);
     }
     node.updates.forEach(visitExpression);
@@ -943,7 +1038,7 @@ class TypeCheckingVisitor
 
   @override
   void visitIfStatement(IfStatement node) {
-    node.condition = checkAndDowncastExpression(
+    node.condition = checkExpressionAndAssignability(
         node.condition, environment.coreTypes.boolNonNullableRawType);
     visitStatement(node.then);
     if (node.otherwise != null) {
@@ -999,13 +1094,13 @@ class TypeCheckingVisitor
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer != null) {
       node.initializer =
-          checkAndDowncastExpression(node.initializer!, node.type);
+          checkExpressionAndAssignability(node.initializer!, node.type);
     }
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    node.condition = checkAndDowncastExpression(
+    node.condition = checkExpressionAndAssignability(
         node.condition, environment.coreTypes.boolNonNullableRawType);
     visitStatement(node.body);
   }
@@ -1028,24 +1123,24 @@ class TypeCheckingVisitor
       }
     } else {
       node.expression =
-          checkAndDowncastExpression(node.expression, currentYieldType!);
+          checkExpressionAndAssignability(node.expression, currentYieldType!);
     }
   }
 
   @override
   void visitFieldInitializer(FieldInitializer node) {
-    node.value = checkAndDowncastExpression(node.value, node.field.type);
+    node.value = checkExpressionAndAssignability(node.value, node.field.type);
   }
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    handleCall(node.arguments, node.target.getterType);
+    handleCall(node.arguments, node.target.getterType, target: node.target);
   }
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
     handleCall(node.arguments, node.target.getterType,
-        receiver: getSuperReceiverType(node.target));
+        receiver: getSuperReceiverType(node.target), target: node.target);
   }
 
   @override
@@ -1145,9 +1240,26 @@ class TypeCheckingVisitor
       return environment.getTypeOfSpecialCasedBinaryOperator(
           receiver, argument);
     } else {
-      visitExpression(node.receiver);
-      return handleCall(node.arguments, target.getterType,
-          receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
+      // Erroneous map literals with spreads are encoded as follows:
+      //
+      //     {InvalidExpression(...), null}
+      //
+      // That happens regardless of the type arguments of the map. Here we skip
+      // such lowerings of erroneous map literals.
+      bool isMapIndexSet =
+          node.interfaceTarget.enclosingClass == coreTypes.mapClass &&
+              node.interfaceTarget.kind == ProcedureKind.Operator &&
+              node.interfaceTarget.name == indexSetName;
+      if (node.arguments.positional case [InvalidExpression(), NullLiteral()]
+          when isMapIndexSet) {
+        return const InvalidType();
+      } else {
+        visitExpression(node.receiver);
+        return handleCall(node.arguments, target.getterType,
+            receiver:
+                getReceiverType(node, node.receiver, node.interfaceTarget),
+            target: node.interfaceTarget);
+      }
     }
   }
 
@@ -1161,7 +1273,8 @@ class TypeCheckingVisitor
         "Unexpected instance getter invocation target: $target");
     visitExpression(node.receiver);
     return handleCall(node.arguments, target.getterType,
-        receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
+        receiver: getReceiverType(node, node.receiver, node.interfaceTarget),
+        target: node.interfaceTarget);
   }
 
   @override

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:test/test.dart';
 
 // Passing --disable-dart-dev after a DartDev command should cause the VM to
 // exit with an error, not cause a segfault.
@@ -12,15 +13,18 @@ import 'package:expect/expect.dart';
 // See https://github.com/dart-lang/sdk/issues/56592 for details.
 
 Future<void> main() async {
-  final result = await Process.run(
-    Platform.resolvedExecutable,
-    [
-      'test',
-      '--disable-dart-dev',
-    ],
-  );
-  Expect.contains(
-    'Attempted to use --disable-dart-dev with a Dart CLI command.',
-    result.stderr,
-  );
+  test('Regression test for https://github.com/dart-lang/sdk/issues/56592',
+      () async {
+    final result = await Process.run(
+      Platform.resolvedExecutable,
+      [
+        'test',
+        '--disable-dart-dev',
+      ],
+    );
+    Expect.contains(
+      'Attempted to use --disable-dart-dev with a Dart CLI command.',
+      result.stderr,
+    );
+  });
 }

@@ -23,5 +23,5 @@ static method main() → dynamic
   ;
 static method expectEquals(dynamic x, dynamic y) → dynamic
   ;
-static method _#D#new#tearOff<X extends core::Object? = dynamic>(self::_#D#new#tearOff::X% x, self::_#D#new#tearOff::X% y) → self::C<self::_#D#new#tearOff::X%, self::_#D#new#tearOff::X%>
+static synthetic method _#D#new#tearOff<X extends core::Object? = dynamic>(self::_#D#new#tearOff::X% x, self::_#D#new#tearOff::X% y) → self::C<self::_#D#new#tearOff::X%, self::_#D#new#tearOff::X%>
   return new self::C::•<self::_#D#new#tearOff::X%, self::_#D#new#tearOff::X%>(x, y);

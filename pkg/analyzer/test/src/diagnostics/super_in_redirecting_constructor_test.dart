@@ -16,24 +16,26 @@ main() {
 @reflectiveTest
 class SuperInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_redirectionSuper() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : this.name(), super();
   A.name() {}
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 31, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 31, 7)],
+    );
   }
 
   test_superRedirection() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : super(), this.name();
   A.name() {}
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7)],
+    );
   }
 }

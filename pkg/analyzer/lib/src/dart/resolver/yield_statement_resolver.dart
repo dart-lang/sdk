@@ -18,11 +18,10 @@ import 'package:analyzer/src/generated/resolver.dart';
 class YieldStatementResolver {
   final ResolverVisitor _resolver;
 
-  YieldStatementResolver({
-    required ResolverVisitor resolver,
-  }) : _resolver = resolver;
+  YieldStatementResolver({required ResolverVisitor resolver})
+    : _resolver = resolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -51,12 +50,12 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression.methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -89,9 +88,12 @@ class YieldStatementResolver {
     var imposedReturnType = bodyContext.imposedType;
     if (imposedReturnType != null) {
       if (isYieldEach) {
-        if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType,
-            strictCasts: _resolver.analysisOptions.strictCasts)) {
-          _errorReporter.atNode(
+        if (!_typeSystem.isAssignableTo(
+          impliedReturnType,
+          imposedReturnType,
+          strictCasts: _resolver.analysisOptions.strictCasts,
+        )) {
+          _diagnosticReporter.atNode(
             expression,
             CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
             arguments: [impliedReturnType, imposedReturnType],
@@ -99,16 +101,19 @@ class YieldStatementResolver {
           return;
         }
       } else {
-        var imposedSequenceType = imposedReturnType.asInstanceOf2(
+        var imposedSequenceType = imposedReturnType.asInstanceOf(
           bodyContext.isSynchronous
-              ? _typeProvider.iterableElement2
-              : _typeProvider.streamElement2,
+              ? _typeProvider.iterableElement
+              : _typeProvider.streamElement,
         );
         if (imposedSequenceType != null) {
           var imposedValueType = imposedSequenceType.typeArguments[0];
-          if (!_typeSystem.isAssignableTo(expressionType, imposedValueType,
-              strictCasts: _resolver.analysisOptions.strictCasts)) {
-            _errorReporter.atNode(
+          if (!_typeSystem.isAssignableTo(
+            expressionType,
+            imposedValueType,
+            strictCasts: _resolver.analysisOptions.strictCasts,
+          )) {
+            _diagnosticReporter.atNode(
               expression,
               CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
               arguments: [expressionType, imposedValueType],
@@ -130,9 +135,12 @@ class YieldStatementResolver {
         requiredReturnType = _typeProvider.streamDynamicType;
       }
 
-      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
-          strictCasts: _resolver.analysisOptions.strictCasts)) {
-        _errorReporter.atNode(
+      if (!_typeSystem.isAssignableTo(
+        impliedReturnType,
+        requiredReturnType,
+        strictCasts: _resolver.analysisOptions.strictCasts,
+      )) {
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
           arguments: [impliedReturnType, requiredReturnType],
@@ -149,9 +157,10 @@ class YieldStatementResolver {
     if (elementType != null) {
       var contextType = elementType;
       if (node.star != null) {
-        contextType = bodyContext.isSynchronous
-            ? _typeProvider.iterableType(elementType)
-            : _typeProvider.streamType(elementType);
+        contextType =
+            bodyContext.isSynchronous
+                ? _typeProvider.iterableType(elementType)
+                : _typeProvider.streamType(elementType);
       }
       return contextType;
     } else {
@@ -163,8 +172,10 @@ class YieldStatementResolver {
     BodyInferenceContext bodyContext,
     YieldStatementImpl node,
   ) {
-    _resolver.analyzeExpression(node.expression,
-        SharedTypeSchemaView(_computeContextType(bodyContext, node)));
+    _resolver.analyzeExpression(
+      node.expression,
+      SharedTypeSchemaView(_computeContextType(bodyContext, node)),
+    );
     _resolver.popRewrite();
 
     if (node.star != null) {
@@ -176,17 +187,22 @@ class YieldStatementResolver {
 
     bodyContext.addYield(node);
 
-    _checkForYieldOfInvalidType(bodyContext, node,
-        isYieldEach: node.star != null);
+    _checkForYieldOfInvalidType(
+      bodyContext,
+      node,
+      isYieldEach: node.star != null,
+    );
     _checkForUseOfVoidResult(node.expression);
   }
 
   void _resolve_notGenerator(YieldStatementImpl node) {
     _resolver.analyzeExpression(
-        node.expression, _resolver.operations.unknownType);
+      node.expression,
+      _resolver.operations.unknownType,
+    );
     _resolver.popRewrite();
 
-    _errorReporter.atNode(
+    _diagnosticReporter.atNode(
       node,
       node.star != null
           ? CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR

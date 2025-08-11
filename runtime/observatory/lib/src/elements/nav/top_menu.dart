@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
@@ -15,11 +17,11 @@ class NavTopMenuElement extends CustomElement implements Renderable {
 
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 
-  Iterable<Element> _content = const <Element>[];
+  Iterable<HTMLElement> _content = const <HTMLElement>[];
 
-  Iterable<Element> get content => _content;
+  Iterable<HTMLElement> get content => _content;
 
-  set content(Iterable<Element> value) {
+  set content(Iterable<HTMLElement> value) {
     _content = value.toList();
     _r.dirty();
   }
@@ -42,15 +44,15 @@ class NavTopMenuElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    final content = (<Element>[
+    final content = (<HTMLElement>[
       new NavMenuItemElement('Connect to a VM', link: Uris.vmConnect()).element,
     ]..addAll(_content));
-    children = <Element>[
+    setChildren(<HTMLElement>[
       navMenu('Observatory', link: Uris.vm(), content: content)
-    ];
+    ]);
   }
 }

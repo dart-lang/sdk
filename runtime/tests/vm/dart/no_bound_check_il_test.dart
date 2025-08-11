@@ -137,7 +137,9 @@ void main() {
   // Uint8List access via inlined function.
   inlined_uint8list_has_bounds_check(new Uint8List(20));
   inlined_uint8list_no_bounds_check(
-      new Uint8List(20), new Uint8List(20).toString().length.isEven);
+    new Uint8List(20),
+    new Uint8List(20).toString().length.isEven,
+  );
 
   // String access directly.
   direct_string_has_bounds_check(new Uint8List(20).toString());

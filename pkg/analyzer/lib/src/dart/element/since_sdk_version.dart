@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -12,9 +12,9 @@ class SinceSdkVersionComputer {
 
   /// The [element] is a `dart:xyz` library, so it can have `@Since` annotations.
   /// Evaluates its annotations and returns the version.
-  Version? compute(Element2 element) {
+  Version? compute(Element element) {
     // Must be in a `dart:` library.
-    var libraryUri = element.library2?.uri;
+    var libraryUri = element.library?.uri;
     if (libraryUri == null || !libraryUri.isScheme('dart')) {
       return null;
     }
@@ -29,9 +29,9 @@ class SinceSdkVersionComputer {
       specified = _specifiedVersion(element as Annotatable);
     }
 
-    if (element is LibraryElement2) {
+    if (element is LibraryElement) {
       return specified;
-    } else if (element.enclosingElement2 case HasSinceSdkVersion hasSince?) {
+    } else if (element.enclosingElement case HasSinceSdkVersion hasSince?) {
       var enclosing = hasSince.sinceSdkVersion;
       return specified.maxWith(enclosing);
     } else {
@@ -57,7 +57,7 @@ class SinceSdkVersionComputer {
   /// Returns the maximal specified `@Since()` version, `null` if none.
   static Version? _specifiedVersion(Annotatable element) {
     var annotations =
-        element.metadata2.annotations.cast<ElementAnnotationImpl>();
+        element.metadata.annotations.cast<ElementAnnotationImpl>();
     Version? result;
     for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {

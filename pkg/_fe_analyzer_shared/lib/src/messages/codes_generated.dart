@@ -1587,62 +1587,6 @@ Message _withArgumentsConflictsWithImplicitSetterCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithSetter =
-    const Template<Message Function(String name)>(
-  "ConflictsWithSetter",
-  problemMessageTemplate: r"""Conflicts with setter '#name'.""",
-  withArguments: _withArgumentsConflictsWithSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithSetter =
-    const Code<Message Function(String name)>(
-  "ConflictsWithSetter",
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithSetter,
-    problemMessage: """Conflicts with setter '${name}'.""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithSetterCause =
-    const Template<Message Function(String name)>(
-  "ConflictsWithSetterCause",
-  problemMessageTemplate: r"""Conflicting setter '#name'.""",
-  withArguments: _withArgumentsConflictsWithSetterCause,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithSetterCause =
-    const Code<Message Function(String name)>(
-  "ConflictsWithSetterCause",
-  severity: Severity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithSetterCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithSetterCause,
-    problemMessage: """Conflicting setter '${name}'.""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateConflictsWithTypeParameter =
     const Template<Message Function(String name)>(
@@ -5665,6 +5609,43 @@ const MessageCode messageExtensionTypeRepresentationTypeBottom =
   analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
   problemMessage: r"""The representation type can't be a bottom type.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateExtensionTypeShouldBeListedAsCallableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot use extension type '#name' in a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable.""",
+  withArguments:
+      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeExtensionTypeShouldBeListedAsCallableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+    problemMessage:
+        """Cannot use extension type '${name}' in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to extension type '${name}' or update the dynamic interface to list extension type '${name}' as callable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
@@ -16368,28 +16349,6 @@ const MessageCode messageStackOverflow = const MessageCode(
   problemMessage:
       r"""The file has too many nested expressions or statements.""",
   correctionMessage: r"""Try simplifying the code.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAndInstanceConflict =
-    messageStaticAndInstanceConflict;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAndInstanceConflict = const MessageCode(
-  "StaticAndInstanceConflict",
-  analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
-  problemMessage: r"""This static member conflicts with an instance member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAndInstanceConflictCause =
-    messageStaticAndInstanceConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAndInstanceConflictCause = const MessageCode(
-  "StaticAndInstanceConflictCause",
-  severity: Severity.context,
-  problemMessage: r"""This is the instance member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

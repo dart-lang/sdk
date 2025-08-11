@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -16,13 +18,10 @@ class AvoidDynamicCalls extends LintRule {
     : super(name: LintNames.avoid_dynamic_calls, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_dynamic_calls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_dynamic_calls;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry
       ..addAssignmentExpression(this, visitor)
@@ -63,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // x ??= foo is not a dynamic call.
       return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   @override
@@ -167,7 +166,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node == null || node.staticType is! DynamicType) return false;
     if (_isExplicitCast(node)) return false;
 
-    rule.reportLint(node);
+    rule.reportAtNode(node);
     return true;
   }
 
@@ -176,7 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (staticType == null) return;
     if (_isExplicitCast(node)) return;
     if (staticType is DynamicType || staticType.isDartCoreFunction) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -189,7 +188,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
         // `dynamic` we should report.
-        rule.reportLint(root);
+        rule.reportAtNode(root);
       }
     }
   }

@@ -33,9 +33,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// statement.
   List<_SharedCaseScope<Variable>> _sharedCaseScopes = [];
 
-  VariableBinder({
-    required this.errors,
-  });
+  VariableBinder({required this.errors});
 
   /// Updates the set of bindings to account for the presence of a variable
   /// pattern.  [name] is the name of the variable, [variable] is the object
@@ -61,9 +59,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// If [sharedCaseScopeKey] is provided, it expected to be the same as
   /// the key of the last shared case scope, and the resulting set will be
   /// joined with the current shared case scope.
-  Map<String, Variable> casePatternFinish({
-    Object? sharedCaseScopeKey,
-  }) {
+  Map<String, Variable> casePatternFinish({Object? sharedCaseScopeKey}) {
     Map<String, Variable> variables = _variables.removeLast();
 
     if (sharedCaseScopeKey != null) {
@@ -190,9 +186,10 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
         result[entry.key] = joinPatternVariables(
           key: key,
           components: variables,
-          inconsistency: sharedVariable.allCases
-              ? JoinedPatternVariableInconsistency.none
-              : sharedScope.hasLabel
+          inconsistency:
+              sharedVariable.allCases
+                  ? JoinedPatternVariableInconsistency.none
+                  : sharedScope.hasLabel
                   ? JoinedPatternVariableInconsistency.sharedCaseHasLabel
                   : JoinedPatternVariableInconsistency.sharedCaseAbsent,
         );
@@ -204,16 +201,17 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// Notifies that computing new shared case scope should be started.
   void switchStatementSharedCaseScopeStart(Object key) {
     assert(_variables.isEmpty);
-    _sharedCaseScopes.add(
-      new _SharedCaseScope(key),
-    );
+    _sharedCaseScopes.add(new _SharedCaseScope(key));
   }
 }
 
 /// Interface used by the [VariableBinder] logic to report error conditions
 /// up to the client during the "pre-visit" phase of type analysis.
-abstract class VariableBinderErrors<Node extends Object,
-    Variable extends Object> extends TypeAnalyzerErrorsBase {
+abstract class VariableBinderErrors<
+  Node extends Object,
+  Variable extends Object
+>
+    extends TypeAnalyzerErrorsBase {
   /// Called when a pattern attempts to declare the variable [duplicate] that
   /// has the same [name] as the [original] variable.
   void duplicateVariablePattern({

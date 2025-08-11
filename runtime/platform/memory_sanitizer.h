@@ -13,6 +13,18 @@
 #if __has_feature(memory_sanitizer)
 #define USING_MEMORY_SANITIZER
 #endif
+#if __has_feature(hwaddress_sanitizer)
+#define USING_HWADDRESS_SANITIZER
+#endif
+#endif
+
+#if defined(USING_HWADDRESS_SANITIZER)
+extern "C" void __hwasan_handle_longjmp(const void* sp_dst);
+#define HWASAN_HANDLE_LONGJMP(sp_dst) __hwasan_handle_longjmp(sp_dst)
+#else
+#define HWASAN_HANDLE_LONGJMP(sp_dst)                                          \
+  do {                                                                         \
+  } while (false && (sp_dst) == nullptr)
 #endif
 
 #if defined(USING_MEMORY_SANITIZER)

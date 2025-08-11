@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -86,7 +86,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element3;
+    var targetElement = targetType.element;
     var targetFragment = targetElement.firstFragment;
     var targetResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
@@ -175,10 +175,10 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       return;
     }
 
-    var targetElement = constructorElement.enclosingElement2;
-    var targetFragment = (targetElement as ClassElement2).firstFragment;
+    var targetElement = constructorElement.enclosingElement;
+    var targetFragment = (targetElement as ClassElement).firstFragment;
 
-    var targetElementName = targetElement.name3;
+    var targetElementName = targetElement.name;
     if (targetElementName == null) {
       return;
     }

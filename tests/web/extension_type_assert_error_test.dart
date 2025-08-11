@@ -9,9 +9,7 @@ import "package:expect/expect.dart";
 const String? maybe = bool.fromEnvironment("not there") ? "string" : null;
 
 extension type const Ext._(String _) implements String {
-  const Ext()
-      : assert(maybe != null, "Must not be null"),
-        _ = "OK";
+  const Ext() : assert(maybe != null, "Must not be null"), _ = "OK";
 }
 
 void main() {

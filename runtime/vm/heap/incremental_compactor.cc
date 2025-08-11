@@ -342,7 +342,7 @@ class IncrementalForwardingVisitor : public ObjectPointerVisitor,
                                      public HandleVisitor {
  public:
   explicit IncrementalForwardingVisitor(Thread* thread)
-      : ObjectPointerVisitor(thread->isolate_group()), HandleVisitor(thread) {}
+      : ObjectPointerVisitor(thread->isolate_group()), HandleVisitor() {}
 
   void VisitObject(ObjectPtr obj) override {
     if (obj->untag()->IsMarked()) {
@@ -574,7 +574,6 @@ class EpilogueState {
   bool TakeOOM() { return oom_slice_.exchange(false); }
   bool TakeWeakHandles() { return weak_handles_slice_.exchange(false); }
   bool TakeWeakTables() { return weak_tables_slice_.exchange(false); }
-  bool TakeIdRing() { return id_ring_slice_.exchange(false); }
   bool TakeRoots() { return roots_slice_.exchange(false); }
   bool TakeResetProgressBars() {
     return reset_progress_bars_slice_.exchange(false);
@@ -634,18 +633,6 @@ class EpilogueTask : public SafepointTask {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakTables");
       isolate_group_->heap()->ForwardWeakTables(&visitor);
     }
-#ifndef PRODUCT
-    if (state_->TakeIdRing()) {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "IdRing");
-      isolate_group_->ForEachIsolate(
-          [&](Isolate* isolate) {
-            for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-              isolate->GetServiceIdZone(i)->VisitPointers(visitor);
-            }
-          },
-          /*at_safepoint=*/true);
-    }
-#endif  // !PRODUCT
 
     barrier_->Sync();
 

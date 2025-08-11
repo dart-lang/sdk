@@ -25,13 +25,13 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_context.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 typedef SnippetProducerGenerator =
     SnippetProducer Function(
       DartSnippetRequest, {
-      required Map<Element2, LibraryElement2?> elementImportCache,
+      required Map<Element, LibraryElement?> elementImportCache,
     });
 
 /// [DartSnippetManager] determines if a snippet request is Dart specific
@@ -80,7 +80,7 @@ class DartSnippetManager {
       if (generators == null) {
         return snippets;
       }
-      var elementImportCache = <Element2, LibraryElement2?>{};
+      var elementImportCache = <Element, LibraryElement?>{};
       for (var generator in generators) {
         var producer = generator(
           request,

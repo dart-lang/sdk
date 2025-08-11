@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -20,7 +20,7 @@ class InheritedReferenceContributor
     with ElementSuggestionBuilder
     implements CompletionContributor {
   @override
-  LibraryElement2? containingLibrary;
+  LibraryElement? containingLibrary;
 
   @override
   CompletionSuggestionKind? kind;
@@ -53,7 +53,7 @@ class InheritedReferenceContributor
   Future<void> computeSuggestionsForClass(
     DartCompletionRequest request,
     CompletionCollector collector,
-    ClassElement2? classElement, {
+    ClassElement? classElement, {
     AstNode? entryPoint,
     bool skipChildClass = true,
     CompletionTarget? target,
@@ -91,7 +91,7 @@ class InheritedReferenceContributor
         }
       }
     }
-    for (var elem in type.methods2) {
+    for (var elem in type.methods) {
       if (elem.returnType is! VoidType) {
         if (optype.includeReturnValueSuggestions) {
           addSuggestion(elem);
@@ -105,7 +105,7 @@ class InheritedReferenceContributor
   }
 
   void _computeSuggestionsForClass(CompletionCollector collector,
-      CompletionTarget target, ClassElement2 classElement, OpType optype,
+      CompletionTarget target, ClassElement classElement, OpType optype,
       {bool skipChildClass = true}) {
     var isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument

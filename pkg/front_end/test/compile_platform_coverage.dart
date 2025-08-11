@@ -23,8 +23,8 @@ Future<void> main(List<String> arguments) async {
 
   Directory tmp =
       Directory.systemTemp.createTempSync("compile_platform_coverage");
-  String outlinePath = tmp.uri.resolve("vm_outline_strong.dill").toFilePath();
-  String platformPath = tmp.uri.resolve("vm_platform_strong.dill").toFilePath();
+  String outlinePath = tmp.uri.resolve("vm_outline.dill").toFilePath();
+  String platformPath = tmp.uri.resolve("vm_platform.dill").toFilePath();
 
   await compilePlatformEntryPoint([
     "dart:core",

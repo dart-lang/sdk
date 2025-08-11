@@ -9,6 +9,20 @@ library;
 //   void extendedInstanceDeclaredStaticMethod() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/hierarchy/static.dart:61:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set extendedInstanceDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/static.dart:10:12: Context: This is the inherited member.
+//   void set extendedInstanceDeclaredStaticSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/hierarchy/static.dart:64:19: Error: Can't declare a member that conflicts with an inherited one.
+//   static void set extendedInstanceGetterDeclaredStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/static.dart:13:11: Context: This is the inherited member.
+//   int get extendedInstanceGetterDeclaredStaticSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/hierarchy/static.dart:67:18: Error: Can't declare a member that conflicts with an inherited one.
 //   static int get extendedInstanceSetterDeclaredStaticGetter => 0;
 //                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -30,27 +44,6 @@ library;
 //   void implementedInstanceDeclaredStaticMethod() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/hierarchy/static.dart:82:18: Error: Can't declare a member that conflicts with an inherited one.
-//   static int get implementedInstanceSetterDeclaredStaticGetter => 0;
-//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/static.dart:47:12: Context: This is the inherited member.
-//   void set implementedInstanceSetterDeclaredStaticGetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/static.dart:61:19: Error: Can't declare a member that conflicts with an inherited one.
-//   static void set extendedInstanceDeclaredStaticSetter(int value) {}
-//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/static.dart:10:12: Context: This is the inherited member.
-//   void set extendedInstanceDeclaredStaticSetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/static.dart:64:19: Error: Can't declare a member that conflicts with an inherited one.
-//   static void set extendedInstanceGetterDeclaredStaticSetter(int value) {}
-//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/static.dart:13:11: Context: This is the inherited member.
-//   int get extendedInstanceGetterDeclaredStaticSetter => 0;
-//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/general/hierarchy/static.dart:76:19: Error: Can't declare a member that conflicts with an inherited one.
 //   static void set implementedInstanceDeclaredStaticSetter(int value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -64,6 +57,13 @@ library;
 // pkg/front_end/testcases/general/hierarchy/static.dart:44:11: Context: This is the inherited member.
 //   int get implementedInstanceGetterDeclaredStaticSetter => 0;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/hierarchy/static.dart:82:18: Error: Can't declare a member that conflicts with an inherited one.
+//   static int get implementedInstanceSetterDeclaredStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/static.dart:47:12: Context: This is the inherited member.
+//   void set implementedInstanceSetterDeclaredStaticGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -145,11 +145,11 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
+  synthetic mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
     return super.{self::Mixin::mixedInInstanceDeclaredStaticMethod}();
-  mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
+  synthetic mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
     return super.{self::Mixin::mixedInInstanceImplementedStaticMethod}();
-  mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
+  synthetic mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
     return super.{self::Mixin::extendedStaticMixedInInstanceMethod}();
 }
 static method main() → dynamic {}

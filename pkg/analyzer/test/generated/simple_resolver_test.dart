@@ -126,10 +126,7 @@ class A {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -145,10 +142,7 @@ class B {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_static() async {
@@ -161,10 +155,7 @@ class A {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_static_propertyAccess() async {
@@ -180,10 +171,7 @@ class B {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_breakTarget_labeled() async {
@@ -463,10 +451,10 @@ export 'a.dart';
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
-    expect(main.library2, isNot(same(library)));
+    expect(main.library, isNot(same(library)));
   }
 
   test_entryPoint_local() async {
@@ -475,17 +463,17 @@ main() {}
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
-    expect(main.library2, same(library));
+    expect(main.library, same(library));
   }
 
   test_entryPoint_none() async {
     await assertNoErrorsInCode('');
 
     var library = result.libraryElement2;
-    expect(library.entryPoint2, isNull);
+    expect(library.entryPoint, isNull);
   }
 
   test_enum_externalLibrary() async {
@@ -521,27 +509,30 @@ class A {
     var xParameter = findNode.fieldFormalParameter('this.x');
 
     var xParameterElement = xParameter.declaredFragment!.element;
-    expect(xParameterElement.field2, findElement2.field('x'));
+    expect(xParameterElement.field, findElement2.field('x'));
 
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
+  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
 ''');
   }
 
   test_forEachLoops_nonConflicting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   List list = [1,2,3];
   for (int x in list) {}
   for (int x in list) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      ],
+    );
   }
 
   test_forLoops_nonConflicting() async {
@@ -586,13 +577,14 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
 
   test_getter_fromMixins_property_access() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {}
 mixin M1 {
   get x => null;
@@ -604,16 +596,16 @@ class C extends B with M1, M2 {}
 void main() {
   var y = new C().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1)],
+    );
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
@@ -655,7 +647,8 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -671,9 +664,9 @@ class G extends Object with p.V {}
 class H extends D<p.W> {
   H(int i) : super(i);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_import_show_doesNotExist() async {
@@ -682,7 +675,8 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -698,9 +692,9 @@ class G extends Object with V {}
 class H extends D<W> {
   H(int i) : super(i);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_import_spaceInUri() async {
@@ -728,13 +722,14 @@ f() {
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
-}''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4)],
+    );
   }
 
   test_indirectOperatorThroughCall() async {
@@ -767,25 +762,27 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends B {}
 class B {}
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
-    ]);
+class C = Object with A;''',
+      [error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1)],
+    );
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
   }
 
   test_isValidMixin_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() {}
 }
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
-    ]);
+class C = Object with A;''',
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1)],
+    );
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
@@ -869,7 +866,7 @@ main() {
 const A = null;
 @A class C<A> {}''');
 
-    var annotations = findElement2.class_('C').metadata2.annotations;
+    var annotations = findElement2.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.classDeclaration('C<A>');
@@ -878,9 +875,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -892,7 +889,7 @@ class D {}
 mixin E {}
 ''');
 
-    var annotations = findElement2.class_('C').metadata2.annotations;
+    var annotations = findElement2.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.classTypeAlias('C<A>');
@@ -901,9 +898,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -913,7 +910,7 @@ const A = null;
 @A enum E { A, B }
 ''');
 
-    var annotations = findElement2.enum_('E').metadata2.annotations;
+    var annotations = findElement2.enum_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var eDeclaration = findNode.enumDeclaration('E');
@@ -922,9 +919,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -933,7 +930,7 @@ Annotation
 const A = null;
 @A extension E<A> on List<A> {}''');
 
-    var annotations = findElement2.extension_('E').metadata2.annotations;
+    var annotations = findElement2.extension_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var cDeclaration = findNode.extensionDeclaration('E<A>');
@@ -942,9 +939,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -955,7 +952,7 @@ class C {
   @A int f = 1;
 }''');
 
-    var metadata = findElement2.field('f').metadata2.annotations;
+    var metadata = findElement2.field('f').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -967,7 +964,7 @@ class C {
   C(@A this.f);
 }''');
 
-    var metadata = findElement2.fieldFormalParameter('f').metadata2.annotations;
+    var metadata = findElement2.fieldFormalParameter('f').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -976,7 +973,7 @@ class C {
 const A = null;
 @A f() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata2.annotations;
+    var annotations = findElement2.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
   }
 
@@ -985,7 +982,7 @@ const A = null;
 const A = null;
 @A f<A>() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata2.annotations;
+    var annotations = findElement2.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.functionDeclaration('f<A>');
@@ -994,9 +991,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1006,7 +1003,7 @@ const A = null;
 @A typedef F<A>(int A);
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata2.annotations;
+    var annotations = findElement2.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.functionTypeAlias('F');
@@ -1015,9 +1012,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1026,7 +1023,7 @@ Annotation
 const A = null;
 f(@A int p(int x)) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1035,7 +1032,7 @@ f(@A int p(int x)) {}''');
 const A = null;
 f(@A int p<A>(int x)) {}''');
 
-    var annotations = findElement2.parameter('p').metadata2.annotations;
+    var annotations = findElement2.parameter('p').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var pDeclaration = findNode.functionTypedFormalParameter('p<A>');
@@ -1044,9 +1041,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1056,7 +1053,7 @@ const A = null;
 @A typedef F<A> = A Function();
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata2.annotations;
+    var annotations = findElement2.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var fDeclaration = findNode.genericTypeAlias('F<A>');
@@ -1065,9 +1062,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1076,7 +1073,7 @@ Annotation
 @A library lib;
 const A = null;''');
 
-    var metadata = result.libraryElement2.metadata2.annotations;
+    var metadata = result.libraryElement2.metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1087,7 +1084,7 @@ class C {
   @A void m() {}
 }''');
 
-    var metadata = findElement2.method('m').metadata2.annotations;
+    var metadata = findElement2.method('m').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1098,7 +1095,7 @@ class C {
   @A void m<A>() {}
 }''');
 
-    var annotations = findElement2.method('m').metadata2.annotations;
+    var annotations = findElement2.method('m').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var mDeclaration = findNode.methodDeclaration('m<A>');
@@ -1107,9 +1104,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1118,7 +1115,7 @@ Annotation
 const A = null;
 @A mixin M<A> on Object {}''');
 
-    var annotations = findElement2.mixin('M').metadata2.annotations;
+    var annotations = findElement2.mixin('M').metadata.annotations;
     expect(annotations, hasLength(1));
 
     var mDeclaration = findNode.mixinDeclaration('M<A>');
@@ -1127,9 +1124,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1138,7 +1135,7 @@ Annotation
 const A = null;
 f({@A int p = 0}) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1147,7 +1144,7 @@ f({@A int p = 0}) {}''');
 const A = null;
 f([@A int p = 0]) {}''');
 
-    var metadata = findElement2.parameter('p').metadata2.annotations;
+    var metadata = findElement2.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1156,8 +1153,8 @@ f([@A int p = 0]) {}''');
 const A = null;
 f(@A p1, @A int p2) {}''');
 
-    expect(findElement2.parameter('p1').metadata2.annotations, hasLength(1));
-    expect(findElement2.parameter('p2').metadata2.annotations, hasLength(1));
+    expect(findElement2.parameter('p1').metadata.annotations, hasLength(1));
+    expect(findElement2.parameter('p2').metadata.annotations, hasLength(1));
   }
 
   test_metadata_typedef() async {
@@ -1165,10 +1162,7 @@ f(@A p1, @A int p2) {}''');
 const A = null;
 @A typedef F<A>();''');
 
-    expect(
-      findElement2.typeAlias('F').metadata2.annotations,
-      hasLength(1),
-    );
+    expect(findElement2.typeAlias('F').metadata.annotations, hasLength(1));
 
     var annotation = findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
@@ -1176,9 +1170,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1215,7 +1209,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }
@@ -1239,7 +1233,7 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }
@@ -1262,7 +1256,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  element: <testLibraryFragment>::@mixin::M2::@method::f#element
+  element: <testLibrary>::@mixin::M2::@method::f
   staticType: void Function()
 ''');
   }

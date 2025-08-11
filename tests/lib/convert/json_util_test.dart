@@ -82,8 +82,10 @@ void testParse() {
   // Maps.
   Expect.mapEquals({}, json.decode(' {} '));
   Expect.mapEquals({"key": "value"}, json.decode(' {"key": "value" } '));
-  Expect.mapEquals(
-      {"key1": 1, "key2": 2}, json.decode(' {"key1": 1, "key2": 2} '));
+  Expect.mapEquals({
+    "key1": 1,
+    "key2": 2,
+  }, json.decode(' {"key1": 1, "key2": 2} '));
   Expect.mapEquals({"key1": 1}, json.decode(' { "key1" : 1 } '));
 }
 
@@ -171,8 +173,12 @@ void testEscaping() {
   Expect.stringEquals('"\\u001f"', json.encode('\u001f'));
   Expect.stringEquals('"\\\""', json.encode('"'));
   Expect.stringEquals('"\\\\"', json.encode('\\'));
-  Expect.stringEquals('"Got \\b, \\f, \\n, \\r, \\t, \\u0000, \\\\, and \\"."',
-      json.encode('Got \b, \f, \n, \r, \t, \u0000, \\, and ".'));
-  Expect.stringEquals('"Got \\b\\f\\n\\r\\t\\u0000\\\\\\"."',
-      json.encode('Got \b\f\n\r\t\u0000\\".'));
+  Expect.stringEquals(
+    '"Got \\b, \\f, \\n, \\r, \\t, \\u0000, \\\\, and \\"."',
+    json.encode('Got \b, \f, \n, \r, \t, \u0000, \\, and ".'),
+  );
+  Expect.stringEquals(
+    '"Got \\b\\f\\n\\r\\t\\u0000\\\\\\"."',
+    json.encode('Got \b\f\n\r\t\u0000\\".'),
+  );
 }

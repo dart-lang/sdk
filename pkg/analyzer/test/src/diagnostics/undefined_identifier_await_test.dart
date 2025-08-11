@@ -16,10 +16,11 @@ main() {
 @reflectiveTest
 class UndefinedIdentifierAwaitTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void a() { await; }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT, 11, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT, 11, 5)],
+    );
   }
 }

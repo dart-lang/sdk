@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
@@ -227,7 +227,7 @@ void test() {}
     assertTestChangeResult(expectedCode);
   }
 
-  void _createRefactoringForElement(ExecutableElement2 element) {
+  void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
       refactoringWorkspace,
       testAnalysisResult.session,

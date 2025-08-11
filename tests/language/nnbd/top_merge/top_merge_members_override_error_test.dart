@@ -27,12 +27,12 @@ class D0 extends A<dynamic> {
     x.foo; // Check that member does not return `dynamic`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void`
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -59,12 +59,12 @@ class D2 extends A<void> {
     x.foo; // Check that member does not return `dynamic`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void`
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -81,7 +81,7 @@ class D3 extends A<Object?> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -119,7 +119,7 @@ class D5 extends A<dynamic> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -145,7 +145,7 @@ class D6 extends A<void> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -184,12 +184,12 @@ class ND0 extends A<FutureOr<dynamic>> {
     x.foo; // Check that member does not return `dynamic`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void`
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -216,12 +216,12 @@ class ND2 extends A<FutureOr<void>> {
     x.foo; // Check that member does not return `dynamic`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void`
     takesObject(x); // Check that member does not return `Object`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -238,7 +238,7 @@ class ND3 extends A<FutureOr<Object?>> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -276,7 +276,7 @@ class ND5 extends A<FutureOr<dynamic>> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -302,7 +302,7 @@ class ND6 extends A<FutureOr<void>> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object?`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -340,12 +340,12 @@ class DND0 extends A<FutureOr<dynamic> Function()> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -372,12 +372,12 @@ class DND2 extends A<FutureOr<void> Function()> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'Object?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -394,7 +394,7 @@ class DND3 extends A<FutureOr<Object?> Function()> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object? Function()`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -432,7 +432,7 @@ class DND5 extends A<FutureOr<dynamic> Function()> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object? Function()`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -458,7 +458,7 @@ class DND6 extends A<FutureOr<void> Function()> {
     // [cfe] This expression has type 'void' and can't be used.
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] The getter 'foo' isn't defined for the class 'void'.
+    // [cfe] The getter 'foo' isn't defined for the type 'void'.
     x.toString; // Check that member does not return `Object? Function()`
     // [error column 5]
     // [cfe] This expression has type 'void' and can't be used.
@@ -503,12 +503,12 @@ class WND0 extends A<Wrap<FutureOr<dynamic>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<FutureOr<Object?>>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<FutureOr<Object?>>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<FutureOr<Object?>>?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<FutureOr<Object?>>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -523,12 +523,12 @@ class WND1 extends A<Wrap<FutureOr<Object?>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<dynamic>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<dynamic>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -543,12 +543,12 @@ class WND2 extends A<Wrap<FutureOr<void>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<Object?>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<Object?>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<Object?>?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<Object?>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -563,12 +563,12 @@ class WND3 extends A<Wrap<FutureOr<Object?>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<void>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<void>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -583,12 +583,12 @@ class WND4 extends A<Wrap<FutureOr<void>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<dynamic>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<dynamic>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -603,12 +603,12 @@ class WND5 extends A<Wrap<FutureOr<dynamic>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<void>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<void>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -623,12 +623,12 @@ class WND6 extends A<Wrap<FutureOr<void>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<void>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<void>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object' because 'void' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<void>?' can't be assigned to the parameter type 'Object'.
   }
 }
 
@@ -643,11 +643,11 @@ class WND7 extends A<Wrap<FutureOr<dynamic>>> {
     x.foo; // Check that member does not return `dynamic Function()`
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [cfe] The getter 'foo' isn't defined for the class 'FutureOr<dynamic>?'.
+    // [cfe] The getter 'foo' isn't defined for the type 'FutureOr<dynamic>?'.
     x.toString; // Check that member does not return `void Function()`
     takesObject(x); // Check that member does not return `Object Function()`
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object' because 'dynamic' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'FutureOr<dynamic>?' can't be assigned to the parameter type 'Object'.
   }
 }

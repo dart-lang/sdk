@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class AlwaysPutControlBodyOnNewLineTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [
     WarningCode.DEAD_CODE,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];

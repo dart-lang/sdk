@@ -67,7 +67,8 @@ const int NI7 = -PI7;
 
 /// Ensures that the behaviour of `action()` is the same as `value.round()`.
 @pragma(
-    'dart2js:noInline') // To ensure 'value.round()' has a non-constant receiver.
+  'dart2js:noInline',
+) // To ensure 'value.round()' has a non-constant receiver.
 check(value, action) {
   var result1, result2;
   try {

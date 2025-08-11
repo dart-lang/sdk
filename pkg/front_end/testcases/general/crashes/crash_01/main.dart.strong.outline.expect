@@ -23,7 +23,7 @@ abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildM
   synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
     : super self::RenderSliver::•()
     ;
-  abstract member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
+  abstract synthetic member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
 }
 static method main() → dynamic
   ;
@@ -32,7 +32,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:2:3: Error: Type 'Constraints' not found.
+// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:6:3: Error: Type 'Constraints' not found.
 //   Constraints get constraints {}
 //   ^^^^^^^^^^^
 //

@@ -28,16 +28,19 @@ const foo = 0;
 const foo = 0;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'b.dart';
 
 @foo
 class A {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 4),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 4),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 3),
+      ],
+    );
   }
 
   test_as() async {
@@ -47,12 +50,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
-f(p) {p as N;}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1),
-    ]);
+f(p) {p as N;}''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1)],
+    );
   }
 
   test_extends() async {
@@ -62,13 +66,16 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
-class A extends N {}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 56, 1),
-    ]);
+class A extends N {}''',
+      [
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 56, 1),
+      ],
+    );
   }
 
   test_implements() async {
@@ -78,13 +85,16 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
-class A implements N {}''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 59, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
-    ]);
+class A implements N {}''',
+      [
+        error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 59, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
+      ],
+    );
   }
 
   test_inPart() async {
@@ -105,9 +115,9 @@ part 'part.dart';
 ''');
     ResolvedUnitResult libResult = await resolveFile(libFile);
     ResolvedUnitResult partResult = await resolveFile(partFile);
-    expect(libResult.errors, hasLength(0));
-    GatheringErrorListener()
-      ..addAll(partResult.errors)
+    expect(libResult.diagnostics, hasLength(0));
+    GatheringDiagnosticListener()
+      ..addAll(partResult.diagnostics)
       ..assertErrors([
         error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 36, 1),
         error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 1),
@@ -121,13 +131,37 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library L;
 import 'lib1.dart';
 import 'lib2.dart';
-f() {new N();}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
-    ]);
+f() {new N();}''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1)],
+    );
+  }
+
+  test_instanceCreation_dotShorthand() async {
+    newFile("$testPackageLibPath/lib1.dart", '''
+library lib1;
+class N {}''');
+    newFile("$testPackageLibPath/lib2.dart", '''
+library lib2;
+class N {}''');
+    await assertErrorsInCode(
+      '''
+library L;
+import 'lib1.dart';
+import 'lib2.dart';
+f() {
+  N n = .new();
+  print(n);
+}''',
+      [
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 66, 3),
+      ],
+    );
   }
 
   test_is() async {
@@ -137,12 +171,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
-f(p) {p is N;}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1),
-    ]);
+f(p) {p is N;}''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1)],
+    );
   }
 
   test_qualifier() async {
@@ -152,12 +187,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
-g() { N.FOO; }''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
-    ]);
+g() { N.FOO; }''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1)],
+    );
   }
 
   test_systemLibrary_nonSystemLibrary() async {
@@ -175,13 +211,14 @@ StreamController s = StreamController();
   }
 
   test_systemLibrary_systemLibrary() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:html';
 import 'dart:io';
 g(File f) {}
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 40, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 40, 4)],
+    );
   }
 
   test_typeAnnotation() async {
@@ -191,7 +228,8 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
 typedef N FT(N p);
@@ -202,16 +240,18 @@ N f(N p) {
 class A {
   N m() { return null; }
 }
-class B<T extends N> {}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 53, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 63, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 72, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 106, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 149, 1),
-    ]);
+class B<T extends N> {}''',
+      [
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 53, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 63, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 72, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 106, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 149, 1),
+      ],
+    );
   }
 
   test_typeArgument_annotation() async {
@@ -221,13 +261,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-A<N>? f() { return null; }''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
-    ]);
+A<N>? f() { return null; }''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1)],
+    );
   }
 
   test_typeArgument_instanceCreation() async {
@@ -237,13 +278,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-f() {new A<N>();}''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 65, 1),
-    ]);
+f() {new A<N>();}''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 65, 1)],
+    );
   }
 
   test_variable_read() async {
@@ -255,16 +297,17 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 
 void f() {
   x;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1)],
+    );
   }
 
   test_variable_read_prefixed() async {
@@ -276,16 +319,17 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 void f() {
   p.x;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1)],
+    );
   }
 
   test_variable_write() async {
@@ -297,7 +341,8 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 
@@ -307,13 +352,19 @@ void f() {
   ++x;
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1,
-          messageContains: ["'x'"]),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 57, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 69, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 74, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+          48,
+          1,
+          messageContains: ["'x'"],
+        ),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 57, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 69, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 74, 1),
+      ],
+    );
   }
 
   test_variable_write_prefixed() async {
@@ -325,7 +376,8 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
@@ -335,11 +387,13 @@ void f() {
   ++p.x;
   p.x++;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 71, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 85, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 92, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 71, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 85, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 92, 1),
+      ],
+    );
   }
 }

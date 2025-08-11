@@ -16,57 +16,68 @@ main() {
 @reflectiveTest
 class TopLevelCycleTest extends PubPackageResolutionTest {
   test_cycle_fields() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static final x = y + 1;
   static final y = x + 1;
 }
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 51, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 51, 1),
+      ],
+    );
   }
 
   test_cycle_fields_chain() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static final a = b.c;
   static final b = A();
   final c = a;
 }
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 66, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 66, 1),
+      ],
+    );
   }
 
   test_cycle_topLevelVariables() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var x = y + 1;
 var y = x + 1;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
+      ],
+    );
   }
 
   test_singleVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var x = x;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1)],
+    );
   }
 
   test_singleVariable_fromList() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var elems = [
   [
     1, elems, 3,
   ],
 ];
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 5)],
+    );
   }
 }

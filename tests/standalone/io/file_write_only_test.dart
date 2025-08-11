@@ -40,12 +40,16 @@ Future write(Directory dir) async {
   await raf.writeString('Hello');
   await raf.setPosition(0);
   await expectThrowsAsync(
-      raf.readByte(), 'Read from write only file succeeded');
+    raf.readByte(),
+    'Read from write only file succeeded',
+  );
   await raf.close();
   raf = await f.open(mode: FileMode.writeOnlyAppend);
   await raf.writeString('Hello');
   await expectThrowsAsync(
-      raf.readByte(), 'Read from write only file succeeded');
+    raf.readByte(),
+    'Read from write only file succeeded',
+  );
   await raf.setPosition(0);
   await raf.writeString('Hello');
   await raf.close();

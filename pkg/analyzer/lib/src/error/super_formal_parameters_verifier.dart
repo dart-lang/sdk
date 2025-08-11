@@ -9,7 +9,7 @@ import 'package:analyzer/src/error/codes.dart';
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
   required ConstructorDeclaration constructor,
-  ErrorReporter? errorReporter,
+  DiagnosticReporter? diagnosticReporter,
   bool hasExplicitPositionalArguments = false,
 }) {
   var result = VerifySuperFormalParametersResult();
@@ -18,14 +18,14 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;
       if (parameter.isNamed) {
-        var name = declaredFragment.name2;
+        var name = declaredFragment.name;
         if (name != null) {
           result.namedArgumentNames.add(name);
         }
       } else {
         result.positionalArgumentCount++;
         if (hasExplicitPositionalArguments) {
-          errorReporter?.atToken(
+          diagnosticReporter?.atToken(
             parameter.name,
             CompileTimeErrorCode
                 .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,

@@ -5,14 +5,16 @@
 library script_inset_element;
 
 import 'dart:async';
-import 'dart:html';
-import 'dart:svg';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/app.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
@@ -103,28 +105,33 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
     if (_loadedScript == null) {
-      children = <Element>[new SpanElement()..text = 'Loading...'];
+      children = <HTMLElement>[
+        new HTMLSpanElement()..textContent = 'Loading...'
+      ];
     } else if (noSource) {
-      children = <Element>[new SpanElement()..text = 'No source'];
+      children = <HTMLElement>[
+        new HTMLSpanElement()..textContent = 'No source'
+      ];
     } else {
       final table = linesTable();
       var firstBuild = false;
       if (container == null) {
         // Indirect to avoid deleting the style element.
-        container = new DivElement();
+        container = new HTMLDivElement();
 
         firstBuild = true;
       }
-      children = <Element>[container!];
-      container!.children.clear();
-      container!.children.add(table);
+      children = <HTMLElement>[container!];
+      container!
+        ..removeChildren()
+        ..appendChild(table);
       _makeCssClassUncopyable(table, "noCopy");
       if (firstBuild) {
         _scrollToCurrentPos();
@@ -139,8 +146,8 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  ButtonElement? _refreshButton;
-  ButtonElement? _toggleProfileButton;
+  HTMLButtonElement? _refreshButton;
+  HTMLButtonElement? _toggleProfileButton;
 
   int? _currentLine;
   int? _currentCol;
@@ -162,52 +169,52 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   }
 
   void _scrollToCurrentPos() {
-    var lines = getElementsByClassName(makeLineClass(_currentLine));
+    final lines = getElementsByClassName(makeLineClass(_currentLine));
     if (lines.length > 0) {
-      (lines[0] as dynamic).scrollIntoView();
+      lines.item(0)!.scrollIntoView();
     }
   }
 
-  Element a(String text) => new AnchorElement()..text = text;
-  Element span(String text) => new SpanElement()..text = text;
+  HTMLElement a(String text) => new HTMLAnchorElement()..textContent = text;
+  HTMLElement span(String text) => new HTMLSpanElement()..textContent = text;
 
-  Element hitsCurrent(Element element) {
-    element.classes.add('hitsCurrent');
+  HTMLElement hitsCurrent(HTMLElement element) {
+    element.className += ' hitsCurrent';
     element.title = "";
     return element;
   }
 
-  Element hitsUnknown(Element element) {
-    element.classes.add('hitsNone');
+  HTMLElement hitsUnknown(HTMLElement element) {
+    element.className += ' hitsNone';
     element.title = "";
     return element;
   }
 
-  Element hitsNotExecuted(Element element) {
-    element.classes.add('hitsNotExecuted');
+  HTMLElement hitsNotExecuted(HTMLElement element) {
+    element.className += ' hitsNotExecuted';
     element.title = "Line did not execute";
     return element;
   }
 
-  Element hitsExecuted(Element element) {
-    element.classes.add('hitsExecuted');
+  HTMLElement hitsExecuted(HTMLElement element) {
+    element.className += ' hitsExecuted';
     element.title = "Line did execute";
     return element;
   }
 
-  Element hitsCompiled(Element element) {
-    element.classes.add('hitsCompiled');
+  HTMLElement hitsCompiled(HTMLElement element) {
+    element.className += ' hitsCompiled';
     element.title = "Line in compiled function";
     return element;
   }
 
-  Element hitsNotCompiled(Element element) {
-    element.classes.add('hitsNotCompiled');
+  HTMLElement hitsNotCompiled(HTMLElement element) {
+    element.className += ' hitsNotCompiled';
     element.title = "Line in uncompiled function";
     return element;
   }
 
-  Element? container;
+  HTMLElement? container;
 
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
@@ -234,7 +241,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       // TODO(turnidge): Track down the root cause of null startLine/endLine.
       if ((startLine != null) && (endLine != null)) {
         for (var line = startLine; line <= endLine; line++) {
-          var rangeList = _rangeMap[line];
+          final rangeList = _rangeMap[line];
           if (rangeList == null) {
             _rangeMap[line] = [range];
           } else {
@@ -601,39 +608,39 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     }
   }
 
-  ButtonElement _newRefreshButton() {
-    var button = new ButtonElement();
-    button.classes = ['refresh'];
+  HTMLButtonElement _newRefreshButton() {
+    var button = new HTMLButtonElement();
+    button.className = 'refresh';
     button.onClick.listen((_) async {
       button.disabled = true;
       await _refresh();
       button.disabled = false;
     });
     button.title = 'Refresh coverage';
-    button.children = <Element>[_iconRefresh.clone(true) as Element];
+    button.appendChild(HTMLSpanElement()..textContent = "↻");
     return button;
   }
 
-  ButtonElement _newToggleProfileButton() {
-    ButtonElement button = new ButtonElement();
-    button.classes =
-        _includeProfile ? ['toggle-profile', 'enabled'] : ['toggle-profile'];
+  HTMLButtonElement _newToggleProfileButton() {
+    HTMLButtonElement button = new HTMLButtonElement();
+    button.className =
+        _includeProfile ? 'toggle-profile enabled' : 'toggle-profile';
     button.title = 'Toggle CPU profile information';
     button.onClick.listen((_) async {
       _includeProfile = !_includeProfile;
-      button.classes.toggle('enabled');
+      toggleClass(button, ' enabled');
       button.disabled = true;
       _refresh();
       button.disabled = false;
     });
-    button.children = <Element>[_iconWhatsHot.clone(true) as Element];
+    button.appendChild(HTMLSpanElement()..textContent = "🔥");
     return button;
   }
 
-  Element linesTable() {
+  HTMLElement linesTable() {
     S.Script script = _loadedScript as S.Script;
-    var table = new DivElement();
-    table.classes.add("sourceTable");
+    var table = new HTMLDivElement();
+    table.className += " sourceTable";
 
     _refreshButton = _newRefreshButton();
     _toggleProfileButton = _newToggleProfileButton();
@@ -701,9 +708,9 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     return annotation;
   }
 
-  Element lineElement(S.ScriptLine? line, int lineNumPad) {
-    var e = new DivElement();
-    e.classes.add("sourceRow");
+  HTMLElement lineElement(S.ScriptLine? line, int lineNumPad) {
+    var e = new HTMLDivElement();
+    e.className += " sourceRow";
     e.append(lineBreakpointElement(line));
     e.append(lineNumberElement(line, lineNumPad));
     if (_includeProfile) {
@@ -714,9 +721,9 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  Element lineProfileElement(S.ScriptLine? line, bool self) {
+  HTMLElement lineProfileElement(S.ScriptLine? line, bool self) {
     var e = span('');
-    e.classes.add('noCopy');
+    e.className += ' noCopy';
     if (self) {
       e.title = 'Self %';
     } else {
@@ -724,58 +731,57 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     }
 
     if (line == null) {
-      e.classes.add('notSourceProfile');
-      e.text = nbsp;
+      e.className += ' notSourceProfile';
+      e.textContent = nbsp;
       return e;
     }
 
     var ranges = _rangeMap[line.line];
     if ((ranges == null) || ranges.isEmpty) {
-      e.classes.add('notSourceProfile');
-      e.text = nbsp;
+      e.className += ' notSourceProfile';
+      e.textContent = nbsp;
       return e;
     }
 
     ScriptLineProfile? lineProfile = _profileMap[line.line];
     if (lineProfile == null) {
-      e.classes.add('noProfile');
-      e.text = nbsp;
+      e.className += ' noProfile';
+      e.textContent = nbsp;
       return e;
     }
 
     if (self) {
-      e.text = lineProfile.formattedSelfTicks;
+      e.textContent = lineProfile.formattedSelfTicks;
     } else {
-      e.text = lineProfile.formattedTotalTicks;
+      e.textContent = lineProfile.formattedTotalTicks;
     }
 
     if (lineProfile.isHot(self)) {
-      e.classes.add('hotProfile');
+      e.className += ' hotProfile';
     } else if (lineProfile.isMedium(self)) {
-      e.classes.add('mediumProfile');
+      e.className += ' mediumProfile';
     } else {
-      e.classes.add('coldProfile');
+      e.className += ' coldProfile';
     }
 
     return e;
   }
 
-  Element lineBreakpointElement(S.ScriptLine? line) {
-    var e = new DivElement();
+  HTMLElement lineBreakpointElement(S.ScriptLine? line) {
+    var e = new HTMLDivElement();
     if (line == null || !_possibleBreakpointLines.contains(line.line)) {
-      e.classes.add('noCopy');
-      e.classes.add("emptyBreakpoint");
-      e.text = nbsp;
+      e.className += ' noCopy';
+      e.className += ' emptyBreakpoint';
+      e.textContent = nbsp;
       return e;
     }
 
-    e.text = 'B';
+    e.textContent = 'B';
     var busy = false;
     void update() {
-      e.classes.clear();
-      e.classes.add('noCopy');
+      e.className += ' noCopy';
       if (busy) {
-        e.classes.add("busyBreakpoint");
+        e.className += ' busyBreakpoint';
       } else if (line.breakpoints != null) {
         bool resolved = false;
         for (var bpt in line.breakpoints!) {
@@ -785,12 +791,12 @@ class ScriptInsetElement extends CustomElement implements Renderable {
           }
         }
         if (resolved) {
-          e.classes.add("resolvedBreakpoint");
+          e.className += ' resolvedBreakpoint';
         } else {
-          e.classes.add("unresolvedBreakpoint");
+          e.className += ' unresolvedBreakpoint';
         }
       } else {
-        e.classes.add("possibleBreakpoint");
+        e.className += ' possibleBreakpoint';
       }
     }
 
@@ -828,11 +834,11 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  Element lineNumberElement(S.ScriptLine? line, int lineNumPad) {
+  HTMLElement lineNumberElement(S.ScriptLine? line, int lineNumPad) {
     var lineNumber = line == null ? "..." : line.line;
     var e =
         span("$nbsp${lineNumber.toString().padLeft(lineNumPad, nbsp)}$nbsp");
-    e.classes.add('noCopy');
+    e.className += ' noCopy';
     if (lineNumber == _currentLine) {
       hitsCurrent(e);
       return e;
@@ -881,14 +887,14 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  Element lineSourceElement(S.ScriptLine? line) {
-    var e = new DivElement();
-    e.classes.add("sourceItem");
+  HTMLElement lineSourceElement(S.ScriptLine? line) {
+    var e = new HTMLDivElement();
+    e.className += ' sourceItem';
 
     if (line != null) {
-      e.classes.add(makeLineClass(line.line));
+      e.className += ' ' + makeLineClass(line.line);
       if (line.line == _currentLine) {
-        e.classes.add("currentLine");
+        e.className += ' currentLine';
       }
 
       var position = 0;
@@ -927,10 +933,10 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   /// Exclude nodes from being copied, for example the line numbers and
   /// breakpoint toggles in script insets. Must be called after [root]'s
   /// children have been added, and only supports one node at a time.
-  static void _makeCssClassUncopyable(Element root, String className) {
-    var noCopyNodes = root.getElementsByClassName(className);
-    for (Node n in noCopyNodes) {
-      var node = n as HtmlElement;
+  static void _makeCssClassUncopyable(HTMLElement root, String className) {
+    final HTMLCollection noCopyNodes = root.getElementsByClassName(className);
+    for (int i = 0; i < noCopyNodes.length; i++) {
+      var node = noCopyNodes.item(i) as HTMLElement;
       node.style.setProperty('-moz-user-select', 'none');
       node.style.setProperty('-khtml-user-select', 'none');
       node.style.setProperty('-webkit-user-select', 'none');
@@ -940,13 +946,13 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     root.onCopy.listen((event) {
       // Mark the nodes as hidden before the copy happens, then mark them as
       // visible on the next event loop turn.
-      for (Node n in noCopyNodes) {
-        var node = n as HtmlElement;
+      for (int i = 0; i < noCopyNodes.length; i++) {
+        final HTMLElement node = noCopyNodes.item(i) as HTMLElement;
         node.style.visibility = 'hidden';
       }
       Timer.run(() {
-        for (Node n in noCopyNodes) {
-          var node = n as HtmlElement;
+        for (int i = 0; i < noCopyNodes.length; i++) {
+          final HTMLElement node = noCopyNodes.item(i) as HTMLElement;
           node.style.visibility = 'visible';
         }
       });
@@ -956,12 +962,11 @@ class ScriptInsetElement extends CustomElement implements Renderable {
 
 const nbsp = "\u00A0";
 
-void addInfoBox(Element content, Function infoBoxGenerator) {
-  var infoBox;
+void addInfoBox(HTMLElement content, HTMLElement infoBoxGenerator ()) {
   var show = false;
-  var originalBackground = content.style.backgroundColor;
-  buildInfoBox() {
-    infoBox = infoBoxGenerator();
+  final originalBackground = content.style.backgroundColor;
+  late HTMLElement infoBox = () {
+    final infoBox = infoBoxGenerator();
     infoBox.style.position = 'absolute';
     infoBox.style.padding = '1em';
     infoBox.style.border = 'solid black 2px';
@@ -971,11 +976,11 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
     // Don't inherit pre formatting from the script lines.
     infoBox.style.whiteSpace = 'normal';
     content.append(infoBox);
-  }
+    return infoBox;
+  } ();
 
   content.onClick.listen((event) {
     show = !show;
-    if (infoBox == null) buildInfoBox(); // Created lazily on the first click.
     infoBox.style.display = show ? 'block' : 'none';
     content.style.backgroundColor = show ? 'white' : originalBackground;
   });
@@ -985,11 +990,11 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
   content.style.cursor = 'pointer';
 }
 
-void addLink(Element content, String target) {
+void addLink(HTMLElement content, String target) {
   // Ick, destructive but still compatible with also adding an info box.
-  var a = new AnchorElement(href: target);
-  a.text = content.text;
-  content.text = '';
+  var a = new HTMLAnchorElement()..href = target;
+  a.textContent = content.textContent;
+  content.textContent = '';
   content.append(a);
 }
 
@@ -1004,7 +1009,7 @@ abstract class Annotation implements Comparable<Annotation> {
 
   Annotation(this._isolate, this._objects, this.queue);
 
-  void applyStyleTo(element);
+  void applyStyleTo(HTMLElement? element);
 
   int compareTo(Annotation other) {
     if (line == other.line) {
@@ -1016,32 +1021,31 @@ abstract class Annotation implements Comparable<Annotation> {
     return line!.compareTo(other.line!);
   }
 
-  Element table() {
-    var e = new DivElement();
-    e.style.display = "table";
-    e.style.color = "#333";
-    e.style.font = "400 14px 'Montserrat', sans-serif";
+  HTMLElement table() {
+    return HTMLDivElement()
+      ..style.display = "table"
+      ..style.color = "#333"
+      ..style.font = "400 14px 'Montserrat', sans-serif";
+  }
+
+  HTMLElement row([content]) {
+    final e = HTMLDivElement()
+      ..style.display = "table-row";
+    if (content is String) e.textContent = content;
+    if (content is HTMLElement) e.appendChild(content);
     return e;
   }
 
-  Element row([content]) {
-    var e = new DivElement();
-    e.style.display = "table-row";
-    if (content is String) e.text = content;
-    if (content is Element) e.children.add(content);
+  HTMLElement cell(content) {
+    final e = HTMLDivElement()
+      ..style.display = 'table-cell'
+      ..style.padding = '3px';
+    if (content is String) e.textContent = content;
+    if (content is HTMLElement) e.appendChild(content);
     return e;
   }
 
-  Element cell(content) {
-    var e = new DivElement();
-    e.style.display = "table-cell";
-    e.style.padding = "3px";
-    if (content is String) e.text = content;
-    if (content is Element) e.children.add(content);
-    return e;
-  }
-
-  Element serviceRef(object) {
+  HTMLElement serviceRef(object) {
     return anyRef(_isolate, object, _objects, queue: queue);
   }
 }
@@ -1057,8 +1061,8 @@ class CurrentExecutionAnnotation extends Annotation {
     if (element == null) {
       return; // TODO(rmacnak): Handling overlapping annotations.
     }
-    element.classes.add("currentCol");
-    element.title = "Current execution";
+    element.className += ' currentCol';
+    element.title = 'Current execution';
   }
 }
 
@@ -1095,11 +1099,11 @@ class BreakpointAnnotation extends Annotation {
     int? line = script.tokenToLine(pos);
     int? column = script.tokenToCol(pos);
     if (bpt.resolved!) {
-      element.classes.add("resolvedBreakAnnotation");
+      element.className += ' resolvedBreakAnnotation';
     } else {
-      element.classes.add("unresolvedBreakAnnotation");
+      element.className += ' unresolvedBreakAnnotation';
     }
-    element.title = "Breakpoint ${bpt.number} at ${line}:${column}";
+    element.title = 'Breakpoint ${bpt.number} at ${line}:${column}';
   }
 }
 
@@ -1186,7 +1190,7 @@ class CallSiteAnnotation extends Annotation {
     element.title = "Call site: ${callSite.name}";
 
     addInfoBox(element, () {
-      var details = table();
+      final HTMLElement details = table();
       if (callSite.entries.isEmpty) {
         details.append(row('Call of "${callSite.name}" did not execute'));
       } else {
@@ -1293,7 +1297,7 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
       : function = func,
         super(isolate, objects, queue, func, url);
 
-  void applyStyleTo(element) {
+  void applyStyleTo(HTMLElement? element) {
     if (element == null) {
       return; // TODO(rmacnak): Handling overlapping annotations.
     }
@@ -1358,33 +1362,3 @@ class ScriptLineProfile {
   bool isHot(bool self) => _percent(self) > kHotThreshold;
   bool isMedium(bool self) => _percent(self) > kMediumThreshold;
 }
-
-final SvgSvgElement _iconRefresh = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
-              '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
-              '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
-              '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
-              '1.78L13 11h7V4l-2.35 2.35z')
-  ];
-
-final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
-  ..setAttribute('width', '24')
-  ..setAttribute('height', '24')
-  ..children = <Element>[
-    new PathElement()
-      ..setAttribute(
-          'd',
-          'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
-              '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
-              '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
-              '17.41 3.8 13.5.67zM11.71 19c-1.78 '
-              '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
-              '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
-              '4.04 0 2.65-2.15 4.8-4.8 4.8z')
-  ];

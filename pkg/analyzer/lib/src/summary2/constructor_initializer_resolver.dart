@@ -18,7 +18,7 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     var libraryElement = _libraryBuilder.element;
-    var interfaceElements = <InterfaceElementImpl2>[
+    var interfaceElements = <InterfaceElementImpl>[
       ...libraryElement.classes,
       ...libraryElement.enums,
       ...libraryElement.extensionTypes,
@@ -26,15 +26,15 @@ class ConstructorInitializerResolver {
     ];
 
     for (var interfaceElement in interfaceElements) {
-      for (var constructorElement in interfaceElement.constructors2) {
+      for (var constructorElement in interfaceElement.constructors) {
         _constructorElement(interfaceElement, constructorElement);
       }
     }
   }
 
   void _constructorElement(
-    InterfaceElementImpl2 interfaceElement,
-    ConstructorElementImpl2 element,
+    InterfaceElementImpl interfaceElement,
+    ConstructorElementImpl element,
   ) {
     if (element.isSynthetic) return;
 
@@ -43,8 +43,10 @@ class ConstructorInitializerResolver {
       if (node is! ConstructorDeclarationImpl) return;
 
       var constructorScope = LinkingNodeContext.get(node).scope;
-      var initializerScope =
-          ConstructorInitializerScope(constructorScope, element);
+      var initializerScope = ConstructorInitializerScope(
+        constructorScope,
+        element,
+      );
 
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver = AstResolver(
@@ -62,11 +64,11 @@ class ConstructorInitializerResolver {
       astResolver.resolveConstructorNode(node);
 
       if (node.factoryKeyword != null) {
-        element.redirectedConstructor2 = node.redirectedConstructor?.element;
+        element.redirectedConstructor = node.redirectedConstructor?.element;
       } else {
         for (var initializer in node.initializers) {
           if (initializer is RedirectingConstructorInvocationImpl) {
-            element.redirectedConstructor2 = initializer.element;
+            element.redirectedConstructor = initializer.element;
           }
         }
       }

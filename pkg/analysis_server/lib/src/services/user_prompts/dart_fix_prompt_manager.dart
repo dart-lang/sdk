@@ -256,6 +256,7 @@ class DartFixPromptManager {
       MessageInfo(
         performance: OperationPerformanceImpl(''),
         clientCapabilities: clientCapabilities,
+        isTrustedCaller: true,
       ),
       NotCancelableToken(),
     );

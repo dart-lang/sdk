@@ -7,6 +7,10 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as path;
 
+/// The compiled version of the analysis server snapshot that should be used
+/// for integration tests. Set by [getAnalysisServerPath].
+String? _compiledServerPath;
+
 /// The path of the `pkg/analysis_server` folder, resolved using the active
 /// `package_config.json`.
 String get analysisServerPackagePath {
@@ -33,21 +37,73 @@ String get sdkRootPath {
   return path.normalize(path.join(analysisServerPackagePath, '..', '..'));
 }
 
-/// Gets the path of the analysis server entry point which may be a snapshot
-/// or the source script depending on the `TEST_SERVER_SNAPSHOT` environment
-/// variable.
-String getAnalysisServerPath(String dartSdkPath) {
-  var snapshotPath = path.join(
-    dartSdkPath,
-    'bin',
-    'snapshots',
+/// Gets the path of the analysis server entry point which may be the snapshot
+/// from the current SDK (default) or a compiled version of the source script
+/// depending on the `TEST_SERVER_SNAPSHOT` environment variable.
+Future<String> getAnalysisServerPath(String dartSdkPath) async {
+  // If we have already computed the path once, use that.
+  if (_compiledServerPath case var compiledServerPath?) {
+    return compiledServerPath;
+  }
+
+  // The 'TEST_SERVER_SNAPSHOT' env variable can either be:
+  //
+  //  - Unset, in which case the tests run from the SDK compiled snapshot
+  //  - The string 'false' which will cause the server to compiled from source.
+  //      This is a simple way to run from source using the test_all file that
+  //      runs all tests in a single isolate and will trigger a single
+  //      compilation for all integration tests.
+  //  - A path to a pre-compiled snapshot.
+  //    This allows configuring VS Code to pre-compile the snapshot once and
+  //    then use 'dart test' which will run each sweet in a separate isolate
+  //    without each test/isolate having to compile.
+  var snapshotPath = switch (Platform.environment['TEST_SERVER_SNAPSHOT']) {
+    // Compile on the fly
+    'false' => await _compileTemporaryServerSnapshot(),
+    // Default, use the SDK-bundled snapshot
+    'true' || '' || null => path.join(
+      dartSdkPath,
+      'bin',
+      'snapshots',
+      'analysis_server.dart.snapshot',
+    ),
+    // Custom path in the env variable
+    String snapshotPath => snapshotPath,
+  };
+
+  return _compiledServerPath = path.normalize(snapshotPath);
+}
+
+/// Compiles a temporary snapshot for the analysis server into a temporary file
+/// and returns the full path.
+///
+/// This function can only be called once in a single process/isolate.
+Future<String> _compileTemporaryServerSnapshot() async {
+  if (_compiledServerPath != null) {
+    throw 'Snapshot is already compiled or being compiled';
+  }
+
+  var dartBinary = Platform.resolvedExecutable;
+  var tempSnapshotDirectory = Directory.systemTemp.createTempSync(
+    'analysisServer_test_integration_compiledServer',
+  );
+  var tempSnapshotFilePath = path.join(
+    tempSnapshotDirectory.path,
     'analysis_server.dart.snapshot',
   );
   var sourcePath = path.join(analysisServerPackagePath, 'bin', 'server.dart');
-
-  // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-  // snapshot and run from source.
-  var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-  var serverPath = useSnapshot ? snapshotPath : sourcePath;
-  return path.normalize(serverPath);
+  var result = await Process.run(dartBinary, [
+    'compile',
+    'kernel',
+    sourcePath,
+    '-o',
+    tempSnapshotFilePath,
+  ]);
+  if (result.exitCode != 0) {
+    throw 'Failed to compile analysis server:\n'
+        'Exit code: ${result.exitCode}\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}\n';
+  }
+  return tempSnapshotFilePath;
 }

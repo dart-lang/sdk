@@ -173,17 +173,11 @@ void main() {
     x.expectStaticType<Exactly<FutureOr<void>>>();
     if (x is Future) throw 0;
     x.toString();
-    // [error column 5, length 1]
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
 
     var y = condition ? b : a;
     y.expectStaticType<Exactly<FutureOr<void>>>();
     if (y is Future) throw 0;
     y.toString();
-    // [error column 5, length 1]
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
   }
 
   void f19(Future<dynamic> a, FutureOr<void> b) {
@@ -191,17 +185,11 @@ void main() {
     x.expectStaticType<Exactly<FutureOr<void>>>();
     if (x is Future) throw 0;
     x.toString();
-    // [error column 5, length 1]
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
 
     var y = condition ? b : a;
     y.expectStaticType<Exactly<FutureOr<void>>>();
     if (y is Future) throw 0;
     y.toString();
-    // [error column 5, length 1]
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
   }
 
   void f20(dynamic a, FutureOr<void> b) {

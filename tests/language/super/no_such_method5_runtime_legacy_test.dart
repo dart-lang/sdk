@@ -15,9 +15,7 @@ class A {
   noSuchMethod(im) => 42;
 }
 
-class B extends Object with A {
-
-}
+class B extends Object with A {}
 
 main() {
   Expect.equals(42, new B().foo());

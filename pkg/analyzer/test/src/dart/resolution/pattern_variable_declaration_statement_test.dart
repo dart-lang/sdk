@@ -37,8 +37,10 @@ PatternVariableDeclarationStatement
           element2: dart:core::@class::num
           type: num
         name: a
-        declaredElement: isFinal a@24
+        declaredFragment: isFinal isPublic a@24
           type: num
+          element: isFinal isPublic
+            type: num
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -67,8 +69,10 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@20
-          type: int
+        declaredFragment: isFinal isPublic a@20
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -82,15 +86,16 @@ PatternVariableDeclarationStatement
   }
 
   test_rewrite_expression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a) = A();
 }
 
 class A {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -100,8 +105,10 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@18
-          type: A
+        declaredFragment: isPublic a@18
+          type: null
+          element: hasImplicitType isPublic
+            type: A
         matchedValueType: A
       rightParenthesis: )
       matchedValueType: A
@@ -112,7 +119,7 @@ PatternVariableDeclarationStatement
           name: A
           element2: <testLibrary>::@class::A
           type: A
-        element: <testLibraryFragment>::@class::A::@constructor::new#element
+        element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -142,8 +149,10 @@ PatternVariableDeclarationStatement
           element2: dart:core::@class::num
           type: num
         name: a
-        declaredElement: a@22
+        declaredFragment: isPublic a@22
           type: num
+          element: isPublic
+            type: num
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -157,15 +166,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed_typeSchema() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (int a) = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -179,8 +189,10 @@ PatternVariableDeclarationStatement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@22
+        declaredFragment: isPublic a@22
           type: int
+          element: isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -218,8 +230,10 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@18
-          type: int
+        declaredFragment: isPublic a@18
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -233,14 +247,17 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   var (a, b) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -252,15 +269,19 @@ PatternVariableDeclarationStatement
         PatternField
           pattern: DeclaredVariablePattern
             name: a
-            declaredElement: hasImplicitType a@33
-              type: int
+            declaredFragment: isPublic a@33
+              type: null
+              element: hasImplicitType isPublic
+                type: int
             matchedValueType: int
           element2: <null>
         PatternField
           pattern: DeclaredVariablePattern
             name: b
-            declaredElement: hasImplicitType b@36
-              type: String
+            declaredFragment: isPublic b@36
+              type: null
+              element: hasImplicitType isPublic
+                type: String
             matchedValueType: String
           element2: <null>
       rightParenthesis: )
@@ -268,7 +289,7 @@ PatternVariableDeclarationStatement
     equals: =
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: (int, String)
     patternTypeSchema: (_, _)
   semicolon: ;
@@ -276,15 +297,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_recordPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a,) = g((0,));
 }
 
 T g<T>(T a) => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -296,8 +318,10 @@ PatternVariableDeclarationStatement
         PatternField
           pattern: DeclaredVariablePattern
             name: a
-            declaredElement: hasImplicitType a@18
-              type: int
+            declaredFragment: isPublic a@18
+              type: null
+              element: hasImplicitType isPublic
+                type: int
             matchedValueType: int
           element2: <null>
       rightParenthesis: )
@@ -330,26 +354,38 @@ PatternVariableDeclarationStatement
   }
 
   test_var_withKeyword_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (final a) = 0;
   a;
 }
-''', [
-      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 18,
-          5),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          5,
+        ),
+      ],
+    );
   }
 
   test_var_withKeyword_var() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (var a) = 0;
   a;
 }
-''', [
-      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 18,
-          3),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          3,
+        ),
+      ],
+    );
   }
 }

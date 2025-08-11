@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -33,7 +32,6 @@ extension type E(Object o) {
           35,
           2,
         ),
-        error(WarningCode.UNUSED_FIELD, 35, 2),
       ],
     );
   }
@@ -45,36 +43,24 @@ extension type E(Object o) {
   static int _i = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_FIELD, 42, 2), lint(42, 6)],
+      [lint(42, 6)],
     );
   }
 
   test_field_static_writtenInConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 extension type E(Object o) {
   static Object _o = 0;
   E.e(this.o) {
     _o = o;
   }
 }
-''',
-      [
-        // No lint.
-        error(WarningCode.UNUSED_FIELD, 45, 2),
-      ],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class PreferFinalFieldsTest extends LintRuleTest {
-  @override
-  List<ErrorCode> get ignoredErrorCodes => [
-    WarningCode.UNUSED_FIELD,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
-  ];
-
   @override
   String get lintRule => LintNames.prefer_final_fields;
 

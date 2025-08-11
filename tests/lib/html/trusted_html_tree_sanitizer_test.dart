@@ -37,16 +37,20 @@ main() {
     tearDown(restoreOldAdoptNode);
 
     test('setInnerHtml', () {
-      document.body!.setInnerHtml('<div foo="baz">something</div>',
-          treeSanitizer: NodeTreeSanitizer.trusted);
+      document.body!.setInnerHtml(
+        '<div foo="baz">something</div>',
+        treeSanitizer: NodeTreeSanitizer.trusted,
+      );
       expect(document.body!.innerHtml, '<div foo="baz">something</div>');
     });
 
     test("appendHtml", () {
       var oldStuff = document.body!.innerHtml!;
       var newStuff = '<div rumplestiltskin="value">content</div>';
-      document.body!
-          .appendHtml(newStuff, treeSanitizer: NodeTreeSanitizer.trusted);
+      document.body!.appendHtml(
+        newStuff,
+        treeSanitizer: NodeTreeSanitizer.trusted,
+      );
       expect(document.body!.innerHtml, oldStuff + newStuff);
     });
   });

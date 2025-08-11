@@ -5,6 +5,7 @@
 // @dart=2.19
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class S {}
 
@@ -19,6 +20,13 @@ class M2<Y> {
 class A<T> extends S with M1<T>, M2<T> {}
 
 main() {
+  // In dart2wasm's `--minify` mode we do not special case `bool/int/String` all
+  // type names will get minified.
+  if (!readableTypeStrings &&
+      const bool.fromEnvironment('dart.tool.dart2wasm')) {
+    return;
+  }
+
   var a = new A<int>();
   // Getting "int" when calling toString() on the int type is not required.
   // However, we want to keep the original names for the most common core types

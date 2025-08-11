@@ -17,6 +17,9 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Organize Imports';
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<void>> handle(
     MessageInfo message,
     Map<String, Object?> parameters,
@@ -49,7 +52,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       var code = result.content;
       var unit = result.unit;
 
-      if (hasScanParseErrors(result.errors)) {
+      if (hasScanParseErrors(result.diagnostics)) {
         if (autoTriggered) {
           return success(null);
         }
@@ -63,7 +66,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         );
       }
 
-      var organizer = ImportOrganizer(code, unit, result.errors);
+      var organizer = ImportOrganizer(code, unit, result.diagnostics);
       var edits = organizer.organize();
 
       if (edits.isEmpty) {

@@ -304,23 +304,21 @@ class SingleDimensionPhysics {
     }
     if (stretchDistance != null) {
       if (stretchDistance * vel < 0) {
-        _bouncingState =
-            _bouncingState == BouncingState.BOUNCING_BACK
-                ? BouncingState.NOT_BOUNCING
-                : BouncingState.BOUNCING_AWAY;
+        _bouncingState = _bouncingState == BouncingState.BOUNCING_BACK
+            ? BouncingState.NOT_BOUNCING
+            : BouncingState.BOUNCING_AWAY;
         vel += stretchDistance * _PRE_BOUNCE_COEFFICIENT;
       } else {
         _bouncingState = BouncingState.BOUNCING_BACK;
-        vel =
-            stretchDistance > 0
-                ? Math.max(
-                  stretchDistance * _POST_BOUNCE_COEFFICIENT,
-                  _MIN_STEP_VELOCITY,
-                )
-                : Math.min(
-                  stretchDistance * _POST_BOUNCE_COEFFICIENT,
-                  -_MIN_STEP_VELOCITY,
-                );
+        vel = stretchDistance > 0
+            ? Math.max(
+                stretchDistance * _POST_BOUNCE_COEFFICIENT,
+                _MIN_STEP_VELOCITY,
+              )
+            : Math.min(
+                stretchDistance * _POST_BOUNCE_COEFFICIENT,
+                -_MIN_STEP_VELOCITY,
+              );
       }
     } else {
       _bouncingState = BouncingState.NOT_BOUNCING;

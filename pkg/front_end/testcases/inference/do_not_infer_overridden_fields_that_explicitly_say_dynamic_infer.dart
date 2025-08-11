@@ -14,10 +14,12 @@ class B implements A {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x;
+  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x; // TypeError.
   int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x;
 }
 
 main() {
-  foo();
+  try {
+    foo();
+  } on TypeError {}
 }

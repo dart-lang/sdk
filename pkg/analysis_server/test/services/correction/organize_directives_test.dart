@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:test/test.dart';
@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  late List<AnalysisError> testErrors;
+  late List<Diagnostic> testDiagnostics;
 
   @override
   void setUp() {
@@ -996,23 +996,23 @@ class NonLibraryAnnotation {
     var organizer = ImportOrganizer(
       testCode,
       testUnit,
-      testErrors,
+      testDiagnostics,
       removeUnused: removeUnused,
     );
     var edits = organizer.organize();
     var result = SourceEdit.applySequence(testCode, edits);
-    expect(result, expectedCode);
+    expect(result, normalizeSource(expectedCode));
   }
 
   Future<void> _computeUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode(code);
-    testErrors = testAnalysisResult.errors;
+    testDiagnostics = testAnalysisResult.diagnostics;
   }
 
   Future<void> _parseUnitAndErrors(String code) async {
     verifyNoTestUnitErrors = false;
     await parseTestCode(code);
-    testErrors = testParsedResult.errors;
+    testDiagnostics = testParsedResult.diagnostics;
   }
 }

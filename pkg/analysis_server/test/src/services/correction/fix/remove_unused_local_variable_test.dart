@@ -36,6 +36,81 @@ void f() {
 ''');
   }
 
+  Future<void> test_assigned_awaitedExpression() async {
+    await resolveTestCode(r'''
+Future<int> foo = Future.value(0);
+void f() async {
+  final removed = await foo;
+}
+''');
+    await assertHasFix(r'''
+Future<int> foo = Future.value(0);
+void f() async {
+  await foo;
+}
+''');
+  }
+
+  Future<void> test_assigned_awaitedInvocation() async {
+    await resolveTestCode(r'''
+Future<int> foo() async => 0;
+void f() async {
+  final removed = await foo();
+}
+''');
+    await assertHasFix(r'''
+Future<int> foo() async => 0;
+void f() async {
+  await foo();
+}
+''');
+  }
+
+  Future<void> test_assigned_doubleParenthesised_awaitedInvocation() async {
+    await resolveTestCode(r'''
+Future<int> foo() async => 0;
+void f() async {
+  final removed = ((await foo()));
+}
+''');
+    await assertHasFix(r'''
+Future<int> foo() async => 0;
+void f() async {
+  ((await foo()));
+}
+''');
+  }
+
+  Future<void> test_assigned_functionExpressionInvocation() async {
+    await resolveTestCode(r'''
+void Function() foo() => () {};
+void f() async {
+  final removed = foo()();
+}
+''');
+    await assertHasFix(r'''
+void Function() foo() => () {};
+void f() async {
+  foo()();
+}
+''');
+  }
+
+  Future<void> test_assigned_functionInvocation() async {
+    await resolveTestCode(r'''
+int foo() => 0;
+void f() {
+  final removed = foo();
+}
+''');
+    await assertHasFix(r'''
+int foo() => 0;
+void f() {
+  foo();
+}
+''');
+  }
+
   Future<void> test_assigned_inArgumentList() async {
     await resolveTestCode(r'''
 void f() {
@@ -127,6 +202,21 @@ void f(str) {
 ''');
   }
 
+  Future<void> test_assigned_parenthesised_awaitedInvocation() async {
+    await resolveTestCode(r'''
+Future<int> foo() async => 0;
+void f() async {
+  final removed = (await foo());
+}
+''');
+    await assertHasFix(r'''
+Future<int> foo() async => 0;
+void f() async {
+  (await foo());
+}
+''');
+  }
+
   Future<void> test_notInFunctionBody() async {
     await resolveTestCode(r'''
 var a = [for (var v = 0;;) 0];
@@ -181,7 +271,8 @@ void f() {
 ''',
       errorFilter:
           (e) =>
-              e.errorCode != CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+              e.diagnosticCode !=
+              CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
     );
   }
 }

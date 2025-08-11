@@ -26,27 +26,27 @@ library;
 //   expect(732, PublicExtension._privateStaticMethod2());
 //                               ^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:17:17: Error: The method 'publicMethod1' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extensions/private_members.dart:17:17: Error: The method 'publicMethod1' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'publicMethod1'.
 //   expect(42, "".publicMethod1());
 //                 ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:18:17: Error: The method '_privateMethod1' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extensions/private_members.dart:18:17: Error: The method '_privateMethod1' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named '_privateMethod1'.
 //   expect(87, ""._privateMethod1());
 //                 ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:19:18: Error: The method '_privateMethod2' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extensions/private_members.dart:19:18: Error: The method '_privateMethod2' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named '_privateMethod2'.
 //   expect(237, ""._privateMethod2());
 //                  ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:20:18: Error: The method 'publicMethod3' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extensions/private_members.dart:20:18: Error: The method 'publicMethod3' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named 'publicMethod3'.
 //   expect(473, "".publicMethod3());
 //                  ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:21:18: Error: The method '_privateMethod3' isn't defined for the class 'String'.
+// pkg/front_end/testcases/extensions/private_members.dart:21:18: Error: The method '_privateMethod3' isn't defined for the type 'String'.
 // Try correcting the name to the name of an existing method, or defining a method named '_privateMethod3'.
 //   expect(586, ""._privateMethod3());
 //                  ^^^^^^^^^^^^^^^
@@ -63,23 +63,23 @@ static method main() → dynamic {
   pri::expect(321, pri::PublicExtension|publicStaticMethod2());
 }
 static method errors() → dynamic {
-  pri::expect(42, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:17:17: Error: The method 'publicMethod1' isn't defined for the class 'String'.
+  pri::expect(42, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:17:17: Error: The method 'publicMethod1' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'publicMethod1'.
   expect(42, \"\".publicMethod1());
                 ^^^^^^^^^^^^^" in ""{<unresolved>}.publicMethod1());
-  pri::expect(87, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:18:17: Error: The method '_privateMethod1' isn't defined for the class 'String'.
+  pri::expect(87, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:18:17: Error: The method '_privateMethod1' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod1'.
   expect(87, \"\"._privateMethod1());
                 ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod1());
-  pri::expect(237, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:19:18: Error: The method '_privateMethod2' isn't defined for the class 'String'.
+  pri::expect(237, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:19:18: Error: The method '_privateMethod2' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod2'.
   expect(237, \"\"._privateMethod2());
                  ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod2());
-  pri::expect(473, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:20:18: Error: The method 'publicMethod3' isn't defined for the class 'String'.
+  pri::expect(473, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:20:18: Error: The method 'publicMethod3' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'publicMethod3'.
   expect(473, \"\".publicMethod3());
                  ^^^^^^^^^^^^^" in ""{<unresolved>}.publicMethod3());
-  pri::expect(586, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:21:18: Error: The method '_privateMethod3' isn't defined for the class 'String'.
+  pri::expect(586, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:21:18: Error: The method '_privateMethod3' isn't defined for the type 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod3'.
   expect(586, \"\"._privateMethod3());
                  ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod3());

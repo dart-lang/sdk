@@ -23,7 +23,7 @@ class Class extends core::Object {
   method /* from org-dartlang-testcase:///patch_lib.dart */ method() → core::int
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension Extension on core::int {
   method method = self2::Extension|method;
   method tearoff method = self2::Extension|get#method;
@@ -46,6 +46,6 @@ static const field core::int value = 5;
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:9:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:17:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:21:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 7, effectively constant: 4

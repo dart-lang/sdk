@@ -30,9 +30,7 @@ class TestNamedOrderBase {
 
 class TestNamedOrderSub extends TestNamedOrderBase {
   int x;
-  TestNamedOrderSub()
-      : x = dec(),
-        super(inc(), z: inc(), y: inc(), x: dec()) {
+  TestNamedOrderSub() : x = dec(), super(inc(), z: inc(), y: inc(), x: dec()) {
     Expect.equals(x, 0);
   }
 }

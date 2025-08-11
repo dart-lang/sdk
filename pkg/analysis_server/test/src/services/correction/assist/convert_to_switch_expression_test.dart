@@ -17,12 +17,12 @@ void main() {
 @reflectiveTest
 class ConvertToSwitchExpressionTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
+  AssistKind get kind => DartAssistKind.convertToSwitchExpression;
 
   Future<void> test_argument_differentFunctions() async {
     await resolveTestCode('''
 void f(String s) {
-  switch (s) {
+  swit^ch (s) {
     case 'foo':
       print('foo');
     case _:
@@ -32,7 +32,7 @@ void f(String s) {
 
 void g(String s) {}
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_argument_sharedBody() async {
@@ -42,7 +42,7 @@ enum Color {
 }
 
 void f(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
     case Color.blue:
       print(0);
@@ -52,7 +52,7 @@ void f(Color color) {
 }
 ''');
 
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, white
 }
@@ -73,7 +73,7 @@ enum Color {
 }
 
 void f(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       print('red'); // Red.
       break;
@@ -90,7 +90,7 @@ void f(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, green, yellow
 }
@@ -101,7 +101,7 @@ void f(Color color) {
     Color.blue => 'blue',
     // Not green.
     Color.green =>  throw 'Green is bad',
-    Color.yellow => 
+    Color.yellow => /**/
       // Yellow is OK.
       'yellow'
   });
@@ -112,7 +112,7 @@ void f(Color color) {
   Future<void> test_argument_switchExpression_defaultCase() async {
     await resolveTestCode('''
 void f(String s) {
-  switch (s) {
+  ^switch (s) {
     case 'foo':
       print('foo');
     case 'bar':
@@ -122,7 +122,7 @@ void f(String s) {
   }
 }
 ''');
-    await assertHasAssistAt('(s)', '''
+    await assertHasAssist('''
 void f(String s) {
   print(switch (s) {
     'foo' => 'foo',
@@ -140,7 +140,7 @@ enum Color {
 }
 
 void f(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       print('red'); // Red.
     case Color.blue:
@@ -154,7 +154,7 @@ void f(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, green, yellow
 }
@@ -165,7 +165,7 @@ void f(Color color) {
     Color.blue => 'blue',
     // Not green.
     Color.green =>  throw 'Green is bad',
-    Color.yellow => 
+    Color.yellow => /**/
       // Yellow is OK.
       'yellow'
   });
@@ -176,7 +176,7 @@ void f(Color color) {
   Future<void> test_argument_switchExpression_wildcard() async {
     await resolveTestCode('''
 void f(String s) {
-  switch (s) {
+  switch ^(s) {
     case 'foo':
       print('foo');
     case 'bar':
@@ -186,7 +186,7 @@ void f(String s) {
   }
 }
 ''');
-    await assertHasAssistAt('(s)', '''
+    await assertHasAssist('''
 void f(String s) {
   print(switch (s) {
     'foo' => 'foo',
@@ -201,7 +201,7 @@ void f(String s) {
     await resolveTestCode('''
 int f(int x) {
   var value = 0;
-  switch (x) {
+  ^switch (x) {
     case 1:
       value = 3;
     case 2:
@@ -212,14 +212,14 @@ int f(int x) {
   return value;
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_assignment_compound_same_addition() async {
     await resolveTestCode('''
 int f(int x) {
   var value = 0;
-  switch (x) {
+  s^witch (x) {
     case 1:
       value += 3;
     case 2:
@@ -230,7 +230,7 @@ int f(int x) {
   return value;
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 int f(int x) {
   var value = 0;
   value += switch (x) {
@@ -247,7 +247,7 @@ int f(int x) {
     await resolveTestCode('''
 int f(int x) {
   int? value = null;
-  switch (x) {
+  sw^itch (x) {
     case 1:
       value ??= 3;
     case 2:
@@ -258,7 +258,7 @@ int f(int x) {
   return value;
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 int f(int x) {
   int? value = null;
   value ??= switch (x) {
@@ -280,7 +280,7 @@ enum Color {
 String f(Color color) {
   var name = '';
   var favorite = '';
-  switch (color) {
+  swi^tch (color) {
     case Color.red:
       name = 'red';
     case Color.blue:
@@ -293,7 +293,7 @@ String f(Color color) {
   return name;
 }
 ''');
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_assignment_sharedBody() async {
@@ -304,7 +304,7 @@ enum Color {
 
 void f(Color color) {
   int value;
-  switch (color) {
+  switch ^(color) {
     case Color.red:
     case Color.blue:
       value = 0;
@@ -314,7 +314,7 @@ void f(Color color) {
 }
 ''');
 
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, white
 }
@@ -337,7 +337,7 @@ enum Color {
 
 String f(Color color) {
   var name = '';
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       name = 'red';
       break;
@@ -355,7 +355,7 @@ String f(Color color) {
   return name;
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, green, yellow
 }
@@ -380,7 +380,7 @@ String f(Color color) {
     await resolveTestCode('''
 String f(String s) {
   var name = '';
-  switch (s) {
+  switch ^(s) {
     case 'foo':
       name = 'foo';
     case 'bar':
@@ -391,7 +391,7 @@ String f(String s) {
   return name;
 }
 ''');
-    await assertHasAssistAt('(s)', '''
+    await assertHasAssist('''
 String f(String s) {
   var name = '';
   name = switch (s) {
@@ -412,7 +412,7 @@ enum Color {
 
 String f(Color color) {
   var name = '';
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       name = 'red';
     case Color.blue:
@@ -427,7 +427,7 @@ String f(Color color) {
   return name;
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, green, yellow
 }
@@ -452,7 +452,7 @@ String f(Color color) {
     await resolveTestCode('''
 String f(String s) {
   var name = '';
-  switch (s) {
+  switch ^(s) {
     case 'foo':
       name = 'foo';
     case 'bar':
@@ -463,7 +463,7 @@ String f(String s) {
   return name;
 }
 ''');
-    await assertHasAssistAt('(s)', '''
+    await assertHasAssist('''
 String f(String s) {
   var name = '';
   name = switch (s) {
@@ -479,22 +479,22 @@ String f(String s) {
   Future<void> test_empty() async {
     await resolveTestCode('''
 void f(int x) {
-  switch (x) {}
+  switch ^(x) {}
 }
 ''');
-    await assertNoAssistAt('(x)');
+    await assertNoAssist();
   }
 
   Future<void> test_return_justDefault_throw() async {
     await resolveTestCode('''
 String f(int x) {
-  switch (x) {
+  s^witch (x) {
     default:
       throw 'foo';
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 String f(int x) {
   return switch (x) {
     _ => throw 'foo'
@@ -506,13 +506,13 @@ String f(int x) {
   Future<void> test_return_justDefault_value() async {
     await resolveTestCode('''
 String f(int x) {
-  switch (x) {
+  ^switch (x) {
     default:
       return 'foo';
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 String f(int x) {
   return switch (x) {
     _ => 'foo'
@@ -528,7 +528,7 @@ enum Color {
 }
 
 String name(Color color) {
-  switch (color) {
+  ^switch (color) {
     case Color.red:
       print('red');
       return 'red';
@@ -541,14 +541,13 @@ String name(Color color) {
   }
 }
 ''');
-
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_return_notExhaustive() async {
     await resolveTestCode('''
 String f(int i) {
-  switch(i) {
+  swi^tch(i) {
     case 1:
       return 'one';
     case 2:
@@ -557,8 +556,7 @@ String f(int i) {
   return '';
 }
 ''');
-
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_return_sharedBody() async {
@@ -568,7 +566,7 @@ enum Color {
 }
 
 int f(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
     case Color.blue:
       return 0;
@@ -577,8 +575,7 @@ int f(Color color) {
   }
 }
 ''');
-
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, white
 }
@@ -599,7 +596,7 @@ enum Color {
 }
 
 int f(Color color) {
-  switch (color) {
+  switc^h (color) {
     case Color.red when true:
     case Color.blue:
       return 0;
@@ -611,7 +608,7 @@ int f(Color color) {
 }
 ''');
 
-    await assertNoAssistAt('switch');
+    await assertNoAssist();
   }
 
   Future<void> test_return_switchExpression() async {
@@ -621,7 +618,7 @@ enum Color {
 }
 
 String name(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       throw 'red!';
     case Color.orange:
@@ -633,7 +630,7 @@ String name(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, orange, yellow, green
 }
@@ -656,7 +653,7 @@ enum Color {
 }
 
 String name(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       throw 'red!';
     case Color.orange:
@@ -668,7 +665,7 @@ String name(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, orange, yellow, green
 }
@@ -691,7 +688,7 @@ enum Color {
 }
 
 Color fromName(String name) {
-  switch (name) {
+  s^witch (name) {
     case 'red':
       return Color.red;
     case 'blue':
@@ -702,7 +699,7 @@ Color fromName(String name) {
   throw name;
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 enum Color {
   red, blue, white
 }
@@ -725,7 +722,7 @@ enum Color {
 }
 
 Color fromName(String name) {
-  switch (name) {
+  switc^h (name) {
     case 'red':
       return Color.red;
   }
@@ -734,7 +731,7 @@ Color fromName(String name) {
     ' red';
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 enum Color {
   red
 }
@@ -757,7 +754,7 @@ enum Color {
 }
 
 String name(Color color) {
-  switch (color) {
+  switch ^(color) {
     case Color.red:
       throw 'red!';
     case Color.orange:
@@ -769,7 +766,7 @@ String name(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('(color)', '''
+    await assertHasAssist('''
 enum Color {
   red, orange, yellow, green
 }
@@ -792,7 +789,7 @@ enum Color {
 }
 
 String name(Color color) {
-  switch (color) {
+  sw^itch (color) {
     // Uh-oh.
     case Color.red:
       throw 'red!';
@@ -807,7 +804,7 @@ String name(Color color) {
   }
 }
 ''');
-    await assertHasAssistAt('switch', '''
+    await assertHasAssist('''
 enum Color {
   red, orange, yellow, green
 }

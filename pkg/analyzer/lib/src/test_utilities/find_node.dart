@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -16,11 +16,7 @@ class FindNode {
 
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
-    unit.accept(
-      FunctionAstVisitor(
-        methodInvocation: result.add,
-      ),
-    );
+    unit.accept(FunctionAstVisitor(methodInvocation: result.add));
     return result;
   }
 
@@ -35,10 +31,6 @@ class FindNode {
   AssertStatement get singleAssertStatement => _single();
 
   AssignmentExpression get singleAssignmentExpression => _single();
-
-  AugmentedExpression get singleAugmentedExpression => _single();
-
-  AugmentedInvocation get singleAugmentedInvocation => _single();
 
   AwaitExpression get singleAwaitExpression => _single();
 
@@ -58,6 +50,13 @@ class FindNode {
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
+
+  DotShorthandConstructorInvocation
+  get singleDotShorthandConstructorInvocation => _single();
+
+  DotShorthandInvocation get singleDotShorthandInvocation => _single();
+
+  DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
@@ -97,6 +96,8 @@ class FindNode {
 
   FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
       _single();
+
+  GenericFunctionType get singleGenericFunctionType => _single();
 
   GenericTypeAlias get singleGenericTypeAlias => _single();
 
@@ -147,7 +148,7 @@ class FindNode {
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
 
   PatternVariableDeclarationStatement
-      get singlePatternVariableDeclarationStatement => _single();
+  get singlePatternVariableDeclarationStatement => _single();
 
   PostfixExpression get singlePostfixExpression => _single();
 
@@ -243,9 +244,9 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
-  BindPatternVariableElement2 bindPatternVariableElement(String search) {
+  BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
-    return node.declaredElement2!;
+    return node.declaredElement!;
   }
 
   Block block(String search) {
@@ -360,6 +361,20 @@ class FindNode {
     return _node(search, (n) => n is DoStatement);
   }
 
+  DotShorthandConstructorInvocation dotShorthandConstructorInvocation(
+    String search,
+  ) {
+    return _node(search, (n) => n is DotShorthandConstructorInvocation);
+  }
+
+  DotShorthandInvocation dotShorthandInvocation(String search) {
+    return _node(search, (n) => n is DotShorthandInvocation);
+  }
+
+  DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
+    return _node(search, (n) => n is DotShorthandPropertyAccess);
+  }
+
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
   }
@@ -440,8 +455,11 @@ class FindNode {
     // If the search starts with `(` then NodeLocator will locate the definition
     // before it, so offset the search to within the parameter list.
     var locateOffset = search.startsWith('(') ? 1 : 0;
-    return _node(search, (n) => n is FormalParameterList,
-        locateOffset: locateOffset);
+    return _node(
+      search,
+      (n) => n is FormalParameterList,
+      locateOffset: locateOffset,
+    );
   }
 
   ForPartsWithDeclarations forPartsWithDeclarations(String search) {
@@ -690,7 +708,8 @@ class FindNode {
   }
 
   PatternVariableDeclarationStatement patternVariableDeclarationStatement(
-      String search) {
+    String search,
+  ) {
     return _node(search, (n) => n is PatternVariableDeclarationStatement);
   }
 
@@ -723,7 +742,8 @@ class FindNode {
   }
 
   RedirectingConstructorInvocation redirectingConstructorInvocation(
-      String search) {
+    String search,
+  ) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
   }
 
@@ -909,20 +929,25 @@ class FindNode {
   ///
   /// If [locateOffset] is provided, its value is added to the offset of
   /// [search] before locating the node.
-  T _node<T>(String search, bool Function(AstNode) predicate,
-      {int? locateOffset}) {
+  T _node<T>(
+    String search,
+    bool Function(AstNode) predicate, {
+    int? locateOffset,
+  }) {
     int offset = this.offset(search) + (locateOffset ?? 0);
 
     var node = NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
       throw StateError(
-          'The pattern |$search| had no corresponding node in:\n$content');
+        'The pattern |$search| had no corresponding node in:\n$content',
+      );
     }
 
     var result = node.thisOrAncestorMatching(predicate);
     if (result == null) {
       throw StateError(
-          'The node for |$search| had no matching ancestor in:\n$content\n$unit');
+        'The node for |$search| had no matching ancestor in:\n$content\n$unit',
+      );
     }
     return result as T;
   }

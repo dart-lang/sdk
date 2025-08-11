@@ -69,16 +69,14 @@ testFuncDynToDyn() {
   }
 
   if (funcDynToDyn is FuncDynToVoid) {
-    // Promotion: FuncDynToVoid <: FuncDynToDyn.
+    // Promotion: FuncDynToVoid <:> FuncDynToDyn.
+    // With sound-flow-analysis, this no longer promotes (since FuncDynToDyn
+    // and FuncDynToVoid are mutual subtypes).
     funcDynToDyn(new A());
     funcDynToDyn(new B());
     funcDynToDyn(new C());
-    // Returned value has type `void`, usage is restricted.
+    // Returned value has type `dynamic`.
     Object o = funcDynToDyn(null);
-    //         ^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    //                     ^
-    // [cfe] This expression has type 'void' and can't be used.
   }
 
   if (funcDynToDyn is FuncDynToA) {
@@ -113,9 +111,23 @@ testFuncDynToVoid() {
 
   if (funcDynToVoid is FuncDynToDyn) {
     // Promotion: FuncDynToDyn <:> FuncDynToVoid.
+    // With sound-flow-analysis, this no longer promotes (since FuncDynToDyn
+    // and FuncDynToVoid are mutual subtypes).
     a = funcDynToVoid(new A());
+    //  ^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    //               ^
+    // [cfe] This expression has type 'void' and can't be used.
     b = funcDynToVoid(new B());
+    //  ^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    //               ^
+    // [cfe] This expression has type 'void' and can't be used.
     c = funcDynToVoid(new C());
+    //  ^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    //               ^
+    // [cfe] This expression has type 'void' and can't be used.
   }
 
   if (funcDynToVoid is FuncDynToA) {

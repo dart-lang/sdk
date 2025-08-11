@@ -18,8 +18,9 @@ foo3_Extension1(int par1) {
   for (int loc1 in Uint8List(27)) {
     switch (hide(0)) {
       case 621118835:
-        var10 = Uint8ClampedList(30)
-            .sublist((var104[true]! ? 14 : 42) | ~(ZLibOption.minLevel), -20);
+        var10 = Uint8ClampedList(
+          30,
+        ).sublist((var104[true]! ? 14 : 42) | ~(ZLibOption.minLevel), -20);
         break;
     }
   }

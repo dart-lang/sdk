@@ -6,17 +6,18 @@
 
 #include "include/dart_api.h"
 
+#include "platform/memory_sanitizer.h"
 #include "vm/bootstrap.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/exceptions.h"
 #include "vm/heap/safepoint.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/symbols.h"
-#include "vm/tags.h"
 
 namespace dart {
 
@@ -110,20 +111,26 @@ void NativeEntry::MaybePropagateError(NativeArguments* arguments) {
   }
 }
 
+extern "C" void DRT_BootstrapNativeCall(Dart_NativeArguments args,
+                                        Dart_NativeFunction func) {
+  CHECK_STACK_ALIGNMENT;
+  NativeEntry::BootstrapNativeCallWrapper(args, func);
+}
+
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
-  uword entry =
-      reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCallWrapper,
-      NativeEntry::kNumCallWrapperArguments);
+  uword entry = reinterpret_cast<uword>(DRT_BootstrapNativeCall);
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kNativeCallWrapper,
+        NativeEntry::kNumCallWrapperArguments);
+  }
 #endif
   return entry;
 }
 
 void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
-  CHECK_STACK_ALIGNMENT;
   if (func == LinkNativeCall) {
     func(args);
     return;
@@ -150,25 +157,26 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
   }
 }
 
+extern "C" void DRT_NoScopeNativeCall(Dart_NativeArguments args,
+                                      Dart_NativeFunction func) {
+  CHECK_STACK_ALIGNMENT;
+  NativeEntry::NoScopeNativeCallWrapper(args, func);
+}
+
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
-  uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCallWrapper,
-      NativeEntry::kNumCallWrapperArguments);
+  uword entry = reinterpret_cast<uword>(DRT_NoScopeNativeCall);
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kNativeCallWrapper,
+        NativeEntry::kNumCallWrapperArguments);
+  }
 #endif
   return entry;
 }
 
 void NativeEntry::NoScopeNativeCallWrapper(Dart_NativeArguments args,
                                            Dart_NativeFunction func) {
-  CHECK_STACK_ALIGNMENT;
-  NoScopeNativeCallWrapperNoStackCheck(args, func);
-}
-
-void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
-    Dart_NativeArguments args,
-    Dart_NativeFunction func) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -182,26 +190,26 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
 }
 
+extern "C" void DRT_AutoScopeNativeCall(Dart_NativeArguments args,
+                                        Dart_NativeFunction func) {
+  CHECK_STACK_ALIGNMENT;
+  NativeEntry::AutoScopeNativeCallWrapper(args, func);
+}
+
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
-  uword entry =
-      reinterpret_cast<uword>(NativeEntry::AutoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCallWrapper,
-      NativeEntry::kNumCallWrapperArguments);
+  uword entry = reinterpret_cast<uword>(DRT_AutoScopeNativeCall);
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kNativeCallWrapper,
+        NativeEntry::kNumCallWrapperArguments);
+  }
 #endif
   return entry;
 }
 
 void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
-  CHECK_STACK_ALIGNMENT;
-  AutoScopeNativeCallWrapperNoStackCheck(args, func);
-}
-
-void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
-    Dart_NativeArguments args,
-    Dart_NativeFunction func) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -248,8 +256,9 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
 }
 
 uword NativeEntry::LinkNativeCallEntry() {
-  uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
-  return entry;
+  // This one does not need a simulator redirect because it is always called
+  // through BootstrapNativeCallWrapper, not directly from generated code.
+  return reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
 }
 
 void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
@@ -321,14 +330,10 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     NativeEntry::BootstrapNativeCallWrapper(
         args, reinterpret_cast<Dart_NativeFunction>(target_function));
   } else if (is_auto_scope) {
-    // Because this call is within a compilation unit, Clang doesn't respect
-    // the ABI alignment here.
-    NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
+    NativeEntry::AutoScopeNativeCallWrapper(
         args, reinterpret_cast<Dart_NativeFunction>(target_function));
   } else {
-    // Because this call is within a compilation unit, Clang doesn't respect
-    // the ABI alignment here.
-    NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
+    NativeEntry::NoScopeNativeCallWrapper(
         args, reinterpret_cast<Dart_NativeFunction>(target_function));
   }
 }

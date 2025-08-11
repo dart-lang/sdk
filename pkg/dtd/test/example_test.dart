@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dtd/dtd.dart';
 import 'package:test/test.dart';
@@ -13,6 +14,16 @@ import 'utils.dart';
 
 void main() {
   late ToolingDaemonTestProcess toolingDaemonProcess;
+
+  /// Gets the URI for [filename] in the example folder.
+  Uri getExampleFileUri(String filename) {
+    // Use resolvePackageUriSync and not Platform.script so that this works
+    // when run through 'dart test'.
+    return Isolate.resolvePackageUriSync(
+      Uri.parse('package:dtd/'),
+    )!
+        .resolve('../example/$filename');
+  }
 
   setUp(() async {
     toolingDaemonProcess = ToolingDaemonTestProcess();
@@ -31,16 +42,14 @@ void main() {
       Platform.resolvedExecutable,
       [
         'run',
-        Platform.script
-            .resolve('../example/dtd_stream_example.dart')
-            .toString(),
+        getExampleFileUri('dtd_stream_example.dart').toString(),
         toolingDaemonProcess.uri.toString(),
       ],
     );
     final lines = <String>[];
     streamProcess.handle(
       stdoutLines: (line) {
-        stdout.write('streamProcess stdout: $line');
+        print('streamProcess stdout: $line');
         lines.add(line);
         final json = jsonDecode(line) as Map<String, Object?>;
         if (json['step'] == 'Event A received') {
@@ -67,9 +76,7 @@ void main() {
       Platform.resolvedExecutable,
       [
         'run',
-        Platform.script
-            .resolve('../example/dtd_service_example.dart')
-            .toString(),
+        getExampleFileUri('dtd_service_example.dart').toString(),
         toolingDaemonProcess.uri.toString(),
       ],
     );
@@ -77,7 +84,7 @@ void main() {
     final stdoutMessages = <Map<String, Object?>>[];
     serviceExampleProcess.handle(
       stdoutLines: (line) {
-        stdout.write('serviceExample stdout: $line');
+        print('serviceExample stdout: $line');
         stdoutMessages.add(jsonDecode(line) as Map<String, Object?>);
       },
       stderrLines: (line) => stderr.write('serviceExample stderr: $line'),
@@ -88,8 +95,8 @@ void main() {
       stdoutMessages,
       containsAll([
         {
-          'stream': 'Service',
-          'kind': 'ServiceRegistered',
+          'stream': CoreDtdServiceConstants.servicesStreamId,
+          'kind': CoreDtdServiceConstants.serviceRegisteredKind,
           'data': {
             'service': 'ExampleServer',
             'method': 'getServerState',
@@ -102,8 +109,8 @@ void main() {
           'uptime': const Duration(minutes: 45).inMilliseconds,
         },
         {
-          'stream': 'Service',
-          'kind': 'ServiceUnregistered',
+          'stream': CoreDtdServiceConstants.servicesStreamId,
+          'kind': CoreDtdServiceConstants.serviceUnregisteredKind,
           'data': {
             'service': 'ExampleServer',
             'method': 'getServerState',
@@ -132,9 +139,7 @@ void main() {
         Platform.resolvedExecutable,
         [
           'run',
-          Platform.script
-              .resolve('../example/dtd_file_system_service_example.dart')
-              .toString(),
+          getExampleFileUri('dtd_file_system_service_example.dart').toString(),
           toolingDaemonProcess.uri.toString(),
           tmpDirectory.uri.toString(),
         ],
@@ -142,7 +147,7 @@ void main() {
       final lines = <String>[];
       fileSystemServiceExampleProcess.handle(
         stdoutLines: (line) {
-          stdout.write('fileSystemServiceProcess stdout: $line');
+          print('fileSystemServiceProcess stdout: $line');
           lines.add(line);
           final json = jsonDecode(line) as Map<String, Object?>;
           if (json['step'] == 'read') {

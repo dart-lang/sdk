@@ -139,15 +139,16 @@ Future<kernel_service.Status> singleShotCompile(
     /* [4] = bool = incremental = */ false,
     /* [5] = bool = for_snapshot = */ false,
     /* [6] = bool = embed_sources = */ true,
-    /* [8] = int = isolateGroupId = */ 42,
-    /* [9] = List = sourceFiles = */ sourceFiles,
-    /* [10] = bool = enableAsserts = */ true,
-    /* [11] = List<String>? = experimentalFlags = */ [],
-    /* [12] = String? = packageConfig = */ packageConfig,
-    /* [13] = String? = multirootFilepaths = */ null,
-    /* [14] = String? = multirootScheme = */ null,
-    /* [16] = String = verbosityLevel = */ Verbosity.all.name,
-    /* [17] = bool = enableMirrors = */ false,
+    /* [7] = int = isolateGroupId = */ 42,
+    /* [8] = List = sourceFiles = */ sourceFiles,
+    /* [9] = bool = enableAsserts = */ true,
+    /* [10] = List<String>? = experimentalFlags = */ [],
+    /* [11] = String? = packageConfig = */ packageConfig,
+    /* [12] = String? = multirootFilepaths = */ null,
+    /* [13] = String? = multirootScheme = */ null,
+    /* [14] = String = verbosityLevel = */ Verbosity.all.name,
+    /* [15] = bool = enableMirrors = */ false,
+    /* [16] = bool = generateBytecode = */ false,
   ]);
 
   // Wait for kernel-service response.
@@ -169,11 +170,10 @@ Future<kernel_service.Status> singleShotCompile(
     }
     return kernel_service.Status.ok;
   } else if (status == kernel_service.Status.error.index) {
-    expectLength(m, 3);
+    expectLength(m, 2);
     final String errors = m[1];
-    final List<int> bytes = m[2];
     if (verbose) {
-      print("Compiled with errors --- $errors and ${bytes.length} bytes dill");
+      print("Compiled with errors --- $errors");
     }
     return kernel_service.Status.error;
   } else if (status == kernel_service.Status.crash.index) {

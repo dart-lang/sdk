@@ -25,21 +25,31 @@ Future<int?> _currentHeapCapacity() async {
     enable: true,
     silenceOutput: true,
   );
-  final observatoryUri = info.serverUri;
-  if (observatoryUri == null) return null;
-  final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
-  final vmService = await vm_service_io.vmServiceConnectUri(wsUri);
-  int sum = 0;
-  for (final group in (await vmService.getVM()).isolateGroups!) {
+  final vmServiceWsUri = info.serverWebSocketUri?.toString();
+  if (vmServiceWsUri == null) return null;
+
+  final vmService = await vm_service_io.vmServiceConnectUri(vmServiceWsUri);
+  final vm = await vmService.getVM();
+
+  final nonSystemIsolateGroups = vm.isolateGroups;
+  final relevantSystemIsolateGroups = vm.systemIsolateGroups?.where(
+    (group) => group.name?.contains('dart2js') ?? false,
+  );
+
+  var relevantMemoryUsage = 0;
+  for (final group in [
+    ...?nonSystemIsolateGroups,
+    ...?relevantSystemIsolateGroups,
+  ]) {
     final usage = await vmService.getIsolateGroupMemoryUsage(group.id!);
-    sum += usage.heapCapacity!;
+    relevantMemoryUsage += usage.heapCapacity ?? 0;
   }
   vmService.dispose();
-  return sum;
+  return relevantMemoryUsage;
 }
 
-Future<String> currentHeapCapacityInMb() async {
+Future<String?> currentHeapCapacityInMb() async {
   final capacity = await _currentHeapCapacity();
-  if (capacity == null) return "N/A MB";
+  if (capacity == null || capacity == 0) return null;
   return "${(capacity / (1024 * 1024)).toStringAsFixed(3)} MB";
 }

@@ -210,7 +210,7 @@ class ObservatoryApplication {
       Logger.root.info('Uninstalling page: $currentPage');
       currentPage!.onUninstall();
       // Clear children.
-      rootElement.children.clear();
+      rootElement.removeChildren();
     }
     Logger.root.info('Installing page: $page');
     try {
@@ -219,7 +219,7 @@ class ObservatoryApplication {
       Logger.root.severe('Failed to install page: $e');
     }
     // Add new page.
-    rootElement.children.add(page.element!);
+    rootElement.appendChild(page.element!);
 
     // Remember page.
     currentPage = page;

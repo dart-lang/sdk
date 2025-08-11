@@ -22,10 +22,7 @@ class ReferenceTest {
   void assertReferenceText(Reference reference, String expected) {
     var buffer = StringBuffer();
     _ReferenceWriter(
-      sink: TreeStringSink(
-        sink: buffer,
-        indent: '',
-      ),
+      sink: TreeStringSink(sink: buffer, indent: ''),
       idMap: idMap,
     ).write(reference);
     var actual = buffer.toString();
@@ -236,10 +233,7 @@ class _ReferenceWriter {
   final TreeStringSink sink;
   final _IdMap idMap;
 
-  _ReferenceWriter({
-    required this.sink,
-    required this.idMap,
-  });
+  _ReferenceWriter({required this.sink, required this.idMap});
 
   void write(Reference reference) {
     if (reference.isRoot) {
@@ -261,9 +255,11 @@ class _ReferenceWriter {
               sink.write(idMap[child]);
             case Map<String, Reference> map:
               expect(reference.children, hasLength(greaterThanOrEqualTo(2)));
-              var entriesStr = map.entries.map((e) {
-                return '${e.key}: ${idMap[e.value]}';
-              }).join(', ');
+              var entriesStr = map.entries
+                  .map((e) {
+                    return '${e.key}: ${idMap[e.value]}';
+                  })
+                  .join(', ');
               sink.write('{$entriesStr}');
             default:
               throw UnimplementedError('(${union.runtimeType}) $union');

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -36,7 +36,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       return;
     }
 
-    Element2? element;
+    Element? element;
     if (node is Declaration) {
       element = node.declaredFragment?.element;
     }
@@ -112,7 +112,7 @@ class RemoveUnusedField extends _RemoveUnused {
     }
 
     var element = declaration.declaredFragment!.element;
-    if (element is! FieldElement2) {
+    if (element is! FieldElement) {
       return;
     }
 
@@ -243,7 +243,7 @@ class RemoveUnusedField extends _RemoveUnused {
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element2 element;
+  final Element element;
   final List<AstNode> references = [];
 
   _ElementReferenceCollector(this.element);
@@ -251,7 +251,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment!.element;
-    if (declaredElement.field2 == element) {
+    if (declaredElement.field == element) {
       references.add(node);
     }
 
@@ -260,7 +260,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.element2 == element) {
+    if (node.element == element) {
       references.add(node);
     }
 
@@ -269,15 +269,15 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.writeOrReadElement2;
+    var staticElement = node.writeOrReadElement;
     if (staticElement == element) {
       references.add(node);
-    } else if (staticElement is PropertyAccessorElement2) {
-      if (staticElement.variable3 == element) {
+    } else if (staticElement is PropertyAccessorElement) {
+      if (staticElement.variable == element) {
         references.add(node);
       }
-    } else if (staticElement is FieldFormalParameterElement2) {
-      if (staticElement.field2 == element) {
+    } else if (staticElement is FieldFormalParameterElement) {
+      if (staticElement.field == element) {
         references.add(node);
       }
     }
@@ -287,7 +287,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 abstract class _RemoveUnused extends ResolvedCorrectionProducer {
   _RemoveUnused({required super.context});
 
-  List<AstNode> _findAllReferences(AstNode root, Element2 element) {
+  List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;

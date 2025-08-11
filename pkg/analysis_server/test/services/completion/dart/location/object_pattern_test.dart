@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -18,7 +19,19 @@ class ObjectPatternTest extends AbstractCompletionDriverTest
   @override
   Future<void> setUp() async {
     await super.setUp();
+    registerLintRules();
     printerConfiguration.withLocationName = true;
+    var oldFilter = printerConfiguration.filter;
+    printerConfiguration.filter = (suggestion) {
+      if (oldFilter(suggestion)) {
+        return true;
+      }
+      var label = suggestion.displayText;
+      if (label == null) {
+        return false;
+      }
+      return identifierRegExp.hasMatch(label);
+    };
   }
 }
 
@@ -58,14 +71,14 @@ suggestions
     kind: field
   f11
     kind: field
-  final
-    kind: keyword
   g01
     kind: getter
   g11
     kind: getter
-  var
-    kind: keyword
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 
@@ -150,6 +163,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
   var
     kind: keyword
 ''');
@@ -233,6 +250,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 
@@ -439,20 +460,31 @@ void f1(Object x0) {
 class A1 {
   int f01 = 0;
   int get g01 => 0;
+  int m01() => 0;
+}
+extension on A1 {
+  int get g11 => 0;
+  int m11() => 0;
 }
 ''');
     assertResponse(r'''
 location: PatternField_pattern
 locationOpType: PatternField_pattern
 suggestions
-  f01
-    kind: field
   final
     kind: keyword
-  g01
-    kind: getter
   var
     kind: keyword
+  var f01
+    kind: field
+  var g01
+    kind: getter
+  var g11
+    kind: getter
+  var m01
+    kind: method
+  var m11
+    kind: method
 ''');
   }
 
@@ -497,6 +529,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 
@@ -652,6 +688,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 
@@ -781,6 +821,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 
@@ -822,6 +866,10 @@ suggestions
     kind: getter
   g11
     kind: getter
+  m01
+    kind: method
+  m11
+    kind: method
 ''');
   }
 

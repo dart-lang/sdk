@@ -100,8 +100,10 @@ abstract class CommonElements {
   late final ClassEntity streamClass = _findClass(asyncLibrary, 'Stream');
 
   /// The dart:core library.
-  late final LibraryEntity coreLibrary =
-      _env.lookupLibrary(Uris.dartCore, required: true)!;
+  late final LibraryEntity coreLibrary = _env.lookupLibrary(
+    Uris.dartCore,
+    required: true,
+  )!;
 
   /// The dart:async library.
   late final LibraryEntity? asyncLibrary = _env.lookupLibrary(Uris.dartAsync);
@@ -118,12 +120,16 @@ abstract class CommonElements {
   );
 
   /// The dart:typed_data library.
-  late final LibraryEntity typedDataLibrary =
-      _env.lookupLibrary(Uris.dartNativeTypedData, required: true)!;
+  late final LibraryEntity typedDataLibrary = _env.lookupLibrary(
+    Uris.dartNativeTypedData,
+    required: true,
+  )!;
 
   /// The dart:_js_shared_embedded_names library.
-  late final LibraryEntity sharedEmbeddedNamesLibrary =
-      _env.lookupLibrary(Uris.dartJSSharedEmbeddedNames, required: true)!;
+  late final LibraryEntity sharedEmbeddedNamesLibrary = _env.lookupLibrary(
+    Uris.dartJSSharedEmbeddedNames,
+    required: true,
+  )!;
 
   /// The dart:_js_helper library.
   late final LibraryEntity? jsHelperLibrary = _env.lookupLibrary(
@@ -146,12 +152,16 @@ abstract class CommonElements {
   );
 
   /// The dart:_rti library.
-  late final LibraryEntity rtiLibrary =
-      _env.lookupLibrary(Uris.dartRti, required: true)!;
+  late final LibraryEntity rtiLibrary = _env.lookupLibrary(
+    Uris.dartRti,
+    required: true,
+  )!;
 
   /// The dart:_internal library.
-  late final LibraryEntity internalLibrary =
-      _env.lookupLibrary(Uris.dartInternal, required: true)!;
+  late final LibraryEntity internalLibrary = _env.lookupLibrary(
+    Uris.dartInternal,
+    required: true,
+  )!;
 
   /// The dart:js_util library.
   late final LibraryEntity? dartJsUtilLibrary = _env.lookupLibrary(
@@ -185,8 +195,10 @@ abstract class CommonElements {
     // TODO(johnniwinther): Kernel does not include redirecting factories
     // so this cannot be found in kernel. Find a consistent way to handle
     // this and similar cases.
-    return _symbolConstructorTarget ??=
-        _env.lookupConstructor(symbolImplementationClass, '')!;
+    return _symbolConstructorTarget ??= _env.lookupConstructor(
+      symbolImplementationClass,
+      '',
+    )!;
   }
 
   void _ensureSymbolConstructorDependencies() {
@@ -227,8 +239,10 @@ abstract class CommonElements {
   }
 
   /// The function `identical` in dart:core.
-  late final FunctionEntity identicalFunction =
-      _findLibraryMember(coreLibrary, 'identical')!;
+  late final FunctionEntity identicalFunction = _findLibraryMember(
+    coreLibrary,
+    'identical',
+  )!;
 
   /// Whether [element] is the `Function.apply` method.
   ///
@@ -420,8 +434,9 @@ abstract class CommonElements {
     bool onlyStringKeys = false,
   }) {
     // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
-    ClassEntity classElement =
-        onlyStringKeys ? constantStringMapClass : generalConstantMapClass;
+    ClassEntity classElement = onlyStringKeys
+        ? constantStringMapClass
+        : generalConstantMapClass;
     return _env.createInterfaceType(classElement, sourceType.typeArguments);
   }
 
@@ -430,25 +445,25 @@ abstract class CommonElements {
     bool onlyStringKeys = false,
   }) {
     // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
-    ClassEntity classElement =
-        onlyStringKeys ? constantStringSetClass : generalConstantSetClass;
+    ClassEntity classElement = onlyStringKeys
+        ? constantStringSetClass
+        : generalConstantSetClass;
     return _env.createInterfaceType(classElement, sourceType.typeArguments);
   }
 
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
 
-  FieldEntity get symbolField =>
-      _symbolImplementationField ??=
-          _env.lookupLocalClassMember(
-                symbolImplementationClass,
-                PrivateName(
-                  '_name',
-                  symbolImplementationClass.library.canonicalUri,
-                ),
-                required: true,
-              )
-              as FieldEntity;
+  FieldEntity get symbolField => _symbolImplementationField ??=
+      _env.lookupLocalClassMember(
+            symbolImplementationClass,
+            PrivateName(
+              '_name',
+              symbolImplementationClass.library.canonicalUri,
+            ),
+            required: true,
+          )
+          as FieldEntity;
 
   InterfaceType get symbolImplementationType =>
       _env.getRawType(symbolImplementationClass);
@@ -462,44 +477,24 @@ abstract class CommonElements {
     return _mapLiteralClass!;
   }
 
-  late final ConstructorEntity mapLiteralConstructor =
-      _env.lookupConstructor(mapLiteralClass, '_literal')!;
-  late final ConstructorEntity mapLiteralConstructorEmpty =
-      _env.lookupConstructor(mapLiteralClass, '_empty')!;
-  late final FunctionEntity mapLiteralUntypedMaker =
-      _env.lookupLocalClassMember(
-            mapLiteralClass,
-            PrivateName('_makeLiteral', mapLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
-  late final FunctionEntity mapLiteralUntypedEmptyMaker =
-      _env.lookupLocalClassMember(
-            mapLiteralClass,
-            PrivateName('_makeEmpty', mapLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
+  late final ConstructorEntity mapLiteralConstructor = _env.lookupConstructor(
+    mapLiteralClass,
+    '_literal',
+  )!;
+  late final ConstructorEntity mapLiteralConstructorEmpty = _env
+      .lookupConstructor(mapLiteralClass, '_empty')!;
 
   late final ClassEntity setLiteralClass = _findClass(
     collectionLibrary,
     'LinkedHashSet',
   );
 
-  late final ConstructorEntity setLiteralConstructor =
-      _env.lookupConstructor(setLiteralClass, '_literal')!;
-  late final ConstructorEntity setLiteralConstructorEmpty =
-      _env.lookupConstructor(setLiteralClass, '_empty')!;
-  late final FunctionEntity setLiteralUntypedMaker =
-      _env.lookupLocalClassMember(
-            setLiteralClass,
-            PrivateName('_makeLiteral', setLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
-  late final FunctionEntity setLiteralUntypedEmptyMaker =
-      _env.lookupLocalClassMember(
-            setLiteralClass,
-            PrivateName('_makeEmpty', setLiteralClass.library.canonicalUri),
-          )
-          as FunctionEntity;
+  late final ConstructorEntity setLiteralConstructor = _env.lookupConstructor(
+    setLiteralClass,
+    '_literal',
+  )!;
+  late final ConstructorEntity setLiteralConstructorEmpty = _env
+      .lookupConstructor(setLiteralClass, '_empty')!;
 
   late final FunctionEntity? objectNoSuchMethod =
       _env.lookupLocalClassMember(
@@ -705,6 +700,9 @@ abstract class CommonElements {
 
   late final ClassEntity jsUInt31Class = _findInterceptorsClass('JSUInt31');
 
+  // Static interop JavaScript object interface class.
+  late final ClassEntity jsObjectClass = _findInterceptorsClass('JSObject');
+
   /// Returns `true` member is the 'findIndexForNativeSubclassType' method
   /// declared in `dart:_interceptors`.
   bool isFindIndexForNativeSubclassType(MemberEntity member) {
@@ -716,8 +714,10 @@ abstract class CommonElements {
   late final FunctionEntity getNativeInterceptorMethod =
       _findInterceptorsFunction('getNativeInterceptor');
 
-  late final ConstructorEntity jsArrayTypedConstructor =
-      _env.lookupConstructor(jsArrayClass, 'typed')!;
+  late final ConstructorEntity jsArrayTypedConstructor = _env.lookupConstructor(
+    jsArrayClass,
+    'typed',
+  )!;
 
   // From dart:_js_helper
   // TODO(johnniwinther): Avoid the need for this (from [CheckedModeHelper]).
@@ -1102,6 +1102,11 @@ abstract class CommonElements {
 
   FunctionEntity get specializedAsStringNullable =>
       _findRtiFunction('_asStringQ');
+
+  FunctionEntity get specializedAsJSObject => _findRtiFunction('_asJSObject');
+
+  FunctionEntity get specializedAsJSObjectNullable =>
+      _findRtiFunction('_asJSObjectQ');
 
   FunctionEntity get instantiatedGenericFunctionType =>
       _findRtiFunction('instantiatedGenericFunctionType');

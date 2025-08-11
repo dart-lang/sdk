@@ -87,7 +87,6 @@
     ],
     "front-end": [
       ".dart_tool/package_config.json",
-      "out/ReleaseIA32/",
       "out/ReleaseX64/",
       "pkg/",
       "runtime/tests/",
@@ -114,7 +113,6 @@
       "third_party/pkg/",
       "third_party/requirejs/",
       "tools/",
-      "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseX64/"
     ],
     "fuzzer": [
@@ -134,23 +132,17 @@
       "pkg/",
       "samples/",
       "tools/",
-      "buildtools/linux-arm64/clang/bin/llvm",
-      "buildtools/linux-arm64/clang/bin/llvm-nm",
-      "buildtools/linux-arm64/clang/bin/llvm-strip",
-      "buildtools/linux-arm64/clang/bin/llvm-symbolizer",
-      "buildtools/linux-x64/clang/bin/llvm",
-      "buildtools/linux-x64/clang/bin/llvm-nm",
-      "buildtools/linux-x64/clang/bin/llvm-strip",
-      "buildtools/linux-x64/clang/bin/llvm-symbolizer",
-      "buildtools/mac-arm64/clang/bin/llvm",
-      "buildtools/mac-arm64/clang/bin/llvm-nm",
-      "buildtools/mac-arm64/clang/bin/llvm-strip",
-      "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
-      "buildtools/mac-x64/clang/bin/llvm",
-      "buildtools/mac-x64/clang/bin/llvm-nm",
-      "buildtools/mac-x64/clang/bin/llvm-strip",
-      "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+      "buildtools/linux-arm64/clang/bin/",
+      "buildtools/linux-x64/clang/bin/",
+      "buildtools/mac-arm64/clang/bin/",
+      "buildtools/mac-arm64/clang/lib/clang/21/lib/darwin/",
+      "buildtools/mac-x64/clang/bin/",
+      "buildtools/mac-x64/clang/lib/clang/21/lib/darwin/",
+      "buildtools/win-x64/clang/bin/clang.exe",
+      "buildtools/win-x64/clang/bin/lld-link.exe",
+      "buildtools/win-x64/clang/bin/llvm-strip.exe",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
+      "buildtools/win-x64/clang/lib/clang/",
       "third_party/android_tools/sdk/platform-tools/adb",
       "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/../lib/x86_64-unknown-linux-gnu/libc++.so",
       "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy",
@@ -188,7 +180,7 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
-      "pkg/native_assets_builder/",
+      "pkg/hooks_runner/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -305,7 +297,7 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simarm64_arm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
@@ -313,29 +305,69 @@
         "enable-asserts": true
       }
     },
-    "vm-aot-(linux|mac|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-(linux|fuchsia|win)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
     },
-    "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "macho-dylib"
       }
     },
     "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
-    "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "gen-snapshot-format": "elf"
+      }
+    },
+    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "gen-snapshot-format" : "elf"
+      }
+    },
+    "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+      "options": {
+        "gen-snapshot-format" : "elf"
+      }
+    },
+    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+      "options": {
+        "gen-snapshot-format": "elf"
+      }
+    },
+    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "gen-snapshot-format" : "elf"
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"], "use-qemu": true
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"], "use-qemu": true
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"]
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"]
+      }
+    },
     "dart2js-(linux|win)-chrome": {
       "options": {
         "use-sdk": true
@@ -414,7 +446,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "host-asserts": true,
         "enable-asserts": true,
@@ -424,7 +456,7 @@
         "timeout": 60
       }
     },
-    "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "host-asserts": true,
         "dart2wasm-options": [
@@ -434,7 +466,7 @@
         "timeout": 60
       }
     },
-    "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "-O1",
@@ -445,7 +477,7 @@
         "timeout": 120
       }
     },
-    "dart2wasm-asserts-minified-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-asserts-minified-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "--minify"
@@ -456,7 +488,7 @@
         "timeout": 120
       }
     },
-    "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "-O0",
@@ -469,12 +501,12 @@
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-android-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|riscv64)": {
       "options": {
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
@@ -483,7 +515,7 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "use-elf": true
+        "gen-snapshot-format" : "elf"
       }
     },
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
@@ -712,8 +744,7 @@
             "corelib",
             "ffi",
             "language",
-            "lib",
-            "service"
+            "lib"
           ],
           "fileset": "front-end",
           "shards": 2
@@ -722,8 +753,10 @@
     },
     {
       "builders": [
-        "vm-aot-android-release-arm_x64",
-        "vm-aot-android-release-arm64c"
+        "vm-aot-android-debug-arm64c",
+        "vm-aot-android-debug-arm_x64",
+        "vm-aot-android-release-arm64c",
+        "vm-aot-android-release-arm_x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm precomp builders on Android."
@@ -801,6 +834,13 @@
           "name": "vm ffi tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}-nosim",
             "ffi"
           ]
         }
@@ -912,47 +952,13 @@
     },
     {
       "builders": [
-        "vm-linux-debug-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM JIT builders. Includes VM service testing in addtion to legacy Observatory service tests.",
-        "__comment__": "This configuration should be merged with the other VM JIT builders config once Observatory is removed."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19",
-            "pkg/pkg/vm_service/",
-            "service"
-          ],
-          "fileset": "vm",
-          "shards": 16
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-linux-debug-ia32",
-        "vm-linux-release-ia32",
+        "vm-linux-debug-x64",
         "vm-linux-release-x64",
         "vm-win-debug-x64",
-        "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the VM JIT builders. Includes VM service testing.",
-        "__comment__": "vm-linux-debug-x64 should be added back into this configuration once Observatory is removed."
+        "description": "This configuration is used by the VM JIT builders. Includes VM service testing."
       },
       "steps": [
         {
@@ -1017,8 +1023,12 @@
     },
     {
       "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-release-ia32",
         "vm-linux-debug-simriscv32",
         "vm-linux-debug-simriscv64",
+        "vm-linux-release-simriscv32",
+        "vm-linux-release-simriscv64",
         "vm-linux-debug-x64c",
         "vm-linux-release-simarm",
         "vm-linux-release-simarm64",
@@ -1041,60 +1051,31 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 16
+          "shards": 10
         }
       ]
     },
     {
       "builders": [
-        "vm-aot-linux-debug-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
-        "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19",
-            "pkg/pkg/vm_service/",
-            "service"
-          ],
-          "fileset": "vm",
-          "shards": 20
-        }
-      ]
-    },
-    {
-      "builders": [
+        "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
+        "vm-aot-mac-release-arm64",
+        "vm-aot-mac-debug-arm64",
+        "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
-        "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
+        "description": "This configuration is used by the VM AOT builders. Includes VM service testing."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1114,12 +1095,16 @@
     },
     {
       "builders": [
+        "vm-aot-linux-release-simriscv32",
         "vm-aot-linux-debug-simriscv32",
+        "vm-aot-linux-release-simriscv64",
         "vm-aot-linux-debug-simriscv64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
-        "vm-aot-win-debug-x64",
+        "vm-aot-mac-debug-x64",
+        "vm-aot-mac-release-x64",
+        "vm-aot-mac-product-arm64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
       ],
@@ -1131,6 +1116,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1138,12 +1124,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 20
+          "shards": 12
         }
       ]
     },
@@ -1179,59 +1163,6 @@
           ],
           "fileset": "vm",
           "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-mac-release-arm64",
-        "vm-aot-mac-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode. Includes VM service testing."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "runtime",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "pkg/pkg/vm_service/"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-mac-product-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "runtime",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
-          ]
         }
       ]
     },
@@ -1330,41 +1261,99 @@
     },
     {
       "builders": [
-        "vm-asan-linux-release-x64",
-        "vm-msan-linux-release-x64",
-        "vm-tsan-linux-release-x64",
-        "vm-ubsan-linux-release-x64"
+        "vm-aot-dyn-linux-product-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the VM/JIT builders with sanitizers."
+        "description": "This configuration is used by the dynamic modules VM AOT builders."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime"
+            "--dart-dynamic-modules",
+            "runtime",
+            "runtime_precompiled",
+            "utils/gen_kernel"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${sanitizer}-${system}-${mode}-${arch}"
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "corelib",
+            "language"
           ],
           "fileset": "vm",
-          "shards": 8
+          "shards": 5
+        },
+        {
+          "name": "dynamic module tests",
+          "script": "out/ProductX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "-raot",
+            "--verbose"
+          ]
         }
       ]
     },
     {
       "builders": [
-        "vm-aot-asan-linux-release-x64",
-        "vm-aot-msan-linux-release-x64",
-        "vm-aot-tsan-linux-release-x64",
-        "vm-aot-ubsan-linux-release-x64"
+        "vm-dyn-linux-debug-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the VM/AOT builders with sanitizers."
+        "description": "This configuration is used by the dynamic modules VM JIT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "runtime",
+            "runtime_precompiled",
+            "utils/gen_kernel"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "corelib",
+            "language",
+            "vm",
+            "pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 5
+        },
+        {
+          "name": "dynamic module tests",
+          "script": "out/DebugX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "-rjit",
+            "--verbose"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-asan-linux-release-x64",
+        "vm-asan-mac-release-x64",
+        "vm-asan-win-release-x64",
+        "vm-msan-linux-release-x64",
+        "vm-tsan-linux-release-x64",
+        "vm-ubsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the X64 sanitizers."
       },
       "steps": [
         {
@@ -1377,12 +1366,20 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (jit)",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm",
+          "shards": 6
+        },
+        {
+          "name": "vm tests (aot)",
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 12
+          "shards": 14
         }
       ]
     },
@@ -1406,17 +1403,21 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (jit)",
           "arguments": [
             "-nvm-${sanitizer}-${system}-${mode}-${arch}",
-            "ffi"
-          ]
+            "ffi",
+            "standalone"
+          ],
+          "fileset": "vm",
+          "shards": 1
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (aot)",
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
-            "ffi"
+            "ffi",
+            "standalone"
           ]
         }
       ]
@@ -1429,16 +1430,6 @@
         "description": "This configuration builds the VM with GCC."
       },
       "steps": [
-        {
-          "name": "build dart debug ia32",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=ia32",
-            "--no-clang",
-            "runtime"
-          ]
-        },
         {
           "name": "build dart debug x64",
           "script": "tools/build.py",
@@ -1462,6 +1453,17 @@
           ]
         },
         {
+          "name": "build dart debug arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=arm64",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
           "name": "build dart debug riscv64",
           "script": "tools/build.py",
           "arguments": [
@@ -1470,16 +1472,6 @@
             "--no-clang",
             "runtime",
             "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release ia32",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=ia32",
-            "--no-clang",
-            "runtime"
           ]
         },
         {
@@ -1499,6 +1491,17 @@
           "arguments": [
             "--mode=release",
             "--arch=arm",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
@@ -1688,6 +1691,7 @@
     },
     {
       "builders": [
+        "vm-linux-debug-arm64",
         "vm-linux-release-arm64"
       ],
       "meta": {
@@ -1713,6 +1717,7 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-arm64",
         "vm-aot-linux-release-arm64"
       ],
       "meta": {
@@ -1743,32 +1748,13 @@
         "vm-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 JIT builders, no shards.",
-        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
+        "description": "This configuration is for the ARM64 JIT builders, no shards."
       },
       "steps": [
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-clang",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
             "runtime"
           ]
         },
@@ -1780,7 +1766,6 @@
             "ffi",
             "lib",
             "samples",
-            "service",
             "standalone",
             "utils",
             "vm"
@@ -1794,32 +1779,15 @@
         "vm-aot-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 AOT builders, no shards.",
-        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
+        "description": "This configuration is for the ARM64 AOT builders, no shards."
       },
       "steps": [
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-clang",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "dartaotruntime"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--no-clang",
-            "runtime"
+            "runtime",
+            "runtime_precompiled"
           ]
         },
         {
@@ -1830,7 +1798,6 @@
             "ffi",
             "lib",
             "samples",
-            "service",
             "standalone",
             "utils",
             "vm"
@@ -2195,6 +2162,17 @@
           ]
         },
         {
+          "name": "ddc hot reload tests without fe server in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose",
+            "--no-use-fe-server"
+          ]
+        },
+        {
           "name": "ddc sdk tests",
           "arguments": [
             "-nddc-canary-linux-chrome",
@@ -2270,7 +2248,6 @@
     },
     {
       "builders": [
-        "vm-eager-optimization-linux-release-ia32",
         "vm-eager-optimization-linux-release-x64"
       ],
       "meta": {
@@ -2342,7 +2319,7 @@
         "vm-reload-linux-release-x64"
       ],
       "meta": {
-        "description": "This is the configuration for the kernel hot reload builders."
+        "description": "This is the configuration for the hot reload builders."
       },
       "steps": [
         {
@@ -2353,51 +2330,17 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (identity reload)",
           "arguments": [
-            "-nvm-reload-${system}-${mode}-${arch}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "samples",
-            "standalone",
-            "utils",
-            "vm"
+            "-nvm-reload-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
           "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-reload-rollback-linux-debug-x64",
-        "vm-reload-rollback-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This is the configuration for kernel reload rollback builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (reload rollback)",
           "arguments": [
-            "-nvm-reload-rollback-linux-${mode}-${arch}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "samples",
-            "standalone",
-            "utils",
-            "vm"
+            "-nvm-reload-rollback-linux-${mode}-${arch}"
           ],
           "fileset": "vm",
           "shards": 10
@@ -2683,7 +2626,6 @@
             "corelib",
             "language",
             "lib",
-            "observatory_ui",
             "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
@@ -2722,6 +2664,15 @@
           ],
           "shards": 8,
           "fileset": "dart2wasm_hostasserts"
+        },
+        {
+          "name": "dart2wasm unit tests",
+          "script":  "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
+            "-ndart2wasm-asserts-linux-chrome"
+          ]
         }
       ]
     },
@@ -2936,7 +2887,8 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "utils/dartanalyzer"
+            "utils/dartanalyzer",
+            "analysis_server_aot"
           ]
         },
         {
@@ -3130,8 +3082,10 @@
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
-            "native_assets_builder",
-            "native_assets_cli",
+            "code_assets",
+            "data_assets",
+            "hooks_runner",
+            "hooks",
             "native_toolchain_c",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
@@ -3193,32 +3147,11 @@
           ]
         },
         {
-          "name": "build dart - step 1 - gen-snapshot - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "build dart - step 2 - runtime/bin:dart - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "build dart - step 3 - runtime - divided to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "build dart - step 4 - sdk, ddc_stable_test - divided to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
+            "dartanalyzer",
             "ddc_stable_test"
           ]
         },
@@ -3276,8 +3209,10 @@
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
-            "native_assets_builder",
-            "native_assets_cli",
+            "code_assets",
+            "data_assets",
+            "hooks_runner",
+            "hooks",
             "native_toolchain_c",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
@@ -3324,39 +3259,6 @@
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": [
             "noop"
-          ]
-        },
-        {
-          "name": "remove out directory to do a clean linux-ia32 build",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "clean"
-          ]
-        },
-        {
-          "name": "build linux-ia32 for benchmarking",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=ia32",
-            "create_sdk",
-            "runtime",
-            "dart2js_platform.dill",
-            "kernel-service.dart.snapshot"
-          ]
-        },
-        {
-          "name": "archive linux-ia32 for benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-ia32-archive"
-          ]
-        },
-        {
-          "name": "try linux-ia32 benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-ia32-benchmark"
           ]
         },
         {
@@ -3424,16 +3326,8 @@
           ]
         },
         {
-          "name": "analyze flutter/engine",
-          "script": "tools/bots/flutter/analyze_flutter_engine.sh"
-        },
-        {
-          "name": "analyze flutter/flutter",
-          "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
-        },
-        {
-          "name": "analyze flutter/packages",
-          "script": "tools/bots/flutter/analyze_flutter_packages.sh"
+          "name": "analyze Flutter repositories",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
         }
       ]
     },
@@ -3506,7 +3400,8 @@
             "--arch=x64,x64c",
             "runtime",
             "dartaotruntime",
-            "dart2js_platform.dill"
+            "dart2js_platform.dill",
+            "dart2wasm_platform.dill"
           ]
         },
         {
@@ -3527,15 +3422,6 @@
             "--arch=simriscv32,simriscv64",
             "runtime",
             "dartaotruntime"
-          ]
-        },
-        {
-          "name": "build dart (ia32)",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug,release",
-            "--arch=ia32",
-            "runtime"
           ]
         },
         {
@@ -3562,40 +3448,57 @@
           "fileset": "fuzzer"
         },
         {
-          "name": "dartfuzz - flags",
+          "name": "dartfuzz - dart2js",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "runtime/tools/dartfuzz/flag_fuzzer.dart"
+            "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
           ],
-          "shards": 50,
+          "shards": 25,
+          "fileset": "fuzzer"
+        },
+        {
+          "name": "dartfuzz - dart2wasm",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
+          ],
+          "shards": 25,
           "fileset": "fuzzer"
         }
       ]
     },
     {
       "builders": [
-        "iso-stress-linux"
+        "iso-stress-linux-x64",
+        "iso-stress-linux-arm64"
       ],
       "meta": {
         "description": "This configuration is used for isolate stress testing."
       },
       "steps": [
         {
-          "name": "Build Dart VM - JIT and AOT",
+          "name": "build dart (debug)",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=debug,release",
-            "--arch=x64",
+            "--mode=debug",
             "runtime",
             "dartaotruntime"
           ]
         },
         {
-          "name": "Build Dart VM - JIT and AOT (Release TSAN)",
+          "name": "build dart (release)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "--arch=x64",
+            "runtime",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "build dart (release tsan)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
             "--sanitizer=tsan",
             "runtime",
             "dartaotruntime"
@@ -3603,19 +3506,19 @@
         },
         {
           "name": "Generate Isolate Stress Test",
-          "script": "out/ReleaseX64/dart",
+          "script": "${build_root}/dart",
           "arguments": [
             "runtime/tests/concurrency/generate_stress_test.dart"
           ]
         },
         {
           "name": "Generate Isolate Stress Test - JIT Dill",
-          "script": "out/ReleaseX64/dart",
+          "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--no-aot",
-            "-Dtest_runner.configuration=vm-linux-release-x64",
+            "-Dtest_runner.configuration=vm-linux-release-${arch}",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
@@ -3623,12 +3526,12 @@
         },
         {
           "name": "Generate Isolate Stress Test - AOT Dill",
-          "script": "out/ReleaseX64/dart",
+          "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=out/ReleaseX64/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--aot",
-            "-Dtest_runner.configuration=vm-aot-linux-release-x64",
+            "-Dtest_runner.configuration=vm-aot-linux-release-${arch}",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
@@ -3638,11 +3541,12 @@
           "name": "Run Isolate Stress Tests",
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
-            "out/ReleaseX64/dart",
+            "${build_root}/dart",
             "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "--arch=${arch}",
             "--copy-coredumps"
           ],
-          "shards": 10,
+          "shards": 4,
           "fileset": "vm"
         }
       ]

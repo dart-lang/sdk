@@ -34,7 +34,7 @@ abstract class _B&A&M = con::A with con::M /*isAnonymousMixin,hasConstConstructo
   const synthetic constructor •({core::double d = 3.14, core::String s = "default"}) → con::_B&A&M
     : super con::A::•(d: d, s: s)
     ;
-  mixin-super-stub method m1() → dynamic
+  synthetic mixin-super-stub method m1() → dynamic
     return super.{con::M::m1}();
 }
 

@@ -79,61 +79,6 @@ library;
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:89:11: Error: The type 'int' of the getter 'ExtensionType11.property' is not a subtype of the type 'String' of the setter 'ExtensionType11.property'.
-//   int get property => 42; /* Error */
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:90:12: Context: This is the declaration of the setter 'ExtensionType11.property'.
-//   void set property(String value) {} /* Error */
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:93:16: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-// extension type ExtensionType12a(ClassLM n) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:98:12: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType12b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:103:12: Error: The type 'bool' of the getter 'ExtensionType12c.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:112:16: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-// extension type ExtensionType13a(ClassLM i) /* Error */
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:117:12: Error: The type 'int' of the inherited getter 'ExtensionTypeL.property' is not a subtype of the type 'bool' of the setter 'ExtensionType13b.property'.
-//   void set property(bool value) {} /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:103:11: Context: This is the declaration of the getter 'ExtensionTypeL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:122:12: Error: The type 'bool' of the getter 'ExtensionType13c.property' is not a subtype of the type 'String' of the inherited setter 'ExtensionTypeM.property'.
-//   bool get property => true; /* Error */
-//            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:107:12: Context: This is the declaration of the setter 'ExtensionTypeM.property'.
-//   void set property(String value) {}
-//            ^^^^^^^^
-//
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:42:16: Error: Extension type 'ExtensionType6a' inherits multiple members named 'method2' with incompatible signatures.
 // Try adding a declaration of 'method2' to 'ExtensionType6a'.
 // extension type ExtensionType6a(ClassF c) /* Error */
@@ -241,13 +186,13 @@ extension type ExtensionType7b(imp::ClassF c) implements imp::ExtensionTypeD /* 
 }
 extension type ExtensionType8a(imp::ClassI c) implements imp::ClassG, imp::ClassH {
   abstract extension-type-member representation-field get c() → imp::ClassI;
-  abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
+  abstract synthetic member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8a|constructor#;
   constructor tearoff • = self::ExtensionType8a|constructor#_#new#tearOff;
 }
 extension type ExtensionType8b(imp::ClassI c) implements imp::ExtensionTypeG /* erasure=imp::ClassG */, imp::ExtensionTypeH /* erasure=imp::ClassH */ {
   abstract extension-type-member representation-field get c() → imp::ClassI;
-  abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
+  abstract synthetic member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8b|constructor#;
   constructor tearoff • = self::ExtensionType8b|constructor#_#new#tearOff;
 }
@@ -255,7 +200,6 @@ extension type ExtensionType9(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   method method4 = self::ExtensionType9|method4;
   method tearoff method4 = self::ExtensionType9|get#method4;
-  set method4 = self::ExtensionType9|set#method4;
   constructor • = self::ExtensionType9|constructor#;
   constructor tearoff • = self::ExtensionType9|constructor#_#new#tearOff;
 }
@@ -372,13 +316,13 @@ static extension-type-member method ExtensionType1a|constructor#(imp::ClassA c) 
   lowered final self::ExtensionType1a /* erasure=imp::ClassA */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType1a|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1a /* erasure=imp::ClassA */
+static extension-type-member synthetic method ExtensionType1a|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1a /* erasure=imp::ClassA */
   return self::ExtensionType1a|constructor#(c);
 static extension-type-member method ExtensionType1b|constructor#(imp::ClassA c) → self::ExtensionType1b /* erasure=imp::ClassA */ {
   lowered final self::ExtensionType1b /* erasure=imp::ClassA */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType1b|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1b /* erasure=imp::ClassA */
+static extension-type-member synthetic method ExtensionType1b|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1b /* erasure=imp::ClassA */
   return self::ExtensionType1b|constructor#(c);
 static extension-type-member method ExtensionType1b|method1(lowered final self::ExtensionType1b /* erasure=imp::ClassA */ #this) → void {}
 static extension-type-member method ExtensionType1b|get#method1(lowered final self::ExtensionType1b /* erasure=imp::ClassA */ #this) → () → void
@@ -387,28 +331,28 @@ static extension-type-member method ExtensionType2a|constructor#(imp::ClassC c) 
   lowered final self::ExtensionType2a /* erasure=imp::ClassC */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType2a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2a /* erasure=imp::ClassC */
+static extension-type-member synthetic method ExtensionType2a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2a /* erasure=imp::ClassC */
   return self::ExtensionType2a|constructor#(c);
+static extension-type-member synthetic method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */
+  return self::ExtensionType2b|constructor#(c);
 static extension-type-member method ExtensionType2b|constructor#(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */ {
   lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* erasure=imp::ClassC */
-  return self::ExtensionType2b|constructor#(c);
-static extension-type-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → void {}
 static extension-type-member method ExtensionType2b|get#method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → () → void
   return () → void => self::ExtensionType2b|method1(#this);
+static extension-type-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* erasure=imp::ClassC */ #this) → void {}
 static extension-type-member method ExtensionType3a|constructor#(imp::ClassC c) → self::ExtensionType3a /* erasure=imp::ClassC */ {
   lowered final self::ExtensionType3a /* erasure=imp::ClassC */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType3a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3a /* erasure=imp::ClassC */
+static extension-type-member synthetic method ExtensionType3a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3a /* erasure=imp::ClassC */
   return self::ExtensionType3a|constructor#(c);
 static extension-type-member method ExtensionType3b|constructor#(imp::ClassC c) → self::ExtensionType3b /* erasure=imp::ClassC */ {
   lowered final self::ExtensionType3b /* erasure=imp::ClassC */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType3b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3b /* erasure=imp::ClassC */
+static extension-type-member synthetic method ExtensionType3b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3b /* erasure=imp::ClassC */
   return self::ExtensionType3b|constructor#(c);
 static extension-type-member method ExtensionType3b|method1(lowered final self::ExtensionType3b /* erasure=imp::ClassC */ #this) → void {}
 static extension-type-member method ExtensionType3b|get#method1(lowered final self::ExtensionType3b /* erasure=imp::ClassC */ #this) → () → void
@@ -417,13 +361,13 @@ static extension-type-member method ExtensionType4a|constructor#(imp::ClassC c) 
   lowered final self::ExtensionType4a% /* erasure=imp::ClassC, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType4a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4a% /* erasure=imp::ClassC, declared=! */
+static extension-type-member synthetic method ExtensionType4a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4a% /* erasure=imp::ClassC, declared=! */
   return self::ExtensionType4a|constructor#(c);
 static extension-type-member method ExtensionType4b|constructor#(imp::ClassC c) → self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */ {
   lowered final self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType4b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */
+static extension-type-member synthetic method ExtensionType4b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */
   return self::ExtensionType4b|constructor#(c);
 static extension-type-member method ExtensionType4b|method1(lowered final self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */ #this) → void {}
 static extension-type-member method ExtensionType4b|get#method1(lowered final self::ExtensionType4b% /* erasure=imp::ClassC, declared=! */ #this) → () → void
@@ -432,34 +376,34 @@ static extension-type-member method ExtensionType5|constructor#(imp::ClassC c) �
   lowered final self::ExtensionType5% /* erasure=imp::ClassC, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType5|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType5% /* erasure=imp::ClassC, declared=! */
+static extension-type-member synthetic method ExtensionType5|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType5% /* erasure=imp::ClassC, declared=! */
   return self::ExtensionType5|constructor#(c);
 static extension-type-member method ExtensionType6a|constructor#(imp::ClassF c) → self::ExtensionType6a /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType6a /* erasure=imp::ClassF */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType6a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6a /* erasure=imp::ClassF */
+static extension-type-member synthetic method ExtensionType6a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6a /* erasure=imp::ClassF */
   return self::ExtensionType6a|constructor#(c);
 static extension-type-member method ExtensionType6b|constructor#(imp::ClassF c) → self::ExtensionType6b /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType6b /* erasure=imp::ClassF */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType6b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6b /* erasure=imp::ClassF */
+static extension-type-member synthetic method ExtensionType6b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6b /* erasure=imp::ClassF */
   return self::ExtensionType6b|constructor#(c);
 static extension-type-member method ExtensionType6b|method2(lowered final self::ExtensionType6b /* erasure=imp::ClassF */ #this) → void {}
 static extension-type-member method ExtensionType6b|get#method2(lowered final self::ExtensionType6b /* erasure=imp::ClassF */ #this) → () → void
   return () → void => self::ExtensionType6b|method2(#this);
-static extension-type-member method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */
-  return self::ExtensionType7a|constructor#(c);
 static extension-type-member method ExtensionType7a|constructor#(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType7a /* erasure=imp::ClassF */ #this = c;
   return #this;
 }
+static extension-type-member synthetic method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* erasure=imp::ClassF */
+  return self::ExtensionType7a|constructor#(c);
 static extension-type-member method ExtensionType7b|constructor#(imp::ClassF c) → self::ExtensionType7b /* erasure=imp::ClassF */ {
   lowered final self::ExtensionType7b /* erasure=imp::ClassF */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType7b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7b /* erasure=imp::ClassF */
+static extension-type-member synthetic method ExtensionType7b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7b /* erasure=imp::ClassF */
   return self::ExtensionType7b|constructor#(c);
 static extension-type-member method ExtensionType7b|method2(lowered final self::ExtensionType7b /* erasure=imp::ClassF */ #this) → void {}
 static extension-type-member method ExtensionType7b|get#method2(lowered final self::ExtensionType7b /* erasure=imp::ClassF */ #this) → () → void
@@ -468,35 +412,34 @@ static extension-type-member method ExtensionType8a|constructor#(imp::ClassI c) 
   lowered final self::ExtensionType8a /* erasure=imp::ClassI */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType8a|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8a /* erasure=imp::ClassI */
+static extension-type-member synthetic method ExtensionType8a|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8a /* erasure=imp::ClassI */
   return self::ExtensionType8a|constructor#(c);
 static extension-type-member method ExtensionType8b|constructor#(imp::ClassI c) → self::ExtensionType8b /* erasure=imp::ClassI */ {
   lowered final self::ExtensionType8b /* erasure=imp::ClassI */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionType8b|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8b /* erasure=imp::ClassI */
+static extension-type-member synthetic method ExtensionType8b|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8b /* erasure=imp::ClassI */
   return self::ExtensionType8b|constructor#(c);
 static extension-type-member method ExtensionType9|constructor#(core::int i) → self::ExtensionType9% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType9|constructor#_#new#tearOff(core::int i) → self::ExtensionType9% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType9|constructor#_#new#tearOff(core::int i) → self::ExtensionType9% /* erasure=core::int, declared=! */
   return self::ExtensionType9|constructor#(i);
 static extension-type-member method ExtensionType9|method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method ExtensionType9|get#method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::ExtensionType9|method4(#this);
-static extension-type-member method ExtensionType9|set#method4(lowered final self::ExtensionType9% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
 static extension-type-member method ExtensionType9a|constructor#(imp::ClassJK n) → self::ExtensionType9a /* erasure=imp::ClassJK */ {
   lowered final self::ExtensionType9a /* erasure=imp::ClassJK */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType9a|constructor#_#new#tearOff(imp::ClassJK n) → self::ExtensionType9a /* erasure=imp::ClassJK */
+static extension-type-member synthetic method ExtensionType9a|constructor#_#new#tearOff(imp::ClassJK n) → self::ExtensionType9a /* erasure=imp::ClassJK */
   return self::ExtensionType9a|constructor#(n);
 static extension-type-member method ExtensionType9b|constructor#(imp::ClassJK n) → self::ExtensionType9b /* erasure=imp::ClassJK */ {
   lowered final self::ExtensionType9b /* erasure=imp::ClassJK */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType9b|constructor#_#new#tearOff(imp::ClassJK n) → self::ExtensionType9b /* erasure=imp::ClassJK */
+static extension-type-member synthetic method ExtensionType9b|constructor#_#new#tearOff(imp::ClassJK n) → self::ExtensionType9b /* erasure=imp::ClassJK */
   return self::ExtensionType9b|constructor#(n);
 static extension-type-member method ExtensionType9b|get#method4(lowered final self::ExtensionType9b /* erasure=imp::ClassJK */ #this) → core::int
   return 42;
@@ -505,13 +448,13 @@ static extension-type-member method ExtensionType10a|constructor#(imp::ClassJK i
   lowered final self::ExtensionType10a% /* erasure=imp::ClassJK, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType10a|constructor#_#new#tearOff(imp::ClassJK i) → self::ExtensionType10a% /* erasure=imp::ClassJK, declared=! */
+static extension-type-member synthetic method ExtensionType10a|constructor#_#new#tearOff(imp::ClassJK i) → self::ExtensionType10a% /* erasure=imp::ClassJK, declared=! */
   return self::ExtensionType10a|constructor#(i);
 static extension-type-member method ExtensionType10b|constructor#(imp::ClassJK i) → self::ExtensionType10b% /* erasure=imp::ClassJK, declared=! */ {
   lowered final self::ExtensionType10b% /* erasure=imp::ClassJK, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType10b|constructor#_#new#tearOff(imp::ClassJK i) → self::ExtensionType10b% /* erasure=imp::ClassJK, declared=! */
+static extension-type-member synthetic method ExtensionType10b|constructor#_#new#tearOff(imp::ClassJK i) → self::ExtensionType10b% /* erasure=imp::ClassJK, declared=! */
   return self::ExtensionType10b|constructor#(i);
 static extension-type-member method ExtensionType10b|get#method4(lowered final self::ExtensionType10b% /* erasure=imp::ClassJK, declared=! */ #this) → core::int
   return 42;
@@ -520,7 +463,7 @@ static extension-type-member method ExtensionType11|constructor#(core::int n) �
   lowered final self::ExtensionType11% /* erasure=core::int, declared=! */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType11|constructor#_#new#tearOff(core::int n) → self::ExtensionType11% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ExtensionType11|constructor#_#new#tearOff(core::int n) → self::ExtensionType11% /* erasure=core::int, declared=! */
   return self::ExtensionType11|constructor#(n);
 static extension-type-member method ExtensionType11|get#property(lowered final self::ExtensionType11% /* erasure=core::int, declared=! */ #this) → core::int
   return 42;
@@ -529,20 +472,20 @@ static extension-type-member method ExtensionType12a|constructor#(imp::ClassLM n
   lowered final self::ExtensionType12a /* erasure=imp::ClassLM */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType12a|constructor#_#new#tearOff(imp::ClassLM n) → self::ExtensionType12a /* erasure=imp::ClassLM */
+static extension-type-member synthetic method ExtensionType12a|constructor#_#new#tearOff(imp::ClassLM n) → self::ExtensionType12a /* erasure=imp::ClassLM */
   return self::ExtensionType12a|constructor#(n);
 static extension-type-member method ExtensionType12b|constructor#(imp::ClassL n) → self::ExtensionType12b /* erasure=imp::ClassL */ {
   lowered final self::ExtensionType12b /* erasure=imp::ClassL */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType12b|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType12b /* erasure=imp::ClassL */
+static extension-type-member synthetic method ExtensionType12b|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType12b /* erasure=imp::ClassL */
   return self::ExtensionType12b|constructor#(n);
 static extension-type-member method ExtensionType12b|set#property(lowered final self::ExtensionType12b /* erasure=imp::ClassL */ #this, core::bool value) → void {}
 static extension-type-member method ExtensionType12c|constructor#(imp::ClassM n) → self::ExtensionType12c /* erasure=imp::ClassM */ {
   lowered final self::ExtensionType12c /* erasure=imp::ClassM */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType12c|constructor#_#new#tearOff(imp::ClassM n) → self::ExtensionType12c /* erasure=imp::ClassM */
+static extension-type-member synthetic method ExtensionType12c|constructor#_#new#tearOff(imp::ClassM n) → self::ExtensionType12c /* erasure=imp::ClassM */
   return self::ExtensionType12c|constructor#(n);
 static extension-type-member method ExtensionType12c|get#property(lowered final self::ExtensionType12c /* erasure=imp::ClassM */ #this) → core::bool
   return true;
@@ -550,7 +493,7 @@ static extension-type-member method ExtensionType12d|constructor#(imp::ClassLM n
   lowered final self::ExtensionType12d /* erasure=imp::ClassLM */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType12d|constructor#_#new#tearOff(imp::ClassLM n) → self::ExtensionType12d /* erasure=imp::ClassLM */
+static extension-type-member synthetic method ExtensionType12d|constructor#_#new#tearOff(imp::ClassLM n) → self::ExtensionType12d /* erasure=imp::ClassLM */
   return self::ExtensionType12d|constructor#(n);
 static extension-type-member method ExtensionType12d|get#property(lowered final self::ExtensionType12d /* erasure=imp::ClassLM */ #this) → core::bool
   return true;
@@ -559,9 +502,9 @@ static extension-type-member method ExtensionType13a|constructor#(imp::ClassLM i
   lowered final self::ExtensionType13a% /* erasure=imp::ClassLM, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType13a|constructor#_#new#tearOff(imp::ClassLM i) → self::ExtensionType13a% /* erasure=imp::ClassLM, declared=! */
+static extension-type-member synthetic method ExtensionType13a|constructor#_#new#tearOff(imp::ClassLM i) → self::ExtensionType13a% /* erasure=imp::ClassLM, declared=! */
   return self::ExtensionType13a|constructor#(i);
-static extension-type-member method ExtensionType13b|constructor#_#new#tearOff(imp::ClassL i) → self::ExtensionType13b% /* erasure=imp::ClassL, declared=! */
+static extension-type-member synthetic method ExtensionType13b|constructor#_#new#tearOff(imp::ClassL i) → self::ExtensionType13b% /* erasure=imp::ClassL, declared=! */
   return self::ExtensionType13b|constructor#(i);
 static extension-type-member method ExtensionType13b|constructor#(imp::ClassL i) → self::ExtensionType13b% /* erasure=imp::ClassL, declared=! */ {
   lowered final self::ExtensionType13b% /* erasure=imp::ClassL, declared=! */ #this = i;
@@ -572,7 +515,7 @@ static extension-type-member method ExtensionType13c|constructor#(imp::ClassM i)
   lowered final self::ExtensionType13c% /* erasure=imp::ClassM, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType13c|constructor#_#new#tearOff(imp::ClassM i) → self::ExtensionType13c% /* erasure=imp::ClassM, declared=! */
+static extension-type-member synthetic method ExtensionType13c|constructor#_#new#tearOff(imp::ClassM i) → self::ExtensionType13c% /* erasure=imp::ClassM, declared=! */
   return self::ExtensionType13c|constructor#(i);
 static extension-type-member method ExtensionType13c|get#property(lowered final self::ExtensionType13c% /* erasure=imp::ClassM, declared=! */ #this) → core::bool
   return true;
@@ -580,7 +523,7 @@ static extension-type-member method ExtensionType13d|constructor#(imp::ClassLM i
   lowered final self::ExtensionType13d% /* erasure=imp::ClassLM, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType13d|constructor#_#new#tearOff(imp::ClassLM i) → self::ExtensionType13d% /* erasure=imp::ClassLM, declared=! */
+static extension-type-member synthetic method ExtensionType13d|constructor#_#new#tearOff(imp::ClassLM i) → self::ExtensionType13d% /* erasure=imp::ClassLM, declared=! */
   return self::ExtensionType13d|constructor#(i);
 static extension-type-member method ExtensionType13d|get#property(lowered final self::ExtensionType13d% /* erasure=imp::ClassLM, declared=! */ #this) → core::bool
   return true;
@@ -589,9 +532,9 @@ static extension-type-member method ExtensionType14a|constructor#(imp::Extension
   lowered final self::ExtensionType14a /* erasure=imp::ClassLN */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType14a|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14a /* erasure=imp::ClassLN */
+static extension-type-member synthetic method ExtensionType14a|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14a /* erasure=imp::ClassLN */
   return self::ExtensionType14a|constructor#(n);
-static extension-type-member method ExtensionType14b|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14b /* erasure=imp::ClassLN */
+static extension-type-member synthetic method ExtensionType14b|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14b /* erasure=imp::ClassLN */
   return self::ExtensionType14b|constructor#(n);
 static extension-type-member method ExtensionType14b|constructor#(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14b /* erasure=imp::ClassLN */ {
   lowered final self::ExtensionType14b /* erasure=imp::ClassLN */ #this = n;
@@ -601,14 +544,14 @@ static extension-type-member method ExtensionType14c|constructor#(imp::ClassL n)
   lowered final self::ExtensionType14c /* erasure=imp::ClassL */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType14c|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType14c /* erasure=imp::ClassL */
+static extension-type-member synthetic method ExtensionType14c|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType14c /* erasure=imp::ClassL */
   return self::ExtensionType14c|constructor#(n);
 static extension-type-member method ExtensionType14c|set#property(lowered final self::ExtensionType14c /* erasure=imp::ClassL */ #this, core::int value) → void {}
 static extension-type-member method ExtensionType14d|constructor#(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14d /* erasure=imp::ClassLN */ {
   lowered final self::ExtensionType14d /* erasure=imp::ClassLN */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType14d|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14d /* erasure=imp::ClassLN */
+static extension-type-member synthetic method ExtensionType14d|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14d /* erasure=imp::ClassLN */
   return self::ExtensionType14d|constructor#(n);
 static extension-type-member method ExtensionType14d|get#property(lowered final self::ExtensionType14d /* erasure=imp::ClassLN */ #this) → core::int
   return 42;
@@ -617,7 +560,7 @@ static extension-type-member method ExtensionType14e|constructor#(imp::Extension
   lowered final self::ExtensionType14e /* erasure=imp::ClassLN */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionType14e|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14e /* erasure=imp::ClassLN */
+static extension-type-member synthetic method ExtensionType14e|constructor#_#new#tearOff(imp::ExtensionTypeLN /* erasure=imp::ClassLN */ n) → self::ExtensionType14e /* erasure=imp::ClassLN */
   return self::ExtensionType14e|constructor#(n);
 static extension-type-member method ExtensionType14e|get#property(lowered final self::ExtensionType14e /* erasure=imp::ClassLN */ #this) → core::int
   return 42;
@@ -723,7 +666,7 @@ abstract class ClassI extends core::Object implements imp::ClassG, imp::ClassH {
   synthetic constructor •() → imp::ClassI
     : super core::Object::•()
     ;
-  abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
+  abstract synthetic member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
 }
 class ClassJ extends core::Object {
   synthetic constructor •() → imp::ClassJ
@@ -862,7 +805,7 @@ static extension-type-member method ExtensionTypeA|constructor#(imp::ClassA c) �
   lowered final imp::ExtensionTypeA% /* erasure=imp::ClassA, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeA|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA% /* erasure=imp::ClassA, declared=! */
+static extension-type-member synthetic method ExtensionTypeA|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA% /* erasure=imp::ClassA, declared=! */
   return imp::ExtensionTypeA|constructor#(c);
 static extension-type-member method ExtensionTypeA|get#method1(lowered final imp::ExtensionTypeA% /* erasure=imp::ClassA, declared=! */ #this) → () → void
   return () → void => imp::ExtensionTypeA|method1(#this);
@@ -873,26 +816,26 @@ static extension-type-member method ExtensionTypeA1|constructor#(imp::ClassA c) 
   lowered final imp::ExtensionTypeA1% /* erasure=imp::ClassA, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeA1|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA1% /* erasure=imp::ClassA, declared=! */
+static extension-type-member synthetic method ExtensionTypeA1|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA1% /* erasure=imp::ClassA, declared=! */
   return imp::ExtensionTypeA1|constructor#(c);
 static extension-type-member method ExtensionTypeA2|constructor#(imp::ClassA c) → imp::ExtensionTypeA2% /* erasure=imp::ClassA, declared=! */ {
   lowered final imp::ExtensionTypeA2% /* erasure=imp::ClassA, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeA2|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA2% /* erasure=imp::ClassA, declared=! */
+static extension-type-member synthetic method ExtensionTypeA2|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA2% /* erasure=imp::ClassA, declared=! */
   return imp::ExtensionTypeA2|constructor#(c);
 static extension-type-member method ExtensionTypeB|constructor#(imp::ClassB c) → imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */ {
   lowered final imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeB|constructor#_#new#tearOff(imp::ClassB c) → imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */
+static extension-type-member synthetic method ExtensionTypeB|constructor#_#new#tearOff(imp::ClassB c) → imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */
   return imp::ExtensionTypeB|constructor#(c);
 static extension-type-member method ExtensionTypeB|method1(lowered final imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */ #this) → void {
   (#this as{Unchecked} imp::ClassB).{imp::ClassB::method1}(){() → void};
 }
 static extension-type-member method ExtensionTypeB|get#method1(lowered final imp::ExtensionTypeB% /* erasure=imp::ClassB, declared=! */ #this) → () → void
   return () → void => imp::ExtensionTypeB|method1(#this);
-static extension-type-member method ExtensionTypeC|constructor#_#new#tearOff(imp::ClassC c) → imp::ExtensionTypeC% /* erasure=imp::ClassC, declared=! */
+static extension-type-member synthetic method ExtensionTypeC|constructor#_#new#tearOff(imp::ClassC c) → imp::ExtensionTypeC% /* erasure=imp::ClassC, declared=! */
   return imp::ExtensionTypeC|constructor#(c);
 static extension-type-member method ExtensionTypeC|constructor#(imp::ClassC c) → imp::ExtensionTypeC% /* erasure=imp::ClassC, declared=! */ {
   lowered final imp::ExtensionTypeC% /* erasure=imp::ClassC, declared=! */ #this = c;
@@ -907,31 +850,31 @@ static extension-type-member method ExtensionTypeD|constructor#(imp::ClassD c) �
   lowered final imp::ExtensionTypeD /* erasure=imp::ClassD */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeD|constructor#_#new#tearOff(imp::ClassD c) → imp::ExtensionTypeD /* erasure=imp::ClassD */
+static extension-type-member synthetic method ExtensionTypeD|constructor#_#new#tearOff(imp::ClassD c) → imp::ExtensionTypeD /* erasure=imp::ClassD */
   return imp::ExtensionTypeD|constructor#(c);
 static extension-type-member method ExtensionTypeE|constructor#(imp::ClassE c) → imp::ExtensionTypeE /* erasure=imp::ClassE */ {
   lowered final imp::ExtensionTypeE /* erasure=imp::ClassE */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeE|constructor#_#new#tearOff(imp::ClassE c) → imp::ExtensionTypeE /* erasure=imp::ClassE */
+static extension-type-member synthetic method ExtensionTypeE|constructor#_#new#tearOff(imp::ClassE c) → imp::ExtensionTypeE /* erasure=imp::ClassE */
   return imp::ExtensionTypeE|constructor#(c);
 static extension-type-member method ExtensionTypeG|constructor#(imp::ClassG c) → imp::ExtensionTypeG /* erasure=imp::ClassG */ {
   lowered final imp::ExtensionTypeG /* erasure=imp::ClassG */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeG|constructor#_#new#tearOff(imp::ClassG c) → imp::ExtensionTypeG /* erasure=imp::ClassG */
+static extension-type-member synthetic method ExtensionTypeG|constructor#_#new#tearOff(imp::ClassG c) → imp::ExtensionTypeG /* erasure=imp::ClassG */
   return imp::ExtensionTypeG|constructor#(c);
 static extension-type-member method ExtensionTypeH|constructor#(imp::ClassH c) → imp::ExtensionTypeH /* erasure=imp::ClassH */ {
   lowered final imp::ExtensionTypeH /* erasure=imp::ClassH */ #this = c;
   return #this;
 }
-static extension-type-member method ExtensionTypeH|constructor#_#new#tearOff(imp::ClassH c) → imp::ExtensionTypeH /* erasure=imp::ClassH */
+static extension-type-member synthetic method ExtensionTypeH|constructor#_#new#tearOff(imp::ClassH c) → imp::ExtensionTypeH /* erasure=imp::ClassH */
   return imp::ExtensionTypeH|constructor#(c);
 static extension-type-member method ExtensionTypeJ|constructor#(imp::ClassJ i) → imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */ {
   lowered final imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionTypeJ|constructor#_#new#tearOff(imp::ClassJ i) → imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */
+static extension-type-member synthetic method ExtensionTypeJ|constructor#_#new#tearOff(imp::ClassJ i) → imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */
   return imp::ExtensionTypeJ|constructor#(i);
 static extension-type-member method ExtensionTypeJ|method4(lowered final imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */ #this) → void {}
 static extension-type-member method ExtensionTypeJ|get#method4(lowered final imp::ExtensionTypeJ% /* erasure=imp::ClassJ, declared=! */ #this) → () → void
@@ -940,14 +883,14 @@ static extension-type-member method ExtensionTypeK|constructor#(imp::ClassK i) �
   lowered final imp::ExtensionTypeK% /* erasure=imp::ClassK, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionTypeK|constructor#_#new#tearOff(imp::ClassK i) → imp::ExtensionTypeK% /* erasure=imp::ClassK, declared=! */
+static extension-type-member synthetic method ExtensionTypeK|constructor#_#new#tearOff(imp::ClassK i) → imp::ExtensionTypeK% /* erasure=imp::ClassK, declared=! */
   return imp::ExtensionTypeK|constructor#(i);
 static extension-type-member method ExtensionTypeK|set#method4(lowered final imp::ExtensionTypeK% /* erasure=imp::ClassK, declared=! */ #this, core::int value) → void {}
 static extension-type-member method ExtensionTypeL|constructor#(imp::ClassL i) → imp::ExtensionTypeL% /* erasure=imp::ClassL, declared=! */ {
   lowered final imp::ExtensionTypeL% /* erasure=imp::ClassL, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionTypeL|constructor#_#new#tearOff(imp::ClassL i) → imp::ExtensionTypeL% /* erasure=imp::ClassL, declared=! */
+static extension-type-member synthetic method ExtensionTypeL|constructor#_#new#tearOff(imp::ClassL i) → imp::ExtensionTypeL% /* erasure=imp::ClassL, declared=! */
   return imp::ExtensionTypeL|constructor#(i);
 static extension-type-member method ExtensionTypeL|get#property(lowered final imp::ExtensionTypeL% /* erasure=imp::ClassL, declared=! */ #this) → core::int
   return 42;
@@ -955,17 +898,17 @@ static extension-type-member method ExtensionTypeM|constructor#(imp::ClassM i) �
   lowered final imp::ExtensionTypeM% /* erasure=imp::ClassM, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionTypeM|constructor#_#new#tearOff(imp::ClassM i) → imp::ExtensionTypeM% /* erasure=imp::ClassM, declared=! */
+static extension-type-member synthetic method ExtensionTypeM|constructor#_#new#tearOff(imp::ClassM i) → imp::ExtensionTypeM% /* erasure=imp::ClassM, declared=! */
   return imp::ExtensionTypeM|constructor#(i);
 static extension-type-member method ExtensionTypeM|set#property(lowered final imp::ExtensionTypeM% /* erasure=imp::ClassM, declared=! */ #this, core::String value) → void {}
 static extension-type-member method ExtensionTypeN|constructor#(imp::ClassN i) → imp::ExtensionTypeN% /* erasure=imp::ClassN, declared=! */ {
   lowered final imp::ExtensionTypeN% /* erasure=imp::ClassN, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionTypeN|constructor#_#new#tearOff(imp::ClassN i) → imp::ExtensionTypeN% /* erasure=imp::ClassN, declared=! */
+static extension-type-member synthetic method ExtensionTypeN|constructor#_#new#tearOff(imp::ClassN i) → imp::ExtensionTypeN% /* erasure=imp::ClassN, declared=! */
   return imp::ExtensionTypeN|constructor#(i);
 static extension-type-member method ExtensionTypeN|set#property(lowered final imp::ExtensionTypeN% /* erasure=imp::ClassN, declared=! */ #this, core::int value) → void {}
-static extension-type-member method ExtensionTypeLN|constructor#_#new#tearOff(imp::ClassLN i) → imp::ExtensionTypeLN /* erasure=imp::ClassLN */
+static extension-type-member synthetic method ExtensionTypeLN|constructor#_#new#tearOff(imp::ClassLN i) → imp::ExtensionTypeLN /* erasure=imp::ClassLN */
   return imp::ExtensionTypeLN|constructor#(i);
 static extension-type-member method ExtensionTypeLN|constructor#(imp::ClassLN i) → imp::ExtensionTypeLN /* erasure=imp::ClassLN */ {
   lowered final imp::ExtensionTypeLN /* erasure=imp::ClassLN */ #this = i;

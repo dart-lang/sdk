@@ -64,8 +64,8 @@ class Anonymous {}
 
 @JS()
 extension type EAnonymous._(Anonymous _) {
-//             ^
-// [web] Extension type 'EAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Anonymous'.
+  //           ^
+  // [web] Extension type 'EAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Anonymous'.
   external EAnonymous();
   //       ^
   // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
@@ -138,8 +138,8 @@ extension on EExtensionType {
 
 @JS()
 extension type ENonInterop._(EObject _) {
-//             ^
-// [web] Extension type 'ENonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'EObject'.
+  //           ^
+  // [web] Extension type 'ENonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'EObject'.
   external ENonInterop();
   //       ^
   // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.

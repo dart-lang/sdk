@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class NewWithNonTypeTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef F = void Function();
 
 void foo() {
   new F();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1)],
+    );
 
     var node = findNode.namedType('F()');
     assertResolvedNodeText(node, r'''
@@ -39,45 +40,48 @@ NamedType
     newFile('$testPackageLibPath/lib.dart', '''
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as lib;
 void f() {
   new lib.A();
 }
 lib.B b = lib.B();
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1)],
+    );
   }
 
   test_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var A = 0;
 void f() {
   new A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1)],
+    );
 
     var node = findNode.namedType('A()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
   type: InvalidType
 ''');
   }
 
   test_local_withTypeArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var A = 0;
 void f() {
   new A<int>();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1)],
+    );
 
     var node = findNode.namedType('A<int>()');
     assertResolvedNodeText(node, r'''
@@ -91,31 +95,33 @@ NamedType
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
   type: InvalidType
 ''');
   }
 
   test_malformed_constructor_call() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C.x();
 }
 main() {
   new C.x.y();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 36, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 36, 3)],
+    );
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>() {
   new T();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1)],
+    );
   }
 }

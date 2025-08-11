@@ -5,7 +5,8 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -66,8 +67,8 @@ class AnalyzerImpl {
   }
 
   void addLibrarySources(
-    LibraryElement2 library,
-    Set<LibraryElement2> libraries,
+    LibraryElement library,
+    Set<LibraryElement> libraries,
     Set<LibraryFragment> units,
   ) {
     if (!libraries.add(library)) {
@@ -83,7 +84,7 @@ class AnalyzerImpl {
       // Add imported libraries.
       var importedLibraries = fragment.libraryImports2;
       for (var child in importedLibraries) {
-        var importedLibrary = child.importedLibrary2;
+        var importedLibrary = child.importedLibrary;
         if (importedLibrary != null) {
           addLibrarySources(importedLibrary, libraries, units);
         }
@@ -91,7 +92,7 @@ class AnalyzerImpl {
       // Add exported libraries.
       var exportedLibraries = fragment.libraryExports2;
       for (var child in exportedLibraries) {
-        var exportedLibrary = child.exportedLibrary2;
+        var exportedLibrary = child.exportedLibrary;
         if (exportedLibrary != null) {
           addLibrarySources(exportedLibrary, libraries, units);
         }
@@ -99,12 +100,14 @@ class AnalyzerImpl {
     }
   }
 
-  /// Treats the [sourcePath] as the top level library and analyzes it using
-  /// the analysis engine. If [printMode] is `0`, then no error or performance
-  /// information is printed. If [printMode] is `1`, then errors will be printed.
-  /// If [printMode] is `2`, then performance information will be printed, and
-  /// it will be marked as being for a cold VM.
-  Future<ErrorSeverity> analyze(
+  /// Treats the [libraryFile] as the top level library and analyzes it using
+  /// the analysis engine.
+  ///
+  /// If [printMode] is `0`, then no diagnostic or performance information is
+  /// printed. If [printMode] is `1`, then diagnostics will be printed. If
+  /// [printMode] is `2`, then performance information will be printed, and it
+  /// will be marked as being for a cold VM.
+  Future<DiagnosticSeverity> analyze(
     ErrorFormatter formatter, {
     int printMode = 1,
   }) async {
@@ -112,15 +115,17 @@ class AnalyzerImpl {
     return await _analyze(printMode, formatter);
   }
 
-  /// Returns the maximal [ErrorSeverity] of the recorded errors.
-  ErrorSeverity computeMaxErrorSeverity() {
-    var status = ErrorSeverity.NONE;
+  /// Returns the maximal [DiagnosticSeverity] of the recorded diagnostics.
+  DiagnosticSeverity computeMaxSeverity() {
+    var status = DiagnosticSeverity.NONE;
     for (var result in errorsResults) {
-      for (var error in result.errors) {
-        if (_defaultSeverityProcessor(error) == null) {
+      for (var diagnostic in result.diagnostics) {
+        if (_defaultSeverityProcessor(diagnostic) == null) {
           continue;
         }
-        status = status.max(computeSeverity(error, options, analysisOptions)!);
+        status = status.max(
+          computeSeverity(diagnostic, options, analysisOptions)!,
+        );
       }
     }
     return status;
@@ -137,9 +142,9 @@ class AnalyzerImpl {
   }
 
   /// Fills [files].
-  void prepareSources(LibraryElement2 library) {
+  void prepareSources(LibraryElement library) {
     var units = <LibraryFragment>{};
-    var libraries = <LibraryElement2>{};
+    var libraries = <LibraryElement>{};
     addLibrarySources(library, libraries, units);
   }
 
@@ -153,7 +158,7 @@ class AnalyzerImpl {
     }
   }
 
-  Future<ErrorSeverity> _analyze(
+  Future<DiagnosticSeverity> _analyze(
     int printMode,
     ErrorFormatter formatter,
   ) async {
@@ -162,7 +167,7 @@ class AnalyzerImpl {
       var libraryPath = libraryFile.path;
       stderr.writeln('Only libraries can be analyzed.');
       stderr.writeln('$libraryPath is a part and cannot be analyzed.');
-      return ErrorSeverity.ERROR;
+      return DiagnosticSeverity.ERROR;
     }
 
     var libraryElement = await _resolveLibrary();
@@ -177,14 +182,14 @@ class AnalyzerImpl {
     }
 
     // Compute and return max severity.
-    return computeMaxErrorSeverity();
+    return computeMaxSeverity();
   }
 
-  ErrorSeverity? _defaultSeverityProcessor(AnalysisError error) =>
-      determineProcessedSeverity(error, options, analysisOptions);
+  DiagnosticSeverity? _defaultSeverityProcessor(Diagnostic diagnostic) =>
+      determineProcessedSeverity(diagnostic, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
-  bool _isAnalyzedLibrary(LibraryElement2 library) {
+  bool _isAnalyzedLibrary(LibraryElement library) {
     var source = library.firstFragment.source;
     if (source.uri.isScheme('dart')) {
       return false;
@@ -218,7 +223,7 @@ class AnalyzerImpl {
     outSink.writeln('total-cold:$totalTime');
   }
 
-  Future<LibraryElement2> _resolveLibrary() async {
+  Future<LibraryElement> _resolveLibrary() async {
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
     var elementResult =

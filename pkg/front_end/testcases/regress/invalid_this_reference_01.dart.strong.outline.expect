@@ -36,7 +36,7 @@ extension type Foo(core::String x) {
 }
 static extension-type-member method Foo|constructor#(core::String x) → self::Foo% /* erasure=core::String, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
   return self::Foo|constructor#(x);
 static abstract extension-type-member method Foo|get#x2(lowered core::String #this) → core::int;
 static abstract extension-type-member method Foo|set#x2(lowered core::String #this, synthesized core::int #externalFieldValue) → void;

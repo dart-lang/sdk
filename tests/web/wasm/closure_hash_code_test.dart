@@ -27,38 +27,74 @@ void main() {
   var genericFunctionExpression = <T>(T t) {};
 
   check(functionExpression, functionExpression, equal: true, isIdentical: true);
-  check(genericFunctionExpression, genericFunctionExpression,
-      equal: true, isIdentical: true);
-  check(genericFunctionExpression<int>, genericFunctionExpression<int>,
-      equal: true, isIdentical: false);
+  check(
+    genericFunctionExpression,
+    genericFunctionExpression,
+    equal: true,
+    isIdentical: true,
+  );
+  check(
+    genericFunctionExpression<int>,
+    genericFunctionExpression<int>,
+    equal: true,
+    isIdentical: false,
+  );
 
   check(() {}, () {}, equal: false, isIdentical: false);
 
   check(staticFunction, staticFunction, equal: true, isIdentical: true);
-  check(genericStaticFunction, genericStaticFunction,
-      equal: true, isIdentical: true);
-  check(genericStaticFunction<int>, genericStaticFunction<int>,
-      equal: true, isIdentical: true);
+  check(
+    genericStaticFunction,
+    genericStaticFunction,
+    equal: true,
+    isIdentical: true,
+  );
+  check(
+    genericStaticFunction<int>,
+    genericStaticFunction<int>,
+    equal: true,
+    isIdentical: true,
+  );
 
   final o1 = C();
 
   check(o1.memberFunction, o1.memberFunction, equal: true, isIdentical: false);
-  check(o1.genericMemberFunction, o1.genericMemberFunction,
-      equal: true, isIdentical: false);
-  check(o1.genericMemberFunction<int>, o1.genericMemberFunction<int>,
-      equal: true, isIdentical: false);
+  check(
+    o1.genericMemberFunction,
+    o1.genericMemberFunction,
+    equal: true,
+    isIdentical: false,
+  );
+  check(
+    o1.genericMemberFunction<int>,
+    o1.genericMemberFunction<int>,
+    equal: true,
+    isIdentical: false,
+  );
 
   final o2 = C();
 
   check(o1.memberFunction, o2.memberFunction, equal: false, isIdentical: false);
-  check(o1.genericMemberFunction, o2.genericMemberFunction,
-      equal: false, isIdentical: false);
-  check(o1.genericMemberFunction<int>, o2.genericMemberFunction<int>,
-      equal: false, isIdentical: false);
+  check(
+    o1.genericMemberFunction,
+    o2.genericMemberFunction,
+    equal: false,
+    isIdentical: false,
+  );
+  check(
+    o1.genericMemberFunction<int>,
+    o2.genericMemberFunction<int>,
+    equal: false,
+    isIdentical: false,
+  );
 }
 
-void check(Object? o1, Object? o2,
-    {required bool equal, required bool isIdentical}) {
+void check(
+  Object? o1,
+  Object? o2, {
+  required bool equal,
+  required bool isIdentical,
+}) {
   (equal ? Expect.equals : Expect.notEquals)(o1, o2);
   (equal ? Expect.equals : Expect.notEquals)(o1.hashCode, o2.hashCode);
 

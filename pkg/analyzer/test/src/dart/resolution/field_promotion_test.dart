@@ -32,7 +32,7 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _field
-    element: <testLibraryFragment>::@class::C::@getter::_field#element
+    element: <testLibrary>::@class::C::@getter::_field
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -61,13 +61,13 @@ MethodInvocation
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
-      element: <testLibraryFragment>::@class::C::@getter::_field#element
+      element: <testLibrary>::@class::C::@getter::_field
       staticType: int
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    element: dart:core::<fragment>::@class::int::@method::toString#element
+    element: dart:core::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -94,7 +94,7 @@ PropertyAccess
   operator: ..
   propertyName: SimpleIdentifier
     token: _field
-    element: <testLibraryFragment>::@class::C::@getter::_field#element
+    element: <testLibrary>::@class::C::@getter::_field
     staticType: Object
   staticType: Object
 ''');
@@ -104,12 +104,12 @@ PropertyAccess
 PropertyAccess
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C?
   operator: ?.
   propertyName: SimpleIdentifier
     token: _field
-    element: <testLibraryFragment>::@class::C::@getter::_field#element
+    element: <testLibrary>::@class::C::@getter::_field
     staticType: Object?
   staticType: Object?
 ''');
@@ -146,14 +146,14 @@ void g(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::g::@parameter::c#element
+    element: <testLibrary>::@function::g::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int?
 ''');
   }
@@ -177,12 +177,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -213,12 +213,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -251,14 +251,14 @@ FunctionExpressionInvocation
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -291,14 +291,14 @@ FunctionExpressionInvocation
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        element: <testLibraryFragment>::@function::f::@parameter::c#element
+        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -332,7 +332,7 @@ class D extends C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -365,7 +365,7 @@ class D extends C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -403,7 +403,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -442,7 +442,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: _foo
-      element: <testLibraryFragment>::@class::C::@getter::_foo#element
+      element: <testLibrary>::@class::C::@getter::_foo
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -472,14 +472,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int?
 ''');
   }
@@ -502,14 +502,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::C::@getter::foo#element
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::foo#element
+  element: <testLibrary>::@class::C::@getter::foo
   staticType: int?
 ''');
   }
@@ -532,14 +532,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
 ''');
   }
@@ -564,14 +564,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int
   staticType: int
 ''');
@@ -603,7 +603,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int
   staticType: int
 ''');
@@ -626,7 +626,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _foo
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
 ''');
   }
@@ -648,14 +648,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
 ''');
   }
@@ -700,14 +700,14 @@ void f(E e) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
-    element: <testLibraryFragment>::@function::f::@parameter::e#element
+    element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@enum::E::@getter::_foo#element
+    element: <testLibrary>::@enum::E::@getter::_foo
     staticType: int
-  element: <testLibraryFragment>::@enum::E::@getter::_foo#element
+  element: <testLibrary>::@enum::E::@getter::_foo
   staticType: int
 ''');
   }
@@ -727,14 +727,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: _it
-    element: <testLibraryFragment>::@extensionType::A::@getter::_it#element
+    element: <testLibrary>::@extensionType::A::@getter::_it
     staticType: int
-  element: <testLibraryFragment>::@extensionType::A::@getter::_it#element
+  element: <testLibrary>::@extensionType::A::@getter::_it
   staticType: int
 ''');
   }
@@ -755,14 +755,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _field
-    element: <testLibraryFragment>::@class::C::@getter::_field#element
+    element: <testLibrary>::@class::C::@getter::_field
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::_field#element
+  element: <testLibrary>::@class::C::@getter::_field
   staticType: int?
 ''');
   }
@@ -805,14 +805,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
 ''');
   }
@@ -854,14 +854,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int?
 ''');
   }
@@ -887,14 +887,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: c
-      element: <testLibraryFragment>::@function::f::@parameter::c#element
+      element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
   staticType: int?
 ''');
@@ -927,14 +927,14 @@ void f(C c) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   period: .
   identifier: SimpleIdentifier
     token: _foo
-    element: <testLibraryFragment>::@class::C::@getter::_foo#element
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int?
-  element: <testLibraryFragment>::@class::C::@getter::_foo#element
+  element: <testLibrary>::@class::C::@getter::_foo
   staticType: int?
 ''');
   }
@@ -969,7 +969,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _i
-        element: <testLibraryFragment>::@class::C::@getter::_i#element
+        element: <testLibrary>::@class::C::@getter::_i
         staticType: int
       semicolon: ;
     ExpressionStatement
@@ -980,7 +980,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _i
-          element: <testLibraryFragment>::@class::B::@getter::_i#element
+          element: <testLibrary>::@class::B::@getter::_i
           staticType: int?
         staticType: int?
       semicolon: ;
@@ -994,7 +994,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _i
-        element: <testLibraryFragment>::@class::C::@getter::_i#element
+        element: <testLibrary>::@class::C::@getter::_i
         staticType: int?
       semicolon: ;
     ExpressionStatement
@@ -1005,7 +1005,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _i
-          element: <testLibraryFragment>::@class::B::@getter::_i#element
+          element: <testLibrary>::@class::B::@getter::_i
           staticType: int
         staticType: int
       semicolon: ;
@@ -1043,7 +1043,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: <testLibraryFragment>::@class::C::@getter::_t#element
+        element: <testLibrary>::@class::C::@getter::_t
         staticType: T
       semicolon: ;
     ExpressionStatement
@@ -1055,7 +1055,7 @@ Block
         propertyName: SimpleIdentifier
           token: _t
           element: GetterMember
-            baseElement: <testLibraryFragment>::@class::B::@getter::_t#element
+            baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
           staticType: T?
         staticType: T?
@@ -1070,7 +1070,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: <testLibraryFragment>::@class::C::@getter::_t#element
+        element: <testLibrary>::@class::C::@getter::_t
         staticType: T?
       semicolon: ;
     ExpressionStatement
@@ -1082,7 +1082,7 @@ Block
         propertyName: SimpleIdentifier
           token: _t
           element: GetterMember
-            baseElement: <testLibraryFragment>::@class::B::@getter::_t#element
+            baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
           staticType: T
         staticType: T
@@ -1122,7 +1122,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibraryFragment>::@class::C::@getter::_f#element
+          element: <testLibrary>::@class::C::@getter::_f
           staticType: int Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1140,7 +1140,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            element: <testLibraryFragment>::@class::B::@getter::_f#element
+            element: <testLibrary>::@class::B::@getter::_f
             staticType: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
@@ -1161,7 +1161,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibraryFragment>::@class::C::@getter::_f#element
+          element: <testLibrary>::@class::C::@getter::_f
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1179,7 +1179,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            element: <testLibraryFragment>::@class::B::@getter::_f#element
+            element: <testLibrary>::@class::B::@getter::_f
             staticType: int Function()
           staticType: int Function()
         argumentList: ArgumentList
@@ -1224,7 +1224,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibraryFragment>::@class::C::@getter::_f#element
+          element: <testLibrary>::@class::C::@getter::_f
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1243,7 +1243,7 @@ Block
           propertyName: SimpleIdentifier
             token: _f
             element: GetterMember
-              baseElement: <testLibraryFragment>::@class::B::@getter::_f#element
+              baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
             staticType: T? Function()
           staticType: T? Function()
@@ -1265,7 +1265,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibraryFragment>::@class::C::@getter::_f#element
+          element: <testLibrary>::@class::C::@getter::_f
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1284,7 +1284,7 @@ Block
           propertyName: SimpleIdentifier
             token: _f
             element: GetterMember
-              baseElement: <testLibraryFragment>::@class::B::@getter::_f#element
+              baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
             staticType: T Function()
           staticType: T Function()

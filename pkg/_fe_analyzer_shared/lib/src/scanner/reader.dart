@@ -72,8 +72,8 @@ class CharSequenceReader implements CharacterReader {
    * [_sequence].
    */
   CharSequenceReader(this._sequence)
-      : _stringLength = _sequence.length,
-        _charOffset = 0;
+    : _stringLength = _sequence.length,
+      _charOffset = 0;
 
   @override
   int get offset => _charOffset - 1;

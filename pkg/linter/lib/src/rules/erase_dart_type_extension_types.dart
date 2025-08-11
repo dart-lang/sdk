@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -16,17 +19,15 @@ class EraseDartTypeExtensionTypes extends LintRule {
     : super(
         name: LintNames.erase_dart_type_extension_types,
         description: _desc,
-        state: const State.internal(),
+        state: const RuleState.internal(),
       );
 
   @override
-  LintCode get lintCode => LinterLintCode.erase_dart_type_extension_types;
+  DiagnosticCode get diagnosticCode =>
+      LinterLintCode.erase_dart_type_extension_types;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addIsExpression(this, visitor);
   }
@@ -34,7 +35,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -42,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   visitIsExpression(IsExpression node) {
     var type = node.type.type;
     if (type != null && type.implementsInterface('DartType', 'kernel.ast')) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

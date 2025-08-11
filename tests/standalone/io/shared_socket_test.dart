@@ -13,8 +13,10 @@ void main() async {
   final mainServer = await HttpServer.bind('::1', 0, shared: true);
   final sharedPort = mainServer.port;
 
-  final workers =
-      List<ServerWorker>.generate(4, (i) => ServerWorker(i, sharedPort));
+  final workers = List<ServerWorker>.generate(
+    4,
+    (i) => ServerWorker(i, sharedPort),
+  );
   await Future.wait(workers.map((w) => w.start()));
   mainServer.close();
 
@@ -48,8 +50,12 @@ class ServerWorker {
       if (respawn) start();
     });
     final ready = ReceivePort();
-    _isolate = await Isolate.spawn(_main, [workerid, port, ready.sendPort],
-        errorsAreFatal: true, onExit: onExit.sendPort);
+    _isolate = await Isolate.spawn(
+      _main,
+      [workerid, port, ready.sendPort],
+      errorsAreFatal: true,
+      onExit: onExit.sendPort,
+    );
     await ready.first;
     if (workerid == 0) terminate();
   }

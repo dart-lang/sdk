@@ -56,19 +56,21 @@ class Box {
   final int _value;
 
   @pragma('vm:never-inline')
-  Box(
-      {int days = 0,
-      int hours = 0,
-      int minutes = 0,
-      int seconds = 0,
-      int milliseconds = 0,
-      int microseconds = 0})
-      : this._microseconds(1000 * 1000 * 60 * 60 * 24 * days +
-            1000 * 1000 * 60 * 60 * hours +
-            1000 * 1000 * 60 * minutes +
-            1000 * 1000 * seconds +
-            1000 * milliseconds +
-            microseconds);
+  Box({
+    int days = 0,
+    int hours = 0,
+    int minutes = 0,
+    int seconds = 0,
+    int milliseconds = 0,
+    int microseconds = 0,
+  }) : this._microseconds(
+         1000 * 1000 * 60 * 60 * 24 * days +
+             1000 * 1000 * 60 * 60 * hours +
+             1000 * 1000 * 60 * minutes +
+             1000 * 1000 * seconds +
+             1000 * milliseconds +
+             microseconds,
+       );
 
   Box._microseconds(this._value);
 

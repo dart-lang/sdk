@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class AbstractFieldInitializerTest extends PubPackageResolutionTest {
   test_abstract_field_final_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract final int x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 40, 1)],
+    );
   }
 
   test_abstract_field_final_no_initializer() async {
@@ -34,13 +35,14 @@ abstract class A {
   }
 
   test_abstract_field_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 34, 1)],
+    );
   }
 
   test_abstract_field_no_initializer() async {

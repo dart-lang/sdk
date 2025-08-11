@@ -12,13 +12,12 @@ import "package:expect/expect.dart";
 void main() {
   asyncStart();
   Process.run(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add('--verbosity=warning')
-            ..add(
-                Platform.script.resolve('print_sync_script.dart').toFilePath()))
-      .then((out) {
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add(Platform.script.resolve('print_sync_script.dart').toFilePath()),
+  ).then((out) {
     asyncEnd();
     Expect.equals(1002, out.stdout.split('\n').length);
   });

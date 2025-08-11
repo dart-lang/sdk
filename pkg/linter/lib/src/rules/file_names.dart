@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/ascii_utils.dart';
@@ -14,13 +16,10 @@ class FileNames extends LintRule {
   FileNames() : super(name: LintNames.file_names, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.file_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.file_names;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -35,9 +34,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
-      var fileName = element.library2.firstFragment.source.shortName;
+      var fileName = element.library.firstFragment.source.shortName;
       if (!isValidDartFileName(fileName)) {
-        rule.reportLintForOffset(0, 0, arguments: [fileName]);
+        rule.reportAtOffset(0, 0, arguments: [fileName]);
       }
     }
   }

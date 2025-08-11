@@ -14,11 +14,13 @@ class RuntimeMirrorsReader extends MirrorsReader {
   final MirrorSystem mirrorSystem;
   final String mirrorSystemType;
 
-  RuntimeMirrorsReader(MirrorSystem mirrorSystem,
-      {bool verbose = false, bool includeStackTrace = false})
-      : this.mirrorSystem = mirrorSystem,
-        this.mirrorSystemType = '${mirrorSystem.runtimeType}',
-        super(verbose: verbose, includeStackTrace: includeStackTrace);
+  RuntimeMirrorsReader(
+    MirrorSystem mirrorSystem, {
+    bool verbose = false,
+    bool includeStackTrace = false,
+  }) : this.mirrorSystem = mirrorSystem,
+       this.mirrorSystemType = '${mirrorSystem.runtimeType}',
+       super(verbose: verbose, includeStackTrace: includeStackTrace);
 
   visitLibraryMirror(LibraryMirror mirror) {
     super.visitLibraryMirror(mirror);
@@ -46,7 +48,10 @@ class RuntimeMirrorsReader extends MirrorsReader {
   }
 
   bool expectUnsupported(
-      var receiver, String tag, UnsupportedError? exception) {
+    var receiver,
+    String tag,
+    UnsupportedError? exception,
+  ) {
     // [DeclarationMirror.location] is intentionally not supported in runtime
     // mirrors.
 
@@ -64,8 +69,10 @@ class RuntimeMirrorsReader extends MirrorsReader {
 
 void main([List<String> arguments = const <String>[]]) {
   MirrorSystem mirrors = currentMirrorSystem();
-  MirrorsReader reader = new RuntimeMirrorsReader(mirrors,
-      verbose: arguments.contains('-v'),
-      includeStackTrace: arguments.contains('-s'));
+  MirrorsReader reader = new RuntimeMirrorsReader(
+    mirrors,
+    verbose: arguments.contains('-v'),
+    includeStackTrace: arguments.contains('-s'),
+  );
   reader.checkMirrorSystem(mirrors);
 }

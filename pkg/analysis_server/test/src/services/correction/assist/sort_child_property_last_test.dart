@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
+  AssistKind get kind => DartAssistKind.sortChildPropertyLast;
 
   @override
   void setUp() {
@@ -32,7 +32,7 @@ import 'package:flutter/material.dart';
 void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
-    children: <Widget>[
+    c^hildren: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -48,7 +48,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    children: <Widget>[
+    childr^en: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -64,7 +64,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
+    cro^ssAxisAlignment: CrossAxisAlignment.center,
   );
 }
 ''');

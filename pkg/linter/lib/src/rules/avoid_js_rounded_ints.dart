@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 
@@ -14,13 +16,10 @@ class AvoidJsRoundedInts extends LintRule {
     : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
-  LintCode get lintCode => LinterLintCode.avoid_js_rounded_ints;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_js_rounded_ints;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addIntegerLiteral(this, visitor);
   }
@@ -35,7 +34,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     if (isRounded(node.value)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

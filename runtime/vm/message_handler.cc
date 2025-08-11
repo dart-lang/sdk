@@ -248,7 +248,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     }
 
     // Remember time since the last message. Don't consider OOB messages so
-    // using Observatory doesn't trigger additional idle tasks.
+    // interacting with the VM service doesn't trigger additional idle tasks.
     if ((FLAG_idle_timeout_micros != 0) &&
         (saved_priority == Message::kNormalPriority)) {
       if (idle_time_handler != nullptr) {
@@ -452,14 +452,14 @@ void MessageHandler::TaskCallback() {
         if (FLAG_trace_service_pause_events) {
           OS::PrintErr(
               "Isolate %s paused before exiting. "
-              "Use the Observatory to release it.\n",
+              "Use Dart DevTools to release it.\n",
               name());
         }
         remembered_paused_on_exit_status_ = status;
         PausedOnExitLocked(&ml, true);
         // More messages may have come in while we released the monitor.
         status = HandleMessages(&ml, /*allow_normal_messages=*/false,
-                                /*allow_multiple_normal_messagesfalse=*/false);
+                                /*allow_multiple_normal_messages=*/false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());

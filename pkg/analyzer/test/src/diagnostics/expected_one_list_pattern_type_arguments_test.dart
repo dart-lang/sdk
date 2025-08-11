@@ -24,13 +24,19 @@ void f(x) {
   }
 
   test_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   if (x case <int, int>[0]) {}
 }
-''', [
-      error(CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS, 25,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
+          25,
+          10,
+        ),
+      ],
+    );
   }
 }

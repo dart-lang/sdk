@@ -21,7 +21,12 @@ main() {
   ClassMirror cm = reflectClass(C);
 
   // N.B.: Does not include #implementMe.
-  Expect.setEquals([#hashCode, #runtimeType, #==, #noSuchMethod, #toString],
-      selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  Expect.setEquals([
+    #hashCode,
+    #runtimeType,
+    #==,
+    #noSuchMethod,
+    #toString,
+  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 }

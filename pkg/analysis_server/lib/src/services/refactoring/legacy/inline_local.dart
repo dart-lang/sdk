@@ -12,9 +12,9 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -41,7 +41,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   String? get variableName {
-    return _initialState?.element.name3;
+    return _initialState?.element.name;
   }
 
   @override
@@ -52,16 +52,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // prepare variable
-    Element2? element;
-    var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
+    var offsetNode = resolveResult.unit.nodeCovering(offset: offset);
     if (offsetNode is SimpleIdentifier) {
       element = offsetNode.element;
     } else if (offsetNode is VariableDeclaration) {
       element = offsetNode.declaredFragment?.element;
     }
 
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return _noLocalVariableStatus();
     }
 
@@ -179,15 +178,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a variable that can be inlined.
   RefactoringStatus _checkOffset() {
-    Element2? element;
-    var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
+    var offsetNode = resolveResult.unit.nodeCovering(offset: offset);
     if (offsetNode is SimpleIdentifier) {
       element = offsetNode.element;
     } else if (offsetNode is VariableDeclaration) {
       element = offsetNode.declaredFragment?.element;
     }
 
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return _noLocalVariableStatus();
     }
 
@@ -237,6 +236,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       return false;
     }
 
+    switch (parent) {
+      case RecordLiteral():
+      case ListLiteral():
+      case SetOrMapLiteral():
+        return false;
+      default:
+        break;
+    }
+
     // check precedence
     var initPrecedence = getExpressionPrecedence(init);
     if (initPrecedence < getExpressionParentPrecedence(node)) {
@@ -258,7 +266,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 }
 
 class _InitialState {
-  final LocalVariableElement2 element;
+  final LocalVariableElement element;
   final VariableDeclaration node;
   final Expression initializer;
   final VariableDeclarationStatement declarationStatement;

@@ -168,8 +168,6 @@ import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
-import 'declaration_named_augmented_inside_augmentation_test.dart'
-    as declaration_named_augmented_inside_augmentation;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -432,6 +430,8 @@ import 'invalid_annotation_from_deferred_library_test.dart'
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
+import 'invalid_await_not_required_annotation_test.dart'
+    as await_not_required_annotation;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
@@ -502,6 +502,10 @@ import 'invalid_visible_for_overriding_annotation_test.dart'
     as invalid_visible_for_overriding_annotation;
 import 'invalid_visible_outside_template_annotation_test.dart'
     as invalid_visible_outside_template_annotation;
+import 'invalid_widget_preview_application_test.dart'
+    as invalid_widget_preview_application;
+import 'invalid_widget_preview_private_argument_test.dart'
+    as invalid_widget_preview_private_argument;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -686,6 +690,7 @@ import 'nullable_type_in_implements_clause_test.dart'
     as nullable_type_in_implements_clause;
 import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
+import 'number_literals_with_separators_test.dart' as number_literals_with_separators;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
 import 'obsolete_colon_for_default_value_test.dart'
@@ -1046,7 +1051,6 @@ main() {
     creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
-    declaration_named_augmented_inside_augmentation.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
@@ -1209,6 +1213,7 @@ main() {
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
     invalid_assignment.main();
+    await_not_required_annotation.main();
     invalid_constant.main();
     invalid_constructor_name.main();
     invalid_do_not_submit.main();
@@ -1254,6 +1259,8 @@ main() {
     invalid_visibility_annotation.main();
     invalid_visible_for_overriding_annotation.main();
     invalid_visible_outside_template_annotation.main();
+    invalid_widget_preview_application.main();
+    invalid_widget_preview_private_argument.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();
@@ -1376,6 +1383,7 @@ main() {
     nullable_type_in_implements_clause.main();
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
+    number_literals_with_separators.main();
     object_cannot_extend_another_class.main();
     obsolete_colon_for_default_value.main();
     on_repeated.main();

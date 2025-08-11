@@ -27,8 +27,10 @@ f() {
 }
 ''');
     await resolveTestFile();
-    expect(result.errors[0].errorCode,
-        CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
+    expect(
+      result.diagnostics[0].diagnosticCode,
+      CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42850')
@@ -42,7 +44,9 @@ f() {
 }
 ''');
     await resolveTestFile();
-    expect(result.errors[0].errorCode,
-        CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
+    expect(
+      result.diagnostics[0].diagnosticCode,
+      CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+    );
   }
 }
